@@ -1,0 +1,26 @@
+# Garage Client
+
+## TODO
+
+ - Smarter upload process 
+
+## Developing
+
+Getting started:
+
+    mkdir build
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    make
+    tools/garage-push --help
+
+Generate tags
+
+    make tags
+
+Before commiting, run the pre-commit checks:
+
+    CTEST_OUTPUT_ON_FAILURE=1 make qa
+
+This will reformat all the code with clang-format and run clang-check and the test suite. 
+
+vim: set tabstop=4 shiftwidth=4 expandtab:
