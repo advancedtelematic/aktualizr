@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(sota-client)
 
+# When building inside Yocto, provide the option to disable -Werror, otherwise
+# new compiler warnings will break the build.  Don't set to OFF in development!
+option(WARNING_AS_ERROR "Treat warnings as errors" ON)
+
 # clang-check and clang-format
 find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6 clang-format-3.5 clang-format-3.4)
 find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
@@ -16,16 +20,20 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 
 find_package(OpenSSL REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
         add_definitions(-fstack-protector-all)
         # Enable maximum of Warnings :
-        add_definitions(-Wall -Wextra -Wswitch-default -Wswitch-enum -Winit-self -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Winline)
+        add_definitions(-Wall -Wextra -Wswitch-default -Wswitch-enum -Winit-self -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op)
         if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
             add_definitions (-Wfloat-conversion)
             add_definitions (-Wshadow)
         endif ()
+
+	if(WARNING_AS_ERROR)
+            add_definitions (-Werror)
+	endif()
 endif()
 
 # QA virtual target
