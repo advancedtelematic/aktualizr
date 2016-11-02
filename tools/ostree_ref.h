@@ -2,14 +2,16 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_REF_H_
 
 #include <boost/filesystem.hpp>
+#include <boost/noncopyable.hpp>
 #include <curl/curl.h>
 #include <sstream>
 
+#include "ostree_repo.h"
 #include "treehub_server.h"
 
-class OSTreeRef {
+class OSTreeRef : private boost::noncopyable {
  public:
-  OSTreeRef(const std::string repo_root, const std::string ref_name);
+  OSTreeRef(const OSTreeRepo& root, const std::string ref_name);
 
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 

@@ -23,4 +23,19 @@ Before commiting, run the pre-commit checks:
 
 This will reformat all the code with clang-format and run clang-check and the test suite. 
 
-vim: set tabstop=4 shiftwidth=4 expandtab:
+## Dockerfile
+
+A Dockerfile is provided to check that the list of package dependencies is
+up-to-date.  For day-to-day development it is recommended to build
+`garage-push` in your native environment.
+
+To build inside docker:
+
+    docker build -t garage-tools-build .
+    docker run -ti -v $PWD:/src garage-tools-build
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Debug /src
+    make qa
+
+// vim: set tabstop=4 shiftwidth=4 expandtab:

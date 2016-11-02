@@ -6,8 +6,11 @@ project(sota-client)
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 
 # clang-check and clang-format
-find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6 clang-format-3.5 clang-format-3.4)
+find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6)
 find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
+
+# pandoc (optional) for test rendering of README.adoc
+find_program(PANDOC NAMES pandoc)
 
 # Boost
 find_package(Boost REQUIRED program_options filesystem system)
@@ -16,9 +19,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Curl
 find_package(CURL)
 include_directories(${CURL_INCLUDE_DIRS})
-include_directories(${OPENSSL_INCLUDE_DIR})
-
-find_package(OpenSSL REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
@@ -56,3 +56,16 @@ add_custom_target(tags
     COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q tools
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+
+if(PANDOC)
+    # Test render README.adoc
+    add_custom_command(
+        OUTPUT README.html
+        COMMAND ${PANDOC} -o README.html --self-contained -t html5 ${CMAKE_SOURCE_DIR}/README.adoc
+        DEPENDS README.adoc
+        VERBATIM)
+    add_custom_target(readme DEPENDS README.html)
+    add_dependencies(qa readme)
+endif() # PANDOC
+
+# vim: set tabstop=4 shiftwidth=4 expandtab:

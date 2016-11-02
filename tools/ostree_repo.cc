@@ -37,7 +37,4 @@ void OSTreeRepo::FindAllObjects(std::list<OSTreeObject::ptr>* objects) const {
   }
 }
 
-OSTreeRef OSTreeRepo::Ref(const string& refname) const {
-  return OSTreeRef(root_, refname);
-}
 // vim: set tabstop=2 shiftwidth=2 expandtab:

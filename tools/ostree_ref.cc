@@ -11,8 +11,9 @@ using std::cout;
 using std::stringstream;
 using std::ifstream;
 
-OSTreeRef::OSTreeRef(const string repo_root, const string ref_name)
-    : file_path_(repo_root + "/refs/heads/" + ref_name), ref_name_(ref_name) {}
+OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string ref_name)
+    : file_path_(repo.root() + "/refs/heads/" + ref_name),
+      ref_name_(ref_name) {}
 
 void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
   assert(IsValid());

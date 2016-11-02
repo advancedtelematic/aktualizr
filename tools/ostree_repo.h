@@ -5,16 +5,15 @@
 #include <list>
 
 #include "ostree_object.h"
-#include "ostree_ref.h"
 
 class OSTreeRepo : private boost::noncopyable {
  public:
-  OSTreeRepo(std::string root) : root_(root) {}
+  OSTreeRepo(std::string root_path) : root_(root_path) {}
 
   bool LooksValid() const;
   void FindAllObjects(std::list<OSTreeObject::ptr>* objects) const;
 
-  OSTreeRef Ref(const std::string& refname) const;
+  std::string root() const { return root_; }
 
  private:
   std::string root_;

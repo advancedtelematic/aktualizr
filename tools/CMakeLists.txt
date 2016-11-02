@@ -7,8 +7,8 @@ set (GARAGE_PUSH_SRCS
   treehub_server.cc)
 
 add_executable(garage-push ${GARAGE_PUSH_SRCS})
-target_link_libraries(garage-push ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
-set_property(TARGET garage-push PROPERTY CXX_STANDARD 11)
+target_link_libraries(garage-push ${CURL_LIBRARIES} ${Boost_LIBRARIES})
+# set_property(TARGET garage-push PROPERTY CXX_STANDARD 11)
 
 set (ALL_SRCS
   ${GARAGE_PUSH_SRCS})
@@ -24,11 +24,16 @@ set(ALL_HEADERS
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(CLANG_FORMAT)
 add_custom_target(format-tools
     COMMAND ${CLANG_FORMAT} -i -style Google ${ALL_SRCS} ${ALL_HEADERS}
     WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running clang-format"
     VERBATIM)
+add_dependencies(qa format-tools)
+else()
+    message(WARNING "clang-format not found, skipping")
+endif()
 
 add_custom_target(check-tools
     COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${ALL_SRCS}
@@ -36,7 +41,7 @@ add_custom_target(check-tools
     COMMENT "Running clang-check"
     VERBATIM)
 
-add_dependencies(qa format-tools check-tools garage-push)
+add_dependencies(qa check-tools garage-push)
 
 # Check the --help option works
 add_test(NAME option-help

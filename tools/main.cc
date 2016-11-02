@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  OSTreeRef ostree_ref(repo.Ref(ref));
+  OSTreeRef ostree_ref(repo, ref);
 
   if (!ostree_ref.IsValid()) {
     cout << "Ref " << ref << " was not found in repository " << repo_path
