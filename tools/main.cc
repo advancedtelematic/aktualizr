@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
   po::options_description desc("Allowed options");
   // clang-format off
-  desc.add_options() 
+  desc.add_options()
     ("help", "produce a help message")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
@@ -81,16 +81,24 @@ int main(int argc, char **argv) {
 
   int curl_requests_running = 0;
 
-  for (; !work_queue.empty() && curl_requests_running < kMaxCurlRequests;
-       curl_requests_running++) {
-    OSTreeObject::ptr n = work_queue.front();
-    work_queue.pop_front();
-    n->MakeTestRequest(push_target, multi);
-  }
-
   int present_already = 0;
   int uploaded = 0;
+
+  // Main curl event loop.
+  // Invariants:
+  // curl_requests_running is the number of in-flight curl requests
+  // jobs are either in work_queue or represented curl_requests_running
+
   do {
+    // Start new requests up to the kMaxCurlRequests limit
+    while (curl_requests_running < kMaxCurlRequests && !work_queue.empty()) {
+      OSTreeObject::ptr h = work_queue.front();
+      work_queue.pop_front();
+      h->MakeTestRequest(push_target, multi);
+      curl_requests_running++;
+    }
+
+    // Poll for IO
     fd_set fdread, fdwrite, fdexcept;
     int maxfd = 0;
     FD_ZERO(&fdread);
@@ -105,6 +113,7 @@ int main(int argc, char **argv) {
     select(maxfd + 1, &fdread, &fdwrite, &fdexcept,
            timeoutms == -1 ? NULL : &timeout);
 
+    // Ask curl to handle IO
     CURLMcode mc = curl_multi_perform(multi, &curl_requests_running);
 
     if (mc != CURLM_OK) {
@@ -112,6 +121,7 @@ int main(int argc, char **argv) {
       break;
     }
 
+    // Deal with any completed requests
     int msgs_in_queue;
     do {
       CURLMsg *msg = curl_multi_info_read(multi, &msgs_in_queue);
@@ -136,12 +146,6 @@ int main(int argc, char **argv) {
       }
     } while (msgs_in_queue > 0);
 
-    while (curl_requests_running < kMaxCurlRequests && !work_queue.empty()) {
-      OSTreeObject::ptr h = work_queue.front();
-      work_queue.pop_front();
-      h->MakeTestRequest(push_target, multi);
-      curl_requests_running++;
-    }
   } while (curl_requests_running > 0 || !work_queue.empty());
 
   cout << "Uploaded " << uploaded << " objects\n";

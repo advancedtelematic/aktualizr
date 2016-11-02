@@ -1,0 +1,2 @@
+grep -n '\s$' $@
+test $? -eq 1

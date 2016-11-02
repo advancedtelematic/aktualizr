@@ -2,7 +2,7 @@
 
 ## TODO
 
- - Smarter upload process 
+ - Smarter upload process
 
 ## Developing
 
@@ -21,7 +21,7 @@ Before commiting, run the pre-commit checks:
 
     CTEST_OUTPUT_ON_FAILURE=1 make qa
 
-This will reformat all the code with clang-format and run clang-check and the test suite. 
+This will reformat all the code with clang-format and run clang-check and the test suite.
 
 ## Dockerfile
 
