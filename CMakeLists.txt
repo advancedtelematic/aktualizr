@@ -41,6 +41,8 @@ add_custom_target(qa)
 
 enable_testing()
 
+# Cause garage push to be in build rather than build/tools
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 add_subdirectory(tools)
 
 # Generate config.h from config.h.in
