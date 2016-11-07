@@ -3,6 +3,7 @@
 ## TODO
 
  - Smarter upload process
+ - Handle trailing slash on URLs correctly
 
 ## Developing
 
@@ -23,6 +24,8 @@ Before commiting, run the pre-commit checks:
     CTEST_OUTPUT_ON_FAILURE=1 make qa
 
 This will reformat all the code with clang-format and run clang-check and the test suite.
+Please follow the https://google.github.io/styleguide/cppguide.html[Google C++ Style Guide] coding standard.
+
 
 ## Dockerfile
 

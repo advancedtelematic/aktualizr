@@ -1,0 +1,2 @@
+$1 --ref master --repo t/repo --user phil --client-id $2 --client-secret bad-secret --auth-server https://auth-plus.gw.prod01.advancedtelematic.com -n
+test $? -eq 1
