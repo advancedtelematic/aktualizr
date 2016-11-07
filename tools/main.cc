@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
     ("user,u", po::value<string>(&push_target.username)->required(), "Username")
     ("password", po::value<string>(&push_target.password) ->default_value(kPassword), "Password")
-    ("url", po::value<string>(&push_target.root_url)->default_value(kBaseUrl), "Treehub URL");
+    ("url", po::value<string>(&push_target.root_url)->default_value(kBaseUrl), "Treehub URL")
+    ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
   // clang-format on
 
   po::variables_map vm;
@@ -76,6 +77,10 @@ int main(int argc, char **argv) {
 
   cout << "Found " << work_queue.size() << " objects\n";
 
+  if (vm.count("dry-run")) {
+    cout << "Dry run. Exiting.\n";
+    return EXIT_SUCCESS;
+  }
   curl_global_init(CURL_GLOBAL_DEFAULT);
   CURLM *multi = curl_multi_init();
 
@@ -88,6 +93,7 @@ int main(int argc, char **argv) {
   // Invariants:
   // curl_requests_running is the number of in-flight curl requests
   // jobs are either in work_queue or represented curl_requests_running
+  int errors = 0;
 
   do {
     // Start new requests up to the kMaxCurlRequests limit
@@ -118,6 +124,7 @@ int main(int argc, char **argv) {
 
     if (mc != CURLM_OK) {
       std::cerr << "curl_multi failed with error" << mc << "\n";
+      errors++;
       break;
     }
 
@@ -141,6 +148,7 @@ int main(int argc, char **argv) {
           case OBJECT_BREAKS_SERVER:
           default:
             cout << "Surprise state:" << h->is_on_server() << "\n";
+            errors++;
             break;
         }
       }
@@ -158,7 +166,15 @@ int main(int argc, char **argv) {
   CURLcode err = curl_easy_perform(easy_handle);
   if (err) {
     cout << "Error pushing root ref:" << curl_easy_strerror(err) << "\n";
+    errors++;
   }
   curl_easy_cleanup(easy_handle);
+
+  if (errors) {
+    std::cerr << "One or more errors while pushing\n";
+    return EXIT_FAILURE;
+  } else {
+    return EXIT_SUCCESS;
+  }
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

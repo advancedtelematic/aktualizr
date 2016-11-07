@@ -66,6 +66,10 @@ add_test(NAME no-whitespace
   COMMAND t/test-no-whitespace ${ALL_SRCS} ${ALL_HEADERS}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_test(NAME dry-run
+  COMMAND t/test-dry-run $<TARGET_FILE:garage-push>
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
