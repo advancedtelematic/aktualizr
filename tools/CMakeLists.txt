@@ -72,4 +72,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
   DEPENDS garage-push)
 
 add_dependencies(qa check)
+
+install(TARGETS garage-push DESTINATION /usr/bin)
+
 # vim: set tabstop=2 shiftwidth=2 expandtab:
