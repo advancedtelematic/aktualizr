@@ -94,12 +94,11 @@ int main(int argc, char **argv) {
   // curl_requests_running is the number of in-flight curl requests
   // jobs are either in work_queue or represented curl_requests_running
   int errors = 0;
-  int fatal = 0;
 
   do {
     // Start new requests up to the kMaxCurlRequests limit, don't launch
-    //   a new request if a fatal error already occured
-    while (!fatal &&
+    //   a new request if an error already occured
+    while (!errors &&
            (curl_requests_running < kMaxCurlRequests && !work_queue.empty())) {
       OSTreeObject::ptr h = work_queue.front();
       work_queue.pop_front();
@@ -152,13 +151,12 @@ int main(int argc, char **argv) {
           default:
             cout << "Surprise state:" << h->is_on_server() << "\n";
             errors++;
-            fatal++;
             break;
         }
       }
     } while (msgs_in_queue > 0);
 
-  } while (curl_requests_running > 0 || (!fatal && !work_queue.empty()));
+  } while (curl_requests_running > 0 || (!errors && !work_queue.empty()));
 
   cout << "Uploaded " << uploaded << " objects\n";
   curl_multi_cleanup(multi);
@@ -174,7 +172,7 @@ int main(int argc, char **argv) {
   }
   curl_easy_cleanup(easy_handle);
 
-  if (fatal || errors) {
+  if (errors) {
     std::cerr << "One or more errors while pushing\n";
     return EXIT_FAILURE;
   } else {
