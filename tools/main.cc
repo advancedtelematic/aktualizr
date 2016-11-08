@@ -170,6 +170,13 @@ int main(int argc, char **argv) {
     cout << "Error pushing root ref:" << curl_easy_strerror(err) << "\n";
     errors++;
   }
+  long rescode;
+  curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+  if (rescode != 200) {
+    cout << "Error pushing root ref, got " << rescode << " HTTP response\n";
+    errors++;
+  }
+
   curl_easy_cleanup(easy_handle);
 
   if (errors) {
