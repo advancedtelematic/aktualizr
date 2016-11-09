@@ -6,10 +6,24 @@
 
 class TreehubServer {
  public:
+  TreehubServer();
+  void SetToken(const std::string &authentication_token);
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle) const;
+
   std::string root_url;
   std::string username;
   std::string password;
+
+ private:
+  bool using_auth_plus;
+  struct curl_slist auth_header_;
+  // Don't modify auth_header_contents_ without updating the pointer in
+  // auth_header_
+  std::string auth_header_contents_;
+  struct curl_slist force_header_;
+  // Don't modify force_header_contents_ without updating the pointer in
+  // force_header_
+  std::string force_header_contents_;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

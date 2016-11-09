@@ -3,9 +3,11 @@
 #include <curl/curl.h>
 #include <iostream>
 
+#include "auth_plus.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
+#include "treehub_server.h"
 
 namespace po = boost::program_options;
 using std::cout;
@@ -18,6 +20,7 @@ const int kMaxCurlRequests = 30;
 const string kBaseUrl =
     "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
+const string kAuthPlusUrl = "";
 
 int main(int argc, char **argv) {
   cout << "Garage push\n";
@@ -25,6 +28,10 @@ int main(int argc, char **argv) {
   string repo_path;
   string ref;
   TreehubServer push_target;
+
+  string auth_plus_server;
+  string client_id;
+  string client_secret;
 
   po::options_description desc("Allowed options");
   // clang-format off
@@ -35,6 +42,9 @@ int main(int argc, char **argv) {
     ("user,u", po::value<string>(&push_target.username)->required(), "Username")
     ("password", po::value<string>(&push_target.password) ->default_value(kPassword), "Password")
     ("url", po::value<string>(&push_target.root_url)->default_value(kBaseUrl), "Treehub URL")
+    ("auth-server", po::value<string>(&auth_plus_server), "Auth+ Server")
+    ("client-id", po::value<string>(&client_id), "Client ID")
+    ("client-secret", po::value<string>(&client_secret), "Client Secret")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
   // clang-format on
 
@@ -71,6 +81,22 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  // Authenticate with Auth+
+  AuthPlus auth_plus(auth_plus_server, client_id, client_secret);
+
+  if (client_id != "") {
+    if (auth_plus.Authenticate() != AUTHENTICATION_SUCCESS) {
+      std::cerr << "Authentication with Auth+ failed\n";
+      return EXIT_FAILURE;
+    } else {
+      cout << "Using Auth+ authentication token\n";
+      push_target.SetToken(auth_plus.token());
+    }
+  } else {
+    cout << "Skipping Authentication\n";
+  }
+
+  // Upload to Treehub
   list<OSTreeObject::ptr> work_queue;
 
   repo.FindAllObjects(&work_queue);

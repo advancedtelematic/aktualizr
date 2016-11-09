@@ -5,6 +5,11 @@ project(sota-client)
 # new compiler warnings will break the build.  Don't set to OFF in development!
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 
+# The tests can optionally test authentication against Auth+. To do this they
+# require a client id & secret. Specify credentials here to enable these tests
+set(AUTH_PLUS_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
+set(AUTH_PLUS_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
+
 # clang-check and clang-format
 find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6)
 find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
