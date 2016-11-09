@@ -8,6 +8,7 @@
 #include "ostree_ref.h"
 #include "ostree_repo.h"
 #include "treehub_server.h"
+#include "request_pool.h"
 
 namespace po = boost::program_options;
 using std::cout;
@@ -21,6 +22,36 @@ const string kBaseUrl =
     "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 const string kAuthPlusUrl = "";
+
+int present_already = 0;
+int uploaded = 0;
+int errors = 0;
+
+void queried_ev(RequestPool& p, OSTreeObject::ptr h) {
+  switch(h->is_on_server()) {
+    case OBJECT_MISSING:
+      p.add_upload(h);
+      break;
+    case OBJECT_PRESENT:
+      present_already++;
+      break;
+    default:
+      std::cerr << "Surprise state:" << h->is_on_server() << "\n";
+      p.abort();
+      errors++;
+      break;
+  }
+}
+
+void uploaded_ev(RequestPool& p, OSTreeObject::ptr h) {
+  if(h->is_on_server() == OBJECT_PRESENT)
+    uploaded++;
+  else {
+    std::cerr << "Surprise state:" << h->is_on_server() << "\n";
+    p.abort();
+    errors++;
+  }
+}
 
 int main(int argc, char **argv) {
   cout << "Garage push\n";
@@ -107,86 +138,33 @@ int main(int argc, char **argv) {
     cout << "Dry run. Exiting.\n";
     return EXIT_SUCCESS;
   }
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  CURLM *multi = curl_multi_init();
 
-  int curl_requests_running = 0;
+  RequestPool request_pool(push_target, 15);
 
-  int present_already = 0;
-  int uploaded = 0;
 
   // Main curl event loop.
   // Invariants:
   // curl_requests_running is the number of in-flight curl requests
   // jobs are either in work_queue or represented curl_requests_running
-  int errors = 0;
+
+  // Move queued data to the request pool
+  while(!work_queue.empty()) {
+    request_pool.add_query(work_queue.front());
+    work_queue.pop_front();
+  }
+
+  request_pool.on_query(queried_ev);
+  request_pool.on_upload(uploaded_ev);
 
   do {
     // Start new requests up to the kMaxCurlRequests limit, don't launch
     //   a new request if an error already occured
-    while (!errors &&
-           (curl_requests_running < kMaxCurlRequests && !work_queue.empty())) {
-      OSTreeObject::ptr h = work_queue.front();
-      work_queue.pop_front();
-      h->MakeTestRequest(push_target, multi);
-      curl_requests_running++;
-    }
-
-    // Poll for IO
-    fd_set fdread, fdwrite, fdexcept;
-    int maxfd = 0;
-    FD_ZERO(&fdread);
-    FD_ZERO(&fdwrite);
-    FD_ZERO(&fdexcept);
-    long timeoutms = 0;
-    curl_multi_timeout(multi, &timeoutms);
-    struct timeval timeout;
-    timeout.tv_sec = timeoutms / 1000;
-    timeout.tv_usec = 1000 * (timeoutms % 1000);
-    curl_multi_fdset(multi, &fdread, &fdwrite, &fdexcept, &maxfd);
-    select(maxfd + 1, &fdread, &fdwrite, &fdexcept,
-           timeoutms == -1 ? NULL : &timeout);
-
-    // Ask curl to handle IO
-    CURLMcode mc = curl_multi_perform(multi, &curl_requests_running);
-
-    if (mc != CURLM_OK) {
-      std::cerr << "curl_multi failed with error" << mc << "\n";
-      errors++;
-      break;
-    }
-
-    // Deal with any completed requests
-    int msgs_in_queue;
-    do {
-      CURLMsg *msg = curl_multi_info_read(multi, &msgs_in_queue);
-      if (msg && msg->msg == CURLMSG_DONE) {
-        OSTreeObject::ptr h = ostree_object_from_curl(msg->easy_handle);
-        h->CurlDone(multi);
-        switch (h->is_on_server()) {
-          case OBJECT_MISSING:
-            h->Upload(push_target, multi);
-            curl_requests_running++;
-            uploaded++;
-            break;
-          case OBJECT_PRESENT:
-            present_already++;
-            break;
-          case OBJECT_STATE_UNKNOWN:
-          case OBJECT_BREAKS_SERVER:
-          default:
-            cout << "Surprise state:" << h->is_on_server() << "\n";
-            errors++;
-            break;
-        }
-      }
-    } while (msgs_in_queue > 0);
-
-  } while (curl_requests_running > 0 || (!errors && !work_queue.empty()));
+    request_pool.loop(); 
+    
+  } while (!request_pool.is_idle());
 
   cout << "Uploaded " << uploaded << " objects\n";
-  curl_multi_cleanup(multi);
-
+  cout << "Already present " << present_already << " objects\n";
   // Push ref
 
   CURL *easy_handle = curl_easy_init();

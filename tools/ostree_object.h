@@ -29,6 +29,7 @@ class OSTreeObject : private boost::noncopyable {
   ~OSTreeObject();
 
   PresenceOnServer is_on_server() const { return is_on_server_; }
+  CurrentOp operation() const { return current_operation_; }
 
   void CurlDone(CURLM* curl_multi_handle);
 
