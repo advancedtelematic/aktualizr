@@ -13,6 +13,7 @@ RequestPool::~RequestPool() {
   while (!is_idle()) loop_listen();
 
   curl_multi_cleanup(multi_);
+  curl_global_cleanup();
 }
 
 void RequestPool::loop_launch() {
