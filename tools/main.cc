@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  RequestPool request_pool(push_target, 15);
+  RequestPool request_pool(push_target, kMaxCurlRequests);
 
   // Main curl event loop.
   // Invariants:
