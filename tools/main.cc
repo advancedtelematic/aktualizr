@@ -27,8 +27,8 @@ int present_already = 0;
 int uploaded = 0;
 int errors = 0;
 
-void queried_ev(RequestPool& p, OSTreeObject::ptr h) {
-  switch(h->is_on_server()) {
+void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
+  switch (h->is_on_server()) {
     case OBJECT_MISSING:
       p.add_upload(h);
       break;
@@ -43,8 +43,8 @@ void queried_ev(RequestPool& p, OSTreeObject::ptr h) {
   }
 }
 
-void uploaded_ev(RequestPool& p, OSTreeObject::ptr h) {
-  if(h->is_on_server() == OBJECT_PRESENT)
+void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
+  if (h->is_on_server() == OBJECT_PRESENT)
     uploaded++;
   else {
     std::cerr << "Surprise state:" << h->is_on_server() << "\n";
@@ -141,14 +141,13 @@ int main(int argc, char **argv) {
 
   RequestPool request_pool(push_target, 15);
 
-
   // Main curl event loop.
   // Invariants:
   // curl_requests_running is the number of in-flight curl requests
   // jobs are either in work_queue or represented curl_requests_running
 
   // Move queued data to the request pool
-  while(!work_queue.empty()) {
+  while (!work_queue.empty()) {
     request_pool.add_query(work_queue.front());
     work_queue.pop_front();
   }
@@ -159,8 +158,8 @@ int main(int argc, char **argv) {
   do {
     // Start new requests up to the kMaxCurlRequests limit, don't launch
     //   a new request if an error already occured
-    request_pool.loop(); 
-    
+    request_pool.loop();
+
   } while (!request_pool.is_idle());
 
   cout << "Uploaded " << uploaded << " objects\n";

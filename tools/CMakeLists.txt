@@ -5,8 +5,9 @@ set (GARAGE_PUSH_SRCS
   ostree_ref.cc
   ostree_repo.cc
   ostree_object.cc
+  request_pool.cc
   treehub_server.cc
-  request_pool.cc)
+)
 
 add_executable(garage-push ${GARAGE_PUSH_SRCS})
 target_link_libraries(garage-push ${CURL_LIBRARIES} ${Boost_LIBRARIES})
@@ -21,8 +22,8 @@ set(ALL_HEADERS
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
-  treehub_server.h
   request_pool.h
+  treehub_server.h
 )
 
 # Export compile_commands.json for clang-check
