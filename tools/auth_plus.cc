@@ -60,7 +60,7 @@ AuthenticationResult AuthPlus::Authenticate() {
   }
   curl_easy_cleanup(curl_handle);
 
-  cout << "GOT TOKEN\n" << token_ << "\n";
+  // cout << "GOT TOKEN\n" << token_ << "\n";
   return res;
 }
 
