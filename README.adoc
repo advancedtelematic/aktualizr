@@ -11,6 +11,7 @@ Getting started:
 
     sudo apt-get install build-essential cmake g++ libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libcurl4-gnutls-dev clang clang-format-3.6 ninja-build
     mkdir build
+    cd build
     cmake -DCMAKE_BUILD_TYPE=Debug ..
     make
     ./garage-push --help
