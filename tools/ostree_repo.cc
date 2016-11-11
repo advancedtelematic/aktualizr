@@ -1,6 +1,9 @@
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 #include "ostree_repo.h"
 
@@ -29,12 +32,37 @@ void OSTreeRepo::FindAllObjects(std::list<OSTreeObject::ptr>* objects) const {
       for (fs::directory_iterator d2(d1->path()); d2 != end_itr; ++d2) {
         if (fs::is_regular_file(d2->status())) {
           fs::path fn2 = fn / d2->path().filename();
-          OSTreeObject::ptr obj(new OSTreeObject(root_, fn2.native()));
+          OSTreeObject::ptr obj(new OSTreeObject(*this, fn2.native()));
           objects->push_back(obj);
         }
       }
     }
   }
+}
+
+std::string OSTreeRepo::hash_to_str(const uint8_t* sha256) const {
+  std::stringstream str_str;
+  str_str.fill('0');
+
+  // sha256 hash is always 256 bits = 32 bytes long
+  for (int i = 0; i < 32; i++)
+    str_str << std::setw(2) << std::hex << (unsigned short)sha256[i];
+  return str_str.str();
+}
+
+OSTreeObject::ptr OSTreeRepo::GetObject(const uint8_t* sha256) const {
+  assert(sha256 != NULL);
+  std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
+  std::string objpath = hash_to_str(sha256).insert(2, 1, '/');
+
+  BOOST_FOREACH (std::string ext, exts) {
+    if (fs::is_regular_file(root_ + "/objects/" + objpath + ext)) {
+      OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
+      return obj;
+    }
+  }
+
+  return NULL;
 }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

@@ -10,6 +10,8 @@ option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 set(AUTH_PLUS_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
 set(AUTH_PLUS_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
+
 # clang-check and clang-format
 find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6)
 find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
@@ -24,6 +26,10 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Curl
 find_package(CURL)
 include_directories(${CURL_INCLUDE_DIRS})
+
+# Glib
+find_package(GLIB2)
+include_directories(${GLIB2_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 

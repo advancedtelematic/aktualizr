@@ -16,6 +16,7 @@ class RequestPool {
     upload_queue_.push_back(request);
   }
   void abort() {
+    stopped_ = true;
     query_queue_.clear();
     upload_queue_.clear();
   };
@@ -23,6 +24,7 @@ class RequestPool {
     return query_queue_.empty() && upload_queue_.empty() &&
            running_requests_ == 0;
   }
+  bool is_stopped() { return stopped_; }
   void loop();  // one iteration of request-listen loop, launches up to
                 // max_requests_ requests, then listens for the result
   void on_query(requestCallBack cb) { query_cb_ = cb; }
@@ -37,6 +39,7 @@ class RequestPool {
   std::list<OSTreeObject::ptr> upload_queue_;
   requestCallBack query_cb_;
   requestCallBack upload_cb_;
+  bool stopped_;
 
   void loop_launch();  // launches up to max_requests_ requests from the queues
   void loop_listen();  // listens to the result of launched requests

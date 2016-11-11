@@ -12,11 +12,13 @@ class OSTreeRepo : private boost::noncopyable {
 
   bool LooksValid() const;
   void FindAllObjects(std::list<OSTreeObject::ptr>* objects) const;
+  OSTreeObject::ptr GetObject(const uint8_t* sha256) const;
 
-  std::string root() const { return root_; }
+  const std::string root() const { return root_; }
 
  private:
-  std::string root_;
+  const std::string root_;
+  std::string hash_to_str(const uint8_t* sha256) const;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

@@ -2,6 +2,7 @@
 #include <boost/program_options.hpp>
 #include <curl/curl.h>
 #include <iostream>
+#include <iomanip>
 
 #include "auth_plus.h"
 #include "ostree_object.h"
@@ -30,11 +31,18 @@ int errors = 0;
 void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   switch (h->is_on_server()) {
     case OBJECT_MISSING:
-      p.add_upload(h);
+      h->populate_children();
+      if (h->children_ready())
+        p.add_upload(h);
+      else
+        h->query_children(p);
       break;
+
     case OBJECT_PRESENT:
       present_already++;
+      h->notify_parent(p);
       break;
+
     default:
       std::cerr << "Surprise state:" << h->is_on_server() << "\n";
       p.abort();
@@ -44,9 +52,10 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
 }
 
 void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
-  if (h->is_on_server() == OBJECT_PRESENT)
+  if (h->is_on_server() == OBJECT_PRESENT) {
     uploaded++;
-  else {
+    h->notify_parent(p);
+  } else {
     std::cerr << "Surprise state:" << h->is_on_server() << "\n";
     p.abort();
     errors++;
@@ -112,6 +121,17 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  uint8_t root_sha256[32];
+  ostree_ref.GetHash(root_sha256);
+
+  OSTreeObject::ptr root_object = repo.GetObject(root_sha256);
+
+  if (!root_object) {
+    cout << "Commit pointed to by " << ref << " was not found in repository "
+         << repo_path << "\n";
+    return EXIT_FAILURE;
+  }
+
   // Authenticate with Auth+
   AuthPlus auth_plus(auth_plus_server, client_id, client_secret);
 
@@ -127,13 +147,6 @@ int main(int argc, char **argv) {
     cout << "Skipping Authentication\n";
   }
 
-  // Upload to Treehub
-  list<OSTreeObject::ptr> work_queue;
-
-  repo.FindAllObjects(&work_queue);
-
-  cout << "Found " << work_queue.size() << " objects\n";
-
   if (vm.count("dry-run")) {
     cout << "Dry run. Exiting.\n";
     return EXIT_SUCCESS;
@@ -141,26 +154,23 @@ int main(int argc, char **argv) {
 
   RequestPool request_pool(push_target, kMaxCurlRequests);
 
-  // Main curl event loop.
-  // Invariants:
-  // curl_requests_running is the number of in-flight curl requests
-  // jobs are either in work_queue or represented curl_requests_running
+  // Add commit object to the queue
+  request_pool.add_query(root_object);
 
-  // Move queued data to the request pool
-  while (!work_queue.empty()) {
-    request_pool.add_query(work_queue.front());
-    work_queue.pop_front();
-  }
-
+  // Set callbacks
   request_pool.on_query(queried_ev);
   request_pool.on_upload(uploaded_ev);
 
-  do {
-    // Start new requests up to the kMaxCurlRequests limit, don't launch
-    //   a new request if an error already occured
-    request_pool.loop();
+  // Main curl event loop.
+  // request_pool takes care of holding number of outstanding requests below
+  // kMaxCurlRequests
+  // Callbacks (queried_ev and uploaded_ev) add new requests to the pool and
+  // stop the pool on error
 
-  } while (!request_pool.is_idle());
+  do {
+    request_pool.loop();
+  } while (root_object->is_on_server() != OBJECT_PRESENT &&
+           !request_pool.is_stopped());
 
   cout << "Uploaded " << uploaded << " objects\n";
   cout << "Already present " << present_already << " objects\n";

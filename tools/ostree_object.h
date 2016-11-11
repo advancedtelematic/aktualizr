@@ -9,6 +9,9 @@
 
 #include "treehub_server.h"
 
+class OSTreeRepo;
+class RequestPool;
+
 enum PresenceOnServer {
   OBJECT_STATE_UNKNOWN,
   OBJECT_PRESENT,
@@ -24,7 +27,7 @@ enum CurrentOp {
 class OSTreeObject : private boost::noncopyable {
  public:
   typedef boost::intrusive_ptr<OSTreeObject> ptr;
-  OSTreeObject(const std::string repo_root, const std::string object_name);
+  OSTreeObject(const OSTreeRepo& repo, const std::string object_name);
 
   ~OSTreeObject();
 
@@ -38,10 +41,19 @@ class OSTreeObject : private boost::noncopyable {
 
   void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
+  void set_parent(OSTreeObject* parent,
+                  std::list<OSTreeObject::ptr>::iterator parent_it);
+  bool children_ready() { return children_.empty(); }
+  void populate_children();
+  void query_children(RequestPool& pool);
+  void notify_parent(RequestPool& pool);
+  void child_notify(std::list<OSTreeObject::ptr>::iterator child_it);
+
  private:
   std::string Url() const;
   const boost::filesystem::path file_path_;  // Full path to the object
   const std::string object_name_;            // OSTree name of the object
+  const OSTreeRepo& repo_;
   int refcount_;  // refcounts and intrusive_ptr are used to simplify
                   // interaction with curl
   PresenceOnServer is_on_server_;
@@ -56,6 +68,11 @@ class OSTreeObject : private boost::noncopyable {
 
   friend void intrusive_ptr_add_ref(OSTreeObject*);
   friend void intrusive_ptr_release(OSTreeObject*);
+
+  OSTreeObject* parent_;
+  std::list<OSTreeObject::ptr> children_;
+  std::list<OSTreeObject::ptr>::iterator parent_it_;
+  void append_child(OSTreeObject::ptr child);
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);

@@ -1,21 +1,143 @@
 #include "ostree_object.h"
+#include "ostree_repo.h"
+#include "request_pool.h"
 
+#include <glib.h>
 #include <assert.h>
 #include <iostream>
+#include <boost/foreach.hpp>
 
 using std::cout;
 using std::string;
 
-OSTreeObject::OSTreeObject(const std::string repo_root,
+OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
                            const std::string object_name)
-    : file_path_(repo_root + "/objects/" + object_name),
+    : file_path_(repo.root() + "/objects/" + object_name),
       object_name_(object_name),
+      repo_(repo),
       refcount_(0),
       is_on_server_(OBJECT_STATE_UNKNOWN),
       http_response_(),
       curl_handle_(0),
-      form_post_(0) {
+      form_post_(0),
+      parent_(NULL) {
   assert(boost::filesystem::is_regular_file(file_path_));
+}
+
+void OSTreeObject::set_parent(
+    OSTreeObject *parent, std::list<OSTreeObject::ptr>::iterator parent_it) {
+  parent_ = parent;
+  parent_it_ = parent_it;
+}
+
+void OSTreeObject::child_notify(
+    std::list<OSTreeObject::ptr>::iterator child_it) {
+  children_.erase(child_it);
+}
+
+void OSTreeObject::notify_parent(RequestPool &pool) {
+  if (parent_) {
+    parent_->child_notify(parent_it_);
+    if (parent_->children_ready()) pool.add_upload(parent_);
+  }
+}
+void OSTreeObject::append_child(OSTreeObject::ptr child) {
+  children_.push_back(child);
+  std::list<OSTreeObject::ptr>::iterator last = children_.end();
+  last--;
+  child->set_parent(this, last);
+}
+
+void OSTreeObject::populate_children() {
+  const boost::filesystem::path ext = file_path_.extension();
+  const GVariantType *content_type;
+  bool is_commit;
+
+  // variant types are borrowed from libostree/ostree_core.h,
+  // but we don't want to create dependency on it
+  if (ext.compare(".commit") == 0) {
+    content_type = G_VARIANT_TYPE("(a{sv}aya(say)sstayay)");
+    is_commit = true;
+  } else if (ext.compare(".dirtree") == 0) {
+    content_type = G_VARIANT_TYPE("(a(say)a(sayay))");
+    is_commit = false;
+  } else
+    return;
+
+  GError *gerror = NULL;
+  GMappedFile *mfile = g_mapped_file_new(file_path_.c_str(), FALSE, &gerror);
+
+  if (!mfile)
+    throw new std::runtime_error("Failed to map metadata file " +
+                                 file_path_.native());
+
+  g_autoptr(GVariant) contents =
+      g_variant_new_from_data(content_type, g_mapped_file_get_contents(mfile),
+                              g_mapped_file_get_length(mfile), TRUE,
+                              (GDestroyNotify)g_mapped_file_unref, mfile);
+  g_variant_ref_sink(contents);
+
+  if (is_commit) {
+    g_autoptr(GVariant) content_csum_variant = NULL;
+    g_variant_get_child(contents, 6, "@ay", &content_csum_variant);
+
+    gsize n_elts;
+    const uint8_t *csum = static_cast<const uint8_t *>(
+        g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
+    assert(n_elts == 32);
+    append_child(repo_.GetObject(csum));
+
+    g_autoptr(GVariant) meta_csum_variant = NULL;
+
+    g_variant_get_child(contents, 7, "@ay", &meta_csum_variant);
+    csum = static_cast<const uint8_t *>(
+        g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
+    assert(n_elts == 32);
+    append_child(repo_.GetObject(csum));
+  } else {
+    g_autoptr(GVariant) files_variant = NULL;
+    g_autoptr(GVariant) dirs_variant = NULL;
+
+    files_variant = g_variant_get_child_value(contents, 0);
+    dirs_variant = g_variant_get_child_value(contents, 1);
+
+    gsize nfiles = g_variant_n_children(files_variant);
+    gsize ndirs = g_variant_n_children(dirs_variant);
+
+    for (gsize i = 0; i < nfiles; i++) {
+      g_autoptr(GVariant) csum_variant = NULL;
+      const char *fname = NULL;
+
+      g_variant_get_child(files_variant, i, "(&s@ay)", &fname, &csum_variant);
+      gsize n_elts;
+      const uint8_t *csum = static_cast<const uint8_t *>(
+          g_variant_get_fixed_array(csum_variant, &n_elts, 1));
+      assert(n_elts == 32);
+      append_child(repo_.GetObject(csum));
+    }
+
+    for (gsize i = 0; i < ndirs; i++) {
+      g_autoptr(GVariant) content_csum_variant = NULL;
+      g_autoptr(GVariant) meta_csum_variant = NULL;
+      const char *fname = NULL;
+      g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname,
+                          &content_csum_variant, &meta_csum_variant);
+      gsize n_elts;
+      const uint8_t *csum = static_cast<const uint8_t *>(
+          g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
+      assert(n_elts == 32);
+      append_child(repo_.GetObject(csum));
+
+      csum = static_cast<const uint8_t *>(
+          g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
+      assert(n_elts == 32);
+      append_child(repo_.GetObject(csum));
+    }
+  }
+}
+
+void OSTreeObject::query_children(RequestPool &pool) {
+  BOOST_FOREACH (OSTreeObject::ptr child, children_) { pool.add_query(child); }
 }
 
 string OSTreeObject::Url() const { return "objects/" + object_name_; }

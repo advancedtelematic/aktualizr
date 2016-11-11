@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <iomanip>
 
 using std::string;
 using std::cout;
@@ -51,6 +52,22 @@ string OSTreeRef::RefContent() const {
   }
 
   return res;
+}
+
+void OSTreeRef::GetHash(uint8_t *sha256) {
+  std::istringstream refstr(RefContent());
+
+  // sha256 is always 256 bits == 32 bytes long
+  for (int i = 0; i < 32; i++) {
+    char byte_string[3];
+    byte_string[2] = 0;
+    unsigned long byte_holder;
+
+    refstr.read(byte_string, 2);
+    byte_holder = strtoul(byte_string, NULL, 16);
+
+    sha256[i] = byte_holder & 0xFF;
+  }
 }
 
 size_t OSTreeRef::curl_handle_write(void *buffer, size_t size, size_t nmemb,

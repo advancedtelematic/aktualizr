@@ -2,7 +2,10 @@
 #include <exception>
 
 RequestPool::RequestPool(const TreehubServer& server, int max_requests)
-    : max_requests_(max_requests), running_requests_(0), server_(server) {
+    : max_requests_(max_requests),
+      running_requests_(0),
+      server_(server),
+      stopped_(false) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_ = curl_multi_init();
 }

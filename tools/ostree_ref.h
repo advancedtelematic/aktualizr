@@ -15,6 +15,8 @@ class OSTreeRef : private boost::noncopyable {
 
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 
+  void GetHash(uint8_t* sha256);
+
   bool IsValid() const;
 
  private:
