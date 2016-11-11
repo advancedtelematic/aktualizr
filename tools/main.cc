@@ -176,22 +176,25 @@ int main(int argc, char **argv) {
   cout << "Already present " << present_already << " objects\n";
   // Push ref
 
-  CURL *easy_handle = curl_easy_init();
-  curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
-  ostree_ref.PushRef(push_target, easy_handle);
-  CURLcode err = curl_easy_perform(easy_handle);
-  if (err) {
-    cout << "Error pushing root ref:" << curl_easy_strerror(err) << "\n";
-    errors++;
+  if (root_object->is_on_server() == OBJECT_PRESENT) {
+    CURL *easy_handle = curl_easy_init();
+    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
+    ostree_ref.PushRef(push_target, easy_handle);
+    CURLcode err = curl_easy_perform(easy_handle);
+    if (err) {
+      cout << "Error pushing root ref:" << curl_easy_strerror(err) << "\n";
+      errors++;
+    }
+    long rescode;
+    curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+    if (rescode != 200) {
+      cout << "Error pushing root ref, got " << rescode << " HTTP response\n";
+      errors++;
+    }
+    curl_easy_cleanup(easy_handle);
+  } else {
+    std::cerr << "Uploading failed\n";
   }
-  long rescode;
-  curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
-  if (rescode != 200) {
-    cout << "Error pushing root ref, got " << rescode << " HTTP response\n";
-    errors++;
-  }
-
-  curl_easy_cleanup(easy_handle);
 
   if (errors) {
     std::cerr << "One or more errors while pushing\n";
