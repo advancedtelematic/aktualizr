@@ -88,7 +88,7 @@ endif()
 
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
+add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
   DEPENDS garage-push)
 
 add_dependencies(qa check)
