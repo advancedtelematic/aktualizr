@@ -11,8 +11,12 @@ class RequestPool {
 
   RequestPool(const TreehubServer& server, int poolsize);
   ~RequestPool();
-  void add_query(OSTreeObject::ptr request) { query_queue_.push_back(request); }
+  void add_query(OSTreeObject::ptr request) {
+    request->launch_notify();
+    query_queue_.push_back(request);
+  }
   void add_upload(OSTreeObject::ptr request) {
+    request->launch_notify();
     upload_queue_.push_back(request);
   }
   void abort() {

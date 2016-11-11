@@ -40,7 +40,7 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
 
     case OBJECT_PRESENT:
       present_already++;
-      h->notify_parent(p);
+      h->notify_parents(p);
       break;
 
     default:
@@ -54,7 +54,7 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
 void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
   if (h->is_on_server() == OBJECT_PRESENT) {
     uploaded++;
-    h->notify_parent(p);
+    h->notify_parents(p);
   } else {
     std::cerr << "Surprise state:" << h->is_on_server() << "\n";
     p.abort();
@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
   // Push ref
 
   CURL *easy_handle = curl_easy_init();
+  curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
   ostree_ref.PushRef(push_target, easy_handle);
   CURLcode err = curl_easy_perform(easy_handle);
   if (err) {

@@ -16,6 +16,7 @@ enum PresenceOnServer {
   OBJECT_STATE_UNKNOWN,
   OBJECT_PRESENT,
   OBJECT_MISSING,
+  OBJECT_INPROGRESS,
   OBJECT_BREAKS_SERVER,
 };
 
@@ -41,13 +42,14 @@ class OSTreeObject : private boost::noncopyable {
 
   void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
-  void set_parent(OSTreeObject* parent,
+  void add_parent(OSTreeObject* parent,
                   std::list<OSTreeObject::ptr>::iterator parent_it);
   bool children_ready() { return children_.empty(); }
   void populate_children();
   void query_children(RequestPool& pool);
-  void notify_parent(RequestPool& pool);
+  void notify_parents(RequestPool& pool);
   void child_notify(std::list<OSTreeObject::ptr>::iterator child_it);
+  void launch_notify() { is_on_server_ = OBJECT_INPROGRESS; }
 
  private:
   std::string Url() const;
@@ -69,9 +71,11 @@ class OSTreeObject : private boost::noncopyable {
   friend void intrusive_ptr_add_ref(OSTreeObject*);
   friend void intrusive_ptr_release(OSTreeObject*);
 
-  OSTreeObject* parent_;
+  typedef std::list<OSTreeObject::ptr>::iterator childiter;
+  typedef std::pair<OSTreeObject*, childiter> parentref;
+
+  std::list<parentref> parents_;
   std::list<OSTreeObject::ptr> children_;
-  std::list<OSTreeObject::ptr>::iterator parent_it_;
   void append_child(OSTreeObject::ptr child);
 };
 

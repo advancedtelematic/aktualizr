@@ -19,15 +19,17 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
       is_on_server_(OBJECT_STATE_UNKNOWN),
       http_response_(),
       curl_handle_(0),
-      form_post_(0),
-      parent_(NULL) {
+      form_post_(0) {
   assert(boost::filesystem::is_regular_file(file_path_));
 }
 
-void OSTreeObject::set_parent(
+void OSTreeObject::add_parent(
     OSTreeObject *parent, std::list<OSTreeObject::ptr>::iterator parent_it) {
-  parent_ = parent;
-  parent_it_ = parent_it;
+  parentref par;
+
+  par.first = parent;
+  par.second = parent_it;
+  parents_.push_back(par);
 }
 
 void OSTreeObject::child_notify(
@@ -35,17 +37,21 @@ void OSTreeObject::child_notify(
   children_.erase(child_it);
 }
 
-void OSTreeObject::notify_parent(RequestPool &pool) {
-  if (parent_) {
-    parent_->child_notify(parent_it_);
-    if (parent_->children_ready()) pool.add_upload(parent_);
+void OSTreeObject::notify_parents(RequestPool &pool) {
+  BOOST_FOREACH (parentref parent, parents_) {
+    parent.first->child_notify(parent.second);
+    if (parent.first->children_ready()) pool.add_upload(parent.first);
   }
 }
+
 void OSTreeObject::append_child(OSTreeObject::ptr child) {
+  // the child could be already queried/uploaded by another parent
+  if (child->is_on_server() == OBJECT_PRESENT) return;
+
   children_.push_back(child);
   std::list<OSTreeObject::ptr>::iterator last = children_.end();
   last--;
-  child->set_parent(this, last);
+  child->add_parent(this, last);
 }
 
 void OSTreeObject::populate_children() {
@@ -137,7 +143,9 @@ void OSTreeObject::populate_children() {
 }
 
 void OSTreeObject::query_children(RequestPool &pool) {
-  BOOST_FOREACH (OSTreeObject::ptr child, children_) { pool.add_query(child); }
+  BOOST_FOREACH (OSTreeObject::ptr child, children_) {
+    if (child->is_on_server() == OBJECT_STATE_UNKNOWN) pool.add_query(child);
+  }
 }
 
 string OSTreeObject::Url() const { return "objects/" + object_name_; }

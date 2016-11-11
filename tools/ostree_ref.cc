@@ -30,7 +30,7 @@ void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
   string content = RefContent();
   curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, content.size());
   curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, content.c_str());
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0);
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
 }
 
 bool OSTreeRef::IsValid() const {

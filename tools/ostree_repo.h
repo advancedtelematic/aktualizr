@@ -2,7 +2,9 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 
 #include <boost/noncopyable.hpp>
+#include <boost/array.hpp>
 #include <list>
+#include <map>
 
 #include "ostree_object.h"
 
@@ -12,13 +14,17 @@ class OSTreeRepo : private boost::noncopyable {
 
   bool LooksValid() const;
   void FindAllObjects(std::list<OSTreeObject::ptr>* objects) const;
-  OSTreeObject::ptr GetObject(const uint8_t* sha256) const;
+  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const;
 
   const std::string root() const { return root_; }
 
  private:
+  typedef std::map<boost::array<uint8_t, 32>, OSTreeObject::ptr> otable;
+  mutable otable
+      ObjectTable;  // Makes sure that the same commit object is not added twice
   const std::string root_;
   std::string hash_to_str(const uint8_t* sha256) const;
+  boost::array<uint8_t, 32> hash_as_array(const uint8_t* sha256) const;
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
