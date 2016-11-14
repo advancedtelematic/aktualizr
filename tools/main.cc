@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
 
   if (root_object->is_on_server() == OBJECT_PRESENT) {
     CURL *easy_handle = curl_easy_init();
-    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
+    // curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
     ostree_ref.PushRef(push_target, easy_handle);
     CURLcode err = curl_easy_perform(easy_handle);
     if (err) {
