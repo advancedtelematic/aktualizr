@@ -34,10 +34,13 @@ void OSTreeObject::AddParent(OSTreeObject *parent,
 
 void OSTreeObject::ChildNotify(
     std::list<OSTreeObject::ptr>::iterator child_it) {
+  assert((*child_it)->is_on_server() == OBJECT_PRESENT);
   children_.erase(child_it);
 }
 
 void OSTreeObject::NotifyParents(RequestPool &pool) {
+  assert(is_on_server_ == OBJECT_PRESENT);
+
   BOOST_FOREACH (parentref parent, parents_) {
     parent.first->ChildNotify(parent.second);
     if (parent.first->children_ready()) pool.AddUpload(parent.first);
