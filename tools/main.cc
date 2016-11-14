@@ -31,21 +31,21 @@ int errors = 0;
 void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   switch (h->is_on_server()) {
     case OBJECT_MISSING:
-      h->populate_children();
+      h->PopulateChildren();
       if (h->children_ready())
-        p.add_upload(h);
+        p.AddUpload(h);
       else
-        h->query_children(p);
+        h->QueryChildren(p);
       break;
 
     case OBJECT_PRESENT:
       present_already++;
-      h->notify_parents(p);
+      h->NotifyParents(p);
       break;
 
     default:
       std::cerr << "Surprise state:" << h->is_on_server() << "\n";
-      p.abort();
+      p.Abort();
       errors++;
       break;
   }
@@ -54,10 +54,10 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
 void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
   if (h->is_on_server() == OBJECT_PRESENT) {
     uploaded++;
-    h->notify_parents(p);
+    h->NotifyParents(p);
   } else {
     std::cerr << "Surprise state:" << h->is_on_server() << "\n";
-    p.abort();
+    p.Abort();
     errors++;
   }
 }
@@ -155,11 +155,11 @@ int main(int argc, char **argv) {
   RequestPool request_pool(push_target, kMaxCurlRequests);
 
   // Add commit object to the queue
-  request_pool.add_query(root_object);
+  request_pool.AddQuery(root_object);
 
   // Set callbacks
-  request_pool.on_query(queried_ev);
-  request_pool.on_upload(uploaded_ev);
+  request_pool.OnQuery(queried_ev);
+  request_pool.OnUpload(uploaded_ev);
 
   // Main curl event loop.
   // request_pool takes care of holding number of outstanding requests below
@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
   // stop the pool on error
 
   do {
-    request_pool.loop();
+    request_pool.Loop();
   } while (root_object->is_on_server() != OBJECT_PRESENT &&
            !request_pool.is_stopped());
 

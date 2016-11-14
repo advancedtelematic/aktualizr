@@ -23,8 +23,8 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
   assert(boost::filesystem::is_regular_file(file_path_));
 }
 
-void OSTreeObject::add_parent(
-    OSTreeObject *parent, std::list<OSTreeObject::ptr>::iterator parent_it) {
+void OSTreeObject::AddParent(OSTreeObject *parent,
+                             std::list<OSTreeObject::ptr>::iterator parent_it) {
   parentref par;
 
   par.first = parent;
@@ -32,29 +32,29 @@ void OSTreeObject::add_parent(
   parents_.push_back(par);
 }
 
-void OSTreeObject::child_notify(
+void OSTreeObject::ChildNotify(
     std::list<OSTreeObject::ptr>::iterator child_it) {
   children_.erase(child_it);
 }
 
-void OSTreeObject::notify_parents(RequestPool &pool) {
+void OSTreeObject::NotifyParents(RequestPool &pool) {
   BOOST_FOREACH (parentref parent, parents_) {
-    parent.first->child_notify(parent.second);
-    if (parent.first->children_ready()) pool.add_upload(parent.first);
+    parent.first->ChildNotify(parent.second);
+    if (parent.first->children_ready()) pool.AddUpload(parent.first);
   }
 }
 
-void OSTreeObject::append_child(OSTreeObject::ptr child) {
+void OSTreeObject::AppendChild(OSTreeObject::ptr child) {
   // the child could be already queried/uploaded by another parent
   if (child->is_on_server() == OBJECT_PRESENT) return;
 
   children_.push_back(child);
   std::list<OSTreeObject::ptr>::iterator last = children_.end();
   last--;
-  child->add_parent(this, last);
+  child->AddParent(this, last);
 }
 
-void OSTreeObject::populate_children() {
+void OSTreeObject::PopulateChildren() {
   const boost::filesystem::path ext = file_path_.extension();
   const GVariantType *content_type;
   bool is_commit;
@@ -91,7 +91,7 @@ void OSTreeObject::populate_children() {
     const uint8_t *csum = static_cast<const uint8_t *>(
         g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    append_child(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum));
 
     g_autoptr(GVariant) meta_csum_variant = NULL;
 
@@ -99,7 +99,7 @@ void OSTreeObject::populate_children() {
     csum = static_cast<const uint8_t *>(
         g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    append_child(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum));
   } else {
     g_autoptr(GVariant) files_variant = NULL;
     g_autoptr(GVariant) dirs_variant = NULL;
@@ -119,7 +119,7 @@ void OSTreeObject::populate_children() {
       const uint8_t *csum = static_cast<const uint8_t *>(
           g_variant_get_fixed_array(csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      append_child(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum));
     }
 
     for (gsize i = 0; i < ndirs; i++) {
@@ -132,19 +132,19 @@ void OSTreeObject::populate_children() {
       const uint8_t *csum = static_cast<const uint8_t *>(
           g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      append_child(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum));
 
       csum = static_cast<const uint8_t *>(
           g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      append_child(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum));
     }
   }
 }
 
-void OSTreeObject::query_children(RequestPool &pool) {
+void OSTreeObject::QueryChildren(RequestPool &pool) {
   BOOST_FOREACH (OSTreeObject::ptr child, children_) {
-    if (child->is_on_server() == OBJECT_STATE_UNKNOWN) pool.add_query(child);
+    if (child->is_on_server() == OBJECT_STATE_UNKNOWN) pool.AddQuery(child);
   }
 }
 

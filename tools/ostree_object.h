@@ -42,17 +42,28 @@ class OSTreeObject : private boost::noncopyable {
 
   void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
-  void add_parent(OSTreeObject* parent,
-                  std::list<OSTreeObject::ptr>::iterator parent_it);
+  void AddParent(OSTreeObject* parent,
+                 std::list<OSTreeObject::ptr>::iterator parent_it);
   bool children_ready() { return children_.empty(); }
-  void populate_children();
-  void query_children(RequestPool& pool);
-  void notify_parents(RequestPool& pool);
-  void child_notify(std::list<OSTreeObject::ptr>::iterator child_it);
-  void launch_notify() { is_on_server_ = OBJECT_INPROGRESS; }
+  void PopulateChildren();
+  void QueryChildren(RequestPool& pool);
+  void NotifyParents(RequestPool& pool);
+  void ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it);
+  void LaunchNotify() { is_on_server_ = OBJECT_INPROGRESS; }
 
  private:
+  typedef std::list<OSTreeObject::ptr>::iterator childiter;
+  typedef std::pair<OSTreeObject*, childiter> parentref;
+
+  void AppendChild(OSTreeObject::ptr child);
   std::string Url() const;
+
+  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb,
+                                  void* userp);
+
+  friend void intrusive_ptr_add_ref(OSTreeObject*);
+  friend void intrusive_ptr_release(OSTreeObject*);
+
   const boost::filesystem::path file_path_;  // Full path to the object
   const std::string object_name_;            // OSTree name of the object
   const OSTreeRepo& repo_;
@@ -64,19 +75,8 @@ class OSTreeObject : private boost::noncopyable {
   std::stringstream http_response_;
   CURL* curl_handle_;
   struct curl_httppost* form_post_;
-
-  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb,
-                                  void* userp);
-
-  friend void intrusive_ptr_add_ref(OSTreeObject*);
-  friend void intrusive_ptr_release(OSTreeObject*);
-
-  typedef std::list<OSTreeObject::ptr>::iterator childiter;
-  typedef std::pair<OSTreeObject*, childiter> parentref;
-
   std::list<parentref> parents_;
   std::list<OSTreeObject::ptr> children_;
-  void append_child(OSTreeObject::ptr child);
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);

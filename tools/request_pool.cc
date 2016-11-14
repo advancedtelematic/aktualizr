@@ -11,15 +11,15 @@ RequestPool::RequestPool(const TreehubServer& server, int max_requests)
 }
 
 RequestPool::~RequestPool() {
-  abort();
+  Abort();
 
-  while (!is_idle()) loop_listen();
+  while (!is_idle()) LoopListen();
 
   curl_multi_cleanup(multi_);
   curl_global_cleanup();
 }
 
-void RequestPool::loop_launch() {
+void RequestPool::LoopLaunch() {
   while (running_requests_ < max_requests_ &&
          (!query_queue_.empty() || !upload_queue_.empty())) {
     OSTreeObject::ptr cur;
@@ -39,7 +39,7 @@ void RequestPool::loop_launch() {
   }
 }
 
-void RequestPool::loop_listen() {
+void RequestPool::LoopListen() {
   // Poll for IO
   fd_set fdread, fdwrite, fdexcept;
   int maxfd = 0;
@@ -82,8 +82,8 @@ void RequestPool::loop_listen() {
   } while (msgs_in_queue > 0);
 }
 
-void RequestPool::loop() {
-  loop_launch();
-  loop_listen();
+void RequestPool::Loop() {
+  LoopLaunch();
+  LoopListen();
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

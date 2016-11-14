@@ -11,15 +11,15 @@ class RequestPool {
 
   RequestPool(const TreehubServer& server, int poolsize);
   ~RequestPool();
-  void add_query(OSTreeObject::ptr request) {
-    request->launch_notify();
+  void AddQuery(OSTreeObject::ptr request) {
+    request->LaunchNotify();
     query_queue_.push_back(request);
   }
-  void add_upload(OSTreeObject::ptr request) {
-    request->launch_notify();
+  void AddUpload(OSTreeObject::ptr request) {
+    request->LaunchNotify();
     upload_queue_.push_back(request);
   }
-  void abort() {
+  void Abort() {
     stopped_ = true;
     query_queue_.clear();
     upload_queue_.clear();
@@ -29,12 +29,15 @@ class RequestPool {
            running_requests_ == 0;
   }
   bool is_stopped() { return stopped_; }
-  void loop();  // one iteration of request-listen loop, launches up to
+  void Loop();  // one iteration of request-listen loop, launches up to
                 // max_requests_ requests, then listens for the result
-  void on_query(requestCallBack cb) { query_cb_ = cb; }
-  void on_upload(requestCallBack cb) { upload_cb_ = cb; }
+  void OnQuery(requestCallBack cb) { query_cb_ = cb; }
+  void OnUpload(requestCallBack cb) { upload_cb_ = cb; }
 
  private:
+  void LoopLaunch();  // launches up to max_requests_ requests from the queues
+  void LoopListen();  // listens to the result of launched requests
+
   int max_requests_;
   int running_requests_;
   const TreehubServer& server_;
@@ -44,9 +47,6 @@ class RequestPool {
   requestCallBack query_cb_;
   requestCallBack upload_cb_;
   bool stopped_;
-
-  void loop_launch();  // launches up to max_requests_ requests from the queues
-  void loop_listen();  // listens to the result of launched requests
 };
 // vim: set tabstop=2 shiftwidth=2 expandtab:
 #endif  // SOTA_CLIENT_TOOLS_REQUEST_POOL_H_
