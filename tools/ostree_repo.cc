@@ -17,29 +17,6 @@ bool OSTreeRepo::LooksValid() const {
   return fs::exists(objects_dir) && fs::exists(refs_dir);
 }
 
-void OSTreeRepo::FindAllObjects(std::list<OSTreeObject::ptr>* objects) const {
-  fs::path objects_dir(root_ + "/objects");
-  if (!fs::exists(objects_dir)) {
-    cout << objects_dir << " not found\n";
-    return;
-  }
-
-  fs::directory_iterator end_itr;  // one-past-end iterator
-
-  for (fs::directory_iterator d1(objects_dir); d1 != end_itr; ++d1) {
-    if (fs::is_directory(d1->status())) {
-      fs::path fn = d1->path().filename();
-      for (fs::directory_iterator d2(d1->path()); d2 != end_itr; ++d2) {
-        if (fs::is_regular_file(d2->status())) {
-          fs::path fn2 = fn / d2->path().filename();
-          OSTreeObject::ptr obj(new OSTreeObject(*this, fn2.native()));
-          objects->push_back(obj);
-        }
-      }
-    }
-  }
-}
-
 boost::array<uint8_t, 32> OSTreeRepo::hash_as_array(
     const uint8_t* sha256) const {
   boost::array<uint8_t, 32> res;

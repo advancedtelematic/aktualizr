@@ -13,7 +13,6 @@ class OSTreeRepo : private boost::noncopyable {
   OSTreeRepo(std::string root_path) : root_(root_path) {}
 
   bool LooksValid() const;
-  void FindAllObjects(std::list<OSTreeObject::ptr>* objects) const;
   OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const;
 
   const std::string root() const { return root_; }
