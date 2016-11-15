@@ -43,6 +43,11 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
       h->NotifyParents(p);
       break;
 
+    case OBJECT_BREAKS_SERVER:
+      std::cerr << "Uploading object " << h << " failed.\n";
+      p.Abort();
+      errors++;
+      break;
     default:
       std::cerr << "Surprise state:" << h->is_on_server() << "\n";
       p.Abort();

@@ -270,4 +270,15 @@ void intrusive_ptr_release(OSTreeObject *h) {
     delete h;
   }
 }
+
+std::ostream &operator<<(std::ostream &stream, const OSTreeObject &o) {
+  stream << o.object_name_;
+  return stream;
+}
+
+std::ostream &operator<<(std::ostream &stream, const OSTreeObject::ptr o) {
+  stream << *o;
+  return stream;
+}
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:
