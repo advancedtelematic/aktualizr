@@ -2,10 +2,10 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <sstream>
-#include <iomanip>
 
 using std::string;
 using std::cout;

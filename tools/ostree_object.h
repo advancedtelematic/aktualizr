@@ -1,9 +1,9 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
+#include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/noncopyable.hpp>
-#include <curl/curl.h>
 #include <iostream>
 #include <sstream>
 
@@ -63,6 +63,7 @@ class OSTreeObject : private boost::noncopyable {
 
   friend void intrusive_ptr_add_ref(OSTreeObject*);
   friend void intrusive_ptr_release(OSTreeObject*);
+  friend std::ostream& operator<<(std::ostream& stream, const OSTreeObject& o);
 
   const boost::filesystem::path file_path_;  // Full path to the object
   const std::string object_name_;            // OSTree name of the object
@@ -80,6 +81,8 @@ class OSTreeObject : private boost::noncopyable {
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);
+
+std::ostream& operator<<(std::ostream& stream, const OSTreeObject::ptr o);
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
 #endif  // SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_

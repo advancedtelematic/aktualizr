@@ -1,15 +1,15 @@
+#include <curl/curl.h>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/program_options.hpp>
-#include <curl/curl.h>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "auth_plus.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
-#include "treehub_server.h"
 #include "request_pool.h"
+#include "treehub_server.h"
 
 namespace po = boost::program_options;
 using std::cout;
@@ -43,6 +43,11 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
       h->NotifyParents(p);
       break;
 
+    case OBJECT_BREAKS_SERVER:
+      std::cerr << "Uploading object " << h << " failed.\n";
+      p.Abort();
+      errors++;
+      break;
     default:
       std::cerr << "Surprise state:" << h->is_on_server() << "\n";
       p.Abort();

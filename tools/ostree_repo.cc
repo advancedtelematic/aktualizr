@@ -1,9 +1,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #include "ostree_repo.h"
 
