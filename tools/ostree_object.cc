@@ -2,10 +2,10 @@
 #include "ostree_repo.h"
 #include "request_pool.h"
 
-#include <glib.h>
 #include <assert.h>
-#include <iostream>
+#include <glib.h>
 #include <boost/foreach.hpp>
+#include <iostream>
 
 using std::cout;
 using std::string;

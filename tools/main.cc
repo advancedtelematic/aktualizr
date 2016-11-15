@@ -1,15 +1,15 @@
+#include <curl/curl.h>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/program_options.hpp>
-#include <curl/curl.h>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "auth_plus.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
-#include "treehub_server.h"
 #include "request_pool.h"
+#include "treehub_server.h"
 
 namespace po = boost::program_options;
 using std::cout;

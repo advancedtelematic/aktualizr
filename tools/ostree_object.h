@@ -1,9 +1,9 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
+#include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/noncopyable.hpp>
-#include <curl/curl.h>
 #include <iostream>
 #include <sstream>
 

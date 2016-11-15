@@ -1,8 +1,8 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 
-#include <boost/noncopyable.hpp>
 #include <boost/array.hpp>
+#include <boost/noncopyable.hpp>
 #include <list>
 #include <map>
 
