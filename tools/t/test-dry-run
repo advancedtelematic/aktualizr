@@ -1,1 +1,1 @@
-$1 --ref master --repo t/repo --user phil --url http://www.example.com/ -n
+$1 --ref master --repo t/repo --user phil -j t/sota_tools.json -n

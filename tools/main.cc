@@ -1,6 +1,8 @@
 #include <curl/curl.h>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/program_options.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <iomanip>
 #include <iostream>
 
@@ -15,6 +17,8 @@ namespace po = boost::program_options;
 using std::cout;
 using std::string;
 using std::list;
+using boost::property_tree::ptree;
+using boost::property_tree::json_parser::json_parser_error;
 
 const int kCurlTimeoutms = 10000;
 const int kMaxCurlRequests = 30;
@@ -27,6 +31,78 @@ const string kAuthPlusUrl = "";
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
+
+int authenticate(std::string filepath, TreehubServer &treehub) {
+  typedef enum { AUTH_NONE, AUTH_BASIC, AUTH_PLUS } method_t;
+
+  method_t method = AUTH_NONE;
+  std::string auth_method;
+  std::string auth_user;
+  std::string auth_password;
+  std::string auth_server;
+  std::string ostree_server;
+  std::string client_id;
+  std::string client_secret;
+
+  try {
+    ptree pt;
+
+    read_json(filepath, pt);
+
+    auth_method = pt.get<std::string>("auth.method", "Basic");
+
+    if (auth_method == "Basic") {
+      method = AUTH_BASIC;
+      auth_user = pt.get<std::string>("auth.user", "");
+      auth_password = pt.get<std::string>("auth.password", kPassword);
+    } else if (auth_method == "AuthPlus") {
+      method = AUTH_PLUS;
+      auth_server = pt.get<std::string>("auth.server");
+      client_id = pt.get<std::string>("auth.client_id", "");
+      client_secret = pt.get<std::string>("auth.client_secret", "");
+    } else {
+      std::cerr << "Unknown authentication method " << auth_method << std::endl;
+    }
+    ostree_server = pt.get<std::string>("ostree.server", kBaseUrl);
+  } catch (json_parser_error e) {
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  switch (method) {
+    case AUTH_BASIC: {
+      // we can also set username with command line option
+      if (auth_user != "") treehub.username = auth_user;
+      treehub.password = auth_password;
+      break;
+    }
+
+    case AUTH_PLUS: {
+      AuthPlus auth_plus(auth_server, client_id, client_secret);
+
+      if (client_id != "") {
+        if (auth_plus.Authenticate() != AUTHENTICATION_SUCCESS) {
+          std::cerr << "Authentication with Auth+ failed\n";
+          return EXIT_FAILURE;
+        } else {
+          cout << "Using Auth+ authentication token\n";
+          treehub.SetToken(auth_plus.token());
+        }
+      } else {
+        cout << "Skipping Authentication\n";
+      }
+      break;
+    }
+
+    default: {
+      cout << "Unexpected authentication method value " << method << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+  treehub.root_url = ostree_server;
+
+  return EXIT_SUCCESS;
+}
 
 void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   switch (h->is_on_server()) {
@@ -74,9 +150,8 @@ int main(int argc, char **argv) {
   string ref;
   TreehubServer push_target;
 
-  string auth_plus_server;
-  string client_id;
-  string client_secret;
+  string credentials_path;
+  string home_path = string(getenv("HOME"));
 
   po::options_description desc("Allowed options");
   // clang-format off
@@ -84,12 +159,8 @@ int main(int argc, char **argv) {
     ("help", "produce a help message")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("user,u", po::value<string>(&push_target.username)->required(), "Username")
-    ("password", po::value<string>(&push_target.password) ->default_value(kPassword), "Password")
-    ("url", po::value<string>(&push_target.root_url)->default_value(kBaseUrl), "Treehub URL")
-    ("auth-server", po::value<string>(&auth_plus_server), "Auth+ Server")
-    ("client-id", po::value<string>(&client_id), "Client ID")
-    ("client-secret", po::value<string>(&client_secret), "Client Secret")
+    ("user,u", po::value<string>(&push_target.username), "Username")
+    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
   // clang-format on
 
@@ -137,19 +208,9 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  // Authenticate with Auth+
-  AuthPlus auth_plus(auth_plus_server, client_id, client_secret);
-
-  if (client_id != "") {
-    if (auth_plus.Authenticate() != AUTHENTICATION_SUCCESS) {
-      std::cerr << "Authentication with Auth+ failed\n";
-      return EXIT_FAILURE;
-    } else {
-      cout << "Using Auth+ authentication token\n";
-      push_target.SetToken(auth_plus.token());
-    }
-  } else {
-    cout << "Skipping Authentication\n";
+  if (authenticate(credentials_path, push_target) != EXIT_SUCCESS) {
+    cout << "Authentication failed\n";
+    return EXIT_FAILURE;
   }
 
   if (vm.count("dry-run")) {

@@ -80,14 +80,14 @@ void OSTreeObject::PopulateChildren() {
     throw new std::runtime_error("Failed to map metadata file " +
                                  file_path_.native());
 
-  GVariant* contents =
+  GVariant *contents =
       g_variant_new_from_data(content_type, g_mapped_file_get_contents(mfile),
                               g_mapped_file_get_length(mfile), TRUE,
                               (GDestroyNotify)g_mapped_file_unref, mfile);
   g_variant_ref_sink(contents);
 
   if (is_commit) {
-    GVariant* content_csum_variant = NULL;
+    GVariant *content_csum_variant = NULL;
     g_variant_get_child(contents, 6, "@ay", &content_csum_variant);
 
     gsize n_elts;
@@ -96,7 +96,7 @@ void OSTreeObject::PopulateChildren() {
     assert(n_elts == 32);
     AppendChild(repo_.GetObject(csum));
 
-    GVariant* meta_csum_variant = NULL;
+    GVariant *meta_csum_variant = NULL;
 
     g_variant_get_child(contents, 7, "@ay", &meta_csum_variant);
     csum = static_cast<const uint8_t *>(
@@ -107,8 +107,8 @@ void OSTreeObject::PopulateChildren() {
     g_variant_unref(meta_csum_variant);
     g_variant_unref(content_csum_variant);
   } else {
-    GVariant* files_variant = NULL;
-    GVariant* dirs_variant = NULL;
+    GVariant *files_variant = NULL;
+    GVariant *dirs_variant = NULL;
 
     files_variant = g_variant_get_child_value(contents, 0);
     dirs_variant = g_variant_get_child_value(contents, 1);
@@ -117,7 +117,7 @@ void OSTreeObject::PopulateChildren() {
     gsize ndirs = g_variant_n_children(dirs_variant);
 
     for (gsize i = 0; i < nfiles; i++) {
-      GVariant* csum_variant = NULL;
+      GVariant *csum_variant = NULL;
       const char *fname = NULL;
 
       g_variant_get_child(files_variant, i, "(&s@ay)", &fname, &csum_variant);
@@ -131,8 +131,8 @@ void OSTreeObject::PopulateChildren() {
     }
 
     for (gsize i = 0; i < ndirs; i++) {
-      GVariant* content_csum_variant = NULL;
-      GVariant* meta_csum_variant = NULL;
+      GVariant *content_csum_variant = NULL;
+      GVariant *meta_csum_variant = NULL;
       const char *fname = NULL;
       g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname,
                           &content_csum_variant, &meta_csum_variant);
