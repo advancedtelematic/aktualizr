@@ -1,10 +1,5 @@
 # Garage Client
 
-## TODO
-
- - Smarter upload process
- - Handle trailing slash on URLs correctly
-
 ## Developing
 
 Getting started:
@@ -56,5 +51,9 @@ To build inside docker:
     cd build
     cmake -DCMAKE_BUILD_TYPE=Debug /src
     make qa
+
+## TODO
+
+ - Handle trailing slash on URLs correctly
 
 // vim: set tabstop=4 shiftwidth=4 expandtab:
