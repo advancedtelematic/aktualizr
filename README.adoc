@@ -52,6 +52,46 @@ To build inside docker:
     cmake -DCMAKE_BUILD_TYPE=Debug /src
     make qa
 
+## Credentials
+
+garage-push requires credentials in JSON format. Default location for credentials is ~/.sota_tools.json. The file contains two objects:
+
+* auth for authentication data
+** auth.method - Authentication method. Currently supported values are "Basic" and "AuthPlus"
+** auth.server - Authentication server (only for AuthPlus).
+** auth.client_id, auth.client_secret - AuthPlus client ID and secret (only for AuthPlus)
+** auth.user, auth.password - User name and password (only for Basic authentication)
+* ostree for data regarding OSTree server
+** ostree.server - OSTree(TreeHub) server to push data to.
+   
+### Examples
+AuthPlus credentials.
+
+  {
+    "auth" : {
+      "method": "AuthPlus",
+      "server": "https://auth-plus-staging.atsgarage.com",
+      "client_id": "xxxxxxxxxxxxxxxxxxxxxxxx",
+      "client_secret": "xxxxxxxxxx"
+    },
+    "ostree": {
+      "server": "https://treehub-staging.atsgarage.com/api/v2/"
+    }
+  }
+  
+Credentials for basic authentication
+
+  {
+    "auth" : {
+      "method": "Basic",
+      "user": "anton",
+      "password": "ats"
+    },
+    "ostree": {
+      "server": "https://treehub-staging.atsgarage.com/api/v2/"
+    }
+  }
+  
 ## TODO
 
  - Handle trailing slash on URLs correctly
