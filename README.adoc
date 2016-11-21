@@ -63,7 +63,7 @@ garage-push requires credentials in JSON format. Default location for credential
 ** auth.user, auth.password - User name and password (only for Basic authentication)
 * ostree for data regarding OSTree server
 ** ostree.server - OSTree(TreeHub) server to push data to.
-   
+
 ### Examples
 AuthPlus credentials.
 
@@ -78,7 +78,7 @@ AuthPlus credentials.
       "server": "https://treehub-staging.atsgarage.com/api/v2/"
     }
   }
-  
+
 Credentials for basic authentication
 
   {
@@ -91,7 +91,7 @@ Credentials for basic authentication
       "server": "https://treehub-staging.atsgarage.com/api/v2/"
     }
   }
-  
+
 ## TODO
 
  - Handle trailing slash on URLs correctly
