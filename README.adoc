@@ -39,18 +39,13 @@ Some of the tests require an Auth+ account. These are disabled by default, and c
 
 ## Dockerfile
 
-A Dockerfile is provided to check that the list of package dependencies is
-up-to-date.  For day-to-day development it is recommended to build
-`garage-push` in your native environment.
+If you build the docker container as follows:
 
-To build inside docker:
+    docker build -t advancedtelematic/sota-tools .
 
-    docker build -t garage-tools-build .
-    docker run -ti -v $PWD:/src garage-tools-build
-    mkdir build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug /src
-    make qa
+Then you can run it, for example, like this:
+
+    docker run advancedtelematic/sota-tools --help
 
 ## Credentials
 
