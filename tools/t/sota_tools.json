@@ -1,3 +1,10 @@
 {
+    "auth_plus": {
+        "server": "",
+        "client_id": "",
+        "client_secret": ""
+    },
+    "ostree": {
+        "server": ""
+    }
 }
-

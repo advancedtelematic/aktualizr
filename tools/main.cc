@@ -1,5 +1,6 @@
 #include <curl/curl.h>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -17,6 +18,7 @@ namespace po = boost::program_options;
 using std::cout;
 using std::string;
 using std::list;
+using boost::optional;
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
 
@@ -49,21 +51,21 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
 
     read_json(filepath, pt);
 
-    auth_method = pt.get<std::string>("auth.method", "Basic");
-
-    if (auth_method == "Basic") {
-      method = AUTH_BASIC;
-      auth_user = pt.get<std::string>("auth.user", "");
-      auth_password = pt.get<std::string>("auth.password", kPassword);
-    } else if (auth_method == "AuthPlus") {
+    if (optional<ptree &> ap_pt = pt.get_child_optional("auth_plus")) {
       method = AUTH_PLUS;
-      auth_server = pt.get<std::string>("auth.server");
-      client_id = pt.get<std::string>("auth.client_id", "");
-      client_secret = pt.get<std::string>("auth.client_secret", "");
+      auth_server = ap_pt->get<std::string>("server", "");
+      client_id = ap_pt->get<std::string>("client_id", "");
+      client_secret = ap_pt->get<std::string>("client_secret", "");
+    } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
+      method = AUTH_BASIC;
+      auth_user = ba_pt->get<std::string>("user", "");
+      auth_password = ba_pt->get<std::string>("password", kPassword);
     } else {
-      std::cerr << "Unknown authentication method " << auth_method << std::endl;
+      std::cerr << "Unknown authentication method " << std::endl;
     }
+
     ostree_server = pt.get<std::string>("ostree.server", kBaseUrl);
+
   } catch (json_parser_error e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;

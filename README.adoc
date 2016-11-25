@@ -49,22 +49,15 @@ Then you can run it, for example, like this:
 
 ## Credentials
 
-garage-push requires credentials in JSON format. Default location for credentials is ~/.sota_tools.json. The file contains two objects:
+`garage-push` requires credentials in JSON format. Default location for
+credentials is ~/.sota_tools.json. There are two modes of authentication, using
+Auth+ or basic authentication, the structure of the respective configs are as
+follows:
 
-* auth for authentication data
-** auth.method - Authentication method. Currently supported values are "Basic" and "AuthPlus"
-** auth.server - Authentication server (only for AuthPlus).
-** auth.client_id, auth.client_secret - AuthPlus client ID and secret (only for AuthPlus)
-** auth.user, auth.password - User name and password (only for Basic authentication)
-* ostree for data regarding OSTree server
-** ostree.server - OSTree(TreeHub) server to push data to.
-
-### Examples
-AuthPlus credentials.
+* Auth+:
 
   {
-    "auth" : {
-      "method": "AuthPlus",
+    "auth_plus" : {
       "server": "https://auth-plus-staging.atsgarage.com",
       "client_id": "xxxxxxxxxxxxxxxxxxxxxxxx",
       "client_secret": "xxxxxxxxxx"
@@ -74,11 +67,10 @@ AuthPlus credentials.
     }
   }
 
-Credentials for basic authentication
+* Basic authentication:
 
   {
-    "auth" : {
-      "method": "Basic",
+    "basic_auth" : {
       "user": "anton",
       "password": "ats"
     },
