@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "auth_plus.h"
+#include "oauth2.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
 #include "ostree_repo.h"
@@ -28,14 +28,14 @@ const int kMaxCurlRequests = 30;
 const string kBaseUrl =
     "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
-const string kAuthPlusUrl = "";
+const string kOAuth2Url = "";
 
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
 
 int authenticate(std::string filepath, TreehubServer &treehub) {
-  typedef enum { AUTH_NONE, AUTH_BASIC, AUTH_PLUS } method_t;
+  typedef enum { AUTH_NONE, AUTH_BASIC, OAUTH2 } method_t;
 
   method_t method = AUTH_NONE;
   std::string auth_method;
@@ -51,8 +51,8 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
 
     read_json(filepath, pt);
 
-    if (optional<ptree &> ap_pt = pt.get_child_optional("auth_plus")) {
-      method = AUTH_PLUS;
+    if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
+      method = OAUTH2;
       auth_server = ap_pt->get<std::string>("server", "");
       client_id = ap_pt->get<std::string>("client_id", "");
       client_secret = ap_pt->get<std::string>("client_secret", "");
@@ -79,16 +79,16 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
       break;
     }
 
-    case AUTH_PLUS: {
-      AuthPlus auth_plus(auth_server, client_id, client_secret);
+    case OAUTH2: {
+      OAuth2 oauth2(auth_server, client_id, client_secret);
 
       if (client_id != "") {
-        if (auth_plus.Authenticate() != AUTHENTICATION_SUCCESS) {
-          std::cerr << "Authentication with Auth+ failed\n";
+        if (oauth2.Authenticate() != AUTHENTICATION_SUCCESS) {
+          std::cerr << "Authentication with oauth2 failed\n";
           return EXIT_FAILURE;
         } else {
-          cout << "Using Auth+ authentication token\n";
-          treehub.SetToken(auth_plus.token());
+          cout << "Using oauth2 authentication token\n";
+          treehub.SetToken(oauth2.token());
         }
       } else {
         cout << "Skipping Authentication\n";

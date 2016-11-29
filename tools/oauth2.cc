@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "auth_plus.h"
+#include "oauth2.h"
 
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
@@ -22,7 +22,7 @@ size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb,
   return size * nmemb;
 }
 
-AuthenticationResult AuthPlus::Authenticate() {
+AuthenticationResult OAuth2::Authenticate() {
   CURL *curl_handle = curl_easy_init();
   // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
   curl_easy_setopt(curl_handle, CURLOPT_URL, (server_ + "/token").c_str());

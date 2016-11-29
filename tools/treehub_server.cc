@@ -4,7 +4,7 @@
 
 using std::string;
 
-TreehubServer::TreehubServer() : using_auth_plus(false) {
+TreehubServer::TreehubServer() : using_oauth2(false) {
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
   auth_header_.next = &force_header_;
   force_header_contents_ = "x-ats-ostree-force: true";
@@ -18,7 +18,7 @@ void TreehubServer::SetToken(const string& token) {
 
   auth_header_contents_ = "Authorization: Bearer " + token;
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
-  using_auth_plus = true;
+  using_oauth2 = true;
 }
 
 // Note that this method creates a reference from curl_handle to this.  Keep
@@ -28,8 +28,8 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix,
   curl_easy_setopt(curl_handle, CURLOPT_URL, (root_url + url_suffix).c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
-  if (!using_auth_plus) {  // If we don't have a Auth+ token fallback to legacy
-                           // username/password
+  if (!using_oauth2) {  // If we don't have a OAuth2 token fallback to legacy
+                        // username/password
     curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, username.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password.c_str());

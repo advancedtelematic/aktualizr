@@ -51,13 +51,13 @@ Then you can run it, for example, like this:
 
 `garage-push` requires credentials in JSON format. Default location for
 credentials is ~/.sota_tools.json. There are two modes of authentication, using
-Auth+ or basic authentication, the structure of the respective configs are as
+OAuth2 or Basic Authentication, the structure of the respective configs are as
 follows:
 
-* Auth+:
+* OAuth2:
 
   {
-    "auth_plus" : {
+    "oauth2" : {
       "server": "https://auth-plus-staging.atsgarage.com",
       "client_id": "xxxxxxxxxxxxxxxxxxxxxxxx",
       "client_secret": "xxxxxxxxxx"
@@ -67,7 +67,7 @@ follows:
     }
   }
 
-* Basic authentication:
+* Basic Authentication:
 
   {
     "basic_auth" : {
