@@ -24,11 +24,11 @@ find_package(Boost REQUIRED program_options filesystem system)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Curl
-find_package(CURL)
+find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
 # Glib
-find_package(GLIB2)
+find_package(GLIB2 REQUIRED)
 include_directories(${GLIB2_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
