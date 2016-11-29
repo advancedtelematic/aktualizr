@@ -2,7 +2,7 @@ CREDS_FILE=$(mktemp)
 trap "rm -f $CREDS_FILE" EXIT
 cat > $CREDS_FILE <<EOF
 {
-  "auth_plus": {
+  "oauth2": {
     "client_id":"$2",
     "client_secret":"$3",
     "server":"https://auth-plus.gw.prod01.advancedtelematic.com"

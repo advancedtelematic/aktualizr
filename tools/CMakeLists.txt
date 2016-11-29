@@ -1,7 +1,7 @@
 
 set (GARAGE_PUSH_SRCS
-  auth_plus.cc
   main.cc
+  oauth2.cc
   ostree_ref.cc
   ostree_repo.cc
   ostree_object.cc
@@ -18,7 +18,7 @@ set (ALL_SRCS
 
 # For clang-format
 set(ALL_HEADERS
-  auth_plus.h
+  oauth2.h
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
@@ -75,13 +75,13 @@ add_test(NAME dry-run
   COMMAND t/test-dry-run $<TARGET_FILE:garage-push>
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-if (AUTH_PLUS_TEST_CLIENT_ID)
+if (OAUTH2_TEST_CLIENT_ID)
   add_test(NAME auth-plus-happy-case
-    COMMAND t/test-auth-plus-happy $<TARGET_FILE:garage-push> ${AUTH_PLUS_TEST_CLIENT_ID} ${AUTH_PLUS_TEST_CLIENT_SECRET}
+    COMMAND t/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
   add_test(NAME auth-plus-failure
-    COMMAND t/test-auth-plus-failure $<TARGET_FILE:garage-push> ${AUTH_PLUS_TEST_CLIENT_ID} ${AUTH_PLUS_TEST_CLIENT_SECRET}
+    COMMAND t/test-auth-plus-failure $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 endif()

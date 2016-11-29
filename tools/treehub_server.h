@@ -15,7 +15,7 @@ class TreehubServer {
   std::string password;
 
  private:
-  bool using_auth_plus;
+  bool using_oauth2;
   struct curl_slist auth_header_;
   // Don't modify auth_header_contents_ without updating the pointer in
   // auth_header_

@@ -1,5 +1,5 @@
 {
-    "auth_plus": {
+    "oauth2": {
         "server": "",
         "client_id": "",
         "client_secret": ""
