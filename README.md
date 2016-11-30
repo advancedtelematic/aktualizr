@@ -6,13 +6,15 @@ sota_client_cpp
 
 C++ Implementation of SOTA Client
 
-
 Dependencies
 ------
 
+libboost-dev
+libboost-program-options-dev
+cmake
 
-libboost-program-options1.58.0
-cmake (3.5.1)
+libboost-version: 1.58.0
+cmake-version: 3.5.1
 
 Building
 ------
@@ -20,13 +22,16 @@ Building
 To build the client:
 
 ~~~
-cd code
-cmake CMakeLists.txt
+mkdir build
+cd build
+cmake ..
 make
 ~~~
 
 Testing
 -----
+
+To run the test suite:
 
 ~~~
 make test
