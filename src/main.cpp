@@ -1,4 +1,3 @@
-
 //*****************************************************************************
 //
 // Copyright (C) 2016 ATS Advanced Telematic Systems GmbH
@@ -31,7 +30,7 @@ int main(int argc, char *argv[])
       // create a commandline options object
       bpo::options_description cmdl_description("CommandLine Options:");
 
-      // create a easy-to-handle dictionary for commandline options
+      // create a easy-to-handle dicionary for commandline options
       bpo::options_description_easy_init cmdl_dictionary = cmdl_description.add_options();
 
       // add a entry to the dictionary
@@ -64,3 +63,5 @@ int main(int argc, char *argv[])
 
    return returnValue;
 }
+
+

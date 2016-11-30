@@ -6,12 +6,13 @@ sota_client_cpp
 
 C++ Implementation of SOTA Client
 
+
 Dependencies
 ------
 The following debian packages are used in the project:
 
-libboost-program-options1.58.0
 libboost-dev
+libboost-program-options-dev
 cmake
 
 
@@ -25,7 +26,9 @@ Building
 To build the client:
 
 ~~~
-cmake CMakeLists.txt
+mkdir build
+cd build
+cmake ..
 make
 ~~~
 

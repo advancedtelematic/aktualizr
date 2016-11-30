@@ -19,14 +19,11 @@ PROJECT(sota_client_cpp)
 # set build type to Debug or Release here
 set(CMAKE_BUILD_TYPE Release)
 
-# set local include directories
-include_directories(code/inc)
-
 # configure libraries
 set(LINK_LIBS libboost_program_options.so)
 
 # set source files
-set(SOURCES code/src/main.cpp)
+set(SOURCES src/main.cpp)
 
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY out/)

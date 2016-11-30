@@ -1,5 +1,14 @@
 language: cpp
-script: make && make test
+addons:
+  apt:
+    packages:
+      - libboost-program-options-dev
+      - libboost-dev
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make && make test
 compiler:
   - clang
   - gcc
