@@ -26,7 +26,7 @@ set(LINK_LIBS libboost_program_options.so)
 set(SOURCES src/main.cpp)
 
 # set output folder
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY out/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
 # set the name of the executable
 add_executable(sota_client ${SOURCES})
