@@ -15,8 +15,8 @@ RUN apt-get update -q && apt-get -qy install \
     ninja-build \
   && rm -rf /var/lib/apt/lists/*
 
-COPY . /tmp/
-WORKDIR /tmp/
+COPY . /src/
+WORKDIR /src/
 RUN cmake .
 RUN make
 
