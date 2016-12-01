@@ -4,11 +4,7 @@ addons:
     packages:
       - libboost-program-options-dev
       - libboost-dev
-script:
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make && make test
+script: make && make test
 compiler:
   - clang
   - gcc

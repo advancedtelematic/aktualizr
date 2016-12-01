@@ -11,14 +11,9 @@ Dependencies
 ------
 The following debian packages are used in the project:
 
-libboost-dev
-libboost-program-options-dev
-cmake
-
-
-
-libboost-version: 1.58.0
-cmake-version: 3.5.1
+ - libboost-dev
+ - libboost-program-options-dev (>= 1.58.0)
+ - cmake (>= 3.5.1)
 
 Building
 ------
@@ -26,9 +21,6 @@ Building
 To build the client:
 
 ~~~
-mkdir build
-cd build
-cmake ..
 make
 ~~~
 
