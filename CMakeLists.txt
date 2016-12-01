@@ -1,10 +1,6 @@
 ##
 # cmake Makefile for the sota_client_cpp
 # 
-# In order to build the program execute :
-# $ cmake CMakeLists.txt
-# $ make
-#
 # Copyright (c) 2016 Advanced Telematic Systems GmbH
 # 
 # Author: Moritz Klinger - mklinger@embeddeers.com 
@@ -19,11 +15,30 @@ PROJECT(sota_client_cpp)
 # set build type to Debug or Release here
 set(CMAKE_BUILD_TYPE Release)
 
+# set symbols used when compiling
+add_definitions(-DBOOST_LOG_DYN_LINK=1)
+
 # configure libraries
-set(LINK_LIBS libboost_program_options.so)
+set(LINK_LIBS libpthread.so
+              libboost_system.so
+              libboost_thread.so
+              libboost_log_setup.so 
+              libboost_log.so
+              libboost_program_options.so)
+
+# set local include directory(ies)
+set(INC_DIR inc/)
+
+# set variable for the source directory
+set(SRC_DIR src/)
+
+# tell cmake to include directory(ies)
+include_directories(${INC_DIR})
 
 # set source files
-set(SOURCES src/main.cpp)
+set(SOURCES ${SRC_DIR}main.cpp
+            ${SRC_DIR}log.cpp
+            ${INC_DIR}log.hpp)
 
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
