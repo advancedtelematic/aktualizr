@@ -28,14 +28,14 @@ Running the tests is as simple as:
 
     make qa
 
-Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-D AUTH_PLUS_TEST_CLIENT_ID= -D AUTH_PLUS_TEST_CLIENT_SECRET=...` to cmake, or by editing CMakeCache.txt to set the following options:
+Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-D OAUTH2_TEST_CLIENT_ID= -D OAUTH2_TEST_CLIENT_SECRET=...` to cmake, or by editing CMakeCache.txt to set the following options:
 
     # In CMakeCache.txt
     //Client ID for testing Auth+ authentication
-    AUTH_PLUS_TEST_CLIENT_ID:STRING=....
+    OAUTH2_TEST_CLIENT_ID:STRING=....
 
     //Client Secret for testing Auth+ authentication
-    AUTH_PLUS_TEST_CLIENT_SECRET:STRING=...
+    OAUTH2_TEST_CLIENT_SECRET:STRING=...
 
 ## Dockerfile
 
