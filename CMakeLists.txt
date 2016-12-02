@@ -37,8 +37,8 @@ include_directories(${INC_DIR})
 
 # set source files
 set(SOURCES ${SRC_DIR}main.cpp
-            ${SRC_DIR}log.cpp
-            ${INC_DIR}log.hpp)
+            ${SRC_DIR}logger.cpp
+            ${INC_DIR}logger.hpp)
 
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)

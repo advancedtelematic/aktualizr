@@ -20,17 +20,14 @@
 
 
 /*****************************************************************************/
-#include <boost/program_options.hpp>
 #include <iostream>
+#include <boost/program_options.hpp>
 
-#include "log.hpp"
+#include "logger.hpp"
 
 /*****************************************************************************/
-using namespace std;
 
 namespace bpo = boost::program_options;
-
-namespace logtrv = boost::log::trivial;
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) 
@@ -44,15 +41,6 @@ int main(int argc, char *argv[])
    // initialize the logging framework
    logger_init();
 
-   // TODO: get log level from config file before overwriting it by using
-   // log level from command line option
-
-   // create a logging object
-   boost::log::sources::severity_logger< logtrv::severity_level > logger;
-
-   BOOST_LOG_SEV(logger, logtrv::info) << "Program started and logging initialized";
-   BOOST_LOG_SEV(logger, logtrv::trace) << "Check command line options";
-
    // set up the commandline options
    try
    {
@@ -64,9 +52,12 @@ int main(int argc, char *argv[])
 
       // add a entry to the dictionary
       cmdl_dictionary("help,h", "Help screen"); // --help are valid arguments for showing "Help screen"
-      // add a loglevel commandline option using the severity_level enumeration provided by
-      // boost log
-      cmdl_dictionary("loglevel", bpo::value<logtrv::severity_level>(), "set log level (trace, debug, warning, info, error)");
+
+      // add a loglevel commandline option
+      // TODO use the enumeration from the logger.hpp to enable automatic range checking
+      // this requires to overload operators << and >> as shown in the boost header  boost/log/trivial.hpp
+      // desired result: bpo::value<loggerLevels_t>
+      cmdl_dictionary("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)");
 
       // create a variables map
       bpo::variables_map cmdl_varMap;
@@ -82,42 +73,34 @@ int main(int argc, char *argv[])
       {
          // print the description off all known command line options
          std::cout << cmdl_description << '\n';
-         BOOST_LOG_SEV(logger, logtrv::trace) << "boost command line option: --help detected.";
+         LOGGER_LOG(LVL_debug, "boost command line option: --help detected.");
       }
 
       // check for loglevel
       if(cmdl_varMap.count("loglevel") != 0)
       {
-         // get the log level from command line option
-         logtrv::severity_level loglvl = cmdl_varMap["loglevel"].as<logtrv::severity_level>();
+         // write a log message
+         LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected." );
 
-         // check if the log level is in range
-         if (loglvl <= logtrv::error)
-         {
-            // apply the log level
-            logger_setSeverity( cmdl_varMap["loglevel"].as<logtrv::severity_level>() );
-            // log the log level
-            BOOST_LOG_SEV(logger, logtrv::info) << "Log level was set to " << loglvl << " by command line option 'loglevel'.";
-         }
-         else
-         {
-            // log out of range command line option for loglevel
-            BOOST_LOG_SEV(logger, logtrv::info) << "Log level provided via"
-                  "command line option 'loglevel' is out of range - " << loglvl << " was provided.";
-         }
+         // get the log level from command line option
+         logger_setSeverity( static_cast<loggerLevels_t>(cmdl_varMap["loglevel"].as<int>()) );
       }
       else
       {
          // log if no command line option loglevl is used
-         BOOST_LOG_SEV(logger, logtrv::debug) << "no commandline option 'loglevel' provided";
+         LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
       }
 
    }
    catch (const bpo::error &ex)
    {
       // log boost error
-      BOOST_LOG_SEV(logger, logtrv::warning) << "boost command line option: " << ex.what() << '\n';
+      LOGGER_LOG(LVL_warning, "boost command line option error: " << ex.what());
+
+      // print the error message to the standard output too, as the user provided
+      // a non-supported commandline option
       std::cout << ex.what() << '\n';
+
       // set the returnValue, thereby ctest will recognize
       // that something went wrong
       returnValue = 1;

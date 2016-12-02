@@ -36,12 +36,30 @@
 #define LOG_HPP_
 
 /*****************************************************************************/
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
+typedef enum {
+   LVL_trace = 0,
+   LVL_debug,
+   LVL_warning,
+   LVL_info,
+   LVL_error
+}loggerLevels_t;  /**< define own logging levels */
 
 /*****************************************************************************/
+/**
+ * \par Description:
+ *    Function like macro to pass messages to the logger using a stringstream
+ *    object in between.
+ *
+ * \param[in] _lvl - the log message level using loggerLevels_t
+ * \param[in] _stream - the message, put anything here that fits into a
+ *                      stringstream
+ */
+#define LOGGER_LOG(_lvl, _stream) {\
+   std::stringstream logstring; \
+   logstring << _stream; \
+   logger_writeMessage(_lvl, logstring.str()); }
 
+/*****************************************************************************/
 /**
  * \par Description:
  *    Initialize the boost logging framework. The functions set common
@@ -59,7 +77,7 @@ extern void logger_init(void);
  * \param[in] sev severity level, use the enumeration from
  *                boost::log::trivial
  */
-extern void logger_setSeverity(boost::log::trivial::severity_level lvl);
+extern void logger_setSeverity(loggerLevels_t lvl);
 
 /**
  * \par Description:
@@ -67,7 +85,15 @@ extern void logger_setSeverity(boost::log::trivial::severity_level lvl);
  *
  * \return The currently used severity level
  */
-extern boost::log::trivial::severity_level logger_getSeverity(void);
+extern loggerLevels_t logger_getSeverity(void);
 
+/**
+ * \par Description:
+ *    Writes a log message using the configured logging framework.
+ *
+ * \param[in] lvl - the log or severity level of the message
+ * \param[in] message - the message provided as constant string reference
+ */
+extern void logger_writeMessage(loggerLevels_t lvl, const std::string& message);
 
 #endif // LOG_HPP_
