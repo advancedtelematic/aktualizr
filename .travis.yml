@@ -1,9 +1,14 @@
+dist: trusty
+sudo: false
 language: cpp
 addons:
   apt:
     packages:
       - libboost-program-options-dev
       - libboost-dev
+      - libboost-system-dev
+      - libboost-thread-dev
+      - libboost-log-dev
 script: make && make test
 compiler:
   - clang
