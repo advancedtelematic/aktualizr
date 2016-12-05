@@ -1,21 +1,35 @@
-//*****************************************************************************
-//
-// Copyright (C) 2016 ATS Advanced Telematic Systems GmbH
-//
-//
-// Module-Name: main.cpp
-// Author: Moritz Klinger
-//
-//
-//*****************************************************************************
+/*!
+ * \cond FILEINFO
+ ******************************************************************************
+ * \file main.cpp
+ ******************************************************************************
+ *
+ * Copyright (C) ATS Advanced Telematic Systems GmbH GmbH, 2016
+ *
+ * \author Moritz Klinger
+ *
+ ******************************************************************************
+ *
+ * \brief  The main file of the project.
+ *
+ *
+ ******************************************************************************
+ *
+ * \endcond
+ */
 
-#include <boost/program_options.hpp>
+
+/*****************************************************************************/
 #include <iostream>
+#include <boost/program_options.hpp>
 
-using namespace std;
+#include "logger.hpp"
+
+/*****************************************************************************/
 
 namespace bpo = boost::program_options;
 
+/*****************************************************************************/
 int main(int argc, char *argv[]) 
 {
    // create a return value
@@ -24,17 +38,26 @@ int main(int argc, char *argv[])
    // initialize the return value to zero (everything is OK)
    returnValue = 0;
 
+   // initialize the logging framework
+   logger_init();
+
    // set up the commandline options
    try
    {
       // create a commandline options object
       bpo::options_description cmdl_description("CommandLine Options:");
 
-      // create a easy-to-handle dicionary for commandline options
+      // create a easy-to-handle dictionary for commandline options
       bpo::options_description_easy_init cmdl_dictionary = cmdl_description.add_options();
 
       // add a entry to the dictionary
-      cmdl_dictionary("help,h", "Help screen"); // --help or -h are valid arguments for showing "Help screen"
+      cmdl_dictionary("help,h", "Help screen"); // --help are valid arguments for showing "Help screen"
+
+      // add a loglevel commandline option
+      // TODO use the enumeration from the logger.hpp to enable automatic range checking
+      // this requires to overload operators << and >> as shown in the boost header  boost/log/trivial.hpp
+      // desired result: bpo::value<loggerLevels_t>
+      cmdl_dictionary("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)");
 
       // create a variables map
       bpo::variables_map cmdl_varMap;
@@ -50,12 +73,34 @@ int main(int argc, char *argv[])
       {
          // print the description off all known command line options
          std::cout << cmdl_description << '\n';
+         LOGGER_LOG(LVL_debug, "boost command line option: --help detected.");
       }
+
+      // check for loglevel
+      if(cmdl_varMap.count("loglevel") != 0)
+      {
+         // write a log message
+         LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected." );
+
+         // get the log level from command line option
+         logger_setSeverity( static_cast<loggerLevels_t>(cmdl_varMap["loglevel"].as<int>()) );
+      }
+      else
+      {
+         // log if no command line option loglevl is used
+         LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
+      }
+
    }
    catch (const bpo::error &ex)
    {
-      // print boost error
-      std::cerr << ex.what() << '\n';
+      // log boost error
+      LOGGER_LOG(LVL_warning, "boost command line option error: " << ex.what());
+
+      // print the error message to the standard output too, as the user provided
+      // a non-supported commandline option
+      std::cout << ex.what() << '\n';
+
       // set the returnValue, thereby ctest will recognize
       // that something went wrong
       returnValue = 1;
@@ -63,5 +108,3 @@ int main(int argc, char *argv[])
 
    return returnValue;
 }
-
-
