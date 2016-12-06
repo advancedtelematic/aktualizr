@@ -24,6 +24,7 @@
 #include <boost/program_options.hpp>
 
 #include "logger.hpp"
+#include "ymlcfg.hpp"
 
 /*****************************************************************************/
 
@@ -40,6 +41,12 @@ int main(int argc, char *argv[])
 
    // initialize the logging framework
    logger_init();
+
+   // read configuration file
+   // TODO: use a commanline option for setting the filename
+   //       and take care that this is done before the processing
+   //       the loglevel commandline option
+   ymlcfg_readFile("config.yml");
 
    // set up the commandline options
    try

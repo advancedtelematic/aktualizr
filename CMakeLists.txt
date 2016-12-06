@@ -24,7 +24,8 @@ set(LINK_LIBS libpthread.so
               libboost_thread.so
               libboost_log_setup.so 
               libboost_log.so
-              libboost_program_options.so)
+              libboost_program_options.so
+              libyaml-cpp.so)
 
 # set local include directory(ies)
 set(INC_DIR inc/)
@@ -38,7 +39,9 @@ include_directories(${INC_DIR})
 # set source files
 set(SOURCES ${SRC_DIR}main.cpp
             ${SRC_DIR}logger.cpp
-            ${INC_DIR}logger.hpp)
+            ${INC_DIR}logger.hpp
+            ${SRC_DIR}ymlcfg.cpp
+            ${INC_DIR}ymlcfg.hpp)
 
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)

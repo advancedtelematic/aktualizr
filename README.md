@@ -30,6 +30,7 @@ The following debian packages are used in the project:
  - libboost-thread-dev (>= 1.58.0)
  - libboost-log-dev (>= 1.58.0)
  - libpthread-stubs0-dev (>=0.3)
+ - libyaml-cpp-dev (>=0.5.2)
  - cmake (>= 3.5.1)
 
 Building
