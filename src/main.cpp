@@ -42,12 +42,6 @@ int main(int argc, char *argv[])
    // initialize the logging framework
    logger_init();
 
-   // read configuration file
-   // TODO: use a commanline option for setting the filename
-   //       and take care that this is done before the processing
-   //       the loglevel commandline option
-   ymlcfg_readFile("config.yml");
-
    // set up the commandline options
    try
    {
@@ -61,10 +55,12 @@ int main(int argc, char *argv[])
       cmdl_dictionary("help,h", "Help screen"); // --help are valid arguments for showing "Help screen"
 
       // add a loglevel commandline option
-      // TODO use the enumeration from the logger.hpp to enable automatic range checking
+      // TODO issue #15 use the enumeration from the logger.hpp to enable automatic range checking
       // this requires to overload operators << and >> as shown in the boost header  boost/log/trivial.hpp
       // desired result: bpo::value<loggerLevels_t>
       cmdl_dictionary("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)");
+
+      cmdl_dictionary("config,c", bpo::value<std::string>(), "yaml configuration file");
 
       // create a variables map
       bpo::variables_map cmdl_varMap;
@@ -81,6 +77,12 @@ int main(int argc, char *argv[])
          // print the description off all known command line options
          std::cout << cmdl_description << '\n';
          LOGGER_LOG(LVL_debug, "boost command line option: --help detected.");
+      }
+
+      // check for config file commandline option
+      if(cmdl_varMap.count("config") != 0)
+      {
+         ymlcfg_readFile(cmdl_varMap["config"].as<std::string>());
       }
 
       // check for loglevel

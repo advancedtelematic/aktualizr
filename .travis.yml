@@ -9,6 +9,7 @@ addons:
       - libboost-system-dev
       - libboost-thread-dev
       - libboost-log-dev
+      - libbyaml-cpp-dev
 script: make && make test
 compiler:
   - clang
