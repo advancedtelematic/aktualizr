@@ -51,6 +51,12 @@ target_link_libraries(sota_client ${LINK_LIBS})
 
 ###############################################################################
 
+# Setup compiler warnings
+
+set_property( TARGET sota_client APPEND_STRING PROPERTY COMPILE_FLAGS "-Wall -Werror -pedantic" )
+
+###############################################################################
+
 # enable cmakes test functionality
 enable_testing()
 
