@@ -30,12 +30,13 @@ The following debian packages are used in the project:
  - libboost-thread-dev (>= 1.58.0)
  - libboost-log-dev (>= 1.58.0)
  - libpthread-stubs0-dev (>=0.3)
+ - libyaml-cpp-dev (>=0.5.2)
  - cmake (>= 3.5.1)
 
 Building
 ------
 
-To build the client:
+To build the client in your local environment, first install all the prerequisites, then run:
 
 ~~~
 make
@@ -50,7 +51,25 @@ To run the test suite:
 make test
 ~~~
 
-Documentation
+Building / Testing with Docker
 -----
 
-Complete documentation of the SOTA system, including details of the client functionality and APIs, can be found at the [GENIVI SOTA project site](https://advancedtelematic.github.io/rvi_sota_server).
+A Dockerfile is provided to support building / testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
+
+~~~
+docker build -t advancedtelematic/sota_client_cpp .
+~~~
+
+and run
+
+~~~
+docker run --rm -it advancedtelematic/sota_client_cpp
+~~~
+
+to build the software or
+
+~~~
+docker run --rm -it advancedtelematic/sota_client_cpp test
+~~~
+
+to run the tests.

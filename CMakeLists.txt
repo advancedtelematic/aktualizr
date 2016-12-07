@@ -24,7 +24,8 @@ set(LINK_LIBS libpthread.so
               libboost_thread.so
               libboost_log_setup.so 
               libboost_log.so
-              libboost_program_options.so)
+              libboost_program_options.so
+              libyaml-cpp.so)
 
 # set local include directory(ies)
 set(INC_DIR inc/)
@@ -38,8 +39,10 @@ include_directories(${INC_DIR})
 # set source files
 set(SOURCES ${SRC_DIR}main.cpp
             ${SRC_DIR}logger.cpp
-            ${INC_DIR}logger.hpp)
-
+            ${INC_DIR}logger.hpp
+            ${SRC_DIR}ymlcfg.cpp
+            ${INC_DIR}ymlcfg.hpp)
+            
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
@@ -79,7 +82,26 @@ add_test(NAME feat1_test-sth
 add_test(NAME feat1_test-no_opt
          COMMAND sota_client)
          
+#test calling the executable with a config file         
+add_test(NAME feat2_test_config_file
+         COMMAND sota_client -c ../config/config.yml.example)
+         
+# calle the executable without any options
+add_test(NAME test_plain
+         COMMAND sota_client) 
+         
+         
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass         
-set_tests_properties(feat1_test--something feat1_test-sth PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(feat1_test--something
+                     feat1_test-sth 
+                     PROPERTIES WILL_FAIL TRUE)
+                     
+# set the config file test to match the content of the config file as the config file
+# contains a loglevel 1 (degub) where the content of the config file is logged to stderr 
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientid")
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientsecret")
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "https://url.com")
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Server: https://url.com")
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel: 1")
          

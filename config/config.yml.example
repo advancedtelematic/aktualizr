@@ -1,0 +1,4 @@
+server : https://url.com
+client_id : thisisaclientid
+client_secret : thisisaclientsecret
+loglevel : 1 # debug
