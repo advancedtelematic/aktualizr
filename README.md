@@ -36,10 +36,27 @@ The following debian packages are used in the project:
 Building
 ------
 
-To build the client in your local environment, first install all the prerequisites, then run:
+The `sota_client` is built using CMake. To setup your `build` directory:
+
+~~~
+mkdir build
+cd build
+cmake ..
+~~~
+
+You can then build the project from the `build` directory using Make:
 
 ~~~
 make
+~~~
+
+Linting
+-----
+
+Before checking in code, the code linting checks should be run:
+
+~~~
+make qa
 ~~~
 
 Testing
@@ -50,6 +67,25 @@ To run the test suite:
 ~~~
 make test
 ~~~
+
+Code Coverage
+-----
+
+The project can be configured to generate a code coverage report. First, create a CMake build directory for coverage builds, and invoke CMake with the `-DBUILD_WITH_CODE_COVERAGE=ON` flag:
+
+~~~
+mkdir build-coverage
+cd build-coverage
+cmake -DBUILD_WITH_CODE_COVERAGE=ON` ..
+~~~
+
+Then use Make from the `build-coverage` directory to run the coverage report:
+
+~~~
+make coverage
+~~~
+
+The report will be output to the `coverage` folder in your `build-coverage` directory.
 
 Building / Testing with Docker
 -----
@@ -85,4 +121,4 @@ mkdir build
 docker run --rm -it --read-only -u $UID -v $PWD/build:/source/build advancedtelematic/sota_client_cpp make
 ~~~
 
-though be aware that the output binary (`build/target/sota_client`) may have dynamic linking requirements that are not met by your host environment.
+though be aware that the output binary (`build/target/sota_client`) may have dynamic linking requirements that are not met by your host environment. Also note that running the linting rule (`make qa`) may attempt to modify the source files in the Docker container. If the linting rule is run with `-u $UID` or `--read-only`, the execution will fail with an `llvm` segfault when the linter outputs the source files.
