@@ -63,13 +63,26 @@ docker build -t advancedtelematic/sota_client_cpp .
 and run
 
 ~~~
-docker run --rm -it advancedtelematic/sota_client_cpp
+docker run --rm -it advancedtelematic/sota_client_cpp make
 ~~~
 
-to build the software or
+to build the software,
 
 ~~~
-docker run --rm -it advancedtelematic/sota_client_cpp test
+docker run --rm -it advancedtelematic/sota_client_cpp make test
 ~~~
 
-to run the tests.
+to run the tests, and
+
+~~~
+docker run --rm -it advancedtelematic/sota_client_cpp build/target/sota_client
+~~~
+
+to run the client. If you want the build artifacts to appear on your host machine (outside of the docker container), you can try
+
+~~~
+mkdir build
+docker run --rm -it --read-only -u $UID -v $PWD/build:/source/build advancedtelematic/sota_client_cpp make
+~~~
+
+though be aware that the output binary (`build/target/sota_client`) may have dynamic linking requirements that are not met by your host environment.
