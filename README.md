@@ -1,5 +1,6 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 [![TravisCI Build Status](https://travis-ci.org/advancedtelematic/sota_client_cpp.svg?branch=master)](https://travis-ci.org/advancedtelematic/sota_client_cpp)
+[![codecov](https://codecov.io/gh/advancedtelematic/sota_client_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/advancedtelematic/sota_client_cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/539/badge)](https://bestpractices.coreinfrastructure.org/projects/539)
 
 sota_client_cpp
