@@ -5,4 +5,10 @@ services:
   - docker
 before_install:
   - docker build -t advancedtelematic/sota_client_cpp .
-script: docker run --rm -it advancedtelematic/sota_client_cpp make test
+  - mkdir build-coverage
+  - echo '#!/bin/sh' > cov.sh
+  - echo "mkdir build-coverage; cd build-coverage; cmake -DBUILD_WITH_CODE_COVERAGE=ON ..; make coverage" >> cov.sh
+  - chmod 755 cov.sh
+script: docker run --rm -it -v $PWD/build-coverage:/source/build-coverage -v $PWD:/source/script advancedtelematic/sota_client_cpp /source/script/cov.sh
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
