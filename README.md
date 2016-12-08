@@ -77,7 +77,7 @@ The project can be configured to generate a code coverage report. First, create 
 ~~~
 mkdir build-coverage
 cd build-coverage
-cmake -DBUILD_WITH_CODE_COVERAGE=ON` ..
+cmake -DBUILD_WITH_CODE_COVERAGE=ON ..
 ~~~
 
 Then use Make from the `build-coverage` directory to run the coverage report:
