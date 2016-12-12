@@ -111,10 +111,15 @@ int main(int argc, char *argv[]) {
   // check for missing options that are marked as required
   catch(const bpo::required_option& ex)
   {
+    if (ex.get_option_name() == "--config"){
+        std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration file using yaml format. See the example configuration file in config/config.yml.example" << std::endl;
+    }
+    else
+    {
     // print the error and append the default commandline option description
-    std::cout << "ERROR: required commandline option is missing:\n" << ex.what() << std::endl << std::endl
+    std::cout << ex.what() << std::endl
      << cmdl_description;
-
+    }
     return EXIT_FAILURE;
   }
   // check for out of range options
@@ -128,7 +133,7 @@ int main(int argc, char *argv[]) {
 
     // set the returnValue, thereby ctest will recognize
     // that something went wrong
-    returnValue = 1;
+    return EXIT_FAILURE;
   }
 
   // apply configuration data and contact the server if data is available
@@ -136,8 +141,9 @@ int main(int argc, char *argv[]) {
     // try current functionality of the servercon class
     LOGGER_LOG(
         LVL_info,
-        "main - try to get available updates: "
-        << ((Server.get_availableUpdates() == 1u) ? "success" : "fail"));
+        "main - try to get token: "
+        << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
+    returnValue = EXIT_SUCCESS;
   } else {
     LOGGER_LOG(LVL_warning, "no server data available");
   }
