@@ -31,29 +31,40 @@ set(LINK_LIBS libpthread.so
               libboost_log_setup.so 
               libboost_log.so
               libboost_program_options.so
-              libyaml-cpp.so)
+              libboost_regex.so
+              libyaml-cpp.so
+              libcurl.so)
 
 # set local include directory(ies)
-set(INC_DIR inc/)
+set(INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
 
 # set variable for the source directory
-set(SRC_DIR src/)
+set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 # tell cmake to include directory(ies)
-include_directories(${INC_DIR})
+include_directories(${INC_DIR}
+                    ${INC_DIR}srv/)
 
-# set source files
-set(SOURCES ${SRC_DIR}main.cpp
-            ${SRC_DIR}logger.cpp
+
+# set source files excluded main for using the list for the test target
+set(SOURCES ${SRC_DIR}logger.cpp
             ${INC_DIR}logger.hpp
             ${SRC_DIR}ymlcfg.cpp
             ${INC_DIR}ymlcfg.hpp)
+            
+# add subfolders
+add_subdirectory("${SRC_DIR}/srv")
+add_subdirectory("${INC_DIR}/srv")
+
+# introduce a new variable containing source including main
+set(MAIN_SRCS ${SOURCES}
+              ${SRC_DIR}main.cpp)
             
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
 # set the name of the executable
-add_executable(sota_client ${SOURCES})
+add_executable(sota_client ${MAIN_SRCS})
 
 # define libraries for the target
 target_link_libraries(sota_client ${LINK_LIBS})
@@ -103,7 +114,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CLANG_FORMAT)
 add_custom_target(format-tools
-    COMMAND ${CLANG_FORMAT} -i -style Google ${SOURCES}
+    COMMAND ${CLANG_FORMAT} -i -style Google ${MAIN_SRCS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running clang-format"
     VERBATIM)
@@ -113,7 +124,7 @@ else()
 endif()
 
 add_custom_target(check-tools
-    COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${SOURCES}
+    COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${MAIN_SRCS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running clang-check"
     VERBATIM)
@@ -121,54 +132,12 @@ add_dependencies(qa check-tools sota_client)
 
 ###############################################################################
 
-# enable cmakes test functionality
-enable_testing()
-
-# The test feature of cmake checks the return value when the program
-# exits. If the return value is zero, the testcase passes.
-
-# test running the executable with command line option --help
-add_test(NAME feat1_test--help
-         COMMAND sota_client --help)     
-# test running the executable with command line option -h          
-add_test(NAME feat1_test-h
-         COMMAND sota_client -h)
-# test running the executable with command line option --something
-add_test(NAME feat1_test--something
-         COMMAND sota_client --something)
-# test running the executable with command line option -sth
-add_test(NAME feat1_test-sth
-         COMMAND sota_client -sth)
-# test running the executable without command line options
-add_test(NAME feat1_test-no_opt
-         COMMAND sota_client)
-         
-#test calling the executable with a config file         
-add_test(NAME feat2_test_config_file
-         COMMAND sota_client -c ../config/config.yml.example)
-         
-# calle the executable without any options
-add_test(NAME test_plain
-         COMMAND sota_client) 
-         
-         
-# testcases with non-supported command line options will return 1
-# in this case we want the testcase to pass         
-set_tests_properties(feat1_test--something
-                     feat1_test-sth 
-                     PROPERTIES WILL_FAIL TRUE)
-                     
-# set the config file test to match the content of the config file as the config file
-# contains a loglevel 1 (degub) where the content of the config file is logged to stderr 
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientid")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientsecret")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "https://url.com")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Server: https://url.com")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel: 1")
-
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
   DEPENDS sota_client)
 
-add_dependencies(qa check) 
+add_dependencies(qa check)
+
+###############################################################################
+include(test_src/CMakeLists.txt)
