@@ -30,8 +30,12 @@ The following debian packages are used in the project:
  - libboost-system-dev (>= 1.58.0)
  - libboost-thread-dev (>= 1.58.0)
  - libboost-log-dev (>= 1.58.0)
+ - libboost-regex-dev (>= 1.58.0)
+ - libboost-test-dev (>= 1.58.0)
  - libpthread-stubs0-dev (>=0.3)
  - libyaml-cpp-dev (>=0.5.2)
+ - curl (>= 7.47)
+ - libcurl4-openssl-dev (>= 7.47)
  - cmake (>= 3.5.1)
 
 Building
@@ -77,7 +81,7 @@ The project can be configured to generate a code coverage report. First, create 
 ~~~
 mkdir build-coverage
 cd build-coverage
-cmake -DBUILD_WITH_CODE_COVERAGE=ON` ..
+cmake -DBUILD_WITH_CODE_COVERAGE=ON ..
 ~~~
 
 Then use Make from the `build-coverage` directory to run the coverage report:

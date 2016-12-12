@@ -1,23 +1,18 @@
 #Setup CMake to run tests
 
+# using boost test requires using static linking of libraries
 set(Boost_USE_STATIC_LIBS ON)
+# let cmake find the boost test library
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
+#enable test features of cmake
 enable_testing()
 
-      
-set(TEST_LIBS ${LINK_LIBS}
-            libboost_test.so)
-
-
-# indicates the location of the boost installation tree.
-# hard-coded for our simple example.
-set(BOOST_INCLUDE_DIRS usr/include)
-
-set(TEST_INC_DIRS ${BOOST_INCLUDE_DIRS}
-                  ${INC_DIR}
+# set include directories for test targets individually
+set(TEST_INC_DIRS ${INC_DIR}
                   ${INC_DIR}/src)
-                  
+
+# define the sources for the test                  
 set(TEST_SRCS  ${SOURCES}
                test_src/test_servercon.cpp)
 
@@ -27,13 +22,20 @@ add_executable(sota_client_test ${TEST_SRCS})
 # indicates the include paths
 target_include_directories(sota_client_test PRIVATE ${TEST_INC_DIRS})
 
+# use the same libiraries as the normal target but add boost test
 set (TEST_LIBS ${LINK_LIBS}
                ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-               
+
+# set the libraries for the current target               
 target_link_libraries(sota_client_test ${TEST_LIBS})
 
+# add the test target to coverage analysis
+if(BUILD_WITH_CODE_COVERAGE)
+target_link_libraries(sota_client_test gcov)
+add_dependencies(coverage sota_client_test)
+endif(BUILD_WITH_CODE_COVERAGE)
 
-# declares a test with our executable
+# declares a test using the test target
 add_test(NAME test_servercon COMMAND sota_client_test)
 
 ###############################################################################
