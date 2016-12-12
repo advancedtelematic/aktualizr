@@ -78,10 +78,9 @@ void ymlcfg_readFile(const std::string& filename) {
   // server is provided.
   else if (ymlconfig["sotaserver"]) {
     config_data.authurl = ymlconfig["sotaserver"].as<std::string>();
-    LOGGER_LOG(LVL_debug,
-               "ymlcfg - using SOTA server for OAuth2 authentication"
-                   << "as no authentication server was provided in "
-                   << filename);
+    LOGGER_LOG(LVL_debug, "ymlcfg - using SOTA server for OAuth2 authentication"
+                              << "as no authentication server was provided in "
+                              << filename);
   } else {
     LOGGER_LOG(LVL_debug,
                "ymlcfg - no authserver URL found in config file: " << filename);

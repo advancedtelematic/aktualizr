@@ -25,18 +25,45 @@ target_include_directories(sota_client_test PRIVATE ${TEST_INC_DIRS})
 # use the same libiraries as the normal target but add boost test
 set (TEST_LIBS ${LINK_LIBS}
                ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+               
+###############################################################################
 
 # set the libraries for the current target               
 target_link_libraries(sota_client_test ${TEST_LIBS})
+
+unset(TEST_SRCS)
+set(TEST_SRCS src/srv/servercon.cpp
+              inc/srv/servercon.hpp
+              inc/srv/oauthtoken.hpp
+              src/logger.cpp
+              inc/logger.hpp
+              test_src/test_oauthtoken.cpp)
+              
+              # set the name of the executable
+add_executable(sota_client_test1 ${TEST_SRCS})
+
+# indicates the include paths
+target_include_directories(sota_client_test1 PRIVATE ${TEST_INC_DIRS})
+
+# set the libraries for the current target               
+target_link_libraries(sota_client_test1 ${TEST_LIBS})
+
+###############################################################################
 
 # add the test target to coverage analysis
 if(BUILD_WITH_CODE_COVERAGE)
 target_link_libraries(sota_client_test gcov)
 add_dependencies(coverage sota_client_test)
+target_link_libraries(sota_client_test1 gcov)
+add_dependencies(coverage sota_client_test1)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 # declares a test using the test target
 add_test(NAME test_servercon COMMAND sota_client_test)
+
+
+# declares a test using the test target
+add_test(NAME test_oauthtoken COMMAND sota_client_test1)
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program
