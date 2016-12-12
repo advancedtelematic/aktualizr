@@ -19,10 +19,11 @@
  * \endcond
  */
 
+#include "oauthtoken.hpp"
 #include <stdlib.h>
+#include <iostream>
 
 #include "logger.hpp"
-#include "oauthtoken.hpp"
 
 namespace sota_server {
 
@@ -40,6 +41,23 @@ oauthToken::oauthToken(const std::string& token_in, const std::string& type_in,
   // atoi is used here instead of stoi() which was introduced with C++11
   // to retain backwards compatibility to older C++ standards
   expire = atoi(expire_in.c_str());
+
+  LOGGER_LOG(LVL_trace, "stored token at "
+                            << (time_t)stored << " and expires at "
+                            << (stored + (time_t)expire) << ""
+                                                            " and time now is "
+                            << time(0));
+  std::cout << "stored token at " << stored << " and expires at "
+            << (stored + (time_t)expire) << ""
+                                            " and time now is "
+            << time(0);
+}
+
+oauthToken::oauthToken(void) {
+  stored = (time_t)0;
+  token = "";
+  type = "";
+  expire = 0;
 }
 
 /*****************************************************************************/
@@ -51,11 +69,6 @@ bool oauthToken::stillValid(void) {
 
   if (!returnValue) {
     time_t now = time(0);
-    LOGGER_LOG(LVL_trace, "stored token at " << stored << " and expires at "
-                                             << (stored + (time_t)expire)
-                                             << ""
-                                                " and time now is "
-                                             << now);
     if (now < (stored + (time_t)expire)) {
       returnValue = true;
     }
@@ -68,6 +81,6 @@ bool oauthToken::stillValid(void) {
 }
 
 /*****************************************************************************/
-std::string oauthToken::get(void) { return token; }
+const std::string& oauthToken::get(void) { return token; }
 
 }  // namespace sota_server

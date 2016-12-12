@@ -56,13 +56,56 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
 /*****************************************************************************/
 namespace sota_server {
 
-void servercon::setServer(std::string& srv_in) { server = srv_in; }
+/*****************************************************************************/
+servercon::servercon(void) {
+  // initialize curl
+  curl_global_init(CURL_GLOBAL_ALL);
+
+  // create a curl handler
+  defaultCurlHndl = curl_easy_init();
+
+  // let curl use our write function
+  curl_easy_setopt(defaultCurlHndl, CURLOPT_WRITEFUNCTION, WriteCallback);
+  // let curl write data to the location we want
+  curl_easy_setopt(defaultCurlHndl, CURLOPT_WRITEDATA, (void*)&serverResp);
+
+  if (logger_getSeverity() <= LVL_debug) {
+    curl_easy_setopt(defaultCurlHndl, CURLOPT_VERBOSE, 1L);
+  }
+
+  token = new oauthToken();
+  authserver = "";
+  sotaserver = "";
+  clientID = "";
+  clientSecret = "";
+  serverResp = "";
+}
+/*****************************************************************************/
+servercon::~servercon(void) {
+  curl_easy_cleanup(defaultCurlHndl);
+  free(token);
+}
 
 /*****************************************************************************/
-void servercon::setClientID(std::string& ID_in) { clientID = ID_in; }
+void servercon::setDevUUID(const std::string& uuid_in) { devUUID = uuid_in; }
 
 /*****************************************************************************/
-void servercon::setClientSecret(std::string& sec_in) { clientSecret = sec_in; }
+void servercon::setClientID(const std::string& ID_in) { clientID = ID_in; }
+
+/*****************************************************************************/
+void servercon::setClientSecret(const std::string& sec_in) {
+  clientSecret = sec_in;
+}
+
+/*****************************************************************************/
+void servercon::setAuthServer(const std::string& server_in) {
+  authserver = server_in;
+}
+
+/*****************************************************************************/
+void servercon::setSotaServer(const std::string& server_in) {
+  sotaserver = server_in;
+}
 
 /*****************************************************************************/
 unsigned int servercon::get_oauthToken(void) {
@@ -75,31 +118,23 @@ unsigned int servercon::get_oauthToken(void) {
 
   returnValue = 0u;
 
-  // compose the url to get the token
-  curlstr << server << "/token";
-
-  // initialize curl
-  curl_global_init(CURL_GLOBAL_ALL);
-
-  // create a curl handler
-  CURL* curl = curl_easy_init();
-
   // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-  if (curl) {
-    // let curl use our write function
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    // let curl write data to the location we want
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&serverResp);
+  CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+
+  if (curlHndl) {
+    // compose the url to get the token
+    curlstr << authserver << "/token";
 
     // set the url
-    curl_easy_setopt(curl, CURLOPT_URL, curlstr.str().c_str());
+    curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
     // let curl put the username and password using HTTP basic authentication
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    curl_easy_setopt(curlHndl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
 
     // set the data curl shoudl post
     // this tells curl to do a HTTP POST
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+    curl_easy_setopt(curlHndl, CURLOPT_POSTFIELDS,
+                     "grant_type=client_credentials");
 
     // reset our temporary string
     curlstr.str("");
@@ -108,22 +143,19 @@ unsigned int servercon::get_oauthToken(void) {
     // compose username and password
     curlstr << clientID << ":" << clientSecret;
     // forward username and password to curl
-    curl_easy_setopt(curl, CURLOPT_USERPWD, curlstr.str().c_str());
+    curl_easy_setopt(curlHndl, CURLOPT_USERPWD, curlstr.str().c_str());
 
     LOGGER_LOG(LVL_debug,
-               "servercon - requesting token from server: " << server);
+               "servercon - requesting token from server: " << authserver);
 
     // let curl perform the configured HTTP action
-    result = curl_easy_perform(curl);
+    result = curl_easy_perform(curlHndl);
 
     // check if curl succeeded
     if (result != CURLE_OK) {
-      LOGGER_LOG(LVL_warning,
-                 "servercon - curl error: " << result << " "
-                                                         "with server: "
-                                            << server << " "
-                                                         "and clientID: "
-                                            << clientID)
+      LOGGER_LOG(LVL_warning, "servercon - curl error: "
+                                  << result << "with server: " << authserver
+                                  << "and clientID: " << clientID)
     } else {
       // TODO issue #23 process response data using a JSON parser
       // create a regex pattern that checks for the token itself, the token type
@@ -157,7 +189,79 @@ unsigned int servercon::get_oauthToken(void) {
   }
 
   // clean up curl
-  curl_easy_cleanup(curl);
+  curl_easy_cleanup(curlHndl);
+
+  return returnValue;
+}
+
+/*****************************************************************************/
+unsigned int servercon::get_availableUpdates(void) {
+  unsigned int returnValue = 0;
+  bool tokenOK = false;
+  std::stringstream
+      curlstr; /**< a stringstream used to compose curl arguments */
+
+  CURLcode result;
+
+  if (!token->stillValid()) {
+    if (get_oauthToken()) {
+      tokenOK = true;
+    }
+  } else {
+    tokenOK = true;
+  }
+
+  if (tokenOK) {
+    // copy default handle
+    CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+
+    // compose server url
+    curlstr << sotaserver << "/api/v1/mydevice/" << devUUID << "/updates";
+    // set the url
+    curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+    // reset our temporary string
+    curlstr.str("");
+    curlstr.clear();
+
+    // get token
+    std::string tokenstr = token->get();
+
+    // compose authorization header using token
+    curlstr << "Authorization : Bearer " << tokenstr;
+
+    // create a header list for curl
+    struct curl_slist* slist = NULL;
+
+    // append authorization header to the header list
+    slist = curl_slist_append(slist, curlstr.str().c_str());
+    // append accecpt header (as shown in the sota api example)
+    slist = curl_slist_append(slist, "Accept: application/json");
+
+    // tell curl to use the header list
+    curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
+
+    // let curl perform the configured HTTP action
+    result = curl_easy_perform(curlHndl);
+
+    // check if curl succeeded
+    if (result != CURLE_OK) {
+      LOGGER_LOG(LVL_warning, "servercon - curl error: "
+                                  << result << "with server: " << sotaserver
+                                  << "and clientID: " << clientID)
+    } else {
+      // for now, just log the resonse from the server
+      LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n" << serverResp);
+
+      // TODO issue #23 process response data using a JSON parser
+
+      // set the return value to success
+      returnValue = 1;
+    }
+
+    // clean up used curl ressources
+    curl_slist_free_all(slist); /* free the list again */
+    curl_easy_cleanup(curlHndl);
+  }
 
   return returnValue;
 }

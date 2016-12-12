@@ -30,9 +30,11 @@
 
 /*****************************************************************************/
 typedef struct {
-  std::string url;
+  std::string authurl;
+  std::string sotaurl;
   std::string client_id;
   std::string secret;
+  std::string devUUID;
   unsigned int loglevel;
 } config_data_t; /**< list of known configuration data */
 
@@ -47,10 +49,12 @@ static config_data_t config_data; /**< store configuration data locally until
  *    us to print its content, i.e. for logging purposes.
  */
 std::ostream& operator<<(std::ostream& os, const config_data_t& cfg) {
-  return os << "\tServer: " << cfg.url << std::endl
+  return os << "\tAuthtentification Server: " << cfg.authurl << std::endl
+            << "\tSota Server: " << cfg.sotaurl << std::endl
             << "\tClient: " << cfg.client_id << std::endl
             << "\tSecret: " << cfg.secret << std::endl
-            << "\tLoglevel: " << cfg.loglevel;
+            << "\tLoglevel: " << cfg.loglevel << std::endl
+            << "\t device UUID: " << cfg.devUUID;
 }
 
 /*****************************************************************************/
@@ -59,11 +63,19 @@ void ymlcfg_readFile(const std::string& filename) {
   YAML::Node ymlconfig = YAML::LoadFile(filename);
 
   // check for keys in the configuration file
-  if (ymlconfig["server"]) {
-    config_data.url = ymlconfig["server"].as<std::string>();
+  if (ymlconfig["authserver"]) {
+    config_data.authurl = ymlconfig["authserver"].as<std::string>();
   } else {
     LOGGER_LOG(LVL_debug,
-               "ymlcfg - no server URL found in config file: " << filename);
+               "ymlcfg - no authserver URL found in config file: " << filename);
+  }
+
+  // check for keys in the configuration file
+  if (ymlconfig["sotaserver"]) {
+    config_data.sotaurl = ymlconfig["sotaserver"].as<std::string>();
+  } else {
+    LOGGER_LOG(LVL_debug,
+               "ymlcfg - no sotaserver URL found in config file: " << filename);
   }
 
   if (ymlconfig["client_id"]) {
@@ -87,7 +99,14 @@ void ymlcfg_readFile(const std::string& filename) {
     logger_setSeverity(static_cast<loggerLevels_t>(config_data.loglevel));
   } else {
     LOGGER_LOG(LVL_debug,
-               "ymlcfg - no loglecvel found in config file:" << filename);
+               "ymlcfg - no loglevel found in config file:" << filename);
+  }
+
+  if (ymlconfig["devUUID"]) {
+    config_data.devUUID = ymlconfig["devUUID"].as<std::string>();
+  } else {
+    LOGGER_LOG(LVL_debug,
+               "ymlcfg - no devUUID found in config file:" << filename);
   }
 
   LOGGER_LOG(LVL_debug, "ymlcfg - config read from " << filename << " :\n"
@@ -99,15 +118,21 @@ unsigned int ymlcfg_setServerData(sota_server::servercon* sota_serverPtr) {
   unsigned int returnValue;
   returnValue = 0u;
 
-  if (!config_data.url.empty()) {
-    if (!config_data.client_id.empty()) {
-      if (!config_data.secret.empty()) {
-        sota_serverPtr->setServer(config_data.url);
-        sota_serverPtr->setClientID(config_data.client_id);
-        sota_serverPtr->setClientSecret(config_data.secret);
-        returnValue = 1u;
-      }
-    }
+  // check if required configuration data is available
+  if ((!config_data.authurl.empty()) && (!config_data.client_id.empty()) &&
+      (!config_data.secret.empty()) && (!config_data.devUUID.empty()) &&
+      (!config_data.sotaurl.empty())) {
+    sota_serverPtr->setAuthServer(
+        const_cast<std::string&>(config_data.authurl));
+    sota_serverPtr->setClientID(
+        const_cast<std::string&>(config_data.client_id));
+    sota_serverPtr->setClientSecret(
+        const_cast<std::string&>(config_data.secret));
+    sota_serverPtr->setDevUUID(const_cast<std::string&>(config_data.devUUID));
+    sota_serverPtr->setSotaServer(
+        const_cast<std::string&>(config_data.sotaurl));
+
+    returnValue = 1u;
   }
 
   return returnValue;

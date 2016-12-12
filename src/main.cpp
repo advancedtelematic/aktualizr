@@ -119,9 +119,12 @@ int main(int argc, char *argv[]) {
 
   if (ymlcfg_setServerData(&Server) == 1u) {
     // try current functionality of the servercon class
-    LOGGER_LOG(LVL_info,
-               "main - try to get token: "
-                   << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
+    LOGGER_LOG(
+        LVL_info,
+        "main - try to get available updates: "
+            << ((Server.get_availableUpdates() == 1u) ? "success" : "fail"));
+  } else {
+    LOGGER_LOG(LVL_warning, "no server data available");
   }
 
   return returnValue;

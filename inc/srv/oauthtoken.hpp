@@ -50,13 +50,15 @@ class oauthToken {
   oauthToken(const std::string& token_in, const std::string& type_in,
              const std::string& expire_in);
 
+  oauthToken(void);
+
   /**
    * \par Description:
    *    A getter for the stored token.
    *
    * \return OAuth2 token as string
    */
-  std::string get(void);
+  const std::string& get(void);
 
   /**
    * \par Description:
