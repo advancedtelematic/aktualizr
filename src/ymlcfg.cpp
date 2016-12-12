@@ -63,19 +63,28 @@ void ymlcfg_readFile(const std::string& filename) {
   YAML::Node ymlconfig = YAML::LoadFile(filename);
 
   // check for keys in the configuration file
-  if (ymlconfig["authserver"]) {
-    config_data.authurl = ymlconfig["authserver"].as<std::string>();
-  } else {
-    LOGGER_LOG(LVL_debug,
-               "ymlcfg - no authserver URL found in config file: " << filename);
-  }
-
-  // check for keys in the configuration file
   if (ymlconfig["sotaserver"]) {
     config_data.sotaurl = ymlconfig["sotaserver"].as<std::string>();
   } else {
     LOGGER_LOG(LVL_debug,
                "ymlcfg - no sotaserver URL found in config file: " << filename);
+  }
+
+  // check for keys in the configuration file
+  if (ymlconfig["authserver"]) {
+    config_data.authurl = ymlconfig["authserver"].as<std::string>();
+  }
+  // use the sota server for authentication if no separate authentication
+  // server is provided.
+  else if (ymlconfig["sotaserver"]) {
+    config_data.authurl = ymlconfig["sotaserver"].as<std::string>();
+    LOGGER_LOG(LVL_debug,
+               "ymlcfg - using SOTA server for OAuth2 authentication"
+                   << "as no authentication server was provided in "
+                   << filename);
+  } else {
+    LOGGER_LOG(LVL_debug,
+               "ymlcfg - no authserver URL found in config file: " << filename);
   }
 
   if (ymlconfig["client_id"]) {

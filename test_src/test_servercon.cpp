@@ -33,13 +33,13 @@ BOOST_AUTO_TEST_CASE(servercon_setmemb)
 {
   sota_server::servercon obj1;
 
-  obj1.setServer(const_cast<std::string&>(TSTURL));
+  obj1.setAuthServer(const_cast<std::string&>(TSTURL));
   obj1.setClientID(const_cast<std::string&>(TSTID));
   obj1.setClientSecret(const_cast<std::string&>(TSTSECRET));
 
   if (obj1.get_oauthToken() != 0u) {
     BOOST_FAIL(
-        "servercon:get_oauthToken returns  success when usin invalid data.");
+        "servercon:get_oauthToken returns  success when using invalid data.");
   }
 }
 
