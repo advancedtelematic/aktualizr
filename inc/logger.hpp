@@ -19,7 +19,8 @@
  *      file.
  *
  * \note To write a log message, create an object of type
- *       boost::log::sources::severity_logger< boost::log::trivial::severity_level >
+ *       boost::log::sources::severity_logger<
+ *boost::log::trivial::severity_level >
  *       and use the Macro
  *       BOOST_LOG_SEV(#logobject#, boost::log::trivial::#level#) << #message#;
  *
@@ -31,7 +32,6 @@
  * \endcond
  */
 
-
 #ifndef LOG_HPP_
 #define LOG_HPP_
 
@@ -39,12 +39,12 @@
 
 /*****************************************************************************/
 typedef enum {
-   LVL_trace = 0,
-   LVL_debug,
-   LVL_warning,
-   LVL_info,
-   LVL_error
-}loggerLevels_t;  /**< define own logging levels */
+  LVL_trace = 0,
+  LVL_debug,
+  LVL_warning,
+  LVL_info,
+  LVL_error
+} loggerLevels_t; /**< define own logging levels */
 
 /*****************************************************************************/
 /**
@@ -56,10 +56,12 @@ typedef enum {
  * \param[in] _stream - the message, put anything here that fits into a
  *                      stringstream
  */
-#define LOGGER_LOG(_lvl, _stream) {\
-   std::stringstream logstring; \
-   logstring << _stream; \
-   logger_writeMessage(_lvl, logstring.str()); }
+#define LOGGER_LOG(_lvl, _stream)               \
+  {                                             \
+    std::stringstream logstring;                \
+    logstring << _stream;                       \
+    logger_writeMessage(_lvl, logstring.str()); \
+  }
 
 /*****************************************************************************/
 /**
@@ -98,4 +100,4 @@ extern loggerLevels_t logger_getSeverity(void);
  */
 extern void logger_writeMessage(loggerLevels_t lvl, const std::string& message);
 
-#endif // LOG_HPP_
+#endif  // LOG_HPP_

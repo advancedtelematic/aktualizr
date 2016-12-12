@@ -30,46 +30,47 @@
 
 namespace sota_server {
 
-class oauthToken{
+class oauthToken {
+  // Attributes
+ private:
+  std::string token;   /**< the OAuth2 token stored as string */
+  std::string type;    /**< the token type as provided by the server */
+  unsigned int expire; /**< the expire integer as provided by the server */
+  time_t stored;       /**< the time when the token was stored */
 
-// Attributes
-private:
-   std::string token;   /**< the OAuth2 token stored as string */
-   std::string type;    /**< the token type as provided by the server */
-   unsigned int expire; /**< the expire integer as provided by the server */
-   time_t stored;       /**< the time when the token was stored */
+  // Operations
+ public:
+  /**
+   * \par Description
+   *    This constructor stores a OAuth2 token. It parses a JSON server
+   * response.
+   *
+   * \param[in] response - a string containing the server response.
+   */
+  oauthToken(const std::string& token_in, const std::string& type_in,
+             const std::string& expire_in);
 
-// Operations
-public:
-   /**
-    * \par Description
-    *    This constructor stores a OAuth2 token. It parses a JSON server response.
-    *
-    * \param[in] response - a string containing the server response.
-    */
-   oauthToken(const std::string& token_in, const std::string& type_in, const std::string& expire_in);
+  /**
+   * \par Description:
+   *    A getter for the stored token.
+   *
+   * \return OAuth2 token as string
+   */
+  std::string get(void);
 
-   /**
-    * \par Description:
-    *    A getter for the stored token.
-    *
-    * \return OAuth2 token as string
-    */
-   std::string get(void);
-
-   /**
-    * \par Description:
-    *    Checks if the stored token is still valid by evaluating the time when
-    *    the token was stored an the expire integer provided by the server.
-    *    Before checking the expire time the functions checks if the
-    *    members are empty, so this function can also be used to check if
-    *    an object contains a token.
-    *
-    * \return true if the token is still valid, false otherwise.
-    */
-   bool stillValid(void);
+  /**
+   * \par Description:
+   *    Checks if the stored token is still valid by evaluating the time when
+   *    the token was stored an the expire integer provided by the server.
+   *    Before checking the expire time the functions checks if the
+   *    members are empty, so this function can also be used to check if
+   *    an object contains a token.
+   *
+   * \return true if the token is still valid, false otherwise.
+   */
+  bool stillValid(void);
 };
 
-} // namepsace sota_server
+}  // namepsace sota_server
 
-#endif // OAUTHTOKEN_H_
+#endif  // OAUTHTOKEN_H_

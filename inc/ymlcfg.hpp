@@ -18,7 +18,6 @@
  * \endcond
  */
 
-
 #ifndef YMLCFG_H_
 #define YMLCFG_H_
 
@@ -28,7 +27,8 @@
  * \par Description:
  *    Reads a yaml configuration file and stores values.
  *
- * param[in] filename - the file that contains the configuration encoded with yaml
+ * param[in] filename - the file that contains the configuration encoded with
+ * yaml
  */
 extern void ymlcfg_readFile(const std::string& filename);
 
@@ -40,4 +40,4 @@ extern void ymlcfg_readFile(const std::string& filename);
  */
 unsigned int ymlcfg_setServerData(sota_server::servercon* sota_serverPtr);
 
-#endif // YMLCFG_H_
+#endif  // YMLCFG_H_
