@@ -44,10 +44,11 @@ int main(int argc, char *argv[]) {
   // initialize the logging framework
   logger_init();
 
+  // create a commandline options object
+  bpo::options_description cmdl_description("CommandLine Options");
+
   // set up the commandline options
   try {
-    // create a commandline options object
-    bpo::options_description cmdl_description("CommandLine Options:");
 
     // create a easy-to-handle dictionary for commandline options
     bpo::options_description_easy_init cmdl_dictionary =
@@ -65,10 +66,10 @@ int main(int argc, char *argv[]) {
     // header  boost/log/trivial.hpp
     // desired result: bpo::value<loggerLevels_t>
     cmdl_dictionary("loglevel", bpo::value<int>(),
-                    "set log level 0-4 (trace, debug, warning, info, error)");
+        "set log level 0-4 (trace, debug, warning, info, error)");
 
-    cmdl_dictionary("config,c", bpo::value<std::string>(),
-                    "yaml configuration file");
+    cmdl_dictionary("config,c", bpo::value<std::string>()->required(),
+        "yaml configuration file");
 
     // create a variables map
     bpo::variables_map cmdl_varMap;
@@ -87,6 +88,9 @@ int main(int argc, char *argv[]) {
     }
 
     // check for config file commandline option
+    // The config file has to be checked before checking for loglevel
+    // as the loglevel option shall overwrite settings provided via
+    // a configuration file.
     if (cmdl_varMap.count("config") != 0) {
       ymlcfg_readFile(cmdl_varMap["config"].as<std::string>());
     }
@@ -103,8 +107,18 @@ int main(int argc, char *argv[]) {
       // log if no command line option loglevl is used
       LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
     }
+  }
+  // check for missing options that are marked as required
+  catch(const bpo::required_option& ex)
+  {
+    // print the error and append the default commandline option description
+    std::cout << "ERROR: required commandline option is missing:\n" << ex.what() << std::endl << std::endl
+     << cmdl_description;
 
-  } catch (const bpo::error &ex) {
+    return EXIT_FAILURE;
+  }
+  // check for out of range options
+  catch (const bpo::error &ex) {
     // log boost error
     LOGGER_LOG(LVL_warning, "boost command line option error: " << ex.what());
 
@@ -117,12 +131,13 @@ int main(int argc, char *argv[]) {
     returnValue = 1;
   }
 
+  // apply configuration data and contact the server if data is available
   if (ymlcfg_setServerData(&Server) == 1u) {
     // try current functionality of the servercon class
     LOGGER_LOG(
         LVL_info,
         "main - try to get available updates: "
-            << ((Server.get_availableUpdates() == 1u) ? "success" : "fail"));
+        << ((Server.get_availableUpdates() == 1u) ? "success" : "fail"));
   } else {
     LOGGER_LOG(LVL_warning, "no server data available");
   }
