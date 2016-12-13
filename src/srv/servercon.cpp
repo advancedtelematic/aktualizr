@@ -79,6 +79,8 @@ servercon::servercon(void) {
   clientID = "";
   clientSecret = "";
   serverResp = "";
+
+  std::memset((void*)&update, 0, sizeof(server_updateInfo_t));
 }
 /*****************************************************************************/
 servercon::~servercon(void) {
@@ -249,19 +251,103 @@ unsigned int servercon::get_availableUpdates(void) {
                                   << result << "with server: " << sotaserver
                                   << "and clientID: " << clientID)
     } else {
-      // for now, just log the resonse from the server
-      LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n" << serverResp);
+      // create an object for the regex results
+      boost::smatch regex_result;
 
       // TODO issue #23 process response data using a JSON parser
+      boost::regex expr(
+          "^\\[\\{\"requestId\":\"(\\S+)\",\"packageId\":\\{\"name\":\"(\\S+)"
+          "\",\"version\":\"(\\d+\\.\\d+)");
+      // check if the regex matches the return from curl
+      if (boost::regex_search(serverResp, regex_result, expr)) {
+        // boost::regex stores the whole string that was checked in <result>[0]
+        if (regex_result.size() >= 3u) {
+          update.UUID = regex_result[1u];
+          update.name = regex_result[2u];
+          update.version = regex_result[3u];
 
-      // set the return value to success
-      returnValue = 1;
+          std::cout << "Update available:\n"
+                    << update.UUID << std::endl
+                    << update.name << std::endl
+                    << update.version << std::endl;
+          // set the return value to success
+          returnValue = 1;
+        }
+      }
     }
 
     // clean up used curl ressources
     curl_slist_free_all(slist); /* free the list again */
     curl_easy_cleanup(curlHndl);
   }
+
+  return returnValue;
+}
+
+/*****************************************************************************/
+unsigned int servercon::download_update(void) {
+  unsigned int returnValue = 0;
+
+  if (!update.UUID.empty()) {
+    bool tokenOK;
+    if (!token->stillValid()) {
+      if (get_oauthToken()) {
+        tokenOK = true;
+      }
+    } else {
+      tokenOK = true;
+    }
+
+    if (tokenOK) {
+      CURLcode result;
+
+      std::stringstream
+          curlstr; /**< a stringstream used to compose curl arguments */
+
+      // compose server url
+      curlstr << sotaserver << "/api/v1/mydevice/" << devUUID << "/updates/"
+              << update.UUID << "/download";
+
+      // copy default handle
+      CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+
+      // set the url
+      curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+
+      // reset our temporary string
+      curlstr.str("");
+      curlstr.clear();
+
+      // get token
+      std::string tokenstr = token->get();
+
+      // compose authorization header using token
+      curlstr << "Authorization : Bearer " << tokenstr;
+
+      // create a header list for curl
+      struct curl_slist* slist = NULL;
+
+      // append authorization header to the header list
+      slist = curl_slist_append(slist, curlstr.str().c_str());
+      // append accecpt header (as shown in the sota api example)
+      slist = curl_slist_append(slist, "Accept: application/json");
+
+      // tell curl to use the header list
+      curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
+
+      // let curl perform the configured HTTP action
+      result = curl_easy_perform(curlHndl);
+
+      // check if curl succeeded
+      if (result != CURLE_OK) {
+        LOGGER_LOG(LVL_debug, "servercon - curl error: "
+                                  << result << "with server: " << sotaserver
+                                  << "and clientID: " << clientID)
+      } else {
+        std::cout << serverResp << std::endl;
+      }
+    }  // tokenOK
+  }    // !update.UUID.empty()
 
   return returnValue;
 }

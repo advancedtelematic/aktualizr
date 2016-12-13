@@ -29,6 +29,12 @@
 
 namespace sota_server {
 
+typedef struct {
+  std::string UUID;
+  std::string name;
+  std::string version;
+} server_updateInfo_t;
+
 /*****************************************************************************/
 class servercon {
   // Attributes
@@ -48,6 +54,8 @@ class servercon {
 
   CURL* defaultCurlHndl; /**< store a default configuration for all curl
                             operations */
+
+  server_updateInfo_t update;
 
   // Operations
  public:
@@ -96,6 +104,8 @@ class servercon {
    * \return 1 if a valid response from the server was received
    */
   unsigned int get_availableUpdates(void);
+
+  unsigned int download_update(void);
 
   servercon(void);
 
