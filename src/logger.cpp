@@ -48,7 +48,7 @@ static loggerLevels_t
 /*****************************************************************************/
 void logger_init(void) {
   // choose stderr as logging console
-  logging::add_console_log(std::cerr,
+  logging::add_console_log(std::cout,
                            keywords::format = "[%TimeStamp%]: %Message%");
 
   // apply default attributes
