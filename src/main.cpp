@@ -49,7 +49,6 @@ int main(int argc, char *argv[]) {
 
   // set up the commandline options
   try {
-
     // create a easy-to-handle dictionary for commandline options
     bpo::options_description_easy_init cmdl_dictionary =
         cmdl_description.add_options();
@@ -66,10 +65,10 @@ int main(int argc, char *argv[]) {
     // header  boost/log/trivial.hpp
     // desired result: bpo::value<loggerLevels_t>
     cmdl_dictionary("loglevel", bpo::value<int>(),
-        "set log level 0-4 (trace, debug, warning, info, error)");
+                    "set log level 0-4 (trace, debug, warning, info, error)");
 
     cmdl_dictionary("config,c", bpo::value<std::string>()->required(),
-        "yaml configuration file");
+                    "yaml configuration file");
 
     // create a variables map
     bpo::variables_map cmdl_varMap;
@@ -109,18 +108,17 @@ int main(int argc, char *argv[]) {
     }
   }
   // check for missing options that are marked as required
-  catch(const bpo::required_option& ex)
-  {
-    if (ex.get_option_name() == "--config"){
-        std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration file using yaml format. See the example configuration file in config/config.yml.example" << std::endl;
+  catch (const bpo::required_option &ex) {
+    if (ex.get_option_name() == "--config") {
+      std::cout << ex.get_option_name()
+                << " is missing.\nYou have to provide a valid configuration "
+                   "file using yaml format. See the example configuration file "
+                   "in config/config.yml.example"
+                << std::endl;
+    } else {
+      // print the error and append the default commandline option description
+      std::cout << ex.what() << std::endl << cmdl_description;
     }
-    else
-    {
-    // print the error and append the default commandline option description
-    std::cout << ex.what() << std::endl
-     << cmdl_description;
-    }
-    return EXIT_FAILURE;
   }
   // check for out of range options
   catch (const bpo::error &ex) {
@@ -139,10 +137,9 @@ int main(int argc, char *argv[]) {
   // apply configuration data and contact the server if data is available
   if (ymlcfg_setServerData(&Server) == 1u) {
     // try current functionality of the servercon class
-    LOGGER_LOG(
-        LVL_info,
-        "main - try to get token: "
-        << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
+    LOGGER_LOG(LVL_info,
+               "main - try to get token: "
+                   << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
     returnValue = EXIT_SUCCESS;
   } else {
     LOGGER_LOG(LVL_warning, "no server data available");
