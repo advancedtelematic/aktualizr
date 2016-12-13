@@ -71,19 +71,16 @@ add_test(NAME test_oauthtoken COMMAND sota_client_test1)
 
 # test running the executable with command line option --help
 add_test(NAME feat1_test--help
-         COMMAND sota_client --help)     
+         COMMAND sota_client --help -c ../config/config.yml.example)     
 # test running the executable with command line option -h          
 add_test(NAME feat1_test-h
-         COMMAND sota_client -h)
+         COMMAND sota_client -h -c ../config/config.yml.example)
 # test running the executable with command line option --something
 add_test(NAME feat1_test--something
-         COMMAND sota_client --something)
+         COMMAND sota_client --something -c ../config/config.yml.example)
 # test running the executable with command line option -sth
 add_test(NAME feat1_test-sth
-         COMMAND sota_client -sth)
-# test running the executable without command line options
-add_test(NAME feat1_test-no_opt
-         COMMAND sota_client)
+         COMMAND sota_client -sth -c ../config/config.yml.example)
          
 #test calling the executable with a config file         
 add_test(NAME feat2_test_config_file
@@ -95,28 +92,29 @@ add_test(NAME test_plain
 
 # check possible logging levels         
 add_test(NAME test_log_trace
-         COMMAND sota_client --loglevel=0)
+         COMMAND sota_client --loglevel=0 -c ../config/config.yml.example)
          
 add_test(NAME test_log_debug
-         COMMAND sota_client --loglevel=1)
+         COMMAND sota_client --loglevel=1 -c ../config/config.yml.example)
          
 add_test(NAME test_log_warning
-         COMMAND sota_client --loglevel=2)
+         COMMAND sota_client --loglevel=2 -c ../config/config.yml.example)
          
 add_test(NAME test_log_info
-         COMMAND sota_client --loglevel=3)
+         COMMAND sota_client --loglevel=3 -c ../config/config.yml.example)
          
 add_test(NAME test_log_error
-         COMMAND sota_client --loglevel=4)
+         COMMAND sota_client --loglevel=4 -c ../config/config.yml.example)
 
 add_test(NAME test_log_invalid
-         COMMAND sota_client --loglevel=5)         
+         COMMAND sota_client --loglevel=5 -c ../config/config.yml.example)         
          
          
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass         
 set_tests_properties(feat1_test--something
-                     feat1_test-sth 
+                     feat1_test-sth
+                     test_plain
                      PROPERTIES WILL_FAIL TRUE)
                      
 # set the config file test to match the content of the config file as the config file
