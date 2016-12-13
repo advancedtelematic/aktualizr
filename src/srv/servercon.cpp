@@ -23,6 +23,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -242,6 +243,8 @@ unsigned int servercon::get_availableUpdates(void) {
     // tell curl to use the header list
     curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
 
+    curl_easy_setopt(curlHndl, CURLOPT_FOLLOWLOCATION, 1L);
+
     // let curl perform the configured HTTP action
     result = curl_easy_perform(curlHndl);
 
@@ -287,9 +290,10 @@ unsigned int servercon::get_availableUpdates(void) {
 /*****************************************************************************/
 unsigned int servercon::download_update(void) {
   unsigned int returnValue = 0;
-
+  // check if the current updates UUID is not empty
   if (!update.UUID.empty()) {
     bool tokenOK;
+    // check if the current token is still valid or get a new one
     if (!token->stillValid()) {
       if (get_oauthToken()) {
         tokenOK = true;
@@ -299,7 +303,8 @@ unsigned int servercon::download_update(void) {
     }
 
     if (tokenOK) {
-      CURLcode result;
+      CURLcode result; /**< store cURL result */
+      std::ofstream output(update.name.c_str(), std::ofstream::out);
 
       std::stringstream
           curlstr; /**< a stringstream used to compose curl arguments */
@@ -335,6 +340,7 @@ unsigned int servercon::download_update(void) {
       // tell curl to use the header list
       curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
 
+      LOGGER_LOG(LVL_debug, "servercon - downloading update " << update.UUID);
       // let curl perform the configured HTTP action
       result = curl_easy_perform(curlHndl);
 
@@ -344,8 +350,33 @@ unsigned int servercon::download_update(void) {
                                   << result << "with server: " << sotaserver
                                   << "and clientID: " << clientID)
       } else {
-        std::cout << serverResp << std::endl;
-      }
+        unsigned char* charPtr =
+            new unsigned char[1000]; /**< buffer for redirect link */
+        // check if curl got a
+        result = curl_easy_getinfo(curlHndl, CURLINFO_REDIRECT_URL, &charPtr);
+
+        if (result == CURLE_OK) {
+          // reset the cURL handle by copying the default handle
+          curlHndl = curl_easy_duphandle(defaultCurlHndl);
+          // set the detected redirect URL
+          curl_easy_setopt(curlHndl, CURLOPT_URL, charPtr);
+          // let curl perform the configured HTTP action
+          result = curl_easy_perform(curlHndl);
+
+          // check if following the redirect worked
+          if (result == CURLE_OK) {
+            // the download file is now available via the configured write
+            // callback
+            output << serverResp;
+          }  // CURLE_OK (using redirect link)
+        }    // CURLE_OK (getting redirect link)
+        else {
+          // no redirect link received, the download shoud have been stored by
+          // the configured write callback
+          output << serverResp;
+        }
+      }  // else CURLE_OK (sota server download request)
+      output.close();
     }  // tokenOK
   }    // !update.UUID.empty()
 
