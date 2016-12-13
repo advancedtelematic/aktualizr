@@ -119,6 +119,7 @@ int main(int argc, char *argv[]) {
       // print the error and append the default commandline option description
       std::cout << ex.what() << std::endl << cmdl_description;
     }
+    return EXIT_FAILURE;
   }
   // check for out of range options
   catch (const bpo::error &ex) {
@@ -131,7 +132,7 @@ int main(int argc, char *argv[]) {
 
     // set the returnValue, thereby ctest will recognize
     // that something went wrong
-    return EXIT_FAILURE;
+    returnValue = EXIT_FAILURE;
   }
 
   // apply configuration data and contact the server if data is available
