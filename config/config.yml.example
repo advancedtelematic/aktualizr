@@ -1,4 +1,6 @@
-server : https://url.com
+authserver : https://authurl.suffix
+sotaserver : https://sotaurl.suffix
+devUUID : thisisadeviceuuid
 client_id : thisisaclientid
 client_secret : thisisaclientsecret
 loglevel : 1 # debug

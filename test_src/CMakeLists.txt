@@ -40,13 +40,15 @@ set(TEST_SRCS src/srv/servercon.cpp
               test_src/test_oauthtoken.cpp)
               
               # set the name of the executable
-add_executable(sota_client_test1 ${TEST_SRCS})
+add_executable(sota_client_test_tokenValid ${TEST_SRCS})
 
 # indicates the include paths
-target_include_directories(sota_client_test1 PRIVATE ${TEST_INC_DIRS})
+target_include_directories(sota_client_test_tokenValid PRIVATE ${TEST_INC_DIRS})
 
 # set the libraries for the current target               
-target_link_libraries(sota_client_test1 ${TEST_LIBS})
+target_link_libraries(sota_client_test_tokenValid ${TEST_LIBS})
+
+target_compile_definitions(sota_client_test_tokenValid PRIVATE TEST_ENABLE=1)
 
 ###############################################################################
 
@@ -54,8 +56,8 @@ target_link_libraries(sota_client_test1 ${TEST_LIBS})
 if(BUILD_WITH_CODE_COVERAGE)
 target_link_libraries(sota_client_test gcov)
 add_dependencies(coverage sota_client_test)
-target_link_libraries(sota_client_test1 gcov)
-add_dependencies(coverage sota_client_test1)
+target_link_libraries(sota_client_test_tokenValid gcov)
+add_dependencies(coverage sota_client_test_tokenValid)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 # declares a test using the test target
@@ -63,7 +65,7 @@ add_test(NAME test_servercon COMMAND sota_client_test)
 
 
 # declares a test using the test target
-add_test(NAME test_oauthtoken COMMAND sota_client_test1)
+add_test(NAME test_oauthtoken COMMAND sota_client_test_tokenValid)
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program

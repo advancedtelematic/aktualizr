@@ -55,7 +55,7 @@ class servercon {
   CURL* defaultCurlHndl; /**< store a default configuration for all curl
                             operations */
 
-  server_updateInfo_t update;
+  server_updateInfo_t update; /**< store informations about available updates */
 
   // Operations
  public:
@@ -105,11 +105,23 @@ class servercon {
    */
   unsigned int get_availableUpdates(void);
 
+  /**
+   * \par Description:
+   *    Downloads an update from the sota server. get_availableUpdates()
+   *    should be called in advance in order to get information about
+   *   available updates on the server.
+   */
   unsigned int download_update(void);
 
   servercon(void);
 
   ~servercon(void);
+// TODO issue #38 This is a way of testing other methods that rely on an
+// available update. There are other ways that might be considered a better
+// approach.
+#if (TEST_ENABLE == 1)
+  void tst_setUpdate(const server_updateInfo_t& update_info);
+#endif
 };
 
 }  // namespace sota_server
