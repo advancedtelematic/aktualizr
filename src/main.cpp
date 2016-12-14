@@ -132,16 +132,17 @@ int main(int argc, char *argv[]) {
 
     // set the returnValue, thereby ctest will recognize
     // that something went wrong
-    returnValue = EXIT_FAILURE;
+    returnValue = 1;
   }
 
-  // apply configuration data and contact the server if data is available
   if (ymlcfg_setServerData(&Server) == 1u) {
     // try current functionality of the servercon class
-    LOGGER_LOG(LVL_info,
-               "main - try to get token: "
-                   << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
-    returnValue = EXIT_SUCCESS;
+    if (Server.get_availableUpdates() == 1u) {
+      LOGGER_LOG(LVL_debug, "updates available - downloading file...");
+      if (Server.download_update() == 1u) {
+        LOGGER_LOG(LVL_debug, "Update downloaded...")
+      }
+    }
   } else {
     LOGGER_LOG(LVL_warning, "no server data available");
   }

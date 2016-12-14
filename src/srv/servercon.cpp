@@ -23,6 +23,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -79,6 +80,8 @@ servercon::servercon(void) {
   clientID = "";
   clientSecret = "";
   serverResp = "";
+
+  std::memset((void*)&update, 0, sizeof(server_updateInfo_t));
 }
 /*****************************************************************************/
 servercon::~servercon(void) {
@@ -118,33 +121,32 @@ unsigned int servercon::get_oauthToken(void) {
 
   returnValue = 0u;
 
-  // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
+  // create a curl-handle by copying the default handle
   CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
 
   if (curlHndl) {
     // compose the url to get the token
     curlstr << authserver << "/token";
-
     // set the url
     curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+
     // let curl put the username and password using HTTP basic authentication
     curl_easy_setopt(curlHndl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
-
-    // set the data curl shoudl post
-    // this tells curl to do a HTTP POST
+    // set the data curl posts
+    // this tells curl to do a HTTP POST and the server that we are requesting a
+    // token using our clientID and the corresponding secret
     curl_easy_setopt(curlHndl, CURLOPT_POSTFIELDS,
                      "grant_type=client_credentials");
 
     // reset our temporary string
     curlstr.str("");
     curlstr.clear();
-
     // compose username and password
     curlstr << clientID << ":" << clientSecret;
     // forward username and password to curl
     curl_easy_setopt(curlHndl, CURLOPT_USERPWD, curlstr.str().c_str());
 
+    // log that the authorization server will be contacted
     LOGGER_LOG(LVL_debug,
                "servercon - requesting token from server: " << authserver);
 
@@ -183,10 +185,10 @@ unsigned int servercon::get_oauthToken(void) {
           LOGGER_LOG(LVL_warning,
                      "servercon - no token found in server response:\n"
                          << serverResp);
-        }
-      }
-    }
-  }
+        }  // else token->stillValid()
+      }    // boost::regex_search()
+    }      // else CURLE_OK (curl_easy_perform()
+  }        // curlHndl
 
   // clean up curl
   curl_easy_cleanup(curlHndl);
@@ -203,6 +205,7 @@ unsigned int servercon::get_availableUpdates(void) {
 
   CURLcode result;
 
+  // make shure we have a valid token
   if (!token->stillValid()) {
     if (get_oauthToken()) {
       tokenOK = true;
@@ -211,6 +214,7 @@ unsigned int servercon::get_availableUpdates(void) {
     tokenOK = true;
   }
 
+  // proceed if we have a valid token
   if (tokenOK) {
     // copy default handle
     CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
@@ -240,6 +244,8 @@ unsigned int servercon::get_availableUpdates(void) {
     // tell curl to use the header list
     curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
 
+    //    curl_easy_setopt(curlHndl, CURLOPT_FOLLOWLOCATION, 1L);
+
     // let curl perform the configured HTTP action
     result = curl_easy_perform(curlHndl);
 
@@ -249,19 +255,155 @@ unsigned int servercon::get_availableUpdates(void) {
                                   << result << "with server: " << sotaserver
                                   << "and clientID: " << clientID)
     } else {
-      // for now, just log the resonse from the server
-      LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n" << serverResp);
+      // create an object for the regex results
+      boost::smatch regex_result;
 
       // TODO issue #23 process response data using a JSON parser
+      boost::regex expr(
+          "^\\[\\{\"requestId\":\"(\\S+)\",\"packageId\":\\{\"name\":\"(\\S+)"
+          "\",\"version\":\"(\\d+\\.\\d+)");
+      // check if the regex matches the return from curl
+      if (boost::regex_search(serverResp, regex_result, expr)) {
+        // boost::regex stores the whole string that was checked in <result>[0]
+        if (regex_result.size() >= 3u) {
+          update.UUID = regex_result[1u];
+          update.name = regex_result[2u];
+          update.version = regex_result[3u];
 
-      // set the return value to success
-      returnValue = 1;
+          std::cout << "Update available:\n"
+                    << update.UUID << std::endl
+                    << update.name << std::endl
+                    << update.version << std::endl;
+          // set the return value to success
+          returnValue = 1;
+        }
+      }
     }
 
     // clean up used curl ressources
     curl_slist_free_all(slist); /* free the list again */
     curl_easy_cleanup(curlHndl);
   }
+
+  return returnValue;
+}
+
+/*****************************************************************************/
+unsigned int servercon::download_update(void) {
+  unsigned int returnValue = 0;
+  // check if the current updates UUID is not empty
+  if (!update.UUID.empty()) {
+    bool tokenOK = false;
+    // check if the current token is still valid or get a new one
+    if (!token->stillValid()) {
+      if (get_oauthToken()) {
+        tokenOK = true;
+      }
+    } else {
+      tokenOK = true;
+    }
+
+    if (tokenOK) {
+      bool downloadInCurlBuffer = false;
+      CURLcode result; /**< store cURL result */
+
+      std::stringstream
+          curlstr; /**< a stringstream used to compose curl arguments */
+
+      // compose server url
+      curlstr << sotaserver << "/api/v1/mydevice/" << devUUID << "/updates/"
+              << update.UUID << "/download";
+
+      // copy default handle
+      CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+
+      // set the url
+      curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+
+      // reset our temporary string
+      curlstr.str("");
+      curlstr.clear();
+
+      // get token
+      std::string tokenstr = token->get();
+
+      // compose authorization header using token
+      curlstr << "Authorization : Bearer " << tokenstr;
+
+      // create a header list for curl
+      struct curl_slist* slist = NULL;
+
+      // append authorization header to the header list
+      slist = curl_slist_append(slist, curlstr.str().c_str());
+      // append accecpt header (as shown in the sota api example)
+      slist = curl_slist_append(slist, "Accept: application/json");
+
+      // tell curl to use the header list
+      curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
+
+      // TODO issue #36 enable automatic redirect following in curl
+
+      // TODO issue #37 provide a callback function that write to a file when
+      // performing the download-curl-operation
+      LOGGER_LOG(LVL_debug, "servercon - downloading update " << update.UUID);
+      // let curl perform the configured HTTP action
+      result = curl_easy_perform(curlHndl);
+
+      // check if curl succeeded
+      if (result != CURLE_OK) {
+        LOGGER_LOG(LVL_debug, "servercon - curl error: "
+                                  << result << "with server: " << sotaserver
+                                  << "and clientID: " << clientID)
+      } else {
+        // TODO issue #36 enable automatic redirect following in curl
+        // the following lines will become obsolete when curl follows
+        // redirects by itself
+
+        // download request succeeded, now check if there is a HTTP redirect
+        unsigned char* charPtr =
+            new unsigned char[1000]; /**< buffer for redirect link */
+        // check if curl got a http redirect (30X)
+        result = curl_easy_getinfo(curlHndl, CURLINFO_REDIRECT_URL, &charPtr);
+        if (result == CURLE_OK) {
+          // http 30X redirect detected
+          // reset the cURL handle by copying the default handle
+          curlHndl = curl_easy_duphandle(defaultCurlHndl);
+          // set the detected redirect URL
+          curl_easy_setopt(curlHndl, CURLOPT_URL, charPtr);
+          // let curl perform the configured HTTP action
+          result = curl_easy_perform(curlHndl);
+          // check if following the redirect worked
+          if (result == CURLE_OK) {
+            // the download file is now available via the configured write
+            // callback
+            downloadInCurlBuffer = true;
+          }  // CURLE_OK (using redirect link)
+          else {
+            LOGGER_LOG(LVL_debug,
+                       "servercon - curl error when following redirect link "
+                       "for downloading an update: "
+                           << result)
+          }
+        }  // CURLE_OK (getting redirect link)
+        else {
+          // no redirect link received, the download shoud have been stored by
+          // the configured write callback
+          downloadInCurlBuffer = true;
+        }
+        free(charPtr);
+      }  // else result != CURLE_OK (sota server download request)
+      // check if a downloaded file is available in buffer
+      if (downloadInCurlBuffer == true) {
+        // TODO issue #37 provide a callback function that write to a file when
+        // performing the download-curl-operation
+        // write download file
+        std::ofstream output(update.name.c_str(), std::ofstream::out);
+        output << serverResp;
+        LOGGER_LOG(LVL_info, "Downloaded update to file: " << update.name);
+        output.close();
+      }
+    }  // tokenOK
+  }    // !update.UUID.empty()
 
   return returnValue;
 }
