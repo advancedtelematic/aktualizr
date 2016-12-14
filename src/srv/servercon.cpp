@@ -153,9 +153,12 @@ unsigned int servercon::get_oauthToken(void) {
 
     // check if curl succeeded
     if (result != CURLE_OK) {
-      LOGGER_LOG(LVL_warning, "servercon - curl error: "
-                                  << result << "with server: " << authserver
-                                  << "and clientID: " << clientID)
+      LOGGER_LOG(LVL_debug,
+                 "servercon - curl error: " << result << " "
+                                                         "with server: "
+                                            << authserver << " "
+                                                             "and clientID: "
+                                            << clientID)
     } else {
       // TODO issue #23 process response data using a JSON parser
       // create a regex pattern that checks for the token itself, the token type
@@ -180,7 +183,7 @@ unsigned int servercon::get_oauthToken(void) {
           if (token->stillValid())
             LOGGER_LOG(LVL_debug, "servercon - Oauth2 token received");
         } else {
-          LOGGER_LOG(LVL_warning,
+          LOGGER_LOG(LVL_debug,
                      "servercon - no token found in server response:\n"
                          << serverResp);
         }
@@ -245,9 +248,9 @@ unsigned int servercon::get_availableUpdates(void) {
 
     // check if curl succeeded
     if (result != CURLE_OK) {
-      LOGGER_LOG(LVL_warning, "servercon - curl error: "
-                                  << result << "with server: " << sotaserver
-                                  << "and clientID: " << clientID)
+      LOGGER_LOG(LVL_debug, "servercon - curl error: "
+                                << result << "with server: " << sotaserver
+                                << "and clientID: " << clientID)
     } else {
       // for now, just log the resonse from the server
       LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n" << serverResp);
