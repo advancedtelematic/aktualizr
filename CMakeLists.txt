@@ -24,16 +24,22 @@ set(CMAKE_BUILD_TYPE Debug)
 # set symbols used when compiling
 add_definitions(-DBOOST_LOG_DYN_LINK=1)
 
+# find all required libraries
+find_package(Boost COMPONENTS system thread program_options log log_setup regex REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(LIBCURL REQUIRED libcurl)
+
 # configure libraries
 set(LINK_LIBS libpthread.so
-              libboost_system.so
-              libboost_thread.so
-              libboost_log_setup.so 
-              libboost_log.so
-              libboost_program_options.so
-              libboost_regex.so
-              libyaml-cpp.so
-              libcurl.so)
+              ${Boost_SYSTEM_LIBRARY}
+              ${Boost_THREAD_LIBRARY}
+              ${Boost_LOG_LIBRARIES}
+              ${Boost_LOG_SETUP_LIBRARIES}
+              ${Boost_PROGRAM_OPTIONS_LIBRARY}
+              ${Boost_REGEX_LIBRARY}
+              ${YAML_CPP_LIBRARIES}
+              ${LIBCURL_LIBRARIES})
 
 # set local include directory(ies)
 set(INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inc/)
