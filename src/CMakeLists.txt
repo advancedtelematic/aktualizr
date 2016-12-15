@@ -126,7 +126,7 @@ enable_testing()
 
 # define the sources for the test
 set(TEST_SRCS  ${SOURCES}
-               test_servercon.cpp)
+               servercon_test.cpp)
 
 # set the name of the executable
 add_executable(sota_client_test ${TEST_SRCS})
@@ -145,11 +145,11 @@ target_link_libraries(sota_client_test ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS  oauthtoken.hpp
+set(TEST_SRCS oauthtoken.hpp
               logger.cpp
               logger.hpp
               servercon.cpp
-              test_oauthtoken.cpp)
+              oauthtoken_test.cpp)
 
               # set the name of the executable
 add_executable(sota_client_test1 ${TEST_SRCS})
