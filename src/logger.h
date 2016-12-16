@@ -32,8 +32,8 @@
  * \endcond
  */
 
-#ifndef LOG_HPP_
-#define LOG_HPP_
+#ifndef LOGGER_H_
+#define LOGGER_H_
 
 #include <sstream>
 
@@ -44,7 +44,7 @@ typedef enum {
   LVL_warning,
   LVL_info,
   LVL_error
-} loggerLevels_t; /**< define own logging levels */
+} LoggerLevels; /**< define own logging levels */
 
 /*****************************************************************************/
 /**
@@ -56,11 +56,11 @@ typedef enum {
  * \param[in] _stream - the message, put anything here that fits into a
  *                      stringstream
  */
-#define LOGGER_LOG(_lvl, _stream)               \
-  {                                             \
-    std::stringstream logstring;                \
-    logstring << _stream;                       \
-    logger_writeMessage(_lvl, logstring.str()); \
+#define LOGGER_LOG(_lvl, _stream)              \
+  {                                            \
+    std::stringstream logstring;               \
+    logstring << _stream;                      \
+    loggerWriteMessage(_lvl, logstring.str()); \
   }
 
 /*****************************************************************************/
@@ -72,7 +72,7 @@ typedef enum {
  *    "[%TimeStamp%]: %Message%"
  *
  */
-extern void logger_init(void);
+extern void loggerInit(void);
 
 /**
  * \par Description:
@@ -81,7 +81,7 @@ extern void logger_init(void);
  * \param[in] sev severity level, use the enumeration from
  *                boost::log::trivial
  */
-extern void logger_setSeverity(loggerLevels_t lvl);
+extern void loggerSetSeverity(LoggerLevels lvl);
 
 /**
  * \par Description:
@@ -89,7 +89,7 @@ extern void logger_setSeverity(loggerLevels_t lvl);
  *
  * \return The currently used severity level
  */
-extern loggerLevels_t logger_getSeverity(void);
+extern LoggerLevels loggerGetSeverity(void);
 
 /**
  * \par Description:
@@ -98,6 +98,6 @@ extern loggerLevels_t logger_getSeverity(void);
  * \param[in] lvl - the log or severity level of the message
  * \param[in] message - the message provided as constant string reference
  */
-extern void logger_writeMessage(loggerLevels_t lvl, const std::string& message);
+extern void loggerWriteMessage(LoggerLevels lvl, const std::string& message);
 
-#endif  // LOG_HPP_
+#endif  // LOGGER_H_

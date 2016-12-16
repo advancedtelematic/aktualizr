@@ -18,20 +18,17 @@
  *
  * \endcond
  */
+#include "servercon.h"
 
 #include <boost/regex.hpp>
-
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include <curl/curl.h>
 
-#include "logger.hpp"
-
-#include "servercon.hpp"
+#include "logger.h"
 
 /*****************************************************************************/
 /**
@@ -41,7 +38,7 @@
  *    https://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
  *
  */
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
+static size_t writeCallback(void* contents, size_t size, size_t nmemb,
                             void* userp) {
   // clear the provided string
   ((std::string*)userp)->clear();
@@ -57,83 +54,84 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
 namespace sota_server {
 
 /*****************************************************************************/
-servercon::servercon(void) {
+ServerCon::ServerCon(void) {
   // initialize curl
   curl_global_init(CURL_GLOBAL_ALL);
 
   // create a curl handler
-  defaultCurlHndl = curl_easy_init();
+  default_curl_hndl = curl_easy_init();
 
   // let curl use our write function
-  curl_easy_setopt(defaultCurlHndl, CURLOPT_WRITEFUNCTION, WriteCallback);
+  curl_easy_setopt(default_curl_hndl, CURLOPT_WRITEFUNCTION, writeCallback);
   // let curl write data to the location we want
-  curl_easy_setopt(defaultCurlHndl, CURLOPT_WRITEDATA, (void*)&serverResp);
+  curl_easy_setopt(default_curl_hndl, CURLOPT_WRITEDATA,
+                   (void*)&server_response);
 
-  if (logger_getSeverity() <= LVL_debug) {
-    curl_easy_setopt(defaultCurlHndl, CURLOPT_VERBOSE, 1L);
+  if (loggerGetSeverity() <= LVL_debug) {
+    curl_easy_setopt(default_curl_hndl, CURLOPT_VERBOSE, 1L);
   }
 
-  token = new oauthToken();
+  token = new OAuthToken();
   authserver = "";
   sotaserver = "";
-  clientID = "";
-  clientSecret = "";
-  serverResp = "";
+  client_ID = "";
+  client_secret = "";
+  server_response = "";
 }
 /*****************************************************************************/
-servercon::~servercon(void) {
-  curl_easy_cleanup(defaultCurlHndl);
+ServerCon::~ServerCon(void) {
+  curl_easy_cleanup(default_curl_hndl);
   free(token);
 }
 
 /*****************************************************************************/
-void servercon::setDevUUID(const std::string& uuid_in) { devUUID = uuid_in; }
-
-/*****************************************************************************/
-void servercon::setClientID(const std::string& ID_in) { clientID = ID_in; }
-
-/*****************************************************************************/
-void servercon::setClientSecret(const std::string& sec_in) {
-  clientSecret = sec_in;
+void ServerCon::setDevUUID(const std::string& uuid_in) {
+  device_UUID = uuid_in;
 }
 
 /*****************************************************************************/
-void servercon::setAuthServer(const std::string& server_in) {
+void ServerCon::setClientID(const std::string& ID_in) { client_ID = ID_in; }
+
+/*****************************************************************************/
+void ServerCon::setClientSecret(const std::string& sec_in) {
+  client_secret = sec_in;
+}
+
+/*****************************************************************************/
+void ServerCon::setAuthServer(const std::string& server_in) {
   authserver = server_in;
 }
 
 /*****************************************************************************/
-void servercon::setSotaServer(const std::string& server_in) {
+void ServerCon::setSotaServer(const std::string& server_in) {
   sotaserver = server_in;
 }
 
 /*****************************************************************************/
-unsigned int servercon::get_oauthToken(void) {
-  unsigned int returnValue;
+unsigned int ServerCon::getOAuthToken(void) {
+  unsigned int return_value = 0u;
 
   std::stringstream
       curlstr; /**< a stringstream used to compose curl arguments */
 
   CURLcode result; /**< curl error code */
 
-  returnValue = 0u;
-
   // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-  CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+  CURL* curl_hndl = curl_easy_duphandle(default_curl_hndl);
 
-  if (curlHndl) {
+  if (curl_hndl) {
     // compose the url to get the token
     curlstr << authserver << "/token";
 
     // set the url
-    curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+    curl_easy_setopt(curl_hndl, CURLOPT_URL, curlstr.str().c_str());
     // let curl put the username and password using HTTP basic authentication
-    curl_easy_setopt(curlHndl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+    curl_easy_setopt(curl_hndl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
 
     // set the data curl shoudl post
     // this tells curl to do a HTTP POST
-    curl_easy_setopt(curlHndl, CURLOPT_POSTFIELDS,
+    curl_easy_setopt(curl_hndl, CURLOPT_POSTFIELDS,
                      "grant_type=client_credentials");
 
     // reset our temporary string
@@ -141,21 +139,21 @@ unsigned int servercon::get_oauthToken(void) {
     curlstr.clear();
 
     // compose username and password
-    curlstr << clientID << ":" << clientSecret;
+    curlstr << client_ID << ":" << client_secret;
     // forward username and password to curl
-    curl_easy_setopt(curlHndl, CURLOPT_USERPWD, curlstr.str().c_str());
+    curl_easy_setopt(curl_hndl, CURLOPT_USERPWD, curlstr.str().c_str());
 
     LOGGER_LOG(LVL_debug,
                "servercon - requesting token from server: " << authserver);
 
     // let curl perform the configured HTTP action
-    result = curl_easy_perform(curlHndl);
+    result = curl_easy_perform(curl_hndl);
 
     // check if curl succeeded
     if (result != CURLE_OK) {
       LOGGER_LOG(LVL_warning, "servercon - curl error: "
                                   << result << "with server: " << authserver
-                                  << "and clientID: " << clientID)
+                                  << "and clientID: " << client_ID)
     } else {
       // TODO issue #23 process response data using a JSON parser
       // create a regex pattern that checks for the token itself, the token type
@@ -169,56 +167,56 @@ unsigned int servercon::get_oauthToken(void) {
       boost::smatch regex_result;
 
       // check if the regex matches the return from curl
-      if (boost::regex_search(serverResp, regex_result, expr)) {
+      if (boost::regex_search(server_response, regex_result, expr)) {
         // check if enough matches were found
         // boost::regex stores the whole string that was checked in <result>[0]
         if (regex_result.size() >= 3u) {
           // set up current token
           token =
-              new oauthToken(regex_result[1], regex_result[2], regex_result[3]);
-          returnValue = 1;
+              new OAuthToken(regex_result[1], regex_result[2], regex_result[3]);
+          return_value = 1;
           if (token->stillValid())
             LOGGER_LOG(LVL_debug, "servercon - Oauth2 token received");
         } else {
           LOGGER_LOG(LVL_warning,
                      "servercon - no token found in server response:\n"
-                         << serverResp);
+                         << server_response);
         }
       }
     }
   }
 
   // clean up curl
-  curl_easy_cleanup(curlHndl);
+  curl_easy_cleanup(curl_hndl);
 
-  return returnValue;
+  return return_value;
 }
 
 /*****************************************************************************/
-unsigned int servercon::get_availableUpdates(void) {
-  unsigned int returnValue = 0;
-  bool tokenOK = false;
+unsigned int ServerCon::getAvailableUpdates(void) {
+  unsigned int return_value = 0;
+  bool token_OK = false;
   std::stringstream
       curlstr; /**< a stringstream used to compose curl arguments */
 
   CURLcode result;
 
   if (!token->stillValid()) {
-    if (get_oauthToken()) {
-      tokenOK = true;
+    if (getOAuthToken()) {
+      token_OK = true;
     }
   } else {
-    tokenOK = true;
+    token_OK = true;
   }
 
-  if (tokenOK) {
+  if (token_OK) {
     // copy default handle
-    CURL* curlHndl = curl_easy_duphandle(defaultCurlHndl);
+    CURL* curl_hndl = curl_easy_duphandle(default_curl_hndl);
 
     // compose server url
-    curlstr << sotaserver << "/api/v1/mydevice/" << devUUID << "/updates";
+    curlstr << sotaserver << "/api/v1/mydevice/" << device_UUID << "/updates";
     // set the url
-    curl_easy_setopt(curlHndl, CURLOPT_URL, curlstr.str().c_str());
+    curl_easy_setopt(curl_hndl, CURLOPT_URL, curlstr.str().c_str());
     // reset our temporary string
     curlstr.str("");
     curlstr.clear();
@@ -238,32 +236,33 @@ unsigned int servercon::get_availableUpdates(void) {
     slist = curl_slist_append(slist, "Accept: application/json");
 
     // tell curl to use the header list
-    curl_easy_setopt(curlHndl, CURLOPT_HTTPHEADER, slist);
+    curl_easy_setopt(curl_hndl, CURLOPT_HTTPHEADER, slist);
 
     // let curl perform the configured HTTP action
-    result = curl_easy_perform(curlHndl);
+    result = curl_easy_perform(curl_hndl);
 
     // check if curl succeeded
     if (result != CURLE_OK) {
       LOGGER_LOG(LVL_warning, "servercon - curl error: "
                                   << result << "with server: " << sotaserver
-                                  << "and clientID: " << clientID)
+                                  << "and clientID: " << client_ID)
     } else {
       // for now, just log the resonse from the server
-      LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n" << serverResp);
+      LOGGER_LOG(LVL_debug, "get udpate list : cURL response\n"
+                                << server_response);
 
       // TODO issue #23 process response data using a JSON parser
 
       // set the return value to success
-      returnValue = 1;
+      return_value = 1;
     }
 
     // clean up used curl ressources
     curl_slist_free_all(slist); /* free the list again */
-    curl_easy_cleanup(curlHndl);
+    curl_easy_cleanup(curl_hndl);
   }
 
-  return returnValue;
+  return return_value;
 }
 
 }  // namespace sota_server

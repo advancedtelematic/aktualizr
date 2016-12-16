@@ -1,10 +1,9 @@
 #define BOOST_TEST_MODULE server
 
 #include <string>
-
-#include "servercon.hpp"
-
 #include <boost/test/unit_test.hpp>
+
+#include "servercon.h"
 
 const std::string TSTURL = "https://t.est/url";
 const std::string TSTID = "testid";
@@ -19,7 +18,7 @@ const std::string TSTEXPIRE = "1";
 BOOST_AUTO_TEST_SUITE(servercon)
 
 BOOST_AUTO_TEST_CASE(servercon_constructor) {
-  sota_server::servercon obj1, obj2;
+  sota_server::ServerCon obj1, obj2;
 
   if (sizeof(obj1) != sizeof(obj2)) {
     BOOST_FAIL("servercon constructor leads to different sizes.");
@@ -31,13 +30,13 @@ BOOST_AUTO_TEST_CASE(servercon_constructor) {
 BOOST_AUTO_TEST_CASE(servercon_setmemb)
 /* Compare with void free_test_function() */
 {
-  sota_server::servercon obj1;
+  sota_server::ServerCon obj1;
 
   obj1.setAuthServer(const_cast<std::string&>(TSTURL));
   obj1.setClientID(const_cast<std::string&>(TSTID));
   obj1.setClientSecret(const_cast<std::string&>(TSTSECRET));
 
-  if (obj1.get_oauthToken() != 0u) {
+  if (obj1.getOAuthToken() != 0u) {
     BOOST_FAIL(
         "servercon:get_oauthToken returns  success when using invalid data.");
   }
@@ -50,7 +49,7 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(oauthtoken)
 
 BOOST_AUTO_TEST_CASE(oauthtoken_constructor) {
-  sota_server::oauthToken obj1("a", "b", "1"), obj2("a", "b", "1");
+  sota_server::OAuthToken obj1("a", "b", "1"), obj2("a", "b", "1");
 
   if (sizeof(obj1) != sizeof(obj2)) {
     BOOST_FAIL("oauthToken constructor leads to different sizes.");
@@ -58,7 +57,7 @@ BOOST_AUTO_TEST_CASE(oauthtoken_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(oauthtoken_setmemb) {
-  sota_server::oauthToken obj1(const_cast<std::string&>(TSTTOKEN),
+  sota_server::OAuthToken obj1(const_cast<std::string&>(TSTTOKEN),
                                const_cast<std::string&>(TSTTYPE),
                                const_cast<std::string&>(TSTEXPIRE));
 

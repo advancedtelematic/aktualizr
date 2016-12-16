@@ -20,16 +20,17 @@
  * \endcond
  */
  
-#include "oauthtoken.hpp"
+
 #include <stdlib.h>
 #include <iostream>
 
-#include "logger.hpp"
+#include "oauthtoken.h"
+#include "logger.h"
 
 namespace sota_server {
 
 /*****************************************************************************/
-oauthToken::oauthToken(const std::string& token_in, const std::string& type_in,
+OAuthToken::OAuthToken(const std::string& token_in, const std::string& type_in,
                        const std::string& expire_in) {
   // get current time
   stored = time(0);
@@ -39,7 +40,7 @@ oauthToken::oauthToken(const std::string& token_in, const std::string& type_in,
   expire = atoi(expire_in.c_str());
 }
 
-oauthToken::oauthToken(void) {
+OAuthToken::OAuthToken(void) {
   stored = (time_t)0;
   token = "";
   type = "";
@@ -47,12 +48,12 @@ oauthToken::oauthToken(void) {
 }
 
 /*****************************************************************************/
-bool oauthToken::stillValid(void) {
+bool OAuthToken::stillValid(void) {
   return true;
 }
 
 /*****************************************************************************/
-const std::string& oauthToken::get(void) { return token; }
+const std::string& OAuthToken::get(void) { return token; }
 
 } // namespace sota_server
 
@@ -61,19 +62,18 @@ const std::string& oauthToken::get(void) { return token; }
 #define BOOST_TEST_MODULE server
 
 #include <string>
-
-#include "servercon.hpp"
-
 #include <boost/test/unit_test.hpp>
+
+#include "servercon.h"
 
 BOOST_AUTO_TEST_SUITE(servercon)
 
 BOOST_AUTO_TEST_CASE(servercon_oauthtokenValid) {
-  sota_server::servercon obj1;
+  sota_server::ServerCon obj1;
   
   // make an API request which will be executed
   // as the token is always valid.
-  obj1.get_availableUpdates();
+  obj1.getAvailableUpdates();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

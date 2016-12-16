@@ -19,23 +19,20 @@
  * \endcond
  */
 
-#include "oauthtoken.hpp"
+#include "oauthtoken.h"
 #include <stdlib.h>
 #include <iostream>
 
-#include "logger.hpp"
+#include "logger.h"
 
 namespace sota_server {
 
 /*****************************************************************************/
-oauthToken::oauthToken(const std::string& token_in, const std::string& type_in,
-                       const std::string& expire_in) {
+OAuthToken::OAuthToken(const std::string& token_in, const std::string& type_in,
+                       const std::string& expire_in)
+    : token(token_in), type(type_in) {
   // get current time
   stored = time(0);
-
-  // store token and token type
-  token = token_in;
-  type = type_in;
 
   // store time
   // atoi is used here instead of stoi() which was introduced with C++11
@@ -49,11 +46,10 @@ oauthToken::oauthToken(const std::string& token_in, const std::string& type_in,
                             << time(0));
   std::cout << "stored token at " << stored << " and expires at "
             << (stored + (time_t)expire) << ""
-                                            " and time now is "
-            << time(0);
+                                            " and time now is " << time(0);
 }
 
-oauthToken::oauthToken(void) {
+OAuthToken::OAuthToken(void) {
   stored = (time_t)0;
   token = "";
   type = "";
@@ -61,26 +57,26 @@ oauthToken::oauthToken(void) {
 }
 
 /*****************************************************************************/
-bool oauthToken::stillValid(void) {
-  bool returnValue;
+bool OAuthToken::stillValid(void) {
+  bool return_value;
 
-  returnValue = token.empty();
-  returnValue &= type.empty();
+  return_value = token.empty();
+  return_value &= type.empty();
 
-  if (!returnValue) {
+  if (!return_value) {
     time_t now = time(0);
     if (now < (stored + (time_t)expire)) {
-      returnValue = true;
+      return_value = true;
     }
   } else {
     LOGGER_LOG(LVL_trace, "oauthtoken - called stillValid() for empty token");
-    returnValue = false;
+    return_value = false;
   }
 
-  return returnValue;
+  return return_value;
 }
 
 /*****************************************************************************/
-const std::string& oauthToken::get(void) { return token; }
+const std::string& OAuthToken::get(void) { return token; }
 
 }  // namespace sota_server
