@@ -21,4 +21,6 @@ option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 # set build type to Debug or Release here
 set(CMAKE_BUILD_TYPE Debug)
 
-add_subdirectory("src")
+#add_subdirectory("src")
+# FIXME temporary use include because of bugs with coverage
+include("src/CMakeLists.txt")

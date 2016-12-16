@@ -19,16 +19,16 @@ set(LINK_LIBS libpthread.so
 
 
 # set source files excluded main for using the list for the test target
-set(SOURCES logger.cpp
-            ymlcfg.cpp
-            oauthtoken.cpp
-            servercon.cpp
-            main.cpp)
+set(SOURCES src/logger.cpp
+            src/ymlcfg.cpp
+            src/oauthtoken.cpp
+            src/servercon.cpp
+            src/main.cpp)
 
-set(HEADERS logger.hpp
-            ymlcfg.hpp
-            oauthtoken.hpp
-            servercon.hpp)
+set(HEADERS src/logger.hpp
+            src/ymlcfg.hpp
+            src/oauthtoken.hpp
+            src/servercon.hpp)
 
 
 # set output folder
@@ -125,7 +125,7 @@ enable_testing()
 
 # define the sources for the test
 set(TEST_SRCS  ${SOURCES}
-               servercon_test.cpp)
+               src/servercon_test.cpp)
 
 # set the name of the executable
 add_executable(sota_client_test ${TEST_SRCS})
@@ -144,11 +144,11 @@ target_link_libraries(sota_client_test ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS oauthtoken.hpp
-              logger.cpp
-              logger.hpp
-              servercon.cpp
-              oauthtoken_test.cpp)
+set(TEST_SRCS src/oauthtoken.hpp
+              src/logger.cpp
+              src/logger.hpp
+              src/servercon.cpp
+              src/oauthtoken_test.cpp)
 
               # set the name of the executable
 add_executable(sota_client_test1 ${TEST_SRCS})
