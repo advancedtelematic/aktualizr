@@ -30,14 +30,7 @@
 
 namespace sota_server {
 
-class oauthToken {
-  // Attributes
- private:
-  std::string token;   /**< the OAuth2 token stored as string */
-  std::string type;    /**< the token type as provided by the server */
-  unsigned int expire; /**< the expire integer as provided by the server */
-  time_t stored;       /**< the time when the token was stored */
-
+class OAuthToken {
   // Operations
  public:
   /**
@@ -47,10 +40,10 @@ class oauthToken {
    *
    * \param[in] response - a string containing the server response.
    */
-  oauthToken(const std::string& token_in, const std::string& type_in,
+  OAuthToken(const std::string& token_in, const std::string& type_in,
              const std::string& expire_in);
 
-  oauthToken(void);
+  OAuthToken(void);
 
   /**
    * \par Description:
@@ -71,6 +64,13 @@ class oauthToken {
    * \return true if the token is still valid, false otherwise.
    */
   bool stillValid(void);
+
+  // Attributes
+ private:
+  std::string token;   /**< the OAuth2 token stored as string */
+  std::string type;    /**< the token type as provided by the server */
+  unsigned int expire; /**< the expire integer as provided by the server */
+  time_t stored;       /**< the time when the token was stored */
 };
 
 }  // namepsace sota_server

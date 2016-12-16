@@ -25,30 +25,13 @@
 #define SERVERCON_H_
 
 #include <curl/curl.h>
-#include "oauthtoken.hpp"
+
+#include "oauthtoken.h"
 
 namespace sota_server {
 
 /*****************************************************************************/
-class servercon {
-  // Attributes
- private:
-  std::string authserver; /**< the authentification server url*/
-  std::string sotaserver;
-  std::string
-      clientID; /**< the client ID required for getting a OAuth2 token */
-  std::string
-      clientSecret; /**< the client secret associated with the client ID */
-  std::string devUUID;
-
-  std::string
-      serverResp; /**< A string that is used to store curl HTTP response data */
-
-  oauthToken* token; /**< An object that handles a received OAuth2 token */
-
-  CURL* defaultCurlHndl; /**< store a default configuration for all curl
-                            operations */
-
+class ServerCon {
   // Operations
  public:
   /**
@@ -85,7 +68,7 @@ class servercon {
    *
    * \return 1 if a token was received from the server
    */
-  unsigned int get_oauthToken(void);
+  unsigned int getOAuthToken(void);
 
   /**
    * \par Description:
@@ -95,11 +78,29 @@ class servercon {
    *
    * \return 1 if a valid response from the server was received
    */
-  unsigned int get_availableUpdates(void);
+  unsigned int getAvailableUpdates(void);
 
-  servercon(void);
+  ServerCon(void);
 
-  ~servercon(void);
+  ~ServerCon(void);
+
+  // Attributes
+ private:
+  std::string authserver; /**< the authentification server url*/
+  std::string sotaserver;
+  std::string
+      client_ID; /**< the client ID required for getting a OAuth2 token */
+  std::string
+      client_secret; /**< the client secret associated with the client ID */
+  std::string device_UUID;
+
+  std::string server_response; /**< A string that is used to store curl HTTP
+                                  response data */
+
+  OAuthToken* token; /**< An object that handles a received OAuth2 token */
+
+  CURL* default_curl_hndl; /**< store a default configuration for all curl
+                            operations */
 };
 
 }  // namespace sota_server

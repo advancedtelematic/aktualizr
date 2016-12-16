@@ -21,7 +21,7 @@
 #ifndef YMLCFG_H_
 #define YMLCFG_H_
 
-#include "servercon.hpp"
+#include "servercon.h"
 
 /**
  * \par Description:
@@ -30,7 +30,7 @@
  * param[in] filename - the file that contains the configuration encoded with
  * yaml
  */
-extern void ymlcfg_readFile(const std::string& filename);
+extern void ymlcfgReadFile(const std::string& filename);
 
 /**
  * \par Description:
@@ -38,6 +38,6 @@ extern void ymlcfg_readFile(const std::string& filename);
  *
  * \param[in] sota_serverPtr - Pointer to a servercon object
  */
-unsigned int ymlcfg_setServerData(sota_server::servercon* sota_serverPtr);
+unsigned int ymlcfgSetServerData(sota_server::ServerCon* sota_serverPtr);
 
 #endif  // YMLCFG_H_

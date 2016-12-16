@@ -22,9 +22,9 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
-#include "logger.hpp"
-#include "servercon.hpp"
-#include "ymlcfg.hpp"
+#include "logger.h"
+#include "servercon.h"
+#include "ymlcfg.h"
 
 /*****************************************************************************/
 
@@ -32,29 +32,26 @@ namespace bpo = boost::program_options;
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
-  // create a return value
-  int returnValue;
-
-  // initialize the return value to zero (everything is OK)
-  returnValue = 0;
+  // create and initialize the return value to zero (everything is OK)
+  int return_value = 0;
 
   // create a servercon object
-  sota_server::servercon Server;
+  sota_server::ServerCon server;
 
   // initialize the logging framework
-  logger_init();
+  loggerInit();
 
   // create a commandline options object
-  bpo::options_description cmdl_description("CommandLine Options");
+  bpo::options_description commandline_description("CommandLine Options");
 
   // set up the commandline options
   try {
     // create a easy-to-handle dictionary for commandline options
-    bpo::options_description_easy_init cmdl_dictionary =
-        cmdl_description.add_options();
+    bpo::options_description_easy_init commandline_dictionary =
+        commandline_description.add_options();
 
     // add a entry to the dictionary
-    cmdl_dictionary(
+    commandline_dictionary(
         "help,h",
         "Help screen");  // --help are valid arguments for showing "Help screen"
 
@@ -64,25 +61,27 @@ int main(int argc, char *argv[]) {
     // this requires to overload operators << and >> as shown in the boost
     // header  boost/log/trivial.hpp
     // desired result: bpo::value<loggerLevels_t>
-    cmdl_dictionary("loglevel", bpo::value<int>(),
-                    "set log level 0-4 (trace, debug, warning, info, error)");
+    commandline_dictionary(
+        "loglevel", bpo::value<int>(),
+        "set log level 0-4 (trace, debug, warning, info, error)");
 
-    cmdl_dictionary("config,c", bpo::value<std::string>()->required(),
-                    "yaml configuration file");
+    commandline_dictionary("config,c", bpo::value<std::string>()->required(),
+                           "yaml configuration file");
 
     // create a variables map
-    bpo::variables_map cmdl_varMap;
+    bpo::variables_map commandline_var_map;
 
     // store command line options in the variables map
-    bpo::store(parse_command_line(argc, argv, cmdl_description), cmdl_varMap);
+    bpo::store(parse_command_line(argc, argv, commandline_description),
+               commandline_var_map);
     // run all notify functions of the variables in the map
-    bpo::notify(cmdl_varMap);
+    bpo::notify(commandline_var_map);
 
     // check for command line arguments by getting a occurrence counter
     // by now the variable map is only checked for help or h respectively
-    if (cmdl_varMap.count("help") != 0) {
+    if (commandline_var_map.count("help") != 0) {
       // print the description off all known command line options
-      std::cout << cmdl_description << '\n';
+      std::cout << commandline_description << '\n';
       LOGGER_LOG(LVL_debug, "boost command line option: --help detected.");
     }
 
@@ -90,18 +89,18 @@ int main(int argc, char *argv[]) {
     // The config file has to be checked before checking for loglevel
     // as the loglevel option shall overwrite settings provided via
     // a configuration file.
-    if (cmdl_varMap.count("config") != 0) {
-      ymlcfg_readFile(cmdl_varMap["config"].as<std::string>());
+    if (commandline_var_map.count("config") != 0) {
+      ymlcfgReadFile(commandline_var_map["config"].as<std::string>());
     }
 
     // check for loglevel
-    if (cmdl_varMap.count("loglevel") != 0) {
+    if (commandline_var_map.count("loglevel") != 0) {
       // write a log message
       LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
 
       // get the log level from command line option
-      logger_setSeverity(
-          static_cast<loggerLevels_t>(cmdl_varMap["loglevel"].as<int>()));
+      loggerSetSeverity(static_cast<LoggerLevels>(
+          commandline_var_map["loglevel"].as<int>()));
     } else {
       // log if no command line option loglevl is used
       LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
@@ -114,10 +113,10 @@ int main(int argc, char *argv[]) {
                 << " is missing.\nYou have to provide a valid configuration "
                    "file using yaml format. See the example configuration file "
                    "in config/config.yml.example"
-                << std::endl;
+		<< std::endl;
     } else {
       // print the error and append the default commandline option description
-      std::cout << ex.what() << std::endl << cmdl_description;
+      std::cout << ex.what() << std::endl << commandline_description;
     }
     return EXIT_FAILURE;
   }
@@ -132,19 +131,19 @@ int main(int argc, char *argv[]) {
 
     // set the returnValue, thereby ctest will recognize
     // that something went wrong
-    returnValue = EXIT_FAILURE;
+    return_value = EXIT_FAILURE;
   }
 
   // apply configuration data and contact the server if data is available
-  if (ymlcfg_setServerData(&Server) == 1u) {
+  if (ymlcfgSetServerData(&server) == 1u) {
     // try current functionality of the servercon class
     LOGGER_LOG(LVL_info,
                "main - try to get token: "
-                   << ((Server.get_oauthToken() == 1u) ? "success" : "fail"));
-    returnValue = EXIT_SUCCESS;
+                   << ((server.getOAuthToken() == 1u) ? "success" : "fail"));
+    return_value = EXIT_SUCCESS;
   } else {
     LOGGER_LOG(LVL_warning, "no server data available");
   }
 
-  return returnValue;
+  return return_value;
 }

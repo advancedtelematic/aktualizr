@@ -18,6 +18,8 @@
  * \endcond
  */
 
+#include "logger.h"
+
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/sources/record_ostream.hpp>
@@ -27,8 +29,6 @@
 #include <iostream>
 #include <string>
 
-#include "logger.hpp"
-
 /*****************************************************************************/
 namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
@@ -36,8 +36,8 @@ namespace logtrv = boost::log::trivial;
 
 /*****************************************************************************/
 
-static loggerLevels_t
-    logger_globalLvl; /**< store the currently used severity level */
+static LoggerLevels
+    logger_global_level; /**< store the currently used severity level */
 
 /*****************************************************************************/
 
@@ -46,7 +46,7 @@ static loggerLevels_t
   LVL_warning /**< default logging level used for initialization */
 
 /*****************************************************************************/
-void logger_init(void) {
+void loggerInit(void) {
   // choose stderr as logging console
   logging::add_console_log(std::cout,
                            keywords::format = "[%TimeStamp%]: %Message%");
@@ -55,11 +55,11 @@ void logger_init(void) {
   logging::add_common_attributes();
 
   // set the initial severity level
-  logger_setSeverity(LOG_INIT_LEVEL);
+  loggerSetSeverity(LOG_INIT_LEVEL);
 }
 
 /*****************************************************************************/
-void logger_setSeverity(loggerLevels_t lvl) {
+void loggerSetSeverity(LoggerLevels lvl) {
   // set global logging level by applying an corresponding filter
 
   if (lvl <= LVL_error) {
@@ -67,26 +67,25 @@ void logger_setSeverity(loggerLevels_t lvl) {
                                      static_cast<logtrv::severity_level>(lvl));
 
     // store the currently used log level
-    logger_globalLvl = lvl;
+    logger_global_level = lvl;
 
     // write an log message
     LOGGER_LOG(LVL_debug,
                "loglevel set to "
-                   << static_cast<logtrv::severity_level>(logger_globalLvl));
+                   << static_cast<logtrv::severity_level>(logger_global_level));
   } else {
     LOGGER_LOG(LVL_debug, "Invalid log level received: " << lvl);
   }
 }
 
 /*****************************************************************************/
-loggerLevels_t logger_getSeverity(void) { return logger_globalLvl; }
+LoggerLevels loggerGetSeverity(void) { return logger_global_level; }
 
 /*****************************************************************************/
-void logger_writeMessage(loggerLevels_t lvl, const std::string& message) {
+void loggerWriteMessage(LoggerLevels lvl, const std::string& message) {
   // create a log object as required by the boost logging framework
   static boost::log::sources::severity_logger<
-      boost::log::trivial::severity_level>
-      logger;
+      boost::log::trivial::severity_level> logger;
   // write a message using the log object and the provided log level
   BOOST_LOG_SEV(logger, static_cast<logtrv::severity_level>(lvl)) << message;
 }
