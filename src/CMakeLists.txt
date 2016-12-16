@@ -124,8 +124,10 @@ enable_testing()
 
 
 # define the sources for the test
-set(TEST_SRCS  ${SOURCES}
-               src/servercon_test.cpp)
+set(TEST_SRCS  src/oauthtoken.cpp
+               src/logger.cpp
+               src/servercon.cpp
+               src/servercon_test.cpp) 
 
 # set the name of the executable
 add_executable(sota_client_test ${TEST_SRCS})
@@ -180,20 +182,20 @@ add_test(NAME test_oauthtoken COMMAND sota_client_test1)
 
 # test running the executable with command line option --help
 add_test(NAME feat1_test--help
-         COMMAND sota_client --help -c ../config/config.yml.example)
+         COMMAND sota_client --help -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 # test running the executable with command line option -h
 add_test(NAME feat1_test-h
-         COMMAND sota_client -h -c ../config/config.yml.example)
+         COMMAND sota_client -h -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 # test running the executable with command line option --something
 add_test(NAME feat1_test--something
-         COMMAND sota_client --something -c ../config/config.yml.example)
+         COMMAND sota_client --something -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 # test running the executable with command line option -sth
 add_test(NAME feat1_test-sth
-         COMMAND sota_client -sth -c ../config/config.yml.example)
+         COMMAND sota_client -sth -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 #test calling the executable with a config file
 add_test(NAME feat2_test_config_file
-         COMMAND sota_client -c ../config/config.yml.example)
+         COMMAND sota_client -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 # calle the executable without any options
 add_test(NAME test_plain
@@ -201,22 +203,22 @@ add_test(NAME test_plain
 
 # check possible logging levels
 add_test(NAME test_log_trace
-         COMMAND sota_client --loglevel=0 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=0 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 add_test(NAME test_log_debug
-         COMMAND sota_client --loglevel=1 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=1 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 add_test(NAME test_log_warning
-         COMMAND sota_client --loglevel=2 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=2 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 add_test(NAME test_log_info
-         COMMAND sota_client --loglevel=3 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=3 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 add_test(NAME test_log_error
-         COMMAND sota_client --loglevel=4 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=4 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 add_test(NAME test_log_invalid
-         COMMAND sota_client --loglevel=5 -c ../config/config.yml.example)
+         COMMAND sota_client --loglevel=5 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
 
 
 # testcases with non-supported command line options will return 1
