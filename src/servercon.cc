@@ -20,13 +20,13 @@
  */
 #include "servercon.h"
 
+#include <curl/curl.h>
 #include <boost/regex.hpp>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <curl/curl.h>
 
 #include "logger.h"
 
@@ -54,7 +54,11 @@ static size_t writeCallback(void* contents, size_t size, size_t nmemb,
 namespace sota_server {
 
 /*****************************************************************************/
-ServerCon::ServerCon(void) {
+ServerCon::ServerCon(const Config& config)
+    : authserver(config.auth.server),
+      sotaserver(config.core.server),
+      client_ID(config.auth.client_id),
+      client_secret(config.auth.client_secret) {
   // initialize curl
   curl_global_init(CURL_GLOBAL_ALL);
 
@@ -72,16 +76,12 @@ ServerCon::ServerCon(void) {
   }
 
   token = new OAuthToken();
-  authserver = "";
-  sotaserver = "";
-  client_ID = "";
-  client_secret = "";
   server_response = "";
 }
 /*****************************************************************************/
 ServerCon::~ServerCon(void) {
   curl_easy_cleanup(default_curl_hndl);
-  free(token);
+  delete token;
 }
 
 /*****************************************************************************/
@@ -152,7 +152,7 @@ unsigned int ServerCon::getOAuthToken(void) {
     // check if curl succeeded
     if (result != CURLE_OK) {
       LOGGER_LOG(LVL_warning, "servercon - curl error: "
-                                  << result << "with server: " << authserver
+                                  << result << " with server: " << authserver
                                   << "and clientID: " << client_ID)
     } else {
       // TODO issue #23 process response data using a JSON parser

@@ -26,6 +26,7 @@
 
 #include <curl/curl.h>
 
+#include "config.h"
 #include "oauthtoken.h"
 
 namespace sota_server {
@@ -34,6 +35,8 @@ namespace sota_server {
 class ServerCon {
   // Operations
  public:
+  ServerCon(const Config& config);
+
   /**
    * \par Description:
    *    Set the server URL.

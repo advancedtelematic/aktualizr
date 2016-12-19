@@ -4,6 +4,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "servercon.h"
+#include "config.h"
 
 const std::string TSTURL = "https://t.est/url";
 const std::string TSTID = "testid";
@@ -14,11 +15,12 @@ const std::string TSTTYPE = "bearer";
 const std::string TSTEXPIRE = "1";
 
 /*****************************************************************************/
+Config conf;
 
 BOOST_AUTO_TEST_SUITE(servercon)
 
 BOOST_AUTO_TEST_CASE(servercon_constructor) {
-  sota_server::ServerCon obj1, obj2;
+  sota_server::ServerCon obj1(conf), obj2(conf);
 
   if (sizeof(obj1) != sizeof(obj2)) {
     BOOST_FAIL("servercon constructor leads to different sizes.");
@@ -30,7 +32,7 @@ BOOST_AUTO_TEST_CASE(servercon_constructor) {
 BOOST_AUTO_TEST_CASE(servercon_setmemb)
 /* Compare with void free_test_function() */
 {
-  sota_server::ServerCon obj1;
+  sota_server::ServerCon obj1(conf);
 
   obj1.setAuthServer(const_cast<std::string&>(TSTURL));
   obj1.setClientID(const_cast<std::string&>(TSTID));
