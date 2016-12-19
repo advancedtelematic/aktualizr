@@ -20,11 +20,11 @@
 
 /*****************************************************************************/
 #include <boost/program_options.hpp>
-#include <iostream>
-
+#include <boost/property_tree/ini_parser.hpp>
+#include "config.h"
 #include "logger.h"
+
 #include "servercon.h"
-#include "ymlcfg.h"
 
 /*****************************************************************************/
 
@@ -33,13 +33,12 @@ namespace bpo = boost::program_options;
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
   // create and initialize the return value to zero (everything is OK)
-  int return_value = 0;
+  int return_value = EXIT_SUCCESS;
 
-  // create a servercon object
-  sota_server::ServerCon server;
-
-  // initialize the logging framework
   loggerInit();
+
+  // Initialize config with default values
+  Config config;
 
   // create a commandline options object
   bpo::options_description commandline_description("CommandLine Options");
@@ -76,7 +75,6 @@ int main(int argc, char *argv[]) {
                commandline_var_map);
     // run all notify functions of the variables in the map
     bpo::notify(commandline_var_map);
-
     // check for command line arguments by getting a occurrence counter
     // by now the variable map is only checked for help or h respectively
     if (commandline_var_map.count("help") != 0) {
@@ -90,7 +88,14 @@ int main(int argc, char *argv[]) {
     // as the loglevel option shall overwrite settings provided via
     // a configuration file.
     if (commandline_var_map.count("config") != 0) {
-      ymlcfgReadFile(commandline_var_map["config"].as<std::string>());
+      std::string filename = commandline_var_map["config"].as<std::string>();
+      try {
+        config.updateFromToml(filename);
+      } catch (boost::property_tree::ini_parser_error e) {
+        LOGGER_LOG(LVL_error, "Exception was thrown while parsing "
+                                  << filename
+                                  << " config file, message: " << e.message());
+      }
     }
 
     // check for loglevel
@@ -99,8 +104,7 @@ int main(int argc, char *argv[]) {
       LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
 
       // get the log level from command line option
-      loggerSetSeverity(static_cast<LoggerLevels>(
-          commandline_var_map["loglevel"].as<int>()));
+      loggerSetSeverity(LVL_trace);
     } else {
       // log if no command line option loglevl is used
       LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
@@ -113,7 +117,7 @@ int main(int argc, char *argv[]) {
                 << " is missing.\nYou have to provide a valid configuration "
                    "file using yaml format. See the example configuration file "
                    "in config/config.yml.example"
-		<< std::endl;
+                << std::endl;
     } else {
       // print the error and append the default commandline option description
       std::cout << ex.what() << std::endl << commandline_description;
@@ -134,16 +138,12 @@ int main(int argc, char *argv[]) {
     return_value = EXIT_FAILURE;
   }
 
-  // apply configuration data and contact the server if data is available
-  if (ymlcfgSetServerData(&server) == 1u) {
-    // try current functionality of the servercon class
-    LOGGER_LOG(LVL_info,
-               "main - try to get token: "
-                   << ((server.getOAuthToken() == 1u) ? "success" : "fail"));
-    return_value = EXIT_SUCCESS;
-  } else {
-    LOGGER_LOG(LVL_warning, "no server data available");
-  }
+  sota_server::ServerCon server(config);
+
+  // try current functionality of the servercon class
+  LOGGER_LOG(LVL_info,
+             "main - try to get token: "
+                 << ((server.getOAuthToken() == 1u) ? "success" : "fail"));
 
   return return_value;
 }

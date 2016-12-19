@@ -5,7 +5,7 @@ add_definitions(-DBOOST_LOG_DYN_LINK=1)
 find_package(Boost COMPONENTS system thread program_options log log_setup regex REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBCURL REQUIRED libcurl)
-pkg_search_module(YAML_CPP REQUIRED yaml-cpp)
+
 # configure libraries
 set(LINK_LIBS libpthread.so
               ${Boost_SYSTEM_LIBRARY}
@@ -14,21 +14,20 @@ set(LINK_LIBS libpthread.so
               ${Boost_LOG_SETUP_LIBRARIES}
               ${Boost_PROGRAM_OPTIONS_LIBRARY}
               ${Boost_REGEX_LIBRARY}
-              ${YAML_CPP_LIBRARIES}
               ${LIBCURL_LIBRARIES})
 
 
 # set source files excluded main for using the list for the test target
 set(SOURCES src/logger.cc
-            src/ymlcfg.cc
             src/oauthtoken.cc
             src/servercon.cc
+            src/config.cc
             src/main.cc)
 
 set(HEADERS src/logger.h
-            src/ymlcfg.h
             src/oauthtoken.h
-            src/servercon.h)
+            src/servercon.h
+            src/config.h)
 
 
 # set output folder
@@ -182,20 +181,20 @@ add_test(NAME test_oauthtoken COMMAND sota_client_test1)
 
 # test running the executable with command line option --help
 add_test(NAME feat1_test--help
-         COMMAND sota_client --help -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --help -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 # test running the executable with command line option -h
 add_test(NAME feat1_test-h
-         COMMAND sota_client -h -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client -h -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 # test running the executable with command line option --something
 add_test(NAME feat1_test--something
-         COMMAND sota_client --something -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --something -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 # test running the executable with command line option -sth
 add_test(NAME feat1_test-sth
-         COMMAND sota_client -sth -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client -sth -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 #test calling the executable with a config file
 add_test(NAME feat2_test_config_file
-         COMMAND sota_client -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=0 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 # calle the executable without any options
 add_test(NAME test_plain
@@ -203,22 +202,22 @@ add_test(NAME test_plain
 
 # check possible logging levels
 add_test(NAME test_log_trace
-         COMMAND sota_client --loglevel=0 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=0 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 add_test(NAME test_log_debug
-         COMMAND sota_client --loglevel=1 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=1 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 add_test(NAME test_log_warning
-         COMMAND sota_client --loglevel=2 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=2 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 add_test(NAME test_log_info
-         COMMAND sota_client --loglevel=3 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=3 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 add_test(NAME test_log_error
-         COMMAND sota_client --loglevel=4 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=4 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 add_test(NAME test_log_invalid
-         COMMAND sota_client --loglevel=5 -c ${PROJECT_SOURCE_DIR}/config/config.yml.example)
+         COMMAND sota_client --loglevel=5 -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
 
 # testcases with non-supported command line options will return 1
@@ -233,5 +232,4 @@ set_tests_properties(feat1_test--something
 set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientid")
 set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "thisisaclientsecret")
 set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "https://url.com")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Server: https://url.com")
-set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Loglevel: 1")
+set_tests_properties(feat2_test_config_file PROPERTIES PASS_REGULAR_EXPRESSION "Server: \"https://url.com\"")

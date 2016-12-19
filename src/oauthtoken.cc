@@ -46,7 +46,8 @@ OAuthToken::OAuthToken(const std::string& token_in, const std::string& type_in,
                             << time(0));
   std::cout << "stored token at " << stored << " and expires at "
             << (stored + (time_t)expire) << ""
-                                            " and time now is " << time(0);
+                                            " and time now is "
+            << time(0);
 }
 
 OAuthToken::OAuthToken(void) {

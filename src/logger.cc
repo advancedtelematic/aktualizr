@@ -53,9 +53,6 @@ void loggerInit(void) {
 
   // apply default attributes
   logging::add_common_attributes();
-
-  // set the initial severity level
-  loggerSetSeverity(LOG_INIT_LEVEL);
 }
 
 /*****************************************************************************/
@@ -85,7 +82,8 @@ LoggerLevels loggerGetSeverity(void) { return logger_global_level; }
 void loggerWriteMessage(LoggerLevels lvl, const std::string& message) {
   // create a log object as required by the boost logging framework
   static boost::log::sources::severity_logger<
-      boost::log::trivial::severity_level> logger;
+      boost::log::trivial::severity_level>
+      logger;
   // write a message using the log object and the provided log level
   BOOST_LOG_SEV(logger, static_cast<logtrv::severity_level>(lvl)) << message;
 }

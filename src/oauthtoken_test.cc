@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "oauthtoken.h"
+#include "config.h"
 #include "logger.h"
 
 namespace sota_server {
@@ -69,7 +70,8 @@ const std::string& OAuthToken::get(void) { return token; }
 BOOST_AUTO_TEST_SUITE(servercon)
 
 BOOST_AUTO_TEST_CASE(servercon_oauthtokenValid) {
-  sota_server::ServerCon obj1;
+  Config cfg;
+  sota_server::ServerCon obj1(cfg);
   
   // make an API request which will be executed
   // as the token is always valid.
