@@ -5,7 +5,6 @@ add_definitions(-DBOOST_LOG_DYN_LINK=1)
 find_package(Boost COMPONENTS system thread program_options log log_setup regex REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBCURL REQUIRED libcurl)
-pkg_search_module(YAML_CPP REQUIRED yaml-cpp)
 
 # configure libraries
 set(LINK_LIBS libpthread.so
@@ -15,7 +14,6 @@ set(LINK_LIBS libpthread.so
               ${Boost_LOG_SETUP_LIBRARIES}
               ${Boost_PROGRAM_OPTIONS_LIBRARY}
               ${Boost_REGEX_LIBRARY}
-              ${YAML_CPP_LIBRARIES}
               ${LIBCURL_LIBRARIES})
 
 
