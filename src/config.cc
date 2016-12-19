@@ -19,7 +19,6 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
             << "\tВevice UUID: " << cfg.device.uuid;
 }
 
-
 void Config::updateFromToml(const std::string& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);

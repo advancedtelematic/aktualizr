@@ -53,9 +53,6 @@ void loggerInit(void) {
 
   // apply default attributes
   logging::add_common_attributes();
-
-  // set the initial severity level
-  loggerSetSeverity(LOG_INIT_LEVEL);
 }
 
 /*****************************************************************************/
