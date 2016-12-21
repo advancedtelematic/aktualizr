@@ -11,7 +11,7 @@ This project uses the Github issue tracker. Please report bugs, issues and featu
 Contributing Code
 ----
 
-All code should be developed according to the style guide included in this project. In addition, the code should conform to the following guidelines:
+All code should be developed according to the [Google C++ style guide](https://google.github.io/styleguide/cppguide.html). In addition, the code should conform to the following guidelines:
 
    * Code should be covered by tests
       - Wherever possible, automated testing should be used
