@@ -1,8 +1,14 @@
 #include "config.h"
 
-#include <boost/property_tree/ini_parser.hpp>
-
 #include "logger.h"
+
+std::string getStringValue(boost::property_tree::ptree pt,
+                           const std::string& name) {
+  std::string ret_val = pt.get<std::string>(name);
+  ret_val.erase(std::remove(ret_val.begin(), ret_val.end(), '\"'),
+                ret_val.end());
+  return ret_val;
+}
 
 /**
  * \par Description:
@@ -25,7 +31,7 @@ void Config::updateFromToml(const std::string& filename) {
 
   // CoreConfig
   try {
-    core.server = pt.get<std::string>("core.server");
+    core.server = getStringValue(pt, "core.server");
   } catch (...) {
     LOGGER_LOG(LVL_debug,
                "no 'core.server' option have been found in config file: "
@@ -52,7 +58,7 @@ void Config::updateFromToml(const std::string& filename) {
 
   // AuthConfig
   try {
-    auth.server = pt.get<std::string>("auth.server");
+    auth.server = getStringValue(pt, "auth.server");
   } catch (...) {
     LOGGER_LOG(LVL_debug,
                "no 'auth.server' option have been found in config file: "
@@ -60,7 +66,7 @@ void Config::updateFromToml(const std::string& filename) {
   }
 
   try {
-    auth.client_id = pt.get<std::string>("auth.client_id");
+    auth.client_id = getStringValue(pt, "auth.client_id");
   } catch (...) {
     LOGGER_LOG(LVL_debug,
                "no 'auth.client_id' option have been found in config file: "
@@ -69,7 +75,7 @@ void Config::updateFromToml(const std::string& filename) {
   }
 
   try {
-    auth.client_secret = pt.get<std::string>("auth.client_secret");
+    auth.client_secret = getStringValue(pt, "auth.client_secret");
   } catch (...) {
     LOGGER_LOG(LVL_debug,
                "no 'auth.client_secret' option have been found in config file: "
@@ -79,11 +85,21 @@ void Config::updateFromToml(const std::string& filename) {
 
   // DeviceConfig
   try {
-    device.uuid = pt.get<std::string>("device.uuid");
+    device.uuid = getStringValue(pt, "device.uuid");
   } catch (...) {
     LOGGER_LOG(LVL_debug,
                "no 'device.uuid' option have been found in config file: "
                    << filename << ", Falling back to default: " << device.uuid);
+  }
+
+  try {
+    device.packages_dir = getStringValue(pt, "device.packages_dir");
+  } catch (...) {
+    LOGGER_LOG(
+        LVL_debug,
+        "no 'device.packages_dir' option have been found in config file: "
+            << filename
+            << ", Falling back to default: " << device.packages_dir);
   }
 
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));

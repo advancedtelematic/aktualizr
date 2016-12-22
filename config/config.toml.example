@@ -2,7 +2,6 @@
 server = "https://url.com"
 client_id = "thisisaclientid"
 client_secret = "thisisaclientsecret"
-credentials_file = "/opt/sota/credentials.toml"
 
 [core]
 server = "https://url.com"
@@ -18,19 +17,19 @@ software_manager_path = "/org/genivi/SoftwareLoadingManager"
 timeout = 60
 
 [device]
-uuid = "f700f3e2-e8cb-4d5e-8775-5161a0fe29c0"
+uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
 vin = ""
 packages_dir = "/tmp/"
 package_manager = "off"
-system_info = "system_info.sh"
 certificates_path = "/etc/sota_certificates"
+system_info = "system_info.sh"
 
 [gateway]
 console = false
 dbus = false
 http = false
 rvi = false
-socket = true
+socket = false
 websocket = false
 
 [network]

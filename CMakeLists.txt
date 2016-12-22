@@ -24,3 +24,4 @@ set(CMAKE_BUILD_TYPE Debug)
 #add_subdirectory("src")
 # FIXME temporary use include because of bugs with coverage
 include("src/CMakeLists.txt")
+include("tests/CMakeLists.txt")

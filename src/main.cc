@@ -24,7 +24,7 @@
 #include "config.h"
 #include "logger.h"
 
-#include "servercon.h"
+#include "interpreter.h"
 
 /*****************************************************************************/
 
@@ -42,6 +42,9 @@ int main(int argc, char *argv[]) {
 
   // create a commandline options object
   bpo::options_description commandline_description("CommandLine Options");
+
+  // create a variables map
+  bpo::variables_map commandline_var_map;
 
   // set up the commandline options
   try {
@@ -66,9 +69,6 @@ int main(int argc, char *argv[]) {
 
     commandline_dictionary("config,c", bpo::value<std::string>()->required(),
                            "yaml configuration file");
-
-    // create a variables map
-    bpo::variables_map commandline_var_map;
 
     // store command line options in the variables map
     bpo::store(parse_command_line(argc, argv, commandline_description),
@@ -103,8 +103,9 @@ int main(int argc, char *argv[]) {
       // write a log message
       LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
 
-      // get the log level from command line option
-      loggerSetSeverity(LVL_trace);
+      // set the log level from command line option
+      loggerSetSeverity(
+          static_cast<LoggerLevels>(commandline_var_map["loglevel"].as<int>()));
     } else {
       // log if no command line option loglevl is used
       LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
@@ -112,17 +113,19 @@ int main(int argc, char *argv[]) {
   }
   // check for missing options that are marked as required
   catch (const bpo::required_option &ex) {
-    if (ex.get_option_name() == "--config") {
+    if (ex.get_option_name() == "--config" &&
+        commandline_var_map.count("help") == 0) {
       std::cout << ex.get_option_name()
                 << " is missing.\nYou have to provide a valid configuration "
                    "file using yaml format. See the example configuration file "
                    "in config/config.yml.example"
                 << std::endl;
+      return EXIT_FAILURE;
     } else {
       // print the error and append the default commandline option description
       std::cout << ex.what() << std::endl << commandline_description;
+      return EXIT_SUCCESS;
     }
-    return EXIT_FAILURE;
   }
   // check for out of range options
   catch (const bpo::error &ex) {
@@ -135,15 +138,12 @@ int main(int argc, char *argv[]) {
 
     // set the returnValue, thereby ctest will recognize
     // that something went wrong
-    return_value = EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
 
-  sota_server::ServerCon server(config);
+  Interpreter interpreter(config);
+  interpreter.run();
 
   // try current functionality of the servercon class
-  LOGGER_LOG(LVL_info,
-             "main - try to get token: "
-                 << ((server.getOAuthToken() == 1u) ? "success" : "fail"));
-
   return return_value;
 }
