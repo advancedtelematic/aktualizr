@@ -1,6 +1,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#include <algorithm>
+#include <boost/property_tree/ini_parser.hpp>
 #include <string>
 
 struct CoreConfig {
@@ -24,11 +26,12 @@ struct AuthConfig {
 };
 
 struct DeviceConfig {
-  DeviceConfig() : uuid("123e4567-e89b-12d3-a456-426655440000") {}
+  DeviceConfig()
+      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/") {}
 
   std::string uuid;
+  std::string packages_dir;
   // TODO Need to be implemented soon
-  // std::string packages_dir;
   // PackageManager package_manager;
   // std::string certificates_path;
   // std::string p12_path;
