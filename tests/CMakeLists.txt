@@ -42,9 +42,14 @@ add_custom_target(qa)
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
+set(ALL_TEST_SRCS   tests/config_test.cc
+                    tests/events_test.cc)
+
+
 if(CLANG_FORMAT)
 add_custom_target(format-tools
-    COMMAND ${CLANG_FORMAT} -i -style Google ${SOURCES} ${HEADERS}
+    COMMAND ${CLANG_FORMAT} -i -style Google ${SOURCES} ${HEADERS} ${ALL_TEST_SRCS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running clang-format"
     VERBATIM)
@@ -101,6 +106,15 @@ add_executable(sota_client_test_config ${TEST_SRCS})
 target_link_libraries(sota_client_test_config ${TEST_LIBS})
 
 
+unset(TEST_SRCS)
+set(TEST_SRCS   src/types.cc
+                src/events.cc
+                tests/events_test.cc)
+add_executable(sota_client_test_events ${TEST_SRCS})
+
+# set the libraries for the current target
+target_link_libraries(sota_client_test_events ${TEST_LIBS})
+
 
 ###############################################################################
 
@@ -108,6 +122,8 @@ target_link_libraries(sota_client_test_config ${TEST_LIBS})
 if(BUILD_WITH_CODE_COVERAGE)
 target_link_libraries(sota_client_test_config gcov)
 add_dependencies(coverage sota_client_test_config)
+target_link_libraries(sota_client_test_events gcov)
+add_dependencies(coverage sota_client_test_events)
 
 endif(BUILD_WITH_CODE_COVERAGE)
 
@@ -115,6 +131,7 @@ endif(BUILD_WITH_CODE_COVERAGE)
 # declares a test using the test target
 add_test(NAME test_config COMMAND sota_client_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 file(WRITE Testing/config.toml "")
+add_test(NAME test_events COMMAND sota_client_test_events WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program

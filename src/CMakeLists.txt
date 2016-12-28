@@ -6,6 +6,7 @@ find_package(Boost COMPONENTS system thread program_options log log_setup regex 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBCURL REQUIRED libcurl)
 pkg_search_module(LIBOPENSSL REQUIRED libssl)
+pkg_search_module(JSONCPP REQUIRED jsoncpp)
 
 # configure libraries
 set(LINK_LIBS libpthread.so
@@ -15,7 +16,8 @@ set(LINK_LIBS libpthread.so
               ${Boost_LOG_SETUP_LIBRARIES}
               ${Boost_PROGRAM_OPTIONS_LIBRARY}
               ${Boost_REGEX_LIBRARY}
-              ${LIBCURL_LIBRARIES})
+              ${LIBCURL_LIBRARIES}
+              ${JSONCPP_LIBRARIES})
 
 
 # set source files excluded main for using the list for the test target
@@ -24,15 +26,20 @@ set(SOURCES src/logger.cc
             src/sotahttpclient.cc
             src/interpreter.cc
             src/config.cc
+            src/events.cc
+            src/types.cc
             src/main.cc)
 
 set(HEADERS src/logger.h
             src/config.h
             src/interpreter.h
             src/httpclient.h
-            src/sotahttpclient.h)
+            src/sotahttpclient.h
+            src/events.h
+            src/types.h)
 
 
+include_directories(${JSONCPP_INCLUDEDIR})
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
