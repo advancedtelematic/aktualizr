@@ -108,17 +108,17 @@ boost::property_tree::ptree HttpClient::post(const std::string& url,
   return result;
 }
 
-boost::property_tree::ptree HttpClient::perform(CURL* curl) {
+boost::property_tree::ptree HttpClient::perform(CURL* curl_handler) {
   boost::property_tree::ptree pt;
   std::string response;
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response);
+  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl);
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "curl error: " << result);
     return pt;
   }
   long http_code = 0;
-  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+  curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
 
   std::stringstream stream(response);
   boost::property_tree::json_parser::read_json(stream, pt);
