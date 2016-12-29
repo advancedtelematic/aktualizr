@@ -27,6 +27,7 @@ set(SOURCES src/logger.cc
             src/interpreter.cc
             src/config.cc
             src/events.cc
+            src/commands.cc
             src/types.cc
             src/main.cc)
 
@@ -36,8 +37,8 @@ set(HEADERS src/logger.h
             src/httpclient.h
             src/sotahttpclient.h
             src/events.h
+            src/commands.h
             src/types.h)
-
 
 include_directories(${JSONCPP_INCLUDEDIR})
 # set output folder

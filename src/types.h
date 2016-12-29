@@ -95,9 +95,40 @@ struct OperationResult {
 
 struct UpdateReport {
   UpdateRequestId update_id;
-  std::vector<OperationResult> operation_results;
+  std::vector<data::OperationResult> operation_results;
   Json::Value toJson();
   static UpdateReport fromJson(const std::string& json_str);
+};
+
+struct ClientCredentials {
+  std::string client_id;
+  std::string client_secret;
+  Json::Value toJson();
+  static ClientCredentials fromJson(const std::string& json_str);
+};
+
+struct InstalledFirmware {
+  std::string module;
+  std::string firmware_id;
+  unsigned long long last_modified;
+  Json::Value toJson();
+  static InstalledFirmware fromJson(const std::string& json_str);
+};
+
+struct InstalledPackage {
+  std::string package_id;
+  std::string name;
+  std::string description;
+  unsigned long long last_modified;
+  Json::Value toJson();
+  static InstalledPackage fromJson(const std::string& json_str);
+};
+
+struct InstalledSoftware {
+  std::vector<InstalledPackage> packages;
+  std::vector<InstalledFirmware> firmwares;
+  Json::Value toJson();
+  static InstalledSoftware fromJson(const std::string& json_str);
 };
 };
 
