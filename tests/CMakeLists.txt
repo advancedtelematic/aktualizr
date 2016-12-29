@@ -44,8 +44,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 set(ALL_TEST_SRCS   tests/config_test.cc
-                    tests/events_test.cc)
-
+                    tests/events_test.cc
+                    tests/commands_test.cc)
 
 if(CLANG_FORMAT)
 add_custom_target(format-tools
@@ -116,6 +116,15 @@ add_executable(sota_client_test_events ${TEST_SRCS})
 target_link_libraries(sota_client_test_events ${TEST_LIBS})
 
 
+unset(TEST_SRCS)
+set(TEST_SRCS   src/types.cc
+                src/commands.cc
+                tests/commands_test.cc)
+add_executable(sota_client_test_commands ${TEST_SRCS})
+
+# set the libraries for the current target
+target_link_libraries(sota_client_test_commands ${TEST_LIBS})
+
 ###############################################################################
 
 # add the test target to coverage analysis
@@ -124,6 +133,8 @@ target_link_libraries(sota_client_test_config gcov)
 add_dependencies(coverage sota_client_test_config)
 target_link_libraries(sota_client_test_events gcov)
 add_dependencies(coverage sota_client_test_events)
+target_link_libraries(sota_client_test_commands gcov)
+add_dependencies(coverage sota_client_test_commands)
 
 endif(BUILD_WITH_CODE_COVERAGE)
 
@@ -132,6 +143,7 @@ endif(BUILD_WITH_CODE_COVERAGE)
 add_test(NAME test_config COMMAND sota_client_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 file(WRITE Testing/config.toml "")
 add_test(NAME test_events COMMAND sota_client_test_events WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_commands COMMAND sota_client_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program

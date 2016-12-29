@@ -1,5 +1,6 @@
 #ifndef EVENTS_H_
 #define EVENTS_H_
+
 #include <json/json.h>
 #include "boost/signals2.hpp"
 
