@@ -2,6 +2,7 @@
 #define COMANDS_H_
 #include <json/json.h>
 #include <string>
+#include "channel.h"
 #include "types.h"
 
 namespace command {
@@ -10,6 +11,7 @@ struct BaseCommand {
   std::string variant;
   Json::Value toJson();
 };
+typedef Channel<BaseCommand> Channel;
 
 class Authenticate : public BaseCommand {
  public:

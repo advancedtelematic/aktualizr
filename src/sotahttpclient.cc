@@ -1,6 +1,6 @@
 #include "sotahttpclient.h"
 
-#include <boost/property_tree/json_parser.hpp>
+#include <json/json.h>
 #include "time.h"
 
 #include "logger.h"
@@ -10,36 +10,40 @@ SotaHttpClient::SotaHttpClient(const Config &config_in) : config(config_in) {
   core_url = config.core.server + "/api/v1";
 }
 
-boost::property_tree::ptree SotaHttpClient::getAvailableUpdates() {
+std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
   std::string url =
       core_url + "/device_updates/" + config.device.uuid + "/queued";
-  return http.get(url);
+  std::vector<data::UpdateRequest> update_requests;
+
+  Json::Value json = http.get(url);
+  for (int i = 0; json.size(); ++i) {
+    update_requests.push_back(data::UpdateRequest::fromJson(json[i]));
+  }
+  return update_requests;
 }
 
-boost::property_tree::ptree SotaHttpClient::downloadUpdate(
-    const boost::property_tree::ptree &update) {
+Json::Value SotaHttpClient::downloadUpdate(
+    const data::UpdateRequest &update_request) {
   std::string url = core_url + "/device_updates/" + config.device.uuid + "/" +
-                    update.get<std::string>("requestId") + "/download";
+                    update_request.requestId + "/download";
   std::string filename =
-      config.device.packages_dir + update.get<std::string>("packageId.name");
+      config.device.packages_dir + update_request.packageId.name;
   http.download(url, filename);
-  boost::property_tree::ptree status;
-  status.put("updateId", update.get<std::string>("requestId"));
-  status.put("resultCode", 0);
-  status.put("resultText", "Downloaded");
+  Json::Value status;
+  status["updateId"] = update_request.requestId;
+  status["resultCode"] = 0;
+  status["resultText"] = "Downloaded";
 
   time_t _tm = time(NULL);
   tm *curtime = localtime(&_tm);
-  status.put("receivedAt", asctime(curtime));
+  status["receivedAt"] = asctime(curtime);
   return status;
 }
 
-boost::property_tree::ptree SotaHttpClient::reportUpdateResult(
-    const boost::property_tree::ptree &download_status) {
+Json::Value SotaHttpClient::reportUpdateResult(
+    const Json::Value &download_status) {
   std::string url = core_url + "/device_updates/" + config.device.uuid;
   std::stringstream ss;
-  ss << '[';
-  boost::property_tree::json_parser::write_json(ss, download_status);
-  ss << ']';
+  ss << "[" << download_status << "]";
   return http.post(url, ss.str());
 }

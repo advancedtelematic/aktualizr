@@ -22,6 +22,7 @@ struct UpdateRequest {
   std::string createdAt;
   Json::Value toJson();
   static UpdateRequest fromJson(const std::string& json_str);
+  static UpdateRequest fromJson(const Json::Value& json);
 };
 
 struct UpdateAvailable {

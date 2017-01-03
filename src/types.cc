@@ -32,6 +32,10 @@ UpdateRequest UpdateRequest::fromJson(const std::string& json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
+  return fromJson(json);
+}
+
+UpdateRequest UpdateRequest::fromJson(const Json::Value& json) {
   UpdateRequest ur;
   ur.requestId = json["requestId"].asString();
   ur.status = static_cast<UpdateRequestStatus>(json["status"].asUInt());
