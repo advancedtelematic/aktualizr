@@ -107,7 +107,8 @@ target_link_libraries(sota_client_test_config ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS   src/types.cc
+set(TEST_SRCS   jsoncpp/jsoncpp.cpp
+                src/types.cc
                 src/events.cc
                 tests/events_test.cc)
 add_executable(sota_client_test_events ${TEST_SRCS})
@@ -117,7 +118,8 @@ target_link_libraries(sota_client_test_events ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS   src/types.cc
+set(TEST_SRCS   jsoncpp/jsoncpp.cpp
+                src/types.cc
                 src/commands.cc
                 tests/commands_test.cc)
 add_executable(sota_client_test_commands ${TEST_SRCS})
