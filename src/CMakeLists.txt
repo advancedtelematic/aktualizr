@@ -19,7 +19,7 @@ set(LINK_LIBS libpthread.so
 
 
 # set source files excluded main for using the list for the test target
-set(SOURCES jsoncpp/jsoncpp.cpp
+set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/logger.cc
             src/httpclient.cc
             src/sotahttpclient.cc
@@ -39,9 +39,9 @@ set(HEADERS src/logger.h
             src/commands.h
             src/types.h)
 
-set_property(SOURCE jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
+set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
-include_directories(jsoncpp)
+include_directories(third_party/jsoncpp)
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 

@@ -107,7 +107,7 @@ target_link_libraries(sota_client_test_config ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS   jsoncpp/jsoncpp.cpp
+set(TEST_SRCS   third_party/jsoncpp/jsoncpp.cpp
                 src/types.cc
                 src/events.cc
                 tests/events_test.cc)
@@ -118,7 +118,7 @@ target_link_libraries(sota_client_test_events ${TEST_LIBS})
 
 
 unset(TEST_SRCS)
-set(TEST_SRCS   jsoncpp/jsoncpp.cpp
+set(TEST_SRCS   third_party/jsoncpp/jsoncpp.cpp
                 src/types.cc
                 src/commands.cc
                 tests/commands_test.cc)

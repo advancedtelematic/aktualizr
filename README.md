@@ -45,6 +45,7 @@ The following debian packages are used in the project:
  - curl (>= 7.47)
  - libcurl4-openssl-dev (>= 7.47)
  - cmake (>= 3.5.1)
+ - lcov (when building for code coverage)
 
 Building
 ------
