@@ -2,7 +2,6 @@
 #define EVENTS_H_
 
 #include <json/json.h>
-#include "boost/signals2.hpp"
 
 #include "types.h"
 

@@ -1,8 +1,5 @@
 #include "httpclient.h"
 
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-
 #include "logger.h"
 
 /*****************************************************************************/
@@ -69,18 +66,12 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
                               << "and auth header: " << auth_header)
     return false;
   }
-  boost::property_tree::ptree pt;
-  std::stringstream stream(response);
-  boost::property_tree::json_parser::read_json(stream, pt);
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(response, json);
 
-  try {
-    token = pt.get<std::string>("access_token");
-  } catch (boost::property_tree::ptree_bad_path e) {
-    LOGGER_LOG(LVL_error, "authentication server response error: "
-                              << pt.get<std::string>("error"));
-    return false;
-  }
-  token_type = pt.get<std::string>("token_type");
+  token = json["access_token"].asString();
+  token_type = json["token_type"].asString();
 
   std::string header = "Authorization: Bearer " + token;
   curl_slist* headers = NULL;
@@ -93,36 +84,35 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   return true;
 }
 
-boost::property_tree::ptree HttpClient::get(const std::string& url) {
+Json::Value HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   return perform(curl);
 }
 
-boost::property_tree::ptree HttpClient::post(const std::string& url,
-                                             const std::string& data) {
+Json::Value HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
   curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
-  boost::property_tree::ptree result = perform(curl_post);
+  Json::Value result = perform(curl_post);
   curl_easy_cleanup(curl_post);
   return result;
 }
 
-boost::property_tree::ptree HttpClient::perform(CURL* curl_handler) {
-  boost::property_tree::ptree pt;
+Json::Value HttpClient::perform(CURL* curl_handler) {
+  Json::Value json;
   std::string response;
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl);
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "curl error: " << result);
-    return pt;
+    return json;
   }
   long http_code = 0;
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
 
-  std::stringstream stream(response);
-  boost::property_tree::json_parser::read_json(stream, pt);
-  return pt;
+  Json::Reader reader;
+  reader.parse(response, json);
+  return json;
 }
 
 bool HttpClient::download(const std::string& url, const std::string& filename) {
