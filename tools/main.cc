@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "logging.h"
 #include "oauth2.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
@@ -33,6 +34,7 @@ const string kOAuth2Url = "";
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
+int logging_verbosity;
 
 int authenticate(std::string filepath, TreehubServer &treehub) {
   typedef enum { AUTH_NONE, AUTH_BASIC, OAUTH2 } method_t;
@@ -159,6 +161,7 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help", "produce a help message")
+    ("verbose,v", "Verbose logging")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
     ("user,u", po::value<string>(&push_target.username), "Username")
@@ -182,6 +185,8 @@ int main(int argc, char **argv) {
     cout << desc << "\n";
     return EXIT_FAILURE;
   }
+
+  logging_verbosity = (int)vm.count("verbose");
 
   OSTreeRepo repo(repo_path);
 
@@ -246,7 +251,7 @@ int main(int argc, char **argv) {
 
   if (root_object->is_on_server() == OBJECT_PRESENT) {
     CURL *easy_handle = curl_easy_init();
-    // curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
     ostree_ref.PushRef(push_target, easy_handle);
     CURLcode err = curl_easy_perform(easy_handle);
     if (err) {

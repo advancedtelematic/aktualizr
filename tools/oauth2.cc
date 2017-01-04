@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "logging.h"
 #include "oauth2.h"
 
 using boost::property_tree::ptree;
@@ -24,7 +25,7 @@ size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb,
 
 AuthenticationResult OAuth2::Authenticate() {
   CURL *curl_handle = curl_easy_init();
-  // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
   curl_easy_setopt(curl_handle, CURLOPT_URL, (server_ + "/token").c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
