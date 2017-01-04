@@ -1,5 +1,6 @@
 
 set (GARAGE_PUSH_SRCS
+  logging.cc
   main.cc
   oauth2.cc
   ostree_ref.cc
@@ -18,6 +19,7 @@ set (ALL_SRCS
 
 # For clang-format
 set(ALL_HEADERS
+  logging.h
   oauth2.h
   ostree_object.h
   ostree_ref.h
@@ -82,6 +84,10 @@ if (OAUTH2_TEST_CLIENT_ID)
 
   add_test(NAME auth-plus-failure
     COMMAND t/test-auth-plus-failure $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+  add_test(NAME verbose-logging
+    COMMAND t/test-verbose-logging $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 endif()

@@ -1,3 +1,4 @@
+#include "logging.h"
 #include "ostree_object.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
@@ -169,6 +170,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target,
                                    CURLM *curl_multi_handle) {
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
+  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = OSTREE_OBJECT_PRESENCE_CHECK;
 
   push_target.InjectIntoCurl(Url(), curl_handle_);
@@ -191,13 +193,13 @@ void OSTreeObject::Upload(const TreehubServer &push_target,
   cout << "Uploading " << object_name_ << "\n";
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
+  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = OSTREE_OBJECT_UPLOADING;
   // TODO error checking
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION,
                    &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
-  // curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, 1);
 
   assert(form_post_ == NULL);
   struct curl_httppost *last_item = NULL;
