@@ -1,5 +1,7 @@
 #include "httpclient.h"
 
+#include <assert.h>
+
 #include "logger.h"
 
 /*****************************************************************************/
@@ -12,6 +14,7 @@
  */
 static size_t writeString(void* contents, size_t size, size_t nmemb,
                           void* userp) {
+  assert(userp);
   // append the writeback data to the provided string
   (static_cast<std::string*>(userp))->append((char*)contents, size * nmemb);
 
@@ -24,12 +27,18 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
   return written;
 }
 
+// Discard the http body
+static size_t writeDiscard(void*, size_t size, size_t nmemb) {
+  return size * nmemb;
+}
+
 HttpClient::HttpClient() {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
 
   // let curl use our write function
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
   if (loggerGetSeverity() <= LVL_debug) {
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -102,7 +111,7 @@ Json::Value HttpClient::perform(CURL* curl_handler) {
   Json::Value json;
   std::string response;
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
-  CURLcode result = curl_easy_perform(curl);
+  CURLcode result = curl_easy_perform(curl_handler);
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "curl error: " << result);
     return json;
@@ -116,28 +125,38 @@ Json::Value HttpClient::perform(CURL* curl_handler) {
 }
 
 bool HttpClient::download(const std::string& url, const std::string& filename) {
-  CURL* curl_redirect = curl_easy_duphandle(curl);
-  curl_easy_setopt(curl_redirect, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_redirect, CURLOPT_FOLLOWLOCATION, 1L);
-  unsigned char* redirect_url =
-      new unsigned char[1000]; /**< buffer for redirect link */
-  curl_easy_perform(curl_redirect);
-  CURLcode result =
-      curl_easy_getinfo(curl_redirect, CURLINFO_EFFECTIVE_URL, &redirect_url);
+  // Download an update from SOTA Server. This requires two requests: the first
+  // is to the sota server, and needs an Authentication: header to be present.
+  // This request will return a 30x redirect to S3, which we must not send our
+  // secret to (s3 also throws an error in this case :)
 
+  CURL* curl_redir = curl_easy_duphandle(curl);
+  curl_easy_setopt(curl_redir, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_redir, CURLOPT_FOLLOWLOCATION, 0L);
+  curl_easy_setopt(curl_redir, CURLOPT_WRITEFUNCTION, writeDiscard);
+
+  CURLcode result = curl_easy_perform(curl_redir);
   if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "curl redirect error: " << result
-                                                  << " with url: " << url);
+    LOGGER_LOG(LVL_error, "curl download error: " << result);
+    curl_easy_cleanup(curl_redir);
     return false;
   }
+
+  char* newurl;
+  curl_easy_getinfo(curl_redir, CURLINFO_REDIRECT_URL, &newurl);
+  LOGGER_LOG(LVL_debug, "AWS Redirect URL:" << newurl);
+
+  // Now perform the actual download
   CURL* curl_download = curl_easy_init();
+  curl_easy_setopt(curl_download, CURLOPT_URL, newurl);
+  // Let AWS Redirect us
+  curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, writeFile);
   FILE* fp = fopen(filename.c_str(), "w");
   curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, fp);
-  curl_easy_setopt(curl_download, CURLOPT_URL, redirect_url);
   result = curl_easy_perform(curl_download);
   curl_easy_cleanup(curl_download);
-  delete redirect_url;
+  curl_easy_cleanup(curl_redir);  // Keep newurl alive
   fclose(fp);
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "curl download error: " << result);
@@ -145,3 +164,4 @@ bool HttpClient::download(const std::string& url, const std::string& filename) {
   }
   return true;
 }
+// vim: set tabstop=2 shiftwidth=2 expandtab:

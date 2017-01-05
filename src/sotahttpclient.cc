@@ -11,12 +11,11 @@ SotaHttpClient::SotaHttpClient(const Config &config_in) : config(config_in) {
 }
 
 std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
-  std::string url =
-      core_url + "/device_updates/" + config.device.uuid + "/queued";
+  std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates";
   std::vector<data::UpdateRequest> update_requests;
 
   Json::Value json = http.get(url);
-  for (int i = 0; json.size(); ++i) {
+  for (unsigned int i = 0; i < json.size(); ++i) {
     update_requests.push_back(data::UpdateRequest::fromJson(json[i]));
   }
   return update_requests;
@@ -24,7 +23,7 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
 
 Json::Value SotaHttpClient::downloadUpdate(
     const data::UpdateRequest &update_request) {
-  std::string url = core_url + "/device_updates/" + config.device.uuid + "/" +
+  std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates/" +
                     update_request.requestId + "/download";
   std::string filename =
       config.device.packages_dir + update_request.packageId.name;
