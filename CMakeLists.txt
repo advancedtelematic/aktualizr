@@ -12,3 +12,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # FIXME temporary use include because of bugs with coverage
 include("src/CMakeLists.txt")
 include("tests/CMakeLists.txt")
+
+# Generate ctags
+set_source_files_properties(tags PROPERTIES GENERATED true)
+add_custom_target(tags
+    COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q src
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
