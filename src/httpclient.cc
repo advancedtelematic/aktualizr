@@ -56,7 +56,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
              "servercon - requesting token from server: " << conf.server);
 
   std::string response;
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&response);
+  curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_auth);
 
   curl_easy_cleanup(curl_auth);
