@@ -4,11 +4,12 @@ add_definitions(-DBOOST_LOG_DYN_LINK=1)
 # find all required libraries
 find_package(Boost COMPONENTS system thread program_options log log_setup regex REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 pkg_search_module(LIBCURL REQUIRED libcurl)
 pkg_search_module(LIBOPENSSL REQUIRED libssl)
 
 # configure libraries
-set(LINK_LIBS libpthread.so
+set(LINK_LIBS ${CMAKE_THREAD_LIBS_INIT}
               ${Boost_SYSTEM_LIBRARY}
               ${Boost_THREAD_LIBRARY}
               ${Boost_LOG_LIBRARIES}
