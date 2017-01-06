@@ -12,7 +12,7 @@ struct Package {
   static Package fromJson(const std::string&);
 };
 
-enum UpdateRequestStatus { Pending = 0, InFlight, Canceled, Failed, Finished };
+enum UpdateRequestStatus { Pending = 0, InFlight };
 
 struct UpdateRequest {
   UpdateRequestId requestId;

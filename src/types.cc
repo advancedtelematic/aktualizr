@@ -1,5 +1,7 @@
 #include "types.h"
 
+#include <stdexcept>
+
 namespace data {
 Json::Value Package::toJson() {
   Json::Value json;
@@ -21,7 +23,16 @@ Package Package::fromJson(const std::string& json_str) {
 Json::Value UpdateRequest::toJson() {
   Json::Value json;
   json["requestId"] = requestId;
-  json["status"] = status;
+  switch (status) {
+    case Pending:
+      json["status"] = "Pending";
+      break;
+    case InFlight:
+      json["status"] = "InFlight";
+      break;
+    default:
+      throw std::logic_error("Unknown value for status");
+  }
   json["packageId"] = packageId.toJson();
   json["installPos"] = installPos;
   json["createdAt"] = createdAt;
@@ -38,7 +49,14 @@ UpdateRequest UpdateRequest::fromJson(const std::string& json_str) {
 UpdateRequest UpdateRequest::fromJson(const Json::Value& json) {
   UpdateRequest ur;
   ur.requestId = json["requestId"].asString();
-  ur.status = static_cast<UpdateRequestStatus>(json["status"].asUInt());
+  std::string status = json["status"].asString();
+  if (status == "Pending") {
+    ur.status = Pending;
+  } else if (status == "InFlight") {
+    ur.status = InFlight;
+  } else {
+    throw std::runtime_error("Failed to parse UpdateRequest");
+  }
   ur.packageId =
       data::Package::fromJson(Json::FastWriter().write(json["packageId"]));
   ur.installPos = json["installPos"].asUInt();
@@ -230,3 +248,4 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   return installed_software;
 }
 };
+// vim: set tabstop=2 shiftwidth=2 expandtab:

@@ -32,3 +32,8 @@ build/
 *.app
 hello
 /.project
+
+# Vim swap files
+.*.swp
+# ctags
+/tags

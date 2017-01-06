@@ -70,7 +70,7 @@ add_dependencies(qa check-tools sota_client)
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-  DEPENDS sota_client)
+  DEPENDS sota_client_test_config sota_client_test_commands sota_client_test_events)
 
 add_dependencies(qa check)
 

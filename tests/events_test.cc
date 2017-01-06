@@ -70,9 +70,34 @@ BOOST_AUTO_TEST_CASE(UpdatesReceived_event_to_json) {
 
   BOOST_CHECK_EQUAL(json["variant"].asString(), "UpdatesReceived");
   BOOST_CHECK_EQUAL(json["fields"][0][0]["requestId"].asString(), "id1");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["status"].asUInt(), data::Pending);
+  BOOST_CHECK_EQUAL(json["fields"][0][0]["status"].asString(), "Pending");
   BOOST_CHECK_EQUAL(json["fields"][0][0]["installPos"].asUInt(), 3);
   BOOST_CHECK_EQUAL(json["fields"][0][0]["createdAt"].asString(), "today");
+}
+
+BOOST_AUTO_TEST_CASE(UpdatesReceived_parse) {
+  std::string message(
+      "[ "
+      "{\n"
+      "   \"createdAt\" : \"2017-01-05T08:43:40.685Z\",\n"
+      "		\"installPos\" : 0,\n"
+      "		\"packageId\" : \n"
+      "		{\n"
+      "			\"name\" : \"treehub-ota-raspberrypi3\",\n"
+      "			\"version\" : "
+      "\"15f13e2582f29d2218f88adada52ff043d6e9596b7cea288321ed91e275a1768\"\n"
+      "		},\n"
+      "		\"requestId\" : \"06d64e46-cb25-4d76-b62e-4341b6944d07\",\n"
+      "		\"status\" : \"Pending\",\n"
+      "		\"updatedAt\" : \"2017-01-05T08:43:40.685Z\"\n"
+      "	}\n"
+      "]");
+
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(message, json);
+
+  data::UpdateRequest request(data::UpdateRequest::fromJson(json[0]));
 }
 
 BOOST_AUTO_TEST_CASE(UpdateAvailable_event_to_json) {
@@ -309,16 +334,18 @@ BOOST_AUTO_TEST_CASE(Error_event_from_json) {
 
 BOOST_AUTO_TEST_CASE(UpdatesReceived_event_from_json) {
   std::string json =
-      "{\"fields\":[[{\"createdAt\":\"today\",\"installPos\":3,\"packageId\":{"
-      "\"name\":\"packagename1\",\"version\":\"v2.0\"},\"requestId\":\"id1\","
-      "\"status\":0}]],\"variant\":\"UpdatesReceived\"}";
+      "{\"fields\":[[{\"createdAt\":\"today\",\"installPos\":3,"
+      "\"packageId\":{"
+      "\"name\":\"packagename1\",\"version\":\"v2.0\"},"
+      "\"requestId\":\"id1\","
+      "\"status\":\"Pending\"}]],\"variant\":\"UpdatesReceived\"}";
   event::UpdatesReceived event = event::UpdatesReceived::fromJson(json);
 
   BOOST_CHECK_EQUAL(event.variant, "UpdatesReceived");
   BOOST_CHECK_EQUAL(event.update_requests[0].requestId, "id1");
   BOOST_CHECK_EQUAL(event.update_requests[0].createdAt, "today");
   BOOST_CHECK_EQUAL(event.update_requests[0].installPos, 3);
-  BOOST_CHECK_EQUAL(event.update_requests[0].status, 0);
+  BOOST_CHECK_EQUAL(event.update_requests[0].status, data::Pending);
   BOOST_CHECK_EQUAL(event.update_requests[0].packageId.name, "packagename1");
   BOOST_CHECK_EQUAL(event.update_requests[0].packageId.version, "v2.0");
 }
@@ -431,3 +458,4 @@ BOOST_AUTO_TEST_CASE(InstallFailed_event_from_json) {
                     "text");
   BOOST_CHECK_EQUAL(event.update_report.update_id, "request_id");
 }
+// vim: set tabstop=2 shiftwidth=2 expandtab:
