@@ -24,7 +24,6 @@ using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
 
 const int kCurlTimeoutms = 10000;
-const int kMaxCurlRequests = 30;
 
 const string kBaseUrl =
     "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
@@ -75,9 +74,8 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
 
   switch (method) {
     case AUTH_BASIC: {
-      // we can also set username with command line option
-      if (auth_user != "") treehub.username = auth_user;
-      treehub.password = auth_password;
+      treehub.username(auth_user);
+      treehub.password(auth_password);
       break;
     }
 
@@ -103,7 +101,7 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
       return EXIT_FAILURE;
     }
   }
-  treehub.root_url = ostree_server;
+  treehub.root_url(ostree_server);
 
   return EXIT_SUCCESS;
 }
@@ -153,6 +151,7 @@ int main(int argc, char **argv) {
   string repo_path;
   string ref;
   TreehubServer push_target;
+  int maxCurlRequests;
 
   string credentials_path;
   string home_path = string(getenv("HOME"));
@@ -164,8 +163,8 @@ int main(int argc, char **argv) {
     ("verbose,v", "Verbose logging")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("user,u", po::value<string>(&push_target.username), "Username")
     ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
+    ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
   // clang-format on
 
@@ -204,6 +203,11 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  if (maxCurlRequests < 1 || 1000 < maxCurlRequests) {
+    cout << "--jobs must in in the range 1...1000\n";
+    return EXIT_FAILURE;
+  }
+
   uint8_t root_sha256[32];
   ostree_ref.GetHash(root_sha256);
 
@@ -225,7 +229,7 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  RequestPool request_pool(push_target, kMaxCurlRequests);
+  RequestPool request_pool(push_target, maxCurlRequests);
 
   // Add commit object to the queue
   request_pool.AddQuery(root_object);
