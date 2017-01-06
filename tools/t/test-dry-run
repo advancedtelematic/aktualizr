@@ -1,1 +1,1 @@
-$1 --ref master --repo t/repo --user phil -j t/sota_tools.json -n
+$1 --ref master --repo t/repo --credentials t/sota_tools_basic_auth.json -n

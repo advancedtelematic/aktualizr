@@ -10,12 +10,15 @@ class TreehubServer {
   void SetToken(const std::string &authentication_token);
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle) const;
 
-  std::string root_url;
-  std::string username;
-  std::string password;
+  void root_url(const std::string &root_url);
+  void username(const std::string &username) { username_ = username; };
+  void password(const std::string &password) { password_ = password; };
 
  private:
-  bool using_oauth2;
+  std::string root_url_;
+  std::string username_;
+  std::string password_;
+  bool using_oauth2_;
   struct curl_slist auth_header_;
   // Don't modify auth_header_contents_ without updating the pointer in
   // auth_header_

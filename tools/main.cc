@@ -74,9 +74,8 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
 
   switch (method) {
     case AUTH_BASIC: {
-      // we can also set username with command line option
-      if (auth_user != "") treehub.username = auth_user;
-      treehub.password = auth_password;
+      treehub.username(auth_user);
+      treehub.password(auth_password);
       break;
     }
 
@@ -102,7 +101,7 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
       return EXIT_FAILURE;
     }
   }
-  treehub.root_url = ostree_server;
+  treehub.root_url(ostree_server);
 
   return EXIT_SUCCESS;
 }
@@ -164,7 +163,6 @@ int main(int argc, char **argv) {
     ("verbose,v", "Verbose logging")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("user,u", po::value<string>(&push_target.username), "Username")
     ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
     ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
