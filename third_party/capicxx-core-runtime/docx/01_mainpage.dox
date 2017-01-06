@@ -1,0 +1,23 @@
+/**
+ * \copyright
+ * 
+ * Copyright (C) 2015 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ * This file is part of GENIVI project IPC CommonAPI C++.
+ *
+ * Contributions are licensed to the GENIVI Alliance under one or more Contribution License Agreements.
+ *
+ */
+ 
+/*!
+\mainpage
+
+\par License
+This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+\par CommonAPI C++ Specification and User Guide
+The specification and the user guide can be found in the CommonAPI documentation directory of the CommonAPI Tools project.
+
+\par Build instructions
+can be found in the README file of this project.
+*/

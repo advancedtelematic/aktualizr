@@ -1,0 +1,79 @@
+#!/bin/sh
+#
+# messagebus:   The D-BUS systemwide message bus
+#
+# chkconfig: 345 97 03
+# description:  This is a daemon which broadcasts notifications of system events \
+#               and other messages. See http://www.freedesktop.org/software/dbus/
+#
+# processname: dbus-daemon
+# pidfile: /usr/local/var/run/dbus/pid
+#
+
+# Sanity checks.
+#[ -x /usr/local/bin/dbus-daemon ] || exit 0
+
+# Source function library.
+#. /usr/local/etc/rc.d/init.d/functions
+
+# so we can rearrange this easily
+#processname=dbus-daemon
+#servicename=messagebus
+
+#RETVAL=0
+
+start() {
+    echo "Starting system message bus"
+    if [ -x /usr/local/bin/dbus-uuidgen ] ; then
+        /usr/local/bin/dbus-uuidgen --ensure
+    fi
+
+    if [ -x /usr/local/bin/dbus-daemon ];then
+    	/usr/local/bin/dbus-daemon --system
+    fi
+    #daemon --check $servicename $processname --system
+    #RETVAL=$?
+    #echo
+    #[ $RETVAL -eq 0 ] && touch /usr/local/var/lock/subsys/$servicename
+}
+
+stop() {
+    echo "Stopping system message bus"
+
+    ## we don't want to kill all the per-user $processname, we want
+    ## to use the pid file *only*; because we use the fake nonexistent 
+    ## program name "$servicename" that should be safe-ish
+    killall dbus-daemon
+    #RETVAL=$?
+    #echo
+    #if [ $RETVAL -eq 0 ]; then
+    #    rm -f /usr/local/var/lock/subsys/$servicename
+    #    rm -f /usr/local/var/run/dbus/pid
+    #fi
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status $servicename
+        RETVAL=$?
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    reload)
+        echo "Message bus can't reload its configuration, you have to restart it"
+        RETVAL=$?
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        ;;
+esac
+exit $RETVAL

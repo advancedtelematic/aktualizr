@@ -1,0 +1,259 @@
+<!--  Auto-Generated interface from Rhapsody: 'Repository::ssw_LifecycleSupport::NodeStateManagement::Concept::Interface::INSM_Consumer' -->
+<!--  Created at 2012-06-01 09:36:05 by uid65904 -->
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+	"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+<interface name="org.freedesktop.DBus.Introspectable">
+	<method name="Introspect">
+		<arg name="data" direction="out" type="s"/>
+	</method>
+</interface>
+<interface name="org.freedesktop.DBus.Properties">
+	<method name="Get">
+		<arg name="interface" direction="in" type="s"/>
+		<arg name="propname" direction="in" type="s"/>
+		<arg name="value" direction="out" type="v"/>
+	</method>
+	
+	<method name="Set">
+		<arg name="interface" direction="in" type="s"/>
+		<arg name="propname" direction="in" type="s"/>
+		<arg name="value" direction="in" type="v"/>
+	</method>
+	
+	<method name="GetAll">
+		<arg name="interface" direction="in" type="s"/>
+		<arg name="props" direction="out" type="a{sv}"/>
+	</method>
+</interface>
+ <!--
+	org.genivi.NodeStateManager.Consumer:
+	@short_description: "Consumer" interface of the NodeStateManager.
+	
+	This interface contains functions which are not safety critical and can be accessed by "every" client without further restrictions.
+  -->
+  <interface name="org.genivi.NodeStateManager.Consumer">
+    <!--
+        RestartReason: This property informs clients about the reason for the last restart. The values are based upon the enummeration NsmRestartReason_e. Note: The value is only set once at start-up.
+    -->
+    <property name="RestartReason" type="i" access="read"/>
+
+    <!--
+        ShutdownReason: This property informs clients about the reason for the last shutdown. The values are based upon the enummeration NsmShutdownReason_e. Note: The value is only set once at start-up.
+    -->
+    <property name="ShutdownReason" type="i" access="read"/>
+
+    <!--
+        WakeUpReason: This property informs clients about the recent reason for waking up the target. The values are based upon the enummeration NsmWakeUpReason_e. Note: The value is only set once at start-up.
+    -->
+    <property name="WakeUpReason" type="i" access="read"/>
+
+    <!--
+        BootMode: This property informs clients about the recent BootMode of the target. The values will be defined by a third party header, which has not been delivered yet. The description needs to be updated as soon as the header is available.
+    -->
+    <property name="BootMode" type="i" access="read"/>
+
+    <!--
+	   NodeState:
+	   @NodeState: Numeric value for the current NodeState, defined in NsmNodeState_e.
+
+	   Clients can register for notifications when the NodeState is updated inside the NodeStateManager. This signal is sent to registered clients and will include the current NodeState as a parameter.
+    -->
+    <signal name="NodeState">
+      <arg name="NodeState" type="i"/>
+    </signal>
+
+    <!--
+	   NodeApplicationMode:
+	   @ApplicationModeId: Numeric value for the current ApplicationMode, defined in NsmAplicationMode_e.
+
+	   Clients can register for notifications when the NodeApplicationMode is updated inside the NodeStateManager. This signal is sent to registered clients and will include the current NodeApplicationMode as a parameter.
+    -->
+    <signal name="NodeApplicationMode">
+      <arg name="ApplicationModeId" type="i"/>
+    </signal>
+
+    <!--
+    	SessionStateChanged:
+    	@SessionStateName: The SessionName will be based upon either the pre-defined platform SessionNames or using a newly added product defined session name.
+    	@SeatID:           This parameter will be based upon the enum NsmSeat_e.
+    	@SessionState:     This parameter will be based upon the NsmSessionState_e but it will not be bounded by the values in that enumeration. The listed values are the default values that are mandatory for platform sessions, but product sessions may have additional session states.
+    
+    	This signal is sent to registered clients when a particular session is state is changed. The client can register for notification about a specific session through the use of the SessionName, as a "match rule".
+    -->
+    <signal name="SessionStateChanged">
+      <arg name="SessionStateName" type="s"/>
+      <arg name="SeatID" type="i"/>
+      <arg name="SessionState" type="i"/>
+    </signal>
+
+    <!-- 
+    	GetNodeState:
+    	@NodeStateId: Will be based on the NsmNodeState_e.
+    	@ErrorCode:   Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by other applications to get the NodeState without the need of registration to the signal.
+    -->
+    <method name="GetNodeState">
+      <arg name="NodeStateId" direction="out" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+    	SetSessionState:
+    	@SessionName:  The SessionName will be based upon either the pre-defined platform SessionNames (see NSM content page) or using a newly added product defined session name.
+    	@SessionOwner: This parameter defines the name of the application that is setting the state of the session. This must be the applications systemd unit filename.
+    	@SeatID:       This parameter will be based upon the enum NsmSeat_e
+    	@SessionState: This parameter will be based upon the NsmSessionState_e but it will not be bounded by the values in that enumeration. The listed values are the default values that are mandatory for platform sessions, but product sessions may have additional SessionStates.
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by applications to set the state of a session.
+    -->
+    <method name="SetSessionState">
+      <arg name="SessionName" direction="in" type="s"/>
+      <arg name="SessionOwner" direction="in" type="s"/>
+      <arg name="SeatID" direction="in" type="i"/>
+      <arg name="SessionState" direction="in" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+    	GetSessionState:
+    	@SessionName:  The SessionName will be based upon either the pre-defined platform session names (see NSM content page) or using a newly added product defined SessionName.
+    	@SeatID:       This parameter will be based upon the enum NsmSeat_e.
+    	@SessionState: This parameter will be based upon the NsmSessionState_e but it will not be bounded by the values in that enumeration. The listed values are the default values that are mandatory for platform sessions, but product sessions may have additional SessionStates.
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by applications to get the state of a session.
+    -->
+    <method name="GetSessionState">
+      <arg name="SessionName" direction="in" type="s"/>
+      <arg name="SeatID" direction="in" type="i"/>
+      <arg name="SessionState" direction="out" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+	GetApplicationMode:
+	@ApplicationModeId: This parameter will be based upon the NsmNodeApplicationMode_e.
+	@ErrorCode:         Return value passed to the caller, based upon NsmErrorStatus_e.
+
+	The method is used by other applications to get the application mode.
+    -->
+    <method name="GetApplicationMode">
+      <arg name="ApplicationModeId" direction="out" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+        RegisterShutdownClient:
+    	@BusName:      Bus name of remote application.
+    	@ObjName:      Object name of remote object that provides the shutdown interface.
+    	@ShutdownMode: Shutdown mode for which client wants to be informed (i.e normal, fast etc).
+    	@TimeoutMs:    Max. Timeout to wait for response from shutdown client in ms.
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by other applications to register themselves as shutdown client. Any client that registers must provide a method in their D-Bus object called "LifecycleRequest". This method will take one parameter which is the RequestType (NSM_SHUTDOWNTYPE_NORMAL, NSM_SHUTDOWNTYPE_FAST). For an example of the required client interface please see the BootManager component who will be a client of the NSM.
+	-->
+    <method name="RegisterShutdownClient">
+      <arg name="BusName" direction="in" type="s"/>
+      <arg name="ObjName" direction="in" type="s"/>
+      <arg name="ShutdownMode" direction="in" type="u"/>
+      <arg name="TimeoutMs" direction="in" type="u"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+    	UnRegisterShutdownClient:
+    	@BusName:      Bus name of remote application.
+    	@ObjName:      Object name of remote object that provides the shutdown interface.
+    	@ShutdownMode: Shutdown mode for which client wants to unregister (NSM_SHUTDOWNTYPE_NORMAL, NSM_SHUTDOWNTYPE_FAST).
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by other applications to unregister themselves as shutdown client.
+    -->
+    <method name="UnRegisterShutdownClient">
+      <arg name="BusName" direction="in" type="s"/>
+      <arg name="ObjName" direction="in" type="s"/>
+      <arg name="ShutdownMode" direction="in" type="u"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+	    RegisterSession:
+    	@SessionName:  The SessionName will be based upon either the pre-defined platform session names (see NSM content page) or using a newly added product defined SessionName.
+    	@SessionOwner: This is the name of the application that is registering the new session (this must be the applications systemd unit filename).
+    	@SeatID:       This parameter will be based upon the enum NsmSeatId_e
+    	@SessionState: This parameter will be based upon the NsmSessionState_e but it will not be bounded by the values in that enumeration. The listed values are the default values that are mandatory for platform sessions, but product sessions may have additional session states.
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by other applications to register a new session whose state should be observed and distributed by the NSM.
+	-->
+    <method name="RegisterSession">
+      <arg name="SessionName" direction="in" type="s"/>
+      <arg name="SessionOwner" direction="in" type="s"/>
+      <arg name="SeatID" direction="in" type="i"/>
+      <arg name="SessionState" direction="in" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+    	UnRegisterSession:
+    	@SessionName:  The SessionName will be based upon either the pre-defined platform session names (see NSM content page) or using a newly added product defined SessionName.
+    	@SessionOwner: This is the name of the application that originally registered the session. It will be validated that this value matches the stored value from the registration.
+    	@SeatID:       This parameter will be based upon the enum NsmSeat_e.
+    	@ErrorCode:    Return value passed to the caller, based upon NsmErrorStatus_e.
+    
+    	The method is used by other applications to remove a new session from the session list hosted by NSM.
+    -->
+    <method name="UnRegisterSession">
+      <arg name="SessionName" direction="in" type="s"/>
+      <arg name="SessionOwner" direction="in" type="s"/>
+      <arg name="SeatID" direction="in" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+
+    <!--
+    	GetAppHealthCount:
+    	@Count: Return value passed to the caller. Number of applications that crashed or terminated accidentally.
+    	
+    	The method returns the number of applications that crashed or terminated accidentally, within the current life cycle. It can be used to observe the system state.
+    -->
+    <method name="GetAppHealthCount">
+      <arg name="Count" direction="out" type="u"/>
+    </method>
+
+    <!--
+    	GetInterfaceVersion:
+    	@Version: Unsigned integer that represents the version number of the Node State Manager.
+    	
+    	The method returns the version number of the Node State Manager. The number is organized in four bytes:
+    
+    	Version: VVV.RRR.PPP.BBB
+    
+    	<literallayout>
+    		VVV => Version  [1..255]
+    		RRR => Release  [0..255]
+    		PPP => Patch    [0..255]
+    		BBB => Build    [0..255]
+    	</literallayout>
+    -->
+    <method name="GetInterfaceVersion">
+      <arg name="Version" direction="out" type="u"/>
+    </method>
+
+    <!--    
+        LifecycleRequestComplete:
+        @RequestId: The request Id of the called life cycle client. The value has been passed when "LifecycleRequest" was called.
+        @Status:    The result of the call to "LifecycleRequest". NsmErrorStatus_Ok: Request successfully processed. NsmErrorStatus_Error: An error occured while processing the "LifecycleRequest".
+        @ErrorCode: Return value passed to the caller, based upon NsmErrorStatus_e.
+        
+        The function has to be called by a "asynchrounous" lifecycle client, when he processed the "LifecycleRequest".
+    --> 
+    <method name="LifecycleRequestComplete">
+      <arg name="RequestId" direction="in" type="u"/>
+      <arg name="Status"    direction="in" type="i"/>
+      <arg name="ErrorCode" direction="out" type="i"/>
+    </method>
+  </interface>
+</node>

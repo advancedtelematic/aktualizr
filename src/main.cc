@@ -23,12 +23,18 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
+#include <memory>
 #include "channel.h"
 #include "commands.h"
 #include "config.h"
+#include "events.h"
 #include "logger.h"
 
 #include "interpreter.h"
+#ifdef WITH_DBUS
+#include <CommonAPI/CommonAPI.hpp>
+#include "dbusgateway/dbusgateway.h"
+#endif
 
 /*****************************************************************************/
 
@@ -37,7 +43,8 @@ namespace bpo = boost::program_options;
 void start_update_poller(unsigned int pooling_interval,
                          command::Channel *command_channel) {
   while (true) {
-    *command_channel << command::GetUpdateRequests();
+    *command_channel << boost::shared_ptr<command::GetUpdateRequests>(
+        new command::GetUpdateRequests());
     sleep(pooling_interval);
   }
 }
@@ -154,10 +161,19 @@ int main(int argc, char *argv[]) {
   }
 
   command::Channel command_channel;
+  event::Channel event_channel;
 
   Interpreter interpreter(config, &command_channel);
   // run interpreter in thread
   interpreter.interpret();
+
+#ifdef WITH_DBUS
+  std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
+  std::shared_ptr<DbusGateway> dbus_gateway =
+      std::make_shared<DbusGateway>(&command_channel, &event_channel);
+  runtime->registerService("local", config.dbus.interface, dbus_gateway);
+  dbus_gateway->run();
+#endif
 
   start_update_poller(static_cast<unsigned int>(config.core.polling_sec),
                       &command_channel);

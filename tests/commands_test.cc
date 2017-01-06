@@ -67,6 +67,27 @@ BOOST_AUTO_TEST_CASE(StartDownload_event_from_json) {
   BOOST_CHECK_EQUAL(comand.update_request_id, "testid");
 }
 
+BOOST_AUTO_TEST_CASE(AbortDownload_comand_to_json) {
+  command::AbortDownload comand("testid");
+
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(comand.toJson(), json);
+
+  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testid");
+  BOOST_CHECK_EQUAL(json["variant"].asString(), "AbortDownload");
+}
+
+BOOST_AUTO_TEST_CASE(AbortDownload_event_from_json) {
+  std::string json =
+      "{\"fields\":[\"testid\"],"
+      "\"variant\":\"AbortDownload\"}";
+  command::AbortDownload comand = command::AbortDownload::fromJson(json);
+
+  BOOST_CHECK_EQUAL(comand.variant, "AbortDownload");
+  BOOST_CHECK_EQUAL(comand.update_request_id, "testid");
+}
+
 BOOST_AUTO_TEST_CASE(StartInstall_comand_to_json) {
   command::StartInstall comand("testid");
 

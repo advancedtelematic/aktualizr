@@ -127,6 +127,21 @@ add_executable(sota_client_test_commands ${TEST_SRCS})
 # set the libraries for the current target
 target_link_libraries(sota_client_test_commands ${TEST_LIBS})
 
+if(BUILD_WITH_DBUS_GATEWAY)
+    unset(TEST_SRCS)
+    set(TEST_SRCS   third_party/jsoncpp/jsoncpp.cpp
+                    src/types.cc
+                    src/commands.cc
+                    src/events.cc
+                    tests/dbusgateway_test.cc)
+    add_executable(sota_client_test_dbusgateway ${TEST_SRCS} ${DBUS_SOURCES})
+
+    # set the libraries for the current target
+    target_link_libraries(sota_client_test_dbusgateway ${TEST_LIBS} ${DBUS_LIBS})
+    add_dependencies(sota_client_test_dbusgateway dbusapi)
+endif(BUILD_WITH_DBUS_GATEWAY)
+
+
 ###############################################################################
 
 # add the test target to coverage analysis
@@ -137,15 +152,22 @@ target_link_libraries(sota_client_test_events gcov)
 add_dependencies(coverage sota_client_test_events)
 target_link_libraries(sota_client_test_commands gcov)
 add_dependencies(coverage sota_client_test_commands)
-
-endif(BUILD_WITH_CODE_COVERAGE)
-
+if(BUILD_WITH_DBUS_GATEWAY)
+target_link_libraries(sota_client_test_dbusgateway gcov)
+add_dependencies(coverage sota_client_test_dbusgateway)
+endif(BUILD_WITH_DBUS_GATEWAY)
 
 # declares a test using the test target
 add_test(NAME test_config COMMAND sota_client_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 file(WRITE Testing/config.toml "")
 add_test(NAME test_events COMMAND sota_client_test_events WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_test(NAME test_commands COMMAND sota_client_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+if(BUILD_WITH_DBUS_GATEWAY)
+    add_test(NAME test_dbusgateway COMMAND sota_client_test_dbusgateway WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+endif(BUILD_WITH_DBUS_GATEWAY)
+
+endif(BUILD_WITH_CODE_COVERAGE)
+
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program

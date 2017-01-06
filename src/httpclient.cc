@@ -72,7 +72,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "authentication curl error: "
                               << result << " with server: " << conf.server
-                              << "and auth header: " << auth_header)
+                              << "and auth header: " << auth_header);
     return false;
   }
   Json::Reader reader;

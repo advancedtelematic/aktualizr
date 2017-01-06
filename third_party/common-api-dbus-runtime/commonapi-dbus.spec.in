@@ -1,0 +1,127 @@
+Name:               @PROJECT_NAME@
+Version:            @COMPONENT_VERSION@
+Release:            @RPM_PACKAGE_VERSION@
+Summary:            CommonAPI-DBus
+Group:              libs
+License:            @LICENSE@
+Vendor:             BMW Group
+URL:            	http://www.bmw.de
+Source:             @PROJECT_NAME@-@COMPONENT_VERSION@.tar.gz
+BuildRoot:          %{_tmppath}/%{name}-%{version}-%{release}-root
+#Requires:          libcommonapi
+
+%description
+CAPI-DBus for IPC
+
+%package dev
+Summary:           CommonAPI-DBus header files
+Group:             Development/Libraries
+Requires:          libcommonapi-dbus3
+
+%package staticdev
+Summary:           CommonAPI-DBus header files
+Group:             Development/Libraries
+Requires:          libcommonapi-dbus3
+
+
+%description dev
+CAPI-DBus headers for IPC development
+
+%prep
+mkdir -p %{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI
+%setup
+
+
+
+%build
+mkdir -p build
+cd build
+cmake ..
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+cd build
+cmake ..
+make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_bindir}
+mkdir -p %{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root,-)
+%{_libdir}/libCommonAPI-DBus.so.@LIBCOMMONAPI_DBUS_MAJOR_VERSION@
+%{_libdir}/libCommonAPI-DBus.so.@LIBCOMMONAPI_DBUS_MAJOR_VERSION@.@LIBCOMMONAPI_DBUS_MINOR_VERSION@.@LIBCOMMONAPI_DBUS_PATCH_VERSION@
+%{_libdir}/libCommonAPI-DBus.so
+
+%files staticdev
+#%{_libdir}/libCommonAPI-DBus.la
+
+%files dev
+%defattr(-,root,root,-)
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusAddress.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusAddressTranslator.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusAttribute.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusClientId.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusConfig.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusConnection.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusDaemonProxy.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusDeployment.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusError.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusEvent.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFactory.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFreedesktopAttribute.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFreedesktopPropertiesStub.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFreedesktopStubAdapterHelper.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFreedesktopVariant.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusFunctionalHash.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusHelper.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusInputStream.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusInstanceAvailabilityStatusChangedEvent.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusInterfaceHandler.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusMainLoopContext.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusMessage.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusMultiEvent.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusObjectManager.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusObjectManagerStub.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusOutputStream.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxy.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxyAsyncCallbackHandler.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxyBase.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxyConnection.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxyHelper.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusProxyManager.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusSelectiveEvent.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusSerializableArguments.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusServiceRegistry.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusStubAdapter.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusStubAdapterHelper.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusTypeOutputStream.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusTypes.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/CommonAPI/DBus/DBusUtils.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/pugixml
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/pugixml/pugiconfig.hpp
+%{_includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@/pugixml/pugixml.hpp
+%{_libdir}/cmake/CommonAPI-@COMPONENT_VERSION@/CommonAPI-DBusConfig.cmake
+%{_libdir}/cmake/CommonAPI-@COMPONENT_VERSION@/CommonAPI-DBusConfigVersion.cmake
+%{_libdir}/cmake/CommonAPI-@COMPONENT_VERSION@/CommonAPI-DBusTargets.cmake
+%{_libdir}/cmake/CommonAPI-@COMPONENT_VERSION@/CommonAPI-DBusTargets-@CMAKE_BUILD_TYPE_FOR_SPEC_IN@.cmake
+
+%changelog dev
+* Mon Mar 23 2015 Markus Freutsmiedl <Markus.Freutsmiedl@partner.bmw.de> @GENIVI_PROJECT_VERSION@
+- LIB_MAJOR_VERSION changed to LIBCOMMONAPI_MAJOR_VERSION
+- LIB_MINOR_VERSION changed to LIBCOMMONAPI_MINOR_VERSION
+- LIB_PATCH_VERSION changed to LIBCOMMONAPI_PATCH_VERSION
+- files dev reworked
+
+%changelog dev
+* Wed Sep 3 2014 Markus Freutsmiedl <Markus.Freutsmiedl@partner.bmw.de> @GENIVI_PROJECT_VERSION@
+- files dev reworked
+
+%changelog dev
+* Tue Jun 03 2014 Markus Freutsmiedl <Markus.Freutsmiedl@partner.bmw.de> @GENIVI_PROJECT_VERSION@
+- Initial version
