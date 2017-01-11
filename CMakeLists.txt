@@ -19,9 +19,10 @@ include(ExternalProject)
 ExternalProject_Add(libdbus
     DOWNLOAD_COMMAND ""
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0
-    CONFIGURE_COMMAND  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0/autogen.sh COMMAND  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0/configure --prefix=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build --with-systemdsystemunitdir=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/systemd
+    CONFIGURE_COMMAND  ./autogen.sh --prefix=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build  COMMAND cmake cmake -DDBUS_INSTALL_DIR=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build 
     BUILD_COMMAND ${MAKE}
-    BUILD_IN_SOURCE 1)
+    INSTALL_COMMAND make install COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0/dbus-1.pc ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/dbus-1.0
+	BUILD_IN_SOURCE 1)
 
 ExternalProject_Add(commonapi
     DOWNLOAD_COMMAND ""
@@ -33,7 +34,7 @@ ExternalProject_Add(commonapi
 ExternalProject_Add(dbusapi
     DOWNLOAD_COMMAND ""
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime
-    CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/pkgconfig cmake ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime/  -DUSE_INSTALLED_COMMONAPI=OFF  -DUSE_INSTALLED_DBUS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install
+    CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/ cmake ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime/  -DUSE_INSTALLED_COMMONAPI=OFF  -DUSE_INSTALLED_DBUS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install
     BUILD_COMMAND ${MAKE}
     BUILD_IN_SOURCE 1)
 

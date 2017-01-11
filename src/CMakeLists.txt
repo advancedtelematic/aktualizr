@@ -61,8 +61,7 @@ include_directories(
     src/dbusgateway/src-gen
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/dbus-1.0)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/dbus-1.0/include/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/include/CommonAPI-3.1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install/include/CommonAPI-3.1)
