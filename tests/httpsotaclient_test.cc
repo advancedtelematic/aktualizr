@@ -27,8 +27,12 @@ TEST(AuthenticateTest, authenticate_called) {
   conf.auth.client_id = "client_id_test";
   conf.auth.client_secret = "client_secret_test";
   HttpClientMock *http = new HttpClientMock();
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
   EXPECT_CALL(*http, authenticate(conf.auth));
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+  delete events_channel;
 }
 
 TEST(DownloadTest, download_called) {
@@ -37,27 +41,32 @@ TEST(DownloadTest, download_called) {
   conf.device.uuid = "test_uuid";
   conf.device.packages_dir = "/tmp/";
   data::UpdateRequestId update_request_id = "testupdateid";
-
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+
 
   EXPECT_CALL(
       *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
                          update_request_id + "/download",
                      conf.device.packages_dir + update_request_id));
-  Json::Value result = sota_client.downloadUpdate(update_request_id);
-  EXPECT_EQ(result["updateId"].asString(), update_request_id);
-  EXPECT_EQ(result["resultCode"].asInt(), 0);
-  EXPECT_EQ(result["resultText"].asString(), "Downloaded");
+  sota_client.startDownload(update_request_id);
+  boost::shared_ptr<event::BaseEvent> ev;
+  *events_channel >> ev;
+  EXPECT_EQ(ev->variant, "DownloadComplete");
 }
 
 TEST(GetAvailableUpdatesTest, get_performed) {
   Config conf;
   conf.core.server = "http://test.com";
   conf.device.uuid = "test_uuid";
-
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
 
   std::string message(
       "[ "
@@ -90,6 +99,8 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   EXPECT_EQ(update_requests[0].status, data::UpdateRequestStatus::Pending);
   EXPECT_EQ(update_requests[0].requestId,
             "06d64e46-cb25-4d76-b62e-4341b6944d07");
+  delete events_channel;
+
 }
 
 TEST(ReportTest, post_called) {
@@ -115,13 +126,16 @@ TEST(ReportTest, post_called) {
   testing::DefaultValue<Json::Value>::Set(return_val);
 
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
   EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
-  Json::Value result = sota_client.reportUpdateResult(update_report);
-  EXPECT_EQ(result["status"].asString(), "ok");
+  sota_client.sendUpdateReport(update_report);
+  delete events_channel;
 }
 
 #ifndef __NO_MAIN__

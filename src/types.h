@@ -33,6 +33,7 @@ struct UpdateAvailable {
   unsigned long long size;
   Json::Value toJson();
   static UpdateAvailable fromJson(const std::string& json_str);
+  static UpdateAvailable fromJson(const Json::Value& json);
 };
 
 struct DownloadComplete {

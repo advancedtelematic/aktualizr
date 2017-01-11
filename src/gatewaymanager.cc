@@ -18,7 +18,6 @@ GatewayManager::GatewayManager(const Config &config,
         new DbusGateway(config, commands_channel_in)));
   }
 #endif
-
 }
 
 void GatewayManager::processEvents(

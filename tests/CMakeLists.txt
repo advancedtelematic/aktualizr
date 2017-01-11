@@ -200,6 +200,24 @@ target_link_libraries(sota_client_test_socket_gateway ${LINK_LIBS} gtest)
 add_test(NAME test_socket_gateway COMMAND sota_client_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
+
+set(TEST_RVI_SRC src/logger.cc
+              src/logger.cc
+              third_party/jsoncpp/jsoncpp.cpp
+              src/config.cc
+              src/commands.cc
+              src/events.cc
+              src/types.cc
+              src/sotarviclient.cc
+              src/logger.cc
+              tests/rvisotaclient_test.cc)
+add_executable(sota_client_test_rvi_client ${TEST_RVI_SRC})
+link_directories(${RVI_LINK_DIR})
+target_link_libraries(sota_client_test_rvi_client ${LINK_LIBS} gtest)
+add_dependencies(sota_client_test_rvi_client rvi_lib)
+add_test(NAME test_rvi_client COMMAND sota_client_test_rvi_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
 ###############################################################################
 
 # add the test target to coverage analysis
@@ -220,6 +238,8 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage sota_client_test_http_client)
     target_link_libraries(sota_client_test_socket_gateway gcov)
     add_dependencies(coverage sota_client_test_socket_gateway)
+    target_link_libraries(sota_client_test_rvi_client gcov)
+    add_dependencies(coverage sota_client_test_rvi_client)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 
@@ -230,7 +250,7 @@ endif(BUILD_WITH_CODE_COVERAGE)
     add_test(NAME test_commands COMMAND sota_client_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     if(BUILD_WITH_DBUS_GATEWAY)
-        add_test(NAME test_dbusgateway COMMAND sota_client_test_dbusgateway WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        add_test(NAME test_dbusgateway COMMAND dbus-run-session bash -c ${CMAKE_BINARY_DIR}/target/sota_client_test_dbusgateway WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     endif(BUILD_WITH_DBUS_GATEWAY)
 
 ###############################################################################

@@ -1,26 +1,26 @@
-#ifndef HTTPCOMMANDINTERPRETER_H_
-#define HTTPCOMMANDINTERPRETER_H_
+#ifndef COMMANDINTERPRETER_H_
+#define COMMANDINTERPRETER_H_
 #include "boost/thread.hpp"
 #include "commands.h"
 #include "config.h"
 #include "events.h"
 #include "logger.h"
-#include "sotahttpclient.h"
+#include "sotaclient.h"
 
-class HttpCommandInterpreter {
+class CommandInterpreter {
  public:
-  HttpCommandInterpreter(const Config &config_in, command::Channel *commands_channel_in,
+  CommandInterpreter(SotaClient *sota_in, command::Channel *commands_channel_in,
               event::Channel *events_channel_in);
-  ~HttpCommandInterpreter();
+  ~CommandInterpreter();
   void interpret();
   void run();
 
  private:
   Config config;
-  SotaHttpClient sota;
+  SotaClient *sota;
   boost::thread *thread;
   command::Channel *commands_channel;
   event::Channel *events_channel;
 };
 
-#endif // HTTPCOMMANDINTERPRETER_H_
+#endif // COMMANDINTERPRETER_H_

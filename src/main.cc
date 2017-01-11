@@ -25,27 +25,20 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <memory>
+
 #include "channel.h"
+#include "commandinterpreter.h"
 #include "commands.h"
 #include "config.h"
 #include "events.h"
-#include "logger.h"
-
 #include "eventsinterpreter.h"
-#include "httpcommandinterpreter.h"
+#include "logger.h"
+#include "sotahttpclient.h"
+#include "sotarviclient.h"
 
 /*****************************************************************************/
 
 namespace bpo = boost::program_options;
-
-void start_update_poller(unsigned int pooling_interval,
-                         command::Channel *command_channel) {
-  while (true) {
-    *command_channel << boost::shared_ptr<command::GetUpdateRequests>(
-        new command::GetUpdateRequests());
-    sleep(pooling_interval);
-  }
-}
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
   bpo::options_description description("CommandLine Options");
@@ -57,9 +50,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
                                  "on/off the http gateway")(
       "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")(
       "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")(
-      "gateway-dbus", bpo::value<bool>(), "on/off the dbus gateway")
-
-      ;
+      "gateway-dbus", bpo::value<bool>(), "on/off the dbus gateway");
 
   bpo::variables_map vm;
   try {
@@ -146,17 +137,19 @@ int main(int argc, char *argv[]) {
 
   EventsInterpreter events_interpreter(config, events_channel,
                                        commands_channel);
-  // run events interpreter in thread
+  // run events interpreter in background
   events_interpreter.interpret();
 
-  if (config.gateway.http) {
-    LOGGER_LOG(LVL_info, "http-gateway turned on, use it");
-    HttpCommandInterpreter http_interpreter(config, commands_channel,
-                                            events_channel);
-    http_interpreter.interpret();
-    start_update_poller(static_cast<unsigned int>(config.core.polling_sec),
-                        commands_channel);
+  SotaClient *client;
+  if (config.gateway.rvi) {
+    client = new SotaRVIClient(config, events_channel);
+  } else {
+    client = new SotaHttpClient(config, events_channel, commands_channel);
   }
+
+  CommandInterpreter command_interpreter(client, commands_channel,
+                                         events_channel);
+  command_interpreter.interpret();
 
   return return_value;
 }
