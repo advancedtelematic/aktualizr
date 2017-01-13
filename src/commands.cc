@@ -70,6 +70,24 @@ StartDownload StartDownload::fromJson(const std::string& json_str) {
   return StartDownload(json["fields"][0].asString());
 }
 
+AbortDownload::AbortDownload(const data::UpdateRequestId& ur_in)
+    : update_request_id(ur_in) {
+  variant = "AbortDownload";
+}
+
+std::string AbortDownload::toJson() {
+  Json::Value json = BaseCommand::toJson();
+  json["fields"].append(update_request_id);
+  return Json::FastWriter().write(json);
+}
+
+AbortDownload AbortDownload::fromJson(const std::string& json_str) {
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(json_str, json);
+  return AbortDownload(json["fields"][0].asString());
+}
+
 StartInstall::StartInstall(const data::UpdateRequestId& ur_in)
     : update_request_id(ur_in) {
   variant = "StartInstall";

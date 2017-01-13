@@ -1,0 +1,217 @@
+From 7b0925938400b970bf699a9188fe03b7271eeead Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=BCrgen=20Gehring?= <juergen.gehring@bmw.de>
+Date: Thu, 23 Apr 2015 01:18:11 -0700
+Subject: [PATCH] Add functions to support querying and manipulating the
+ message body and signature. This is useful for code generators, which can
+ generate custom marshaling functions based on a given IDL. Those functions
+ tend to be optimized and faster than the generic iterator based marshaling.
+
+---
+ dbus/dbus-message.c | 99 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ dbus/dbus-message.h | 14 ++++++++
+ dbus/dbus-string.c  | 16 +++++++++
+ dbus/dbus-string.h  |  5 +++
+ 4 files changed, 134 insertions(+)
+
+diff --git a/dbus/dbus-message.c b/dbus/dbus-message.c
+index 43cb1be..d34663a 100644
+--- a/dbus/dbus-message.c
++++ b/dbus/dbus-message.c
+@@ -3445,6 +3445,47 @@ dbus_message_get_sender (DBusMessage *message)
+ }
+ 
+ /**
++ * Sets the signature of the message, i.e. the arguments in the
++ * message payload. The signature includes only "in" arguments for
++ * #DBUS_MESSAGE_TYPE_METHOD_CALL and only "out" arguments for
++ * #DBUS_MESSAGE_TYPE_METHOD_RETURN, so is slightly different from
++ * what you might expect (it does not include the signature of the
++ * entire C++-style method).
++ *
++ * The signature is a string made up of type codes such as
++ * #DBUS_TYPE_INT32. The string is terminated with nul (nul is also
++ * the value of #DBUS_TYPE_INVALID). The macros such as
++ * #DBUS_TYPE_INT32 evaluate to integers; to assemble a signature you
++ * may find it useful to use the string forms, such as
++ * #DBUS_TYPE_INT32_AS_STRING.
++ *
++ * An "unset" or #NULL signature is considered the same as an empty
++ * signature. In fact dbus_message_get_signature() will never return
++ * #NULL.
++ *
++ * @param message the message
++ * @param signature the type signature or #NULL to unset
++ * @returns #FALSE if no memory
++ */
++dbus_bool_t
++dbus_message_set_signature (DBusMessage *message,
++                            const char  *signature)
++{
++  _dbus_return_val_if_fail (message != NULL, FALSE);
++  _dbus_return_val_if_fail (!message->locked, FALSE);
++  _dbus_return_val_if_fail (signature == NULL ||
++                            _dbus_check_is_valid_signature (signature), FALSE);
++  /* can't delete the signature if you have a message body */
++  _dbus_return_val_if_fail (_dbus_string_get_length (&message->body) == 0 ||
++                            signature != NULL, FALSE);
++
++  return set_or_delete_string_field (message,
++                                     DBUS_HEADER_FIELD_SIGNATURE,
++                                     DBUS_TYPE_SIGNATURE,
++                                     signature);
++}
++
++/**
+  * Gets the type signature of the message, i.e. the arguments in the
+  * message payload. The signature includes only "in" arguments for
+  * #DBUS_MESSAGE_TYPE_METHOD_CALL and only "out" arguments for
+@@ -4632,6 +4673,64 @@ dbus_message_type_to_string (int type)
+ }
+ 
+ /**
++ * Returns pointer to the buffer used to store the message body.
++ *
++ * @param message the message
++ * @return pointer to the message body memory
++ */
++char*
++dbus_message_get_body (DBusMessage *message) {
++  _dbus_return_val_if_fail (message != NULL, NULL);
++
++  return _dbus_string_get_data(&(message->body));
++}
++
++/**
++ * Adjust the length of the message body buffer. The memory will be reallocated
++ * if the new length is bigger than the already allocated size.
++ *
++ * @see dbus_message_get_body_allocated
++ * @param message the message
++ * @param length the new length of the body
++ * @return #TRUE if successful
++ */
++dbus_bool_t
++dbus_message_set_body_length (DBusMessage *message,
++                              int length) {
++  _dbus_return_val_if_fail (message != NULL, FALSE);
++  _dbus_return_val_if_fail (length >= 0, FALSE);
++
++  return _dbus_string_set_length(&(message->body), length);
++}
++
++/**
++ * Gets the length of the message body buffer.
++ *
++ * @param message the message
++ * @param length the new length of the body
++ * @return the length of the body buffer
++ */
++int
++dbus_message_get_body_length (DBusMessage *message) {
++  _dbus_return_val_if_fail (message != NULL, 0);
++
++  return _dbus_string_get_length(&(message->body));
++}
++
++/**
++ * Gets the allocated memory size used to hold the message body.
++ *
++ * @param message the message
++ * @return size of the allocated message body memory
++ */
++int
++dbus_message_get_body_allocated (DBusMessage *message) {
++  _dbus_return_val_if_fail (message != NULL, 0);
++
++  return _dbus_string_get_allocated(&(message->body));
++}
++
++/**
+  * Turn a DBusMessage into the marshalled form as described in the D-Bus
+  * specification.
+  *
+diff --git a/dbus/dbus-message.h b/dbus/dbus-message.h
+index 4fd44da..76377b8 100644
+--- a/dbus/dbus-message.h
++++ b/dbus/dbus-message.h
+@@ -138,6 +138,9 @@ dbus_bool_t   dbus_message_set_sender       (DBusMessage   *message,
+ DBUS_EXPORT
+ const char*   dbus_message_get_sender       (DBusMessage   *message);
+ DBUS_EXPORT
++dbus_bool_t   dbus_message_set_signature    (DBusMessage   *message,
++                                             const char    *signature);
++DBUS_EXPORT
+ const char*   dbus_message_get_signature    (DBusMessage   *message);
+ DBUS_EXPORT
+ void          dbus_message_set_no_reply     (DBusMessage   *message,
+@@ -262,6 +265,17 @@ dbus_bool_t dbus_message_iter_close_container    (DBusMessageIter *iter,
+ DBUS_EXPORT
+ void        dbus_message_iter_abandon_container  (DBusMessageIter *iter,
+                                                   DBusMessageIter *sub);
++DBUS_EXPORT
++char*       dbus_message_get_body                (DBusMessage   *message);
++
++DBUS_EXPORT
++dbus_bool_t dbus_message_set_body_length         (DBusMessage   *message,
++                                                  int length);
++DBUS_EXPORT
++int         dbus_message_get_body_length         (DBusMessage   *message);
++
++DBUS_EXPORT
++int         dbus_message_get_body_allocated      (DBusMessage   *message);
+ 
+ DBUS_EXPORT
+ void dbus_message_lock    (DBusMessage  *message);
+diff --git a/dbus/dbus-string.c b/dbus/dbus-string.c
+index 0f63612..a084eca 100644
+--- a/dbus/dbus-string.c
++++ b/dbus/dbus-string.c
+@@ -730,6 +730,22 @@ _dbus_string_get_length (const DBusString  *str)
+ }
+ #endif /* !_dbus_string_get_length */
+ 
++/* Only have the function if we don't have the macro */
++#ifndef _dbus_string_get_allocated
++/**
++ * Gets the allocated length of a string (not including nul termination).
++ *
++ * @returns the allocated length.
++ */
++int
++_dbus_string_get_allocated(const DBusString  *str)
++{
++  DBUS_CONST_STRING_PREAMBLE (str);
++
++  return real->allocated;
++}
++#endif /* !_dbus_string_get_allocated */
++
+ /**
+  * Makes a string longer by the given number of bytes.  Checks whether
+  * adding additional_length to the current length would overflow an
+diff --git a/dbus/dbus-string.h b/dbus/dbus-string.h
+index 86fb8c3..bfa2a39 100644
+--- a/dbus/dbus-string.h
++++ b/dbus/dbus-string.h
+@@ -61,6 +61,7 @@ struct DBusString
+  */
+ #define _dbus_string_get_data(s) ((char*)(((DBusString*)(s))->dummy1))
+ #define _dbus_string_get_length(s) (((DBusString*)(s))->dummy2)
++#define _dbus_string_get_allocated(s) (((DBusString*)(s))->dummy3 - _DBUS_STRING_ALLOCATION_PADDING)
+ #define _dbus_string_set_byte(s, i, b) ((((unsigned char*)(((DBusString*)(s))->dummy1))[(i)]) = (unsigned char) (b))
+ #define _dbus_string_get_byte(s, i) (((const unsigned char*)(((DBusString*)(s))->dummy1))[(i)])
+ #define _dbus_string_get_const_data(s) ((const char*)(((DBusString*)(s))->dummy1))
+@@ -151,6 +152,10 @@ DBUS_PRIVATE_EXPORT
+ int           _dbus_string_get_length            (const DBusString  *str);
+ #endif /* !_dbus_string_get_length */
+ 
++#ifndef _dbus_string_get_allocated
++int           _dbus_string_get_allocated         (const DBusString  *str);
++#endif /* !_dbus_string_get_allocated */
++
+ /**
+  * Get the string's length as an unsigned integer, for comparison with
+  * size_t and similar unsigned types that does not trigger compiler
+-- 
+1.9.1
+

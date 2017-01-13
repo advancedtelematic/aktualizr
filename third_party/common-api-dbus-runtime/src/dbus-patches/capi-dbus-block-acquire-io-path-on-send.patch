@@ -1,0 +1,14 @@
+diff --git a/dbus/dbus-connection.c b/dbus/dbus-connection.c
+index a3dafa0..1fc7254 100644
+--- a/dbus/dbus-connection.c	
++++ b/dbus/dbus-connection.c
+@@ -1207,8 +1207,7 @@ _dbus_connection_do_iteration_unlocked (DBusConnection *connection,
+   if (connection->n_outgoing == 0)
+     flags &= ~DBUS_ITERATION_DO_WRITING;
+ 
+-  if (_dbus_connection_acquire_io_path (connection,
+-					(flags & DBUS_ITERATION_BLOCK) ? timeout_milliseconds : 0))
++  if (_dbus_connection_acquire_io_path (connection, timeout_milliseconds))
+     {
+       HAVE_LOCK_CHECK (connection);
+       

@@ -1,0 +1,176 @@
+// (c) 2015,2016 - Jaguar Land Rover.
+//
+// Mozilla Public License 2.0
+//
+// GENIVI Software Management IDL
+//
+
+// Abbreviatioms:
+// SC - SOTA CLient
+// SWLM - Software Loading Manager
+// ML - Module Loader (one instance per external module)
+// PackMgr - Package Manager
+// PartMgr - Partition Manager
+// HMI - Human Machine Interface (IVI screen)
+// LocMedMgr - Local Media Manager
+// CEDM - Consumer Electronics Device Manager
+
+
+package org.genivi.swm
+
+<** @description: 
+Software Over The Air Client API
+**>
+interface SotaClient {
+	version { major 1 minor 0 }
+
+	<** 
+	@description: 
+	Sent by SC to start the download of an update previously announced
+	as available through an update_available() call made from SC to
+	SWLM.
+	**>
+	method initiateDownload {
+		in {
+			<** @description:
+			ID of update to download. 
+			The value is provided by the update_available() call made from SC
+			to SWLM to announce the update availability.
+			**>
+			String updateId
+		}
+	}
+
+	<** 
+	@description: 
+	Abort a download previously initiated with initiate_download().
+	Invoked by SWLM in response to an error or an explicit
+	request sent by HMI to SWLM in response to a user abort.
+	**>
+	method abortDownload {
+		in {
+			<** @description:
+			Package ID of update to abort..
+			The value was previously provided to a initiateDownload() call 
+			made from SWLM to SC.
+			**>
+			String updateId
+		}
+	}
+
+	<** 
+	@description: 
+	Receive an update report from SWLM with the processing result of all
+	bundled operations.
+	An update report message can either be sent in response
+	to an downloadComplete() message transmitted from SC to SWLM,
+	or be sent unsolicited by SWLM to SC 
+	**>
+	method updateReport {
+		in {
+			<** @description:
+			Package ID of update reported.
+			The value is provided by the updateAvailable() call made from SC
+			to SWLM to announce the update availability.
+			**>
+			String updateId
+
+			<** @description: 
+			A list of operation results. Each result is associated
+			with its original update manifest entry through the id 
+			field.
+			**>
+			OperationResult[] operationsResults
+		}
+	}
+
+	
+	<** @description: Error codes returned as a result of an operation. **>
+	enumeration SWMResult {
+		<** @description: Operation executed successfully **>
+		SWM_RES_OK = 0
+	
+		<** @description: Operation has already been processed **>
+		SWM_RES_ALREADY_PROCESSED = 1
+	
+		<** @description: Dependency failure during package install, upgrade, or removal **>
+		SWM_RES_DEPENDENCY_FAILURE = 2
+	
+		<** @description: Update image integrity has been compromised **>
+		SWM_RES_VALIDATION_FAILED = 3
+	
+		<** @description: Package installation failed **>
+		SWM_RES_INSTALL_FAILED = 4
+	
+		<** @description: Package upgrade failed **>
+		SWM_RES_UPGRADE_FAILED = 5
+	
+		<** @description: Package removal failed **>
+		SWM_RES_REMOVAL_FAILED = 6
+	
+		<** @description: The module loader could not flash its managed module **>
+		SWM_RES_FLASH_FAILED = 7
+	
+		<** @description: Partition creation failed **>
+		SWM_RES_CREATE_PARTITION_FAILED = 8
+	
+		<** @description: Partition deletion failed **>
+		SWM_RES_DELETE_PARTITION_FAILED = 9
+	
+		<** @description: Partition resize failed **>
+		SWM_RES_RESIZE_PARTITION_FAILED = 10
+	
+		<** @description: Partition write failed **>
+		SWM_RES_WRITE_PARTITION_FAILED = 11
+	
+		<** @description: Partition patching failed **>
+		SWM_RES_PATCH_PARTITION_FAILED = 12
+	
+		<** @description: User declined the update **>
+		SWM_RES_USER_DECLINED = 13
+		
+		<** @description: Software was blacklisted **>
+		SWM_RES_SOFTWARE_BLACKLISTED = 14
+	
+		<** @description: Ran out of disk space **>
+		SWM_RES_DISK_FULL = 15
+	
+		<** @description: Software package not found **>
+		SWM_RES_NOT_FOUND = 16
+	
+		<** @description: Tried to downgrade to older version **>
+		SWM_RES_OLD_VERSION = 17
+	
+		<** @description: SWM Internal integrity error **>
+		SWM_RES_INTERNAL_ERROR = 18
+	
+		<** @description: Other error **>
+		SWM_RES_GENERAL_ERROR = 19
+	}
+	
+	
+	
+	<** @description:
+	A single result of a software operation, included in an 
+	updateReport().
+	**>
+	struct OperationResult {
+		<** @description: 
+		The operation id, as specified by the manifest's 
+		operstions.id field.
+		**>
+		String id
+
+		<** @description: 
+		The result code reported by PackMgr, PartMgr, or ML
+		for the given operation.
+		**>
+		SWMResult resultCode
+
+		<** @description: 
+		A descriptive result text reported by PackMgr, PartMgr, or ML
+		for the given operation.
+		**>
+		String resultText
+	}
+}

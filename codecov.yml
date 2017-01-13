@@ -1,3 +1,4 @@
 ignore:
   - "third_party"
   - "tests"
+  - "src/dbusgateway/src-gen"

@@ -1,0 +1,28 @@
+// Copyright (C) 2013-2015 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+package commonapi.tests.managed
+
+interface LeafInterface {
+    version { major 1 minor 0 }
+
+
+    method testLeafMethod {
+        in {
+            Int32 inInt
+            String inString
+        }
+        out {
+            Int32 outInt
+            String outString
+        }
+        error {
+            OK
+            NOTOK
+        }
+    }
+
+}
+

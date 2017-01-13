@@ -1,5 +1,8 @@
 #ifndef COMANDS_H_
 #define COMANDS_H_
+
+#include <boost/shared_ptr.hpp>
+
 #include <json/json.h>
 #include <string>
 #include "channel.h"
@@ -11,7 +14,7 @@ struct BaseCommand {
   std::string variant;
   Json::Value toJson();
 };
-typedef Channel<BaseCommand> Channel;
+typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 
 class Authenticate : public BaseCommand {
  public:
@@ -51,6 +54,14 @@ class StartDownload : public BaseCommand {
   data::UpdateRequestId update_request_id;
   std::string toJson();
   static StartDownload fromJson(const std::string& json_str);
+};
+
+class AbortDownload : public BaseCommand {
+ public:
+  AbortDownload(const data::UpdateRequestId& ur_in);
+  data::UpdateRequestId update_request_id;
+  std::string toJson();
+  static AbortDownload fromJson(const std::string& json_str);
 };
 
 class StartInstall : public BaseCommand {

@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include <unistd.h>
 #include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "config.h"
 
@@ -15,9 +16,9 @@ void Interpreter::interpret() {
 }
 
 void Interpreter::run() {
-  command::BaseCommand command;
+  boost::shared_ptr<command::BaseCommand> command;
   while (*command_channel >> command) {
-    if (command.variant == "GetUpdateRequests") {
+    if (command->variant == "GetUpdateRequests") {
       std::vector<data::UpdateRequest> updates = sota.getAvailableUpdates();
       for (std::vector<data::UpdateRequest>::iterator update = updates.begin();
            update != updates.end(); ++update) {

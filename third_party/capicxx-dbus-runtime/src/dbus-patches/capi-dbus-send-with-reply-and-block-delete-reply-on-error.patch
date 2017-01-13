@@ -1,0 +1,26 @@
+diff --git a/dbus/dbus-connection.c b/dbus/dbus-connection.c
+index 5962e77..4a4ee9b 100644
+--- a/dbus/dbus-connection.c
++++ b/dbus/dbus-connection.c
+@@ -3709,13 +3709,9 @@ dbus_connection_send_with_reply_and_block (DBusConnection     *connection,
+    */
+   _dbus_assert (reply != NULL);
+   
+-   if (dbus_set_error_from_message (error, reply))
+-    {
+-      dbus_message_unref (reply);
+-      return NULL;
+-    }
+-  else
+-    return reply;
++  dbus_set_error_from_message (error, reply);
++
++  return reply;
+ }
+ 
+ /**
+@@ -6447,3 +6443,4 @@ _dbus_connection_get_address (DBusConnection *connection)
+ #endif
+ 
+ /** @} */
++

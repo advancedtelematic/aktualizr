@@ -1,8 +1,11 @@
 #ifndef EVENTS_H_
 #define EVENTS_H_
 
+#include <boost/shared_ptr.hpp>
+
 #include <json/json.h>
 
+#include "channel.h"
 #include "types.h"
 
 namespace event {
@@ -12,6 +15,7 @@ class BaseEvent {
   std::string variant;
   Json::Value toJson();
 };
+typedef Channel<boost::shared_ptr<BaseEvent> > Channel;
 
 class Error : public BaseEvent {
  public:

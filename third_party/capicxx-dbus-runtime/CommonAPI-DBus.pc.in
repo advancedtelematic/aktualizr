@@ -1,0 +1,13 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_PREFIX@/@INSTALL_LIB_DIR@
+includedir=@CMAKE_INSTALL_PREFIX@/include
+
+Name: @PROJECT@
+Description: GENIVI Common API D-Bus C++ Library
+Version: @COMPONENT_VERSION@
+Libs: -L${libdir} -lCommonAPI-DBus
+Requires: CommonAPI
+Requires.private: dbus-1
+Cflags: -I${includedir}/CommonAPI-@COMMONAPI_API_HEADER_VERSION@
+
