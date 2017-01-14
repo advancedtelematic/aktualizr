@@ -10,17 +10,16 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_STUB_DEFAULT_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_STUB_DEFAULT_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_STUB_DEFAULT_HPP_
+#define V1_ORG_GENIVI_Sota_Client_STUB_DEFAULT_HPP_
 
 
-#include <v1/org/genivi/swm/SotaClientStub.hpp>
+#include <v1/org/genivi/SotaClientStub.hpp>
 #include <sstream>
 
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 /**
  * Provides a default implementation for SotaClientStubRemoteEvent and
@@ -45,7 +44,7 @@ public:
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      */
     virtual void initiateDownload(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, initiateDownloadReply_t _reply);
@@ -69,9 +68,9 @@ public:
      */
     virtual void updateReport(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, std::vector<SotaClient::OperationResult> _operationsResults, updateReportReply_t _reply);
 
+virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable &_updateAvailable);
+virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete &_downloadComplete);
 virtual void fireInstalledSoftwareNeededEvent();
-virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable &_updateAvailable);
-virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete &_downloadComplete);
 
 
 protected:
@@ -90,7 +89,6 @@ private:
     CommonAPI::Version interfaceVersion_;
 };
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
@@ -99,4 +97,4 @@ private:
 // Compatibility
 namespace v1_0 = v1;
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_STUB_DEFAULT
+#endif // V1_ORG_GENIVI_Sota_Client_STUB_DEFAULT

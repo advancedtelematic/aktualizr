@@ -10,15 +10,15 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_STUB_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_STUB_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_STUB_HPP_
+#define V1_ORG_GENIVI_Sota_Client_STUB_HPP_
 
 #include <functional>
 
 
 
 
-#include <v1/org/genivi/swm/SotaClient.hpp>
+#include <v1/org/genivi/SotaClient.hpp>
 
 #if !defined (COMMONAPI_INTERNAL_COMPILATION)
 #define COMMONAPI_INTERNAL_COMPILATION
@@ -40,7 +40,6 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 /**
  * Receives messages from remote and handles all dispatching of deserialized calls
@@ -54,20 +53,20 @@ class SotaClientStubAdapter
  public:
 
     /**
-     * Sends a broadcast event for InstalledSoftwareNeeded. Should not be called directly.
-     * Instead, the "fire<broadcastName>Event" methods of the stub should be used.
-     */
-    virtual void fireInstalledSoftwareNeededEvent() = 0;
-    /**
      * Sends a broadcast event for UpdateAvailable. Should not be called directly.
      * Instead, the "fire<broadcastName>Event" methods of the stub should be used.
      */
-    virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable &_updateAvailable) = 0;
+    virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable &_updateAvailable) = 0;
     /**
      * Sends a broadcast event for DownloadComplete. Should not be called directly.
      * Instead, the "fire<broadcastName>Event" methods of the stub should be used.
      */
-    virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete &_downloadComplete) = 0;
+    virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete &_downloadComplete) = 0;
+    /**
+     * Sends a broadcast event for InstalledSoftwareNeeded. Should not be called directly.
+     * Instead, the "fire<broadcastName>Event" methods of the stub should be used.
+     */
+    virtual void fireInstalledSoftwareNeededEvent() = 0;
 
 
     virtual void deactivateManagedInstances() = 0;
@@ -118,7 +117,7 @@ public:
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      */
     /// This is the method that will be called on remote calls on the method initiateDownload.
@@ -144,12 +143,12 @@ public:
      */
     /// This is the method that will be called on remote calls on the method updateReport.
     virtual void updateReport(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, std::vector<SotaClient::OperationResult> _operationsResults, updateReportReply_t _reply) = 0;
+    /// Sends a broadcast event for UpdateAvailable.
+    virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable &_updateAvailable) = 0;
+    /// Sends a broadcast event for DownloadComplete.
+    virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete &_downloadComplete) = 0;
     /// Sends a broadcast event for InstalledSoftwareNeeded.
     virtual void fireInstalledSoftwareNeededEvent() = 0;
-    /// Sends a broadcast event for UpdateAvailable.
-    virtual void fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable &_updateAvailable) = 0;
-    /// Sends a broadcast event for DownloadComplete.
-    virtual void fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete &_downloadComplete) = 0;
 
     using CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::initStubAdapter;
     typedef CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::StubAdapterType StubAdapterType;
@@ -158,7 +157,6 @@ public:
     typedef SotaClient StubInterface;
 };
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
@@ -167,4 +165,4 @@ public:
 // Compatibility
 namespace v1_0 = v1;
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_STUB_HPP_
+#endif // V1_ORG_GENIVI_Sota_Client_STUB_HPP_

@@ -37,6 +37,7 @@ DBusProxy::DBusProxy(const DBusAddress &_dbusAddress,
 }
 
 void DBusProxy::init() {
+    dbusServiceRegistry_->setDBusServicePredefined(getAddress().getInterface());
     dbusServiceRegistrySubscription_ = dbusServiceRegistry_->subscribeAvailabilityListener(
                     getAddress().getAddress(),
                     std::bind(&DBusProxy::onDBusServiceInstanceStatus, this, std::placeholders::_1));

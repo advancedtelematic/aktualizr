@@ -7,13 +7,12 @@
 * If a copy of the MPL was not distributed with this file, You can obtain one at
 * http://mozilla.org/MPL/2.0/.
 */
-#include <v1/org/genivi/swm/SotaClient.hpp>
-#include <v1/org/genivi/swm/SotaClientDBusStubAdapter.hpp>
+#include <v1/org/genivi/SotaClient.hpp>
+#include <v1/org/genivi/SotaClientDBusStubAdapter.hpp>
 
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 std::shared_ptr<CommonAPI::DBus::DBusStubAdapter> createSotaClientDBusStubAdapter(
                    const CommonAPI::DBus::DBusAddress &_address,
@@ -41,18 +40,18 @@ const char* SotaClientDBusStubAdapterInternal::getMethodsDBusIntrospectionXmlDat
         "<method name=\"getInterfaceVersion\">\n"
             "<arg name=\"value\" type=\"uu\" direction=\"out\" />"
         "</method>\n"
-        "<signal name=\"InstalledSoftwareNeeded\">\n"
-        "</signal>\n"
         "<signal name=\"UpdateAvailable\">\n"
-            "<arg name=\"updateAvailable\" type=\"(sssbt)\" />\n"
+            "<arg name=\"updateAvailable\" type=\"(sssbts)\" />\n"
         "</signal>\n"
         "<signal name=\"DownloadComplete\">\n"
             "<arg name=\"downloadComplete\" type=\"(sss)\" />\n"
         "</signal>\n"
+        "<signal name=\"InstalledSoftwareNeeded\">\n"
+        "</signal>\n"
         /**
          * description: Sent by SC to start the download of an update previously announced
         	as
-         *   available through an update_available() call made from SC to
+         *   available through an update_available() call  made from SC to
         	SWLM.
          */
         "<method name=\"initiateDownload\">\n"
@@ -88,7 +87,7 @@ const char* SotaClientDBusStubAdapterInternal::getMethodsDBusIntrospectionXmlDat
 }
 
 CommonAPI::DBus::DBusGetAttributeStubDispatcher<
-        ::v1::org::genivi::swm::SotaClientStub,
+        ::v1::org::genivi::SotaClientStub,
         CommonAPI::Version
         > SotaClientDBusStubAdapterInternal::getSotaClientInterfaceVersionStubDispatcher(&SotaClientStub::getInterfaceVersion, "uu");
 
@@ -98,11 +97,11 @@ CommonAPI::DBus::DBusGetAttributeStubDispatcher<
 /**
  * description: Sent by SC to start the download of an update previously announced
 	as
- *   available through an update_available() call made from SC to
+ *   available through an update_available() call  made from SC to
 	SWLM.
  */
 CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment>,
@@ -121,7 +120,7 @@ CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
  *   response to a user abort.
  */
 CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment>,
@@ -143,7 +142,7 @@ CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
  *   unsolicited by SWLM to SC
  */
 CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string, std::vector<SotaClient::OperationResult>>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment, CommonAPI::DBus::ArrayDeployment<SotaClient_::OperationResultDeployment_t>>,
@@ -156,32 +155,32 @@ CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
 
 
 
+void SotaClientDBusStubAdapterInternal::fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable& updateAvailable) {
+    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
+    CommonAPI::Deployable<::v1::org::genivi::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>
+    >>::sendSignal(
+            *this,
+            "UpdateAvailable",
+            "(sssbts)",
+    CommonAPI::Deployable<::v1::org::genivi::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>(updateAvailable, static_cast<SotaClient_::UpdateAvailableDeployment_t*>(nullptr))
+    );
+}
+void SotaClientDBusStubAdapterInternal::fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete& downloadComplete) {
+    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
+    CommonAPI::Deployable<::v1::org::genivi::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>
+    >>::sendSignal(
+            *this,
+            "DownloadComplete",
+            "(sss)",
+    CommonAPI::Deployable<::v1::org::genivi::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>(downloadComplete, static_cast<SotaClient_::DownloadCompleteDeployment_t*>(nullptr))
+    );
+}
 void SotaClientDBusStubAdapterInternal::fireInstalledSoftwareNeededEvent() {
     CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
     >>::sendSignal(
             *this,
             "InstalledSoftwareNeeded",
             ""
-    );
-}
-void SotaClientDBusStubAdapterInternal::fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable& updateAvailable) {
-    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
-    CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>
-    >>::sendSignal(
-            *this,
-            "UpdateAvailable",
-            "(sssbt)",
-    CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>(updateAvailable, static_cast<SotaClient_::UpdateAvailableDeployment_t*>(nullptr))
-    );
-}
-void SotaClientDBusStubAdapterInternal::fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete& downloadComplete) {
-    CommonAPI::DBus::DBusStubSignalHelper<CommonAPI::DBus::DBusSerializableArguments<
-    CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>
-    >>::sendSignal(
-            *this,
-            "DownloadComplete",
-            "(sss)",
-    CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>(downloadComplete, static_cast<SotaClient_::DownloadCompleteDeployment_t*>(nullptr))
     );
 }
 
@@ -204,10 +203,10 @@ SotaClientDBusStubAdapterInternal::SotaClientDBusStubAdapterInternal(
             /**
              * description: Sent by SC to start the download of an update previously announced
             	as
-             *   available through an update_available() call made from SC to
+             *   available through an update_available() call  made from SC to
             	SWLM.
              */
-            { { "initiateDownload", "s" }, &org::genivi::swm::SotaClientDBusStubAdapterInternal::initiateDownloadStubDispatcher },
+            { { "initiateDownload", "s" }, &org::genivi::SotaClientDBusStubAdapterInternal::initiateDownloadStubDispatcher },
             /**
              * description: Abort a download previously initiated with initiate_download().
             	Invoked by
@@ -215,7 +214,7 @@ SotaClientDBusStubAdapterInternal::SotaClientDBusStubAdapterInternal(
             	request sent by HMI to SWLM in
              *   response to a user abort.
              */
-            { { "abortDownload", "s" }, &org::genivi::swm::SotaClientDBusStubAdapterInternal::abortDownloadStubDispatcher },
+            { { "abortDownload", "s" }, &org::genivi::SotaClientDBusStubAdapterInternal::abortDownloadStubDispatcher },
             /**
              * description: Receive an update report from SWLM with the processing result of all
             	bundled
@@ -226,18 +225,17 @@ SotaClientDBusStubAdapterInternal::SotaClientDBusStubAdapterInternal(
             	or be sent
              *   unsolicited by SWLM to SC
              */
-            { { "updateReport", "sa(sis)" }, &org::genivi::swm::SotaClientDBusStubAdapterInternal::updateReportStubDispatcher }
+            { { "updateReport", "sa(sis)" }, &org::genivi::SotaClientDBusStubAdapterInternal::updateReportStubDispatcher }
             }),
         stubAttributeTable_() {
 
-    stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &org::genivi::swm::SotaClientDBusStubAdapterInternal::getSotaClientInterfaceVersionStubDispatcher });
+    stubDispatcherTable_.insert({ { "getInterfaceVersion", "" }, &org::genivi::SotaClientDBusStubAdapterInternal::getSotaClientInterfaceVersionStubDispatcher });
 }
 
 bool SotaClientDBusStubAdapterInternal::hasFreedesktopProperties() {
     return false;
 }
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1

@@ -21,7 +21,7 @@ ExternalProject_Add(libdbus
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0
     CONFIGURE_COMMAND  ./autogen.sh --prefix=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build  COMMAND cmake cmake -DDBUS_INSTALL_DIR=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build 
     BUILD_COMMAND ${MAKE}
-    INSTALL_COMMAND make install COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0/dbus-1.pc ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/dbus-1.0
+    INSTALL_COMMAND make install COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0/dbus-1.pc ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build COMMAND ln -sf ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/dbus-1.0
 	BUILD_IN_SOURCE 1)
 
 ExternalProject_Add(commonapi

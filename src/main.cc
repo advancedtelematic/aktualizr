@@ -30,11 +30,8 @@
 #include "events.h"
 #include "logger.h"
 
+#include "eventsinterpreter.h"
 #include "interpreter.h"
-#ifdef WITH_DBUS
-#include <CommonAPI/CommonAPI.hpp>
-#include "dbusgateway/dbusgateway.h"
-#endif
 
 /*****************************************************************************/
 
@@ -160,23 +157,20 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  command::Channel command_channel;
-  event::Channel event_channel;
+  command::Channel *commands_channel = new command::Channel();
+  event::Channel *events_channel = new event::Channel();
 
-  Interpreter interpreter(config, &command_channel);
+  Interpreter interpreter(config, commands_channel, events_channel);
   // run interpreter in thread
   interpreter.interpret();
 
-#ifdef WITH_DBUS
-  std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
-  std::shared_ptr<DbusGateway> dbus_gateway =
-      std::make_shared<DbusGateway>(&command_channel, &event_channel);
-  runtime->registerService("local", config.dbus.interface, dbus_gateway);
-  dbus_gateway->run();
-#endif
+  EventsInterpreter events_interpreter(config, events_channel,
+                                       commands_channel);
+  // run events interpreter in thread
+  events_interpreter.interpret();
 
   start_update_poller(static_cast<unsigned int>(config.core.polling_sec),
-                      &command_channel);
+                      commands_channel);
 
   return return_value;
 }

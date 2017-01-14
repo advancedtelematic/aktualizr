@@ -8,10 +8,10 @@
 * http://mozilla.org/MPL/2.0/.
 */
 
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_DBUS_DEPLOYMENT_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_DBUS_DEPLOYMENT_HPP_
+#ifndef V1_ORG_GENIVI_Software_Loading_Manager_DBUS_DEPLOYMENT_HPP_
+#define V1_ORG_GENIVI_Software_Loading_Manager_DBUS_DEPLOYMENT_HPP_
 
-#include <v1/org/genivi/swm/SotaClientDBusDeployment.hpp>        
+#include <v1/org/genivi/SoftwareLoadingManagerDBusDeployment.hpp>        
 
 
 #if !defined (COMMONAPI_INTERNAL_COMPILATION)
@@ -23,29 +23,21 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
-namespace SotaClient_ {
+namespace SoftwareLoadingManager_ {
 
 // Interface-specific deployment types
 typedef CommonAPI::DBus::StructDeployment<
     CommonAPI::DBus::StringDeployment,
     CommonAPI::DBus::StringDeployment,
     CommonAPI::DBus::StringDeployment,
-    CommonAPI::EmptyDeployment,
     CommonAPI::EmptyDeployment
-> UpdateAvailableDeployment_t;
+> InstalledPackageDeployment_t;
 
 typedef CommonAPI::DBus::StructDeployment<
     CommonAPI::DBus::StringDeployment,
     CommonAPI::DBus::StringDeployment,
-    CommonAPI::DBus::StringDeployment
-> DownloadCompleteDeployment_t;
-
-typedef CommonAPI::DBus::StructDeployment<
-    CommonAPI::DBus::StringDeployment,
-    CommonAPI::EmptyDeployment,
-    CommonAPI::DBus::StringDeployment
-> OperationResultDeployment_t;
+    CommonAPI::EmptyDeployment
+> InstalledFirmwareDeployment_t;
 
 
 // Type-specific deployments
@@ -57,10 +49,9 @@ typedef CommonAPI::DBus::StructDeployment<
 // Broadcast-specific deployments
 
 
-} // namespace SotaClient_
-} // namespace swm
+} // namespace SoftwareLoadingManager_
 } // namespace genivi
 } // namespace org
 } // namespace v1
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_DBUS_DEPLOYMENT_HPP_
+#endif // V1_ORG_GENIVI_Software_Loading_Manager_DBUS_DEPLOYMENT_HPP_

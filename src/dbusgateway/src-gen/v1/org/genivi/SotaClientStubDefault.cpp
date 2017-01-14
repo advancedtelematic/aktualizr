@@ -7,13 +7,12 @@
 * If a copy of the MPL was not distributed with this file, You can obtain one at
 * http://mozilla.org/MPL/2.0/.
 */
-#include <v1/org/genivi/swm/SotaClientStubDefault.hpp>
+#include <v1/org/genivi/SotaClientStubDefault.hpp>
 #include <assert.h>
 
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 SotaClientStubDefault::SotaClientStubDefault():
         remoteEventHandler_(this),
@@ -34,7 +33,7 @@ SotaClientStubRemoteEvent* SotaClientStubDefault::initStubAdapter(const std::sha
 /**
  * description: Sent by SC to start the download of an update previously announced
 	as
- *   available through an update_available() call made from SC to
+ *   available through an update_available() call  made from SC to
 	SWLM.
  */
 void SotaClientStubDefault::initiateDownload(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, initiateDownloadReply_t _reply) {
@@ -74,23 +73,23 @@ void SotaClientStubDefault::updateReport(const std::shared_ptr<CommonAPI::Client
 }
 
 
-void SotaClientStubDefault::fireInstalledSoftwareNeededEvent() {
-    assert((CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock()) !=NULL);
-    auto stubAdapter = CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock();
-   	if (stubAdapter)
-        stubAdapter->fireInstalledSoftwareNeededEvent();
-}
-void SotaClientStubDefault::fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable &_updateAvailable) {
+void SotaClientStubDefault::fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable &_updateAvailable) {
     assert((CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock()) !=NULL);
     auto stubAdapter = CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock();
    	if (stubAdapter)
         stubAdapter->fireUpdateAvailableEvent(_updateAvailable);
 }
-void SotaClientStubDefault::fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete &_downloadComplete) {
+void SotaClientStubDefault::fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete &_downloadComplete) {
     assert((CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock()) !=NULL);
     auto stubAdapter = CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock();
    	if (stubAdapter)
         stubAdapter->fireDownloadCompleteEvent(_downloadComplete);
+}
+void SotaClientStubDefault::fireInstalledSoftwareNeededEvent() {
+    assert((CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock()) !=NULL);
+    auto stubAdapter = CommonAPI::Stub<SotaClientStubAdapter, SotaClientStubRemoteEvent>::stubAdapter_.lock();
+   	if (stubAdapter)
+        stubAdapter->fireInstalledSoftwareNeededEvent();
 }
 
 
@@ -99,7 +98,6 @@ SotaClientStubDefault::RemoteEventHandler::RemoteEventHandler(SotaClientStubDefa
       defaultStub_(_defaultStub) {
 }
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1

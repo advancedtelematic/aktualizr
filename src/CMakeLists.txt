@@ -30,7 +30,8 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/events.cc
             src/commands.cc
             src/types.cc
-            src/main.cc)
+            src/main.cc
+            src/eventsinterpreter.cc)
 
 set(HEADERS src/logger.h
             src/config.h
@@ -49,9 +50,11 @@ set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPI
 if(BUILD_WITH_DBUS_GATEWAY)
 
 set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
-                    src/dbusgateway/src-gen/v1/org/genivi/swm/SotaClientStubDefault
-                    src/dbusgateway/src-gen/v1/org/genivi/swm/SotaClientDBusDeployment
-                    src/dbusgateway/src-gen/v1/org/genivi/swm/SotaClientDBusStubAdapter
+                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientStubDefault
+                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusDeployment
+                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusStubAdapter
+                    src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusProxy.cpp
+                    src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusDeployment
 )
 
 set(DBUS_HEADERS src/dbusgateway/dbusgateway.h )
