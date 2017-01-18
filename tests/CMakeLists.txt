@@ -133,6 +133,7 @@ if(BUILD_WITH_DBUS_GATEWAY)
                     src/types.cc
                     src/commands.cc
                     src/events.cc
+                    src/logger.cc
                     tests/dbusgateway_test.cc)
     add_executable(sota_client_test_dbusgateway ${TEST_SRCS} ${DBUS_SOURCES})
 

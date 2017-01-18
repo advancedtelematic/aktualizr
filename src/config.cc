@@ -22,7 +22,7 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
             << "\tPooling interval : " << cfg.core.polling_sec << std::endl
             << "\tClient: " << cfg.auth.client_id << std::endl
             << "\tSecret: " << cfg.auth.client_secret << std::endl
-            << "\tВevice UUID: " << cfg.device.uuid;
+            << "\tDevice UUID: " << cfg.device.uuid;
 }
 
 void Config::updateFromToml(const std::string& filename) {

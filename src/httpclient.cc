@@ -98,6 +98,10 @@ Json::Value HttpClient::get(const std::string& url) {
   return perform(curl);
 }
 
+Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
+  return post(url, Json::FastWriter().write(data));
+}
+
 Json::Value HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
   curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());

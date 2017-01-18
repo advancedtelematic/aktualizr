@@ -10,11 +10,11 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_DBUS_PROXY_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_DBUS_PROXY_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_DBUS_PROXY_HPP_
+#define V1_ORG_GENIVI_Sota_Client_DBUS_PROXY_HPP_
 
-#include <v1/org/genivi/swm/SotaClientProxyBase.hpp>
-#include "v1/org/genivi/swm/SotaClientDBusDeployment.hpp"
+#include <v1/org/genivi/SotaClientProxyBase.hpp>
+#include "v1/org/genivi/SotaClientDBusDeployment.hpp"
 
 #if !defined (COMMONAPI_INTERNAL_COMPILATION)
 #define COMMONAPI_INTERNAL_COMPILATION
@@ -33,7 +33,6 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 class SotaClientDBusProxy
     : virtual public SotaClientProxyBase, 
@@ -46,14 +45,14 @@ public:
     virtual ~SotaClientDBusProxy() { }
 
 
-    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent();
     virtual UpdateAvailableEvent& getUpdateAvailableEvent();
     virtual DownloadCompleteEvent& getDownloadCompleteEvent();
+    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent();
 
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      */
     virtual void initiateDownload(const std::string &_updateId, CommonAPI::CallStatus &_internalCallStatus, const CommonAPI::CallInfo *_info);
@@ -86,16 +85,15 @@ public:
 private:
    
 
+    CommonAPI::DBus::DBusEvent<UpdateAvailableEvent, CommonAPI::Deployable<::v1::org::genivi::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>> updateAvailable_;
+    CommonAPI::DBus::DBusEvent<DownloadCompleteEvent, CommonAPI::Deployable<::v1::org::genivi::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>> downloadComplete_;
     CommonAPI::DBus::DBusEvent<InstalledSoftwareNeededEvent> installedSoftwareNeeded_;
-    CommonAPI::DBus::DBusEvent<UpdateAvailableEvent, CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::UpdateAvailable, SotaClient_::UpdateAvailableDeployment_t>> updateAvailable_;
-    CommonAPI::DBus::DBusEvent<DownloadCompleteEvent, CommonAPI::Deployable<::v1::org::genivi::swm::SotaClient::DownloadComplete, SotaClient_::DownloadCompleteDeployment_t>> downloadComplete_;
 
 };
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_DBUS_PROXY_HPP_
+#endif // V1_ORG_GENIVI_Sota_Client_DBUS_PROXY_HPP_
 

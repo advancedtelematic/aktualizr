@@ -10,8 +10,8 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_SOTA_CLIENT_HPP_
-#define V1_ORG_GENIVI_SWM_SOTA_CLIENT_HPP_
+#ifndef V1_ORG_GENIVI_SOTA_CLIENT_HPP_
+#define V1_ORG_GENIVI_SOTA_CLIENT_HPP_
 
 
 
@@ -33,7 +33,6 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 class SotaClient {
 public:
@@ -41,61 +40,6 @@ public:
 
     static inline const char* getInterface();
     static inline CommonAPI::Version getInterfaceVersion();
-    struct UpdateAvailable : CommonAPI::Struct<std::string, std::string, std::string, bool, uint64_t> {
-    	
-    	UpdateAvailable() {
-    		std::get<3>(values_) = false;
-    	}
-    	UpdateAvailable(const std::string &_update_id, const std::string &_signature, const std::string &_description, const bool &_request_confirmation, const uint64_t &_size)
-    	{
-    		std::get<0>(values_) = _update_id;
-    		std::get<1>(values_) = _signature;
-    		std::get<2>(values_) = _description;
-    		std::get<3>(values_) = _request_confirmation;
-    		std::get<4>(values_) = _size;
-    	}
-    	inline const std::string &getUpdate_id() const { return std::get<0>(values_); }
-    	inline void setUpdate_id(const std::string &_value) { std::get<0>(values_) = _value; }
-    	inline const std::string &getSignature() const { return std::get<1>(values_); }
-    	inline void setSignature(const std::string &_value) { std::get<1>(values_) = _value; }
-    	inline const std::string &getDescription() const { return std::get<2>(values_); }
-    	inline void setDescription(const std::string &_value) { std::get<2>(values_) = _value; }
-    	inline const bool &getRequest_confirmation() const { return std::get<3>(values_); }
-    	inline void setRequest_confirmation(const bool _value) { std::get<3>(values_) = _value; }
-    	inline const uint64_t &getSize() const { return std::get<4>(values_); }
-    	inline void setSize(const uint64_t &_value) { std::get<4>(values_) = _value; }
-    	inline bool operator==(const UpdateAvailable& _other) const {
-                return (getUpdate_id() == _other.getUpdate_id() && getSignature() == _other.getSignature() && getDescription() == _other.getDescription() && getRequest_confirmation() == _other.getRequest_confirmation() && getSize() == _other.getSize());
-        }
-    	inline bool operator!=(const UpdateAvailable &_other) const {
-    		return !((*this) == _other);
-    	}
-    
-    };
-    struct DownloadComplete : CommonAPI::Struct<std::string, std::string, std::string> {
-    	
-    	DownloadComplete() {
-    	}
-    	DownloadComplete(const std::string &_update_id, const std::string &_update_image, const std::string &_signature)
-    	{
-    		std::get<0>(values_) = _update_id;
-    		std::get<1>(values_) = _update_image;
-    		std::get<2>(values_) = _signature;
-    	}
-    	inline const std::string &getUpdate_id() const { return std::get<0>(values_); }
-    	inline void setUpdate_id(const std::string &_value) { std::get<0>(values_) = _value; }
-    	inline const std::string &getUpdate_image() const { return std::get<1>(values_); }
-    	inline void setUpdate_image(const std::string &_value) { std::get<1>(values_) = _value; }
-    	inline const std::string &getSignature() const { return std::get<2>(values_); }
-    	inline void setSignature(const std::string &_value) { std::get<2>(values_) = _value; }
-    	inline bool operator==(const DownloadComplete& _other) const {
-                return (getUpdate_id() == _other.getUpdate_id() && getUpdate_image() == _other.getUpdate_image() && getSignature() == _other.getSignature());
-        }
-    	inline bool operator!=(const DownloadComplete &_other) const {
-    		return !((*this) == _other);
-    	}
-    
-    };
     
     struct SWMResult : CommonAPI::Enumeration<int32_t> {
         enum Literal : int32_t {
@@ -209,10 +153,100 @@ public:
     	}
     
     };
+    struct UpdateAvailable : CommonAPI::Struct<std::string, std::string, std::string, bool, uint64_t, std::string> {
+    	
+    	UpdateAvailable() {
+    		std::get<3>(values_) = false;
+    	}
+    	UpdateAvailable(const std::string &_update_id, const std::string &_description, const std::string &_signature, const bool &_request_confirmation, const uint64_t &_size, const std::string &_name)
+    	{
+    		std::get<0>(values_) = _update_id;
+    		std::get<1>(values_) = _description;
+    		std::get<2>(values_) = _signature;
+    		std::get<3>(values_) = _request_confirmation;
+    		std::get<4>(values_) = _size;
+    		std::get<5>(values_) = _name;
+    	}
+    	/**
+    	 * description: Package ID of update. Not currently used.
+    	 */
+    	inline const std::string &getUpdate_id() const { return std::get<0>(values_); }
+    	inline void setUpdate_id(const std::string &_value) { std::get<0>(values_) = _value; }
+    	/**
+    	 * description: A descriptive text of the available update.
+    	 */
+    	inline const std::string &getDescription() const { return std::get<1>(values_); }
+    	inline void setDescription(const std::string &_value) { std::get<1>(values_) = _value; }
+    	/**
+    	 * description: Signature generated of the digest of updateId, for example:
+    			echo $UPDATE_ID |
+    	 *   openssl dgst -sha256 -sign private_key | base64
+    	 */
+    	inline const std::string &getSignature() const { return std::get<2>(values_); }
+    	inline void setSignature(const std::string &_value) { std::get<2>(values_) = _value; }
+    	/**
+    	 * description: Flag to indicate if a user confirmation of the package is
+    	        required.
+    	 */
+    	inline const bool &getRequest_confirmation() const { return std::get<3>(values_); }
+    	inline void setRequest_confirmation(const bool _value) { std::get<3>(values_) = _value; }
+    	/**
+    	 * description: The size of the available update, in bytes.
+    	 */
+    	inline const uint64_t &getSize() const { return std::get<4>(values_); }
+    	inline void setSize(const uint64_t &_value) { std::get<4>(values_) = _value; }
+    	/**
+    	 * description: A symbolic name of the available update.
+    	 */
+    	inline const std::string &getName() const { return std::get<5>(values_); }
+    	inline void setName(const std::string &_value) { std::get<5>(values_) = _value; }
+    	inline bool operator==(const UpdateAvailable& _other) const {
+                return (getUpdate_id() == _other.getUpdate_id() && getDescription() == _other.getDescription() && getSignature() == _other.getSignature() && getRequest_confirmation() == _other.getRequest_confirmation() && getSize() == _other.getSize() && getName() == _other.getName());
+        }
+    	inline bool operator!=(const UpdateAvailable &_other) const {
+    		return !((*this) == _other);
+    	}
+    
+    };
+    struct DownloadComplete : CommonAPI::Struct<std::string, std::string, std::string> {
+    	
+    	DownloadComplete() {
+    	}
+    	DownloadComplete(const std::string &_update_id, const std::string &_update_image, const std::string &_signature)
+    	{
+    		std::get<0>(values_) = _update_id;
+    		std::get<1>(values_) = _update_image;
+    		std::get<2>(values_) = _signature;
+    	}
+    	inline const std::string &getUpdate_id() const { return std::get<0>(values_); }
+    	inline void setUpdate_id(const std::string &_value) { std::get<0>(values_) = _value; }
+    	/**
+    	 * description: Path on the local file system to the squashfs image
+    			containing the update
+    	 */
+    	inline const std::string &getUpdate_image() const { return std::get<1>(values_); }
+    	inline void setUpdate_image(const std::string &_value) { std::get<1>(values_) = _value; }
+    	/**
+    	 * description: Signature generated of the digest of the image pointed to
+    	        by
+    	 *   updateImage, for example: 
+    			openssl dgst -sha256 -sign priv_key.pem
+    	 *   $updateImage | base64
+    	 */
+    	inline const std::string &getSignature() const { return std::get<2>(values_); }
+    	inline void setSignature(const std::string &_value) { std::get<2>(values_) = _value; }
+    	inline bool operator==(const DownloadComplete& _other) const {
+                return (getUpdate_id() == _other.getUpdate_id() && getUpdate_image() == _other.getUpdate_image() && getSignature() == _other.getSignature());
+        }
+    	inline bool operator!=(const DownloadComplete &_other) const {
+    		return !((*this) == _other);
+    	}
+    
+    };
 };
 
 const char* SotaClient::getInterface() {
-    return ("org.genivi.swm.SotaClient");
+    return ("org.genivi.SotaClient");
 }
 
 CommonAPI::Version SotaClient::getInterfaceVersion() {
@@ -220,11 +254,13 @@ CommonAPI::Version SotaClient::getInterfaceVersion() {
 }
 
 /**
+ * description: Error codes returned as a result of an operation.
+ */
+/**
  * description: A single result of a software operation, included in an 
 	updateReport().
  */
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
@@ -236,4 +272,4 @@ namespace CommonAPI {
 // Compatibility
 namespace v1_0 = v1;
 
-#endif // V1_ORG_GENIVI_SWM_SOTA_CLIENT_HPP_
+#endif // V1_ORG_GENIVI_SOTA_CLIENT_HPP_

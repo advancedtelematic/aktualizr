@@ -14,6 +14,7 @@ class HttpClient : private boost::noncopyable {
   bool authenticate(const AuthConfig &conf);
   Json::Value get(const std::string &url);
   Json::Value post(const std::string &url, const std::string &data);
+  Json::Value post(const std::string &url, const Json::Value &data);
   bool download(const std::string &url, const std::string &filename);
 
  private:

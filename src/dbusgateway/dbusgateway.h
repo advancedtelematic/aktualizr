@@ -1,13 +1,13 @@
 #ifndef DBUSGATEWAY_H_
 #define DBUSGATEWAY_H_
 #include <CommonAPI/CommonAPI.hpp>
-#include <v1/org/genivi/swm/SotaClientStubDefault.hpp>
+#include <v1/org/genivi/SotaClientStubDefault.hpp>
 #include "commands.h"
 #include "events.h"
 
-class DbusGateway: public v1::org::genivi::swm::SotaClientStubDefault {
+class DbusGateway: public v1::org::genivi::SotaClientStubDefault {
 public:
-    DbusGateway(command::Channel *command_channel_in, event::Channel *event_channel_in);
+    DbusGateway(command::Channel *command_channel_in);
     virtual ~DbusGateway();
     /**
      * description: Sent by SC to start the download of an update previously announced
@@ -34,11 +34,10 @@ public:
         or be sent
      *   unsolicited by SWLM to SC
      */
-    virtual void updateReport(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, std::vector<v1::org::genivi::swm::SotaClient::OperationResult> _operationsResults, updateReportReply_t _reply);
+    virtual void updateReport(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, std::vector<v1::org::genivi::SotaClient::OperationResult> _operationsResults, updateReportReply_t _reply);
     void run();
 private:
     command::Channel *command_channel;
-    event::Channel *event_channel;
     std::thread *thread;
     void process_events();
 

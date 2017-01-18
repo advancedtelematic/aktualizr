@@ -10,10 +10,10 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_PROXY_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_PROXY_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_PROXY_HPP_
+#define V1_ORG_GENIVI_Sota_Client_PROXY_HPP_
 
-#include <v1/org/genivi/swm/SotaClientProxyBase.hpp>
+#include <v1/org/genivi/SotaClientProxyBase.hpp>
 
 
 #if !defined (COMMONAPI_INTERNAL_COMPILATION)
@@ -26,7 +26,6 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 template <typename ... _AttributeExtensions>
 class SotaClientProxy
@@ -42,12 +41,6 @@ public:
 
 
     /**
-     * Returns the wrapper class that provides access to the broadcast InstalledSoftwareNeeded.
-     */
-    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent() {
-        return delegate_->getInstalledSoftwareNeededEvent();
-    }
-    /**
      * Returns the wrapper class that provides access to the broadcast UpdateAvailable.
      */
     virtual UpdateAvailableEvent& getUpdateAvailableEvent() {
@@ -59,11 +52,17 @@ public:
     virtual DownloadCompleteEvent& getDownloadCompleteEvent() {
         return delegate_->getDownloadCompleteEvent();
     }
+    /**
+     * Returns the wrapper class that provides access to the broadcast InstalledSoftwareNeeded.
+     */
+    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent() {
+        return delegate_->getInstalledSoftwareNeededEvent();
+    }
 
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      * Calls initiateDownload with synchronous semantics.
      * 
@@ -189,7 +188,7 @@ SotaClientProxy<_AttributeExtensions...>::~SotaClientProxy() {
 /**
  * description: Sent by SC to start the download of an update previously announced
 	as
- *   available through an update_available() call made from SC to
+ *   available through an update_available() call  made from SC to
 	SWLM.
  */
 template <typename ... _AttributeExtensions>
@@ -263,7 +262,6 @@ CommonAPI::InterfaceVersionAttribute& SotaClientProxy<_AttributeExtensions...>::
 }
 
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
@@ -273,4 +271,4 @@ CommonAPI::InterfaceVersionAttribute& SotaClientProxy<_AttributeExtensions...>::
 // Compatibility
 namespace v1_0 = v1;
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_PROXY_HPP_
+#endif // V1_ORG_GENIVI_Sota_Client_PROXY_HPP_

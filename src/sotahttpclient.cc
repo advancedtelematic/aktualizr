@@ -22,14 +22,13 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
 }
 
 Json::Value SotaHttpClient::downloadUpdate(
-    const data::UpdateRequest &update_request) {
+    const data::UpdateRequestId &update_request_id) {
   std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates/" +
-                    update_request.requestId + "/download";
-  std::string filename =
-      config.device.packages_dir + update_request.packageId.name;
+                    update_request_id + "/download";
+  std::string filename = config.device.packages_dir + update_request_id;
   http.download(url, filename);
   Json::Value status;
-  status["updateId"] = update_request.requestId;
+  status["updateId"] = update_request_id;
   status["resultCode"] = 0;
   status["resultText"] = "Downloaded";
 
@@ -40,9 +39,8 @@ Json::Value SotaHttpClient::downloadUpdate(
 }
 
 Json::Value SotaHttpClient::reportUpdateResult(
-    const Json::Value &download_status) {
-  std::string url = core_url + "/device_updates/" + config.device.uuid;
-  std::stringstream ss;
-  ss << "[" << download_status << "]";
-  return http.post(url, ss.str());
+    data::UpdateReport &update_report) {
+  std::string url = core_url + "/mydevice/" + config.device.uuid;
+  url += "/updates/" + update_report.update_id;
+  return http.post(url, update_report.toJson()["operation_results"]);
 }

@@ -11,8 +11,8 @@ class SotaHttpClient {
  public:
   SotaHttpClient(const Config &config_in);
   std::vector<data::UpdateRequest> getAvailableUpdates();
-  Json::Value downloadUpdate(const data::UpdateRequest &ur);
-  Json::Value reportUpdateResult(const Json::Value &download_status);
+  Json::Value downloadUpdate(const data::UpdateRequestId &update_request_id);
+  Json::Value reportUpdateResult(data::UpdateReport &update_report);
 
  private:
   HttpClient http;

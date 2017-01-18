@@ -7,13 +7,12 @@
 * If a copy of the MPL was not distributed with this file, You can obtain one at
 * http://mozilla.org/MPL/2.0/.
 */
-#include "SotaClientDBusDeployment.hpp"
+#include "SoftwareLoadingManagerDBusDeployment.hpp"
 
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
-namespace SotaClient_ {
+namespace SoftwareLoadingManager_ {
 
 // Type-specific deployments
 
@@ -23,8 +22,7 @@ namespace SotaClient_ {
 
 // Broadcast-specific deployments
  
-} // namespace SotaClient_
-} // namespace swm
+} // namespace SoftwareLoadingManager_
 } // namespace genivi
 } // namespace org
 } // namespace v1

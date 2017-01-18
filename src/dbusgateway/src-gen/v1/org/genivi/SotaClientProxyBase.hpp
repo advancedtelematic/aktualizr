@@ -10,10 +10,10 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_PROXY_BASE_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_PROXY_BASE_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_PROXY_BASE_HPP_
+#define V1_ORG_GENIVI_Sota_Client_PROXY_BASE_HPP_
 
-#include <v1/org/genivi/swm/SotaClient.hpp>
+#include <v1/org/genivi/SotaClient.hpp>
 
 
 
@@ -39,33 +39,32 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 class SotaClientProxyBase
     : virtual public CommonAPI::Proxy {
 public:
     typedef CommonAPI::Event<
-    > InstalledSoftwareNeededEvent;
-    typedef CommonAPI::Event<
-        ::v1::org::genivi::swm::SotaClient::UpdateAvailable
+        ::v1::org::genivi::SotaClient::UpdateAvailable
     > UpdateAvailableEvent;
     typedef CommonAPI::Event<
-        ::v1::org::genivi::swm::SotaClient::DownloadComplete
+        ::v1::org::genivi::SotaClient::DownloadComplete
     > DownloadCompleteEvent;
+    typedef CommonAPI::Event<
+    > InstalledSoftwareNeededEvent;
 
     typedef std::function<void(const CommonAPI::CallStatus&)> InitiateDownloadAsyncCallback;
     typedef std::function<void(const CommonAPI::CallStatus&)> AbortDownloadAsyncCallback;
     typedef std::function<void(const CommonAPI::CallStatus&)> UpdateReportAsyncCallback;
 
 
-    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent() = 0;
     virtual UpdateAvailableEvent& getUpdateAvailableEvent() = 0;
     virtual DownloadCompleteEvent& getDownloadCompleteEvent() = 0;
+    virtual InstalledSoftwareNeededEvent& getInstalledSoftwareNeededEvent() = 0;
 
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      */
     virtual void initiateDownload(const std::string &_updateId, CommonAPI::CallStatus &_internalCallStatus, const CommonAPI::CallInfo *_info = nullptr) = 0;
@@ -93,7 +92,6 @@ public:
     virtual std::future<CommonAPI::CallStatus> updateReportAsync(const std::string &_updateId, const std::vector<SotaClient::OperationResult> &_operationsResults, UpdateReportAsyncCallback _callback = nullptr, const CommonAPI::CallInfo *_info = nullptr) = 0;
 };
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
@@ -102,4 +100,4 @@ public:
 // Compatibility
 namespace v1_0 = v1;
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_PROXY_BASE_HPP_
+#endif // V1_ORG_GENIVI_Sota_Client_PROXY_BASE_HPP_

@@ -10,12 +10,12 @@
 /**
  * description: Software Over The Air Client API
  */
-#ifndef V1_ORG_GENIVI_SWM_Sota_Client_DBUS_STUB_ADAPTER_HPP_
-#define V1_ORG_GENIVI_SWM_Sota_Client_DBUS_STUB_ADAPTER_HPP_
+#ifndef V1_ORG_GENIVI_Sota_Client_DBUS_STUB_ADAPTER_HPP_
+#define V1_ORG_GENIVI_Sota_Client_DBUS_STUB_ADAPTER_HPP_
 
-#include <v1/org/genivi/swm/SotaClientStub.hpp>
-#include "v1/org/genivi/swm/SotaClientDBusDeployment.hpp"        
-#include <v1/org/genivi/swm/SotaClientDBusDeployment.hpp>        
+#include <v1/org/genivi/SotaClientStub.hpp>
+#include "v1/org/genivi/SotaClientDBusDeployment.hpp"        
+#include <v1/org/genivi/SotaClientDBusDeployment.hpp>        
 
 #if !defined (COMMONAPI_INTERNAL_COMPILATION)
 #define COMMONAPI_INTERNAL_COMPILATION
@@ -32,7 +32,6 @@
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 typedef CommonAPI::DBus::DBusStubAdapterHelper<SotaClientStub> SotaClientDBusStubAdapterHelper;
 
@@ -55,9 +54,9 @@ public:
     }
 
 
+    void fireUpdateAvailableEvent(const ::v1::org::genivi::SotaClient::UpdateAvailable& updateAvailable);
+    void fireDownloadCompleteEvent(const ::v1::org::genivi::SotaClient::DownloadComplete& downloadComplete);
     void fireInstalledSoftwareNeededEvent();
-    void fireUpdateAvailableEvent(const ::v1::org::genivi::swm::SotaClient::UpdateAvailable& updateAvailable);
-    void fireDownloadCompleteEvent(const ::v1::org::genivi::swm::SotaClient::DownloadComplete& downloadComplete);
 
 
     const SotaClientDBusStubAdapterHelper::StubDispatcherTable& getStubDispatcherTable();
@@ -67,7 +66,7 @@ public:
     
 
 static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
-        ::v1::org::genivi::swm::SotaClientStub,
+        ::v1::org::genivi::SotaClientStub,
         CommonAPI::Version
         > getSotaClientInterfaceVersionStubDispatcher;
 
@@ -76,12 +75,12 @@ static CommonAPI::DBus::DBusGetAttributeStubDispatcher<
 /**
  * description: Sent by SC to start the download of an update previously announced
 	as
- *   available through an update_available() call made from SC to
+ *   available through an update_available() call  made from SC to
 	SWLM.
  */
 
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment>,
@@ -97,7 +96,7 @@ static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
  */
 
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment>,
@@ -116,7 +115,7 @@ static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
  */
 
 static CommonAPI::DBus::DBusMethodWithReplyStubDispatcher<
-    ::v1::org::genivi::swm::SotaClientStub,
+    ::v1::org::genivi::SotaClientStub,
     std::tuple<std::string, std::vector<SotaClient::OperationResult>>,
     std::tuple<>,
     std::tuple<CommonAPI::DBus::StringDeployment, CommonAPI::DBus::ArrayDeployment<SotaClient_::OperationResultDeployment_t>>,
@@ -154,9 +153,8 @@ public:
     }
 };
 
-} // namespace swm
 } // namespace genivi
 } // namespace org
 } // namespace v1
 
-#endif // V1_ORG_GENIVI_SWM_Sota_Client_DBUS_STUB_ADAPTER_HPP_
+#endif // V1_ORG_GENIVI_Sota_Client_DBUS_STUB_ADAPTER_HPP_

@@ -16,7 +16,7 @@
 // CEDM - Consumer Electronics Device Manager
 
 
-package org.genivi.swm
+package org.genivi
 
 <** @description: 
 Software Over The Air Client API
@@ -27,7 +27,7 @@ interface SotaClient {
 	<** 
 	@description: 
 	Sent by SC to start the download of an update previously announced
-	as available through an update_available() call made from SC to
+	as available through an update_available() call  made from SC to
 	SWLM.
 	**>
 	method initiateDownload {
@@ -148,8 +148,6 @@ interface SotaClient {
 		SWM_RES_GENERAL_ERROR = 19
 	}
 	
-	
-	
 	<** @description:
 	A single result of a software operation, included in an 
 	updateReport().
@@ -173,4 +171,64 @@ interface SotaClient {
 		**>
 		String resultText
 	}
+	
+	
+	
+	struct UpdateAvailable {
+		<** @description:
+		Package ID of update. Not currently used.
+		**>
+		String update_id
+
+		<** @description: 
+		A descriptive text of the available update.
+		**>
+		String description
+
+		<** @description:
+		Signature generated of the digest of updateId, for example:
+		echo $UPDATE_ID | openssl dgst -sha256 -sign private_key | base64 
+		**>
+		String signature
+
+		<** @description:
+		Flag to indicate if a user confirmation of the package is
+        required.
+		**>
+		Boolean request_confirmation
+
+		<** @description: 
+		The size of the available update, in bytes.
+		**>
+		UInt64 size
+
+		<** @description: 
+		A symbolic name of the available update.
+		**>
+		String name
+	}
+	
+	struct DownloadComplete {
+		
+		String update_id
+		<** @description:
+		Path on the local file system to the squashfs image
+		containing the update
+		**>
+		String update_image
+
+
+		<** @description:
+        Signature generated of the digest of the image pointed to
+        by updateImage, for example: 
+		openssl dgst -sha256 -sign priv_key.pem $updateImage | base64 
+		**>
+		String signature
+	}
+
+	
+	broadcast UpdateAvailable { out { UpdateAvailable updateAvailable }}
+	broadcast DownloadComplete { out { DownloadComplete downloadComplete }}
+	broadcast InstalledSoftwareNeeded {}
+	
 }

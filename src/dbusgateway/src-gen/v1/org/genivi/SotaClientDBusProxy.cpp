@@ -10,12 +10,11 @@
 /**
  * description: Software Over The Air Client API
  */
-#include <v1/org/genivi/swm/SotaClientDBusProxy.hpp>
+#include <v1/org/genivi/SotaClientDBusProxy.hpp>
 
 namespace v1 {
 namespace org {
 namespace genivi {
-namespace swm {
 
 std::shared_ptr<CommonAPI::DBus::DBusProxy> createSotaClientDBusProxy(
 	const CommonAPI::DBus::DBusAddress &_address,
@@ -33,27 +32,27 @@ SotaClientDBusProxy::SotaClientDBusProxy(
 	const CommonAPI::DBus::DBusAddress &_address,
 	const std::shared_ptr<CommonAPI::DBus::DBusProxyConnection> &_connection)
 	:	CommonAPI::DBus::DBusProxy(_address, _connection)
-,		installedSoftwareNeeded_(*this, "InstalledSoftwareNeeded", "", std::make_tuple()),
-		updateAvailable_(*this, "UpdateAvailable", "(sssbt)", std::make_tuple(static_cast<SotaClient_::UpdateAvailableDeployment_t*>(nullptr))),
-		downloadComplete_(*this, "DownloadComplete", "(sss)", std::make_tuple(static_cast<SotaClient_::DownloadCompleteDeployment_t*>(nullptr)))
+,		updateAvailable_(*this, "UpdateAvailable", "(sssbts)", std::make_tuple(static_cast<SotaClient_::UpdateAvailableDeployment_t*>(nullptr))),
+		downloadComplete_(*this, "DownloadComplete", "(sss)", std::make_tuple(static_cast<SotaClient_::DownloadCompleteDeployment_t*>(nullptr))),
+		installedSoftwareNeeded_(*this, "InstalledSoftwareNeeded", "", std::make_tuple())
 {
 }
 
 
-SotaClientDBusProxy::InstalledSoftwareNeededEvent& SotaClientDBusProxy::getInstalledSoftwareNeededEvent() {
-    return installedSoftwareNeeded_;
-}
 SotaClientDBusProxy::UpdateAvailableEvent& SotaClientDBusProxy::getUpdateAvailableEvent() {
     return updateAvailable_;
 }
 SotaClientDBusProxy::DownloadCompleteEvent& SotaClientDBusProxy::getDownloadCompleteEvent() {
     return downloadComplete_;
 }
+SotaClientDBusProxy::InstalledSoftwareNeededEvent& SotaClientDBusProxy::getInstalledSoftwareNeededEvent() {
+    return installedSoftwareNeeded_;
+}
     
     /**
      * description: Sent by SC to start the download of an update previously announced
     	as
-     *   available through an update_available() call made from SC to
+     *   available through an update_available() call  made from SC to
     	SWLM.
      */
     void SotaClientDBusProxy::initiateDownload(const std::string &_updateId, CommonAPI::CallStatus &_internalCallStatus, const CommonAPI::CallInfo *_info) {
@@ -192,7 +191,6 @@ void SotaClientDBusProxy::getOwnVersion(uint16_t& ownVersionMajor, uint16_t& own
           ownVersionMinor = 0;
       }
 
-      } // namespace swm
       } // namespace genivi
       } // namespace org
       } // namespace v1

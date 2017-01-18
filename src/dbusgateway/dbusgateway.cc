@@ -4,42 +4,10 @@
 
 #include "types.h"
 
-using namespace v1::org::genivi::swm;
+using namespace v1::org::genivi;
 
-DbusGateway::DbusGateway(command::Channel *command_channel_in, event::Channel *event_channel_in):command_channel(command_channel_in), event_channel(event_channel_in) { }
+DbusGateway::DbusGateway(command::Channel *command_channel_in):command_channel(command_channel_in) { }
 DbusGateway::~DbusGateway() { }
-
-void DbusGateway::run(){
-     thread = new std::thread(std::bind(&DbusGateway::process_events, this));
-}
-
-void DbusGateway::process_events(){
-    boost::shared_ptr<event::BaseEvent> event;
-    while (*event_channel >> event) {
-      if (event->variant == "InstalledSoftwareNeeded") {
-        fireInstalledSoftwareNeededEvent();
-
-      }else if (event->variant == "UpdateAvailable"){
-
-        event::UpdateAvailable* update_available =  static_cast<event::UpdateAvailable*>(event.get());
-        SotaClient::UpdateAvailable update_available_dbus;
-        update_available_dbus.setUpdate_id(update_available->update_vailable.update_id);
-        update_available_dbus.setDescription(update_available->update_vailable.description);
-        update_available_dbus.setRequest_confirmation(update_available->update_vailable.request_confirmation);
-        update_available_dbus.setSignature(update_available->update_vailable.signature);
-        update_available_dbus.setSize(update_available->update_vailable.size);
-        fireUpdateAvailableEvent(update_available_dbus);
-      }else if (event->variant == "DownloadComplete"){
-
-        event::DownloadComplete* download_complete =  static_cast<event::DownloadComplete*>(event.get());
-        SotaClient::DownloadComplete download_complete_dbus;
-        download_complete_dbus.setUpdate_id(download_complete->download_complete.update_id);
-        download_complete_dbus.setUpdate_image(download_complete->download_complete.update_image);
-        download_complete_dbus.setSignature(download_complete->download_complete.signature);
-        fireDownloadCompleteEvent(download_complete_dbus);
-      }
-    }
-}
 
 
 /**
@@ -90,7 +58,6 @@ void DbusGateway::updateReport(const std::shared_ptr<CommonAPI::ClientId> _clien
     }
     update_report.update_id = _updateId;
     *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
-
 
     _reply();
 }
