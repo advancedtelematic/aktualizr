@@ -5,7 +5,9 @@ project(sota_client_cpp)
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 
-set(CMAKE_BUILD_TYPE Debug)
+IF( NOT CMAKE_BUILD_TYPE )
+    set(CMAKE_BUILD_TYPE Debug)
+ENDIF()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 OPTION(BUILD_WITH_DBUS_GATEWAY "Set to ON to compile with dbus gateway support" OFF)
