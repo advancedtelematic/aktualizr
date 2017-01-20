@@ -19,6 +19,7 @@ class HttpClient : private boost::noncopyable {
 
  private:
   CURL *curl;
+  curl_slist* headers;
   Json::Value perform(CURL *curl_handler);
   std::string token; /**< the OAuth2 token stored as string */
   std::string token_type;
