@@ -25,7 +25,7 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/logger.cc
             src/httpclient.cc
             src/sotahttpclient.cc
-            src/interpreter.cc
+            src/httpcommandinterpreter.cc
             src/config.cc
             src/events.cc
             src/commands.cc

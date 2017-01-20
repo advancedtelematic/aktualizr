@@ -2,6 +2,7 @@
 #define CONFIG_H_
 
 #include <algorithm>
+#include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <string>
 
@@ -54,14 +55,22 @@ struct DeviceConfig {
   // std::string system_info;
 };
 
+struct GatewayConfig {
+  GatewayConfig() : http(true), rvi(false) {}
+  bool http;
+  bool rvi;
+};
+
 class Config {
  public:
   void updateFromToml(const std::string &filename);
+  void updateFromCommandLine(const boost::program_options::variables_map &cmd);
 
   // config data structures
   CoreConfig core;
   AuthConfig auth;
   DeviceConfig device;
   DbusConfig dbus;
+  GatewayConfig gateway;
 };
 #endif  // CONFIG_H_

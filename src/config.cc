@@ -104,3 +104,13 @@ void Config::updateFromToml(const std::string& filename) {
 
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
+
+void Config::updateFromCommandLine(
+    const boost::program_options::variables_map& cmd) {
+  if (cmd.count("gateway-http") != 0) {
+    gateway.http = cmd["gateway-http"].as<bool>();
+  }
+  if (cmd.count("gateway-rvi") != 0) {
+    gateway.rvi = cmd["gateway-rvi"].as<bool>();
+  }
+}

@@ -1,4 +1,4 @@
-#include "interpreter.h"
+#include "httpcommandinterpreter.h"
 #include <unistd.h>
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
@@ -6,21 +6,21 @@
 
 #include "config.h"
 
-Interpreter::Interpreter(const Config &config_in,
-                         command::Channel *commands_channel_in,
-                         event::Channel *events_channel_in)
+HttpCommandInterpreter::HttpCommandInterpreter(
+    const Config &config_in, command::Channel *commands_channel_in,
+    event::Channel *events_channel_in)
     : config(config_in),
       sota(config),
       commands_channel(commands_channel_in),
       events_channel(events_channel_in) {}
 
-Interpreter::~Interpreter() { delete thread; }
+HttpCommandInterpreter::~HttpCommandInterpreter() { delete thread; }
 
-void Interpreter::interpret() {
-  thread = new boost::thread(boost::bind(&Interpreter::run, this));
+void HttpCommandInterpreter::interpret() {
+  thread = new boost::thread(boost::bind(&HttpCommandInterpreter::run, this));
 }
 
-void Interpreter::run() {
+void HttpCommandInterpreter::run() {
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     if (command->variant == "GetUpdateRequests") {

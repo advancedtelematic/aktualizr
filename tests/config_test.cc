@@ -1,10 +1,18 @@
 #define BOOST_TEST_MODULE test_config
 
+#include <boost/program_options.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
+#include <iostream>
+
 #include <string>
 
 #include "config.h"
+
+namespace bpo = boost::program_options;
+namespace utf = boost::unit_test;
+extern bpo::variables_map parse_options(int argc, char *argv[]);
 
 BOOST_AUTO_TEST_CASE(config_initialized_values) {
   Config conf;
@@ -19,6 +27,9 @@ BOOST_AUTO_TEST_CASE(config_initialized_values) {
 
   BOOST_CHECK_EQUAL(conf.device.uuid, "123e4567-e89b-12d3-a456-426655440000");
   BOOST_CHECK_EQUAL(conf.device.packages_dir, "/tmp/");
+
+  BOOST_CHECK_EQUAL(conf.gateway.http, true);
+  BOOST_CHECK_EQUAL(conf.gateway.rvi, false);
 }
 
 BOOST_AUTO_TEST_CASE(config_toml_parsing) {
@@ -51,4 +62,26 @@ BOOST_AUTO_TEST_CASE(config_toml_parsing_empty_file) {
 
   BOOST_CHECK_EQUAL(conf.device.uuid, "123e4567-e89b-12d3-a456-426655440000");
   BOOST_CHECK_EQUAL(conf.device.packages_dir, "/tmp/");
+
+  BOOST_CHECK_EQUAL(conf.gateway.http, true);
+  BOOST_CHECK_EQUAL(conf.gateway.rvi, false);
+}
+
+BOOST_AUTO_TEST_CASE(config_cmdl_parsing) {
+  Config conf;
+  int argc = 5;
+  const char *argv[] = {"./sota_client", "--gateway-http", "off",
+                        "--gateway-rvi", "on"};
+
+  bpo::options_description description("CommandLine Options");
+  description.add_options()("gateway-http", bpo::value<bool>(),
+                            "on/off the http gateway")(
+      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway");
+
+  bpo::variables_map vm;
+  bpo::store(bpo::parse_command_line(argc, argv, description), vm);
+  conf.updateFromCommandLine(vm);
+
+  BOOST_CHECK_EQUAL(conf.gateway.http, false);
+  BOOST_CHECK_EQUAL(conf.gateway.rvi, true);
 }

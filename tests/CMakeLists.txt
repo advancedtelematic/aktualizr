@@ -102,6 +102,7 @@ set(TEST_SRCS src/logger.cc
               tests/config_test.cc)
 add_executable(sota_client_test_config ${TEST_SRCS})
 
+
 # set the libraries for the current target
 target_link_libraries(sota_client_test_config ${TEST_LIBS})
 
