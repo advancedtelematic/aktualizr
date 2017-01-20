@@ -45,7 +45,10 @@ HttpClient::HttpClient() {
   }
 }
 
-HttpClient::~HttpClient() { curl_easy_cleanup(curl); }
+HttpClient::~HttpClient() {
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+}
 
 bool HttpClient::authenticate(const AuthConfig& conf) {
   CURL* curl_auth = curl_easy_duphandle(curl);
@@ -83,7 +86,6 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   token_type = json["token_type"].asString();
 
   std::string header = "Authorization: Bearer " + token;
-  curl_slist* headers = NULL;
   headers = curl_slist_append(headers, header.c_str());
   headers = curl_slist_append(headers, "Accept: */*");
   headers = curl_slist_append(headers, "Content-Type: application/json");
