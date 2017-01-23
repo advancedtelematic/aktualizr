@@ -34,9 +34,10 @@ ExternalProject_Add(commonapi
     BUILD_IN_SOURCE 1)
 
 ExternalProject_Add(dbusapi
-    DOWNLOAD_COMMAND ""
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime
-    CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/ cmake ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime/  -DUSE_INSTALLED_COMMONAPI=OFF  -DUSE_INSTALLED_DBUS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install
+    PREFIX "third_party/common-api-dbus-runtime"
+    GIT_REPOSITORY "http://git.projects.genivi.org/ipc/common-api-dbus-runtime.git"
+    CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/ cmake . -DUSE_INSTALLED_COMMONAPI=OFF  -DUSE_INSTALLED_DBUS=OFF -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime/patches/interface_and_session.patch
     BUILD_COMMAND ${MAKE}
     BUILD_IN_SOURCE 1)
 

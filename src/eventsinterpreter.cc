@@ -32,9 +32,14 @@ void EventsInterpreter::run() {
   std::shared_ptr<SoftwareLoadingManagerProxy<> > swlm =
       runtime->buildProxy<SoftwareLoadingManagerProxy>(
           "local", config.dbus.software_manager);
+  if (!swlm){
+    LOGGER_LOG(LVL_error, "DBUS session has not been found, exiting");\
+    exit(1);
+  }
   std::shared_ptr<DbusGateway> dbus_gateway =
       std::make_shared<DbusGateway>(commands_channel);
   runtime->registerService("local", config.dbus.interface, dbus_gateway);
+  
 #endif
 
   boost::shared_ptr<event::BaseEvent> event;
