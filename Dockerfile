@@ -10,6 +10,7 @@ RUN apt-get -y install lcov clang clang-format-3.8
 
 WORKDIR $HOME
 COPY src/ $HOME/src/
+COPY distribution $HOME/distribution/
 COPY tests/ $HOME/tests/
 COPY third_party/ $HOME/third_party/
 COPY config/ $HOME/config/
