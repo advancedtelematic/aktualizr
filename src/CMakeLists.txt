@@ -64,16 +64,18 @@ include_directories(
     src/dbusgateway/src-gen
 )
 
+ExternalProject_Get_Property(dbusapi install_dir)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/include/CommonAPI-3.1)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install/include/CommonAPI-3.1)
+include_directories(${install_dir}/include/CommonAPI-3.1)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install/include)
+include_directories(${install_dir}/include)
+
 link_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib
     ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install/lib
+    ${install_dir}/lib
 )
 
 set(DBUS_LIBS CommonAPI CommonAPI-DBus dbus-1)
@@ -101,5 +103,5 @@ install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  C
 if(BUILD_WITH_DBUS_GATEWAY)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dbusapi_install/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+    install(DIRECTORY ${install_dir}/lib DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 endif(BUILD_WITH_DBUS_GATEWAY)

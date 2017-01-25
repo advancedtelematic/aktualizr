@@ -35,6 +35,7 @@ static size_t writeDiscard(void*, size_t size, size_t nmemb) {
 HttpClient::HttpClient() {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
+  headers = NULL;
 
   // let curl use our write function
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
