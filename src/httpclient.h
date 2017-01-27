@@ -10,7 +10,7 @@ class HttpClient {
  public:
   HttpClient();
   HttpClient(const HttpClient &);
-  ~HttpClient();
+  virtual ~HttpClient();
   virtual bool authenticate(const AuthConfig &conf);
   virtual Json::Value get(const std::string &url);
   virtual Json::Value post(const std::string &url, const std::string &data);

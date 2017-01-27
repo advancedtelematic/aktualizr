@@ -61,7 +61,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(ALL_TEST_SRCS   tests/config_test.cc
                     tests/events_test.cc
-                    tests/commands_test.cc)
+                    tests/commands_test.cc
+                    test/httpsotaclient_test.cc
+                    test/httpclient_test.cc)
 
 if(CLANG_FORMAT)
 add_custom_target(format-tools
@@ -172,6 +174,19 @@ target_link_libraries(sota_client_test_http_sota_client ${TEST_LIBS})
 add_test(NAME test_http_sota_client COMMAND sota_client_test_http_sota_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
+set(TEST_HTTP_SRC src/logger.cc
+              src/logger.cc
+              third_party/jsoncpp/jsoncpp.cpp
+              src/config.cc
+              src/httpclient.cc
+              tests/httpclient_test.cc)
+add_executable(sota_client_test_http_client ${TEST_HTTP_SRC})
+target_link_libraries(sota_client_test_http_client ${TEST_LIBS})
+
+add_test(NAME test_http_client COMMAND sota_client_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
+
 
 ###############################################################################
 
@@ -189,6 +204,8 @@ if(BUILD_WITH_CODE_COVERAGE)
     endif(BUILD_WITH_DBUS_GATEWAY)
     target_link_libraries(sota_client_test_http_sota_client gcov)
     add_dependencies(coverage sota_client_test_http_sota_client)
+    target_link_libraries(sota_client_test_http_client gcov)
+    add_dependencies(coverage sota_client_test_http_client)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 
