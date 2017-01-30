@@ -36,7 +36,6 @@ HttpClient::HttpClient() {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
-
   // let curl use our write function
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
@@ -46,9 +45,30 @@ HttpClient::HttpClient() {
   }
 }
 
+HttpClient::HttpClient(const HttpClient& curl_in) {
+  curl = curl_easy_duphandle(curl_in.curl);
+  token = curl_in.token;
+
+  struct curl_slist* inlist = curl_in.headers;
+  headers = NULL;
+  struct curl_slist* tmp;
+
+  while (inlist) {
+    tmp = curl_slist_append(headers, inlist->data);
+
+    if (!tmp) {
+      curl_slist_free_all(headers);
+      return;
+    }
+
+    headers = tmp;
+    inlist = inlist->next;
+  }
+}
+
 HttpClient::~HttpClient() {
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
+  curl_slist_free_all(headers);
+  curl_easy_cleanup(curl);
 }
 
 bool HttpClient::authenticate(const AuthConfig& conf) {
@@ -84,7 +104,6 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   reader.parse(response, json);
 
   token = json["access_token"].asString();
-  token_type = json["token_type"].asString();
 
   std::string header = "Authorization: Bearer " + token;
   headers = curl_slist_append(headers, header.c_str());
