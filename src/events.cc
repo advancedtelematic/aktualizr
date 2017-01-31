@@ -2,7 +2,7 @@
 
 namespace event {
 
-Json::Value BaseEvent::toJson() {
+Json::Value BaseEvent::toBaseJson() {
   Json::Value json;
   json["variant"] = variant;
   json["fields"] = Json::Value(Json::arrayValue);
@@ -13,7 +13,7 @@ Error::Error(const std::string& message_in) : message(message_in) {
   variant = "Error";
 }
 std::string Error::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = BaseEvent::toBaseJson();
   json["fields"].append(message);
   return Json::FastWriter().write(json);
 }
@@ -27,19 +27,19 @@ Error Error::fromJson(const std::string& json_str) {
 
 Authenticated::Authenticated() { variant = "Authenticated"; }
 std::string Authenticated::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 NotAuthenticated::NotAuthenticated() { variant = "NotAuthenticated"; }
 std::string NotAuthenticated::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 AlreadyAuthenticated::AlreadyAuthenticated() {
   variant = "AlreadyAuthenticated";
 }
 std::string AlreadyAuthenticated::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 UpdatesReceived::UpdatesReceived(const std::vector<data::UpdateRequest>& ur)
@@ -48,7 +48,7 @@ UpdatesReceived::UpdatesReceived(const std::vector<data::UpdateRequest>& ur)
 }
 
 std::string UpdatesReceived::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   Json::Value update_requests_json(Json::arrayValue);
   for (std::vector<data::UpdateRequest>::iterator it = update_requests.begin();
        it != update_requests.end(); ++it) {
@@ -76,7 +76,7 @@ UpdateAvailable::UpdateAvailable(const data::UpdateAvailable& ua_in)
 }
 
 std::string UpdateAvailable::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_vailable.toJson());
   return Json::FastWriter().write(json);
 }
@@ -92,7 +92,7 @@ UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
 NoUpdateRequests::NoUpdateRequests() { variant = "NoUpdateRequests"; }
 
 std::string NoUpdateRequests::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 FoundInstalledPackages::FoundInstalledPackages(
@@ -102,7 +102,7 @@ FoundInstalledPackages::FoundInstalledPackages(
 }
 
 std::string FoundInstalledPackages::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   Json::Value packages_json(Json::arrayValue);
   for (std::vector<data::Package>::iterator it = packages.begin();
        it != packages.end(); ++it) {
@@ -130,7 +130,7 @@ FoundSystemInfo::FoundSystemInfo(const std::string& info_in) : info(info_in) {
 }
 
 std::string FoundSystemInfo::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(info);
   return Json::FastWriter().write(json);
 }
@@ -148,7 +148,7 @@ DownloadingUpdate::DownloadingUpdate(const data::UpdateRequestId& ur_in)
 }
 
 std::string DownloadingUpdate::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_request_id);
   return Json::FastWriter().write(json);
 }
@@ -166,7 +166,7 @@ DownloadComplete::DownloadComplete(const data::DownloadComplete& dc_in)
 }
 
 std::string DownloadComplete::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(download_complete.toJson());
   return Json::FastWriter().write(json);
 }
@@ -186,7 +186,7 @@ DownloadFailed::DownloadFailed(const data::UpdateRequestId& ur_in,
 }
 
 std::string DownloadFailed::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_request_id);
   json["fields"].append(message);
   return Json::FastWriter().write(json);
@@ -209,7 +209,7 @@ InstallingUpdate::InstallingUpdate(const data::UpdateRequestId& ur_in)
 }
 
 std::string InstallingUpdate::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_request_id);
   return Json::FastWriter().write(json);
 }
@@ -237,7 +237,7 @@ InstallComplete InstallComplete::fromJson(const std::string& json_str) {
 }
 
 std::string InstallComplete::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_report.toJson());
   return Json::FastWriter().write(json);
 }
@@ -248,7 +248,7 @@ InstallFailed::InstallFailed(const data::UpdateReport& ureport_in)
 }
 
 std::string InstallFailed::toJson() {
-  Json::Value json = BaseEvent::toJson();
+  Json::Value json = toBaseJson();
   json["fields"].append(update_report.toJson());
   return Json::FastWriter().write(json);
 }
@@ -265,7 +265,7 @@ InstallFailed InstallFailed::fromJson(const std::string& json_str) {
 UpdateReportSent::UpdateReportSent() { variant = "UpdateReportSent"; }
 
 std::string UpdateReportSent::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 InstalledPackagesSent::InstalledPackagesSent() {
@@ -273,7 +273,7 @@ InstalledPackagesSent::InstalledPackagesSent() {
 }
 
 std::string InstalledPackagesSent::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 InstalledSoftwareSent::InstalledSoftwareSent() {
@@ -281,13 +281,13 @@ InstalledSoftwareSent::InstalledSoftwareSent() {
 }
 
 std::string InstalledSoftwareSent::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 SystemInfoSent::SystemInfoSent() { variant = "SystemInfoSent"; }
 
 std::string SystemInfoSent::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 
 InstalledSoftwareNeeded::InstalledSoftwareNeeded() {
@@ -295,6 +295,6 @@ InstalledSoftwareNeeded::InstalledSoftwareNeeded() {
 }
 
 std::string InstalledSoftwareNeeded::toJson() {
-  return Json::FastWriter().write(BaseEvent::toJson());
+  return Json::FastWriter().write(toBaseJson());
 }
 };

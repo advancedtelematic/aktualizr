@@ -18,7 +18,8 @@ EventsInterpreter::EventsInterpreter(const Config& config_in,
                                      command::Channel* commands_channel_in)
     : config(config_in),
       events_channel(events_channel_in),
-      commands_channel(commands_channel_in) {}
+      commands_channel(commands_channel_in),
+      gateway_manager(config, commands_channel) {}
 
 EventsInterpreter::~EventsInterpreter() { delete thread; }
 
@@ -44,6 +45,8 @@ void EventsInterpreter::run() {
 
   boost::shared_ptr<event::BaseEvent> event;
   while (*events_channel >> event) {
+    gateway_manager.processEvents(event);
+
     if (event->variant == "DownloadComplete") {
       LOGGER_LOG(LVL_info, "got DownloadComplete event");
 #ifdef WITH_DBUS

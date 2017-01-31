@@ -1,4 +1,5 @@
 #include "commands.h"
+#include <boost/make_shared.hpp>
 
 namespace command {
 
@@ -7,6 +8,43 @@ Json::Value BaseCommand::toJson() {
   json["variant"] = variant;
   json["fields"] = Json::Value(Json::arrayValue);
   return json;
+}
+
+boost::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(
+    const picojson::value& json) {
+  std::string variant = json.get("variant").to_str();
+  std::string data = json.serialize(false);
+  if (variant == "Authenticate") {
+    return boost::make_shared<Authenticate>(Authenticate::fromJson(data));
+  } else if (variant == "Shutdown") {
+    return boost::make_shared<Shutdown>();
+  } else if (variant == "GetUpdateRequests") {
+    return boost::make_shared<GetUpdateRequests>();
+  } else if (variant == "ListInstalledPackages") {
+    return boost::make_shared<ListInstalledPackages>();
+  } else if (variant == "ListSystemInfo") {
+    return boost::make_shared<ListSystemInfo>();
+  } else if (variant == "StartDownload") {
+    return boost::make_shared<StartDownload>(StartDownload::fromJson(data));
+  } else if (variant == "AbortDownload") {
+    return boost::make_shared<AbortDownload>(AbortDownload::fromJson(data));
+  } else if (variant == "StartInstall") {
+    return boost::make_shared<StartInstall>(StartInstall::fromJson(data));
+  } else if (variant == "SendInstalledPackages") {
+    return boost::make_shared<SendInstalledPackages>(
+        SendInstalledPackages::fromJson(data));
+  } else if (variant == "SendInstalledSoftware") {
+    return boost::make_shared<SendInstalledSoftware>(
+        SendInstalledSoftware::fromJson(data));
+  } else if (variant == "SendSystemInfo") {
+    return boost::make_shared<SendSystemInfo>();
+  } else if (variant == "SendUpdateReport") {
+    return boost::make_shared<SendUpdateReport>(
+        SendUpdateReport::fromJson(data));
+  } else {
+    throw std::runtime_error("wrong command variant = " + variant);
+  }
+  return boost::make_shared<BaseCommand>();
 }
 
 Authenticate::Authenticate(const data::ClientCredentials& client_credentials_in)
