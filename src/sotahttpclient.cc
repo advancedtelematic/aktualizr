@@ -6,8 +6,13 @@
 #include "logger.h"
 
 SotaHttpClient::SotaHttpClient(const Config &config_in) : config(config_in) {
+  http = new HttpClient();
   http->authenticate(config.auth);
   core_url = config.core.server + "/api/v1";
+}
+
+SotaHttpClient::~SotaHttpClient() {
+  delete http;
 }
 
 SotaHttpClient::SotaHttpClient(const Config &config_in, HttpClient *http_in)
