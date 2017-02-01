@@ -185,7 +185,19 @@ target_link_libraries(sota_client_test_http_client ${TEST_LIBS})
 
 add_test(NAME test_http_client COMMAND sota_client_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+set(TEST_SOCKET_SRC src/logger.cc
+              src/logger.cc
+              third_party/jsoncpp/jsoncpp.cpp
+              src/config.cc
+              src/commands.cc
+              src/events.cc
+              src/types.cc
+              src/socketgateway.cc
+              tests/socketgateway_test.cc)
+add_executable(sota_client_test_socket_gateway ${TEST_SOCKET_SRC})
+target_link_libraries(sota_client_test_socket_gateway ${LINK_LIBS} gtest)
 
+add_test(NAME test_socket_gateway COMMAND sota_client_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
 ###############################################################################
@@ -206,6 +218,8 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage sota_client_test_http_sota_client)
     target_link_libraries(sota_client_test_http_client gcov)
     add_dependencies(coverage sota_client_test_http_client)
+    target_link_libraries(sota_client_test_socket_gateway gcov)
+    add_dependencies(coverage sota_client_test_socket_gateway)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 

@@ -19,6 +19,7 @@
  */
 
 /*****************************************************************************/
+#include <signal.h>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/thread.hpp>
@@ -54,7 +55,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       "config,c", bpo::value<std::string>()->required(),
       "toml configuration file")("gateway-http", bpo::value<bool>(),
                                  "on/off the http gateway")(
-      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")
+      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")(
+      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")
 
       ;
 

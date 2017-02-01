@@ -6,6 +6,7 @@
 #include "commands.h"
 #include "config.h"
 #include "logger.h"
+#include "gatewaymanager.h"
 
 class EventsInterpreter {
  public:
@@ -19,6 +20,7 @@ class EventsInterpreter {
   boost::thread *thread;
   event::Channel *events_channel;
   command::Channel *commands_channel;
+  GatewayManager gateway_manager;
 };
 
 

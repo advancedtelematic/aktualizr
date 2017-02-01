@@ -3,6 +3,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
+#include "picojson.h"
 
 #include "commands.h"
 
@@ -294,4 +295,168 @@ BOOST_AUTO_TEST_CASE(Authenticate_comand_from_json) {
   BOOST_CHECK_EQUAL(comand.variant, "Authenticate");
   BOOST_CHECK_EQUAL(comand.client_credentials.client_id, "client123");
   BOOST_CHECK_EQUAL(comand.client_credentials.client_secret, "secret");
+}
+
+BOOST_AUTO_TEST_CASE(Authenticate_command_from_pico_json) {
+  std::string json =
+      "{\"fields\" : [{\"client_id\" : \"client123\", \"client_secret\" :  "
+      "\"secret\"}], \"variant\" : \"Authenticate\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "Authenticate");
+}
+
+BOOST_AUTO_TEST_CASE(SendInstalledSoftware_command_from_pico_json) {
+  std::string json =
+      "{\"fields\" : [{\"firmwares\" : [ {\"firmware_id\" : "
+      "\"firmware_id123\", \"last_modified\" : 12345, \"module\" : "
+      "\"testmodule\"}], \"packages\" :  [ { \"description\" : "
+      "\"testdescription\",  \"last_modified\" : 54321, \"name\" : "
+      "\"testname\",\"package_id\" : \"id\"}]}],\"variant\" : "
+      "\"SendInstalledSoftware\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "SendInstalledSoftware");
+}
+
+BOOST_AUTO_TEST_CASE(SendUpdateReport_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
+      "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
+      "\"variant\":\"SendUpdateReport\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "SendUpdateReport");
+}
+
+BOOST_AUTO_TEST_CASE(SendInstalledPackages_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[[{\"name\":\"packagename1\",\"version\":\"v2.0\"},{"
+      "\"name\":\"packagename2\",\"version\":\"v3.0\"}]],\"variant\":"
+      "\"SendInstalledPackages\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "SendInstalledPackages");
+}
+
+BOOST_AUTO_TEST_CASE(AbortDownload_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[\"testid\"],"
+      "\"variant\":\"AbortDownload\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "AbortDownload");
+}
+
+BOOST_AUTO_TEST_CASE(StartDownload_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[\"testid\"],"
+      "\"variant\":\"StartDownload\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "StartDownload");
+}
+
+BOOST_AUTO_TEST_CASE(Shutdown_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"Shutdown\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "Shutdown");
+}
+
+BOOST_AUTO_TEST_CASE(ListInstalledPackages_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"ListInstalledPackages\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "ListInstalledPackages");
+}
+
+BOOST_AUTO_TEST_CASE(ListSystemInfo_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"ListSystemInfo\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "ListSystemInfo");
+}
+
+BOOST_AUTO_TEST_CASE(StartInstall_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"StartInstall\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "StartInstall");
+}
+
+BOOST_AUTO_TEST_CASE(SendSystemInfo_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"SendSystemInfo\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  boost::shared_ptr<command::BaseCommand> comand =
+      command::BaseCommand::fromPicoJson(val);
+
+  BOOST_CHECK_EQUAL(comand->variant, "SendSystemInfo");
+}
+
+BOOST_AUTO_TEST_CASE(Nonexistent_command_from_pico_json) {
+  std::string json =
+      "{\"fields\":[],"
+      "\"variant\":\"Nonexistent\"}";
+
+  picojson::value val;
+  picojson::parse(val, json);
+  try {
+    boost::shared_ptr<command::BaseCommand> comand =
+        command::BaseCommand::fromPicoJson(val);
+  } catch (std::runtime_error e) {
+    BOOST_CHECK_EQUAL(e.what(), "wrong command variant = Nonexistent");
+  }
 }

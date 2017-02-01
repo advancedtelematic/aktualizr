@@ -31,7 +31,9 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/commands.cc
             src/types.cc
             src/main.cc
-            src/eventsinterpreter.cc)
+            src/eventsinterpreter.cc
+            src/gatewaymanager.cc
+            src/socketgateway.cc)
 
 set(HEADERS src/logger.h
             src/config.h
@@ -45,6 +47,7 @@ set(HEADERS src/logger.h
 
 
 include_directories(third_party/jsoncpp)
+include_directories(third_party/picojson)
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
 if(BUILD_WITH_DBUS_GATEWAY)

@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+
 #include "logger.h"
 
 std::string getStringValue(boost::property_tree::ptree pt,
@@ -102,6 +105,18 @@ void Config::updateFromToml(const std::string& filename) {
             << ", Falling back to default: " << device.packages_dir);
   }
 
+  try {
+    std::string events_string = getStringValue(pt, "network.socket_events");
+    network.socket_events.empty();
+    boost::split(network.socket_events, events_string, boost::is_any_of(", "),
+                 boost::token_compress_on);
+  } catch (...) {
+    LOGGER_LOG(
+        LVL_debug,
+        "no 'network.socket_events' option have been found in config file: "
+            << filename << ", Falling back to default value");
+  }
+
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
 
@@ -112,5 +127,8 @@ void Config::updateFromCommandLine(
   }
   if (cmd.count("gateway-rvi") != 0) {
     gateway.rvi = cmd["gateway-rvi"].as<bool>();
+  }
+  if (cmd.count("gateway-socket") != 0) {
+    gateway.socket = cmd["gateway-socket"].as<bool>();
   }
 }

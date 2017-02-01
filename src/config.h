@@ -56,9 +56,22 @@ struct DeviceConfig {
 };
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), rvi(false) {}
+  GatewayConfig() : http(true), rvi(false), socket(false) {}
   bool http;
   bool rvi;
+  bool socket;
+};
+
+struct NetworkConfig {
+  NetworkConfig()
+      : socket_commands_path("/tmp/sota-commands.socket"),
+        socket_events_path("/tmp/sota-events.socket") {
+    socket_events.push_back("DownloadComplete");
+    socket_events.push_back("DownloadFailed");
+  }
+  std::string socket_commands_path;
+  std::string socket_events_path;
+  std::vector<std::string> socket_events;
 };
 
 class Config {
@@ -72,5 +85,6 @@ class Config {
   DeviceConfig device;
   DbusConfig dbus;
   GatewayConfig gateway;
+  NetworkConfig network;
 };
 #endif  // CONFIG_H_

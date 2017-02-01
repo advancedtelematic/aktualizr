@@ -1,10 +1,11 @@
 #ifndef COMANDS_H_
 #define COMANDS_H_
 
-#include <boost/shared_ptr.hpp>
-
 #include <json/json.h>
+#include <picojson.h>
+#include <boost/shared_ptr.hpp>
 #include <string>
+
 #include "channel.h"
 #include "types.h"
 
@@ -13,6 +14,8 @@ namespace command {
 struct BaseCommand {
   std::string variant;
   Json::Value toJson();
+  static boost::shared_ptr<BaseCommand> fromPicoJson(
+      const picojson::value& json);
 };
 typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 

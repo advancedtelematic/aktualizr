@@ -1,0 +1,90 @@
+#include <cstdlib>
+#include <stdio.h>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include "config.h"
+#include "socketgateway.h"
+#include "types.h"
+#include "commands.h"
+#include "events.h"
+#include <boost/make_shared.hpp>
+
+const std::string server = "http://127.0.0.1:8800";
+std::string fake_path;
+
+TEST(EventsTest, broadcasted) {
+  NetworkConfig network_conf;
+  network_conf.socket_commands_path = "/tmp/sota-commands.socket";
+  network_conf.socket_events_path = "/tmp/sota-events.socket";
+  network_conf.socket_events.push_back("NoUpdateRequests");
+  Config conf;
+  conf.network = network_conf;
+
+  command::Channel * chan = new command::Channel();
+  
+  SocketGateway gateway(conf, chan);
+  std::string cmd = "python "+fake_path + "events.py &";
+  system(cmd.c_str());
+  sleep(1);
+  gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
+  sleep(1);
+  std::ifstream file_stream("/tmp/sota-events.socket.txt");
+  std::string content;
+  std::getline(file_stream, content);
+  EXPECT_EQ("{\"fields\":[],\"variant\":\"NoUpdateRequests\"}", content);
+}
+
+TEST(EventsTest, not_broadcasted) {
+  NetworkConfig network_conf;
+  network_conf.socket_commands_path = "/tmp/sota-commands.socket";
+  network_conf.socket_events_path = "/tmp/sota-events.socket";
+  network_conf.socket_events.empty();
+  Config conf;
+  conf.network = network_conf;
+
+  command::Channel * chan = new command::Channel();
+  
+  SocketGateway gateway(conf, chan);
+  std::string cmd = "python "+fake_path + "events.py &";
+  system(cmd.c_str());
+  sleep(1);
+  gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
+  sleep(1);
+  std::ifstream file_stream("/tmp/sota-events.socket.txt");
+  std::string content;
+  std::getline(file_stream, content);
+  EXPECT_EQ("", content);
+}
+
+
+TEST(CommandsTest, recieved) {
+  NetworkConfig network_conf;
+  network_conf.socket_commands_path = "/tmp/sota-commands.socket";
+  network_conf.socket_events_path = "/tmp/sota-events.socket";
+  Config conf;
+  conf.network = network_conf;
+
+  command::Channel * chan = new command::Channel();
+  
+  SocketGateway gateway(conf, chan);
+  std::string cmd = "python "+fake_path + "commands.py &";
+  system(cmd.c_str());
+  sleep(1);
+  boost::shared_ptr<command::BaseCommand> command;
+  *chan >> command;
+  
+  EXPECT_EQ(command->variant, "GetUpdateRequests");
+}
+
+
+#ifndef __NO_MAIN__
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  if (argc >= 2){
+    fake_path = argv[1];
+  }
+  return RUN_ALL_TESTS();
+}
+#endif
