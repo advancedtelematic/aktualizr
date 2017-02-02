@@ -16,12 +16,6 @@ class HttpClientMock : public HttpClient {
                bool(const std::string &url, const std::string &filename));
 };
 
-class HttpSotaClientTest : public ::testing::Test {
- protected:
-  void SetUp() {}
-
-  virtual void TearDown() { usleep(300000); }
-};
 
 bool operator==(const AuthConfig &auth1, const AuthConfig &auth2) {
   return (auth1.server == auth2.server && auth1.client_id == auth2.client_id &&
@@ -32,9 +26,9 @@ TEST(AuthenticateTest, authenticate_called) {
   conf.auth.server = "testserver_test";
   conf.auth.client_id = "client_id_test";
   conf.auth.client_secret = "client_secret_test";
-  HttpClientMock http;
-  EXPECT_CALL(http, authenticate(conf.auth));
-  SotaHttpClient sota_client(conf, &http);
+  HttpClientMock *http = new HttpClientMock();
+  EXPECT_CALL(*http, authenticate(conf.auth));
+  SotaHttpClient sota_client(conf, http);
 }
 
 TEST(DownloadTest, download_called) {
@@ -44,11 +38,11 @@ TEST(DownloadTest, download_called) {
   conf.device.packages_dir = "/tmp/";
   data::UpdateRequestId update_request_id = "testupdateid";
 
-  testing::NiceMock<HttpClientMock> http;
-  SotaHttpClient sota_client(conf, &http);
+  HttpClientMock *http = new HttpClientMock();
+  SotaHttpClient sota_client(conf, http);
 
   EXPECT_CALL(
-      http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
+      *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
                          update_request_id + "/download",
                      conf.device.packages_dir + update_request_id));
   Json::Value result = sota_client.downloadUpdate(update_request_id);
@@ -62,8 +56,8 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   conf.core.server = "http://test.com";
   conf.device.uuid = "test_uuid";
 
-  testing::NiceMock<HttpClientMock> http;
-  SotaHttpClient sota_client(conf, &http);
+  HttpClientMock *http = new HttpClientMock();
+  SotaHttpClient sota_client(conf, http);
 
   std::string message(
       "[ "
@@ -87,7 +81,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   reader.parse(message, return_val);
 
   testing::DefaultValue<Json::Value>::Set(return_val);
-  EXPECT_CALL(http, get(conf.core.server + "/api/v1/mydevice/" +
+  EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" +
                         conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests =
       sota_client.getAvailableUpdates();
@@ -120,12 +114,12 @@ TEST(ReportTest, post_called) {
   reader.parse("{\"status\":\"ok\"}", return_val);
   testing::DefaultValue<Json::Value>::Set(return_val);
 
-  testing::NiceMock<HttpClientMock> http;
-  SotaHttpClient sota_client(conf, &http);
+  HttpClientMock *http = new HttpClientMock();
+  SotaHttpClient sota_client(conf, http);
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
-  EXPECT_CALL(http, post(url, update_report.toJson()["operation_results"]));
+  EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
   Json::Value result = sota_client.reportUpdateResult(update_report);
   EXPECT_EQ(result["status"].asString(), "ok");
 }
