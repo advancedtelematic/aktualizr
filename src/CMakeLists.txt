@@ -67,6 +67,18 @@ include_directories(
     src/dbusgateway/src-gen
 )
 
+if(STAGING_DIR_TARGET)
+
+set(COMMONAPI_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/CommonAPI-3.1)
+
+set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
+
+include_directories(${COMMONAPI_INCLUDE_DIRS})
+
+include_directories(${DBUS_INCLUDE_DIRS})
+
+else()
+
 ExternalProject_Get_Property(dbusapi install_dir)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
 
@@ -81,6 +93,8 @@ link_directories(
     ${install_dir}/lib
 )
 
+endif()
+
 set(DBUS_LIBS CommonAPI CommonAPI-DBus dbus-1)
 endif(BUILD_WITH_DBUS_GATEWAY)
 
@@ -93,7 +107,7 @@ add_executable(sota_client ${SOURCES} ${DBUS_SOURCES})
 # define libraries for the target
 target_link_libraries(sota_client ${LINK_LIBS} ${DBUS_LIBS})
 
-if(BUILD_WITH_DBUS_GATEWAY)
+if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
     add_dependencies(sota_client dbusapi)
     add_dependencies(dbusapi commonapi libdbus)
 endif(BUILD_WITH_DBUS_GATEWAY)
@@ -103,7 +117,7 @@ install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONE
 install(TARGETS sota_client RUNTIME  DESTINATION bin)
 install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  COMPONENT configuration)
 
-if(BUILD_WITH_DBUS_GATEWAY)
+if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
     install(DIRECTORY ${install_dir}/lib DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)

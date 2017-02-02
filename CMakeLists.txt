@@ -18,6 +18,7 @@ add_definitions(-DWITH_DBUS)
 
 include(ExternalProject)
 
+if(NOT STAGING_DIR_TARGET)
 ExternalProject_Add(libdbus
     DOWNLOAD_COMMAND ""
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/dbus-1.9.0
@@ -40,6 +41,7 @@ ExternalProject_Add(dbusapi
     PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_SOURCE_DIR}/third_party/common-api-dbus-runtime/patches/interface_and_session.patch
     BUILD_COMMAND ${MAKE}
     BUILD_IN_SOURCE 1)
+endif(NOT STAGING_DIR_TARGET)
 
 endif(BUILD_WITH_DBUS_GATEWAY)
 
