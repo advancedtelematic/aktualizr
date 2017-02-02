@@ -2,13 +2,20 @@
 #define DBUSGATEWAY_H_
 #include <CommonAPI/CommonAPI.hpp>
 #include <v1/org/genivi/SotaClientStubDefault.hpp>
+#include <v1/org/genivi/SoftwareLoadingManagerProxy.hpp>
+
 #include "commands.h"
 #include "events.h"
+#include "gateway.h"
+#include "config.h"
+using namespace v1::org::genivi;
 
-class DbusGateway: public v1::org::genivi::SotaClientStubDefault {
+
+class DbusGateway: public v1::org::genivi::SotaClientStubDefault, public Gateway {
 public:
-    DbusGateway(command::Channel *command_channel_in);
+    DbusGateway(const Config& config_in, command::Channel *command_channel_in);
     virtual ~DbusGateway();
+    virtual void processEvent(const boost::shared_ptr<event::BaseEvent> &event);
     /**
      * description: Sent by SC to start the download of an update previously announced
         as
@@ -40,6 +47,7 @@ private:
     command::Channel *command_channel;
     std::thread *thread;
     void process_events();
+    std::shared_ptr<SoftwareLoadingManagerProxy<> > swlm;
 
 
 

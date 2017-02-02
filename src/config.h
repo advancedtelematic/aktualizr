@@ -56,10 +56,11 @@ struct DeviceConfig {
 };
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), rvi(false), socket(false) {}
+  GatewayConfig() : http(true), rvi(false), socket(false), dbus(false) {}
   bool http;
   bool rvi;
   bool socket;
+  bool dbus;
 };
 
 struct NetworkConfig {

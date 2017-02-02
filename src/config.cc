@@ -131,4 +131,7 @@ void Config::updateFromCommandLine(
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
   }
+  if (cmd.count("gateway-dbus") != 0) {
+    gateway.dbus = cmd["gateway-dbus"].as<bool>();
+  }
 }

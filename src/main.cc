@@ -56,7 +56,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       "toml configuration file")("gateway-http", bpo::value<bool>(),
                                  "on/off the http gateway")(
       "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")(
-      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")
+      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")(
+      "gateway-dbus", bpo::value<bool>(), "on/off the dbus gateway")
 
       ;
 

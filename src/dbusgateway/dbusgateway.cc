@@ -1,12 +1,27 @@
 #include "dbusgateway.h"
 
 #include <boost/shared_ptr.hpp>
+#include <CommonAPI/CommonAPI.hpp>
+#include "dbusgateway/dbusgateway.h"
+#include "logger.h"
+
 
 #include "types.h"
 
-using namespace v1::org::genivi;
 
-DbusGateway::DbusGateway(command::Channel *command_channel_in):command_channel(command_channel_in) { }
+DbusGateway::DbusGateway(const Config& config_in, command::Channel *command_channel_in):command_channel(command_channel_in) { 
+
+  std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
+  swlm = runtime->buildProxy<SoftwareLoadingManagerProxy>(
+          "local", config_in.dbus.software_manager);
+  if (!swlm){
+    LOGGER_LOG(LVL_error, "DBUS session has not been found, exiting");\
+    exit(1);
+  }
+
+  runtime->registerService("local", config_in.dbus.interface, std::shared_ptr<DbusGateway>(this));
+
+}
 DbusGateway::~DbusGateway() { }
 
 
@@ -62,3 +77,66 @@ void DbusGateway::updateReport(const std::shared_ptr<CommonAPI::ClientId> _clien
     _reply();
 }
 
+void DbusGateway::processEvent(const boost::shared_ptr<event::BaseEvent> &event) {
+    if (event->variant == "DownloadComplete") {
+      event::DownloadComplete* download_complete_event =
+          static_cast<event::DownloadComplete*>(event.get());
+      if (swlm->isAvailable()) {
+        CommonAPI::CallStatus call_status;
+        LOGGER_LOG(LVL_info,
+                   "calling  downloadComplete dbus method of swlm service");
+        swlm->downloadComplete(
+            download_complete_event->download_complete.update_image,
+            download_complete_event->download_complete.signature, call_status);
+        if (call_status != CommonAPI::CallStatus::SUCCESS) {
+          LOGGER_LOG(LVL_error,
+                     "error of calling swlm.downloadComplete dbus method");
+        }
+      } else {
+        LOGGER_LOG(LVL_info, "no dbus interface is running, skipping "
+                                      "downloadComplete method call");
+      }
+
+      SotaClient::DownloadComplete download_complete_dbus;
+      download_complete_dbus.setUpdate_id(
+          download_complete_event->download_complete.update_id);
+      download_complete_dbus.setUpdate_image(
+          download_complete_event->download_complete.update_image);
+      download_complete_dbus.setSignature(
+          download_complete_event->download_complete.signature);
+      fireDownloadCompleteEvent(download_complete_dbus);
+
+    }
+    else if (event->variant == "InstalledSoftwareNeeded") {
+      LOGGER_LOG(LVL_info, "got InstalledSoftwareNeeded event");
+      fireInstalledSoftwareNeededEvent();
+    } else if (event->variant == "UpdateAvailable") {
+      LOGGER_LOG(LVL_info, "got UpdateAvailable event");
+      event::UpdateAvailable* update_available =
+          static_cast<event::UpdateAvailable*>(event.get());
+      SotaClient::UpdateAvailable update_available_dbus;
+      update_available_dbus.setUpdate_id(
+          update_available->update_vailable.update_id);
+      update_available_dbus.setDescription(
+          update_available->update_vailable.description);
+      update_available_dbus.setRequest_confirmation(
+          update_available->update_vailable.request_confirmation);
+      update_available_dbus.setSignature(
+          update_available->update_vailable.signature);
+      update_available_dbus.setSize(update_available->update_vailable.size);
+      fireUpdateAvailableEvent(update_available_dbus);
+    } else if (event->variant == "DownloadComplete") {
+      LOGGER_LOG(LVL_info, "got DownloadComplete event");
+      event::DownloadComplete* download_complete =
+          static_cast<event::DownloadComplete*>(event.get());
+      SotaClient::DownloadComplete download_complete_dbus;
+      download_complete_dbus.setUpdate_id(
+          download_complete->download_complete.update_id);
+      download_complete_dbus.setUpdate_image(
+          download_complete->download_complete.update_image);
+      download_complete_dbus.setSignature(
+          download_complete->download_complete.signature);
+      fireDownloadCompleteEvent(download_complete_dbus);
+    }
+
+}

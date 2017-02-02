@@ -15,7 +15,8 @@ using namespace v1::org::genivi;
 
 BOOST_AUTO_TEST_CASE(test_dbus_commands) {
     command::Channel c_chan;
-    DbusGateway g(&c_chan);
+    Config conf;
+    DbusGateway g(conf, &c_chan);
 
     std::shared_ptr<CommonAPI::ClientId>client;
     SotaClientStub::abortDownloadReply_t callback = []() { };
