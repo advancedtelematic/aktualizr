@@ -35,7 +35,11 @@ void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
     picojson::input<std::string::iterator> in(data.begin(), data.end());
     if (picojson::_parse(ctx, in)) {
       data.erase(data.begin(), in.cur());
-      *channel << command::BaseCommand::fromPicoJson(item);
+      try{
+        *channel << command::BaseCommand::fromPicoJson(item);
+      }catch(...){
+        LOGGER_LOG(LVL_error, "failed command deserealization: " << item);
+      }
     }
   }
   LOGGER_LOG(LVL_error,
