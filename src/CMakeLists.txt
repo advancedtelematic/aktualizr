@@ -53,50 +53,47 @@ set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPI
 
 if(BUILD_WITH_DBUS_GATEWAY)
 
-set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
-                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientStubDefault
-                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusDeployment
-                    src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusStubAdapter
-                    src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusProxy.cpp
-                    src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusDeployment
-)
-
-set(DBUS_HEADERS src/dbusgateway/dbusgateway.h )
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++0x")
-include_directories(
-    src/dbusgateway/src-gen
-)
-
-if(STAGING_DIR_TARGET)
-
-set(COMMONAPI_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/CommonAPI-3.1)
-
-set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
-
-include_directories(${COMMONAPI_INCLUDE_DIRS})
-
-include_directories(${DBUS_INCLUDE_DIRS})
-
-else()
-
-ExternalProject_Get_Property(dbusapi install_dir)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/include/CommonAPI-3.1)
-include_directories(${install_dir}/include/CommonAPI-3.1)
-
-include_directories(${install_dir}/include)
-
-link_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib
-    ${install_dir}/lib
-)
-
-endif()
-
-set(DBUS_LIBS CommonAPI CommonAPI-DBus dbus-1)
+    set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
+                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientStubDefault
+                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusDeployment
+                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusStubAdapter
+                        src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusProxy.cpp
+                        src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusDeployment
+    )
+    
+    set(DBUS_HEADERS src/dbusgateway/dbusgateway.h )
+    
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++0x")
+    include_directories(
+        src/dbusgateway/src-gen
+    )
+    
+    if(STAGING_DIR_TARGET)
+    
+        set(COMMONAPI_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/CommonAPI-3.1)
+        set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
+        include_directories(${COMMONAPI_INCLUDE_DIRS})
+        include_directories(${DBUS_INCLUDE_DIRS})
+    
+    else()
+    
+        ExternalProject_Get_Property(dbusapi install_dir)
+        include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
+        
+        include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/include/CommonAPI-3.1)
+        include_directories(${install_dir}/include/CommonAPI-3.1)
+    
+        include_directories(${install_dir}/include)
+        
+        link_directories(
+            ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib
+            ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib
+            ${install_dir}/lib
+        )
+    
+    endif()
+    
+    set(DBUS_LIBS CommonAPI CommonAPI-DBus dbus-1)
 endif(BUILD_WITH_DBUS_GATEWAY)
 
 ExternalProject_Get_Property(rvi_lib source_dir)
@@ -118,9 +115,8 @@ if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
     add_dependencies(dbusapi libdbus)
     add_dependencies(dbusapi commonapi)
     add_dependencies(sota_client dbusapi)
+    add_dependencies(sota_client rvi_lib)
 endif(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
-
-add_dependencies(sota_client rvi_lib)
 
 configure_file(distribution/sota.service.cmake distribution/sota.service)
 install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
@@ -131,4 +127,4 @@ if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
     install(DIRECTORY ${install_dir}/lib DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-endif(BUILD_WITH_DBUS_GATEWAY)
+endif(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)

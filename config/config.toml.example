@@ -27,7 +27,7 @@ system_info = "system_info.sh"
 [gateway]
 console = false
 dbus = false
-http = false
+http = true
 rvi = false
 socket = false
 websocket = false

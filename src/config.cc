@@ -143,6 +143,33 @@ void Config::updateFromToml(const std::string& filename) {
         "no 'network.socket_events' option have been found in config file: "
             << filename << ", Falling back to default value");
   }
+  
+  try {
+    gateway.socket = pt.get<bool>("gateway.socket");
+  } catch (...) {
+    LOGGER_LOG(
+        LVL_debug,
+        "no 'gateway.socket' option have been found in config file: "
+            << filename << ", Falling back to default value ");
+  }
+
+  try {
+    gateway.http = pt.get<bool>("gateway.http");
+  } catch (...) {
+    LOGGER_LOG(
+        LVL_debug,
+        "no 'gatewayi.http' option have been found in config file: "
+            << filename << ", Falling back to default");
+  }
+  
+  try {
+    gateway.rvi = pt.get<bool>("gateway.rvi");
+  } catch (...) {
+    LOGGER_LOG(
+        LVL_debug,
+        "no 'gatewayi.rvi' option have been found in config file: "
+            << filename << ", Falling back to default");
+  }
 
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
