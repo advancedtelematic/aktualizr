@@ -80,6 +80,7 @@ void SotaRVIClient::run() {
     int result = rviProcessInput(rvi, &connection, 1);
     if (result != 0) {
       LOGGER_LOG(LVL_error, "rviProcessInput error: " << result);
+      sleep(5);
     }
   }
 }
