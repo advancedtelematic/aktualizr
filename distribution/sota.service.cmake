@@ -1,10 +1,10 @@
 [Unit]
-Description=Sota Client
+Description=Aktualizr SOTA Client
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=${CMAKE_INSTALL_PREFIX}/bin/sota_client -c /etc/sota.conf
+ExecStart=${CMAKE_INSTALL_PREFIX}/bin/aktualizr -c /etc/sota.conf
 Restart=always
 
 [Install]

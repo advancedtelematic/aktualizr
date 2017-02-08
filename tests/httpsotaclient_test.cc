@@ -28,7 +28,7 @@ TEST(AuthenticateTest, authenticate_called) {
   conf.auth.client_secret = "client_secret_test";
   HttpClientMock *http = new HttpClientMock();
   EXPECT_CALL(*http, authenticate(conf.auth));
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient aktualizr(conf, http);
 }
 
 TEST(DownloadTest, download_called) {
@@ -39,13 +39,13 @@ TEST(DownloadTest, download_called) {
   data::UpdateRequestId update_request_id = "testupdateid";
 
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient aktualizr(conf, http);
 
   EXPECT_CALL(
       *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
                          update_request_id + "/download",
                      conf.device.packages_dir + update_request_id));
-  Json::Value result = sota_client.downloadUpdate(update_request_id);
+  Json::Value result = aktualizr.downloadUpdate(update_request_id);
   EXPECT_EQ(result["updateId"].asString(), update_request_id);
   EXPECT_EQ(result["resultCode"].asInt(), 0);
   EXPECT_EQ(result["resultText"].asString(), "Downloaded");
@@ -57,7 +57,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   conf.device.uuid = "test_uuid";
 
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient aktualizr(conf, http);
 
   std::string message(
       "[ "
@@ -84,7 +84,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" +
                         conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests =
-      sota_client.getAvailableUpdates();
+      aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1);
   EXPECT_EQ(update_requests[0].packageId.name, "treehub-ota-raspberrypi3");
   EXPECT_EQ(update_requests[0].status, data::UpdateRequestStatus::Pending);
@@ -115,12 +115,12 @@ TEST(ReportTest, post_called) {
   testing::DefaultValue<Json::Value>::Set(return_val);
 
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http);
+  SotaHttpClient aktualizr(conf, http);
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
   EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
-  Json::Value result = sota_client.reportUpdateResult(update_report);
+  Json::Value result = aktualizr.reportUpdateResult(update_report);
   EXPECT_EQ(result["status"].asString(), "ok");
 }
 

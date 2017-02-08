@@ -51,7 +51,7 @@ TEST(PostTest, post_performed) {
 TEST(GetTest, file_downloaded) {
   HttpClient http;
   std::string path = "/download";
-  std::string filename = "/tmp/sota_client_test_http.txt";
+  std::string filename = "/tmp/aktualizr_test_http.txt";
   bool result = http.download(server + path, filename);
   EXPECT_EQ(result, true);
   std::ifstream file_stream(filename);

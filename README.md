@@ -1,10 +1,10 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-[![TravisCI Build Status](https://travis-ci.org/advancedtelematic/sota_client_cpp.svg?branch=master)](https://travis-ci.org/advancedtelematic/sota_client_cpp)
-[![codecov](https://codecov.io/gh/advancedtelematic/sota_client_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/advancedtelematic/sota_client_cpp)
+[![TravisCI Build Status](https://travis-ci.org/advancedtelematic/aktualizr.svg?branch=master)](https://travis-ci.org/advancedtelematic/aktualizr)
+[![codecov](https://codecov.io/gh/advancedtelematic/aktualizr/branch/master/graph/badge.svg)](https://codecov.io/gh/advancedtelematic/aktualizr)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/539/badge)](https://bestpractices.coreinfrastructure.org/projects/539)
 
-sota_client_cpp
-------
+aktualizr
+---------
 
 This project houses the C++ reference implementation of a client for the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project. The client is intended to be installed on devices that wish to recive OTA updates from a GENIVI-compatible OTA server.
 
@@ -26,7 +26,7 @@ Usage
 Run the client and provide a yaml formatted configuration file using the commandline option -c or --config. The configuration file has to contain the OAuth2 server URL, the SOTA server URL, a valid clientID and according secret and a valid device UUID. See the example config file at config/config.yml.example. The client will use the clientID and according secret to get an OAuth2 token from the authorization server which is then used to send API requests to the SOTA server.
 
 ~~~
-sota_client -c <path/configfile>
+aktualizr -c <path/configfile>
 ~~~
 
 Dependencies
@@ -46,11 +46,12 @@ The following debian packages are used in the project:
  - libcurl4-openssl-dev (>= 7.47)
  - cmake (>= 3.5.1)
  - lcov (when building for code coverage)
+ - google-mock
 
 Building
 ------
 
-The `sota_client` is built using CMake. To setup your `build` directory:
+`aktualizr` is built using CMake. To setup your `build` directory:
 
 ~~~
 mkdir build
@@ -107,32 +108,32 @@ Building / Testing with Docker
 A Dockerfile is provided to support building / testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
 
 ~~~
-docker build -t advancedtelematic/sota_client_cpp .
+docker build -t advancedtelematic/aktualizr .
 ~~~
 
 and run
 
 ~~~
-docker run --rm -it advancedtelematic/sota_client_cpp make
+docker run --rm -it advancedtelematic/aktualizr make
 ~~~
 
 to build the software,
 
 ~~~
-docker run --rm -it advancedtelematic/sota_client_cpp make test
+docker run --rm -it advancedtelematic/aktualizr make test
 ~~~
 
 to run the tests, and
 
 ~~~
-docker run --rm -it advancedtelematic/sota_client_cpp build/target/sota_client
+docker run --rm -it advancedtelematic/aktualizr build/target/aktualizr
 ~~~
 
 to run the client. If you want the build artifacts to appear on your host machine (outside of the docker container), you can try
 
 ~~~
 mkdir build
-docker run --rm -it --read-only -u $UID -v $PWD/build:/source/build advancedtelematic/sota_client_cpp make
+docker run --rm -it --read-only -u $UID -v $PWD/build:/source/build advancedtelematic/aktualizr make
 ~~~
 
-though be aware that the output binary (`build/target/sota_client`) may have dynamic linking requirements that are not met by your host environment. Also note that running the linting rule (`make qa`) may attempt to modify the source files in the Docker container. If the linting rule is run with `-u $UID` or `--read-only`, the execution will fail with an `llvm` segfault when the linter outputs the source files.
+though be aware that the output binary (`build/target/aktualizr`) may have dynamic linking requirements that are not met by your host environment. Also note that running the linting rule (`make qa`) may attempt to modify the source files in the Docker container. If the linting rule is run with `-u $UID` or `--read-only`, the execution will fail with an `llvm` segfault when the linter outputs the source files.

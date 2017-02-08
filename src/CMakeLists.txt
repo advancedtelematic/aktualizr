@@ -99,19 +99,19 @@ endif(BUILD_WITH_DBUS_GATEWAY)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
 # set the name of the executable
-add_executable(sota_client ${SOURCES} ${DBUS_SOURCES})
+add_executable(aktualizr ${SOURCES} ${DBUS_SOURCES})
 
 # define libraries for the target
-target_link_libraries(sota_client ${LINK_LIBS} ${DBUS_LIBS})
+target_link_libraries(aktualizr ${LINK_LIBS} ${DBUS_LIBS})
 
 if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
-    add_dependencies(sota_client dbusapi)
+    add_dependencies(aktualizr dbusapi)
     add_dependencies(dbusapi commonapi libdbus)
 endif(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
 
 configure_file(distribution/sota.service.cmake distribution/sota.service)
 install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
-install(TARGETS sota_client RUNTIME  DESTINATION bin)
+install(TARGETS aktualizr RUNTIME  DESTINATION bin)
 install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  COMPONENT configuration)
 
 if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)

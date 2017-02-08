@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-project(sota_client_cpp)
+project(aktualizr)
 
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
