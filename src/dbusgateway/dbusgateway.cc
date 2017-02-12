@@ -1,142 +1,191 @@
 #include "dbusgateway.h"
 
 #include <boost/shared_ptr.hpp>
-#include <CommonAPI/CommonAPI.hpp>
-#include "dbusgateway/dbusgateway.h"
 #include "logger.h"
-
-
 #include "types.h"
 
-
-DbusGateway::DbusGateway(const Config& config_in, command::Channel *command_channel_in):command_channel(command_channel_in) { 
-
-  std::shared_ptr<CommonAPI::Runtime> runtime = CommonAPI::Runtime::get();
-  swlm = runtime->buildProxy<SoftwareLoadingManagerProxy>(
-          "local", config_in.dbus.software_manager);
-  if (!swlm){
-    LOGGER_LOG(LVL_error, "DBUS session has not been found, exiting");\
-    exit(1);
+DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in) : config(config_in), command_channel(command_channel_in), swlm(config) {
+  int ret;
+  dbus_error_init(&err);
+  conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
+  if (dbus_error_is_set(&err)) {
+    LOGGER_LOG(LVL_error, "Dbus Connection Error: " << err.message);
+    dbus_error_free(&err);
+    return;
   }
 
-  runtime->registerService("local", config_in.dbus.interface, std::shared_ptr<DbusGateway>(this));
-
-}
-DbusGateway::~DbusGateway() { }
-
-
-/**
- * description: Sent by SC to start the download of an update previously announced
-    as
- *   available through an update_available() call made from SC to
-    SWLM.
- */
-void DbusGateway::initiateDownload(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, initiateDownloadReply_t _reply) {
-    (void)_client;
-    *command_channel <<  boost::shared_ptr<command::StartDownload>(new command::StartDownload(_updateId));
-    _reply();
+  ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
+  if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
+    LOGGER_LOG(LVL_error, "Cannot request Dbus name '" << config_in.dbus.interface << "' as primary owner");
+    return;
+  }
+  boost::thread(boost::bind(&DbusGateway::run, this));
 }
 
-/**
- * description: Abort a download previously initiated with initiate_download().
-    Invoked by
- *   SWLM in response to an error or an explicit
-    request sent by HMI to SWLM in
- *   response to a user abort.
- */
-void DbusGateway::abortDownload(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, abortDownloadReply_t _reply) {
-    (void)_client;
-    *command_channel <<  boost::shared_ptr<command::AbortDownload>(new command::AbortDownload(_updateId));
-
-    _reply();
+DbusGateway::~DbusGateway() {
+  dbus_bus_release_name(conn, config.dbus.interface.c_str(), NULL);
+  dbus_connection_unref(conn);
 }
 
-/**
- * description: Receive an update report from SWLM with the processing result of all
-    bundled
- *   operations.
-    An update report message can either be sent in response
-    to an
- *   downloadComplete() message transmitted from SC to SWLM,
-    or be sent
- *   unsolicited by SWLM to SC
- */
-void DbusGateway::updateReport(const std::shared_ptr<CommonAPI::ClientId> _client, std::string _updateId, std::vector<SotaClient::OperationResult> _operationsResults, updateReportReply_t _reply) {
-    (void)_client;
-    data::UpdateReport update_report;
-    for(SotaClient::OperationResult dbus_operation_result : _operationsResults){
-        data::OperationResult operation_result;
-        operation_result.id = dbus_operation_result.getId();
-        operation_result.result_code = static_cast<data::UpdateResultCode>(static_cast<int32_t>(dbus_operation_result.getResultCode()));
-        operation_result.result_text = dbus_operation_result.getResultText();
-        update_report.operation_results.push_back(operation_result);
+void DbusGateway::processEvent(const boost::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "DownloadComplete") {
+    event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
+    swlm.downloadComplete(download_complete_event->download_complete.update_image, download_complete_event->download_complete.signature);
+    fireDownloadCompleteEvent(download_complete_event->download_complete);
+  } else if (event->variant == "InstalledSoftwareNeeded") {
+    fireInstalledSoftwareNeededEvent();
+  } else if (event->variant == "UpdateAvailable") {
+    event::UpdateAvailable* update_vailable_event = static_cast<event::UpdateAvailable*>(event.get());
+    fireUpdateAvailableEvent(update_vailable_event->update_vailable);
+  }
+}
+
+void DbusGateway::fireInstalledSoftwareNeededEvent() {
+  DBusMessage* msg;
+  msg = dbus_message_new_signal(config.dbus.path.c_str(), config.dbus.interface.c_str(), "InstalledSoftwareNeeded");
+
+  dbus_connection_send(conn, msg, NULL);
+
+  dbus_message_unref(msg);
+}
+
+void DbusGateway::fireUpdateAvailableEvent(const data::UpdateAvailable& update_available) {
+  DBusMessage* msg;
+  DBusMessageIter iter;
+
+  msg = dbus_message_new_signal(config.dbus.path.c_str(), config.dbus.interface.c_str(), "UpdateAvailable");
+
+  dbus_message_iter_init_append(msg, &iter);
+
+  DBusMessageIter sub_iter;
+  dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, NULL, &sub_iter);
+  const char* update_id = update_available.update_id.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &update_id);
+  const char* description = update_available.description.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &description);
+  const char* signature = update_available.signature.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &signature);
+  unsigned long long size = update_available.size;
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_UINT64, &size);
+
+  dbus_message_iter_close_container(&iter, &sub_iter);
+
+  dbus_connection_send(conn, msg, NULL);
+
+  dbus_message_unref(msg);
+}
+
+void DbusGateway::fireDownloadCompleteEvent(const data::DownloadComplete& download_complete) {
+  DBusMessage* msg;
+  DBusMessageIter iter;
+
+  msg = dbus_message_new_signal(config.dbus.path.c_str(), config.dbus.interface.c_str(), "DownloadComplete");
+  dbus_message_iter_init_append(msg, &iter);
+
+  DBusMessageIter sub_iter;
+  dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, NULL, &sub_iter);
+  const char* update_id = download_complete.update_id.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &update_id);
+  const char* update_image = download_complete.update_image.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &update_image);
+  const char* signature = download_complete.signature.c_str();
+  dbus_message_iter_append_basic(&sub_iter, DBUS_TYPE_STRING, &signature);
+  dbus_message_iter_close_container(&iter, &sub_iter);
+
+  dbus_connection_send(conn, msg, NULL);
+  dbus_message_unref(msg);
+}
+
+void DbusGateway::run() {
+  DBusMessage* msg;
+  char* string_param;
+  DBusMessageIter args;
+
+  while (true) {
+    dbus_connection_read_write(conn, 0);
+    msg = dbus_connection_pop_message(conn);
+    if (NULL == msg) {
+      sleep(1);
+      continue;
     }
-    update_report.update_id = _updateId;
-    *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
 
-    _reply();
-}
-
-void DbusGateway::processEvent(const boost::shared_ptr<event::BaseEvent> &event) {
-    if (event->variant == "DownloadComplete") {
-      event::DownloadComplete* download_complete_event =
-          static_cast<event::DownloadComplete*>(event.get());
-      if (swlm->isAvailable()) {
-        CommonAPI::CallStatus call_status;
-        LOGGER_LOG(LVL_info,
-                   "calling  downloadComplete dbus method of swlm service");
-        swlm->downloadComplete(
-            download_complete_event->download_complete.update_image,
-            download_complete_event->download_complete.signature, call_status);
-        if (call_status != CommonAPI::CallStatus::SUCCESS) {
-          LOGGER_LOG(LVL_error,
-                     "error of calling swlm.downloadComplete dbus method");
-        }
+    if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "initiateDownload") ||
+        dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "abortDownload") ||
+        dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "updateReport")) {
+      if (!dbus_message_iter_init(msg, &args) || DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args)) {
+        LOGGER_LOG(LVL_error, "dbus method initiateDownload called with wrong arguments");
+        dbus_message_unref(msg);
+        continue;
       } else {
-        LOGGER_LOG(LVL_info, "no dbus interface is running, skipping "
-                                      "downloadComplete method call");
+        dbus_message_iter_get_basic(&args, &string_param);
       }
-
-      SotaClient::DownloadComplete download_complete_dbus;
-      download_complete_dbus.setUpdate_id(
-          download_complete_event->download_complete.update_id);
-      download_complete_dbus.setUpdate_image(
-          download_complete_event->download_complete.update_image);
-      download_complete_dbus.setSignature(
-          download_complete_event->download_complete.signature);
-      fireDownloadCompleteEvent(download_complete_dbus);
-
     }
-    else if (event->variant == "InstalledSoftwareNeeded") {
-      LOGGER_LOG(LVL_info, "got InstalledSoftwareNeeded event");
-      fireInstalledSoftwareNeededEvent();
-    } else if (event->variant == "UpdateAvailable") {
-      LOGGER_LOG(LVL_info, "got UpdateAvailable event");
-      event::UpdateAvailable* update_available =
-          static_cast<event::UpdateAvailable*>(event.get());
-      SotaClient::UpdateAvailable update_available_dbus;
-      update_available_dbus.setUpdate_id(
-          update_available->update_vailable.update_id);
-      update_available_dbus.setDescription(
-          update_available->update_vailable.description);
-      update_available_dbus.setRequest_confirmation(
-          update_available->update_vailable.request_confirmation);
-      update_available_dbus.setSignature(
-          update_available->update_vailable.signature);
-      update_available_dbus.setSize(update_available->update_vailable.size);
-      fireUpdateAvailableEvent(update_available_dbus);
-    } else if (event->variant == "DownloadComplete") {
-      LOGGER_LOG(LVL_info, "got DownloadComplete event");
-      event::DownloadComplete* download_complete =
-          static_cast<event::DownloadComplete*>(event.get());
-      SotaClient::DownloadComplete download_complete_dbus;
-      download_complete_dbus.setUpdate_id(
-          download_complete->download_complete.update_id);
-      download_complete_dbus.setUpdate_image(
-          download_complete->download_complete.update_image);
-      download_complete_dbus.setSignature(
-          download_complete->download_complete.signature);
-      fireDownloadCompleteEvent(download_complete_dbus);
+    if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "initiateDownload")) {
+      *command_channel << boost::shared_ptr<command::StartDownload>(new command::StartDownload(string_param));
+    } else if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "abortDownload")) {
+      *command_channel << boost::shared_ptr<command::AbortDownload>(new command::AbortDownload(string_param));
+    } else if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "updateReport")) {
+      data::UpdateReport update_report;
+      update_report.update_id = string_param;
+      if (dbus_message_iter_next(&args) && DBUS_TYPE_ARRAY == dbus_message_iter_get_arg_type(&args)) {
+        DBusMessageIter operation_result_args;
+        int results_count = dbus_message_iter_get_element_count(&args);
+        dbus_message_iter_recurse(&args, &operation_result_args);
+        do {
+          try {
+            update_report.operation_results.push_back(getOperationResult(&operation_result_args));
+          } catch (...) {
+            LOGGER_LOG(LVL_error, "dbus method 'updateReport' called with wrong arguments");
+          }
+          dbus_message_iter_next(&operation_result_args);
+          results_count--;
+        } while (results_count);
+
+      } else {
+        LOGGER_LOG(LVL_error, "dbus methid called with wrong argents");
+        dbus_message_unref(msg);
+        continue;
+      }
+      *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
     }
 
+    DBusMessage* reply = dbus_message_new_method_return(msg);
+    dbus_connection_send(conn, reply, NULL);
+    dbus_connection_flush(conn);
+
+    dbus_message_unref(reply);
+    dbus_message_unref(msg);
+  }
+}
+
+data::OperationResult DbusGateway::getOperationResult(DBusMessageIter* iter) {
+  DBusMessageIter subiter, dict_iter, variant_iter;
+  char* string_param;
+  int int_param;
+  data::OperationResult result;
+  int params = dbus_message_iter_get_element_count(iter);
+  dbus_message_iter_recurse(iter, &subiter);
+  if (DBUS_TYPE_ARRAY == dbus_message_iter_get_arg_type(iter)) {
+    while (params) {
+      dbus_message_iter_recurse(&subiter, &dict_iter);
+      dbus_message_iter_get_basic(&dict_iter, &string_param);
+      dbus_message_iter_next(&dict_iter);
+      dbus_message_iter_recurse(&dict_iter, &variant_iter);
+      if (std::string(string_param) == "id") {
+        dbus_message_iter_get_basic(&variant_iter, &string_param);
+        result.id = string_param;
+        dbus_message_iter_next(&subiter);
+      } else if (std::string(string_param) == "result_code") {
+        dbus_message_iter_get_basic(&variant_iter, &int_param);
+        result.result_code = (data::UpdateResultCode)int_param;
+        dbus_message_iter_next(&subiter);
+      } else if (std::string(string_param) == "result_text") {
+        dbus_message_iter_get_basic(&variant_iter, &string_param);
+        result.result_text = string_param;
+        dbus_message_iter_next(&subiter);
+      }
+      params--;
+    }
+  }
+  return result;
 }
