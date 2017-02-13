@@ -1,10 +1,10 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 [![TravisCI Build Status](https://travis-ci.org/advancedtelematic/aktualizr.svg?branch=master)](https://travis-ci.org/advancedtelematic/aktualizr)
 [![codecov](https://codecov.io/gh/advancedtelematic/aktualizr/branch/master/graph/badge.svg)](https://codecov.io/gh/advancedtelematic/aktualizr)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/539/badge)](https://bestpractices.coreinfrastructure.org/projects/539)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/674/badge)](https://bestpractices.coreinfrastructure.org/projects/674)
 
 aktualizr
----------
+------
 
 This project houses the C++ reference implementation of a client for the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project. The client is intended to be installed on devices that wish to recive OTA updates from a GENIVI-compatible OTA server.
 
