@@ -42,7 +42,6 @@ TEST(DownloadTest, download_called) {
   conf.device.packages_dir = "/tmp/";
   data::UpdateRequestId update_request_id = "testupdateid";
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient aktualizr(conf, http);
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 

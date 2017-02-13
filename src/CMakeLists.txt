@@ -66,7 +66,7 @@ if(BUILD_WITH_DBUS_GATEWAY)
         set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
         include_directories(${DBUS_INCLUDE_DIRS})
     else()
-        target_compile_options(sota_client PUBLIC ${LIBDBUS_CFLAGS})
+        target_compile_options(aktualizr PUBLIC ${LIBDBUS_CFLAGS})
     endif()
     
     set(DBUS_LIBS ${LIBDBUS_LIBRARIES})

@@ -77,7 +77,7 @@ TEST(CommandsTest, DownloadCompleteSignal_sent) {
   download_complete.update_image = "/tmp/img.test";
   download_complete.signature = "signature";
   gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::DownloadComplete(download_complete)));
-  sleep(1);
+  sleep(2);
 
   std::ifstream file_stream("/tmp/dbustestclient.txt");
   std::string content;
@@ -100,7 +100,7 @@ TEST(CommandsTest, UpdateAvailableSignal_sent) {
   gateway.fireUpdateAvailableEvent(update_available);
   gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::UpdateAvailable(update_available)));
 
-  sleep(1);
+  sleep(2);
 
   std::ifstream file_stream("/tmp/dbustestclient.txt");
   std::string content;
@@ -117,7 +117,7 @@ TEST(CommandsTest, InstalledSoftwareNeededSignal_sent) {
   DbusGateway gateway(conf, chan);
 
   gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::InstalledSoftwareNeeded()));
-  sleep(1);
+  sleep(2);
 
   std::ifstream file_stream("/tmp/dbustestclient.txt");
   std::string content;
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     fake_path = argv[1];
     std::string cmd = "python " + fake_path + "dbus_recieve.py &";
     system(cmd.c_str());
-    sleep(1);
+    sleep(2);
   }
   return RUN_ALL_TESTS();
 }
