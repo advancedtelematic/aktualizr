@@ -56,10 +56,11 @@ struct DeviceConfig {
 };
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), rvi(false), socket(false) {}
+  GatewayConfig() : http(true), rvi(false), socket(false), dbus(false) {}
   bool http;
   bool rvi;
   bool socket;
+  bool dbus;
 };
 
 struct NetworkConfig {
@@ -74,6 +75,15 @@ struct NetworkConfig {
   std::vector<std::string> socket_events;
 };
 
+class RviConfig {
+ public:
+  RviConfig()
+      : node_host("localhost"), node_port("8810"), client_config("conf.json") {}
+  std::string node_host;
+  std::string node_port;
+  std::string client_config;
+};
+
 class Config {
  public:
   void updateFromToml(const std::string &filename);
@@ -85,6 +95,8 @@ class Config {
   DeviceConfig device;
   DbusConfig dbus;
   GatewayConfig gateway;
+  RviConfig rvi;
   NetworkConfig network;
 };
+
 #endif  // CONFIG_H_

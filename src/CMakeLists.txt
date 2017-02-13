@@ -6,6 +6,7 @@ find_package(Boost COMPONENTS system thread program_options log log_setup regex 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_search_module(LIBCURL REQUIRED libcurl)
+pkg_search_module(LIBDBUS REQUIRED dbus-1)
 pkg_search_module(LIBOPENSSL REQUIRED libssl)
 
 # configure libraries
@@ -16,8 +17,7 @@ set(LINK_LIBS ${CMAKE_THREAD_LIBS_INIT}
               ${Boost_LOG_SETUP_LIBRARIES}
               ${Boost_PROGRAM_OPTIONS_LIBRARY}
               ${Boost_REGEX_LIBRARY}
-              ${LIBCURL_LIBRARIES}
-              ${SYSTEMD_LIBRARIES})
+              ${LIBCURL_LIBRARIES})
 
 
 # set source files excluded main for using the list for the test target
@@ -25,75 +25,34 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/logger.cc
             src/httpclient.cc
             src/sotahttpclient.cc
-            src/httpcommandinterpreter.cc
+            src/commandinterpreter.cc
             src/config.cc
             src/events.cc
             src/commands.cc
             src/types.cc
             src/main.cc
+            src/sotarviclient.cc
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc)
 
-set(HEADERS src/logger.h
-            src/config.h
-            src/interpreter.h
-            src/httpclient.h
-            src/sotahttpclient.h
-            src/events.h
-            src/commands.h
-            src/types.h
-            )
+            
+if(BUILD_WITH_DBUS_GATEWAY)
+    set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
+                        src/dbusgateway/swlm.cc)
+endif(BUILD_WITH_DBUS_GATEWAY)
 
 
 include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
-if(BUILD_WITH_DBUS_GATEWAY)
 
-    set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
-                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientStubDefault
-                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusDeployment
-                        src/dbusgateway/src-gen/v1/org/genivi/SotaClientDBusStubAdapter
-                        src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusProxy.cpp
-                        src/dbusgateway/src-gen/v1/org/genivi/SoftwareLoadingManagerDBusDeployment
-    )
-    
-    set(DBUS_HEADERS src/dbusgateway/dbusgateway.h )
-    
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++0x")
-    include_directories(
-        src/dbusgateway/src-gen
-    )
-    
-    if(STAGING_DIR_TARGET)
-    
-        set(COMMONAPI_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/CommonAPI-3.1)
-        set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
-        include_directories(${COMMONAPI_INCLUDE_DIRS})
-        include_directories(${DBUS_INCLUDE_DIRS})
-    
-    else()
-    
-        ExternalProject_Get_Property(dbusapi install_dir)
-        include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/include/)
-        
-        include_directories(${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/include/CommonAPI-3.1)
-        include_directories(${install_dir}/include/CommonAPI-3.1)
-    
-        include_directories(${install_dir}/include)
-        
-        link_directories(
-            ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib
-            ${install_dir}/lib
-        )
-    
-    endif()
-    
-    set(DBUS_LIBS CommonAPI CommonAPI-DBus dbus-1)
-endif(BUILD_WITH_DBUS_GATEWAY)
+ExternalProject_Get_Property(rvi_lib source_dir)
+set(RVI_INCLUDE_DIR ${source_dir}/include)
+include_directories(${RVI_INCLUDE_DIR})
+set(RVI_LINK_DIR ${source_dir}/src/.libs)
+link_directories(${RVI_LINK_DIR})
 
 # set output folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
@@ -101,21 +60,26 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 # set the name of the executable
 add_executable(sota_client ${SOURCES} ${DBUS_SOURCES})
 
-# define libraries for the target
-target_link_libraries(sota_client ${LINK_LIBS} ${DBUS_LIBS})
+if(BUILD_WITH_DBUS_GATEWAY)
 
-if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
-    add_dependencies(sota_client dbusapi)
-    add_dependencies(dbusapi commonapi libdbus)
-endif(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
+    if(STAGING_DIR_TARGET)
+        set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
+        include_directories(${DBUS_INCLUDE_DIRS})
+    else()
+        target_compile_options(sota_client PUBLIC ${LIBDBUS_CFLAGS})
+    endif()
+    
+    set(DBUS_LIBS ${LIBDBUS_LIBRARIES})
+endif(BUILD_WITH_DBUS_GATEWAY)
 
+target_link_libraries(sota_client ${LINK_LIBS} ${DBUS_LIBS} rvi)
+
+add_dependencies(sota_client rvi_lib)
+
+
+
+################## INSTALL RULES
 configure_file(distribution/sota.service.cmake distribution/sota.service)
 install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
 install(TARGETS sota_client RUNTIME  DESTINATION bin)
 install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  COMPONENT configuration)
-
-if(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libdbus_build/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/commonapi_install/lib/ DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-    install(DIRECTORY ${install_dir}/lib DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-endif(BUILD_WITH_DBUS_GATEWAY AND NOT STAGING_DIR_TARGET)

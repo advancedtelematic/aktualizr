@@ -3,22 +3,31 @@
 
 #include <vector>
 
+#include "commands.h"
 #include "config.h"
+#include "events.h"
 #include "httpclient.h"
+#include "sotaclient.h"
 #include "types.h"
 
-class SotaHttpClient {
+class SotaHttpClient : public SotaClient {
  public:
-  SotaHttpClient(const Config &config_in);
-  SotaHttpClient(const Config &config_in, HttpClient *http_in);
+  SotaHttpClient(const Config &config_in, event::Channel *events_channel_in,
+                 command::Channel *commands_channel_in);
+  SotaHttpClient(const Config &config_in, HttpClient *http_in,
+                 event::Channel *events_channel_in,
+                 command::Channel *commands_channel_in);
   ~SotaHttpClient();
   std::vector<data::UpdateRequest> getAvailableUpdates();
-  Json::Value downloadUpdate(const data::UpdateRequestId &update_request_id);
-  Json::Value reportUpdateResult(data::UpdateReport &update_report);
+  virtual void startDownload(const data::UpdateRequestId &update_request_id);
+  virtual void sendUpdateReport(data::UpdateReport update_report);
+  void run();
 
  private:
   Config config;
   HttpClient *http;
+  event::Channel *events_channel;
+  command::Channel *commands_channel;
   std::string core_url;
 };
 
