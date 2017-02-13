@@ -16,6 +16,10 @@ struct BaseCommand {
   Json::Value toJson();
   static boost::shared_ptr<BaseCommand> fromPicoJson(
       const picojson::value& json);
+  template <typename T>
+  T* toChild() {
+    return (T*)this;
+  };
 };
 typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 

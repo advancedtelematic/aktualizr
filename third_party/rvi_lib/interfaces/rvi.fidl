@@ -1,0 +1,132 @@
+package org.genivi.rvi
+
+typeCollection rviTypes {
+	<** @description: Opaque handle for RVI Context **>
+	typedef handle is ByteBuffer
+	
+	typedef callback is ByteBuffer
+	
+	enumeration status {
+		RVI_OK = 0
+		RVI_ERR_OPENSSL = 100
+		RVI_ERR_NOCONFIG = 1001
+		RVI_ERR_JSON = 1002
+		RVI_ERR_SERVCERT = 1003
+		RVI_ERR_CLIENTCERT = 1004
+		RVI_ERR_NORCVCERT = 1005
+		RVI_ERR_STREAMEND = 1006
+		RVI_ERR_NOCRED = 1007
+		RVI_ERR_NOCMD = 1008
+		RVI_ERR_RIGHTS = 1009
+	}
+}
+
+interface RVI {
+	version { major 0 minor 1 }
+	
+	method init {
+		in {
+			String filename
+		}
+		out {
+			<** @description: a handle for the rvi context **>
+			rviTypes.handle handle
+		}
+	}
+	
+	method cleanup {
+		in {
+			rviTypes.handle handle
+		}
+		out {
+			rviTypes.status stat
+		}
+	}
+	
+	method connect {
+		in {
+			rviTypes.handle handle
+			String addr
+			String port
+		}
+		out {
+			Integer fildesOrError
+		}
+	}
+	
+	method disconnect {
+		in {
+			rviTypes.handle handle
+			UInt16 fildes
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+	
+	method getConnections {
+		in {
+			rviTypes.handle handle
+			UInt16[] connections
+			UInt32 connectionSize
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+	
+	method registerService {
+		in {
+			rviTypes.handle handle
+			rviTypes.callback callbackFunction
+			ByteBuffer serviceData
+			UInt32 sizeOfServiceData
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+	
+	method unregisterService {
+		in {
+			rviTypes.handle handle
+			String serviceName
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+	
+	method getServices {
+		in {
+			rviTypes.handle handle
+			String[] services
+			UInt32 sizeOfServices
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+	
+	method invokeService {
+		in {
+			rviTypes.handle handle
+			String service
+			String jsonParameters
+		}
+		out {
+			rviTypes.status status
+		}
+	} 
+	
+	method processMessageOnConnections {
+		in {
+			rviTypes.handle handle
+			UInt16[] connections
+			UInt32 sizeOfConnections
+		}
+		out {
+			rviTypes.status status
+		}
+	}
+}

@@ -106,6 +106,33 @@ void Config::updateFromToml(const std::string& filename) {
   }
 
   try {
+    rvi.node_host = getStringValue(pt, "rvi.node_host");
+  } catch (...) {
+    LOGGER_LOG(LVL_debug,
+               "no 'rvi.node_host' option have been found in config file: "
+                   << filename
+                   << ", Falling back to default: " << rvi.node_host);
+  }
+
+  try {
+    rvi.node_port = getStringValue(pt, "rvi.node_port");
+  } catch (...) {
+    LOGGER_LOG(LVL_debug,
+               "no 'rvi.node_port' option have been found in config file: "
+                   << filename
+                   << ", Falling back to default: " << rvi.node_port);
+  }
+
+  try {
+    rvi.client_config = getStringValue(pt, "rvi.client_config");
+  } catch (...) {
+    LOGGER_LOG(LVL_debug,
+               "no 'rvi.client_config' option have been found in config file: "
+                   << filename
+                   << ", Falling back to default: " << rvi.client_config);
+  }
+
+  try {
     std::string events_string = getStringValue(pt, "network.socket_events");
     network.socket_events.empty();
     boost::split(network.socket_events, events_string, boost::is_any_of(", "),
@@ -157,5 +184,8 @@ void Config::updateFromCommandLine(
   }
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
+  }
+  if (cmd.count("gateway-dbus") != 0) {
+    gateway.dbus = cmd["gateway-dbus"].as<bool>();
   }
 }

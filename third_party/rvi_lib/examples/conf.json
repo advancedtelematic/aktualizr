@@ -1,0 +1,12 @@
+{
+  "dev": {
+    "key":  "./ex/keys/insecure_device_key.pem",
+    "cert": "./ex/certificates/insecure_device_cert.crt",
+    "id": "genivi.org/client/bbfbb478-d628-480a-8528-cff40d73678f"
+  },
+  "ca": {
+    "cert": "./ex/certificates/insecure_root_cert.crt",
+    "dir":  "./ex/certificates"
+  },
+  "creddir": "ex/credentials/"
+}
