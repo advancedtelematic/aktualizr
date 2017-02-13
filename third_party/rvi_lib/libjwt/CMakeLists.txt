@@ -60,7 +60,7 @@ install(TARGETS ${LIBRARY_NAME} ${LIBRARY_NAME}_static
 
 install(FILES include/jwt.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/jwt")
 
-if (CHECK_FOUND)
+if (FALSE AND CHECK_FOUND)
   include_directories(${CHECK_INCLUDE_DIRS})
   link_directories(${CHECK_LIBRARY_DIRS})
   add_definitions(${CHECK_CFLAGS_OTHER} -DKEYDIR="${PROJECT_SOURCE_DIR}/tests/keys")
@@ -82,4 +82,4 @@ if (CHECK_FOUND)
   InitialiseTest(jwt_new tests/jwt_new.c)
   InitialiseTest(jwt_rsa tests/jwt_rsa.c)
   InitialiseTest(jwt_ec tests/jwt_ec.c)
-endif (CHECK_FOUND)
+endif (FALSE AND CHECK_FOUND)
