@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(config_toml_parsing_empty_file) {
 BOOST_AUTO_TEST_CASE(config_cmdl_parsing) {
   Config conf;
   int argc = 7;
-  const char *argv[] = {"./sota_client",
+  const char *argv[] = {"./aktualizr",
                         "--gateway-http",
                         "off",
                         "--gateway-rvi",

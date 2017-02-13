@@ -58,7 +58,7 @@ link_directories(${RVI_LINK_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
 
 # set the name of the executable
-add_executable(sota_client ${SOURCES} ${DBUS_SOURCES})
+add_executable(aktualizr ${SOURCES} ${DBUS_SOURCES})
 
 if(BUILD_WITH_DBUS_GATEWAY)
 
@@ -66,20 +66,18 @@ if(BUILD_WITH_DBUS_GATEWAY)
         set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
         include_directories(${DBUS_INCLUDE_DIRS})
     else()
-        target_compile_options(sota_client PUBLIC ${LIBDBUS_CFLAGS})
+        target_compile_options(aktualizr PUBLIC ${LIBDBUS_CFLAGS})
     endif()
     
     set(DBUS_LIBS ${LIBDBUS_LIBRARIES})
 endif(BUILD_WITH_DBUS_GATEWAY)
 
-target_link_libraries(sota_client ${LINK_LIBS} ${DBUS_LIBS} rvi)
-
-add_dependencies(sota_client rvi_lib)
-
+target_link_libraries(aktualizr ${LINK_LIBS} ${DBUS_LIBS} rvi)
+add_dependencies(aktualizr rvi_lib)
 
 
 ################## INSTALL RULES
 configure_file(distribution/sota.service.cmake distribution/sota.service)
 install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
-install(TARGETS sota_client RUNTIME  DESTINATION bin)
+install(TARGETS aktualizr RUNTIME  DESTINATION bin)
 install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  COMPONENT configuration)

@@ -24,7 +24,7 @@ TEST(SWMTest, DownloadComplete_method_called) {
   download_complete.update_image = "/tmp/img.test";
   download_complete.signature = "signature";
   gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::DownloadComplete(download_complete)));
-  sleep(1);
+  sleep(2);
 
   std::ifstream file_stream("/tmp/dbustestswm.txt");
   std::string content;
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     fake_path = argv[1];
     std::string cmd = "python " + fake_path + "swm.py &";
     system(cmd.c_str());
-    sleep(1);
+    sleep(2);
   }
   return RUN_ALL_TESTS();
 }

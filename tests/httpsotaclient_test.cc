@@ -31,7 +31,7 @@ TEST(AuthenticateTest, authenticate_called) {
   command::Channel *commands_channel = new command::Channel();
 
   EXPECT_CALL(*http, authenticate(conf.auth));
-  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
   delete events_channel;
 }
 
@@ -42,18 +42,17 @@ TEST(DownloadTest, download_called) {
   conf.device.packages_dir = "/tmp/";
   data::UpdateRequestId update_request_id = "testupdateid";
   HttpClientMock *http = new HttpClientMock();
-
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 
-  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
 
 
   EXPECT_CALL(
       *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
                          update_request_id + "/download",
                      conf.device.packages_dir + update_request_id));
-  sota_client.startDownload(update_request_id);
+  aktualizr.startDownload(update_request_id);
   boost::shared_ptr<event::BaseEvent> ev;
   *events_channel >> ev;
   EXPECT_EQ(ev->variant, "DownloadComplete");
@@ -66,7 +65,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
   HttpClientMock *http = new HttpClientMock();
-  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
 
   std::string message(
       "[ "
@@ -93,7 +92,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" +
                         conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests =
-      sota_client.getAvailableUpdates();
+      aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1);
   EXPECT_EQ(update_requests[0].packageId.name, "treehub-ota-raspberrypi3");
   EXPECT_EQ(update_requests[0].status, data::UpdateRequestStatus::Pending);
@@ -129,13 +128,15 @@ TEST(ReportTest, post_called) {
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 
-  SotaHttpClient sota_client(conf, http, events_channel, commands_channel);
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
   EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
-  sota_client.sendUpdateReport(update_report);
+  aktualizr.sendUpdateReport(update_report);
   delete events_channel;
+
+
 }
 
 #ifndef __NO_MAIN__
