@@ -20,6 +20,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
   Json::Value json;
   reader.parse(parameters, json);
 
+  std::cout << "got callback " << service << "\n";
   if (service == "notify") {
     client->sendEvent(
         boost::make_shared<event::UpdateAvailable>(event::UpdateAvailable(
@@ -126,7 +127,7 @@ void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
   std::replace(b64_text.begin(), b64_text.end(), '=', 'A');
   std::string output(base64_to_bin(b64_text.begin()),
                      base64_to_bin(b64_text.end()));
-  output.erase(output.end() - paddChars, output.end());
+  output.erase(output.end() - static_cast<unsigned int>(paddChars), output.end());
 
   std::ofstream update_file(
       config.device.packages_dir + chunk_json["update_id"].asString(),

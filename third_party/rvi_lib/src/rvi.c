@@ -1449,7 +1449,7 @@ int rviInvokeService(TRviHandle handle, const char *serviceName,
     if ( !params ) { ret = RVI_ERR_JSON; goto exit; }
 
     rcv = json_pack( 
-            "{s:s, s:i, s:s, s:{s:s, s:i, s:o}}",
+            "{s:s, s:i, s:s, s:{s:s, s:I, s:o}}",
             "cmd", "rcv",
             "tid", 1, /* TODO: talk to Ulf about tid */
             "mod", "proto_json_rpc",
@@ -1829,7 +1829,7 @@ int rviReadRcv( TRviHandle handle, json_t *msg, TRviRemote *remote )
     tmp = json_object_get( msg, "data" );
     if( !tmp ) { err = RVI_ERR_JSON; goto exit; }
 
-    long timeout = json_integer_value( json_object_get( tmp, "timeout" ) );
+    long long timeout = json_integer_value( json_object_get( tmp, "timeout" ) );
     time(&rawtime);
     if( rawtime > timeout ) { err = RVI_ERR_JSON; goto exit; }
 
