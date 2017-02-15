@@ -1,8 +1,8 @@
 
-import gtk
 import dbus.service
 import sys
 from dbus.mainloop.glib import DBusGMainLoop
+import gobject
 
 
 class SLMService(dbus.service.Object):
@@ -28,6 +28,7 @@ class SLMService(dbus.service.Object):
 
 if __name__ == "__main__":
     DBusGMainLoop(set_as_default=True)
+    mainloop = gobject.MainLoop()
     swlm_service = SLMService()
     while True:
-        gtk.main_iteration()
+        mainloop.run()
