@@ -29,9 +29,10 @@ TEST(AuthenticateTest, authenticate_called) {
   HttpClientMock *http = new HttpClientMock();
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
-
-  EXPECT_CALL(*http, authenticate(conf.auth));
+  
   SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
+  EXPECT_CALL(*http, authenticate(conf.auth));
+  aktualizr.authenticate();
   delete events_channel;
 }
 
@@ -47,15 +48,37 @@ TEST(DownloadTest, download_called) {
 
   SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
 
-
+  testing::DefaultValue<bool>::Set(true);
   EXPECT_CALL(
       *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
-                         update_request_id + "/download",
-                     conf.device.packages_dir + update_request_id));
+                        update_request_id + "/download",
+                    conf.device.packages_dir + update_request_id));
   aktualizr.startDownload(update_request_id);
   boost::shared_ptr<event::BaseEvent> ev;
   *events_channel >> ev;
   EXPECT_EQ(ev->variant, "DownloadComplete");
+}
+
+
+TEST(DownloadTest, download_error) {
+  Config conf;
+  conf.core.server = "http://test.com";
+  conf.device.uuid = "test_uuid";
+  conf.device.packages_dir = "/tmp/";
+  data::UpdateRequestId update_request_id = "testupdateid";
+  HttpClientMock *http = new HttpClientMock();
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
+
+  testing::DefaultValue<bool>::Set(false);
+  EXPECT_CALL(
+      *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
+                        update_request_id + "/download",
+                    conf.device.packages_dir + update_request_id));
+  aktualizr.startDownload(update_request_id);
+  EXPECT_EQ(events_channel->hasValues(), false);
 }
 
 TEST(GetAvailableUpdatesTest, get_performed) {

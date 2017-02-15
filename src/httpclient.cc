@@ -1,6 +1,7 @@
 #include "httpclient.h"
 
 #include <assert.h>
+#include <sys/stat.h>
 
 #include "logger.h"
 
@@ -12,8 +13,7 @@
  *    https://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
  *
  */
-static size_t writeString(void* contents, size_t size, size_t nmemb,
-                          void* userp) {
+static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
   // append the writeback data to the provided string
   (static_cast<std::string*>(userp))->append((char*)contents, size * nmemb);
@@ -28,14 +28,17 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
 }
 
 // Discard the http body
-static size_t writeDiscard(void*, size_t size, size_t nmemb) {
-  return size * nmemb;
-}
+static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
 
 HttpClient::HttpClient() {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
+
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+
   // let curl use our write function
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
@@ -77,16 +80,14 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   curl_easy_setopt(curl_auth, CURLOPT_URL, auth_url.c_str());
   // let curl put the username and password using HTTP basic authentication
   curl_easy_setopt(curl_auth, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
-  curl_easy_setopt(curl_auth, CURLOPT_POSTFIELDS,
-                   "grant_type=client_credentials");
+  curl_easy_setopt(curl_auth, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
 
   // compose username and password
   std::string auth_header = conf.client_id + ":" + conf.client_secret;
   // forward username and password to curl
   curl_easy_setopt(curl_auth, CURLOPT_USERPWD, auth_header.c_str());
 
-  LOGGER_LOG(LVL_debug,
-             "servercon - requesting token from server: " << conf.server);
+  LOGGER_LOG(LVL_debug, "servercon - requesting token from server: " << conf.server);
 
   std::string response;
   curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
@@ -94,9 +95,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
   curl_easy_cleanup(curl_auth);
   if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "authentication curl error: "
-                              << result << " with server: " << conf.server
-                              << "and auth header: " << auth_header);
+    LOGGER_LOG(LVL_error, "authentication curl error: " << result << " with server: " << conf.server << "and auth header: " << auth_header);
     return false;
   }
   Json::Reader reader;
@@ -120,9 +119,7 @@ Json::Value HttpClient::get(const std::string& url) {
   return perform(curl);
 }
 
-Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
-  return post(url, Json::FastWriter().write(data));
-}
+Json::Value HttpClient::post(const std::string& url, const Json::Value& data) { return post(url, Json::FastWriter().write(data)); }
 
 Json::Value HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
@@ -139,8 +136,10 @@ Json::Value HttpClient::perform(CURL* curl_handler) {
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_handler);
   if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "curl error: " << result);
-    return json;
+    std::ostringstream error_stream;
+    error_stream << "curl error:" << result;
+    LOGGER_LOG(LVL_error, error_stream.str());
+    throw std::runtime_error(error_stream.str());
   }
   long http_code = 0;
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
@@ -178,12 +177,25 @@ bool HttpClient::download(const std::string& url, const std::string& filename) {
   // Let AWS Redirect us
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, writeFile);
-  FILE* fp = fopen(filename.c_str(), "w");
+
+  struct stat st;
+  if (!stat(filename.c_str(), &st)) {
+    curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, st.st_size);
+  }
+
+  FILE* fp = fopen(filename.c_str(), "a");
   curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, fp);
   result = curl_easy_perform(curl_download);
+
+  if (result == CURLE_RANGE_ERROR) {
+      fseek(fp, 0, SEEK_SET);
+      curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, 0);
+      result = curl_easy_perform(curl_download);
+  }
   curl_easy_cleanup(curl_download);
   curl_easy_cleanup(curl_redir);  // Keep newurl alive
   fclose(fp);
+
   if (result != CURLE_OK) {
     LOGGER_LOG(LVL_error, "curl download error: " << result);
     return false;

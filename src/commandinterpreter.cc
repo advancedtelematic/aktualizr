@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
+
 #include "config.h"
 #include "events.h"
 #include "sotahttpclient.h"
@@ -19,7 +21,13 @@ void CommandInterpreter::interpret() {
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOGGER_LOG(LVL_info, "got " + command->variant + " command");
-    if (command->variant == "GetUpdateRequests") {
+    if (command->variant == "Authenticate") {
+        if (((SotaHttpClient*)sota)->authenticate()){
+          *events_channel << boost::make_shared<event::Authenticated>();
+        }else{
+          *events_channel << boost::make_shared<event::NotAuthenticated>();
+        }
+    } else if (command->variant == "GetUpdateRequests") {
       std::vector<data::UpdateRequest> updates =
           static_cast<SotaHttpClient *>(sota)->getAvailableUpdates();
       if (updates.size()) {
