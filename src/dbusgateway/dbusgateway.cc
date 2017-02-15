@@ -5,7 +5,7 @@
 #include "types.h"
 
 DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in) : config(config_in), command_channel(command_channel_in), swlm(config) {
-  int ret;
+  dbus_threads_init_default();
   dbus_error_init(&err);
   conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
   if (dbus_error_is_set(&err)) {
@@ -14,7 +14,7 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
     return;
   }
 
-  ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
+  int ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
     LOGGER_LOG(LVL_error, "Cannot request Dbus name '" << config_in.dbus.interface << "' as primary owner");
     return;
