@@ -1,24 +1,11 @@
 # set symbols used when compiling
-add_definitions(-DBOOST_LOG_DYN_LINK=1)
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # find all required libraries
 find_package(Boost COMPONENTS system thread program_options log log_setup regex REQUIRED)
-find_package(PkgConfig REQUIRED)
+find_package(CURL REQUIRED)
+find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
-pkg_search_module(LIBCURL REQUIRED libcurl)
-pkg_search_module(LIBDBUS REQUIRED dbus-1)
-pkg_search_module(LIBOPENSSL REQUIRED libssl)
-
-# configure libraries
-set(LINK_LIBS ${CMAKE_THREAD_LIBS_INIT}
-              ${Boost_SYSTEM_LIBRARY}
-              ${Boost_THREAD_LIBRARY}
-              ${Boost_LOG_LIBRARIES}
-              ${Boost_LOG_SETUP_LIBRARIES}
-              ${Boost_PROGRAM_OPTIONS_LIBRARY}
-              ${Boost_REGEX_LIBRARY}
-              ${LIBCURL_LIBRARIES})
-
 
 # set source files excluded main for using the list for the test target
 set(SOURCES third_party/jsoncpp/jsoncpp.cpp
@@ -31,53 +18,61 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/commands.cc
             src/types.cc
             src/main.cc
-            src/sotarviclient.cc
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc)
 
             
-if(BUILD_WITH_DBUS_GATEWAY)
-    set(DBUS_SOURCES    src/dbusgateway/dbusgateway.cc
-                        src/dbusgateway/swlm.cc)
-endif(BUILD_WITH_DBUS_GATEWAY)
+if(BUILD_GENIVI)
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(LIBDBUS REQUIRED dbus-1)
+    list(APPEND SOURCES src/dbusgateway/dbusgateway.cc
+                        src/dbusgateway/swlm.cc
+                        src/sotarviclient.cc)
+endif(BUILD_GENIVI)
 
-
+include_directories(src)
 include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
-
-ExternalProject_Get_Property(rvi_lib source_dir)
-set(RVI_INCLUDE_DIR ${source_dir}/include)
-include_directories(${RVI_INCLUDE_DIR})
-set(RVI_LINK_DIR ${source_dir}/src/.libs)
-link_directories(${RVI_LINK_DIR})
-
-# set output folder
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY target/)
-
 # set the name of the executable
-add_executable(aktualizr ${SOURCES} ${DBUS_SOURCES})
+add_executable(aktualizr ${SOURCES})
+set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
+target_link_libraries(aktualizr ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-if(BUILD_WITH_DBUS_GATEWAY)
+if(BUILD_GENIVI)
+    add_definitions(-DWITH_GENIVI)
+    target_compile_options(aktualizr PUBLIC ${LIBDBUS_CFLAGS})
+    target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
+endif(BUILD_GENIVI)
 
-    if(STAGING_DIR_TARGET)
-        set(DBUS_INCLUDE_DIRS ${STAGING_DIR_TARGET}/usr/include/dbus-1.0/ ${STAGING_DIR_TARGET}/usr/lib/dbus-1.0/include)
-        include_directories(${DBUS_INCLUDE_DIRS})
-    else()
-        target_compile_options(aktualizr PUBLIC ${LIBDBUS_CFLAGS})
-    endif()
-    
-    set(DBUS_LIBS ${LIBDBUS_LIBRARIES})
-endif(BUILD_WITH_DBUS_GATEWAY)
 
-target_link_libraries(aktualizr ${LINK_LIBS} ${DBUS_LIBS} rvi)
-add_dependencies(aktualizr rvi_lib)
+if(CLANG_FORMAT)
+    add_custom_target(format-src
+        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running clang-format on src"
+        VERBATIM)
+    add_dependencies(qa format-src)
+else()
+    message(WARNING "clang-format not found, skipping")
+endif()
+
+if(CLANG_CHECK)
+    add_custom_target(check-src
+        COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${SOURCES}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        COMMENT "Running clang-check"
+        VERBATIM)
+    add_dependencies(qa check-src aktualizr)
+else()
+    message(WARNING "clang-check not found, skipping")
+endif(CLANG_CHECK)
 
 
 ################## INSTALL RULES
-configure_file(distribution/sota.service.cmake distribution/sota.service)
-install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
+#configure_file(distribution/sota.service.cmake distribution/sota.service)
+#install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
 install(TARGETS aktualizr RUNTIME  DESTINATION bin)
-install(FILES  config/config.toml.example DESTINATION /etc/  RENAME sota.conf  COMPONENT configuration)
+# vim: set tabstop=4 shiftwidth=4 expandtab:

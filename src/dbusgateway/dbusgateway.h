@@ -1,6 +1,7 @@
 #ifndef DBUSGATEWAY_H_
 #define DBUSGATEWAY_H_
 
+#include <boost/atomic.hpp>
 #include <dbus/dbus.h>
 
 #include "commands.h"
@@ -20,6 +21,8 @@ class DbusGateway : public Gateway {
   void run();
 
  private:
+  boost::thread thread;
+  boost::atomic<bool> stop;
   data::OperationResult getOperationResult(DBusMessageIter *);
   Config config;
   command::Channel *command_channel;

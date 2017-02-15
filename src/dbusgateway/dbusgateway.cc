@@ -4,8 +4,8 @@
 #include "logger.h"
 #include "types.h"
 
-DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in) : config(config_in), command_channel(command_channel_in), swlm(config) {
-  int ret;
+DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in) : stop(false), config(config_in), command_channel(command_channel_in), swlm(config) {
+  dbus_threads_init_default();
   dbus_error_init(&err);
   conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
   if (dbus_error_is_set(&err)) {
@@ -14,15 +14,19 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
     return;
   }
 
-  ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
+  int ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
     LOGGER_LOG(LVL_error, "Cannot request Dbus name '" << config_in.dbus.interface << "' as primary owner");
     return;
   }
-  boost::thread(boost::bind(&DbusGateway::run, this));
+  thread = boost::thread(boost::bind(&DbusGateway::run, this));
 }
 
 DbusGateway::~DbusGateway() {
+  stop = true;
+  if (!thread.try_join_for(boost::chrono::seconds(10))) {
+    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+  }
   dbus_bus_release_name(conn, config.dbus.interface.c_str(), NULL);
   dbus_connection_unref(conn);
 }
@@ -105,7 +109,10 @@ void DbusGateway::run() {
     dbus_connection_read_write(conn, 0);
     msg = dbus_connection_pop_message(conn);
     if (NULL == msg) {
-      sleep(1);
+      boost::this_thread::sleep_for(boost::chrono::seconds(1));
+      if (stop) {
+        return;
+      }
       continue;
     }
 

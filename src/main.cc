@@ -34,7 +34,9 @@
 #include "eventsinterpreter.h"
 #include "logger.h"
 #include "sotahttpclient.h"
+#ifdef WITH_GENIVI
 #include "sotarviclient.h"
+#endif
 
 /*****************************************************************************/
 
@@ -142,7 +144,12 @@ int main(int argc, char *argv[]) {
 
   SotaClient *client;
   if (config.gateway.rvi) {
+#ifdef WITH_GENIVI
     client = new SotaRVIClient(config, events_channel);
+#else
+    LOGGER_LOG(LVL_error, "RVI support is not enabled");
+    return EXIT_FAILURE;
+#endif
   } else {
     client = new SotaHttpClient(config, events_channel, commands_channel);
   }
