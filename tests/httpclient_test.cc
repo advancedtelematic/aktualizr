@@ -65,12 +65,12 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2){
     std::string command =  std::string(argv[1]) + "/fake_http_server.py &";
-    system(command.c_str());
+    EXPECT_EQ(system(command.c_str()), 0);
     sleep(1);
   }
   int ret = RUN_ALL_TESTS();
   if (argc >= 2){
-    system("killall fake_http_server.py");
+    EXPECT_EQ(system("killall fake_http_server.py"), 0);
   }
   return ret;
 }

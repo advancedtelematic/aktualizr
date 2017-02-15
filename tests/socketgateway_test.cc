@@ -26,7 +26,7 @@ TEST(EventsTest, broadcasted) {
   
   SocketGateway gateway(conf, chan);
   std::string cmd = "python "+fake_path + "events.py &";
-  system(cmd.c_str());
+  EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
   sleep(1);
@@ -48,7 +48,7 @@ TEST(EventsTest, not_broadcasted) {
   
   SocketGateway gateway(conf, chan);
   std::string cmd = "python "+fake_path + "events.py &";
-  system(cmd.c_str());
+  EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
   sleep(1);
@@ -70,7 +70,7 @@ TEST(CommandsTest, recieved) {
   
   SocketGateway gateway(conf, chan);
   std::string cmd = "python "+fake_path + "commands.py &";
-  system(cmd.c_str());
+  EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
