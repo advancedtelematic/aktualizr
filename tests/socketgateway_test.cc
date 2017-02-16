@@ -1,15 +1,15 @@
-#include <cstdlib>
 #include <stdio.h>
+#include <cstdlib>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <boost/make_shared.hpp>
+#include "commands.h"
 #include "config.h"
+#include "events.h"
 #include "socketgateway.h"
 #include "types.h"
-#include "commands.h"
-#include "events.h"
-#include <boost/make_shared.hpp>
 
 const std::string server = "http://127.0.0.1:8800";
 std::string fake_path;
@@ -22,10 +22,10 @@ TEST(EventsTest, broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel * chan = new command::Channel();
-  
+  command::Channel* chan = new command::Channel();
+
   SocketGateway gateway(conf, chan);
-  std::string cmd = "python "+fake_path + "events.py &";
+  std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
@@ -44,10 +44,10 @@ TEST(EventsTest, not_broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel * chan = new command::Channel();
-  
+  command::Channel* chan = new command::Channel();
+
   SocketGateway gateway(conf, chan);
-  std::string cmd = "python "+fake_path + "events.py &";
+  std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
@@ -58,7 +58,6 @@ TEST(EventsTest, not_broadcasted) {
   EXPECT_EQ("", content);
 }
 
-
 TEST(CommandsTest, recieved) {
   NetworkConfig network_conf;
   network_conf.socket_commands_path = "/tmp/sota-commands.socket";
@@ -66,23 +65,22 @@ TEST(CommandsTest, recieved) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel * chan = new command::Channel();
-  
+  command::Channel* chan = new command::Channel();
+
   SocketGateway gateway(conf, chan);
-  std::string cmd = "python "+fake_path + "commands.py &";
+  std::string cmd = "python " + fake_path + "commands.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
-  
+
   EXPECT_EQ(command->variant, "GetUpdateRequests");
 }
-
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  if (argc >= 2){
+  if (argc >= 2) {
     fake_path = argv[1];
   }
   return RUN_ALL_TESTS();

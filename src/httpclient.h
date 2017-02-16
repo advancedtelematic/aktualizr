@@ -16,6 +16,7 @@ class HttpClient {
   virtual Json::Value post(const std::string &url, const std::string &data);
   virtual Json::Value post(const std::string &url, const Json::Value &data);
   virtual bool download(const std::string &url, const std::string &filename);
+  bool isAuthenticated() { return token.size(); }
 
  private:
   CURL *curl;

@@ -18,8 +18,8 @@ void SoftwareLoadingManagerProxy::downloadComplete(const std::string &update_ima
   DBusMessage *msg;
   DBusMessageIter args;
 
-  msg = dbus_message_new_method_call(config.dbus.software_manager.c_str(), config.dbus.software_manager_path.c_str(), (config.dbus.software_manager).c_str(),
-                                     "downloadComplete");
+  msg = dbus_message_new_method_call(config.dbus.software_manager.c_str(), config.dbus.software_manager_path.c_str(),
+                                     (config.dbus.software_manager).c_str(), "downloadComplete");
 
   dbus_message_iter_init_append(msg, &args);
 

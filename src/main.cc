@@ -44,15 +44,13 @@ namespace bpo = boost::program_options;
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
   bpo::options_description description("CommandLine Options");
-  description.add_options()("help,h", "help screen")(
-      "loglevel", bpo::value<int>(),
-      "set log level 0-4 (trace, debug, warning, info, error)")(
-      "config,c", bpo::value<std::string>()->required(),
-      "toml configuration file")("gateway-http", bpo::value<bool>(),
-                                 "on/off the http gateway")(
-      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")(
-      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")(
-      "gateway-dbus", bpo::value<bool>(), "on/off the dbus gateway");
+  description.add_options()("help,h", "help screen")("loglevel", bpo::value<int>(),
+                                                     "set log level 0-4 (trace, debug, warning, info, error)")(
+      "config,c", bpo::value<std::string>()->required(), "toml configuration file")(
+      "gateway-http", bpo::value<bool>(), "on/off the http gateway")("gateway-rvi", bpo::value<bool>(),
+                                                                     "on/off the rvi gateway")(
+      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")("gateway-dbus", bpo::value<bool>(),
+                                                                         "on/off the dbus gateway");
 
   bpo::variables_map vm;
   try {
@@ -60,10 +58,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     bpo::notify(vm);
   } catch (const bpo::required_option &ex) {
     if (ex.get_option_name() == "--config" && vm.count("help") == 0) {
-      std::cout << ex.get_option_name()
-                << " is missing.\nYou have to provide a valid configuration "
-                   "file using toml format. See the example configuration file "
-                   "in config/config.toml.example"
+      std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
+                                           "file using toml format. See the example configuration file "
+                                           "in config/config.toml.example"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -113,9 +110,8 @@ int main(int argc, char *argv[]) {
     try {
       config.updateFromToml(filename);
     } catch (boost::property_tree::ini_parser_error e) {
-      LOGGER_LOG(LVL_error, "Exception was thrown while parsing "
-                                << filename
-                                << " config file, message: " << e.message());
+      LOGGER_LOG(LVL_error, "Exception was thrown while parsing " << filename
+                                                                  << " config file, message: " << e.message());
     }
   }
 
@@ -125,8 +121,7 @@ int main(int argc, char *argv[]) {
     LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
 
     // set the log level from command line option
-    loggerSetSeverity(
-        static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>()));
+    loggerSetSeverity(static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>()));
   } else {
     // log if no command line option loglevl is used
     LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
@@ -137,8 +132,7 @@ int main(int argc, char *argv[]) {
   command::Channel *commands_channel = new command::Channel();
   event::Channel *events_channel = new event::Channel();
 
-  EventsInterpreter events_interpreter(config, events_channel,
-                                       commands_channel);
+  EventsInterpreter events_interpreter(config, events_channel, commands_channel);
   // run events interpreter in background
   events_interpreter.interpret();
 
@@ -154,8 +148,7 @@ int main(int argc, char *argv[]) {
     client = new SotaHttpClient(config, events_channel, commands_channel);
   }
 
-  CommandInterpreter command_interpreter(client, commands_channel,
-                                         events_channel);
+  CommandInterpreter command_interpreter(client, commands_channel, events_channel);
   command_interpreter.interpret();
 
   return return_value;

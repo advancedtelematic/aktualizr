@@ -10,12 +10,9 @@ class HttpClientMock : public HttpClient {
  public:
   MOCK_METHOD1(authenticate, bool(const AuthConfig &conf));
   MOCK_METHOD1(get, Json::Value(const std::string &url));
-  MOCK_METHOD2(post,
-               Json::Value(const std::string &url, const Json::Value &data));
-  MOCK_METHOD2(download,
-               bool(const std::string &url, const std::string &filename));
+  MOCK_METHOD2(post, Json::Value(const std::string &url, const Json::Value &data));
+  MOCK_METHOD2(download, bool(const std::string &url, const std::string &filename));
 };
-
 
 bool operator==(const AuthConfig &auth1, const AuthConfig &auth2) {
   return (auth1.server == auth2.server && auth1.client_id == auth2.client_id &&
@@ -30,8 +27,9 @@ TEST(AuthenticateTest, authenticate_called) {
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 
-  EXPECT_CALL(*http, authenticate(conf.auth));
   SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
+  EXPECT_CALL(*http, authenticate(conf.auth));
+  aktualizr.authenticate();
   delete events_channel;
 }
 
@@ -47,15 +45,34 @@ TEST(DownloadTest, download_called) {
 
   SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
 
-
-  EXPECT_CALL(
-      *http, download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" +
-                         update_request_id + "/download",
-                     conf.device.packages_dir + update_request_id));
+  testing::DefaultValue<bool>::Set(true);
+  EXPECT_CALL(*http,
+              download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" + update_request_id + "/download",
+                       conf.device.packages_dir + update_request_id));
   aktualizr.startDownload(update_request_id);
   boost::shared_ptr<event::BaseEvent> ev;
   *events_channel >> ev;
   EXPECT_EQ(ev->variant, "DownloadComplete");
+}
+
+TEST(DownloadTest, download_error) {
+  Config conf;
+  conf.core.server = "http://test.com";
+  conf.device.uuid = "test_uuid";
+  conf.device.packages_dir = "/tmp/";
+  data::UpdateRequestId update_request_id = "testupdateid";
+  HttpClientMock *http = new HttpClientMock();
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
+
+  testing::DefaultValue<bool>::Set(false);
+  EXPECT_CALL(*http,
+              download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" + update_request_id + "/download",
+                       conf.device.packages_dir + update_request_id));
+  aktualizr.startDownload(update_request_id);
+  EXPECT_EQ(events_channel->hasValues(), false);
 }
 
 TEST(GetAvailableUpdatesTest, get_performed) {
@@ -89,17 +106,13 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   reader.parse(message, return_val);
 
   testing::DefaultValue<Json::Value>::Set(return_val);
-  EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" +
-                        conf.device.uuid + "/updates"));
-  std::vector<data::UpdateRequest> update_requests =
-      aktualizr.getAvailableUpdates();
+  EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" + conf.device.uuid + "/updates"));
+  std::vector<data::UpdateRequest> update_requests = aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1);
   EXPECT_EQ(update_requests[0].packageId.name, "treehub-ota-raspberrypi3");
   EXPECT_EQ(update_requests[0].status, data::UpdateRequestStatus::Pending);
-  EXPECT_EQ(update_requests[0].requestId,
-            "06d64e46-cb25-4d76-b62e-4341b6944d07");
+  EXPECT_EQ(update_requests[0].requestId, "06d64e46-cb25-4d76-b62e-4341b6944d07");
   delete events_channel;
-
 }
 
 TEST(ReportTest, post_called) {
@@ -135,8 +148,6 @@ TEST(ReportTest, post_called) {
   EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
   aktualizr.sendUpdateReport(update_report);
   delete events_channel;
-
-
 }
 
 #ifndef __NO_MAIN__

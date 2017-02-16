@@ -236,14 +236,9 @@ BOOST_AUTO_TEST_CASE(InstallComplete_event_to_json) {
 
   BOOST_CHECK_EQUAL(json["variant"].asString(), "InstallComplete");
   BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "request_id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(),
-                    "testid23");
-  BOOST_CHECK_EQUAL(
-      json["fields"][0]["operation_results"][0]["result_code"].asUInt(),
-      data::NOT_FOUND);
-  BOOST_CHECK_EQUAL(
-      json["fields"][0]["operation_results"][0]["result_text"].asString(),
-      "text");
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
 BOOST_AUTO_TEST_CASE(InstallFailed_event_to_json) {
@@ -265,14 +260,9 @@ BOOST_AUTO_TEST_CASE(InstallFailed_event_to_json) {
 
   BOOST_CHECK_EQUAL(json["variant"].asString(), "InstallFailed");
   BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "request_id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(),
-                    "testid23");
-  BOOST_CHECK_EQUAL(
-      json["fields"][0]["operation_results"][0]["result_code"].asUInt(),
-      data::NOT_FOUND);
-  BOOST_CHECK_EQUAL(
-      json["fields"][0]["operation_results"][0]["result_text"].asString(),
-      "text");
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
 BOOST_AUTO_TEST_CASE(UpdateReportSent_event_to_json) {
@@ -370,8 +360,7 @@ BOOST_AUTO_TEST_CASE(FoundInstalledPackages_event_from_json) {
       "{\"fields\":[[{\"name\":\"packagename1\",\"version\":\"v2.0\"},{"
       "\"name\":\"packagename2\",\"version\":\"v3.0\"}]],\"variant\":"
       "\"FoundInstalledPackages\"}";
-  event::FoundInstalledPackages event =
-      event::FoundInstalledPackages::fromJson(json);
+  event::FoundInstalledPackages event = event::FoundInstalledPackages::fromJson(json);
 
   BOOST_CHECK_EQUAL(event.variant, "FoundInstalledPackages");
   BOOST_CHECK_EQUAL(event.packages[0].name, "packagename1");
@@ -389,8 +378,7 @@ BOOST_AUTO_TEST_CASE(FoundSystemInfo_event_from_json) {
 }
 
 BOOST_AUTO_TEST_CASE(DownloadingUpdate_event_from_json) {
-  std::string json =
-      "{\"fields\":[\"testid\"],\"variant\":\"DownloadingUpdate\"}";
+  std::string json = "{\"fields\":[\"testid\"],\"variant\":\"DownloadingUpdate\"}";
   event::DownloadingUpdate event = event::DownloadingUpdate::fromJson(json);
 
   BOOST_CHECK_EQUAL(event.variant, "DownloadingUpdate");
@@ -421,8 +409,7 @@ BOOST_AUTO_TEST_CASE(DownloadFailed_event_from_json) {
 }
 
 BOOST_AUTO_TEST_CASE(InstallingUpdate_event_from_json) {
-  std::string json =
-      "{\"fields\":[\"requestid\"],\"variant\":\"InstallingUpdate\"}";
+  std::string json = "{\"fields\":[\"requestid\"],\"variant\":\"InstallingUpdate\"}";
   event::InstallingUpdate event = event::InstallingUpdate::fromJson(json);
 
   BOOST_CHECK_EQUAL(event.variant, "InstallingUpdate");
@@ -439,8 +426,7 @@ BOOST_AUTO_TEST_CASE(InstallComplete_event_from_json) {
   BOOST_CHECK_EQUAL(event.variant, "InstallComplete");
   BOOST_CHECK_EQUAL(event.update_report.operation_results[0].id, "testid23");
   BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_code, 16);
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text,
-                    "text");
+  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text, "text");
   BOOST_CHECK_EQUAL(event.update_report.update_id, "request_id");
 }
 
@@ -454,8 +440,7 @@ BOOST_AUTO_TEST_CASE(InstallFailed_event_from_json) {
   BOOST_CHECK_EQUAL(event.variant, "InstallFailed");
   BOOST_CHECK_EQUAL(event.update_report.operation_results[0].id, "testid23");
   BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_code, 16);
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text,
-                    "text");
+  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text, "text");
   BOOST_CHECK_EQUAL(event.update_report.update_id, "request_id");
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
