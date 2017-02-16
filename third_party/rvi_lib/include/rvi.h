@@ -119,6 +119,8 @@ typedef enum {
  */
 
 extern TRviHandle rviInit(char *configFilename);
+TRviHandle rviInitLogs ( char *configFilename, bool verbose_in );
+
 
 /** @brief Tear down the API.
  *

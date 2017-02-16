@@ -80,6 +80,7 @@ find_package(Boost COMPONENTS system thread program_options log log_setup regex 
 enable_testing()
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 
 # use the same libiraries as the normal target but add boost test
 set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES}
@@ -178,7 +179,7 @@ if(BUILD_GENIVI)
                      src/logger.cc
                      tests/rvisotaclient_test.cc)
     add_executable(aktualizr_test_rvi_client ${TEST_RVI_SRC})
-    target_link_libraries(aktualizr_test_rvi_client rvi ${TEST_LIBS} gtest)
+    target_link_libraries(aktualizr_test_rvi_client ${TEST_LIBS} gtest)
     add_test(NAME test_rvi_client COMMAND aktualizr_test_rvi_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     set(TEST_SWM_SRC third_party/jsoncpp/jsoncpp.cpp
