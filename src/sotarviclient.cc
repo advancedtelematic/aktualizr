@@ -36,7 +36,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in) {
-  std::string client_config("./config/" + config.rvi.client_config);
+  std::string client_config(config.rvi.client_config);
   rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), !loggerGetSeverity());
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config file " + client_config);
@@ -56,7 +56,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
     if (stat) {
       LOGGER_LOG(LVL_error, "unable to register " << service_names[i]);
     }
-    services[service_names[i]] = std::string("genivi.org/" + config.device.uuid + "/") + service_names[i];
+    services[service_names[i]] = std::string("genivi.org/device/" + config.device.uuid + "/sota/") + service_names[i];
   }
   LOGGER_LOG(LVL_info, "rvi services registered!!");
   boost::thread(boost::bind(&SotaRVIClient::run, this));
