@@ -17,11 +17,11 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/events.cc
             src/commands.cc
             src/types.cc
-            src/main.cc
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc)
 
+set(MAIN src/main.cc)
             
 if(BUILD_GENIVI)
     find_package(PkgConfig REQUIRED)
@@ -36,14 +36,20 @@ include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
+
+add_library(aktualizr_static_lib STATIC ${SOURCES})
+
+
 # set the name of the executable
-add_executable(aktualizr ${SOURCES})
-set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
-target_link_libraries(aktualizr ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+add_executable(aktualizr ${MAIN})
+
+target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 
 if(BUILD_GENIVI)
+    set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
     add_definitions(-DWITH_GENIVI)
-    target_compile_options(aktualizr PUBLIC ${LIBDBUS_CFLAGS})
+    target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
+    #target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
 endif(BUILD_GENIVI)
 

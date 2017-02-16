@@ -110,7 +110,7 @@ void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
   std::string output(base64_to_bin(b64_text.begin()), base64_to_bin(b64_text.end()));
   output.erase(output.end() - static_cast<unsigned int>(paddChars), output.end());
 
-  std::ofstream update_file(config.device.packages_dir + chunk_json["update_id"].asString(),
+  std::ofstream update_file((config.device.packages_dir + chunk_json["update_id"].asString()).c_str(),
                             std::ios::out | std::ios::app | std::ios::binary);
   update_file << output;
   update_file.close();

@@ -28,8 +28,8 @@ class SotaHttpClient : public SotaClient {
   event::Channel *events_channel;
   command::Channel *commands_channel;
   std::string core_url;
-  const unsigned int MAX_RETRIES = 3;
-  unsigned int retries = MAX_RETRIES;
+  static const unsigned int MAX_RETRIES = 3;
+  unsigned int retries;
   bool processing;
   bool was_error;
 };

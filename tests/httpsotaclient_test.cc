@@ -110,7 +110,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   std::vector<data::UpdateRequest> update_requests = aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1);
   EXPECT_EQ(update_requests[0].packageId.name, "treehub-ota-raspberrypi3");
-  EXPECT_EQ(update_requests[0].status, data::UpdateRequestStatus::Pending);
+  EXPECT_EQ(update_requests[0].status, data::Pending);
   EXPECT_EQ(update_requests[0].requestId, "06d64e46-cb25-4d76-b62e-4341b6944d07");
   delete events_channel;
 }
@@ -123,7 +123,7 @@ TEST(ReportTest, post_called) {
 
   data::OperationResult oper_result;
   oper_result.id = "estid";
-  oper_result.result_code = data::UpdateResultCode::OK;
+  oper_result.result_code = data::OK;
   oper_result.result_text = "good";
 
   std::vector<data::OperationResult> operation_results;

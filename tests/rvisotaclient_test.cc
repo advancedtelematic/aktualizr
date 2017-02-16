@@ -139,7 +139,7 @@ TEST(SaveTest, file_saved) {
   } catch (std::string result) {
     EXPECT_EQ(result, "ack called");
   }
-  std::ifstream saved_file(conf.device.packages_dir + "test_update_id");
+  std::ifstream saved_file((conf.device.packages_dir + "test_update_id").c_str());
   std::string content;
   saved_file >> content;
   std::cout << content;
@@ -179,7 +179,7 @@ TEST(ReportTest, report_called) {
 
   data::OperationResult op_res;
   op_res.id = "123";
-  op_res.result_code = data::UpdateResultCode::OK;
+  op_res.result_code = data::OK;
   op_res.result_text = "good";
   data::UpdateReport ur;
   ur.operation_results.push_back(op_res);
