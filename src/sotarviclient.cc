@@ -39,7 +39,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in,
                              event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in) {
   std::string client_config("./config/" + config.rvi.client_config);
-  rvi = rviInit(const_cast<char *>(client_config.c_str()));
+  rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), !loggerGetSeverity());
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config file " +
                              client_config);
