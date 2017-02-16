@@ -13,9 +13,14 @@ EventsInterpreter::EventsInterpreter(const Config& config_in, event::Channel* ev
       commands_channel(commands_channel_in),
       gateway_manager(config, commands_channel) {}
 
-EventsInterpreter::~EventsInterpreter() { delete thread; }
+EventsInterpreter::~EventsInterpreter() {
+  events_channel->close();
+  if (!thread.try_join_for(boost::chrono::seconds(10))) {
+    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+  }
+}
 
-void EventsInterpreter::interpret() { thread = new boost::thread(boost::bind(&EventsInterpreter::run, this)); }
+void EventsInterpreter::interpret() { thread = boost::thread(boost::bind(&EventsInterpreter::run, this)); }
 
 void EventsInterpreter::run() {
   boost::shared_ptr<event::BaseEvent> event;

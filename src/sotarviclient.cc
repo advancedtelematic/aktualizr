@@ -35,7 +35,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 }
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
-    : config(config_in), events_channel(events_channel_in) {
+    : config(config_in), events_channel(events_channel_in), stop(false) {
   std::string client_config(config.rvi.client_config);
   rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), !loggerGetSeverity());
   if (!rvi) {
@@ -59,7 +59,15 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
     services[service_names[i]] = std::string("genivi.org/device/" + config.device.uuid + "/sota/") + service_names[i];
   }
   LOGGER_LOG(LVL_info, "rvi services registered!!");
-  boost::thread(boost::bind(&SotaRVIClient::run, this));
+  thread = boost::thread(boost::bind(&SotaRVIClient::run, this));
+}
+
+SotaRVIClient::~SotaRVIClient(){
+  rviCleanup(rvi);
+  stop = true;
+  if (!thread.try_join_for(boost::chrono::seconds(10))) {
+    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+  }
 }
 
 void SotaRVIClient::sendEvent(const boost::shared_ptr<event::BaseEvent> &event) { *events_channel << event; }
@@ -67,6 +75,9 @@ void SotaRVIClient::sendEvent(const boost::shared_ptr<event::BaseEvent> &event) 
 void SotaRVIClient::run() {
   while (true) {
     int result = rviProcessInput(rvi, &connection, 1);
+    if (stop){
+      break;
+    }
     if (result != 0) {
       LOGGER_LOG(LVL_error, "rviProcessInput error: " << result);
       sleep(5);

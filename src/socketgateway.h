@@ -2,7 +2,7 @@
 #define SOCKETGATEWAY_H_
 
 #include <boost/shared_ptr.hpp>
-#include "boost/thread.hpp"
+#include <boost/thread.hpp>
 
 
 #include "gateway.h"
@@ -19,8 +19,12 @@ class SocketGateway: public Gateway {
         Config config;
         command::Channel* commands_channel;
         std::vector<int> event_connections;
+        std::vector<int> command_connections;
+        std::vector<boost::thread*> command_workers;
         boost::thread *events_server_thread;
         boost::thread *commands_server_thread;
+        int events_socket;
+        int commands_socket;
 
         void eventsServer();
         void commandsServer();

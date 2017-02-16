@@ -58,6 +58,11 @@ int rviInvokeService(TRviHandle handle, const char *serviceName, const char *par
   return 0;
 }
 
+int rviCleanup(TRviHandle handle){
+  (void)handle;
+  return 0;
+}
+
 TEST(NotifyTest, UpdateAvailable_send) {
   Config conf;
   event::Channel chann;

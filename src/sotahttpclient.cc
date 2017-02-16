@@ -94,7 +94,7 @@ void SotaHttpClient::run() {
       if (was_error) {
         sleep(2);
       } else {
-        sleep((unsigned int)config.core.polling_sec);
+        sleep(static_cast<unsigned int>(config.core.polling_sec));
       }
       if (!http->isAuthenticated()) {
         data::ClientCredentials cred;

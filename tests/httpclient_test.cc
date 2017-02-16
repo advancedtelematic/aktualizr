@@ -52,12 +52,28 @@ TEST(GetTest, file_downloaded) {
   HttpClient http;
   std::string path = "/download";
   std::string filename = "/tmp/aktualizr_test_http.txt";
+  remove(filename.c_str());
   bool result = http.download(server + path, filename);
   EXPECT_EQ(result, true);
   std::ifstream file_stream(filename.c_str());
   std::string content;
   std::getline(file_stream, content);
   EXPECT_EQ(content, "content");
+}
+
+TEST(GetTest, file_downloaded_resume) {
+  HttpClient http;
+  std::string path = "/download";
+  std::string filename = "/tmp/aktualizr_test_http.txt";
+  remove(filename.c_str());
+  bool result = http.download(server + path, filename);
+  EXPECT_EQ(result, true);
+  result = http.download(server + path, filename);
+  EXPECT_EQ(result, true);
+  std::ifstream file_stream(filename.c_str());
+  std::string content;
+  std::getline(file_stream, content);
+  EXPECT_EQ(content, "contentcontent");
 }
 
 #ifndef __NO_MAIN__
