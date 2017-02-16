@@ -70,19 +70,12 @@ BOOST_AUTO_TEST_CASE(config_toml_parsing_empty_file) {
 BOOST_AUTO_TEST_CASE(config_cmdl_parsing) {
   Config conf;
   int argc = 7;
-  const char *argv[] = {"./aktualizr",
-                        "--gateway-http",
-                        "off",
-                        "--gateway-rvi",
-                        "on",
-                        "--gateway-socket",
-                        "on"};
+  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on", "--gateway-socket", "on"};
 
   bpo::options_description description("CommandLine Options");
-  description.add_options()("gateway-http", bpo::value<bool>(),
-                            "on/off the http gateway")(
-      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")(
-      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway");
+  description.add_options()("gateway-http", bpo::value<bool>(), "on/off the http gateway")(
+      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")("gateway-socket", bpo::value<bool>(),
+                                                                   "on/off the socket gateway");
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);

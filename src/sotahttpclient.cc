@@ -6,17 +6,20 @@
 
 #include "logger.h"
 
-SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_channel_in, command::Channel *commands_channel_in)
+SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_channel_in,
+                               command::Channel *commands_channel_in)
     : config(config_in), events_channel(events_channel_in), commands_channel(commands_channel_in) {
   http = new HttpClient();
   core_url = config.core.server + "/api/v1";
-  processing = false;;
+  processing = false;
+  ;
   boost::thread(boost::bind(&SotaHttpClient::run, this));
 }
 
 SotaHttpClient::~SotaHttpClient() { delete http; }
 
-SotaHttpClient::SotaHttpClient(const Config &config_in, HttpClient *http_in, event::Channel *events_channel_in, command::Channel *commands_channel_in)
+SotaHttpClient::SotaHttpClient(const Config &config_in, HttpClient *http_in, event::Channel *events_channel_in,
+                               command::Channel *commands_channel_in)
     : config(config_in), http(http_in), events_channel(events_channel_in), commands_channel(commands_channel_in) {
   core_url = config.core.server + "/api/v1";
 }
@@ -29,9 +32,9 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
   std::vector<data::UpdateRequest> update_requests;
 
   Json::Value json;
-  try{
+  try {
     json = http->get(url);
-  } catch(std::runtime_error e){
+  } catch (std::runtime_error e) {
     retry();
     return update_requests;
   }
@@ -74,10 +77,10 @@ void SotaHttpClient::sendUpdateReport(data::UpdateReport update_report) {
 }
 
 void SotaHttpClient::retry() {
-    was_error = true;
-    processing = false;
-    retries--;
-  if(!retries) {
+  was_error = true;
+  processing = false;
+  retries--;
+  if (!retries) {
     retries = MAX_RETRIES;
     was_error = false;
   }

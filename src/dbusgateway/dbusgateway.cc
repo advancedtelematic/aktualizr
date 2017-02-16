@@ -4,7 +4,8 @@
 #include "logger.h"
 #include "types.h"
 
-DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in) : stop(false), config(config_in), command_channel(command_channel_in), swlm(config) {
+DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in)
+    : stop(false), config(config_in), command_channel(command_channel_in), swlm(config) {
   dbus_threads_init_default();
   dbus_error_init(&err);
   conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
@@ -34,7 +35,8 @@ DbusGateway::~DbusGateway() {
 void DbusGateway::processEvent(const boost::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadComplete") {
     event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
-    swlm.downloadComplete(download_complete_event->download_complete.update_image, download_complete_event->download_complete.signature);
+    swlm.downloadComplete(download_complete_event->download_complete.update_image,
+                          download_complete_event->download_complete.signature);
     fireDownloadCompleteEvent(download_complete_event->download_complete);
   } else if (event->variant == "InstalledSoftwareNeeded") {
     fireInstalledSoftwareNeededEvent();

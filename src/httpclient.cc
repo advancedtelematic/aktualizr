@@ -95,7 +95,8 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
   curl_easy_cleanup(curl_auth);
   if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "authentication curl error: " << result << " with server: " << conf.server << "and auth header: " << auth_header);
+    LOGGER_LOG(LVL_error, "authentication curl error: " << result << " with server: " << conf.server
+                                                        << "and auth header: " << auth_header);
     return false;
   }
   Json::Reader reader;
@@ -119,7 +120,9 @@ Json::Value HttpClient::get(const std::string& url) {
   return perform(curl);
 }
 
-Json::Value HttpClient::post(const std::string& url, const Json::Value& data) { return post(url, Json::FastWriter().write(data)); }
+Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
+  return post(url, Json::FastWriter().write(data));
+}
 
 Json::Value HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
@@ -188,9 +191,9 @@ bool HttpClient::download(const std::string& url, const std::string& filename) {
   result = curl_easy_perform(curl_download);
 
   if (result == CURLE_RANGE_ERROR) {
-      fseek(fp, 0, SEEK_SET);
-      curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, 0);
-      result = curl_easy_perform(curl_download);
+    fseek(fp, 0, SEEK_SET);
+    curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, 0);
+    result = curl_easy_perform(curl_download);
   }
   curl_easy_cleanup(curl_download);
   curl_easy_cleanup(curl_redir);  // Keep newurl alive

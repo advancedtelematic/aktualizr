@@ -8,15 +8,12 @@
 
 #include "logger.h"
 
-SocketGateway::SocketGateway(const Config &config_in,
-                             command::Channel *commands_channel_in)
+SocketGateway::SocketGateway(const Config &config_in, command::Channel *commands_channel_in)
     : config(config_in), commands_channel(commands_channel_in) {
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
-  events_server_thread =
-      new boost::thread(boost::bind(&SocketGateway::eventsServer, this));
-  commands_server_thread =
-      new boost::thread(boost::bind(&SocketGateway::commandsServer, this));
+  events_server_thread = new boost::thread(boost::bind(&SocketGateway::eventsServer, this));
+  commands_server_thread = new boost::thread(boost::bind(&SocketGateway::commandsServer, this));
 }
 
 void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
@@ -35,15 +32,14 @@ void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
     picojson::input<std::string::iterator> in(data.begin(), data.end());
     if (picojson::_parse(ctx, in)) {
       data.erase(data.begin(), in.cur());
-      try{
+      try {
         *channel << command::BaseCommand::fromPicoJson(item);
-      }catch(...){
+      } catch (...) {
         LOGGER_LOG(LVL_error, "failed command deserealization: " << item);
       }
     }
   }
-  LOGGER_LOG(LVL_error,
-             "unix domain socket recv command error, errno: " << errno);
+  LOGGER_LOG(LVL_error, "unix domain socket recv command error, errno: " << errno);
   close(socket);
 }
 
@@ -52,14 +48,12 @@ void SocketGateway::eventsServer() {
   struct sockaddr_un cli_addr, addr;
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, config.network.socket_events_path.c_str(),
-          sizeof(addr.sun_path) - 1);
+  strncpy(addr.sun_path, config.network.socket_events_path.c_str(), sizeof(addr.sun_path) - 1);
   bind(events_socket, (struct sockaddr *)&addr, sizeof(addr));
   listen(events_socket, 10);
   socklen_t clilen = sizeof(cli_addr);
   while (true) {
-    int newsockfd =
-        accept(events_socket, (struct sockaddr *)&cli_addr, &clilen);
+    int newsockfd = accept(events_socket, (struct sockaddr *)&cli_addr, &clilen);
     if (newsockfd != -1) {
       event_connections.push_back(newsockfd);
     } else {
@@ -76,17 +70,14 @@ void SocketGateway::commandsServer() {
   struct sockaddr_un cli_addr, addr;
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, config.network.socket_commands_path.c_str(),
-          sizeof(addr.sun_path) - 1);
+  strncpy(addr.sun_path, config.network.socket_commands_path.c_str(), sizeof(addr.sun_path) - 1);
   bind(commands_socket, (struct sockaddr *)&addr, sizeof(addr));
   listen(commands_socket, 10);
   socklen_t clilen = sizeof(cli_addr);
   while (true) {
-    int newsockfd =
-        accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
+    int newsockfd = accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
     if (newsockfd != -1) {
-      boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd,
-                                commands_channel));
+      boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel));
     } else {
       break;
     }
@@ -96,21 +87,17 @@ void SocketGateway::commandsServer() {
 }
 
 SocketGateway::~SocketGateway() {
-  for (std::vector<int>::iterator it = event_connections.begin();
-       it != event_connections.end(); ++it) {
+  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end(); ++it) {
     close(*it);
   }
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
 }
 
-void SocketGateway::broadcast_event(
-    const boost::shared_ptr<event::BaseEvent> &event) {
+void SocketGateway::broadcast_event(const boost::shared_ptr<event::BaseEvent> &event) {
   std::string json_event = event->toJson();
-  for (std::vector<int>::iterator it = event_connections.begin();
-       it != event_connections.end();) {
-    ssize_t bytes_sent =
-        send(*it, json_event.c_str(), json_event.size(), MSG_NOSIGNAL);
+  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end();) {
+    ssize_t bytes_sent = send(*it, json_event.c_str(), json_event.size(), MSG_NOSIGNAL);
     if (bytes_sent != -1) {
       ++it;
     } else {
@@ -121,11 +108,9 @@ void SocketGateway::broadcast_event(
   }
 }
 
-void SocketGateway::processEvent(
-    const boost::shared_ptr<event::BaseEvent> &event) {
+void SocketGateway::processEvent(const boost::shared_ptr<event::BaseEvent> &event) {
   std::vector<std::string>::iterator find_iter =
-      std::find(config.network.socket_events.begin(),
-                config.network.socket_events.end(), event->variant);
+      std::find(config.network.socket_events.begin(), config.network.socket_events.end(), event->variant);
   if (find_iter != config.network.socket_events.end()) {
     broadcast_event(event);
   }

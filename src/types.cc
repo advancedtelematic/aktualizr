@@ -57,8 +57,7 @@ UpdateRequest UpdateRequest::fromJson(const Json::Value& json) {
   } else {
     throw std::runtime_error("Failed to parse UpdateRequest");
   }
-  ur.packageId =
-      data::Package::fromJson(Json::FastWriter().write(json["packageId"]));
+  ur.packageId = data::Package::fromJson(Json::FastWriter().write(json["packageId"]));
   ur.installPos = json["installPos"].asUInt();
   ur.createdAt = json["createdAt"].asString();
   return ur;
@@ -124,8 +123,7 @@ OperationResult OperationResult::fromJson(const std::string& json_str) {
   reader.parse(json_str, json);
   OperationResult operation_result;
   operation_result.id = json["id"].asString();
-  operation_result.result_code =
-      static_cast<UpdateResultCode>(json["result_code"].asUInt());
+  operation_result.result_code = static_cast<UpdateResultCode>(json["result_code"].asUInt());
   operation_result.result_text = json["result_text"].asString();
   return operation_result;
 }
@@ -135,9 +133,8 @@ Json::Value UpdateReport::toJson() {
   json["update_id"] = update_id;
 
   Json::Value operation_results_json(Json::arrayValue);
-  for (std::vector<data::OperationResult>::iterator it =
-           operation_results.begin();
-       it != operation_results.end(); ++it) {
+  for (std::vector<data::OperationResult>::iterator it = operation_results.begin(); it != operation_results.end();
+       ++it) {
     operation_results_json.append(it->toJson());
   }
   json["operation_results"] = operation_results_json;
@@ -150,10 +147,9 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
   reader.parse(json_str, json);
   UpdateReport update_report;
   update_report.update_id = json["update_id"].asString();
-  for (unsigned int index = 0; index < json["operation_results"].size();
-       ++index) {
-    update_report.operation_results.push_back(OperationResult::fromJson(
-        Json::FastWriter().write(json["operation_results"][index])));
+  for (unsigned int index = 0; index < json["operation_results"].size(); ++index) {
+    update_report.operation_results.push_back(
+        OperationResult::fromJson(Json::FastWriter().write(json["operation_results"][index])));
   }
   return update_report;
 }
@@ -218,13 +214,11 @@ InstalledPackage InstalledPackage::fromJson(const std::string& json_str) {
 Json::Value InstalledSoftware::toJson() {
   Json::Value json;
   json["packages"] = Json::arrayValue;
-  for (std::vector<InstalledPackage>::iterator it = packages.begin();
-       it != packages.end(); ++it) {
+  for (std::vector<InstalledPackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
     json["packages"].append(it->toJson());
   }
   json["firmwares"] = Json::arrayValue;
-  for (std::vector<InstalledFirmware>::iterator it = firmwares.begin();
-       it != firmwares.end(); ++it) {
+  for (std::vector<InstalledFirmware>::iterator it = firmwares.begin(); it != firmwares.end(); ++it) {
     json["firmwares"].append(it->toJson());
   }
   return json;
@@ -237,14 +231,12 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   std::vector<InstalledPackage> packages;
 
   for (unsigned int index = 0; index < json["packages"].size(); ++index) {
-    packages.push_back(InstalledPackage::fromJson(
-        Json::FastWriter().write(json["packages"][index])));
+    packages.push_back(InstalledPackage::fromJson(Json::FastWriter().write(json["packages"][index])));
   }
 
   std::vector<InstalledFirmware> firmwares;
   for (unsigned int index = 0; index < json["firmwares"].size(); ++index) {
-    firmwares.push_back(InstalledFirmware::fromJson(
-        Json::FastWriter().write(json["firmwares"][index])));
+    firmwares.push_back(InstalledFirmware::fromJson(Json::FastWriter().write(json["firmwares"][index])));
   }
   InstalledSoftware installed_software;
   installed_software.packages = packages;
