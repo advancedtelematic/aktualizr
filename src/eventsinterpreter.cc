@@ -27,7 +27,7 @@ void EventsInterpreter::run() {
       event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
       data::OperationResult operation_result;
       operation_result.id = download_complete_event->download_complete.update_id;
-      operation_result.result_code = data::UpdateResultCode::OK;
+      operation_result.result_code = data::OK;
       operation_result.result_text = "Downloaded";
       data::UpdateReport update_report;
       update_report.update_id = download_complete_event->download_complete.update_id;

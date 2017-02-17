@@ -12,7 +12,7 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_c
   http = new HttpClient();
   core_url = config.core.server + "/api/v1";
   processing = false;
-  ;
+  retries = SotaHttpClient::MAX_RETRIES;
   boost::thread(boost::bind(&SotaHttpClient::run, this));
 }
 
@@ -81,7 +81,7 @@ void SotaHttpClient::retry() {
   processing = false;
   retries--;
   if (!retries) {
-    retries = MAX_RETRIES;
+    retries = SotaHttpClient::MAX_RETRIES;
     was_error = false;
   }
 }

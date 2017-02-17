@@ -54,7 +54,7 @@ TEST(GetTest, file_downloaded) {
   std::string filename = "/tmp/aktualizr_test_http.txt";
   bool result = http.download(server + path, filename);
   EXPECT_EQ(result, true);
-  std::ifstream file_stream(filename);
+  std::ifstream file_stream(filename.c_str());
   std::string content;
   std::getline(file_stream, content);
   EXPECT_EQ(content, "content");
