@@ -1514,7 +1514,7 @@ int rviProcessInput(TRviHandle handle, int *fdArr, int fdLen)
     json_t          *root   = NULL;
     json_error_t    jserr   = {0};
 
-    int             len     = 1024 * 8;
+    int             len     = 1024 * 64 + 2000;
     int             read    = 0;
     char            *buf    = {0};
     long            mode    = 0;
