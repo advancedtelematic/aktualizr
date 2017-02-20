@@ -25,6 +25,7 @@ class SotaRVIClient: public SotaClient
 {
 public:
     SotaRVIClient(const Config& config, event::Channel * events_channel_in);
+    ~SotaRVIClient();
     void run();
     void sendEvent(const boost::shared_ptr<event::BaseEvent> &event);
     virtual void startDownload(const data::UpdateRequestId &update_id);
@@ -40,6 +41,8 @@ private:
     int connection;
     event::Channel * events_channel;
     Json::Value services;
+    bool stop;
+    boost::thread thread;
     
 
 };

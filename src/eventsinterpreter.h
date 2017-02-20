@@ -17,7 +17,7 @@ class EventsInterpreter {
 
  private:
   Config config;
-  boost::thread *thread;
+  boost::thread thread;
   event::Channel *events_channel;
   command::Channel *commands_channel;
   GatewayManager gateway_manager;

@@ -16,6 +16,28 @@ SocketGateway::SocketGateway(const Config &config_in, command::Channel *commands
   commands_server_thread = new boost::thread(boost::bind(&SocketGateway::commandsServer, this));
 }
 
+SocketGateway::~SocketGateway() {
+  shutdown(commands_socket, SHUT_RD);
+  shutdown(events_socket, SHUT_RD);
+
+  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end(); ++it) {
+    close(*it);
+  }
+  for (std::vector<int>::iterator it = command_connections.begin(); it != command_connections.end(); ++it) {
+    close(*it);
+  }
+
+  for (std::vector<boost::thread*>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
+    (*it)->join();
+    delete (*it);
+  }
+  commands_server_thread->join();
+  events_server_thread->join();
+  
+  unlink(config.network.socket_events_path.c_str());
+  unlink(config.network.socket_commands_path.c_str());
+}
+
 void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
   int buff_size = 512;
   char buf[buff_size];
@@ -44,7 +66,7 @@ void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
 }
 
 void SocketGateway::eventsServer() {
-  int events_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  events_socket = socket(AF_UNIX, SOCK_STREAM, 0);
   struct sockaddr_un cli_addr, addr;
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_UNIX;
@@ -60,12 +82,12 @@ void SocketGateway::eventsServer() {
       break;
     }
   }
-  LOGGER_LOG(LVL_error, "unix domain socket accept error, errno: " << errno);
+  LOGGER_LOG(LVL_error, "unix domain event socket accept error, errno: " << errno);
   close(events_socket);
 }
 
 void SocketGateway::commandsServer() {
-  int commands_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  commands_socket = socket(AF_UNIX, SOCK_STREAM, 0);
 
   struct sockaddr_un cli_addr, addr;
   memset(&addr, 0, sizeof(addr));
@@ -77,21 +99,14 @@ void SocketGateway::commandsServer() {
   while (true) {
     int newsockfd = accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
     if (newsockfd != -1) {
-      boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel));
+      command_connections.push_back(newsockfd);
+      command_workers.push_back(new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
     } else {
       break;
     }
   }
-  LOGGER_LOG(LVL_error, "unix domain socket accept error, errno: " << errno);
+  LOGGER_LOG(LVL_error, "unix domain command socket accept error, errno: " << errno);
   close(commands_socket);
-}
-
-SocketGateway::~SocketGateway() {
-  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end(); ++it) {
-    close(*it);
-  }
-  unlink(config.network.socket_events_path.c_str());
-  unlink(config.network.socket_commands_path.c_str());
 }
 
 void SocketGateway::broadcast_event(const boost::shared_ptr<event::BaseEvent> &event) {
