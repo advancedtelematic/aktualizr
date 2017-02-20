@@ -30,7 +30,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
   } else if (service == "finish") {
     client->downloadComplete(json[0]);
   } else if (service == "getpackages") {
-    LOGGER_LOG(LVL_error, "service " << service << "not implemented yet");
+    client->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
   }
 }
 
@@ -129,7 +129,11 @@ void SotaRVIClient::downloadComplete(const Json::Value &parameters) {
 
 void SotaRVIClient::sendUpdateReport(data::UpdateReport update_report) {
   Json::Value params(Json::arrayValue);
-  params.append(update_report.toJson());
+  Json::Value report;
+  report["device"] = config.device.uuid;
+  report["update_report"] = update_report.toJson();
+  params.append(report);
+
 
   int stat = rviInvokeService(rvi, "genivi.org/backend/sota/report", Json::FastWriter().write(params).c_str());
   LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/report, return code is " << stat);
