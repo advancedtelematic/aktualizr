@@ -6,7 +6,7 @@
 aktualizr
 ------
 
-This project houses the C++ reference implementation of a client for the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project. The client is intended to be installed on devices that wish to recive OTA updates from a GENIVI-compatible OTA server.
+This project houses the C++ reference implementation of a client for the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project. The client is intended to be installed on devices that wish to receive OTA updates from a GENIVI-compatible OTA server.
 
 The client is responsible for:
 
