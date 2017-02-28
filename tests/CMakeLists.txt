@@ -65,7 +65,7 @@ add_dependencies(qa check)
 
 #Setup CMake to run tests
 # let cmake find the boost test library
-find_package(Boost COMPONENTS system thread program_options log log_setup regex unit_test_framework REQUIRED)
+find_package(Boost COMPONENTS system thread program_options log log_setup regex unit_test_framework chrono REQUIRED)
 
 #enable test features of cmake
 enable_testing()
