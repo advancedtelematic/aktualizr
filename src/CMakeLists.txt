@@ -50,6 +50,7 @@ if(BUILD_GENIVI)
     add_definitions(-DWITH_GENIVI)
     target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
     #target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
+    target_include_directories(aktualizr_static_lib PUBLIC third_party/rvi_lib/include)
     target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
 endif(BUILD_GENIVI)
 
