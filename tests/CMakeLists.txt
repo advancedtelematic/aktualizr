@@ -57,7 +57,8 @@ endif()
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-  DEPENDS aktualizr_test_config aktualizr_test_commands aktualizr_test_events)
+  DEPENDS aktualizr_test_config aktualizr_test_commands aktualizr_test_events
+        aktualizr_test_http_aktualizr aktualizr_test_http_client aktualizr_test_socket_gateway)
 
 add_dependencies(qa check)
 
@@ -123,15 +124,18 @@ if(BUILD_GENIVI)
     target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_dbusgateway COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_test_dbusgateway)
 
     add_executable(aktualizr_test_rvi_client tests/rvisotaclient_test.cc)
     target_link_libraries(aktualizr_test_rvi_client aktualizr_static_lib ${TEST_LIBS})
     add_test(NAME test_rvi_client COMMAND aktualizr_test_rvi_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_test_rvi_client)
 
     add_executable(aktualizr_test_swm tests/swm_test.cc)
     target_compile_options(aktualizr_test_swm PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_swm COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_test_swm)
 endif(BUILD_GENIVI)
 
 if(BUILD_WITH_CODE_COVERAGE)
