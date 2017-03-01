@@ -810,12 +810,12 @@ char *rviGetPubkeyFile( char *filename )
     if( !key ) { ret = ENOMEM; goto exit; }
     /* Load the string into memory */
     ret = BIO_read(mbio, key, length);
+    /* Null terminate */
+    key[length] = '\0';
     if(verbose){
         fprintf(stderr, "RVI verbose log, received %d bytes, : '%s'\n", ret, key);
     }
     if( ret != length) { goto exit; }
-    /* Make sure it's null-formatted, just in case */
-    key[length] = '\0';
 
     ret = RVI_OK;
 
