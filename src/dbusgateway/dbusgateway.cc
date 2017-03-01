@@ -158,11 +158,18 @@ void DbusGateway::run() {
       *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
     }
 
-    DBusMessage* reply = dbus_message_new_method_return(msg);
-    dbus_connection_send(conn, reply, NULL);
-    dbus_connection_flush(conn);
+    int message_type = dbus_message_get_type(msg);
+    LOGGER_LOG(LVL_trace, "Got D-Bus message type:" << dbus_message_type_to_string(message_type));
+    if (message_type ==DBUS_MESSAGE_TYPE_METHOD_CALL) {
+      DBusMessage *reply = dbus_message_new_method_return(msg);
+      dbus_bool_t ok = dbus_connection_send(conn, reply, NULL);
+      if (!ok) {
+        LOGGER_LOG(LVL_error, "D-Bus method send failed");
+      }
+      dbus_connection_flush(conn);
 
-    dbus_message_unref(reply);
+      dbus_message_unref(reply);
+    }
     dbus_message_unref(msg);
   }
 }
