@@ -34,6 +34,9 @@ if(BUILD_TESTS)
     include("tests/CMakeLists.txt")
 endif(BUILD_TESTS)
 
+if(BUILD_GENIVI)
+    install(FILES dbus/org.genivi.SotaClient.conf DESTINATION /etc/dbus-1/system.d)
+endif(BUILD_GENIVI)
 
 # Generate ctags
 set_source_files_properties(tags PROPERTIES GENERATED true)
