@@ -8,10 +8,10 @@
 
 void callbackWrapper(int fd, void *service_data, const char *parameters);
 
-TRviHandle rviInitLogs ( char *configFilename, bool verbose_in ){
+TRviHandle rviInitLogs(char *configFilename, bool verbose_in) {
   (void)configFilename;
   (void)verbose_in;
-  TRviHandle handle = (void*)1;
+  TRviHandle handle = (void *)1;
   return handle;
 }
 
@@ -58,7 +58,7 @@ int rviInvokeService(TRviHandle handle, const char *serviceName, const char *par
   return 0;
 }
 
-int rviCleanup(TRviHandle handle){
+int rviCleanup(TRviHandle handle) {
   (void)handle;
   return 0;
 }

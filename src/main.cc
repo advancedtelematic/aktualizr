@@ -47,10 +47,10 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()("help,h", "help screen")("loglevel", bpo::value<int>(),
                                                      "set log level 0-4 (trace, debug, warning, info, error)")(
       "config,c", bpo::value<std::string>()->required(), "toml configuration file")(
-      "gateway-http", bpo::value<bool>(), "on/off the http gateway")("gateway-rvi", bpo::value<bool>(),
-                                                                     "on/off the rvi gateway")(
-      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")("gateway-dbus", bpo::value<bool>(),
-                                                                         "on/off the dbus gateway");
+      "gateway-http", bpo::value<bool>(), "enable the http gateway")("gateway-rvi", bpo::value<bool>(),
+                                                                     "enable the rvi gateway")(
+      "gateway-socket", bpo::value<bool>(), "enable the socket gateway")("gateway-dbus", bpo::value<bool>(),
+                                                                         "enable the D-Bus gateway");
 
   bpo::variables_map vm;
   try {

@@ -62,7 +62,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   thread = boost::thread(boost::bind(&SotaRVIClient::run, this));
 }
 
-SotaRVIClient::~SotaRVIClient(){
+SotaRVIClient::~SotaRVIClient() {
   rviCleanup(rvi);
   stop = true;
   if (!thread.try_join_for(boost::chrono::seconds(10))) {
@@ -75,7 +75,7 @@ void SotaRVIClient::sendEvent(const boost::shared_ptr<event::BaseEvent> &event) 
 void SotaRVIClient::run() {
   while (true) {
     int result = rviProcessInput(rvi, &connection, 1);
-    if (stop){
+    if (stop) {
       break;
     }
     if (result != 0) {
@@ -144,7 +144,6 @@ void SotaRVIClient::sendUpdateReport(data::UpdateReport update_report) {
   report["device"] = config.device.uuid;
   report["update_report"] = update_report.toJson();
   params.append(report);
-
 
   int stat = rviInvokeService(rvi, "genivi.org/backend/sota/report", Json::FastWriter().write(params).c_str());
   LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/report, return code is " << stat);

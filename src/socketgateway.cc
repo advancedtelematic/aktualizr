@@ -27,13 +27,13 @@ SocketGateway::~SocketGateway() {
     close(*it);
   }
 
-  for (std::vector<boost::thread*>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
+  for (std::vector<boost::thread *>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
     (*it)->join();
     delete (*it);
   }
   commands_server_thread->join();
   events_server_thread->join();
-  
+
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
 }
