@@ -5,140 +5,108 @@
 
 #include "logger.h"
 
-std::string getStringValue(boost::property_tree::ptree pt, const std::string& name) {
-  std::string ret_val = pt.get<std::string>(name);
-  ret_val.erase(std::remove(ret_val.begin(), ret_val.end(), '\"'), ret_val.end());
-  return ret_val;
-}
-
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
  *    us to print its content, i.e. for logging purposes.
  */
 std::ostream& operator<<(std::ostream& os, const Config& cfg) {
-  return os << "\tAuthtentification Server: " << cfg.auth.server << std::endl
+  return os << "\tAuthentication Server: " << cfg.auth.server << std::endl
             << "\tSota Server: " << cfg.core.server << std::endl
             << "\tPooling enabled : " << cfg.core.polling << std::endl
             << "\tPooling interval : " << cfg.core.polling_sec << std::endl
             << "\tClient: " << cfg.auth.client_id << std::endl
-            << "\tSecret: " << cfg.auth.client_secret << std::endl
             << "\tDevice UUID: " << cfg.device.uuid;
 }
+
+// Strip leading and trailing quotes
+std::string strip_quotes(const std::string value) {
+  std::string res = value;
+  res.erase(std::remove(res.begin(), res.end(), '\"'), res.end());
+  return res;
+}
+
+/*
+ The following uses a small amount of template hackery to provide a nice
+ interface to load the sota.toml config file. StripQuotesFromStrings is
+ templated, and passes everything that isn't a string straight through.
+ Strings in toml are always double-quoted, and we remove them by specializing
+ StripQuotesFromStrings for std::string.
+
+ The end result is that the sequence of calls in Config::updateFromToml are
+ pretty much a direct expression of the required behaviour: load this variable
+ from this config entry, and print a warning at the
+
+ Note that default values are defined by Config's default constructor.
+ */
+template <typename T>
+T StripQuotesFromStrings(const T& value);
+
+template <>
+std::string StripQuotesFromStrings<std::string>(const std::string& value) {
+  return strip_quotes(value);
+}
+
+template <typename T>
+T StripQuotesFromStrings(const T& value) {
+  return value;
+}
+
+template <typename T>
+void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+                    boost::property_tree::ptree& pt) {
+  boost::optional<T> value = pt.get_optional<T>(option_name);
+  if (value.is_initialized()) {
+    dest = StripQuotesFromStrings(value.get());
+  } else {
+    LOGGER_LOG(warning_level, option_name << " not in config file. Using default:" << dest);
+  }
+}
+
+// End template tricks
 
 void Config::updateFromToml(const std::string& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);
 
-  // CoreConfig
-  try {
-    core.server = getStringValue(pt, "core.server");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'core.server' option have been found in config file: "
-                              << filename << ", Falling back to default: " << core.server);
-  }
+  // Keep this order the same as in config.h
+  CopyFromConfig(core.server, "core.server", LVL_debug, pt);
+  CopyFromConfig(core.polling, "core.polling", LVL_trace, pt);
+  CopyFromConfig(core.polling_sec, "core.polling_sec", LVL_trace, pt);
 
-  try {
-    core.polling = pt.get<bool>("core.polling");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'core.polling' option have been found in config file: "
-                              << filename << ", Falling back to default: " << core.polling);
-  }
+  CopyFromConfig(auth.server, "auth.server", LVL_info, pt);
+  CopyFromConfig(auth.client_id, "auth.client_id", LVL_warning, pt);
+  CopyFromConfig(auth.client_secret, "auth.client_secret", LVL_warning, pt);
 
-  try {
-    core.polling_sec = pt.get<unsigned long long>("core.polling_sec");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'core.polling_sec' option have been found in config file: "
-                              << filename << ", Falling back to default: " << core.polling_sec);
-  }
+  CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
+  CopyFromConfig(dbus.software_manager_path, "dbus.software_manager_path", LVL_trace, pt);
+  CopyFromConfig(dbus.path, "dbus.path", LVL_trace, pt);
+  CopyFromConfig(dbus.interface, "dbus.interface", LVL_trace, pt);
+  CopyFromConfig(dbus.timeout, "dbus.timeout", LVL_trace, pt);
 
-  // AuthConfig
-  try {
-    auth.server = getStringValue(pt, "auth.server");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'auth.server' option have been found in config file: "
-                              << filename << ", Falling back to default: " << auth.server);
-  }
+  CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
+  CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
 
-  try {
-    auth.client_id = getStringValue(pt, "auth.client_id");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'auth.client_id' option have been found in config file: "
-                              << filename << ", Falling back to default: " << auth.client_id);
-  }
+  CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
+  CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
+  CopyFromConfig(gateway.socket, "gateway.socket", LVL_info, pt);
+  CopyFromConfig(gateway.dbus, "gateway.dbus", LVL_info, pt);
 
-  try {
-    auth.client_secret = getStringValue(pt, "auth.client_secret");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'auth.client_secret' option have been found in config file: "
-                              << filename << ", Falling back to default: " << auth.client_secret);
-  }
+  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", LVL_trace, pt);
+  CopyFromConfig(network.socket_events_path, "network.socket_events_path", LVL_trace, pt);
 
-  // DeviceConfig
-  try {
-    device.uuid = getStringValue(pt, "device.uuid");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'device.uuid' option have been found in config file: "
-                              << filename << ", Falling back to default: " << device.uuid);
-  }
-
-  try {
-    device.packages_dir = getStringValue(pt, "device.packages_dir");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'device.packages_dir' option have been found in config file: "
-                              << filename << ", Falling back to default: " << device.packages_dir);
-  }
-
-  try {
-    rvi.node_host = getStringValue(pt, "rvi.node_host");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'rvi.node_host' option have been found in config file: "
-                              << filename << ", Falling back to default: " << rvi.node_host);
-  }
-
-  try {
-    rvi.node_port = getStringValue(pt, "rvi.node_port");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'rvi.node_port' option have been found in config file: "
-                              << filename << ", Falling back to default: " << rvi.node_port);
-  }
-
-  try {
-    rvi.client_config = getStringValue(pt, "rvi.client_config");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'rvi.client_config' option have been found in config file: "
-                              << filename << ", Falling back to default: " << rvi.client_config);
-  }
-
-  try {
-    std::string events_string = getStringValue(pt, "network.socket_events");
+  boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
+  if (events_string.is_initialized()) {
+    std::string e = strip_quotes(events_string.get());
     network.socket_events.empty();
-    boost::split(network.socket_events, events_string, boost::is_any_of(", "), boost::token_compress_on);
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'network.socket_events' option have been found in config file: "
-                              << filename << ", Falling back to default value");
+    boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
+  } else {
+    LOGGER_LOG(LVL_trace, "network.socket_events not in config file. Using default");
   }
 
-  try {
-    gateway.socket = pt.get<bool>("gateway.socket");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'gateway.socket' option have been found in config file: "
-                              << filename << ", Falling back to default value ");
-  }
-
-  try {
-    gateway.http = pt.get<bool>("gateway.http");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'gatewayi.http' option have been found in config file: " << filename
-                                                                                       << ", Falling back to default");
-  }
-
-  try {
-    gateway.rvi = pt.get<bool>("gateway.rvi");
-  } catch (...) {
-    LOGGER_LOG(LVL_debug, "no 'gatewayi.rvi' option have been found in config file: " << filename
-                                                                                      << ", Falling back to default");
-  }
+  CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
+  CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
+  CopyFromConfig(rvi.client_config, "rvi.client_config", LVL_warning, pt);
 
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
