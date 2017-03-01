@@ -17,7 +17,8 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
 
   int ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-    LOGGER_LOG(LVL_error, "Cannot request D-Bus name '" << config_in.dbus.interface << "' as primary owner. D-Bus communication disabled");
+    LOGGER_LOG(LVL_error, "Cannot request D-Bus name '"
+                              << config_in.dbus.interface << "' as primary owner. D-Bus communication disabled");
     return;
   }
   thread = boost::thread(boost::bind(&DbusGateway::run, this));

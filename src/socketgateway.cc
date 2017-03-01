@@ -100,7 +100,8 @@ void SocketGateway::commandsServer() {
     int newsockfd = accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
     if (newsockfd != -1) {
       command_connections.push_back(newsockfd);
-      command_workers.push_back(new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
+      command_workers.push_back(
+          new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
     } else {
       break;
     }
