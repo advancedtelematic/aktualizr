@@ -117,14 +117,17 @@ int main(int argc, char *argv[]) {
 
   // check for loglevel
   if (commandline_map.count("loglevel") != 0) {
-    // write a log message
-    LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
-
     // set the log level from command line option
-    loggerSetSeverity(static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>()));
-  } else {
-    // log if no command line option loglevl is used
-    LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
+    LoggerLevels severity = static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>());
+    if (severity < LVL_minimum) {
+      LOGGER_LOG(LVL_debug, "Invalid log level");
+      severity = LVL_trace;
+    }
+    if (LVL_maximum < severity) {
+      LOGGER_LOG(LVL_warning, "Invalid log level");
+      severity = LVL_error;
+    }
+    loggerSetSeverity(severity);
   }
 
   config.updateFromCommandLine(commandline_map);

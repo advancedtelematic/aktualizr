@@ -37,7 +37,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in), stop(false) {
   std::string client_config(config.rvi.client_config);
-  rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), !loggerGetSeverity());
+  rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), loggerGetSeverity() == LVL_trace);
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config file " + client_config);
   }
