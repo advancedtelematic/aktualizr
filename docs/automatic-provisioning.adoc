@@ -1,0 +1,29 @@
+= Automatic Provisioning
+
+There are two separate methods for provisioning Aktualizr clients against a server:
+1. Downloading sota.toml from the server (either via the web ui or the REST API)
+2. Provisioning using Mutual TLS authentication (i.e. SSL client certificates)
+
+This document describes the 2nd approach, Mutual TLS authentication.
+
+The process works as follows:
+1. The user downloads a package that contains an initial 'provisioning' key. This is installed on all devices, and is only used to bootstrap the provisioning process.
+2. On the first run Aktualizr uses this key/certificate to make a request to the device gateway https API.  The server registers the new device and returns a PKCS#12 archive containing the real credentials for the device.
+3. The device uses the private key/certificate in this PKCS#12 bundle for future communication with the server.
+
+== Changes
+
+There will be a new entries in the `[auth]` section of the sota.toml file that will hold:
+
+1. The URL to the device gateway server will reuse the `server` key
+2. The directory to store the actual device credentials in `credentials_dir`. This will store the device ID (which Aktualizr will randomly create) and the PKCS#12 bundle from the server
+
+A non-empty value for `auth.credentials_dir` will enable automatic provisioning using TLS. Specifying `client_id` or `client_secret` with `credentials_dir` is a fatal error in the configuration.
+
+There will be a new section called `[provision]` that is used for automatic provisioning. This will hold:
+
+1. The server to fetch the automatic provisioning credentials from, called `server`
+2. The path to the pkcs12 bundle holding the bootstrap credentials `bootstrap_credentials`
+3. The password to the bootstrap credentials (optional) `bootstrap_credentials_password`
+4. The TTL to pass to the server `expiry_days` (optional)
+
