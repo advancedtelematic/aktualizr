@@ -11,19 +11,33 @@ The process works as follows:
 2. On the first run Aktualizr uses this key/certificate to make a request to the device gateway https API.  The server registers the new device and returns a PKCS#12 archive containing the real credentials for the device.
 3. The device uses the private key/certificate in this PKCS#12 bundle for future communication with the server.
 
+The run/sota_prov.sh script in rvi_sota_client contains an example implementation of the provisioning request. For some systems, the provisioning will be done at device install time, in which case the `[provision]` section will not be used.
+
 == Changes
 
-There will be a new entries in the `[auth]` section of the sota.toml file that will hold:
+There will be a new entries in the `[tls]` section of the sota.toml file that will hold:
 
-1. The URL to the device gateway server will reuse the `server` key
-2. The directory to store the actual device credentials in `credentials_dir`. This will store the device ID (which Aktualizr will randomly create) and the PKCS#12 bundle from the server
+1. The URL to the device gateway server in `server`.
+2. The path to the pkcs#12 device credentials `pk12_path`. This holds the PKCS#12 bundle from the server.
 
-A non-empty value for `auth.credentials_dir` will enable automatic provisioning using TLS. Specifying `client_id` or `client_secret` with `credentials_dir` is a fatal error in the configuration.
+A non-empty value for `tls.pk12_path` will enable authentication using TLS client certificates rather than OAuth2. Specifying `auth.client_id` or `auth.client_secret` with `tls.pk12_path` is a fatal error in the configuration.
 
-There will be a new section called `[provision]` that is used for automatic provisioning. This will hold:
+There will be a new section called `[provision]` that is used for automatic provisioning. This will contain:
 
-1. The server to fetch the automatic provisioning credentials from, called `server`
-2. The path to the pkcs12 bundle holding the bootstrap credentials `bootstrap_credentials`
-3. The password to the bootstrap credentials (optional) `bootstrap_credentials_password`
-4. The TTL to pass to the server `expiry_days` (optional)
+1. The path to the pkcs12 bundle holding the bootstrap credentials `bootstrap_credentials`
+2. The password to the bootstrap credentials (optional) `bootstrap_credentials_password`
+3. The TTL to pass to the server `expiry_days` (optional)
+4. The device id to request from the server `force_device_id` (optional). If left unspecified a random uuid will be chosen. In the future Aktualizr will support deriving a device id from a hardware id, such as Ethernet MAC address.
 
+== Failures and Errors
+
+The following are fatal configuration errors that should cause Aktualizr to exit with an error code:
+
+- Either both or neither of `tls.pk12_path` + `auth.client_*` set
+- `tls.pk12_path` pointing at a non-existent file without `provision.bootstrap_credentials` set
+- Write errors to `tls.pk12_path` during provisioning
+- 403 Forbidden errors while provisioning
+
+The following failures should be handled by the normal backoff/retry mechanism:
+
+- Network connection errors and 500 server responses during provisioning
