@@ -10,14 +10,15 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
   dbus_error_init(&err);
   conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
   if (dbus_error_is_set(&err)) {
-    LOGGER_LOG(LVL_error, "Dbus Connection Error: " << err.message);
+    LOGGER_LOG(LVL_error, "D-Bus Connection Error: " << err.message);
     dbus_error_free(&err);
     return;
   }
 
   int ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-    LOGGER_LOG(LVL_error, "Cannot request Dbus name '" << config_in.dbus.interface << "' as primary owner");
+    LOGGER_LOG(LVL_error, "Cannot request D-Bus name '"
+                              << config_in.dbus.interface << "' as primary owner. D-Bus communication disabled");
     return;
   }
   thread = boost::thread(boost::bind(&DbusGateway::run, this));
@@ -41,8 +42,8 @@ void DbusGateway::processEvent(const boost::shared_ptr<event::BaseEvent>& event)
   } else if (event->variant == "InstalledSoftwareNeeded") {
     fireInstalledSoftwareNeededEvent();
   } else if (event->variant == "UpdateAvailable") {
-    event::UpdateAvailable* update_vailable_event = static_cast<event::UpdateAvailable*>(event.get());
-    fireUpdateAvailableEvent(update_vailable_event->update_vailable);
+    event::UpdateAvailable* update_available_event = static_cast<event::UpdateAvailable*>(event.get());
+    fireUpdateAvailableEvent(update_available_event->update_vailable);
   }
 }
 
@@ -122,7 +123,7 @@ void DbusGateway::run() {
         dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "abortDownload") ||
         dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "updateReport")) {
       if (!dbus_message_iter_init(msg, &args) || DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args)) {
-        LOGGER_LOG(LVL_error, "dbus method initiateDownload called with wrong arguments");
+        LOGGER_LOG(LVL_error, "D-Bus method initiateDownload called with wrong arguments");
         dbus_message_unref(msg);
         continue;
       } else {
@@ -144,25 +145,32 @@ void DbusGateway::run() {
           try {
             update_report.operation_results.push_back(getOperationResult(&operation_result_args));
           } catch (...) {
-            LOGGER_LOG(LVL_error, "dbus method 'updateReport' called with wrong arguments");
+            LOGGER_LOG(LVL_error, "D-Bus method 'updateReport' called with wrong arguments");
           }
           dbus_message_iter_next(&operation_result_args);
           results_count--;
         } while (results_count);
 
       } else {
-        LOGGER_LOG(LVL_error, "dbus methid called with wrong argents");
+        LOGGER_LOG(LVL_error, "D-Bus method called with wrong arguments");
         dbus_message_unref(msg);
         continue;
       }
       *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
     }
 
-    DBusMessage* reply = dbus_message_new_method_return(msg);
-    dbus_connection_send(conn, reply, NULL);
-    dbus_connection_flush(conn);
+    int message_type = dbus_message_get_type(msg);
+    LOGGER_LOG(LVL_trace, "Got D-Bus message type:" << dbus_message_type_to_string(message_type));
+    if (message_type == DBUS_MESSAGE_TYPE_METHOD_CALL) {
+      DBusMessage* reply = dbus_message_new_method_return(msg);
+      dbus_bool_t ok = dbus_connection_send(conn, reply, NULL);
+      if (!ok) {
+        LOGGER_LOG(LVL_error, "D-Bus method send failed");
+      }
+      dbus_connection_flush(conn);
 
-    dbus_message_unref(reply);
+      dbus_message_unref(reply);
+    }
     dbus_message_unref(msg);
   }
 }

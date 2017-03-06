@@ -34,18 +34,28 @@ BOOST_AUTO_TEST_CASE(config_initialized_values) {
 
 BOOST_AUTO_TEST_CASE(config_toml_parsing) {
   Config conf;
-  conf.updateFromToml("config/config.toml.example");
+  conf.updateFromToml("tests/config_tests.toml");
 
-  BOOST_CHECK_EQUAL(conf.core.server, "https://url.com");
-  BOOST_CHECK_EQUAL(conf.core.polling, true);
-  BOOST_CHECK_EQUAL(conf.core.polling_sec, 10);
+  BOOST_CHECK_EQUAL(conf.core.server, "https://example.com/core");
+  BOOST_CHECK_EQUAL(conf.core.polling, false);
+  BOOST_CHECK_EQUAL(conf.core.polling_sec, 91);
 
-  BOOST_CHECK_EQUAL(conf.auth.server, "https://url.com");
+  BOOST_CHECK_EQUAL(conf.auth.server, "https://example.com/auth");
   BOOST_CHECK_EQUAL(conf.auth.client_id, "thisisaclientid");
   BOOST_CHECK_EQUAL(conf.auth.client_secret, "thisisaclientsecret");
 
   BOOST_CHECK_EQUAL(conf.device.uuid, "bc50fa11-eb93-41c0-b0fa-5ce56affa63e");
-  BOOST_CHECK_EQUAL(conf.device.packages_dir, "/tmp/");
+  BOOST_CHECK_EQUAL(conf.device.packages_dir, "/tmp/packages_dir");
+
+  BOOST_CHECK_EQUAL(conf.gateway.dbus, true);
+  BOOST_CHECK_EQUAL(conf.gateway.http, false);
+  BOOST_CHECK_EQUAL(conf.gateway.rvi, true);
+  BOOST_CHECK_EQUAL(conf.gateway.socket, true);
+
+  BOOST_CHECK_EQUAL(conf.rvi.node_host, "rvi.example.com");
+
+  BOOST_CHECK_EQUAL(conf.rvi.node_port, "9999");
+  BOOST_CHECK_EQUAL(conf.rvi.client_config, "my/rvi_conf.json");
 }
 
 BOOST_AUTO_TEST_CASE(config_toml_parsing_empty_file) {

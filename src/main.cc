@@ -47,10 +47,10 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()("help,h", "help screen")("loglevel", bpo::value<int>(),
                                                      "set log level 0-4 (trace, debug, warning, info, error)")(
       "config,c", bpo::value<std::string>()->required(), "toml configuration file")(
-      "gateway-http", bpo::value<bool>(), "on/off the http gateway")("gateway-rvi", bpo::value<bool>(),
-                                                                     "on/off the rvi gateway")(
-      "gateway-socket", bpo::value<bool>(), "on/off the socket gateway")("gateway-dbus", bpo::value<bool>(),
-                                                                         "on/off the dbus gateway");
+      "gateway-http", bpo::value<bool>(), "enable the http gateway")("gateway-rvi", bpo::value<bool>(),
+                                                                     "enable the rvi gateway")(
+      "gateway-socket", bpo::value<bool>(), "enable the socket gateway")("gateway-dbus", bpo::value<bool>(),
+                                                                         "enable the D-Bus gateway");
 
   bpo::variables_map vm;
   try {
@@ -117,14 +117,17 @@ int main(int argc, char *argv[]) {
 
   // check for loglevel
   if (commandline_map.count("loglevel") != 0) {
-    // write a log message
-    LOGGER_LOG(LVL_debug, "boost command line option: loglevel detected.");
-
     // set the log level from command line option
-    loggerSetSeverity(static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>()));
-  } else {
-    // log if no command line option loglevl is used
-    LOGGER_LOG(LVL_debug, "no commandline option 'loglevel' provided");
+    LoggerLevels severity = static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>());
+    if (severity < LVL_minimum) {
+      LOGGER_LOG(LVL_debug, "Invalid log level");
+      severity = LVL_trace;
+    }
+    if (LVL_maximum < severity) {
+      LOGGER_LOG(LVL_warning, "Invalid log level");
+      severity = LVL_error;
+    }
+    loggerSetSeverity(severity);
   }
 
   config.updateFromCommandLine(commandline_map);

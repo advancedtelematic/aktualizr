@@ -27,13 +27,13 @@ SocketGateway::~SocketGateway() {
     close(*it);
   }
 
-  for (std::vector<boost::thread*>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
+  for (std::vector<boost::thread *>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
     (*it)->join();
     delete (*it);
   }
   commands_server_thread->join();
   events_server_thread->join();
-  
+
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
 }
@@ -100,7 +100,8 @@ void SocketGateway::commandsServer() {
     int newsockfd = accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
     if (newsockfd != -1) {
       command_connections.push_back(newsockfd);
-      command_workers.push_back(new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
+      command_workers.push_back(
+          new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
     } else {
       break;
     }

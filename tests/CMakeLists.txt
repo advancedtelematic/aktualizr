@@ -56,7 +56,7 @@ endif()
 
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
-add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
+add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=1 ${CMAKE_CTEST_COMMAND}
   DEPENDS aktualizr_test_config aktualizr_test_commands aktualizr_test_events
         aktualizr_test_http_aktualizr aktualizr_test_http_client aktualizr_test_socket_gateway)
 

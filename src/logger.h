@@ -40,10 +40,12 @@
 /*****************************************************************************/
 typedef enum {
   LVL_trace = 0,
+  LVL_minimum = LVL_trace,
   LVL_debug,
   LVL_warning,
   LVL_info,
-  LVL_error
+  LVL_error,
+  LVL_maximum = LVL_error,
 } LoggerLevels; /**< define own logging levels */
 
 /*****************************************************************************/
