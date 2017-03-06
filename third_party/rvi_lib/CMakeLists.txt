@@ -4,4 +4,4 @@ add_library(rvi STATIC
 )
 target_include_directories(rvi PUBLIC include)
 target_include_directories(rvi PRIVATE libjwt/include)
-target_link_libraries(rvi jwt)
+target_link_libraries(rvi jwt_static)

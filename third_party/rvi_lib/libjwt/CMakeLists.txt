@@ -52,6 +52,7 @@ endif()
 set (LIBS ${OPENSSL_LIBRARIES} ${JANSSON_LIBRARIES})
 
 target_link_libraries(${LIBRARY_NAME} ${LIBS})
+target_link_libraries(${LIBRARY_NAME}_static ${LIBS})
 
 install(TARGETS ${LIBRARY_NAME} ${LIBRARY_NAME}_static
         LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
