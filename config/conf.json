@@ -2,7 +2,7 @@
   "dev": {
     "key":  "./config/ex/keys/insecure_device_key.pem",
     "cert": "./config/ex/certificates/insecure_device_cert.crt",
-    "id": "genivi.org/device/64285c3c-ca04-4d58-b8d7-f0e002483647"
+    "id": "genivi.org/device/this id will be overwritten, don't setup it here"
   },
   "ca": {
     "cert": "./config/ex/certificates/insecure_root_cert.crt",
