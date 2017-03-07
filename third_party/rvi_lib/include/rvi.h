@@ -318,6 +318,9 @@ extern int rviInvokeService( TRviHandle handle,
  */
 extern int rviProcessInput(TRviHandle handle, int* fdArr, int fdLen);
 
+extern void rviUpdateId (TRviHandle handle, const char *id );
+
+
 #ifdef __cplusplus
 }
 #endif

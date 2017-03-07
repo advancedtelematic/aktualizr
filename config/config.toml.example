@@ -18,7 +18,6 @@ timeout = 60
 
 [device]
 uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
-vin = "64285c3c-ca04-4d58-b8d7-f0e002483647"
 packages_dir = "/tmp/"
 package_manager = "off"
 certificates_path = "/etc/sota_certificates"
@@ -44,7 +43,7 @@ websocket_server = "127.0.0.1:3012"
 [rvi]
 node_host = "localhost"
 node_port = 8810
-client_config = "conf.json"
+client_config = "config/conf.json"
 client = "http://127.0.0.1:8901"
 storage_dir = "/var/sota"
 timeout = 20

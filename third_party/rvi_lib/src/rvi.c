@@ -1025,6 +1025,14 @@ err:
     return NULL;
 }
 
+
+void rviUpdateId (TRviHandle handle, const char *id ){
+    TRviContext     *ctx = (TRviContext *)handle;
+    free(ctx->id);
+    ctx->id = strdup(id);
+}
+
+
 /* 
  * Tear down the API.
  */

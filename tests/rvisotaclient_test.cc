@@ -15,6 +15,12 @@ TRviHandle rviInitLogs(char *configFilename, bool verbose_in) {
   return handle;
 }
 
+void rviUpdateId(TRviHandle handle, const char *id) {
+  (void)handle;
+  (void)id;
+  return;
+}
+
 int rviConnect(TRviHandle handle, const char *addr, const char *port) {
   (void)handle;
   (void)addr;

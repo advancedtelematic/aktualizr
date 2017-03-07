@@ -41,6 +41,8 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config file " + client_config);
   }
+  rviUpdateId(rvi, (std::string("genivi.org/device/") + config.device.uuid).c_str());
+
   connection = rviConnect(rvi, config.rvi.node_host.c_str(), config.rvi.node_port.c_str());
 
   if (connection <= 0) {
