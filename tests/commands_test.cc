@@ -1,116 +1,114 @@
-#define BOOST_TEST_MODULE test_comads
+#include <gtest/gtest.h>
 
-#include <boost/test/included/unit_test.hpp>
-#include <boost/test/unit_test.hpp>
 #include <string>
 #include "picojson.h"
 
 #include "commands.h"
 
-BOOST_AUTO_TEST_CASE(Shutdown_comand_to_json) {
+TEST(command, Shutdown_comand_to_json) {
   command::Shutdown comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "Shutdown");
+  EXPECT_EQ(json["variant"].asString(), "Shutdown");
 }
 
-BOOST_AUTO_TEST_CASE(GetUpdateRequests_comand_to_json) {
+TEST(command, GetUpdateRequests_comand_to_json) {
   command::GetUpdateRequests comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "GetUpdateRequests");
+  EXPECT_EQ(json["variant"].asString(), "GetUpdateRequests");
 }
 
-BOOST_AUTO_TEST_CASE(ListInstalledPackages_comand_to_json) {
+TEST(command, ListInstalledPackages_comand_to_json) {
   command::ListInstalledPackages comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "ListInstalledPackages");
+  EXPECT_EQ(json["variant"].asString(), "ListInstalledPackages");
 }
 
-BOOST_AUTO_TEST_CASE(ListSystemInfo_comand_to_json) {
+TEST(command, ListSystemInfo_comand_to_json) {
   command::ListSystemInfo comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "ListSystemInfo");
+  EXPECT_EQ(json["variant"].asString(), "ListSystemInfo");
 }
 
-BOOST_AUTO_TEST_CASE(StartDownload_comand_to_json) {
+TEST(command, StartDownload_comand_to_json) {
   command::StartDownload comand("testid");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testid");
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "StartDownload");
+  EXPECT_EQ(json["fields"][0].asString(), "testid");
+  EXPECT_EQ(json["variant"].asString(), "StartDownload");
 }
 
-BOOST_AUTO_TEST_CASE(StartDownload_event_from_json) {
+TEST(command, StartDownload_event_from_json) {
   std::string json =
       "{\"fields\":[\"testid\"],"
       "\"variant\":\"StartDownload\"}";
   command::StartDownload comand = command::StartDownload::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "StartDownload");
-  BOOST_CHECK_EQUAL(comand.update_request_id, "testid");
+  EXPECT_EQ(comand.variant, "StartDownload");
+  EXPECT_EQ(comand.update_request_id, "testid");
 }
 
-BOOST_AUTO_TEST_CASE(AbortDownload_comand_to_json) {
+TEST(command, AbortDownload_comand_to_json) {
   command::AbortDownload comand("testid");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testid");
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "AbortDownload");
+  EXPECT_EQ(json["fields"][0].asString(), "testid");
+  EXPECT_EQ(json["variant"].asString(), "AbortDownload");
 }
 
-BOOST_AUTO_TEST_CASE(AbortDownload_event_from_json) {
+TEST(command, AbortDownload_event_from_json) {
   std::string json =
       "{\"fields\":[\"testid\"],"
       "\"variant\":\"AbortDownload\"}";
   command::AbortDownload comand = command::AbortDownload::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "AbortDownload");
-  BOOST_CHECK_EQUAL(comand.update_request_id, "testid");
+  EXPECT_EQ(comand.variant, "AbortDownload");
+  EXPECT_EQ(comand.update_request_id, "testid");
 }
 
-BOOST_AUTO_TEST_CASE(StartInstall_comand_to_json) {
+TEST(command, StartInstall_comand_to_json) {
   command::StartInstall comand("testid");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testid");
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "StartInstall");
+  EXPECT_EQ(json["fields"][0].asString(), "testid");
+  EXPECT_EQ(json["variant"].asString(), "StartInstall");
 }
 
-BOOST_AUTO_TEST_CASE(InstallFailed_event_from_json) {
+TEST(command, InstallFailed_event_from_json) {
   std::string json =
       "{\"fields\":[\"testid\"],"
       "\"variant\":\"StartInstall\"}";
   command::StartInstall comand = command::StartInstall::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "StartInstall");
-  BOOST_CHECK_EQUAL(comand.update_request_id, "testid");
+  EXPECT_EQ(comand.variant, "StartInstall");
+  EXPECT_EQ(comand.update_request_id, "testid");
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledPackages_comand_to_json) {
+TEST(command, SendInstalledPackages_comand_to_json) {
   data::Package p1, p2;
   p1.name = "packagename1";
   p1.version = "v2.0";
@@ -124,36 +122,36 @@ BOOST_AUTO_TEST_CASE(SendInstalledPackages_comand_to_json) {
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "SendInstalledPackages");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["name"].asString(), "packagename1");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["version"].asString(), "v2.0");
+  EXPECT_EQ(json["variant"].asString(), "SendInstalledPackages");
+  EXPECT_EQ(json["fields"][0][0]["name"].asString(), "packagename1");
+  EXPECT_EQ(json["fields"][0][0]["version"].asString(), "v2.0");
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledPackages_comand_from_json) {
+TEST(command, SendInstalledPackages_comand_from_json) {
   std::string json =
       "{\"fields\":[[{\"name\":\"packagename1\",\"version\":\"v2.0\"},{"
       "\"name\":\"packagename2\",\"version\":\"v3.0\"}]],\"variant\":"
       "\"FoundInstalledPackages\"}";
   command::SendInstalledPackages comand = command::SendInstalledPackages::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "SendInstalledPackages");
-  BOOST_CHECK_EQUAL(comand.packages[0].name, "packagename1");
-  BOOST_CHECK_EQUAL(comand.packages[0].version, "v2.0");
-  BOOST_CHECK_EQUAL(comand.packages[1].name, "packagename2");
-  BOOST_CHECK_EQUAL(comand.packages[1].version, "v3.0");
+  EXPECT_EQ(comand.variant, "SendInstalledPackages");
+  EXPECT_EQ(comand.packages[0].name, "packagename1");
+  EXPECT_EQ(comand.packages[0].version, "v2.0");
+  EXPECT_EQ(comand.packages[1].name, "packagename2");
+  EXPECT_EQ(comand.packages[1].version, "v3.0");
 }
 
-BOOST_AUTO_TEST_CASE(SendSystemInfo_comand_to_json) {
+TEST(command, SendSystemInfo_comand_to_json) {
   command::SendSystemInfo comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "SendSystemInfo");
+  EXPECT_EQ(json["variant"].asString(), "SendSystemInfo");
 }
 
-BOOST_AUTO_TEST_CASE(SendUpdateReport_comand_to_json) {
+TEST(command, SendUpdateReport_comand_to_json) {
   data::OperationResult operation_result;
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
@@ -170,28 +168,28 @@ BOOST_AUTO_TEST_CASE(SendUpdateReport_comand_to_json) {
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "SendUpdateReport");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "request_id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
+  EXPECT_EQ(json["variant"].asString(), "SendUpdateReport");
+  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
-BOOST_AUTO_TEST_CASE(SendUpdateReport_comand_from_json) {
+TEST(command, SendUpdateReport_comand_from_json) {
   std::string json =
       "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
       "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
       "\"variant\":\"SendUpdateReport\"}";
   command::SendUpdateReport comand = command::SendUpdateReport::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "SendUpdateReport");
-  BOOST_CHECK_EQUAL(comand.update_report.operation_results[0].id, "testid23");
-  BOOST_CHECK_EQUAL(comand.update_report.operation_results[0].result_code, 16);
-  BOOST_CHECK_EQUAL(comand.update_report.operation_results[0].result_text, "text");
-  BOOST_CHECK_EQUAL(comand.update_report.update_id, "request_id");
+  EXPECT_EQ(comand.variant, "SendUpdateReport");
+  EXPECT_EQ(comand.update_report.operation_results[0].id, "testid23");
+  EXPECT_EQ(comand.update_report.operation_results[0].result_code, 16);
+  EXPECT_EQ(comand.update_report.operation_results[0].result_text, "text");
+  EXPECT_EQ(comand.update_report.update_id, "request_id");
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledSoftware_comand_to_json) {
+TEST(command, SendInstalledSoftware_comand_to_json) {
   data::InstalledPackage package;
   package.package_id = "id";
   package.name = "testname";
@@ -218,18 +216,18 @@ BOOST_AUTO_TEST_CASE(SendInstalledSoftware_comand_to_json) {
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "SendInstalledSoftware");
-  BOOST_CHECK_EQUAL(json["fields"][0]["packages"][0]["package_id"].asString(), "id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["packages"][0]["name"].asString(), "testname");
-  BOOST_CHECK_EQUAL(json["fields"][0]["packages"][0]["description"].asString(), "testdescription");
-  BOOST_CHECK_EQUAL(json["fields"][0]["packages"][0]["last_modified"].asUInt(), 54321);
+  EXPECT_EQ(json["variant"].asString(), "SendInstalledSoftware");
+  EXPECT_EQ(json["fields"][0]["packages"][0]["package_id"].asString(), "id");
+  EXPECT_EQ(json["fields"][0]["packages"][0]["name"].asString(), "testname");
+  EXPECT_EQ(json["fields"][0]["packages"][0]["description"].asString(), "testdescription");
+  EXPECT_EQ(json["fields"][0]["packages"][0]["last_modified"].asUInt(), 54321);
 
-  BOOST_CHECK_EQUAL(json["fields"][0]["firmwares"][0]["module"].asString(), "testmodule");
-  BOOST_CHECK_EQUAL(json["fields"][0]["firmwares"][0]["firmware_id"].asString(), "firmware_id123");
-  BOOST_CHECK_EQUAL(json["fields"][0]["firmwares"][0]["last_modified"].asUInt(), 12345);
+  EXPECT_EQ(json["fields"][0]["firmwares"][0]["module"].asString(), "testmodule");
+  EXPECT_EQ(json["fields"][0]["firmwares"][0]["firmware_id"].asString(), "firmware_id123");
+  EXPECT_EQ(json["fields"][0]["firmwares"][0]["last_modified"].asUInt(), 12345);
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledSoftware_comand_from_json) {
+TEST(command, SendInstalledSoftware_comand_from_json) {
   std::string json =
       "{\"fields\" : [{\"firmwares\" : [ {\"firmware_id\" : "
       "\"firmware_id123\", \"last_modified\" : 12345, \"module\" : "
@@ -239,19 +237,19 @@ BOOST_AUTO_TEST_CASE(SendInstalledSoftware_comand_from_json) {
       "\"SendInstalledSoftware\"}";
   command::SendInstalledSoftware comand = command::SendInstalledSoftware::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "SendInstalledSoftware");
-  BOOST_CHECK_EQUAL(comand.installed_software.firmwares[0].module, "testmodule");
-  BOOST_CHECK_EQUAL(comand.installed_software.firmwares[0].firmware_id, "firmware_id123");
-  BOOST_CHECK_EQUAL(comand.installed_software.firmwares[0].last_modified, 12345);
+  EXPECT_EQ(comand.variant, "SendInstalledSoftware");
+  EXPECT_EQ(comand.installed_software.firmwares[0].module, "testmodule");
+  EXPECT_EQ(comand.installed_software.firmwares[0].firmware_id, "firmware_id123");
+  EXPECT_EQ(comand.installed_software.firmwares[0].last_modified, 12345);
 
-  BOOST_CHECK_EQUAL(comand.installed_software.packages[0].package_id, "id");
-  BOOST_CHECK_EQUAL(comand.installed_software.packages[0].name, "testname");
+  EXPECT_EQ(comand.installed_software.packages[0].package_id, "id");
+  EXPECT_EQ(comand.installed_software.packages[0].name, "testname");
 
-  BOOST_CHECK_EQUAL(comand.installed_software.packages[0].description, "testdescription");
-  BOOST_CHECK_EQUAL(comand.installed_software.packages[0].last_modified, 54321);
+  EXPECT_EQ(comand.installed_software.packages[0].description, "testdescription");
+  EXPECT_EQ(comand.installed_software.packages[0].last_modified, 54321);
 }
 
-BOOST_AUTO_TEST_CASE(Authenticate_comand_to_json) {
+TEST(command, Authenticate_comand_to_json) {
   data::ClientCredentials creds;
   creds.client_id = "client123";
   creds.client_secret = "secret";
@@ -262,23 +260,23 @@ BOOST_AUTO_TEST_CASE(Authenticate_comand_to_json) {
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "Authenticate");
-  BOOST_CHECK_EQUAL(json["fields"][0]["client_id"].asString(), "client123");
-  BOOST_CHECK_EQUAL(json["fields"][0]["client_secret"].asString(), "secret");
+  EXPECT_EQ(json["variant"].asString(), "Authenticate");
+  EXPECT_EQ(json["fields"][0]["client_id"].asString(), "client123");
+  EXPECT_EQ(json["fields"][0]["client_secret"].asString(), "secret");
 }
 
-BOOST_AUTO_TEST_CASE(Authenticate_comand_from_json) {
+TEST(command, Authenticate_comand_from_json) {
   std::string json =
       "{\"fields\" : [{\"client_id\" : \"client123\", \"client_secret\" :  "
       "\"secret\"}], \"variant\" : \"Authenticate\"}";
   command::Authenticate comand = command::Authenticate::fromJson(json);
 
-  BOOST_CHECK_EQUAL(comand.variant, "Authenticate");
-  BOOST_CHECK_EQUAL(comand.client_credentials.client_id, "client123");
-  BOOST_CHECK_EQUAL(comand.client_credentials.client_secret, "secret");
+  EXPECT_EQ(comand.variant, "Authenticate");
+  EXPECT_EQ(comand.client_credentials.client_id, "client123");
+  EXPECT_EQ(comand.client_credentials.client_secret, "secret");
 }
 
-BOOST_AUTO_TEST_CASE(Authenticate_command_from_pico_json) {
+TEST(command, Authenticate_command_from_pico_json) {
   std::string json =
       "{\"fields\" : [{\"client_id\" : \"client123\", \"client_secret\" :  "
       "\"secret\"}], \"variant\" : \"Authenticate\"}";
@@ -287,10 +285,10 @@ BOOST_AUTO_TEST_CASE(Authenticate_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "Authenticate");
+  EXPECT_EQ(comand->variant, "Authenticate");
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledSoftware_command_from_pico_json) {
+TEST(command, SendInstalledSoftware_command_from_pico_json) {
   std::string json =
       "{\"fields\" : [{\"firmwares\" : [ {\"firmware_id\" : "
       "\"firmware_id123\", \"last_modified\" : 12345, \"module\" : "
@@ -303,10 +301,10 @@ BOOST_AUTO_TEST_CASE(SendInstalledSoftware_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "SendInstalledSoftware");
+  EXPECT_EQ(comand->variant, "SendInstalledSoftware");
 }
 
-BOOST_AUTO_TEST_CASE(SendUpdateReport_command_from_pico_json) {
+TEST(command, SendUpdateReport_command_from_pico_json) {
   std::string json =
       "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
       "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
@@ -316,10 +314,10 @@ BOOST_AUTO_TEST_CASE(SendUpdateReport_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "SendUpdateReport");
+  EXPECT_EQ(comand->variant, "SendUpdateReport");
 }
 
-BOOST_AUTO_TEST_CASE(SendInstalledPackages_command_from_pico_json) {
+TEST(command, SendInstalledPackages_command_from_pico_json) {
   std::string json =
       "{\"fields\":[[{\"name\":\"packagename1\",\"version\":\"v2.0\"},{"
       "\"name\":\"packagename2\",\"version\":\"v3.0\"}]],\"variant\":"
@@ -329,10 +327,10 @@ BOOST_AUTO_TEST_CASE(SendInstalledPackages_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "SendInstalledPackages");
+  EXPECT_EQ(comand->variant, "SendInstalledPackages");
 }
 
-BOOST_AUTO_TEST_CASE(AbortDownload_command_from_pico_json) {
+TEST(command, AbortDownload_command_from_pico_json) {
   std::string json =
       "{\"fields\":[\"testid\"],"
       "\"variant\":\"AbortDownload\"}";
@@ -341,10 +339,10 @@ BOOST_AUTO_TEST_CASE(AbortDownload_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "AbortDownload");
+  EXPECT_EQ(comand->variant, "AbortDownload");
 }
 
-BOOST_AUTO_TEST_CASE(StartDownload_command_from_pico_json) {
+TEST(command, StartDownload_command_from_pico_json) {
   std::string json =
       "{\"fields\":[\"testid\"],"
       "\"variant\":\"StartDownload\"}";
@@ -353,10 +351,10 @@ BOOST_AUTO_TEST_CASE(StartDownload_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "StartDownload");
+  EXPECT_EQ(comand->variant, "StartDownload");
 }
 
-BOOST_AUTO_TEST_CASE(Shutdown_command_from_pico_json) {
+TEST(command, Shutdown_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"Shutdown\"}";
@@ -365,10 +363,10 @@ BOOST_AUTO_TEST_CASE(Shutdown_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "Shutdown");
+  EXPECT_EQ(comand->variant, "Shutdown");
 }
 
-BOOST_AUTO_TEST_CASE(ListInstalledPackages_command_from_pico_json) {
+TEST(command, ListInstalledPackages_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"ListInstalledPackages\"}";
@@ -377,10 +375,10 @@ BOOST_AUTO_TEST_CASE(ListInstalledPackages_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "ListInstalledPackages");
+  EXPECT_EQ(comand->variant, "ListInstalledPackages");
 }
 
-BOOST_AUTO_TEST_CASE(ListSystemInfo_command_from_pico_json) {
+TEST(command, ListSystemInfo_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"ListSystemInfo\"}";
@@ -389,10 +387,10 @@ BOOST_AUTO_TEST_CASE(ListSystemInfo_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "ListSystemInfo");
+  EXPECT_EQ(comand->variant, "ListSystemInfo");
 }
 
-BOOST_AUTO_TEST_CASE(StartInstall_command_from_pico_json) {
+TEST(command, StartInstall_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"StartInstall\"}";
@@ -401,10 +399,10 @@ BOOST_AUTO_TEST_CASE(StartInstall_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "StartInstall");
+  EXPECT_EQ(comand->variant, "StartInstall");
 }
 
-BOOST_AUTO_TEST_CASE(SendSystemInfo_command_from_pico_json) {
+TEST(command, SendSystemInfo_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"SendSystemInfo\"}";
@@ -413,10 +411,10 @@ BOOST_AUTO_TEST_CASE(SendSystemInfo_command_from_pico_json) {
   picojson::parse(val, json);
   boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
-  BOOST_CHECK_EQUAL(comand->variant, "SendSystemInfo");
+  EXPECT_EQ(comand->variant, "SendSystemInfo");
 }
 
-BOOST_AUTO_TEST_CASE(Nonexistent_command_from_pico_json) {
+TEST(command, Nonexistent_command_from_pico_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"Nonexistent\"}";
@@ -426,6 +424,13 @@ BOOST_AUTO_TEST_CASE(Nonexistent_command_from_pico_json) {
   try {
     boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
   } catch (std::runtime_error e) {
-    BOOST_CHECK_EQUAL(e.what(), "wrong command variant = Nonexistent");
+    ASSERT_STREQ(e.what(), "wrong command variant = Nonexistent");
   }
 }
+
+#ifndef __NO_MAIN__
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+#endif

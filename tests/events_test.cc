@@ -1,12 +1,9 @@
-#define BOOST_TEST_MODULE test_events
-
-#include <boost/test/included/unit_test.hpp>
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 #include <string>
 
 #include "events.h"
 
-BOOST_AUTO_TEST_CASE(Error_event_to_json) {
+TEST(event, Error_event_to_json) {
   std::string error = "Error123";
   event::Error event(error);
 
@@ -14,41 +11,41 @@ BOOST_AUTO_TEST_CASE(Error_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "Error");
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), error);
+  EXPECT_EQ(json["variant"].asString(), "Error");
+  EXPECT_EQ(json["fields"][0].asString(), error);
 }
 
-BOOST_AUTO_TEST_CASE(Authenticated_event_to_json) {
+TEST(event, Authenticated_event_to_json) {
   event::Authenticated event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "Authenticated");
+  EXPECT_EQ(json["variant"].asString(), "Authenticated");
 }
 
-BOOST_AUTO_TEST_CASE(NotAuthenticated_event_to_json) {
+TEST(event, NotAuthenticated_event_to_json) {
   event::NotAuthenticated event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "NotAuthenticated");
+  EXPECT_EQ(json["variant"].asString(), "NotAuthenticated");
 }
 
-BOOST_AUTO_TEST_CASE(AlreadyAuthenticated_event_to_json) {
+TEST(event, AlreadyAuthenticated_event_to_json) {
   event::AlreadyAuthenticated event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "AlreadyAuthenticated");
+  EXPECT_EQ(json["variant"].asString(), "AlreadyAuthenticated");
 }
 
-BOOST_AUTO_TEST_CASE(UpdatesReceived_event_to_json) {
+TEST(event, UpdatesReceived_event_to_json) {
   data::Package p1;
   p1.name = "packagename1";
   p1.version = "v2.0";
@@ -68,14 +65,14 @@ BOOST_AUTO_TEST_CASE(UpdatesReceived_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "UpdatesReceived");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["requestId"].asString(), "id1");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["status"].asString(), "Pending");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["installPos"].asUInt(), 3);
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["createdAt"].asString(), "today");
+  EXPECT_EQ(json["variant"].asString(), "UpdatesReceived");
+  EXPECT_EQ(json["fields"][0][0]["requestId"].asString(), "id1");
+  EXPECT_EQ(json["fields"][0][0]["status"].asString(), "Pending");
+  EXPECT_EQ(json["fields"][0][0]["installPos"].asUInt(), 3);
+  EXPECT_EQ(json["fields"][0][0]["createdAt"].asString(), "today");
 }
 
-BOOST_AUTO_TEST_CASE(UpdatesReceived_parse) {
+TEST(event, UpdatesReceived_parse) {
   std::string message(
       "[ "
       "{\n"
@@ -100,7 +97,7 @@ BOOST_AUTO_TEST_CASE(UpdatesReceived_parse) {
   data::UpdateRequest request(data::UpdateRequest::fromJson(json[0]));
 }
 
-BOOST_AUTO_TEST_CASE(UpdateAvailable_event_to_json) {
+TEST(event, UpdateAvailable_event_to_json) {
   data::UpdateAvailable ua;
   ua.update_id = "id4";
   ua.signature = "sign";
@@ -114,23 +111,23 @@ BOOST_AUTO_TEST_CASE(UpdateAvailable_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "UpdateAvailable");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "id4");
-  BOOST_CHECK_EQUAL(json["fields"][0]["signature"].asString(), "sign");
-  BOOST_CHECK_EQUAL(json["fields"][0]["description"].asBool(), true);
+  EXPECT_EQ(json["variant"].asString(), "UpdateAvailable");
+  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "id4");
+  EXPECT_EQ(json["fields"][0]["signature"].asString(), "sign");
+  EXPECT_EQ(json["fields"][0]["description"].asBool(), true);
 }
 
-BOOST_AUTO_TEST_CASE(NoUpdateRequests_event_to_json) {
+TEST(event, NoUpdateRequests_event_to_json) {
   event::NoUpdateRequests event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "NoUpdateRequests");
+  EXPECT_EQ(json["variant"].asString(), "NoUpdateRequests");
 }
 
-BOOST_AUTO_TEST_CASE(FoundInstalledPackages_event_to_json) {
+TEST(event, FoundInstalledPackages_event_to_json) {
   data::Package p1, p2;
   p1.name = "packagename1";
   p1.version = "v2.0";
@@ -147,36 +144,36 @@ BOOST_AUTO_TEST_CASE(FoundInstalledPackages_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "FoundInstalledPackages");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["name"].asString(), "packagename1");
-  BOOST_CHECK_EQUAL(json["fields"][0][0]["version"].asString(), "v2.0");
-  BOOST_CHECK_EQUAL(json["fields"][0][1]["name"].asString(), "packagename2");
-  BOOST_CHECK_EQUAL(json["fields"][0][1]["version"].asString(), "v3.0");
+  EXPECT_EQ(json["variant"].asString(), "FoundInstalledPackages");
+  EXPECT_EQ(json["fields"][0][0]["name"].asString(), "packagename1");
+  EXPECT_EQ(json["fields"][0][0]["version"].asString(), "v2.0");
+  EXPECT_EQ(json["fields"][0][1]["name"].asString(), "packagename2");
+  EXPECT_EQ(json["fields"][0][1]["version"].asString(), "v3.0");
 }
 
-BOOST_AUTO_TEST_CASE(FoundSystemInfo_event_to_json) {
+TEST(event, FoundSystemInfo_event_to_json) {
   event::FoundSystemInfo event("testinfo");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "FoundSystemInfo");
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testinfo");
+  EXPECT_EQ(json["variant"].asString(), "FoundSystemInfo");
+  EXPECT_EQ(json["fields"][0].asString(), "testinfo");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadingUpdate_event_to_json) {
+TEST(event, DownloadingUpdate_event_to_json) {
   event::DownloadingUpdate event("testid");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "DownloadingUpdate");
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "testid");
+  EXPECT_EQ(json["variant"].asString(), "DownloadingUpdate");
+  EXPECT_EQ(json["fields"][0].asString(), "testid");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadComplete_event_to_json) {
+TEST(event, DownloadComplete_event_to_json) {
   data::DownloadComplete dc;
   dc.update_id = "updateid123";
   dc.update_image = "some text";
@@ -188,36 +185,36 @@ BOOST_AUTO_TEST_CASE(DownloadComplete_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "DownloadComplete");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "updateid123");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_image"].asString(), "some text");
-  BOOST_CHECK_EQUAL(json["fields"][0]["signature"].asString(), "sign");
+  EXPECT_EQ(json["variant"].asString(), "DownloadComplete");
+  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "updateid123");
+  EXPECT_EQ(json["fields"][0]["update_image"].asString(), "some text");
+  EXPECT_EQ(json["fields"][0]["signature"].asString(), "sign");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadFailed_event_to_json) {
+TEST(event, DownloadFailed_event_to_json) {
   event::DownloadFailed event("requestid", "description");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "DownloadFailed");
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "requestid");
-  BOOST_CHECK_EQUAL(json["fields"][1].asString(), "description");
+  EXPECT_EQ(json["variant"].asString(), "DownloadFailed");
+  EXPECT_EQ(json["fields"][0].asString(), "requestid");
+  EXPECT_EQ(json["fields"][1].asString(), "description");
 }
 
-BOOST_AUTO_TEST_CASE(InstallingUpdate_event_to_json) {
+TEST(event, InstallingUpdate_event_to_json) {
   event::InstallingUpdate event("requestid");
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstallingUpdate");
-  BOOST_CHECK_EQUAL(json["fields"][0].asString(), "requestid");
+  EXPECT_EQ(json["variant"].asString(), "InstallingUpdate");
+  EXPECT_EQ(json["fields"][0].asString(), "requestid");
 }
 
-BOOST_AUTO_TEST_CASE(InstallComplete_event_to_json) {
+TEST(event, InstallComplete_event_to_json) {
   data::OperationResult operation_result;
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
@@ -234,14 +231,14 @@ BOOST_AUTO_TEST_CASE(InstallComplete_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstallComplete");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "request_id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
+  EXPECT_EQ(json["variant"].asString(), "InstallComplete");
+  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
-BOOST_AUTO_TEST_CASE(InstallFailed_event_to_json) {
+TEST(event, InstallFailed_event_to_json) {
   data::OperationResult operation_result;
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
@@ -258,71 +255,71 @@ BOOST_AUTO_TEST_CASE(InstallFailed_event_to_json) {
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstallFailed");
-  BOOST_CHECK_EQUAL(json["fields"][0]["update_id"].asString(), "request_id");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
-  BOOST_CHECK_EQUAL(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
+  EXPECT_EQ(json["variant"].asString(), "InstallFailed");
+  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
-BOOST_AUTO_TEST_CASE(UpdateReportSent_event_to_json) {
+TEST(event, UpdateReportSent_event_to_json) {
   event::UpdateReportSent event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "UpdateReportSent");
+  EXPECT_EQ(json["variant"].asString(), "UpdateReportSent");
 }
 
-BOOST_AUTO_TEST_CASE(InstalledPackagesSent_event_to_json) {
+TEST(event, InstalledPackagesSent_event_to_json) {
   event::InstalledPackagesSent event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstalledPackagesSent");
+  EXPECT_EQ(json["variant"].asString(), "InstalledPackagesSent");
 }
 
-BOOST_AUTO_TEST_CASE(InstalledSoftwareSent_event_to_json) {
+TEST(event, InstalledSoftwareSent_event_to_json) {
   event::InstalledSoftwareSent event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstalledSoftwareSent");
+  EXPECT_EQ(json["variant"].asString(), "InstalledSoftwareSent");
 }
 
-BOOST_AUTO_TEST_CASE(SystemInfoSent_event_to_json) {
+TEST(event, SystemInfoSent_event_to_json) {
   event::SystemInfoSent event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "SystemInfoSent");
+  EXPECT_EQ(json["variant"].asString(), "SystemInfoSent");
 }
 
-BOOST_AUTO_TEST_CASE(InstalledSoftwareNeeded_event_to_json) {
+TEST(event, InstalledSoftwareNeeded_event_to_json) {
   event::InstalledSoftwareNeeded event;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  BOOST_CHECK_EQUAL(json["variant"].asString(), "InstalledSoftwareNeeded");
+  EXPECT_EQ(json["variant"].asString(), "InstalledSoftwareNeeded");
 }
 
-BOOST_AUTO_TEST_CASE(Error_event_from_json) {
+TEST(event, Error_event_from_json) {
   std::string json = "{\"fields\":[\"Error123\"],\"variant\":\"Error\"}";
   event::Error event = event::Error::fromJson(json);
-  BOOST_CHECK_EQUAL(event.variant, "Error");
-  BOOST_CHECK_EQUAL(event.message, "Error123");
+  EXPECT_EQ(event.variant, "Error");
+  EXPECT_EQ(event.message, "Error123");
 }
 
-BOOST_AUTO_TEST_CASE(UpdatesReceived_event_from_json) {
+TEST(event, UpdatesReceived_event_from_json) {
   std::string json =
       "{\"fields\":[[{\"createdAt\":\"today\",\"installPos\":3,"
       "\"packageId\":{"
@@ -331,116 +328,124 @@ BOOST_AUTO_TEST_CASE(UpdatesReceived_event_from_json) {
       "\"status\":\"Pending\"}]],\"variant\":\"UpdatesReceived\"}";
   event::UpdatesReceived event = event::UpdatesReceived::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "UpdatesReceived");
-  BOOST_CHECK_EQUAL(event.update_requests[0].requestId, "id1");
-  BOOST_CHECK_EQUAL(event.update_requests[0].createdAt, "today");
-  BOOST_CHECK_EQUAL(event.update_requests[0].installPos, 3);
-  BOOST_CHECK_EQUAL(event.update_requests[0].status, data::Pending);
-  BOOST_CHECK_EQUAL(event.update_requests[0].packageId.name, "packagename1");
-  BOOST_CHECK_EQUAL(event.update_requests[0].packageId.version, "v2.0");
+  EXPECT_EQ(event.variant, "UpdatesReceived");
+  EXPECT_EQ(event.update_requests[0].requestId, "id1");
+  EXPECT_EQ(event.update_requests[0].createdAt, "today");
+  EXPECT_EQ(event.update_requests[0].installPos, 3);
+  EXPECT_EQ(event.update_requests[0].status, data::Pending);
+  EXPECT_EQ(event.update_requests[0].packageId.name, "packagename1");
+  EXPECT_EQ(event.update_requests[0].packageId.version, "v2.0");
 }
 
-BOOST_AUTO_TEST_CASE(UpdateAvailable_event_from_json) {
+TEST(event, UpdateAvailable_event_from_json) {
   std::string json =
       "{\"fields\":[{\"description\":\"this is "
       "description\",\"request_confirmation\":true,\"signature\":\"sign\","
       "\"size\":5000,\"update_id\":\"id4\"}],\"variant\":\"UpdateAvailable\"}";
   event::UpdateAvailable event = event::UpdateAvailable::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "UpdateAvailable");
-  BOOST_CHECK_EQUAL(event.update_vailable.description, "this is description");
-  BOOST_CHECK_EQUAL(event.update_vailable.request_confirmation, true);
-  BOOST_CHECK_EQUAL(event.update_vailable.signature, "sign");
-  BOOST_CHECK_EQUAL(event.update_vailable.size, 5000);
-  BOOST_CHECK_EQUAL(event.update_vailable.update_id, "id4");
+  EXPECT_EQ(event.variant, "UpdateAvailable");
+  EXPECT_EQ(event.update_vailable.description, "this is description");
+  EXPECT_EQ(event.update_vailable.request_confirmation, true);
+  EXPECT_EQ(event.update_vailable.signature, "sign");
+  EXPECT_EQ(event.update_vailable.size, 5000);
+  EXPECT_EQ(event.update_vailable.update_id, "id4");
 }
 
-BOOST_AUTO_TEST_CASE(FoundInstalledPackages_event_from_json) {
+TEST(event, FoundInstalledPackages_event_from_json) {
   std::string json =
       "{\"fields\":[[{\"name\":\"packagename1\",\"version\":\"v2.0\"},{"
       "\"name\":\"packagename2\",\"version\":\"v3.0\"}]],\"variant\":"
       "\"FoundInstalledPackages\"}";
   event::FoundInstalledPackages event = event::FoundInstalledPackages::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "FoundInstalledPackages");
-  BOOST_CHECK_EQUAL(event.packages[0].name, "packagename1");
-  BOOST_CHECK_EQUAL(event.packages[0].version, "v2.0");
-  BOOST_CHECK_EQUAL(event.packages[1].name, "packagename2");
-  BOOST_CHECK_EQUAL(event.packages[1].version, "v3.0");
+  EXPECT_EQ(event.variant, "FoundInstalledPackages");
+  EXPECT_EQ(event.packages[0].name, "packagename1");
+  EXPECT_EQ(event.packages[0].version, "v2.0");
+  EXPECT_EQ(event.packages[1].name, "packagename2");
+  EXPECT_EQ(event.packages[1].version, "v3.0");
 }
 
-BOOST_AUTO_TEST_CASE(FoundSystemInfo_event_from_json) {
+TEST(event, FoundSystemInfo_event_from_json) {
   std::string json = "{\"fields\":[\"info\"],\"variant\":\"FoundSystemInfo\"}";
   event::FoundSystemInfo event = event::FoundSystemInfo::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "FoundSystemInfo");
-  BOOST_CHECK_EQUAL(event.info, "info");
+  EXPECT_EQ(event.variant, "FoundSystemInfo");
+  EXPECT_EQ(event.info, "info");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadingUpdate_event_from_json) {
+TEST(event, DownloadingUpdate_event_from_json) {
   std::string json = "{\"fields\":[\"testid\"],\"variant\":\"DownloadingUpdate\"}";
   event::DownloadingUpdate event = event::DownloadingUpdate::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "DownloadingUpdate");
-  BOOST_CHECK_EQUAL(event.update_request_id, "testid");
+  EXPECT_EQ(event.variant, "DownloadingUpdate");
+  EXPECT_EQ(event.update_request_id, "testid");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadComplete_event_from_json) {
+TEST(event, DownloadComplete_event_from_json) {
   std::string json =
       "{\"fields\":[{\"signature\":\"sign\",\"update_id\":\"updateid123\","
       "\"update_image\":\"some text\"}],\"variant\":\"DownloadComplete\"}";
   event::DownloadComplete event = event::DownloadComplete::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "DownloadComplete");
-  BOOST_CHECK_EQUAL(event.download_complete.signature, "sign");
-  BOOST_CHECK_EQUAL(event.download_complete.update_id, "updateid123");
-  BOOST_CHECK_EQUAL(event.download_complete.update_image, "some text");
+  EXPECT_EQ(event.variant, "DownloadComplete");
+  EXPECT_EQ(event.download_complete.signature, "sign");
+  EXPECT_EQ(event.download_complete.update_id, "updateid123");
+  EXPECT_EQ(event.download_complete.update_image, "some text");
 }
 
-BOOST_AUTO_TEST_CASE(DownloadFailed_event_from_json) {
+TEST(event, DownloadFailed_event_from_json) {
   std::string json =
       "{\"fields\":[\"requestid\",\"description\"],\"variant\":"
       "\"DownloadFailed\"}";
   event::DownloadFailed event = event::DownloadFailed::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "DownloadFailed");
-  BOOST_CHECK_EQUAL(event.update_request_id, "requestid");
-  BOOST_CHECK_EQUAL(event.message, "description");
+  EXPECT_EQ(event.variant, "DownloadFailed");
+  EXPECT_EQ(event.update_request_id, "requestid");
+  EXPECT_EQ(event.message, "description");
 }
 
-BOOST_AUTO_TEST_CASE(InstallingUpdate_event_from_json) {
+TEST(event, InstallingUpdate_event_from_json) {
   std::string json = "{\"fields\":[\"requestid\"],\"variant\":\"InstallingUpdate\"}";
   event::InstallingUpdate event = event::InstallingUpdate::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "InstallingUpdate");
-  BOOST_CHECK_EQUAL(event.update_request_id, "requestid");
+  EXPECT_EQ(event.variant, "InstallingUpdate");
+  EXPECT_EQ(event.update_request_id, "requestid");
 }
 
-BOOST_AUTO_TEST_CASE(InstallComplete_event_from_json) {
+TEST(event, InstallComplete_event_from_json) {
   std::string json =
       "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
       "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
       "\"variant\":\"InstallComplete\"}";
   event::InstallComplete event = event::InstallComplete::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "InstallComplete");
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].id, "testid23");
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_code, 16);
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text, "text");
-  BOOST_CHECK_EQUAL(event.update_report.update_id, "request_id");
+  EXPECT_EQ(event.variant, "InstallComplete");
+  EXPECT_EQ(event.update_report.operation_results[0].id, "testid23");
+  EXPECT_EQ(event.update_report.operation_results[0].result_code, 16);
+  EXPECT_EQ(event.update_report.operation_results[0].result_text, "text");
+  EXPECT_EQ(event.update_report.update_id, "request_id");
 }
 
-BOOST_AUTO_TEST_CASE(InstallFailed_event_from_json) {
+TEST(event, InstallFailed_event_from_json) {
   std::string json =
       "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
       "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
       "\"variant\":\"InstallFailed\"}";
   event::InstallFailed event = event::InstallFailed::fromJson(json);
 
-  BOOST_CHECK_EQUAL(event.variant, "InstallFailed");
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].id, "testid23");
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_code, 16);
-  BOOST_CHECK_EQUAL(event.update_report.operation_results[0].result_text, "text");
-  BOOST_CHECK_EQUAL(event.update_report.update_id, "request_id");
+  EXPECT_EQ(event.variant, "InstallFailed");
+  EXPECT_EQ(event.update_report.operation_results[0].id, "testid23");
+  EXPECT_EQ(event.update_report.operation_results[0].result_code, 16);
+  EXPECT_EQ(event.update_report.operation_results[0].result_text, "text");
+  EXPECT_EQ(event.update_report.update_id, "request_id");
 }
+
+#ifndef __NO_MAIN__
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
+#endif
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:

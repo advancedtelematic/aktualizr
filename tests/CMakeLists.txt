@@ -65,8 +65,6 @@ add_dependencies(qa check)
 ###############################################################################
 
 #Setup CMake to run tests
-# let cmake find the boost test library
-find_package(Boost COMPONENTS system thread program_options log log_setup regex unit_test_framework chrono REQUIRED)
 
 #enable test features of cmake
 enable_testing()
@@ -74,9 +72,8 @@ enable_testing()
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 
-# use the same libiraries as the normal target but add boost test
-set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES}
-               ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} gtest gmock gcov)
+# use the same libiraries as the normal target but add gtest
+set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} gtest gmock gcov)
                
 
 # Setup coverage

@@ -39,7 +39,6 @@ The following debian packages are used in the project:
  - libboost-thread-dev (>= 1.58.0)
  - libboost-log-dev (>= 1.58.0)
  - libboost-regex-dev (>= 1.58.0)
- - libboost-test-dev (>= 1.58.0)
  - libpthread-stubs0-dev (>=0.3)
  - libyaml-cpp-dev (>=0.5.2)
  - curl (>= 7.47)
