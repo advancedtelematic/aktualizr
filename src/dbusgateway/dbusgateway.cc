@@ -105,7 +105,7 @@ void DbusGateway::fireDownloadCompleteEvent(const data::DownloadComplete& downlo
 
 void DbusGateway::run() {
   DBusMessage* msg;
-  char* string_param;
+  char* string_param = NULL;
   DBusMessageIter args;
 
   while (true) {
