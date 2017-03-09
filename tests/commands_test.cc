@@ -250,30 +250,13 @@ TEST(command, SendInstalledSoftware_comand_from_json) {
 }
 
 TEST(command, Authenticate_comand_to_json) {
-  data::ClientCredentials creds;
-  creds.client_id = "client123";
-  creds.client_secret = "secret";
-
-  command::Authenticate comand(creds);
+  command::Authenticate comand;
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(comand.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "Authenticate");
-  EXPECT_EQ(json["fields"][0]["client_id"].asString(), "client123");
-  EXPECT_EQ(json["fields"][0]["client_secret"].asString(), "secret");
-}
-
-TEST(command, Authenticate_comand_from_json) {
-  std::string json =
-      "{\"fields\" : [{\"client_id\" : \"client123\", \"client_secret\" :  "
-      "\"secret\"}], \"variant\" : \"Authenticate\"}";
-  command::Authenticate comand = command::Authenticate::fromJson(json);
-
-  EXPECT_EQ(comand.variant, "Authenticate");
-  EXPECT_EQ(comand.client_credentials.client_id, "client123");
-  EXPECT_EQ(comand.client_credentials.client_secret, "secret");
 }
 
 TEST(command, Authenticate_command_from_pico_json) {

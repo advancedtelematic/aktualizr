@@ -154,22 +154,6 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
   return update_report;
 }
 
-Json::Value ClientCredentials::toJson() {
-  Json::Value json;
-  json["client_id"] = client_id;
-  json["client_secret"] = client_secret;
-  return json;
-}
-
-ClientCredentials ClientCredentials::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  ClientCredentials client_credentials;
-  client_credentials.client_id = json["client_id"].asString();
-  client_credentials.client_secret = json["client_secret"].asString();
-  return client_credentials;
-}
 
 Json::Value InstalledFirmware::toJson() {
   Json::Value json;

@@ -4,7 +4,19 @@
 #include <algorithm>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/uuid/uuid.hpp>            // uuid class
+#include <boost/uuid/uuid_generators.hpp> // generators
+#include <boost/uuid/uuid_io.hpp> 
+#include <boost/filesystem.hpp>
 #include <string>
+
+#include "logger.h"
+
+
+enum Auth{
+  OAUTH2 = 0,
+  CERTIFICATE
+};
 
 struct CoreConfig {
   CoreConfig()
@@ -13,6 +25,7 @@ struct CoreConfig {
   std::string server;
   bool polling;
   unsigned long long polling_sec;
+  Auth auth_type;
 };
 
 struct AuthConfig {
@@ -43,13 +56,21 @@ struct DbusConfig {
 
 struct DeviceConfig {
   DeviceConfig()
-      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/") {}
+      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/"), certificates_path("/tmp/aktualizr/")  {
+        createCertificatesPath();
+      }
+  void createCertificatesPath(){
+    boost::filesystem::path dir(certificates_path);
+    if(boost::filesystem::create_directories(dir)){
+      LOGGER_LOG(LVL_info, "certificates_path directory has been created");
+    }
+  }
 
   std::string uuid;
   std::string packages_dir;
+  std::string certificates_path;
   // TODO Need to be implemented soon
   // PackageManager package_manager;
-  // std::string certificates_path;
   // std::string p12_path;
   // std::string p12_password;
   // std::string system_info;
@@ -84,6 +105,36 @@ class RviConfig {
   std::string client_config;
 };
 
+class TlsConfig {
+ public:
+  TlsConfig()
+      : server("localhost"), ca_file("ca.pem"), client_certificate("client.pem") {}
+  std::string server;
+  std::string ca_file;
+  std::string client_certificate;
+};
+
+
+class ProvisionConfig {
+ public:
+  ProvisionConfig()
+      : p12_path(""), p12_password(""), expiry_days("36000"), device_id(boost::lexical_cast<std::string>(boost::uuids::random_generator()())) {}
+  std::string p12_path;
+  std::string p12_password;
+  std::string expiry_days;
+  std::string device_id;
+
+};
+
+class UptaneConfig{
+  public:
+    UptaneConfig()
+        : metadata_path(""), private_key_path("ecukey.pem"), public_key_path("ecukey.pub") {}
+    std::string metadata_path;
+    std::string private_key_path;
+    std::string public_key_path;
+};
+
 class Config {
  public:
   void updateFromToml(const std::string &filename);
@@ -97,6 +148,9 @@ class Config {
   GatewayConfig gateway;
   RviConfig rvi;
   NetworkConfig network;
+  TlsConfig tls;
+  ProvisionConfig provision;
+  UptaneConfig uptane;
 };
 
 #endif  // CONFIG_H_

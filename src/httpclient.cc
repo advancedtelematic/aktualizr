@@ -34,6 +34,7 @@ HttpClient::HttpClient() {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
+  http_code = 0;
 
   curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
@@ -46,6 +47,10 @@ HttpClient::HttpClient() {
   if (loggerGetSeverity() <= LVL_debug) {
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   }
+
+  struct curl_slist* h = curl_slist_append(headers, "Accept: */*");
+  h = curl_slist_append(headers, "Content-Type: application/json");
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, h);
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) {
@@ -72,6 +77,13 @@ HttpClient::HttpClient(const HttpClient& curl_in) {
 HttpClient::~HttpClient() {
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
+}
+
+bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file) {
+  // TODO return false in case of wrong certificates
+  setCerts(ca_file, cert);
+  authenticated = true;
+  return true;
 }
 
 bool HttpClient::authenticate(const AuthConfig& conf) {
@@ -111,30 +123,50 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "charsets: utf-8");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
+  authenticated = true;
   return true;
 }
 
-Json::Value HttpClient::get(const std::string& url) {
+std::string HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   return perform(curl);
 }
 
-Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
-  return post(url, Json::FastWriter().write(data));
+Json::Value HttpClient::getJson(const std::string& url) {
+  Json::Value json;
+  Json::Reader reader;
+
+  std::string response = get(url);
+  reader.parse(response, json);
+  return json;
 }
 
-Json::Value HttpClient::post(const std::string& url, const std::string& data) {
+Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
+  Json::Value json;
+  Json::Reader reader;
+
+  std::string response = post(url, Json::FastWriter().write(data));
+  reader.parse(response, json);
+  return json;
+}
+
+void HttpClient::setCerts(const std::string& ca, const std::string& cert) {
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
+  curl_easy_setopt(curl, CURLOPT_CAINFO, ca.c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
+  // curl_easy_setopt(curl, CURLOPT_SSLKEY, cert_key.c_str());
+}
+
+std::string HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
   curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
-  Json::Value result = perform(curl_post);
+  std::string result = perform(curl_post);
   curl_easy_cleanup(curl_post);
   return result;
 }
 
-Json::Value HttpClient::perform(CURL* curl_handler) {
-  Json::Value json;
+std::string HttpClient::perform(CURL* curl_handler) {
   std::string response;
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_handler);
@@ -144,12 +176,8 @@ Json::Value HttpClient::perform(CURL* curl_handler) {
     LOGGER_LOG(LVL_error, error_stream.str());
     throw std::runtime_error(error_stream.str());
   }
-  long http_code = 0;
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
-
-  Json::Reader reader;
-  reader.parse(response, json);
-  return json;
+  return response;
 }
 
 bool HttpClient::download(const std::string& url, const std::string& filename) {

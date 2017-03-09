@@ -73,7 +73,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 
 # use the same libiraries as the normal target but add gtest
-set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} gtest gmock gcov)
+set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} gtest gmock gcov)
                
 
 # Setup coverage
@@ -103,7 +103,7 @@ add_test(NAME test_commands COMMAND aktualizr_test_commands WORKING_DIRECTORY ${
 
 
 add_executable(aktualizr_test_http_aktualizr tests/httpsotaclient_test.cc)
-target_link_libraries(aktualizr_test_http_aktualizr aktualizr_static_lib ${TEST_LIBS})
+target_link_libraries(aktualizr_test_http_aktualizr aktualizr_static_lib ${TEST_LIBS} crypto)
 add_test(NAME test_http_aktualizr COMMAND aktualizr_test_http_aktualizr WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 

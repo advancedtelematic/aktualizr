@@ -112,7 +112,11 @@ int main(int argc, char *argv[]) {
     } catch (boost::property_tree::ini_parser_error e) {
       LOGGER_LOG(LVL_error, "Exception was thrown while parsing " << filename
                                                                   << " config file, message: " << e.message());
-    }
+      return EXIT_FAILURE;
+    } catch (std::logic_error e){
+      LOGGER_LOG(LVL_error, "Improperly configured error. "  << e.what());
+      return EXIT_FAILURE;
+    } 
   }
 
   // check for loglevel

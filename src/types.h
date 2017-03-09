@@ -102,13 +102,6 @@ struct UpdateReport {
   static UpdateReport fromJson(const std::string& json_str);
 };
 
-struct ClientCredentials {
-  std::string client_id;
-  std::string client_secret;
-  Json::Value toJson();
-  static ClientCredentials fromJson(const std::string& json_str);
-};
-
 struct InstalledFirmware {
   std::string module;
   std::string firmware_id;
