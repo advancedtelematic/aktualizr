@@ -77,6 +77,10 @@ add_test(NAME dry-run
   COMMAND t/test-dry-run $<TARGET_FILE:garage-push>
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_test(NAME cacert-not-found
+  COMMAND t/test-cacert-not-found $<TARGET_FILE:garage-push>
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 if (OAUTH2_TEST_CLIENT_ID)
   add_test(NAME auth-plus-happy-case
     COMMAND t/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
@@ -90,6 +94,11 @@ if (OAUTH2_TEST_CLIENT_ID)
     COMMAND t/test-verbose-logging $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+  if(STRACE)
+  add_test(NAME cacert-used
+          COMMAND t/test-cacert-used $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  endif()
 endif()
 
 # Workaround a cmake bug where tests are not dependent on their executables

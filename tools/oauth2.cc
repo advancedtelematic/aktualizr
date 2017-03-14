@@ -27,6 +27,10 @@ AuthenticationResult OAuth2::Authenticate() {
   CURL *curl_handle = curl_easy_init();
   curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
   curl_easy_setopt(curl_handle, CURLOPT_URL, (server_ + "/token").c_str());
+  if (ca_certs_ != "") {
+    curl_easy_setopt(curl_handle, CURLOPT_CAINFO, ca_certs_.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_CAPATH, NULL);
+  }
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
   curl_easy_setopt(curl_handle, CURLOPT_USERNAME, client_id_.c_str());
