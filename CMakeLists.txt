@@ -31,6 +31,9 @@ include_directories(${CURL_INCLUDE_DIRS})
 find_package(GLIB2 REQUIRED)
 include_directories(${GLIB2_INCLUDE_DIRS})
 
+# strace
+find_program(STRACE NAMES strace)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 if (CMAKE_COMPILER_IS_GNUCXX)

@@ -14,8 +14,11 @@ class OAuth2 {
    * Doesn't perform any authentication
    */
   OAuth2(const std::string server, const std::string client_id,
-         const std::string client_secret)
-      : server_(server), client_id_(client_id), client_secret_(client_secret) {}
+         const std::string client_secret, const std::string &ca_certs)
+      : server_(server),
+        client_id_(client_id),
+        client_secret_(client_secret),
+        ca_certs_(ca_certs) {}
 
   /**
    * Synchronously attempt to get an access token from Auth+
@@ -28,6 +31,7 @@ class OAuth2 {
   const std::string server_;
   const std::string client_id_;
   const std::string client_secret_;
+  const std::string ca_certs_;
   std::string token_;
 };
 

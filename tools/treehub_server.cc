@@ -34,6 +34,11 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix,
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, username_.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
+
+  if (ca_certs_ != "") {
+    curl_easy_setopt(curl_handle, CURLOPT_CAINFO, ca_certs_.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_CAPATH, NULL);
+  }
 }
 
 // Set the url of the treehub server, this should be something like

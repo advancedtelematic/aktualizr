@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -34,7 +35,8 @@ int logging_verbosity;
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
 
-int authenticate(std::string filepath, TreehubServer &treehub) {
+int authenticate(const string &cacerts, string filepath,
+                 TreehubServer &treehub) {
   AuthMethod method = AUTH_NONE;
   std::string auth_method;
   std::string auth_user;
@@ -77,7 +79,7 @@ int authenticate(std::string filepath, TreehubServer &treehub) {
     }
 
     case OAUTH2: {
-      OAuth2 oauth2(auth_server, client_id, client_secret);
+      OAuth2 oauth2(auth_server, client_id, client_secret, cacerts);
 
       if (client_id != "") {
         if (oauth2.Authenticate() != AUTHENTICATION_SUCCESS) {
@@ -152,6 +154,7 @@ int main(int argc, char **argv) {
 
   string credentials_path;
   string home_path = string(getenv("HOME"));
+  string cacerts;
 
   po::options_description desc("Allowed options");
   // clang-format off
@@ -161,6 +164,7 @@ int main(int argc, char **argv) {
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
     ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
+    ("cacert", po::value<string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
   // clang-format on
@@ -206,6 +210,15 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  if (cacerts != "") {
+    if (boost::filesystem::exists(cacerts)) {
+      push_target.ca_certs(cacerts);
+    } else {
+      cout << "--cacert path " << cacerts << " does not exist\n";
+      return EXIT_FAILURE;
+    }
+  }
+
   uint8_t root_sha256[32];
   ostree_ref.GetHash(root_sha256);
 
@@ -217,7 +230,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (authenticate(credentials_path, push_target) != EXIT_SUCCESS) {
+  if (authenticate(cacerts, credentials_path, push_target) != EXIT_SUCCESS) {
     cout << "Authentication failed\n";
     return EXIT_FAILURE;
   }
