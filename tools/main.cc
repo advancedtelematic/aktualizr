@@ -23,22 +23,19 @@ using boost::optional;
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
 
-const int kCurlTimeoutms = 10000;
-
 const string kBaseUrl =
     "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
-const string kOAuth2Url = "";
 
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
 int logging_verbosity;
 
-int authenticate(std::string filepath, TreehubServer &treehub) {
-  typedef enum { AUTH_NONE, AUTH_BASIC, OAUTH2 } method_t;
+enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
 
-  method_t method = AUTH_NONE;
+int authenticate(std::string filepath, TreehubServer &treehub) {
+  AuthMethod method = AUTH_NONE;
   std::string auth_method;
   std::string auth_user;
   std::string auth_password;
@@ -171,7 +168,8 @@ int main(int argc, char **argv) {
   po::variables_map vm;
 
   try {
-    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(po::parse_command_line(argc, (const char *const *)argv, desc),
+              vm);
 
     if (vm.count("help")) {
       cout << desc << "\n";

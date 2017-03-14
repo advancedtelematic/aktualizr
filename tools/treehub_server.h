@@ -11,8 +11,8 @@ class TreehubServer {
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle) const;
 
   void root_url(const std::string &root_url);
-  void username(const std::string &username) { username_ = username; };
-  void password(const std::string &password) { password_ = password; };
+  void username(const std::string &username) { username_ = username; }
+  void password(const std::string &password) { password_ = password; }
 
  private:
   std::string root_url_;
