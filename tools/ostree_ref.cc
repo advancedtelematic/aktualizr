@@ -7,8 +7,9 @@
 #include <iterator>
 #include <sstream>
 
+#include "logging.h"
+
 using std::string;
-using std::cout;
 using std::stringstream;
 using std::ifstream;
 
@@ -30,7 +31,7 @@ void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
   string content = RefContent();
   curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, content.size());
   curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, content.c_str());
-  // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
 }
 
 bool OSTreeRef::IsValid() const {

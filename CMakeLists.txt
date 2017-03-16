@@ -20,8 +20,9 @@ find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang
 find_program(PANDOC NAMES pandoc)
 
 # Boost
-find_package(Boost REQUIRED program_options filesystem system)
+find_package(Boost REQUIRED program_options filesystem system log)
 include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(-DBOOST_LOG_DYN_LINK=1)
 
 # Curl
 find_package(CURL REQUIRED)
@@ -31,6 +32,7 @@ include_directories(${CURL_INCLUDE_DIRS})
 find_package(GLIB2 REQUIRED)
 include_directories(${GLIB2_INCLUDE_DIRS})
 
+find_package(Threads REQUIRED)
 # strace
 find_program(STRACE NAMES strace)
 
@@ -49,6 +51,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
             add_definitions (-Werror)
 	endif()
 endif()
+
+set (CMAKE_CXX_STANDARD 11)
 
 # QA virtual target
 add_custom_target(qa)
