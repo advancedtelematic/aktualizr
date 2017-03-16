@@ -1,6 +1,9 @@
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -8,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "accumulator.h"
 #include "logging.h"
 #include "oauth2.h"
 #include "ostree_object.h"
@@ -17,7 +21,6 @@
 #include "treehub_server.h"
 
 namespace po = boost::program_options;
-using std::cout;
 using std::string;
 using std::list;
 using boost::optional;
@@ -83,20 +86,20 @@ int authenticate(const string &cacerts, string filepath,
 
       if (client_id != "") {
         if (oauth2.Authenticate() != AUTHENTICATION_SUCCESS) {
-          std::cerr << "Authentication with oauth2 failed\n";
+          LOG_FATAL << "Authentication with oauth2 failed";
           return EXIT_FAILURE;
         } else {
-          cout << "Using oauth2 authentication token\n";
+          LOG_INFO << "Using oauth2 authentication token";
           treehub.SetToken(oauth2.token());
         }
       } else {
-        cout << "Skipping Authentication\n";
+        LOG_INFO << "Skipping Authentication";
       }
       break;
     }
 
     default: {
-      cout << "Unexpected authentication method value " << method << std::endl;
+      LOG_FATAL << "Unexpected authentication method value " << method;
       return EXIT_FAILURE;
     }
   }
@@ -121,12 +124,12 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
       break;
 
     case OBJECT_BREAKS_SERVER:
-      std::cerr << "Uploading object " << h << " failed.\n";
+      LOG_ERROR << "Uploading object " << h << " failed.";
       p.Abort();
       errors++;
       break;
     default:
-      std::cerr << "Surprise state:" << h->is_on_server() << "\n";
+      LOG_ERROR << "Surprise state:" << h->is_on_server();
       p.Abort();
       errors++;
       break;
@@ -138,14 +141,14 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
     uploaded++;
     h->NotifyParents(p);
   } else {
-    std::cerr << "Surprise state:" << h->is_on_server() << "\n";
+    LOG_ERROR << "Surprise state:" << h->is_on_server();
     p.Abort();
     errors++;
   }
 }
 
 int main(int argc, char **argv) {
-  cout << "Garage push\n";
+  logger_init();
 
   string repo_path;
   string ref;
@@ -156,11 +159,14 @@ int main(int argc, char **argv) {
   string home_path = string(getenv("HOME"));
   string cacerts;
 
+  int verbosity;
+
   po::options_description desc("Allowed options");
   // clang-format off
   desc.add_options()
     ("help", "produce a help message")
-    ("verbose,v", "Verbose logging")
+    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
+    ("quiet,q", "Quiet mode")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
     ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
@@ -176,37 +182,52 @@ int main(int argc, char **argv) {
               vm);
 
     if (vm.count("help")) {
-      cout << desc << "\n";
+      LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
 
     po::notify(vm);
   } catch (const po::error &o) {
-    cout << o.what() << "\n";
-    cout << desc << "\n";
+    LOG_INFO << o.what();
+    LOG_INFO << desc;
     return EXIT_FAILURE;
   }
 
-  logging_verbosity = (int)vm.count("verbose");
+  // Configure logging
+  if (verbosity == 0) {
+    // 'verbose' trumps 'quiet'
+    if ((int)vm.count("quiet")) {
+      logger_set_threshold(boost::log::trivial::warning);
+    } else {
+      logger_set_threshold(boost::log::trivial::info);
+    }
+  } else if (verbosity == 1) {
+    logger_set_threshold(boost::log::trivial::debug);
+    LOG_DEBUG << "Debug level debugging enabled";
+  } else if (verbosity > 1) {
+    logger_set_threshold(boost::log::trivial::trace);
+    LOG_TRACE << "Trace level debugging enabled";
+  } else {
+    assert(0);
+  }
 
   OSTreeRepo repo(repo_path);
 
   if (!repo.LooksValid()) {
-    cout << "The OSTree repo dir " << repo_path
-         << " does not appear to contain a valid OSTree repository\n";
+    LOG_FATAL << "The OSTree repo dir " << repo_path
+              << " does not appear to contain a valid OSTree repository";
     return EXIT_FAILURE;
   }
 
   OSTreeRef ostree_ref(repo, ref);
 
   if (!ostree_ref.IsValid()) {
-    cout << "Ref " << ref << " was not found in repository " << repo_path
-         << "\n";
+    LOG_FATAL << "Ref " << ref << " was not found in repository " << repo_path;
     return EXIT_FAILURE;
   }
 
   if (maxCurlRequests < 1 || 1000 < maxCurlRequests) {
-    cout << "--jobs must in in the range 1...1000\n";
+    LOG_FATAL << "--jobs must in in the range 1...1000";
     return EXIT_FAILURE;
   }
 
@@ -214,7 +235,7 @@ int main(int argc, char **argv) {
     if (boost::filesystem::exists(cacerts)) {
       push_target.ca_certs(cacerts);
     } else {
-      cout << "--cacert path " << cacerts << " does not exist\n";
+      LOG_FATAL << "--cacert path " << cacerts << " does not exist";
       return EXIT_FAILURE;
     }
   }
@@ -225,18 +246,18 @@ int main(int argc, char **argv) {
   OSTreeObject::ptr root_object = repo.GetObject(root_sha256);
 
   if (!root_object) {
-    cout << "Commit pointed to by " << ref << " was not found in repository "
-         << repo_path << "\n";
+    LOG_FATAL << "Commit pointed to by " << ref
+              << " was not found in repository " << repo_path;
     return EXIT_FAILURE;
   }
 
   if (authenticate(cacerts, credentials_path, push_target) != EXIT_SUCCESS) {
-    cout << "Authentication failed\n";
+    LOG_FATAL << "Authentication failed";
     return EXIT_FAILURE;
   }
 
   if (vm.count("dry-run")) {
-    cout << "Dry run. Exiting.\n";
+    LOG_INFO << "Dry run. Exiting.";
     return EXIT_SUCCESS;
   }
 
@@ -260,8 +281,8 @@ int main(int argc, char **argv) {
   } while (root_object->is_on_server() != OBJECT_PRESENT &&
            !request_pool.is_stopped());
 
-  cout << "Uploaded " << uploaded << " objects\n";
-  cout << "Already present " << present_already << " objects\n";
+  LOG_INFO << "Uploaded " << uploaded << " objects";
+  LOG_INFO << "Already present " << present_already << " objects";
   // Push ref
 
   if (root_object->is_on_server() == OBJECT_PRESENT) {
@@ -270,22 +291,23 @@ int main(int argc, char **argv) {
     ostree_ref.PushRef(push_target, easy_handle);
     CURLcode err = curl_easy_perform(easy_handle);
     if (err) {
-      cout << "Error pushing root ref:" << curl_easy_strerror(err) << "\n";
+      LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
       errors++;
     }
     long rescode;
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
-      cout << "Error pushing root ref, got " << rescode << " HTTP response\n";
+      LOG_ERROR << "Error pushing root ref, got " << rescode
+                << " HTTP response";
       errors++;
     }
     curl_easy_cleanup(easy_handle);
   } else {
-    std::cerr << "Uploading failed\n";
+    LOG_ERROR << "Uploading failed";
   }
 
   if (errors) {
-    std::cerr << "One or more errors while pushing\n";
+    LOG_ERROR << "One or more errors while pushing";
     return EXIT_FAILURE;
   } else {
     return EXIT_SUCCESS;

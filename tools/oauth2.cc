@@ -10,7 +10,6 @@
 
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
-using std::cout;
 using std::stringstream;
 
 /**
@@ -65,7 +64,7 @@ AuthenticationResult OAuth2::Authenticate() {
   }
   curl_easy_cleanup(curl_handle);
 
-  // cout << "GOT TOKEN\n" << token_ << "\n";
+  LOG_TRACE << "Got OAuth2 access token:" << token_;
   return res;
 }
 

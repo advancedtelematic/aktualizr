@@ -7,7 +7,6 @@
 
 #include "ostree_repo.h"
 
-using std::cout;
 using std::string;
 namespace fs = boost::filesystem;
 

@@ -8,7 +8,6 @@
 #include <boost/foreach.hpp>
 #include <iostream>
 
-using std::cout;
 using std::string;
 
 OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
@@ -183,14 +182,14 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target,
                    this);  // Used by ostree_object_from_curl
   CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err) {
-    cout << "err:" << curl_multi_strerror(err) << "\n";
+    LOG_ERROR << "err:" << curl_multi_strerror(err);
   }
   refcount_++;  // Because curl now has a reference to us
 }
 
 void OSTreeObject::Upload(const TreehubServer &push_target,
                           CURLM *curl_multi_handle) {
-  cout << "Uploading " << object_name_ << "\n";
+  LOG_INFO << "Uploading " << object_name_;
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
@@ -208,7 +207,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target,
   curl_easy_setopt(curl_handle_, CURLOPT_POST, 1);
   CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
   if (e) {
-    cout << "error: " << curl_easy_strerror(e) << "\n";
+    LOG_ERROR << "curl_easy_setopt error: " << curl_easy_strerror(e);
   }
 
   curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE,
@@ -216,7 +215,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target,
 
   CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err) {
-    cout << "err:" << curl_multi_strerror(err) << "\n";
+    LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
   }
   refcount_++;  // Because curl now has a reference to us
 }
@@ -234,17 +233,17 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle) {
       is_on_server_ = OBJECT_MISSING;
     } else {
       is_on_server_ = OBJECT_BREAKS_SERVER;
-      cout << "error: " << rescode << "\n";
+      LOG_ERROR << "error: " << rescode;
     }
   } else if (current_operation_ == OSTREE_OBJECT_UPLOADING) {
     // TODO: check that http_response_ matches the object hash
     curl_formfree(form_post_);
     form_post_ = NULL;
     if (rescode == 200) {
-      // cout << "Upload successful\n";
+      LOG_DEBUG << "Upload successful";
       is_on_server_ = OBJECT_PRESENT;
     } else {
-      cout << "Upload error: " << rescode << "\n";
+      LOG_ERROR << "Upload error: " << rescode;
       is_on_server_ = OBJECT_BREAKS_SERVER;
     }
   } else {
