@@ -34,7 +34,6 @@ const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
-int logging_verbosity;
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
 
