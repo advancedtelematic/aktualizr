@@ -3,6 +3,7 @@ set (GARAGE_PUSH_SRCS
   logging.cc
   main.cc
   oauth2.cc
+  ostree_hash.cc
   ostree_ref.cc
   ostree_repo.cc
   ostree_object.cc
@@ -21,6 +22,7 @@ set(ALL_HEADERS
   accumulator.h
   logging.h
   oauth2.h
+  ostree_hash.h
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
