@@ -116,6 +116,16 @@ add_executable(aktualizr_test_socket_gateway tests/socketgateway_test.cc)
 target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_socket_gateway COMMAND aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+add_executable(aktualizr_test_crypto tests/crypto_test.cc)
+target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto)
+add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
+add_executable(aktualizr_test_uptane tests/uptane_test.cc)
+target_link_libraries(aktualizr_test_uptane aktualizr_static_lib ${TEST_LIBS} crypto)
+add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
 if(BUILD_GENIVI)
     add_executable(aktualizr_test_dbusgateway tests/dbusgateway_test.cc)
     target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
@@ -140,6 +150,8 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage aktualizr_test_config)
     add_dependencies(coverage aktualizr_test_events)
     add_dependencies(coverage aktualizr_test_commands)
+    add_dependencies(coverage aktualizr_test_uptane)
+    add_dependencies(coverage aktualizr_test_crypto)
     if(BUILD_GENIVI)
         add_dependencies(coverage aktualizr_test_dbusgateway)
     endif(BUILD_GENIVI)

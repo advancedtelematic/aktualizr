@@ -19,7 +19,9 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/types.cc
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
-            src/socketgateway.cc)
+            src/socketgateway.cc
+            src/uptane.cc
+            src/crypto.cc)
 
 set(MAIN src/main.cc)
             

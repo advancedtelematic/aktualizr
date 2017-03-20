@@ -129,8 +129,10 @@ class ProvisionConfig {
 class UptaneConfig{
   public:
     UptaneConfig()
-        : metadata_path(""), private_key_path("ecukey.pem"), public_key_path("ecukey.pub") {}
-    std::string metadata_path;
+        : director_server(""),  repo_server(""), metadata_path(""), private_key_path("ecukey.pem"), public_key_path("ecukey.pub") {}
+    std::string director_server;
+    std::string repo_server;
+    boost::filesystem::path metadata_path;
     std::string private_key_path;
     std::string public_key_path;
 };

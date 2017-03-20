@@ -131,6 +131,8 @@ void Config::updateFromToml(const std::string& filename) {
   CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
 
+  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
+  CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
   CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
   CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
   CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);

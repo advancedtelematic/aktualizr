@@ -54,10 +54,11 @@ TEST(config, config_toml_parsing) {
 
 TEST(config, config_oauth_tls_parsing) {
   Config conf;
-  try{
+  try {
     conf.updateFromToml("tests/config_tests_prov_bad.toml");
-  }catch(std::logic_error e){
-    EXPECT_STREQ(e.what(), "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
+  } catch (std::logic_error e) {
+    EXPECT_STREQ(e.what(),
+                 "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
   }
 }
 
