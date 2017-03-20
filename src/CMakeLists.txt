@@ -43,7 +43,7 @@ add_library(aktualizr_static_lib STATIC ${SOURCES})
 # set the name of the executable
 add_executable(aktualizr ${MAIN})
 
-target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)

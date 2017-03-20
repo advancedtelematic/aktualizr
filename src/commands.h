@@ -25,10 +25,8 @@ typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 
 class Authenticate : public BaseCommand {
  public:
-  Authenticate(const data::ClientCredentials& client_credentials_in);
-  data::ClientCredentials client_credentials;
+  Authenticate();
   std::string toJson();
-  static Authenticate fromJson(const std::string& json_str);
 };
 
 class Shutdown : public BaseCommand {

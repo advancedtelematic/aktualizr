@@ -69,6 +69,20 @@ void Config::updateFromToml(const std::string& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);
 
+  if (pt.get_optional<std::string>("tls.server").is_initialized() &&
+      pt.get_optional<std::string>("tls.ca_file").is_initialized() &&
+      pt.get_optional<std::string>("tls.client_certificate").is_initialized()) {
+    core.auth_type = CERTIFICATE;
+
+    if (pt.get_optional<std::string>("auth.client_id").is_initialized() ||
+        pt.get_optional<std::string>("auth.client_secret").is_initialized()) {
+      throw std::logic_error(
+          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
+    }
+  } else {
+    core.auth_type = OAUTH2;
+  }
+
   // Keep this order the same as in config.h
   CopyFromConfig(core.server, "core.server", LVL_debug, pt);
   CopyFromConfig(core.polling, "core.polling", LVL_trace, pt);
@@ -86,6 +100,8 @@ void Config::updateFromToml(const std::string& filename) {
 
   CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
   CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
+  CopyFromConfig(device.certificates_path, "device.certificates_path", LVL_trace, pt);
+  device.createCertificatesPath();
 
   CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
   CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
@@ -107,6 +123,17 @@ void Config::updateFromToml(const std::string& filename) {
   CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
   CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
   CopyFromConfig(rvi.client_config, "rvi.client_config", LVL_warning, pt);
+
+  CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
+  CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
+  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
+
+  CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
+  CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
+
+  CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
+  CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
+  CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);
 
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }

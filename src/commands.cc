@@ -14,7 +14,7 @@ boost::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& 
   std::string variant = json.get("variant").to_str();
   std::string data = json.serialize(false);
   if (variant == "Authenticate") {
-    return boost::make_shared<Authenticate>(Authenticate::fromJson(data));
+    return boost::make_shared<Authenticate>();
   } else if (variant == "Shutdown") {
     return boost::make_shared<Shutdown>();
   } else if (variant == "GetUpdateRequests") {
@@ -43,25 +43,8 @@ boost::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& 
   return boost::make_shared<BaseCommand>();
 }
 
-Authenticate::Authenticate(const data::ClientCredentials& client_credentials_in)
-    : client_credentials(client_credentials_in) {
-  variant = "Authenticate";
-}
-
-std::string Authenticate::toJson() {
-  Json::Value json = BaseCommand::toJson();
-  json["fields"].append(client_credentials.toJson());
-  return Json::FastWriter().write(json);
-}
-
-Authenticate Authenticate::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  data::ClientCredentials client_credentials =
-      data::ClientCredentials::fromJson(Json::FastWriter().write(json["fields"][0]));
-  return Authenticate(client_credentials);
-}
+Authenticate::Authenticate() { variant = "Authenticate"; }
+std::string Authenticate::toJson() { return Json::FastWriter().write(BaseCommand::toJson()); }
 
 Shutdown::Shutdown() { variant = "Shutdown"; }
 std::string Shutdown::toJson() { return Json::FastWriter().write(BaseCommand::toJson()); }

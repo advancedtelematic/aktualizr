@@ -19,10 +19,13 @@ class SotaHttpClient : public SotaClient {
   virtual void startDownload(const data::UpdateRequestId &update_request_id);
   virtual void sendUpdateReport(data::UpdateReport update_report);
   bool authenticate();
+  bool deviceRegister();
+  bool ecuRegister();
   void run();
 
  private:
   void retry();
+  bool parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &client_pem, const std::string ca_pem);
   Config config;
   HttpClient *http;
   event::Channel *events_channel;

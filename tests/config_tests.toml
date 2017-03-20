@@ -13,7 +13,7 @@ uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
 vin = "64285c3c-ca04-4d58-b8d7-f0e002483647"
 packages_dir = "/tmp/packages_dir"
 package_manager = "off"
-certificates_path = "/etc/sota_certificates"
+certificates_path = "/tmp/aktualizr"
 system_info = "system_info.sh"
 
 [gateway]
@@ -29,7 +29,6 @@ socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
 websocket_server = "127.0.0.1:3012"
-
 
 [rvi]
 node_host = "rvi.example.com"

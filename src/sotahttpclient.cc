@@ -1,6 +1,11 @@
 #include "sotahttpclient.h"
 
 #include <json/json.h>
+#include <openssl/bio.h>
+#include <openssl/pem.h>
+#include <openssl/pkcs12.h>
+#include <openssl/x509.h>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/make_shared.hpp>
 #include "time.h"
 
@@ -10,7 +15,19 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_c
                                command::Channel *commands_channel_in)
     : config(config_in), events_channel(events_channel_in), commands_channel(commands_channel_in) {
   http = new HttpClient();
-  core_url = config.core.server + "/api/v1";
+
+  if (config.core.auth_type == CERTIFICATE) {
+    if (!boost::filesystem::exists(config.device.certificates_path + config.tls.client_certificate) ||
+        !boost::filesystem::exists(config.device.certificates_path + config.tls.ca_file)) {
+      if (!deviceRegister() || !ecuRegister()){
+        throw std::runtime_error("Fatal error of tls or ecu device registration, please look at previous error log messages to understand the reason");
+      }
+    }
+    core_url = config.core.server + "/api/v1";
+  } else {
+    core_url = config.tls.server + "/api/v1";
+  }
+
   processing = false;
   retries = SotaHttpClient::MAX_RETRIES;
   boost::thread(boost::bind(&SotaHttpClient::run, this));
@@ -24,7 +41,171 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, HttpClient *http_in, eve
   core_url = config.core.server + "/api/v1";
 }
 
-bool SotaHttpClient::authenticate() { return http->authenticate(config.auth); }
+bool SotaHttpClient::deviceRegister() {
+  std::string bootstrap_cert_pem = config.device.certificates_path + "bootstrap_cert.pem";
+  std::string bootstrap_ca_pem = config.device.certificates_path + "bootstrap_ca.pem";
+
+  FILE *reg_p12 = fopen((config.device.certificates_path+config.provision.p12_path).c_str(), "rb");
+  if (!reg_p12) {
+    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_path+config.provision.p12_path);
+    fclose(reg_p12);
+    return false;
+  }
+
+  if (!parseP12(reg_p12, config.provision.p12_password, bootstrap_cert_pem, bootstrap_ca_pem)) {
+    fclose(reg_p12);
+    return false;
+  }
+  fclose(reg_p12);
+
+  http->setCerts(bootstrap_ca_pem, bootstrap_cert_pem);
+  std::string data =
+      "{\"deviceId\":\"" + config.provision.device_id + "\", \"ttl\":" + config.provision.expiry_days + "}";
+  std::string result = http->post(config.tls.server + "/devices", data);
+  if (http->http_code != 200 && http->http_code != 201) {
+    LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
+    return false;
+  }
+
+  FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
+  if (!parseP12(device_p12, "", config.device.certificates_path + config.tls.client_certificate,
+                config.device.certificates_path + config.tls.ca_file)) {
+    return false;
+  }
+  fclose(device_p12);
+  return true;
+}
+bool SotaHttpClient::ecuRegister() {
+  int bits = 2048;
+  int ret = 0;
+  RSA *r = RSA_new();
+
+  BIGNUM *bne = BN_new();
+  ret = BN_set_word(bne, RSA_F4);
+  if (ret != 1) {
+    BN_free(bne);
+    return false;
+  }
+
+  RSA_generate_key_ex(r, bits, bne, NULL);
+
+  EVP_PKEY *pkey = NULL;
+  EVP_PKEY_assign_RSA(pkey, r);
+  std::string public_key = config.device.certificates_path + config.uptane.public_key_path;
+  BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
+  ret = PEM_write_bio_RSAPublicKey(bp_public, r);
+  if (ret != 1) {
+    BN_free(bne);
+    RSA_free(r);
+    BIO_free_all(bp_public);
+    return false;
+  }
+
+  BIO *bp_private = BIO_new_file((config.device.certificates_path + config.uptane.private_key_path).c_str(), "w");
+  ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
+  if (ret != 1) {
+    BN_free(bne);
+    RSA_free(r);
+    BIO_free_all(bp_public);
+    BIO_free_all(bp_private);
+    return false;
+  }
+  BN_free(bne);
+  RSA_free(r);
+  BIO_free_all(bp_public);
+  BIO_free_all(bp_private);
+
+  std::ifstream ks(public_key.c_str());
+  std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
+  ks.close();
+  pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
+  std::string data = "{\"primary_ecu_serial\":\"" + config.provision.device_id + "\", \"ecus\":[{\"ecu_serial\":\"" +
+                     config.provision.device_id +
+                     "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
+
+  std::string result = http->post(config.tls.server + "/director/ecus", data);
+  if (http->http_code != 200 && http->http_code != 201) {
+    LOGGER_LOG(LVL_error, "error uptone registering device, response: " << result);
+    return false;
+  }
+
+  result = http->get(config.tls.server + "/director/root.json");
+  if (http->http_code != 200) {
+    LOGGER_LOG(LVL_error, "could not get director root metadata: " << result);
+    return false;
+  }
+
+  boost::filesystem::create_directories(config.uptane.metadata_path + "/director");
+
+  std::ofstream director_file((config.uptane.metadata_path + "/director/root.json").c_str());
+  director_file << result;
+  director_file.close();
+
+  result = http->get(config.tls.server + "/repo/root.json");
+  if (http->http_code != 200) {
+    LOGGER_LOG(LVL_error, "could not get repo root metadata: " << result);
+    return false;
+  }
+  boost::filesystem::create_directories(config.uptane.metadata_path + "/repo");
+  std::ofstream repo_file((config.uptane.metadata_path + "/repo/root.json").c_str());
+  repo_file << result;
+  repo_file.close();
+
+  return true;
+}
+
+bool SotaHttpClient::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &client_pem,
+                              const std::string ca_pem) {
+  PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
+  ;
+  if (!p12) {
+    LOGGER_LOG(LVL_error, "Could not read from " << p12_fp << " file pointer");
+    return false;
+  }
+
+  EVP_PKEY *pkey = NULL;
+  X509 *x509_cert = NULL;
+  STACK_OF(X509) *ca_certs = NULL;
+  if (!PKCS12_parse(p12, p12_password.c_str(), &pkey, &x509_cert, &ca_certs)) {
+    LOGGER_LOG(LVL_error, "Could not parse file from " << p12_fp << " file pointer");
+    return false;
+  }
+
+  FILE *cert_file = fopen(client_pem.c_str(), "w");
+  if (!cert_file) {
+    LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writting");
+    return false;
+  }
+  PEM_write_X509(cert_file, x509_cert);
+  PEM_write_PrivateKey(cert_file, pkey, NULL, NULL, 0, 0, NULL);
+
+  FILE *ca_file = fopen(ca_pem.c_str(), "w");
+  if (!ca_file) {
+    LOGGER_LOG(LVL_error, "Could not open " << ca_pem << " for writting");
+    return false;
+  }
+  X509 *ca_cert = NULL;
+  for (int i = 0; i < sk_X509_num(ca_certs); i++) {
+    ca_cert = sk_X509_value(ca_certs, i);
+    PEM_write_X509(ca_file, ca_cert);
+    PEM_write_X509(cert_file, ca_cert);
+  }
+  fclose(ca_file);
+  fclose(cert_file);
+  sk_X509_pop_free(ca_certs, X509_free);
+  X509_free(x509_cert);
+
+  return true;
+}
+
+bool SotaHttpClient::authenticate() {
+  if (config.core.auth_type == CERTIFICATE) {
+    return http->authenticate(config.device.certificates_path + config.tls.client_certificate,
+                              config.device.certificates_path + config.tls.ca_file);
+  } else {
+    return http->authenticate(config.auth);
+  }
+}
 
 std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
   processing = true;
@@ -33,7 +214,7 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
 
   Json::Value json;
   try {
-    json = http->get(url);
+    json = http->getJson(url);
   } catch (std::runtime_error e) {
     retry();
     return update_requests;
@@ -97,10 +278,7 @@ void SotaHttpClient::run() {
         sleep(static_cast<unsigned int>(config.core.polling_sec));
       }
       if (!http->isAuthenticated()) {
-        data::ClientCredentials cred;
-        cred.client_id = config.auth.client_id;
-        cred.client_secret = config.auth.client_secret;
-        *commands_channel << boost::make_shared<command::Authenticate>(cred);
+        *commands_channel << boost::make_shared<command::Authenticate>();
       }
       *commands_channel << boost::make_shared<command::GetUpdateRequests>();
     }

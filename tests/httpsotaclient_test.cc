@@ -8,9 +8,12 @@
 
 class HttpClientMock : public HttpClient {
  public:
+  HttpClientMock(){
+    http_code = 200;
+  }
   MOCK_METHOD1(authenticate, bool(const AuthConfig &conf));
-  MOCK_METHOD1(get, Json::Value(const std::string &url));
-  MOCK_METHOD2(post, Json::Value(const std::string &url, const Json::Value &data));
+  MOCK_METHOD1(get, std::string(const std::string &url));
+  MOCK_METHOD2(post, std::string(const std::string &url, const std::string &data));
   MOCK_METHOD2(download, bool(const std::string &url, const std::string &filename));
 };
 
@@ -101,11 +104,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
       "	}\n"
       "]");
 
-  Json::Reader reader;
-  Json::Value return_val;
-  reader.parse(message, return_val);
-
-  testing::DefaultValue<Json::Value>::Set(return_val);
+  testing::DefaultValue<std::string>::Set(message);
   EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" + conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests = aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1);
@@ -145,9 +144,34 @@ TEST(ReportTest, post_called) {
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
-  EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
+  EXPECT_CALL(*http, post(url, Json::FastWriter().write(update_report.toJson()["operation_results"])));
   aktualizr.sendUpdateReport(update_report);
   delete events_channel;
+}
+
+TEST(SotaHttpClientTest, device_registered) {
+  Config conf;
+  conf.updateFromToml("tests/config_tests_prov.toml");
+  boost::filesystem::remove(conf.device.certificates_path + conf.tls.client_certificate);
+  boost::filesystem::remove(conf.device.certificates_path + conf.tls.ca_file);
+  boost::filesystem::remove(conf.device.certificates_path + "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.device.certificates_path + "bootstrap_cert.pem");
+
+  HttpClientMock *http = new HttpClientMock();
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  SotaHttpClient aktualizr(conf, http, events_channel, commands_channel);
+  aktualizr.deviceRegister();
+
+  std::ifstream ks("tests/certs/cred.p12");
+  std::string cert_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
+  ks.close();
+  testing::DefaultValue<std::string>::Set(cert_str);
+  http->http_code = 200;
+  EXPECT_EQ(aktualizr.deviceRegister(), true);
+  EXPECT_EQ(boost::filesystem::exists(conf.device.certificates_path + conf.tls.client_certificate), true);
+  EXPECT_EQ(boost::filesystem::exists(conf.device.certificates_path + conf.tls.ca_file), true);
 }
 
 #ifndef __NO_MAIN__

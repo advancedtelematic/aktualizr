@@ -16,7 +16,7 @@ TEST(CopyConstructorTest, copied) {
   HttpClient http_copy(*http);
   delete http;
   std::string path = "/path/1/2/3";
-  Json::Value resp = http_copy.get(server + path);
+  Json::Value resp = http_copy.getJson(server + path);
   EXPECT_EQ(resp["path"].asString(), path);
 }
 
@@ -28,14 +28,14 @@ TEST(AuthenticateTest, authenticated) {
   conf.client_secret = "secret";
   bool response = http.authenticate(conf);
   EXPECT_EQ(response, true);
-  Json::Value resp = http.get(server + "/auth_call");
+  Json::Value resp = http.getJson(server + "/auth_call");
   EXPECT_EQ(resp["status"].asString(), "good");
 }
 
 TEST(GetTest, get_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  Json::Value response = http.get(server + path);
+  Json::Value response = http.getJson(server + path);
   EXPECT_EQ(response["path"].asString(), path);
 }
 
@@ -43,7 +43,10 @@ TEST(PostTest, post_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
   std::string data = "{\"key\":\"val\"}";
-  Json::Value response = http.post(server + path, data);
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(data, json);
+  Json::Value response = http.post(server + path, json);
   EXPECT_EQ(response["path"].asString(), path);
   EXPECT_EQ(response["data"]["key"].asString(), "val");
 }

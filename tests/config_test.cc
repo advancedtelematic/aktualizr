@@ -1,5 +1,5 @@
-#include <boost/program_options.hpp>
 #include <gtest/gtest.h>
+#include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
 
@@ -50,6 +50,15 @@ TEST(config, config_toml_parsing) {
 
   EXPECT_EQ(conf.rvi.node_port, "9999");
   EXPECT_EQ(conf.rvi.client_config, "my/rvi_conf.json");
+}
+
+TEST(config, config_oauth_tls_parsing) {
+  Config conf;
+  try{
+    conf.updateFromToml("tests/config_tests_prov_bad.toml");
+  }catch(std::logic_error e){
+    EXPECT_STREQ(e.what(), "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
+  }
 }
 
 TEST(config, config_toml_parsing_empty_file) {
