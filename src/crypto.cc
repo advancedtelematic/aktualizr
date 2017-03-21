@@ -30,7 +30,7 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   unsigned char EM[256];
   unsigned char pSignature[256];
   EVP_PKEY *key;
-  RSA *rsa;
+  RSA *rsa = NULL;
 
   FILE *priv_key_file = fopen(private_key.c_str(), "rt");
   if (!priv_key_file) {
