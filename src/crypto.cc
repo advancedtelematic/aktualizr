@@ -12,7 +12,7 @@
 
 #include "logger.h"
 
-std::string Crypto::sha256digest(std::string text) {
+std::string Crypto::sha256digest(const std::string &text) {
   EVP_MD_CTX *md_ctx;
   md_ctx = EVP_MD_CTX_create();
   EVP_DigestInit_ex(md_ctx, EVP_sha256(), NULL);
@@ -27,8 +27,8 @@ std::string Crypto::sha256digest(std::string text) {
 }
 
 std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string &message) {
-  unsigned char EM[256];
-  unsigned char pSignature[256];
+  RAND_poll();
+
   EVP_PKEY *key;
   RSA *rsa = NULL;
 
@@ -47,6 +47,9 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
     LOGGER_LOG(LVL_error, "PEM_read_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
     return std::string();
   }
+  unsigned int sign_size = RSA_size(rsa);
+  unsigned char EM[sign_size];
+  unsigned char pSignature[sign_size];
 
   std::string digest = Crypto::sha256digest(message);
   int status = RSA_padding_add_PKCS1_PSS(rsa, EM, (const unsigned char *)digest.c_str(), EVP_sha256(),
@@ -58,18 +61,18 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   }
 
   /* perform digital signature */
-  status = RSA_private_encrypt(256, EM, pSignature, rsa, RSA_NO_PADDING);
+  status = RSA_private_encrypt(RSA_size(rsa), EM, pSignature, rsa, RSA_NO_PADDING);
   if (status == -1) {
     LOGGER_LOG(LVL_error, "RSA_private_encrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
     RSA_free(rsa);
     return std::string();
   }
   RSA_free(rsa);
-  return std::string((char *)pSignature);
+  return std::string((char *)pSignature, sign_size);
 }
 
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
-  unsigned char pDecrypted[signature.size()];
+  RAND_poll();
   RSA *rsa = NULL;
 
   BIO *bio = BIO_new_mem_buf(public_key.c_str(), (int)public_key.size());
@@ -79,6 +82,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   }
   BIO_free_all(bio);
 
+  unsigned char pDecrypted[RSA_size(rsa)];
   /* now we will verify the signature
      Start by a RAW decrypt of the signature
   */
@@ -91,6 +95,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   }
 
   std::string digest = Crypto::sha256digest(message);
+
   /* verify the data */
   status = RSA_verify_PKCS1_PSS(rsa, (const unsigned char *)digest.c_str(), EVP_sha256(), pDecrypted,
                                 -2 /* salt length recovered from signature*/);
