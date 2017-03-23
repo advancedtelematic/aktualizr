@@ -8,9 +8,7 @@
 
 class HttpClientMock : public HttpClient {
  public:
-  HttpClientMock(){
-    http_code = 200;
-  }
+  HttpClientMock() { http_code = 200; }
   MOCK_METHOD1(authenticate, bool(const AuthConfig &conf));
   MOCK_METHOD1(get, std::string(const std::string &url));
   MOCK_METHOD2(post, std::string(const std::string &url, const std::string &data));

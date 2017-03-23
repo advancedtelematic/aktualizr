@@ -38,6 +38,12 @@
 #include "sotarviclient.h"
 #endif
 
+#include "crypto.h"
+#include "uptane.h"
+
+#include "boost/algorithm/hex.hpp"
+
+
 /*****************************************************************************/
 
 namespace bpo = boost::program_options;
@@ -153,6 +159,8 @@ int main(int argc, char *argv[]) {
 #endif
   } else {
     client = new SotaHttpClient(config, events_channel, commands_channel);
+    
+    Uptane upt(config);
   }
 
   CommandInterpreter command_interpreter(client, commands_channel, events_channel);

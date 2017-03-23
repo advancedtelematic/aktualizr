@@ -154,7 +154,6 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
   return update_report;
 }
 
-
 Json::Value InstalledFirmware::toJson() {
   Json::Value json;
   json["module"] = module;

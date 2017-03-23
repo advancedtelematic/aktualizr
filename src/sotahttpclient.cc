@@ -3,12 +3,12 @@
 #include <json/json.h>
 #include <openssl/bio.h>
 #include <openssl/pem.h>
-#include <openssl/pkcs12.h>
 #include <openssl/x509.h>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/make_shared.hpp>
 #include "time.h"
 
+#include "crypto.h"
 #include "logger.h"
 
 SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_channel_in,
@@ -19,8 +19,10 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_c
   if (config.core.auth_type == CERTIFICATE) {
     if (!boost::filesystem::exists(config.device.certificates_path + config.tls.client_certificate) ||
         !boost::filesystem::exists(config.device.certificates_path + config.tls.ca_file)) {
-      if (!deviceRegister() || !ecuRegister()){
-        throw std::runtime_error("Fatal error of tls or ecu device registration, please look at previous error log messages to understand the reason");
+      if (!deviceRegister() || !ecuRegister()) {
+        throw std::runtime_error(
+            "Fatal error of tls or ecu device registration, please look at previous error log messages to understand "
+            "the reason");
       }
     }
     core_url = config.core.server + "/api/v1";
@@ -45,14 +47,14 @@ bool SotaHttpClient::deviceRegister() {
   std::string bootstrap_cert_pem = config.device.certificates_path + "bootstrap_cert.pem";
   std::string bootstrap_ca_pem = config.device.certificates_path + "bootstrap_ca.pem";
 
-  FILE *reg_p12 = fopen((config.device.certificates_path+config.provision.p12_path).c_str(), "rb");
+  FILE *reg_p12 = fopen((config.device.certificates_path + config.provision.p12_path).c_str(), "rb");
   if (!reg_p12) {
-    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_path+config.provision.p12_path);
+    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_path + config.provision.p12_path);
     fclose(reg_p12);
     return false;
   }
 
-  if (!parseP12(reg_p12, config.provision.p12_password, bootstrap_cert_pem, bootstrap_ca_pem)) {
+  if (!Crypto::parseP12(reg_p12, config.provision.p12_password, bootstrap_cert_pem, bootstrap_ca_pem)) {
     fclose(reg_p12);
     return false;
   }
@@ -68,15 +70,16 @@ bool SotaHttpClient::deviceRegister() {
   }
 
   FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
-  if (!parseP12(device_p12, "", config.device.certificates_path + config.tls.client_certificate,
-                config.device.certificates_path + config.tls.ca_file)) {
+  if (!Crypto::parseP12(device_p12, "", config.device.certificates_path + config.tls.client_certificate,
+                        config.device.certificates_path + config.tls.ca_file)) {
     return false;
   }
   fclose(device_p12);
   return true;
 }
+
 bool SotaHttpClient::ecuRegister() {
-  int bits = 2048;
+  int bits = 1024;
   int ret = 0;
   RSA *r = RSA_new();
 
@@ -118,7 +121,7 @@ bool SotaHttpClient::ecuRegister() {
   std::ifstream ks(public_key.c_str());
   std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
   ks.close();
-  pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
+  pub_key_str = boost::replace_all_copy(pub_key_str, "\\n", "\n");
   std::string data = "{\"primary_ecu_serial\":\"" + config.provision.device_id + "\", \"ecus\":[{\"ecu_serial\":\"" +
                      config.provision.device_id +
                      "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
@@ -135,9 +138,9 @@ bool SotaHttpClient::ecuRegister() {
     return false;
   }
 
-  boost::filesystem::create_directories(config.uptane.metadata_path + "/director");
+  boost::filesystem::create_directories(config.uptane.metadata_path / "director");
 
-  std::ofstream director_file((config.uptane.metadata_path + "/director/root.json").c_str());
+  std::ofstream director_file((config.uptane.metadata_path / "director/root.json").c_str());
   director_file << result;
   director_file.close();
 
@@ -146,54 +149,10 @@ bool SotaHttpClient::ecuRegister() {
     LOGGER_LOG(LVL_error, "could not get repo root metadata: " << result);
     return false;
   }
-  boost::filesystem::create_directories(config.uptane.metadata_path + "/repo");
-  std::ofstream repo_file((config.uptane.metadata_path + "/repo/root.json").c_str());
+  boost::filesystem::create_directories(config.uptane.metadata_path / "repo");
+  std::ofstream repo_file((config.uptane.metadata_path / "repo/root.json").c_str());
   repo_file << result;
   repo_file.close();
-
-  return true;
-}
-
-bool SotaHttpClient::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &client_pem,
-                              const std::string ca_pem) {
-  PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
-  ;
-  if (!p12) {
-    LOGGER_LOG(LVL_error, "Could not read from " << p12_fp << " file pointer");
-    return false;
-  }
-
-  EVP_PKEY *pkey = NULL;
-  X509 *x509_cert = NULL;
-  STACK_OF(X509) *ca_certs = NULL;
-  if (!PKCS12_parse(p12, p12_password.c_str(), &pkey, &x509_cert, &ca_certs)) {
-    LOGGER_LOG(LVL_error, "Could not parse file from " << p12_fp << " file pointer");
-    return false;
-  }
-
-  FILE *cert_file = fopen(client_pem.c_str(), "w");
-  if (!cert_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writting");
-    return false;
-  }
-  PEM_write_X509(cert_file, x509_cert);
-  PEM_write_PrivateKey(cert_file, pkey, NULL, NULL, 0, 0, NULL);
-
-  FILE *ca_file = fopen(ca_pem.c_str(), "w");
-  if (!ca_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << ca_pem << " for writting");
-    return false;
-  }
-  X509 *ca_cert = NULL;
-  for (int i = 0; i < sk_X509_num(ca_certs); i++) {
-    ca_cert = sk_X509_value(ca_certs, i);
-    PEM_write_X509(ca_file, ca_cert);
-    PEM_write_X509(cert_file, ca_cert);
-  }
-  fclose(ca_file);
-  fclose(cert_file);
-  sk_X509_pop_free(ca_certs, X509_free);
-  X509_free(x509_cert);
 
   return true;
 }
