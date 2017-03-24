@@ -27,20 +27,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)# executables
 # Detect required packages
 INCLUDE( FindPkgConfig )
 
-PKG_SEARCH_MODULE (OPENSSL REQUIRED openssl)
+find_package(OpenSSL REQUIRED)
 PKG_SEARCH_MODULE (JANSSON REQUIRED jansson)
 PKG_SEARCH_MODULE (CHECK check)
 
 add_definitions(-DUSE_CMAKE)
 
-include_directories(include ${OPENSSL_INCLUDE_DIRS} ${JANSSON_INCLUDE_DIRS})
-link_directories(${OPENSSL_LIBRARY_DIRS} ${JANSSON_LIBRARY_DIRS})
-
 add_library(${LIBRARY_NAME} SHARED libjwt/jwt.c)
 add_library(${LIBRARY_NAME}_static STATIC libjwt/jwt.c)
 set_target_properties(${LIBRARY_NAME}_static PROPERTIES OUTPUT_NAME ${LIBRARY_NAME})
 set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION ${LIBJWT_VERSION_STRING}
-                      SOVERSION ${LIBJWT_VERSION_MAJOR})
+        SOVERSION ${LIBJWT_VERSION_MAJOR})
+
+target_include_directories(${LIBRARY_NAME}
+        PUBLIC include
+        PRIVATE ${OPENSSL_INCLUDE_DIR} ${JANSSON_INCLUDE_DIRS})
+target_include_directories(${LIBRARY_NAME}_static
+        PUBLIC include
+        PRIVATE ${OPENSSL_INCLUDE_DIR} ${JANSSON_INCLUDE_DIRS})
+
 
 # Check if _GNU_SOURCE is available.
 CHECK_SYMBOL_EXISTS(__GNU_LIBRARY__ "features.h" _GNU_SOURCE)

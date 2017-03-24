@@ -45,13 +45,13 @@ add_library(aktualizr_static_lib STATIC ${SOURCES})
 # set the name of the executable
 add_executable(aktualizr ${MAIN})
 
-target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries(aktualizr aktualizr_static_lib
+   ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
     add_definitions(-DWITH_GENIVI)
     target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
-    #target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
     target_include_directories(aktualizr_static_lib PUBLIC third_party/rvi_lib/include)
     target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
 endif(BUILD_GENIVI)

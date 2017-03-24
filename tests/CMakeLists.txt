@@ -74,7 +74,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 
 # use the same libiraries as the normal target but add gtest
-set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} gtest gmock gcov)
+set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} gtest gmock gcov)
                
 
 # Setup coverage
@@ -198,4 +198,19 @@ set_tests_properties(feat1_test--something
                      test_plain
                      test_log_invalid
                      PROPERTIES WILL_FAIL TRUE)
+
+# Try building with various cmake options
+add_test(NAME test_build_all_off
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_GENIVI=OFF -DBUILD_TESTS=OFF")
+
+add_test(NAME test_build_all_on
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_GENIVI=ON")
+
+add_test(NAME test_build_debug
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_debug "-DCMAKE_BUILD_TYPE=Debug")
+
+add_test(NAME test_build_release
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
+
+
 # vim: set tabstop=4 shiftwidth=4 expandtab:
