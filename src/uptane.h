@@ -23,6 +23,7 @@ class Uptane{
     Json::Value getJSON(Uptane::ServiceType service, const std::string &role);
 
     bool verify(Uptane::ServiceType service, const std::string& role,  Uptane::Verified& verified);
+    //void putManfiest(Uptane::ServiceType service, const std::string& role,  Uptane::Verified& verified);
 
     bool verifyData(Uptane::ServiceType service, const std::string &role, const Json::Value &tuf_signed);
     private:

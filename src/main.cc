@@ -42,7 +42,8 @@
 #include "uptane.h"
 
 #include "boost/algorithm/hex.hpp"
-
+bool
+ot_admin_builtin_status ();
 
 /*****************************************************************************/
 
@@ -159,8 +160,8 @@ int main(int argc, char *argv[]) {
 #endif
   } else {
     client = new SotaHttpClient(config, events_channel, commands_channel);
-    
-    Uptane upt(config);
+    ot_admin_builtin_status();
+    //Uptane upt(config);
   }
 
   CommandInterpreter command_interpreter(client, commands_channel, events_channel);

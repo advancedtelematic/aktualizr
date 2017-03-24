@@ -21,7 +21,8 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/gatewaymanager.cc
             src/socketgateway.cc
             src/uptane.cc
-            src/crypto.cc)
+            src/crypto.cc
+            src/ostree.cc)
 
 set(MAIN src/main.cc)
             
@@ -36,8 +37,15 @@ endif(BUILD_GENIVI)
 include_directories(src)
 include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
+
+pkg_search_module(LIBGLIB REQUIRED gio-2.0)
+include_directories(third_party/ostree/include/ostree-1)
+include_directories(${LIBGLIB_INCLUDE_DIRS})
+
+
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
+link_directories(third_party/ostree/lib)
 
 add_library(aktualizr_static_lib STATIC ${SOURCES})
 
@@ -45,13 +53,12 @@ add_library(aktualizr_static_lib STATIC ${SOURCES})
 # set the name of the executable
 add_executable(aktualizr ${MAIN})
 
-target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} gio-2.0 glib-2.0 ostree-1)
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
     add_definitions(-DWITH_GENIVI)
     target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
-    #target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
     target_include_directories(aktualizr_static_lib PUBLIC third_party/rvi_lib/include)
     target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
 endif(BUILD_GENIVI)
@@ -78,6 +85,14 @@ if(CLANG_CHECK)
 else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
+
+include(ExternalProject)
+ExternalProject_Add(ostree		
+     PREFIX "third_party/ostree"		
+     GIT_REPOSITORY "https://github.com/ostreedev/ostree.git"		
+     CONFIGURE_COMMAND env NOCONFIGURE=1 ./autogen.sh && ./configure --prefix=<INSTALL_DIR>	 --enable-trivial-httpd-cmdline
+     BUILD_COMMAND ${MAKE}		
+     BUILD_IN_SOURCE 1)
 
 
 ################## INSTALL RULES
