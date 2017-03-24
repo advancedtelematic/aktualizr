@@ -66,6 +66,11 @@ add_test(NAME invalid-repo
   COMMAND t/test-invalid-repo $<TARGET_FILE:garage-push>
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Detect a --repo that isn't in 'archive-z2' mode
+add_test(NAME bare-mode-repo
+        COMMAND t/test-bare-mode-repo $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Detect that the ref we passed in to --ref is not present
 add_test(NAME missing-ref
   COMMAND t/test-missing-ref $<TARGET_FILE:garage-push>
