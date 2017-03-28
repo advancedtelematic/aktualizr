@@ -27,7 +27,6 @@
 #include <memory>
 
 #include "channel.h"
-#include "commandinterpreter.h"
 #include "commands.h"
 #include "config.h"
 #include "events.h"
@@ -38,12 +37,11 @@
 #include "sotarviclient.h"
 #endif
 
+#ifdef BUILD_OSTREE
 #include "crypto.h"
-#include "uptane.h"
-
-#include "boost/algorithm/hex.hpp"
-bool
-ot_admin_builtin_status ();
+#include "ostree.h"
+#include "sotauptaneclient.h"
+#endif
 
 /*****************************************************************************/
 
@@ -120,10 +118,10 @@ int main(int argc, char *argv[]) {
       LOGGER_LOG(LVL_error, "Exception was thrown while parsing " << filename
                                                                   << " config file, message: " << e.message());
       return EXIT_FAILURE;
-    } catch (std::logic_error e){
-      LOGGER_LOG(LVL_error, "Improperly configured error. "  << e.what());
+    } catch (std::logic_error e) {
+      LOGGER_LOG(LVL_error, "Improperly configured error. " << e.what());
       return EXIT_FAILURE;
-    } 
+    }
   }
 
   // check for loglevel
@@ -150,22 +148,22 @@ int main(int argc, char *argv[]) {
   // run events interpreter in background
   events_interpreter.interpret();
 
-  SotaClient *client;
   if (config.gateway.rvi) {
 #ifdef WITH_GENIVI
-    client = new SotaRVIClient(config, events_channel);
+    SotaRVIClient(config, events_channel).runForever(commands_channel);
 #else
     LOGGER_LOG(LVL_error, "RVI support is not enabled");
     return EXIT_FAILURE;
 #endif
   } else {
-    client = new SotaHttpClient(config, events_channel, commands_channel);
-    ot_admin_builtin_status();
-    //Uptane upt(config);
+    if (config.core.auth_type == CERTIFICATE) {
+#ifdef BUILD_OSTREE
+      SotaUptaneClient(config, events_channel).runForever(commands_channel);
+#endif
+    } else {
+      SotaHttpClient(config, events_channel).runForever(commands_channel);
+    }
   }
-
-  CommandInterpreter command_interpreter(client, commands_channel, events_channel);
-  command_interpreter.interpret();
 
   return return_value;
 }

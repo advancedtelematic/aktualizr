@@ -126,34 +126,12 @@ struct InstalledSoftware {
   static InstalledSoftware fromJson(const std::string& json_str);
 };
 
-
 struct PackageManagerCredentials {
-    std::string access_token;
-    std::string ca_file;
-    std::string cert_file;
-    std::string pkey_file;
+  std::string access_token;
+  std::string ca_file;
+  std::string cert_file;
+  std::string pkey_file;
 };
-
-
-struct TufMeta {
-    unsigned long long length;
-    std::map<std::string, std::string> hashes;
-};
-
-struct TufImage {
-    std::string filepath;
-    TufMeta fileinfo;
-};
-
-
-struct EcuVersion {
-  std::string attacks_detected;
-  std::string ecu_serial;
-  TufImage installed_image;
-  std::string previous_timeserver_time;
-  std::string timeserver_time;
-};
-
 
 };
 
