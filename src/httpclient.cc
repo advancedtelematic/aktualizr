@@ -49,7 +49,6 @@ HttpClient::HttpClient() {
   }
 
   struct curl_slist* h = curl_slist_append(headers, "Accept: */*");
-  h = curl_slist_append(headers, "Content-Type: application/json");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, h);
 }
 
@@ -79,9 +78,9 @@ HttpClient::~HttpClient() {
   curl_easy_cleanup(curl);
 }
 
-bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file) {
+bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file, const std::string& pkey) {
   // TODO return false in case of wrong certificates
-  setCerts(ca_file, cert);
+  setCerts(ca_file, cert, pkey);
   authenticated = true;
   return true;
 }
@@ -150,11 +149,11 @@ Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
   return json;
 }
 
-void HttpClient::setCerts(const std::string& ca, const std::string& cert) {
+void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
   curl_easy_setopt(curl, CURLOPT_CAINFO, ca.c_str());
   curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
-  // curl_easy_setopt(curl, CURLOPT_SSLKEY, cert_key.c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
 }
 
 std::string HttpClient::post(const std::string& url, const std::string& data) {
@@ -163,6 +162,19 @@ std::string HttpClient::post(const std::string& url, const std::string& data) {
   curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
   std::string result = perform(curl_post);
   curl_easy_cleanup(curl_post);
+  return result;
+}
+
+std::string HttpClient::put(const std::string& url, const std::string& data) {
+  CURL* curl_post = curl_easy_duphandle(curl);
+  curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+  curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
+  
+  struct curl_slist* h = curl_slist_append(headers, "Content-Type: application/json");
+  std::string result = perform(curl_post);
+  curl_easy_cleanup(curl_post);
+  curl_slist_free_all(h);
   return result;
 }
 

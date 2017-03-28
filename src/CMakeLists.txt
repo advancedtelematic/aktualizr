@@ -12,7 +12,6 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/logger.cc
             src/httpclient.cc
             src/sotahttpclient.cc
-            src/commandinterpreter.cc
             src/config.cc
             src/events.cc
             src/commands.cc
@@ -20,9 +19,23 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc
-            src/uptane.cc
-            src/crypto.cc
-            src/ostree.cc)
+            src/crypto.cc)
+# set headers used for clang format
+set(HEADERS
+            src/logger.h
+            src/httpclient.h
+            src/sotahttpclient.h
+            src/uptanehttpclient.h
+            src/config.h
+            src/events.h
+            src/commands.h
+            src/types.h
+            src/eventsinterpreter.h
+            src/gatewaymanager.h
+            src/socketgateway.h
+            src/uptane.h
+            src/crypto.h
+            src/ostree.h)
 
 set(MAIN src/main.cc)
             
@@ -38,22 +51,29 @@ include_directories(src)
 include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
 
-pkg_search_module(LIBGLIB REQUIRED gio-2.0)
-include_directories(third_party/ostree/include/ostree-1)
-include_directories(${LIBGLIB_INCLUDE_DIRS})
+# set the name of the executable
+add_executable(aktualizr ${MAIN})
+
+if(BUILD_OSTREE)
+    list(APPEND SOURCES src/sotauptaneclient.cc
+                        src/ostree.cc)
+    pkg_search_module(LIBGLIB REQUIRED gio-2.0)
+    include_directories(third_party/ostree/include/ostree-1)
+    link_directories(${CMAKE_SOURCE_DIR}/third_party/ostree/lib)
+    include_directories(${LIBGLIB_INCLUDE_DIRS})
+    set(OSTREE_LIBS gio-2.0 glib-2.0 ostree-1)
+
+    target_link_libraries(aktualizr ${OSTREE_LIBS})
+endif(BUILD_OSTREE)
 
 
 set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
 
-link_directories(third_party/ostree/lib)
 
 add_library(aktualizr_static_lib STATIC ${SOURCES})
 
 
-# set the name of the executable
-add_executable(aktualizr ${MAIN})
-
-target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} gio-2.0 glib-2.0 ostree-1)
+target_link_libraries(aktualizr aktualizr_static_lib ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OSTREE_LIBS})
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
@@ -66,7 +86,7 @@ endif(BUILD_GENIVI)
 
 if(CLANG_FORMAT)
     add_custom_target(format-src
-        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES}
+        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES} ${HEADERS} src/main.cc
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Running clang-format on src"
         VERBATIM)
@@ -85,14 +105,17 @@ if(CLANG_CHECK)
 else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
-
-include(ExternalProject)
-ExternalProject_Add(ostree		
-     PREFIX "third_party/ostree"		
-     GIT_REPOSITORY "https://github.com/ostreedev/ostree.git"		
-     CONFIGURE_COMMAND env NOCONFIGURE=1 ./autogen.sh && ./configure --prefix=<INSTALL_DIR>	 --enable-trivial-httpd-cmdline
-     BUILD_COMMAND ${MAKE}		
-     BUILD_IN_SOURCE 1)
+if(BUILD_OSTREE)
+    include(ExternalProject)
+    ExternalProject_Add(ostree
+         PREFIX "third_party/ostree"
+         GIT_REPOSITORY "https://github.com/ostreedev/ostree.git"
+         CONFIGURE_COMMAND env NOCONFIGURE=1 ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
+         BUILD_COMMAND ${MAKE}
+         BUILD_IN_SOURCE 1)
+    add_dependencies(aktualizr ostree)
+    add_definitions(-DBUILD_OSTREE)
+endif()
 
 
 ################## INSTALL RULES

@@ -73,6 +73,7 @@ enable_testing()
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 
+
 # use the same libiraries as the normal target but add gtest
 set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OpenSSL_LIBRARIES} gtest gmock gcov)
                
@@ -121,10 +122,25 @@ add_executable(aktualizr_test_crypto tests/crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto)
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-
-add_executable(aktualizr_test_uptane tests/uptane_test.cc)
-target_link_libraries(aktualizr_test_uptane aktualizr_static_lib ${TEST_LIBS} crypto)
+if(BUILD_OSTREE)
+add_executable(aktualizr_test_uptane 
+                  third_party/jsoncpp/jsoncpp.cpp
+                  src/commands.cc
+                  src/config.cc
+                  src/events.cc
+                  src/sotauptaneclient.cc
+                  src/logger.cc
+                  src/crypto.cc
+                  src/types.cc
+                  tests/uptane_test.cc)
+target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${OSTREE_LIBS})
 add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_executable(aktualizr_test_ostree tests/ostree_test.cc)
+target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto ${OSTREE_LIBS})
+add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)

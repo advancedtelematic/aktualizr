@@ -1,5 +1,4 @@
 #include "events.h"
-
 namespace event {
 
 Json::Value BaseEvent::toBaseJson() {
@@ -248,4 +247,6 @@ std::string SystemInfoSent::toJson() { return Json::FastWriter().write(toBaseJso
 InstalledSoftwareNeeded::InstalledSoftwareNeeded() { variant = "InstalledSoftwareNeeded"; }
 
 std::string InstalledSoftwareNeeded::toJson() { return Json::FastWriter().write(toBaseJson()); }
+
+UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
 };

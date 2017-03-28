@@ -4,6 +4,7 @@
 
 #include <string>
 #include "boost/algorithm/hex.hpp"
+#include <boost/filesystem.hpp>
 
 #include "crypto.h"
 
@@ -20,10 +21,64 @@ TEST(crypto, sign_verify) {
   std::string public_key((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   path_stream.close();
   std::string text = "This is text for sign";
-  std::string signature = Crypto::RSAPSSSign("tests/test_data/private.key", text);
+  std::string signature = Crypto::RSAPSSSign("tests/test_data/priv.key", text);
   bool signe_is_ok = Crypto::RSAPSSVerify(public_key, signature, text); 
   EXPECT_TRUE(signe_is_ok);
 }
+
+
+TEST(crypto, parsep12) {
+  
+  std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";
+  std::string cert_file = "/tmp/aktualizr_cert_test.pem";
+  std::string ca_file = "/tmp/aktualizr_ca_test.pem";
+
+  FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
+  if (!p12file){
+    EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
+    std::cout << "fdgdgdfg\n\n\n";
+  }
+  Crypto::parseP12(p12file, "", pkey_file, cert_file, ca_file);
+  fclose(p12file);
+  EXPECT_EQ(boost::filesystem::exists(pkey_file), true);
+  EXPECT_EQ(boost::filesystem::exists(cert_file), true);
+  EXPECT_EQ(boost::filesystem::exists(ca_file), true);
+
+}
+
+
+TEST(crypto, parsep12_FAIL) {
+  
+  std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";
+  std::string cert_file = "/tmp/aktualizr_cert_test.pem";
+  std::string ca_file = "/tmp/aktualizr_ca_test.pem";
+
+  
+  FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
+  if (!p12file){
+    EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
+  }
+  bool result = Crypto::parseP12(p12file, "", "", cert_file, ca_file);
+  EXPECT_EQ(result, false);
+  fclose(p12file);
+  
+  p12file = fopen("tests/test_data/cred.p12", "rb");
+  result = Crypto::parseP12(p12file, "", pkey_file, "", ca_file);
+  EXPECT_EQ(result, false);
+  fclose(p12file);
+
+  p12file = fopen("tests/test_data/cred.p12", "rb");
+  result = Crypto::parseP12(p12file, "", pkey_file, cert_file, "");
+  EXPECT_EQ(result, false);
+  fclose(p12file);
+  
+  p12file = fopen("tests/test_data/data.txt", "rb");
+  result = Crypto::parseP12(p12file, "", pkey_file, cert_file, "");
+  EXPECT_EQ(result, false);
+  fclose(p12file);
+
+}
+
 
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {

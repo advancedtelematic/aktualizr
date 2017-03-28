@@ -151,3 +151,17 @@ void SotaRVIClient::sendUpdateReport(data::UpdateReport update_report) {
   LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/report, return code is " << stat);
   chunks_map.erase(update_report.update_id);
 }
+
+void SotaRVIClient::runForever(command::Channel *commands_channel) {
+  boost::shared_ptr<command::BaseCommand> command;
+  while (*commands_channel >> command) {
+    LOGGER_LOG(LVL_info, "got " + command->variant + " command");
+    if (command->variant == "StartDownload") {
+      command::StartDownload *start_download_command = command->toChild<command::StartDownload>();
+      startDownload(start_download_command->update_request_id);
+    } else if (command->variant == "SendUpdateReport") {
+      command::SendUpdateReport *send_update_report_command = command->toChild<command::SendUpdateReport>();
+      sendUpdateReport(send_update_report_command->update_report);
+    }
+  }
+}
