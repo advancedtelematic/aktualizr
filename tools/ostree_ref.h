@@ -6,6 +6,7 @@
 #include <boost/noncopyable.hpp>
 #include <sstream>
 
+#include "ostree_hash.h"
 #include "ostree_repo.h"
 #include "treehub_server.h"
 
@@ -15,7 +16,7 @@ class OSTreeRef : private boost::noncopyable {
 
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 
-  void GetHash(uint8_t* sha256);
+  OSTreeHash GetHash() const;
 
   bool IsValid() const;
 

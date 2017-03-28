@@ -57,6 +57,7 @@ void OSTreeObject::AppendChild(OSTreeObject::ptr child) {
   child->AddParent(this, last);
 }
 
+// Can throw OSTreeObjectMissing if the repo is corrupt
 void OSTreeObject::PopulateChildren() {
   const boost::filesystem::path ext = file_path_.extension();
   const GVariantType *content_type;

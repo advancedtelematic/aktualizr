@@ -55,7 +55,8 @@ string OSTreeRef::RefContent() const {
   return res;
 }
 
-void OSTreeRef::GetHash(uint8_t *sha256) {
+OSTreeHash OSTreeRef::GetHash() const {
+  uint8_t sha256[32];
   std::istringstream refstr(RefContent());
 
   // sha256 is always 256 bits == 32 bytes long
@@ -69,6 +70,7 @@ void OSTreeRef::GetHash(uint8_t *sha256) {
 
     sha256[i] = byte_holder & 0xFF;
   }
+  return OSTreeHash(sha256);
 }
 
 size_t OSTreeRef::curl_handle_write(void *buffer, size_t size, size_t nmemb,

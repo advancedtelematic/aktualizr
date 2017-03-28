@@ -34,7 +34,6 @@ const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 int present_already = 0;
 int uploaded = 0;
 int errors = 0;
-int logging_verbosity;
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
 
@@ -111,11 +110,19 @@ int authenticate(const string &cacerts, string filepath,
 void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   switch (h->is_on_server()) {
     case OBJECT_MISSING:
-      h->PopulateChildren();
-      if (h->children_ready())
-        p.AddUpload(h);
-      else
-        h->QueryChildren(p);
+      try {
+        h->PopulateChildren();
+        if (h->children_ready()) {
+          p.AddUpload(h);
+        } else {
+          h->QueryChildren(p);
+        }
+      } catch (const OSTreeObjectMissing &error) {
+        LOG_ERROR << "Local OSTree repo does not contain object "
+                  << error.missing_object();
+        p.Abort();
+        errors++;
+      }
       break;
 
     case OBJECT_PRESENT:
@@ -240,12 +247,11 @@ int main(int argc, char **argv) {
     }
   }
 
-  uint8_t root_sha256[32];
-  ostree_ref.GetHash(root_sha256);
-
-  OSTreeObject::ptr root_object = repo.GetObject(root_sha256);
-
-  if (!root_object) {
+  OSTreeHash root_hash = ostree_ref.GetHash();
+  OSTreeObject::ptr root_object;
+  try {
+    root_object = repo.GetObject(root_hash);
+  } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "Commit pointed to by " << ref
               << " was not found in repository " << repo_path;
     return EXIT_FAILURE;

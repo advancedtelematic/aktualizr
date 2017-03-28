@@ -3,6 +3,7 @@ set (GARAGE_PUSH_SRCS
   logging.cc
   main.cc
   oauth2.cc
+  ostree_hash.cc
   ostree_ref.cc
   ostree_repo.cc
   ostree_object.cc
@@ -21,6 +22,7 @@ set(ALL_HEADERS
   accumulator.h
   logging.h
   oauth2.h
+  ostree_hash.h
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
@@ -63,6 +65,11 @@ add_test(NAME bad-option
 add_test(NAME invalid-repo
   COMMAND t/test-invalid-repo $<TARGET_FILE:garage-push>
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Detect a --repo that isn't in 'archive-z2' mode
+add_test(NAME bare-mode-repo
+        COMMAND t/test-bare-mode-repo $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Detect that the ref we passed in to --ref is not present
 add_test(NAME missing-ref
