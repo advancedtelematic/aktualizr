@@ -3,14 +3,7 @@ sudo: false
 language: cpp
 services:
   - docker
-before_install:
+script:
   - docker build -t advancedtelematic/aktualizr .
-  - mkdir build-coverage
-  - echo '#!/bin/sh' > cov.sh
-  - echo 'git config --global user.email "cmake@cmake.org"' >> cov.sh
-  - echo 'git config --global user.name "CMake"' >> cov.sh
-  - echo "mkdir build-coverage; cd build-coverage; cmake -DBUILD_GENIVI=ON -DBUILD_WITH_CODE_COVERAGE=ON ..; env CTEST_OUTPUT_ON_FAILURE=1 make -j8 coverage" >> cov.sh
-  - chmod 755 cov.sh
-script: docker run --rm -it -v $PWD/build-coverage:/source/build-coverage -v $PWD:/source/script advancedtelematic/aktualizr /source/script/cov.sh
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - ci_env=`bash <(curl -s https://codecov.io/env)`
+  - docker run $ci_env --rm -it advancedtelematic/aktualizr src/coverage.sh

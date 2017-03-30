@@ -110,29 +110,15 @@ A Dockerfile is provided to support building / testing the application without d
 docker build -t advancedtelematic/aktualizr .
 ~~~
 
-and run
+Once this docker image is built, Aktualizr can be built and tested with:
 
 ~~~
-docker run --rm -it advancedtelematic/aktualizr make
+docker run --rm -it advancedtelematic/aktualizr src/coverage.sh
 ~~~
 
-to build the software,
+The following command will get a shell to perform an interactive build, but note that your local working copy will not be synchronised with the Docker container. The recommended development workflow is perform local cmake builds, but passing `-v $(pwd):/aktualizr-local` to `docker run` is an alternative.
 
 ~~~
-docker run --rm -it advancedtelematic/aktualizr make test
+docker run --rm -it advancedtelematic/aktualizr
 ~~~
 
-to run the tests, and
-
-~~~
-docker run --rm -it advancedtelematic/aktualizr build/target/aktualizr
-~~~
-
-to run the client. If you want the build artifacts to appear on your host machine (outside of the docker container), you can try
-
-~~~
-mkdir build
-docker run --rm -it --read-only -u $UID -v $PWD/build:/source/build advancedtelematic/aktualizr make
-~~~
-
-though be aware that the output binary (`build/target/aktualizr`) may have dynamic linking requirements that are not met by your host environment. Also note that running the linting rule (`make qa`) may attempt to modify the source files in the Docker container. If the linting rule is run with `-u $UID` or `--read-only`, the execution will fail with an `llvm` segfault when the linter outputs the source files.
