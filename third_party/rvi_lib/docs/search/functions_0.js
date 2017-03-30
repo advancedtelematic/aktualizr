@@ -8,6 +8,6 @@ var searchData=
   ['rviinit',['rviInit',['../rvi_8h.html#a8d7cd26c745770781ea03547596faf32',1,'rvi.h']]],
   ['rviinvokeservice',['rviInvokeService',['../rvi_8h.html#a429680d590cfe541114232b62fb0ff58',1,'rvi.h']]],
   ['rviprocessinput',['rviProcessInput',['../rvi_8h.html#a7f36294f32f87d64e14a03aeb60c4f66',1,'rvi.h']]],
-  ['rviregisterservice',['rviRegisterService',['../rvi_8h.html#a7970c18bcaab43094992b75124dfbbca',1,'rvi.h']]],
+  ['rviregisterservice',['rviRegisterService',['../rvi_8h.html#a9325f0d58e28a06e04bab7b9bcb011bf',1,'rvi.h']]],
   ['rviunregisterservice',['rviUnregisterService',['../rvi_8h.html#a179f0b006746cfb7ffa643e7e39bb142',1,'rvi.h']]]
 ];
