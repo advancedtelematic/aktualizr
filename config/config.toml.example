@@ -55,10 +55,11 @@ p12_password = ""
 [tls]
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
 ca_file = "ca.pem"
+pkey_file = "pkey.pem"
 client_certificate = "client.pem"
 
 [uptane]
-#primary_ecu_serial = "$SOTA_DEVICE_ID"
+primary_ecu_serial = "SOTA_DEVICE_ID"
 metadata_path = "/tmp/aktualizr/metadata"
 private_key_path = "ecukey.pem"
 public_key_path = "ecukey.pub"

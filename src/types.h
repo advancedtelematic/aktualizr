@@ -125,6 +125,14 @@ struct InstalledSoftware {
   Json::Value toJson();
   static InstalledSoftware fromJson(const std::string& json_str);
 };
+
+struct PackageManagerCredentials {
+  std::string access_token;
+  std::string ca_file;
+  std::string cert_file;
+  std::string pkey_file;
+};
+
 };
 
 #endif
