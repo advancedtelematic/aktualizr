@@ -139,7 +139,6 @@ void DbusGateway::run() {
       update_report.update_id = string_param;
       if (dbus_message_iter_next(&args) && DBUS_TYPE_ARRAY == dbus_message_iter_get_arg_type(&args)) {
         DBusMessageIter operation_result_args;
-        int results_count = dbus_message_iter_get_element_count(&args);
         dbus_message_iter_recurse(&args, &operation_result_args);
         do {
           try {
@@ -147,9 +146,7 @@ void DbusGateway::run() {
           } catch (...) {
             LOGGER_LOG(LVL_error, "D-Bus method 'updateReport' called with wrong arguments");
           }
-          dbus_message_iter_next(&operation_result_args);
-          results_count--;
-        } while (results_count);
+        } while (dbus_message_iter_next(&operation_result_args));
 
       } else {
         LOGGER_LOG(LVL_error, "D-Bus method called with wrong arguments");
@@ -180,10 +177,9 @@ data::OperationResult DbusGateway::getOperationResult(DBusMessageIter* iter) {
   char* string_param;
   int int_param;
   data::OperationResult result;
-  int params = dbus_message_iter_get_element_count(iter);
   dbus_message_iter_recurse(iter, &subiter);
   if (DBUS_TYPE_ARRAY == dbus_message_iter_get_arg_type(iter)) {
-    while (params) {
+    do {
       dbus_message_iter_recurse(&subiter, &dict_iter);
       dbus_message_iter_get_basic(&dict_iter, &string_param);
       dbus_message_iter_next(&dict_iter);
@@ -191,18 +187,14 @@ data::OperationResult DbusGateway::getOperationResult(DBusMessageIter* iter) {
       if (std::string(string_param) == "id") {
         dbus_message_iter_get_basic(&variant_iter, &string_param);
         result.id = string_param;
-        dbus_message_iter_next(&subiter);
       } else if (std::string(string_param) == "result_code") {
         dbus_message_iter_get_basic(&variant_iter, &int_param);
         result.result_code = (data::UpdateResultCode)int_param;
-        dbus_message_iter_next(&subiter);
       } else if (std::string(string_param) == "result_text") {
         dbus_message_iter_get_basic(&variant_iter, &string_param);
         result.result_text = string_param;
-        dbus_message_iter_next(&subiter);
       }
-      params--;
-    }
+    } while(dbus_message_iter_next(&subiter));
   }
   return result;
 }
