@@ -5,6 +5,7 @@ project(aktualizr)
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
+option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
 option(BUILD_TESTS "Build tests (requires gtest/gmock)" ON)
 
 # clang-check and clang-format

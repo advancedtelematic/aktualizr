@@ -2,6 +2,7 @@
 #define EVENTS_H_
 
 #include <boost/shared_ptr.hpp>
+#include <map>
 
 #include <json/json.h>
 
@@ -100,8 +101,7 @@ class DownloadComplete : public BaseEvent {
 
 class DownloadFailed : public BaseEvent {
  public:
-  DownloadFailed(const data::UpdateRequestId& ur_in,
-                 const std::string& message);
+  DownloadFailed(const data::UpdateRequestId& ur_in, const std::string& message);
   data::UpdateRequestId update_request_id;
   std::string message;
   virtual std::string toJson();
@@ -160,6 +160,12 @@ class InstalledSoftwareNeeded : public BaseEvent {
  public:
   InstalledSoftwareNeeded();
   virtual std::string toJson();
+};
+
+typedef std::map<std::string, Json::Value> TufMetaMap;
+class UptaneTimestampUpdated : public BaseEvent {
+ public:
+  UptaneTimestampUpdated();
 };
 };
 

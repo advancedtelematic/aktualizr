@@ -8,14 +8,16 @@
 
 #include "channel.h"
 #include "types.h"
+#ifdef BUILD_OSTREE
+#include "ostree.h"
+#endif
 
 namespace command {
 
 struct BaseCommand {
   std::string variant;
   Json::Value toJson();
-  static boost::shared_ptr<BaseCommand> fromPicoJson(
-      const picojson::value& json);
+  static boost::shared_ptr<BaseCommand> fromPicoJson(const picojson::value& json);
   template <typename T>
   T* toChild() {
     return (T*)this;
@@ -106,5 +108,13 @@ class SendUpdateReport : public BaseCommand {
   std::string toJson();
   static SendUpdateReport fromJson(const std::string& json_str);
 };
+
+#ifdef BUILD_OSTREE
+class OstreeInstall : public BaseCommand {
+ public:
+  OstreeInstall(std::vector<OstreePackage>);
+  std::vector<OstreePackage> packages;
+};
+#endif
 };
 #endif
