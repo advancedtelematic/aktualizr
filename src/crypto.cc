@@ -86,8 +86,8 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   /* now we will verify the signature
      Start by a RAW decrypt of the signature
   */
-  int status =
-      RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted, rsa, RSA_NO_PADDING);
+  int status = RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted, rsa,
+                                  RSA_NO_PADDING);
   if (status == -1) {
     LOGGER_LOG(LVL_error, "RSA_public_decrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
     RSA_free(rsa);
@@ -106,8 +106,9 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   return false;
 }
 
-bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &client_pem,
-                      const std::string ca_pem) {
+bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,
+                      const std::string &client_pem, const std::string ca_pem) {
+  SSLeay_add_all_algorithms();
   PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
   if (!p12) {
     LOGGER_LOG(LVL_error, "Could not read from " << p12_fp << " file pointer");
@@ -122,13 +123,20 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
     return false;
   }
 
+  FILE *pkey_pem_file = fopen(pkey_pem.c_str(), "w");
+  if (!pkey_pem_file) {
+    LOGGER_LOG(LVL_error, "Could not open " << pkey_pem << " for writting");
+    return false;
+  }
+  PEM_write_PrivateKey(pkey_pem_file, pkey, NULL, NULL, 0, 0, NULL);
+  fclose(pkey_pem_file);
+
   FILE *cert_file = fopen(client_pem.c_str(), "w");
   if (!cert_file) {
     LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writting");
     return false;
   }
   PEM_write_X509(cert_file, x509_cert);
-  PEM_write_PrivateKey(cert_file, pkey, NULL, NULL, 0, 0, NULL);
 
   FILE *ca_file = fopen(ca_pem.c_str(), "w");
   if (!ca_file) {

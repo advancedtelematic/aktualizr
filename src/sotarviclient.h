@@ -6,7 +6,6 @@
 #include <map>
 #include <json/json.h>
 
-#include "sotaclient.h"
 #include "config.h"
 #include "events.h"
 #include "types.h"
@@ -21,18 +20,20 @@ using namespace boost::archive::iterators;
 typedef transform_width< binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6 > base64_to_bin;
 
 
-class SotaRVIClient: public SotaClient
+class SotaRVIClient
 {
 public:
     SotaRVIClient(const Config& config, event::Channel * events_channel_in);
     ~SotaRVIClient();
     void run();
     void sendEvent(const boost::shared_ptr<event::BaseEvent> &event);
-    virtual void startDownload(const data::UpdateRequestId &update_id);
+    void startDownload(const data::UpdateRequestId &update_id);
     void invokeAck(const std::string &update_id);
     void saveChunk(const Json::Value &chunk_json);
     void downloadComplete(const Json::Value &parameters);
-    virtual void sendUpdateReport(data::UpdateReport update_report);
+    void sendUpdateReport(data::UpdateReport update_report);
+    void runForever(command::Channel *commands_channel);
+
 
 private:
     TRviHandle rvi;

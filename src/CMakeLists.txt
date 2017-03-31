@@ -12,7 +12,6 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/logger.cc
             src/httpclient.cc
             src/sotahttpclient.cc
-            src/commandinterpreter.cc
             src/config.cc
             src/events.cc
             src/commands.cc
@@ -20,11 +19,26 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc
-            src/uptane.cc
             src/crypto.cc)
+# set headers used for clang format
+set(HEADERS
+            src/logger.h
+            src/httpclient.h
+            src/sotahttpclient.h
+            src/uptanehttpclient.h
+            src/config.h
+            src/events.h
+            src/commands.h
+            src/types.h
+            src/eventsinterpreter.h
+            src/gatewaymanager.h
+            src/socketgateway.h
+            src/uptane.h
+            src/crypto.h
+            src/ostree.h)
 
 set(MAIN src/main.cc)
-            
+
 if(BUILD_GENIVI)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(LIBDBUS REQUIRED dbus-1)
@@ -33,20 +47,32 @@ if(BUILD_GENIVI)
                         src/sotarviclient.cc)
 endif(BUILD_GENIVI)
 
+if (BUILD_OSTREE)
+    list(APPEND SOURCES src/sotauptaneclient.cc
+        src/ostree.cc)
+endif(BUILD_OSTREE)
+
 include_directories(src)
 include_directories(third_party/jsoncpp)
 include_directories(third_party/picojson)
-set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
-
-
-add_library(aktualizr_static_lib STATIC ${SOURCES})
-
 
 # set the name of the executable
 add_executable(aktualizr ${MAIN})
+add_library(aktualizr_static_lib STATIC ${SOURCES})
+
+if(BUILD_OSTREE)
+    find_package(OSTree REQUIRED)
+    target_link_libraries(aktualizr_static_lib ${LIBOSTREE_LIBRARIES})
+    target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
+    add_definitions(-DBUILD_OSTREE)
+endif(BUILD_OSTREE)
+
+
+set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -w")
+
 
 target_link_libraries(aktualizr aktualizr_static_lib
-   ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+    ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OSTREE_LIBS})
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
@@ -59,7 +85,7 @@ endif(BUILD_GENIVI)
 
 if(CLANG_FORMAT)
     add_custom_target(format-src
-        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES}
+        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES} ${HEADERS} src/main.cc
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Running clang-format on src"
         VERBATIM)

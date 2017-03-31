@@ -2,25 +2,20 @@
 #define CONFIG_H_
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/uuid/uuid.hpp>            // uuid class
-#include <boost/uuid/uuid_generators.hpp> // generators
-#include <boost/uuid/uuid_io.hpp> 
-#include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>             // uuid class
+#include <boost/uuid/uuid_generators.hpp>  // generators
+#include <boost/uuid/uuid_io.hpp>
 #include <string>
 
 #include "logger.h"
 
-
-enum Auth{
-  OAUTH2 = 0,
-  CERTIFICATE
-};
+enum Auth { OAUTH2 = 0, CERTIFICATE };
 
 struct CoreConfig {
-  CoreConfig()
-      : server("http://127.0.0.1:8080"), polling(true), polling_sec(10) {}
+  CoreConfig() : server("http://127.0.0.1:8080"), polling(true), polling_sec(10) {}
 
   std::string server;
   bool polling;
@@ -29,10 +24,7 @@ struct CoreConfig {
 };
 
 struct AuthConfig {
-  AuthConfig()
-      : server("http://127.0.0.1:9001"),
-        client_id("client-id"),
-        client_secret("client-secret") {}
+  AuthConfig() : server("http://127.0.0.1:9001"), client_id("client-id"), client_secret("client-secret") {}
 
   std::string server;
   std::string client_id;
@@ -56,19 +48,18 @@ struct DbusConfig {
 
 struct DeviceConfig {
   DeviceConfig()
-      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/"), certificates_path("/tmp/aktualizr/")  {
-        createCertificatesPath();
-      }
-  void createCertificatesPath(){
-    boost::filesystem::path dir(certificates_path);
-    if(boost::filesystem::create_directories(dir)){
+      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/"), certificates_path("/tmp/aktualizr/") {
+    createCertificatesPath();
+  }
+  void createCertificatesPath() {
+    if (boost::filesystem::create_directories(certificates_path)) {
       LOGGER_LOG(LVL_info, "certificates_path directory has been created");
     }
   }
 
   std::string uuid;
   std::string packages_dir;
-  std::string certificates_path;
+  boost::filesystem::path certificates_path;
   // TODO Need to be implemented soon
   // PackageManager package_manager;
   // std::string p12_path;
@@ -85,9 +76,7 @@ struct GatewayConfig {
 };
 
 struct NetworkConfig {
-  NetworkConfig()
-      : socket_commands_path("/tmp/sota-commands.socket"),
-        socket_events_path("/tmp/sota-events.socket") {
+  NetworkConfig() : socket_commands_path("/tmp/sota-commands.socket"), socket_events_path("/tmp/sota-events.socket") {
     socket_events.push_back("DownloadComplete");
     socket_events.push_back("DownloadFailed");
   }
@@ -98,8 +87,7 @@ struct NetworkConfig {
 
 class RviConfig {
  public:
-  RviConfig()
-      : node_host("localhost"), node_port("8810"), client_config("conf.json") {}
+  RviConfig() : node_host("localhost"), node_port("8810"), client_config("conf.json") {}
   std::string node_host;
   std::string node_port;
   std::string client_config;
@@ -107,34 +95,41 @@ class RviConfig {
 
 class TlsConfig {
  public:
-  TlsConfig()
-      : server("localhost"), ca_file("ca.pem"), client_certificate("client.pem") {}
+  TlsConfig() : server("localhost"), ca_file("ca.pem"), pkey_file("pkey.pem"), client_certificate("client.pem") {}
   std::string server;
   std::string ca_file;
+  std::string pkey_file;
   std::string client_certificate;
 };
-
 
 class ProvisionConfig {
  public:
   ProvisionConfig()
-      : p12_path(""), p12_password(""), expiry_days("36000"), device_id(boost::lexical_cast<std::string>(boost::uuids::random_generator()())) {}
+      : p12_path(""),
+        p12_password(""),
+        expiry_days("36000"),
+        device_id(boost::lexical_cast<std::string>(boost::uuids::random_generator()())) {}
   std::string p12_path;
   std::string p12_password;
   std::string expiry_days;
   std::string device_id;
-
 };
 
-class UptaneConfig{
-  public:
-    UptaneConfig()
-        : director_server(""),  repo_server(""), metadata_path(""), private_key_path("ecukey.pem"), public_key_path("ecukey.pub") {}
-    std::string director_server;
-    std::string repo_server;
-    boost::filesystem::path metadata_path;
-    std::string private_key_path;
-    std::string public_key_path;
+class UptaneConfig {
+ public:
+  UptaneConfig()
+      : primary_ecu_serial(""),
+        director_server(""),
+        repo_server(""),
+        metadata_path(""),
+        private_key_path("ecukey.pem"),
+        public_key_path("ecukey.pub") {}
+  std::string primary_ecu_serial;
+  std::string director_server;
+  std::string repo_server;
+  boost::filesystem::path metadata_path;
+  std::string private_key_path;
+  std::string public_key_path;
 };
 
 class Config {
