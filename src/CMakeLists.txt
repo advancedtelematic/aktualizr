@@ -2,7 +2,7 @@
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # find all required libraries
-find_package(Boost COMPONENTS system thread program_options log log_setup regex chrono REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
