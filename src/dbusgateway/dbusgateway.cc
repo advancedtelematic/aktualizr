@@ -139,7 +139,6 @@ void DbusGateway::run() {
       update_report.update_id = string_param;
       if (dbus_message_iter_next(&args) && DBUS_TYPE_ARRAY == dbus_message_iter_get_arg_type(&args)) {
         DBusMessageIter operation_result_args;
-        int results_count = dbus_message_iter_get_element_count(&args);
         dbus_message_iter_recurse(&args, &operation_result_args);
         do {
           try {
@@ -147,9 +146,7 @@ void DbusGateway::run() {
           } catch (...) {
             LOGGER_LOG(LVL_error, "D-Bus method 'updateReport' called with wrong arguments");
           }
-          dbus_message_iter_next(&operation_result_args);
-          results_count--;
-        } while (results_count);
+        } while (dbus_message_iter_next(&operation_result_args));
 
       } else {
         LOGGER_LOG(LVL_error, "D-Bus method called with wrong arguments");
