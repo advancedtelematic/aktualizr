@@ -25,6 +25,7 @@ set(HEADERS
             src/logger.h
             src/httpclient.h
             src/sotahttpclient.h
+            src/sotauptaneclient.h
             src/config.h
             src/events.h
             src/commands.h
