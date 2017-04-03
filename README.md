@@ -113,7 +113,7 @@ docker build -t advancedtelematic/aktualizr .
 Once this docker image is built, Aktualizr can be built and tested with:
 
 ~~~
-docker run --rm -it advancedtelematic/aktualizr src/coverage.sh
+docker run --rm -it advancedtelematic/aktualizr src/scripts/coverage.sh
 ~~~
 
 The following command will get a shell to perform an interactive build, but note that your local working copy will not be synchronised with the Docker container. The recommended development workflow is perform local cmake builds, but passing `-v $(pwd):/aktualizr-local` to `docker run` is an alternative.
