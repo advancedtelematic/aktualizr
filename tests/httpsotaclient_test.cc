@@ -101,7 +101,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
   testing::DefaultValue<std::string>::Set(message);
   EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" + conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests = aktualizr.getAvailableUpdates();
-  EXPECT_EQ(update_requests.size(), 1);
+  EXPECT_EQ(update_requests.size(), 1u);
   EXPECT_EQ(update_requests[0].packageId.name, "treehub-ota-raspberrypi3");
   EXPECT_EQ(update_requests[0].status, data::Pending);
   EXPECT_EQ(update_requests[0].requestId, "06d64e46-cb25-4d76-b62e-4341b6944d07");
