@@ -60,7 +60,7 @@ TEST(CommandsTest, SendUpdateReport_sent) {
   command::SendUpdateReport* send_update_report_command = static_cast<command::SendUpdateReport*>(command.get());
 
   EXPECT_EQ(send_update_report_command->update_report.update_id, "testupdateid");
-  EXPECT_EQ(send_update_report_command->update_report.operation_results.size(), 1);
+  EXPECT_EQ(send_update_report_command->update_report.operation_results.size(), 1u);
   EXPECT_EQ(send_update_report_command->update_report.operation_results[0].id, "123");
   EXPECT_EQ(send_update_report_command->update_report.operation_results[0].result_code, 0);
   EXPECT_EQ(send_update_report_command->update_report.operation_results[0].result_text, "Good");

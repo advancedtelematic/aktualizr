@@ -68,7 +68,7 @@ TEST(event, UpdatesReceived_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "UpdatesReceived");
   EXPECT_EQ(json["fields"][0][0]["requestId"].asString(), "id1");
   EXPECT_EQ(json["fields"][0][0]["status"].asString(), "Pending");
-  EXPECT_EQ(json["fields"][0][0]["installPos"].asUInt(), 3);
+  EXPECT_EQ(json["fields"][0][0]["installPos"].asUInt(), 3u);
   EXPECT_EQ(json["fields"][0][0]["createdAt"].asString(), "today");
 }
 
@@ -331,7 +331,7 @@ TEST(event, UpdatesReceived_event_from_json) {
   EXPECT_EQ(event.variant, "UpdatesReceived");
   EXPECT_EQ(event.update_requests[0].requestId, "id1");
   EXPECT_EQ(event.update_requests[0].createdAt, "today");
-  EXPECT_EQ(event.update_requests[0].installPos, 3);
+  EXPECT_EQ(event.update_requests[0].installPos, 3u);
   EXPECT_EQ(event.update_requests[0].status, data::Pending);
   EXPECT_EQ(event.update_requests[0].packageId.name, "packagename1");
   EXPECT_EQ(event.update_requests[0].packageId.version, "v2.0");
@@ -348,7 +348,7 @@ TEST(event, UpdateAvailable_event_from_json) {
   EXPECT_EQ(event.update_vailable.description, "this is description");
   EXPECT_EQ(event.update_vailable.request_confirmation, true);
   EXPECT_EQ(event.update_vailable.signature, "sign");
-  EXPECT_EQ(event.update_vailable.size, 5000);
+  EXPECT_EQ(event.update_vailable.size, 5000u);
   EXPECT_EQ(event.update_vailable.update_id, "id4");
 }
 

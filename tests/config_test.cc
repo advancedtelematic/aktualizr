@@ -13,7 +13,7 @@ TEST(config, config_initialized_values) {
 
   EXPECT_EQ(conf.core.server, "http://127.0.0.1:8080");
   EXPECT_EQ(conf.core.polling, true);
-  EXPECT_EQ(conf.core.polling_sec, 10);
+  EXPECT_EQ(conf.core.polling_sec, 10u);
 
   EXPECT_EQ(conf.auth.server, "http://127.0.0.1:9001");
   EXPECT_EQ(conf.auth.client_id, "client-id");
@@ -32,7 +32,7 @@ TEST(config, config_toml_parsing) {
 
   EXPECT_EQ(conf.core.server, "https://example.com/core");
   EXPECT_EQ(conf.core.polling, false);
-  EXPECT_EQ(conf.core.polling_sec, 91);
+  EXPECT_EQ(conf.core.polling_sec, 91u);
 
   EXPECT_EQ(conf.auth.server, "https://example.com/auth");
   EXPECT_EQ(conf.auth.client_id, "thisisaclientid");
@@ -68,7 +68,7 @@ TEST(config, config_toml_parsing_empty_file) {
 
   EXPECT_EQ(conf.core.server, "http://127.0.0.1:8080");
   EXPECT_EQ(conf.core.polling, true);
-  EXPECT_EQ(conf.core.polling_sec, 10);
+  EXPECT_EQ(conf.core.polling_sec, 10u);
 
   EXPECT_EQ(conf.auth.server, "http://127.0.0.1:9001");
   EXPECT_EQ(conf.auth.client_id, "client-id");

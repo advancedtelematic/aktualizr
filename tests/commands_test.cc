@@ -220,11 +220,11 @@ TEST(command, SendInstalledSoftware_comand_to_json) {
   EXPECT_EQ(json["fields"][0]["packages"][0]["package_id"].asString(), "id");
   EXPECT_EQ(json["fields"][0]["packages"][0]["name"].asString(), "testname");
   EXPECT_EQ(json["fields"][0]["packages"][0]["description"].asString(), "testdescription");
-  EXPECT_EQ(json["fields"][0]["packages"][0]["last_modified"].asUInt(), 54321);
+  EXPECT_EQ(json["fields"][0]["packages"][0]["last_modified"].asUInt(), 54321u);
 
   EXPECT_EQ(json["fields"][0]["firmwares"][0]["module"].asString(), "testmodule");
   EXPECT_EQ(json["fields"][0]["firmwares"][0]["firmware_id"].asString(), "firmware_id123");
-  EXPECT_EQ(json["fields"][0]["firmwares"][0]["last_modified"].asUInt(), 12345);
+  EXPECT_EQ(json["fields"][0]["firmwares"][0]["last_modified"].asUInt(), 12345u);
 }
 
 TEST(command, SendInstalledSoftware_comand_from_json) {
@@ -240,13 +240,13 @@ TEST(command, SendInstalledSoftware_comand_from_json) {
   EXPECT_EQ(comand.variant, "SendInstalledSoftware");
   EXPECT_EQ(comand.installed_software.firmwares[0].module, "testmodule");
   EXPECT_EQ(comand.installed_software.firmwares[0].firmware_id, "firmware_id123");
-  EXPECT_EQ(comand.installed_software.firmwares[0].last_modified, 12345);
+  EXPECT_EQ(comand.installed_software.firmwares[0].last_modified, 12345u);
 
   EXPECT_EQ(comand.installed_software.packages[0].package_id, "id");
   EXPECT_EQ(comand.installed_software.packages[0].name, "testname");
 
   EXPECT_EQ(comand.installed_software.packages[0].description, "testdescription");
-  EXPECT_EQ(comand.installed_software.packages[0].last_modified, 54321);
+  EXPECT_EQ(comand.installed_software.packages[0].last_modified, 54321u);
 }
 
 TEST(command, Authenticate_comand_to_json) {
