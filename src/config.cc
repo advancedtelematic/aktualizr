@@ -122,7 +122,11 @@ void Config::updateFromToml(const std::string& filename) {
 
   CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
   CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
-  CopyFromConfig(rvi.client_config, "rvi.client_config", LVL_warning, pt);
+  CopyFromConfig(rvi.device_key, "rvi.device_key", LVL_warning, pt);
+  CopyFromConfig(rvi.device_cert, "rvi.device_cert", LVL_warning, pt);
+  CopyFromConfig(rvi.ca_cert, "rvi.ca_cert", LVL_warning, pt);
+  CopyFromConfig(rvi.cert_dir, "rvi.cert_dir", LVL_warning, pt);
+  CopyFromConfig(rvi.cred_dir, "rvi.cred_dir", LVL_warning, pt);
 
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
   CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);

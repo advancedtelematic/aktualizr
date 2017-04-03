@@ -87,10 +87,14 @@ struct NetworkConfig {
 
 class RviConfig {
  public:
-  RviConfig() : node_host("localhost"), node_port("8810"), client_config("conf.json") {}
+  RviConfig() : node_host("localhost"), node_port("8810"), device_key("device.key"),device_cert("device.crt"), ca_cert("ca.pem"), cert_dir(""), cred_dir("")  {}
   std::string node_host;
   std::string node_port;
-  std::string client_config;
+  std::string device_key;
+  std::string device_cert;
+  std::string ca_cert;
+  std::string cert_dir;
+  std::string cred_dir;
 };
 
 class TlsConfig {

@@ -119,8 +119,18 @@ typedef enum {
  */
 
 extern TRviHandle rviInit(char *configFilename);
-TRviHandle rviInitLogs ( char *configFilename, bool verbose_in );
 
+/** @brief Initialize the RVI library. Call before using any other functions.
+ *
+ * This function do the same as rviInit, but accepts config content, instead of file path.
+ *
+ * @param jsonConfig - config content.
+ *
+ * @return  A handle for the API on success, 
+ *          NULL otherwise.
+ */
+
+extern TRviHandle rviJsonInit(char *jsonConfig);
 
 /** @brief Tear down the API.
  *
@@ -219,14 +229,13 @@ extern int rviGetConnections(TRviHandle handle, int *conn, int *connSize);
  *                        invocation.
  * @param serviceData  - Parameters to be passed to the callback function (in
  *                        addition to any JSON parameters from the remote node)
- * @param dataSize     - Size of serviceData
  *
  * @return 0 on success,
  *         error code otherwise.
  */
 extern int rviRegisterService( TRviHandle handle, const char *serviceName, 
                                  TRviCallback callback, 
-                                 void* serviceData, size_t dataSize );
+                                 void* serviceData );
 
 /** @brief Unregister a previously registered service
  *
@@ -317,9 +326,6 @@ extern int rviInvokeService( TRviHandle handle,
  *         error code otherwise.
  */
 extern int rviProcessInput(TRviHandle handle, int* fdArr, int fdLen);
-
-extern void rviUpdateId (TRviHandle handle, const char *id );
-
 
 #ifdef __cplusplus
 }

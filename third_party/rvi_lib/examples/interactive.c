@@ -237,7 +237,7 @@ void register_service(void)
     char service[BUFSIZE] = {0};
     printf("What service would you like to register? ");
     scanf("%s", service);
-    int stat = rviRegisterService(myHandle, service, callbackFunc, NULL, 0);
+    int stat = rviRegisterService(myHandle, service, callbackFunc, NULL);
     if( stat ) {
         printf("Couldn't register the service %s\n", service);
     } else {
