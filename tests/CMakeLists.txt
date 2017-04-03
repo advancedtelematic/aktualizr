@@ -59,7 +59,7 @@ endif()
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=1 ${CMAKE_CTEST_COMMAND}
   DEPENDS aktualizr_test_config aktualizr_test_commands aktualizr_test_events
         aktualizr_test_http_aktualizr aktualizr_test_http_client aktualizr_test_socket_gateway
-        aktualizr_test_uptane aktualizr_test_crypto)
+        aktualizr_test_crypto)
 
 add_dependencies(qa check)
 
@@ -126,7 +126,7 @@ target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} cr
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(BUILD_OSTREE)
-add_executable(aktualizr_test_uptane 
+    add_executable(aktualizr_test_uptane
                   third_party/jsoncpp/jsoncpp.cpp
                   src/commands.cc
                   src/config.cc
@@ -136,13 +136,13 @@ add_executable(aktualizr_test_uptane
                   src/crypto.cc
                   src/types.cc
                   tests/uptane_test.cc)
-target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto)
-add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto)
+    add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(aktualizr_test_ostree tests/ostree_test.cc)
-target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
-add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
+    add_executable(aktualizr_test_ostree tests/ostree_test.cc)
+    target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
+    add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_test_uptane)
 endif(BUILD_OSTREE)
 
 
@@ -170,7 +170,9 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage aktualizr_test_config)
     add_dependencies(coverage aktualizr_test_events)
     add_dependencies(coverage aktualizr_test_commands)
-    add_dependencies(coverage aktualizr_test_uptane)
+    if(BUILD_OSTREE)
+        add_dependencies(coverage aktualizr_test_uptane)
+    endif(BUILD_OSTREE)
     add_dependencies(coverage aktualizr_test_crypto)
     if(BUILD_GENIVI)
         add_dependencies(coverage aktualizr_test_dbusgateway)

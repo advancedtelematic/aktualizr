@@ -25,7 +25,7 @@ set(HEADERS
             src/logger.h
             src/httpclient.h
             src/sotahttpclient.h
-            src/uptanehttpclient.h
+            src/sotauptaneclient.h
             src/config.h
             src/events.h
             src/commands.h
@@ -33,7 +33,6 @@ set(HEADERS
             src/eventsinterpreter.h
             src/gatewaymanager.h
             src/socketgateway.h
-            src/uptane.h
             src/crypto.h
             src/ostree.h)
 
