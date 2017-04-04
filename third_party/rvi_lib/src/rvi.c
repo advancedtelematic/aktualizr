@@ -27,10 +27,17 @@
 #include <stdio.h>
 #include <time.h>
 
+#define TLS_MAX_READ 16384 /* Default maximum write buffer for OpenSSL */
+#define TLS_BUFSIZE  16768 /* Round it up to the nearest power of 2 */
+#define TLS_MAX_WINDOWS 100 /* Default number of windows expected for large TLS
+                             * messages : OpenSSL reassembles messages but
+                             * SSL_read may require repeated reads to get all
+                             * of the data */
+
 /* *************** */
 /* DATA STRUCTURES */
 /* *************** */
-bool verbose;
+
 /** @brief RVI context */
 typedef struct TRviContext {
 
@@ -72,6 +79,8 @@ typedef struct TRviRemote {
     TRviList *rights;
     /** Pointer to data buffer for partial I/O operations */
     void *buf;
+    /** Length of buffer */
+    int buflen;
     /** Pointer to BIO chain from OpenSSL library */
     BIO *sbio;
 } TRviRemote;
@@ -101,7 +110,7 @@ typedef struct TRviRights {
 
 TRviService *rviServiceCreate ( const char *name, const int registrant, 
                                     const TRviCallback callback, 
-                                    const void *serviceData, size_t dataSize );
+                                    const void *serviceData );
 
 void rviServiceDestroy ( TRviService *service );
 
@@ -138,6 +147,8 @@ SSL_CTX *rviSetupClientCtx ( TRviHandle handle );
 /* Additional utility functions */
 
 int rviReadJsonConfig ( TRviHandle handle, const char * filename );
+
+int rviReadJsonChunk( json_t **json, char *src, char **remainder);
 
 json_t *rviGetJsonGrant ( jwt_t *jwt, const char *grant );
 
@@ -251,7 +262,7 @@ int rviComparePattern ( const char *pattern, const char *fqsn )
 
 TRviService *rviServiceCreate ( const char *name, const int registrant, 
                                     const TRviCallback callback, 
-                                    const void *serviceData, size_t dataSize )
+                                    const void *serviceData )
 {
     /* If name is NULL or registrant is negative, there's an error */
     if ( !name || (registrant < 0) ) { return NULL; }
@@ -270,16 +281,8 @@ TRviService *rviServiceCreate ( const char *name, const int registrant,
     /* Set the callback. NULL is valid. */
     service->callback = callback;
 
-    /* Set the data to pass to the callback. NULL is valid */
-    if( dataSize ) {
-        service->data = malloc( dataSize );
-        if(! service->data ) {
-            free( service->name );
-            free( service );
-            return NULL;
-        }
-        memcpy( service->data, serviceData, dataSize );
-    }
+    /* Set the serviceData. NULL is valid. */
+    service->data = serviceData;
 
     /* Return the address of the new service */
     return service;
@@ -294,8 +297,6 @@ void rviServiceDestroy ( TRviService *service )
 {
      if ( !service ) { return; }
 
-     if( service->data )
-         free ( service->data );
      free ( service->name );
      free ( service );
 }
@@ -345,7 +346,7 @@ void rviRemoteDestroy ( TRviRemote *remote)
 
     BIO_free_all ( remote->sbio );
 
-    free ( remote->buf );
+    if ( remote->buflen ) free ( remote->buf );
     free ( remote );
 }
 
@@ -517,6 +518,9 @@ SSL_CTX *rviSetupClientCtx ( TRviHandle handle )
      */
     SSL_CTX_set_verify_depth ( sslCtx, 4 );
 
+    /* Ensure that SSL does not read ahead */
+    SSL_CTX_set_read_ahead( sslCtx, 0);
+
     return sslCtx;
 }
  
@@ -528,9 +532,9 @@ SSL_CTX *rviSetupClientCtx ( TRviHandle handle )
  * On success, this function returns 0. On error, it will return a positive
  * error code.
  */
-int rviReadJsonConfig ( TRviHandle handle, const char * filename )
+int rviParseJsonConfig ( TRviHandle handle, char* configContent )
 {
-    if ( !handle || !filename ) { return EINVAL; }
+    if ( !handle || !configContent ) { return EINVAL; }
 
     int             err         = RVI_OK;
     json_error_t    errjson;
@@ -544,7 +548,7 @@ int rviReadJsonConfig ( TRviHandle handle, const char * filename )
     X509            *cert       = NULL;
     char            *cred       = NULL;
 
-    conf = json_load_file( filename, 0, &errjson );
+    conf = json_loads( configContent, 0, &errjson );
     if( !conf ) { err = RVI_ERR_JSON; goto exit; }
 
     tmp = json_object_get( conf, "dev" );
@@ -634,6 +638,41 @@ exit:
     if( d ) closedir( d );
 
     return err;
+}
+
+/* This utility function destructively reads from 'src' to populate '*json'
+ * with a parsed json_t object. The remaining string (possibly 'src' exactly)
+ * is copied into '*remainder'. The original 'src' must not be accessed again
+ * by the calling function. */
+int rviReadJsonChunk( json_t **json, char *src, char **remainder )
+{
+    json_error_t error;
+    int ret = 0;
+    int len;
+
+    *json = json_loads(src, JSON_DISABLE_EOF_CHECK, &error);
+
+    char *tmp = {0};
+
+    if (*json) {
+        tmp = &src[error.position];
+    } else {
+        tmp = src;
+        ret = -1;
+    }
+
+    len = strlen(tmp);
+    *remainder = malloc(len + 1);
+    if (!(*remainder)) { ret = ENOMEM; goto exit; }
+    memset(*remainder, 0, len + 1);
+    memcpy(*remainder, tmp, len);
+    ret = len;
+
+    /* Free src only if we read it into *remainder */
+    free(src);
+
+exit:
+    return ret;
 }
 
 json_t *rviGetJsonGrant ( jwt_t *jwt, const char *grant )
@@ -781,7 +820,7 @@ char *rviGetPubkeyFile( char *filename )
     BIO         *certbio    = NULL;
     BIO         *mbio       = NULL;
     X509        *cert       = NULL;
-    char        *key;
+    char        *key = 0;
     long        length;
     int         ret = RVI_OK;
     int         ok = 0; /* Status for OpenSSL calls */
@@ -810,12 +849,9 @@ char *rviGetPubkeyFile( char *filename )
     if( !key ) { ret = ENOMEM; goto exit; }
     /* Load the string into memory */
     ret = BIO_read(mbio, key, length);
-    /* Null terminate */
-    key[length] = '\0';
-    if(verbose){
-        fprintf(stderr, "RVI verbose log, received %d bytes, : '%s'\n", ret, key);
-    }
     if( ret != length) { goto exit; }
+    /* Make sure it's null-formatted, just in case */
+    key[length] = '\0';
 
     ret = RVI_OK;
 
@@ -858,6 +894,7 @@ int rviValidateCredential( TRviHandle handle, const char *cred, X509 *cert )
     X509            *dcert = {0};
     const char      certHead[] = "-----BEGIN CERTIFICATE-----\n";
     const char      certFoot[] = "\n-----END CERTIFICATE-----";
+    json_t          *validity = NULL;
     char            *tmp = NULL;
 
     ret = RVI_OK;
@@ -880,7 +917,7 @@ int rviValidateCredential( TRviHandle handle, const char *cred, X509 *cert )
 
     /* Check validity: start/stop */
     time(&rawtime);
-    json_t *validity = rviGetJsonGrant( jwt, "validity" );
+    validity = rviGetJsonGrant( jwt, "validity" );
 
     int start = json_integer_value( json_object_get( validity, "start" ) );
     int stop = json_integer_value( json_object_get( validity, "stop" ) );
@@ -895,10 +932,6 @@ int rviValidateCredential( TRviHandle handle, const char *cred, X509 *cert )
 
     /* Check that certificate in credential matches expected cert */
     bio = BIO_new( BIO_s_mem() );
-    
-    if(verbose){
-        fprintf(stderr, "RVI verbose log, sending: '%s'\n", tmp);
-    }
     BIO_puts( bio, (const char *)tmp );
     dcert = PEM_read_bio_X509( bio, NULL, 0, NULL );
     if( !dcert ) { ret = RVI_ERR_OPENSSL; goto exit; }
@@ -915,21 +948,13 @@ exit:
     return ret;
 }
 
-
-TRviHandle rviInitLogs ( char *configFilename, bool verbose_in )
-{
-    verbose = verbose_in;
-    return rviInit(configFilename);
-}
-
-
 /*
  * Initialize the RVI library. Call before using any other functions.
  */
 
-TRviHandle rviInit ( char *configFilename )
+TRviHandle rviJsonInit ( char *configContent )
 {
-    if( !configFilename ) { return NULL; }
+    if( !configContent ) { return NULL; }
     /* initialize OpenSSL */
     SSL_library_init();
     SSL_load_error_strings();
@@ -959,14 +984,14 @@ TRviHandle rviInit ( char *configFilename )
 
     rviListInitialize( ctx->creds );
     rviListInitialize( ctx->rights );
-    
-    if ( rviReadJsonConfig ( ctx, configFilename ) != 0 ) {
+
+    if ( rviParseJsonConfig ( ctx, configContent ) != 0 ) {
         fprintf(stderr, "Error reading config file\n");
         goto err;
     }
 
     if ( !(ctx->creds->count) ) {
-        fprintf(stderr, "Error: no rights available\n");
+        fprintf(stderr, "Error: no credentials available\n");
         goto err;
     }
 
@@ -1026,10 +1051,34 @@ err:
 }
 
 
-void rviUpdateId (TRviHandle handle, const char *id ){
-    TRviContext     *ctx = (TRviContext *)handle;
-    free(ctx->id);
-    ctx->id = strdup(id);
+TRviHandle rviInit (char *configFilename)
+{
+    int             err;
+    char            *conf = NULL;
+    FILE *fp = fopen( configFilename, "r" );
+    if( !fp ) { err = RVI_ERR_NOCONFIG; goto exit; }
+    /* go to end of file */
+    if( fseek( fp, 0L, SEEK_END ) != 0 ) { err = RVI_ERR_NOCONFIG; goto exit; }
+    /* get value of file position indicator */
+    long bufsize = ftell(fp);
+    if( bufsize == -1 ) { err = RVI_ERR_NOCONFIG; goto exit; }
+    conf = malloc( bufsize + 1 );
+    if( !conf ) { err = ENOMEM; goto exit; }
+    /* go back to start of file */
+    rewind( fp );
+    /* read the entire file into memory */
+    size_t len = fread( conf, sizeof(char), bufsize, fp );
+    if( ferror( fp ) != 0) {
+        fputs("Error reading config file", stderr);
+    } else {
+        conf[len] = '\0'; /* Ensure string is null-terminated */
+    }
+    TRviHandle handle = rviJsonInit(conf);
+    fclose(fp);
+    return handle;
+exit:
+    free(conf);
+    return NULL;
 }
 
 
@@ -1121,6 +1170,7 @@ int rviCleanup(TRviHandle handle)
     rviRightsListDestroy( ctx->rights );
 
     /* Free the memory allocated to the TRviContext struct */
+    memset( ctx, 0, sizeof( TRviContext ) );
     free(ctx);
 
     return RVI_OK;
@@ -1311,7 +1361,7 @@ int rviGetConnections(TRviHandle handle, int *conn, int *connSize)
  */
 int rviRegisterService( TRviHandle handle, const char *serviceName, 
                           TRviCallback callback, 
-                          void *serviceData, size_t dataSize )
+                          void *serviceData )
 {
     if( !handle || !serviceName ) { return EINVAL; }
 
@@ -1328,7 +1378,7 @@ int rviRegisterService( TRviHandle handle, const char *serviceName,
     }
 
     /* Create a new TRviService structure */
-    service = rviServiceCreate( fqsn, 0, callback, serviceData, dataSize );
+    service = rviServiceCreate( fqsn, 0, callback, serviceData );
 
     /* Add service to services by name */
     btree_insert( ctx->serviceNameIdx, service );
@@ -1489,9 +1539,6 @@ int rviInvokeService(TRviHandle handle, const char *serviceName,
     char *rcvString = json_dumps(rcv, JSON_COMPACT);
 
     /* send rcv message to registrant */
-    if(verbose){
-        fprintf(stderr, "RVI verbose log, sending: '%s'\n", rcvString);
-    }
     BIO_puts(rtmp->sbio, rcvString);
 
     free(rcvString);
@@ -1520,14 +1567,15 @@ int rviProcessInput(TRviHandle handle, int *fdArr, int fdLen)
 
     SSL             *ssl    = NULL;
     json_t          *root   = NULL;
-    json_error_t    jserr   = {0};
 
-    int             len     = 1024 * 64 + 2000;
+    int             len     = 0;
     int             read    = 0;
-    char            *buf    = {0};
+    char            *buf   = {0};
+    char            *msg    = {0};
     long            mode    = 0;
     int             i       = 0;
     int             err     = 0;
+
 
     /* For each file descriptor we've received */
     while( i < fdLen ) {
@@ -1550,19 +1598,41 @@ int rviProcessInput(TRviHandle handle, int *fdArr, int fdLen)
         /* Ensure our mode is blocking */
         SSL_set_mode( ssl, SSL_MODE_AUTO_RETRY );
 
-        buf = malloc( len + 1 );
-        if( !buf ) { err = ENOMEM; goto exit; }
-
-        memset( buf, 0, len );
-
-        read = BIO_read( rtmp->sbio, buf, len );
-        if(verbose){
-            fprintf(stderr, "RVI verbose log, received %d bytes, : '%s'\n", read, buf);
+        len = rtmp->buflen;
+        buf = malloc(TLS_BUFSIZE + len);
+        if(!buf) { err = ENOMEM; goto exit; }
+        memset(buf, 0, TLS_BUFSIZE + len);
+        if(len) {
+            memcpy(buf, rtmp->buf, len);
+            memset(rtmp->buf, 0, len);
+            free(rtmp->buf);
+            rtmp->buflen = 0; 
         }
-        if( read  <= 0 )  { err = EIO; goto exit; } 
 
-        root = json_loads( buf, 0, &jserr ); /* RVI commands are JSON structs */
-        if( !root ) { err = RVI_ERR_JSON; goto exit; }
+        read = SSL_read(ssl, &buf[len], TLS_BUFSIZE);
+        if( read  <= 0 )  { err = EIO; goto exit; } 
+        
+        err = rviReadJsonChunk(&root, buf, &msg); // rviReadJsonChunk returns
+                                                  // non-zero if there's data
+                                                  // remaining: not strictly an
+                                                  // error condition
+
+        if (err) {
+            rtmp->buflen = strlen(msg);
+            if( rtmp-> buflen ) {
+                rtmp->buf = malloc(rtmp->buflen + 1); 
+                if (!rtmp->buf) { err = ENOMEM; goto exit; }
+                memset(rtmp->buf, 0, rtmp->buflen + 1);
+                memcpy(rtmp->buf, msg, rtmp->buflen);
+                free(msg);
+            } else {
+                rtmp->buf = NULL;
+            }
+        }
+
+        if (!root) { err = RVI_ERR_JSON; goto exit; }
+
+        err = 0; // if we got valid JSON, it's not an error condition
 
         /* Get RVI cmd from string */
         strncpy( cmd, json_string_value( json_object_get( root, "cmd" ) ), 5 );
@@ -1577,10 +1647,7 @@ int rviProcessInput(TRviHandle handle, int *fdArr, int fdLen)
             rviReadRcv( handle, root, rtmp );
         } else if( strcmp( cmd, "ping" ) == 0 ) {
             /* Echo the ping back */
-            if(verbose){
-                fprintf(stderr, "RVI verbose log, sending: '%s'\n", buf);
-            }
-            BIO_puts( rtmp->sbio, buf );
+            SSL_write( ssl, msg, read );
         } else { /* UNKNOWN RVI COMMAND */
             err = -RVI_ERR_NOCMD; 
             goto exit;
@@ -1589,14 +1656,8 @@ int rviProcessInput(TRviHandle handle, int *fdArr, int fdLen)
         /* Set the mode back to its original bitmask */
         SSL_set_mode( ssl, mode );
 
-        /* We no longer need the string we received */
-        memset( buf, 0, len );
-
         json_decref( root );
     }
-        
-    free( buf );
-
 
 exit:
     return err;
@@ -1652,7 +1713,7 @@ int rviWriteAu( TRviHandle handle, TRviRemote *remote )
     if( !handle || !remote ) { return EINVAL; }
 
     int             err     = RVI_OK;
-    TRviContext   *ctx    = ( TRviContext * )handle;
+    TRviContext     *ctx    = ( TRviContext * )handle;
     json_t          *creds  = NULL;
     json_t          *au     = NULL;
 
@@ -1677,9 +1738,6 @@ int rviWriteAu( TRviHandle handle, TRviRemote *remote )
     char *auString = json_dumps(au, JSON_COMPACT);
 
     /* send "au" message */
-    if(verbose){
-        fprintf(stderr, "RVI verbose log, sending: '%s'\n", auString);
-    }
     BIO_puts( remote->sbio, auString );
 
 exit:
@@ -1727,8 +1785,8 @@ int rviReadSa( TRviHandle handle, json_t *msg, TRviRemote *remote )
             /* Otherwise, add the service to services available */
             TRviService *service = rviServiceCreate( 
                                                  val, remote->fd, 
-                                                 NULL, NULL, 0
-                                                       );
+                                                 NULL, NULL 
+                                                    );
             btree_insert( ctx->serviceNameIdx, service );
             btree_insert( ctx->serviceRegIdx, service );
         } else { /* Service not available, find it and remove it */
@@ -1783,10 +1841,7 @@ int rviAllServiceAnnounce( TRviHandle handle, TRviRemote *remote )
 
     /* send "sa" reply */
     char *saString = json_dumps(sa, JSON_COMPACT);
-    
-    if(verbose){
-        fprintf(stderr, "RVI verbose log, sending: '%s'\n", saString);
-    }
+
     BIO_puts( remote->sbio, saString );
 
 exit:
@@ -1836,10 +1891,6 @@ int rviServiceAnnounce( TRviHandle handle, TRviService *service, int available )
             if( ( err = rviRightToInvokeError( remote->rights, service->name ) ) ) {
                 btree_iter_next( iter );
                 continue; /* If the remote can't invoke, don't announce */
-            }
-            
-            if(verbose){
-                fprintf(stderr, "RVI verbose log, sending: '%s'\n", saString);
             }
             BIO_puts( remote->sbio, saString );
             btree_iter_next( iter );

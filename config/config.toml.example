@@ -43,7 +43,12 @@ websocket_server = "127.0.0.1:3012"
 [rvi]
 node_host = "localhost"
 node_port = 8810
-client_config = "config/conf.json"
+device_key =  "./config/ex/keys/insecure_device_key.pem"
+device_cert = "./config/ex/certificates/insecure_device_cert.crt"
+ca_cert = "./config/ex/certificates/insecure_root_cert.crt"
+cert_dir =  "./config/ex/certificates"
+cred_dir = "./config/ex/credentials/"
+
 client = "http://127.0.0.1:8901"
 storage_dir = "/var/sota"
 timeout = 20

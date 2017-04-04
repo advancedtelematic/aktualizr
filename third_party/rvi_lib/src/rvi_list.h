@@ -36,7 +36,7 @@ int rviListRemove ( TRviList* list, void* record );
 
 int rviListRemoveHead ( TRviList* list, void** record );
 
-inline unsigned int rviListGetCount ( TRviList* list )
+static inline unsigned int rviListGetCount ( TRviList* list )
 {
     return list->count;
 }

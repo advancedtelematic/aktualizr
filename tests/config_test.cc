@@ -49,7 +49,6 @@ TEST(config, config_toml_parsing) {
   EXPECT_EQ(conf.rvi.node_host, "rvi.example.com");
 
   EXPECT_EQ(conf.rvi.node_port, "9999");
-  EXPECT_EQ(conf.rvi.client_config, "my/rvi_conf.json");
 }
 
 TEST(config, config_oauth_tls_parsing) {

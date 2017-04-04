@@ -1,4 +1,4 @@
-# REMOTE VEHICLE INTERFACE {#mainpage}
+# REMOTE VEHICLE INTERACTION {#mainpage}
 
 [![Build Status](https://travis-ci.org/tjamison/rvi_lib.svg?branch=master)](https://travis-ci.org/tjamison/rvi_lib)
 
@@ -11,7 +11,7 @@ All code in this repository is licensed under Mozilla Public License
 v2 (MPLv2). Click [here](https://www.mozilla.org/en-US/MPL/2.0/) for
 details.
 
-Remote Vehicle Interface (RVI) provides an architecture which, through its
+Remote Vehicle Interaction (RVI) provides an architecture which, through its
 specified components, enables connected vehicles and other devices to form a
 secured distributed, sparsely connected peer-to-peer network. In particular,
 local services can be registered to enable remote invocation only when the peer
@@ -24,7 +24,7 @@ information that crosses trust boundaries.
 capabilities including server behaviors.
 
 # Documentation
-[GitHub pages](http://genivi.github.io/rvi_lib)
+[GitHub pages](http://genivi.github.io/rvi_lib/files.html)
 
 # Standards Used
 
@@ -54,6 +54,8 @@ nodes:
 
 # Build Instructions
 
+## Native Build
+
 #### Install prerequisites
 Install openssl and Jansson. On Ubuntu:
     
@@ -68,7 +70,7 @@ Ensure the following packages are also installed:
 
 These can also be installed via `apt` on Ubuntu:
 
-    $ sudo apt-get install git make GNU Autotools gcc
+    $ sudo apt-get install git make autoconf gcc
 
 #### Clone repo recursively
 Clone or download this repo:
@@ -96,6 +98,10 @@ alternate location, as in:
 
 Some operating systems will require `sudo` for either operation.
 
+## Cross-Platform Build
+
+Cross-platform building is supported with the Yocto Project. The [meta-rvi](https://www.github.com/GENIVI/meta-rvi) layer provides recipes for `librvi` and `libjwt`.
+
 #### Quick Start
 If you would like to see an example of an application using `rvi_lib`, run the
 following:
@@ -109,7 +115,7 @@ certificates and one or more JWT credentials. See the "Configuration" section
 for details on configuring your own, or use the "conf.json" file for the
 pre-supplied (*insecure*) configuration.
 
-Connect to a remote test RVI node at 38.129.64.41, port 9010. You can register
+Connect to a remote test RVI node at 38.129.64.41, port 9007. You can register
 services, invoke remote services, and process incoming messages.
 
 Insecure configuration details, including private keys and certificates, are
@@ -288,8 +294,9 @@ lifetime.
 # Contributions
 `rvi_lib` is an open source project maintained by
 [GENIVI](https://www.genivi.org/) for general use. Contributions are welcome,
-subject to licensing compatibility with MPL v2.0. Submit issues or pull
-requests via GitHub at the authoritative
+subject to licensing compatibility with MPL v2.0. Submit issues at the the
+[GENIVI Project JIRA](https://at.projects.genivi.org/jira/projects/RCC).
+Submit pull requests via GitHub at the authoritative
 [GENIVI/rvi_lib](https://github.com/GENIVI/rvi_lib/) repo.
 
 # Limitations
