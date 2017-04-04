@@ -67,8 +67,9 @@ OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::
 
   origin = ostree_deployment_get_origin(booted_deployment);
   const char *ref = ostree_deployment_get_csum(booted_deployment);
-  g_autofree char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
+  char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
   OstreePackage package(ecu_serial, (branch + "-") + ref, ref, origin_refspec, "");
+  g_free(origin_refspec);
   return OstreeBranch(true, ostree_deployment_get_osname(booted_deployment), package);
 }
 

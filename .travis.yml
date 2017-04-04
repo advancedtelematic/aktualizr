@@ -6,4 +6,4 @@ services:
 script:
   - docker build -t advancedtelematic/aktualizr .
   - ci_env=`bash <(curl -s https://codecov.io/env)`
-  - docker run $ci_env --rm -it advancedtelematic/aktualizr src/coverage.sh
+  - docker run $ci_env --rm -it advancedtelematic/aktualizr src/scripts/coverage.sh
