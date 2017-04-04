@@ -119,8 +119,6 @@ typedef enum {
  */
 
 extern TRviHandle rviInit(char *configFilename);
-TRviHandle rviInitLogs ( char *configFilename, bool verbose_in );
-
 
 /** @brief Tear down the API.
  *
@@ -219,14 +217,13 @@ extern int rviGetConnections(TRviHandle handle, int *conn, int *connSize);
  *                        invocation.
  * @param serviceData  - Parameters to be passed to the callback function (in
  *                        addition to any JSON parameters from the remote node)
- * @param dataSize     - Size of serviceData
  *
  * @return 0 on success,
  *         error code otherwise.
  */
 extern int rviRegisterService( TRviHandle handle, const char *serviceName, 
                                  TRviCallback callback, 
-                                 void* serviceData, size_t dataSize );
+                                 void* serviceData );
 
 /** @brief Unregister a previously registered service
  *
@@ -319,7 +316,6 @@ extern int rviInvokeService( TRviHandle handle,
 extern int rviProcessInput(TRviHandle handle, int* fdArr, int fdLen);
 
 extern void rviUpdateId (TRviHandle handle, const char *id );
-
 
 #ifdef __cplusplus
 }

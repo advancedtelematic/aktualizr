@@ -57,7 +57,6 @@ endif()
 set (LIBS ${OPENSSL_LIBRARIES} ${JANSSON_LIBRARIES})
 
 target_link_libraries(${LIBRARY_NAME} ${LIBS})
-target_link_libraries(${LIBRARY_NAME}_static ${LIBS})
 
 install(TARGETS ${LIBRARY_NAME} ${LIBRARY_NAME}_static
         LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
@@ -66,7 +65,7 @@ install(TARGETS ${LIBRARY_NAME} ${LIBRARY_NAME}_static
 
 install(FILES include/jwt.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/jwt")
 
-if (FALSE AND CHECK_FOUND)
+if (CHECK_FOUND)
   include_directories(${CHECK_INCLUDE_DIRS})
   link_directories(${CHECK_LIBRARY_DIRS})
   add_definitions(${CHECK_CFLAGS_OTHER} -DKEYDIR="${PROJECT_SOURCE_DIR}/tests/keys")
@@ -88,4 +87,4 @@ if (FALSE AND CHECK_FOUND)
   InitialiseTest(jwt_new tests/jwt_new.c)
   InitialiseTest(jwt_rsa tests/jwt_rsa.c)
   InitialiseTest(jwt_ec tests/jwt_ec.c)
-endif (FALSE AND CHECK_FOUND)
+endif (CHECK_FOUND)

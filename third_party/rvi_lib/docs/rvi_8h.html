@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Remote Vehicle Interface C API: include/rvi.h File Reference</title>
+<title>Remote Vehicle Interaction C API: include/rvi.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Remote Vehicle Interface C API
+   <div id="projectname">Remote Vehicle Interaction C API
    </div>
   </td>
  </tr>
@@ -142,9 +142,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a3cbb737c19f0da2816bd47fe0d4b6bbf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rvi_8h.html#a3cbb737c19f0da2816bd47fe0d4b6bbf">rviGetConnections</a> (<a class="el" href="rvi_8h.html#ac78b62a65c4f2e17a64f3841aa1555e1">TRviHandle</a> handle, int *conn, int *connSize)</td></tr>
 <tr class="memdesc:a3cbb737c19f0da2816bd47fe0d4b6bbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return all file descriptors in the RVI context.  <a href="#a3cbb737c19f0da2816bd47fe0d4b6bbf">More...</a><br /></td></tr>
 <tr class="separator:a3cbb737c19f0da2816bd47fe0d4b6bbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7970c18bcaab43094992b75124dfbbca"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rvi_8h.html#a7970c18bcaab43094992b75124dfbbca">rviRegisterService</a> (<a class="el" href="rvi_8h.html#ac78b62a65c4f2e17a64f3841aa1555e1">TRviHandle</a> handle, const char *serviceName, <a class="el" href="rvi_8h.html#a5ce1ba1e3026470b887b160a5e1d13cc">TRviCallback</a> callback, void *serviceData, size_t dataSize)</td></tr>
-<tr class="memdesc:a7970c18bcaab43094992b75124dfbbca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a service with a callback function.  <a href="#a7970c18bcaab43094992b75124dfbbca">More...</a><br /></td></tr>
-<tr class="separator:a7970c18bcaab43094992b75124dfbbca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9325f0d58e28a06e04bab7b9bcb011bf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rvi_8h.html#a9325f0d58e28a06e04bab7b9bcb011bf">rviRegisterService</a> (<a class="el" href="rvi_8h.html#ac78b62a65c4f2e17a64f3841aa1555e1">TRviHandle</a> handle, const char *serviceName, <a class="el" href="rvi_8h.html#a5ce1ba1e3026470b887b160a5e1d13cc">TRviCallback</a> callback, void *serviceData)</td></tr>
+<tr class="memdesc:a9325f0d58e28a06e04bab7b9bcb011bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a service with a callback function.  <a href="#a9325f0d58e28a06e04bab7b9bcb011bf">More...</a><br /></td></tr>
+<tr class="separator:a9325f0d58e28a06e04bab7b9bcb011bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a179f0b006746cfb7ffa643e7e39bb142"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="rvi_8h.html#a179f0b006746cfb7ffa643e7e39bb142">rviUnregisterService</a> (<a class="el" href="rvi_8h.html#ac78b62a65c4f2e17a64f3841aa1555e1">TRviHandle</a> handle, const char *serviceName)</td></tr>
 <tr class="memdesc:a179f0b006746cfb7ffa643e7e39bb142"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregister a previously registered service.  <a href="#a179f0b006746cfb7ffa643e7e39bb142">More...</a><br /></td></tr>
 <tr class="separator:a179f0b006746cfb7ffa643e7e39bb142"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -576,7 +576,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a7970c18bcaab43094992b75124dfbbca"></a>
+<a class="anchor" id="a9325f0d58e28a06e04bab7b9bcb011bf"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -602,13 +602,7 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>serviceData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>dataSize</em>&#160;</td>
+          <td class="paramname"><em>serviceData</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -626,8 +620,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">handle</td><td>- The handle to the RVI context. </td></tr>
     <tr><td class="paramname">serviceName</td><td>- The service name to register </td></tr>
     <tr><td class="paramname">callback</td><td>- The callback function to be executed upon service invocation. </td></tr>
-    <tr><td class="paramname">serviceData</td><td>- Parameters to be passed to the callback function (in addition to any JSON parameters from the remote node) </td></tr>
-    <tr><td class="paramname">dataSize</td><td>- Size of serviceData</td></tr>
+    <tr><td class="paramname">serviceData</td><td>- Parameters to be passed to the callback function (in addition to any JSON parameters from the remote node)</td></tr>
   </table>
   </dd>
 </dl>
@@ -676,7 +669,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 17 2016 12:05:50 for Remote Vehicle Interface C API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 27 2017 09:37:07 for Remote Vehicle Interaction C API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

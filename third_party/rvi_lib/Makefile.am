@@ -1,16 +1,14 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = libjwt include src examples
+SUBDIRS = libjwt include src . examples tests
 
 dist_doc_DATA = README.md
 
-examplesdir = examples
+#check-valgrind: all
+#	$(MAKE) $(AM_MAKEFLAGS) -C tests check-valgrind
 
-check-valgrind: all
-	$(MAKE) $(AM_MAKEFLAGS) -C examples check-valgrind
-
-check-code-coverage: all
-	$(MAKE) $(AM_MAKEFLAGS) -C examples check-code-coverage
+#check-code-coverage: all
+#	$(MAKE) $(AM_MAKEFLAGS) -C tests check-code-coverage
 
 docs:
 	doxygen

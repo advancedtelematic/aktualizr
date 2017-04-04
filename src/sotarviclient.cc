@@ -37,7 +37,7 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in), stop(false) {
   std::string client_config(config.rvi.client_config);
-  rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), loggerGetSeverity() == LVL_trace);
+  rvi = rviInit(const_cast<char *>(client_config.c_str()));
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config file " + client_config);
   }
@@ -53,8 +53,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   pointers[0] = (void *)(this);
   for (unsigned int i = 0; i < services_count; ++i) {
     pointers[1] = (void *)service_names[i];
-    int stat = rviRegisterService(rvi, (std::string("sota/") + service_names[i]).c_str(), callbackWrapper, pointers,
-                                  sizeof(pointers));
+    int stat = rviRegisterService(rvi, (std::string("sota/") + service_names[i]).c_str(), callbackWrapper, pointers);
     if (stat) {
       LOGGER_LOG(LVL_error, "unable to register " << service_names[i]);
     }
