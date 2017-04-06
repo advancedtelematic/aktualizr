@@ -2,8 +2,8 @@
 
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/archive/iterators/remove_whitespace.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -13,11 +13,8 @@
 
 using namespace boost::archive::iterators;
 
-
-typedef base64_from_binary<
-    transform_width<std::string::const_iterator, 6, 8> >
-    base64_text;
-typedef transform_width< binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6 > base64_to_bin;
+typedef base64_from_binary<transform_width<std::string::const_iterator, 6, 8> > base64_text;
+typedef transform_width<binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6> base64_to_bin;
 
 class SotaUptaneClient {
  public:
@@ -37,7 +34,8 @@ class SotaUptaneClient {
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in);
   bool verifyData(SotaUptaneClient::ServiceType service, const std::string &role, const Json::Value &tuf_signed);
   void initService(SotaUptaneClient::ServiceType service);
-  bool verify(SotaUptaneClient::ServiceType service, const std::string &role, SotaUptaneClient::Verified &verified, bool force_fetch);
+  bool verify(SotaUptaneClient::ServiceType service, const std::string &role, SotaUptaneClient::Verified &verified,
+              bool force_fetch);
   void putManfiest(SotaUptaneClient::ServiceType service);
   Json::Value getJSON(SotaUptaneClient::ServiceType service, const std::string &role, bool force_fetch);
   std::string sign(const Json::Value &in_data, Json::Value &out_data);

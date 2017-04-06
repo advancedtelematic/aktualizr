@@ -14,10 +14,7 @@ TRviHandle rviJsonInit(char *configFilename) {
   return handle;
 }
 
-void rviSetVerboseLogs (bool verboseEnable )
-{
-  (void)verboseEnable;
-}
+void rviSetVerboseLogs(bool verboseEnable) { (void)verboseEnable; }
 
 int rviConnect(TRviHandle handle, const char *addr, const char *port) {
   (void)handle;

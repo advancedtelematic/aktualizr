@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 #ifdef WITH_GENIVI
     try {
       SotaRVIClient(config, events_channel).runForever(commands_channel);
-    } catch(std::runtime_error e) {
+    } catch (std::runtime_error e) {
       LOGGER_LOG(LVL_error, "Missing RVI configurations: " << e.what());
       exit(EXIT_FAILURE);
     }

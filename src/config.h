@@ -87,7 +87,14 @@ struct NetworkConfig {
 
 class RviConfig {
  public:
-  RviConfig() : node_host("localhost"), node_port("8810"), device_key("device.key"),device_cert("device.crt"), ca_cert("ca.pem"), cert_dir(""), cred_dir("")  {}
+  RviConfig()
+      : node_host("localhost"),
+        node_port("8810"),
+        device_key("device.key"),
+        device_cert("device.crt"),
+        ca_cert("ca.pem"),
+        cert_dir(""),
+        cred_dir("") {}
   std::string node_host;
   std::string node_port;
   std::string device_key;
