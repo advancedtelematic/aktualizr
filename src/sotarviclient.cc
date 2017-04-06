@@ -45,6 +45,8 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   json["ca"]["dir"] = config.rvi.cert_dir;
   json["creddir"] = config.rvi.cred_dir;
 
+  rviSetVerboseLogs(loggerGetSeverity() == LVL_trace);
+
   rvi = rviJsonInit(const_cast<char*>(Json::FastWriter().write(json).c_str()));
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config " + Json::FastWriter().write(json));
