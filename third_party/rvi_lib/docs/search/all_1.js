@@ -1,9 +1,10 @@
 var searchData=
 [
-  ['remote_20vehicle_20interface',['REMOTE VEHICLE INTERFACE',['../index.html',1,'']]],
+  ['remote_20vehicle_20interaction',['REMOTE VEHICLE INTERACTION',['../index.html',1,'']]],
   ['rvi_2eh',['rvi.h',['../rvi_8h.html',1,'']]],
   ['rvi_5ferr_5fclientcert',['RVI_ERR_CLIENTCERT',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddbafd47a7d0e4041c819c0974f873b9c80c',1,'rvi.h']]],
   ['rvi_5ferr_5fjson',['RVI_ERR_JSON',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba568f843abd268eaaebe2e980abd9714f',1,'rvi.h']]],
+  ['rvi_5ferr_5fjson_5fpart',['RVI_ERR_JSON_PART',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba56d42dd841e33ced44cc69d1572c8b56',1,'rvi.h']]],
   ['rvi_5ferr_5fnocmd',['RVI_ERR_NOCMD',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba8e509d3cc8c9fc2a9e02d3d3d156b0af',1,'rvi.h']]],
   ['rvi_5ferr_5fnoconfig',['RVI_ERR_NOCONFIG',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba361dfcd7d313967375342b4b763d3c1b',1,'rvi.h']]],
   ['rvi_5ferr_5fnocred',['RVI_ERR_NOCRED',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba0445312b4f9444564313242404481481',1,'rvi.h']]],
@@ -21,6 +22,6 @@ var searchData=
   ['rviinit',['rviInit',['../rvi_8h.html#a8d7cd26c745770781ea03547596faf32',1,'rvi.h']]],
   ['rviinvokeservice',['rviInvokeService',['../rvi_8h.html#a429680d590cfe541114232b62fb0ff58',1,'rvi.h']]],
   ['rviprocessinput',['rviProcessInput',['../rvi_8h.html#a7f36294f32f87d64e14a03aeb60c4f66',1,'rvi.h']]],
-  ['rviregisterservice',['rviRegisterService',['../rvi_8h.html#a7970c18bcaab43094992b75124dfbbca',1,'rvi.h']]],
+  ['rviregisterservice',['rviRegisterService',['../rvi_8h.html#a9325f0d58e28a06e04bab7b9bcb011bf',1,'rvi.h']]],
   ['rviunregisterservice',['rviUnregisterService',['../rvi_8h.html#a179f0b006746cfb7ffa643e7e39bb142',1,'rvi.h']]]
 ];

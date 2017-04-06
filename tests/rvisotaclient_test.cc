@@ -8,17 +8,15 @@
 
 void callbackWrapper(int fd, void *service_data, const char *parameters);
 
-TRviHandle rviInitLogs(char *configFilename, bool verbose_in) {
+TRviHandle rviJsonInit(char *configFilename) {
   (void)configFilename;
-  (void)verbose_in;
   TRviHandle handle = (void *)1;
   return handle;
 }
 
-void rviUpdateId(TRviHandle handle, const char *id) {
-  (void)handle;
-  (void)id;
-  return;
+void rviSetVerboseLogs (bool verboseEnable )
+{
+  (void)verboseEnable;
 }
 
 int rviConnect(TRviHandle handle, const char *addr, const char *port) {
@@ -28,13 +26,11 @@ int rviConnect(TRviHandle handle, const char *addr, const char *port) {
   return 2;
 }
 
-int rviRegisterService(TRviHandle handle, const char *serviceName, TRviCallback callback, void *serviceData,
-                       size_t dataSize) {
+int rviRegisterService(TRviHandle handle, const char *serviceName, TRviCallback callback, void *serviceData) {
   (void)handle;
   (void)serviceName;
   (void)callback;
   (void)serviceData;
-  (void)dataSize;
   return 0;
 }
 

@@ -36,12 +36,21 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in), stop(false) {
-  std::string client_config(config.rvi.client_config);
-  rvi = rviInitLogs(const_cast<char *>(client_config.c_str()), loggerGetSeverity() == LVL_trace);
+
+  Json::Value json;
+  json["dev"]["key"] = config.rvi.device_key;
+  json["dev"]["cert"] = config.rvi.device_cert;
+  json["dev"]["id"] = std::string("genivi.org/device/") + config.device.uuid;
+  json["ca"]["cert"] = config.rvi.ca_cert;
+  json["ca"]["dir"] = config.rvi.cert_dir;
+  json["creddir"] = config.rvi.cred_dir;
+
+  rviSetVerboseLogs(loggerGetSeverity() == LVL_trace);
+
+  rvi = rviJsonInit(const_cast<char*>(Json::FastWriter().write(json).c_str()));
   if (!rvi) {
-    throw std::runtime_error("cannot initialize rvi with config file " + client_config);
+    throw std::runtime_error("cannot initialize rvi with config " + Json::FastWriter().write(json));
   }
-  rviUpdateId(rvi, (std::string("genivi.org/device/") + config.device.uuid).c_str());
 
   connection = rviConnect(rvi, config.rvi.node_host.c_str(), config.rvi.node_port.c_str());
 
@@ -53,8 +62,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   pointers[0] = (void *)(this);
   for (unsigned int i = 0; i < services_count; ++i) {
     pointers[1] = (void *)service_names[i];
-    int stat = rviRegisterService(rvi, (std::string("sota/") + service_names[i]).c_str(), callbackWrapper, pointers,
-                                  sizeof(pointers));
+    int stat = rviRegisterService(rvi, (std::string("sota/") + service_names[i]).c_str(), callbackWrapper, pointers);
     if (stat) {
       LOGGER_LOG(LVL_error, "unable to register " << service_names[i]);
     }
