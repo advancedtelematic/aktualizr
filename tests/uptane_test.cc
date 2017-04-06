@@ -184,8 +184,8 @@ TEST(uptane, verify) {
   SotaUptaneClient::Verified verified;
   bool good = up.verify(SotaUptaneClient::Director, "root", verified, false);
   EXPECT_EQ(good, true);
-  EXPECT_EQ(verified.new_version, 1);
-  EXPECT_EQ(verified.old_version, 1);
+  EXPECT_EQ(verified.new_version, 1u);
+  EXPECT_EQ(verified.old_version, 1u);
 }
 
 
