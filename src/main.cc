@@ -150,7 +150,12 @@ int main(int argc, char *argv[]) {
 
   if (config.gateway.rvi) {
 #ifdef WITH_GENIVI
-    SotaRVIClient(config, events_channel).runForever(commands_channel);
+    try {
+      SotaRVIClient(config, events_channel).runForever(commands_channel);
+    } catch(std::runtime_error e) {
+      LOGGER_LOG(LVL_error, "Missing RVI configurations: " << e.what());
+      exit(EXIT_FAILURE);
+    }
 #else
     LOGGER_LOG(LVL_error, "RVI support is not enabled");
     return EXIT_FAILURE;
