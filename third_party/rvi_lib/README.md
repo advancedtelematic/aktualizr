@@ -100,7 +100,66 @@ Some operating systems will require `sudo` for either operation.
 
 ## Cross-Platform Build
 
-Cross-platform building is supported with the Yocto Project. The [meta-rvi](https://www.github.com/GENIVI/meta-rvi) layer provides recipes for `librvi` and `libjwt`.
+Cross-platform building is supported with the Yocto Project. The
+[meta-rvi](https://www.github.com/GENIVI/meta-rvi) layer provides recipes for
+`librvi` and `libjwt`.
+
+Cross-platform building is also supported by autotools. To do so, ensure you
+have the appropriate cross-compiling SDK installed (and environment variables
+sourced), and supply the appropriate `--host` variable to the `./configure`
+script. For example, to cross-compile for [QNX660 on
+ARMv7](http://www.qnx.com/support/knowledgebase.html?id=50114000001CRkJ),
+modify the **Build** step to:
+
+    $ autoreconf -i && ./configure --host=arm-unknown-nto-qnx6.6.0eabi && make
+
+## Compile-Time Options
+
+The typical compile-time options for a autotools-based project apply.
+Additional compile-time options are specific to the RVI library.
+
+### Build a debug version
+
+Building a debug version of the library, appropriate for debugging via gdb or
+similar, is made possible by supplying appropriate flags to the `./configure`
+script:
+
+    $ ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
+
+Follow the remainder of the build process as described above.
+
+### Install to a specific location
+
+Once again, this is specified by supplying the appropriate flag to the
+`./configure` script:
+
+    $ ./configure --prefix=/path/to/lib
+
+Follow the remainder of the build process as described above.
+
+### Specify a maximum incoming message size
+
+Define the preprocessor variable `RVI_MAX_MSG_SIZE` by supplying an argument to
+the `./configure` script:
+
+    $ ./configure CFLAGS='-D RVI_MAX_MSG_SIZE=123456' CXXFLAGS='-D RVI_MAX_MSG_SIZE=123456'
+
+Defining this variable does the following:
+
+1. Sets the `max_msg_size` parameter in the `au` negotiation with the remote
+   RVI node to the specified value.
+2. Prior to reading new data over a network socket, checks whether the buffer
+   size (including previously-read data if applicable) would exceed the maximum
+size
+3. If the maximum size would be exceeded, destroys the already-read data, frees
+   the associated memory and causes `rviProcessInput` to return `RVI_ERR_JSON`.
+4. Note that if the remote RVI node sends data that is larger than the
+   negotiated value, `rviProcessInput` will return `RVI_ERR_JSON` repeatedly as
+the incoming data is read and discarded (up to the boundary of a new RVI
+command frame).
+
+Setting the maximum message size to a value smaller than the maximum TLS frame
+size (2^14 bytes) results in undefined behavior.
 
 #### Quick Start
 If you would like to see an example of an application using `rvi_lib`, run the

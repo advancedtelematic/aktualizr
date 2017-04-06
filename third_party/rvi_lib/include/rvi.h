@@ -83,7 +83,9 @@ typedef enum {
     /** No (known) command */
     RVI_ERR_NOCMD           = 1008, 
     /** No right for that operation */
-    RVI_ERR_RIGHTS          = 1009 
+    RVI_ERR_RIGHTS          = 1009,
+    /** Partial JSON */
+    RVI_ERR_JSON_PART       = 1010
 } ERviStatus;
 
 // ***************************
@@ -131,6 +133,16 @@ extern TRviHandle rviInit(char *configFilename);
  */
 
 extern TRviHandle rviJsonInit(char *jsonConfig);
+
+/** @brief Enables or disables the verbose loging.
+ *
+ * By default, the verbose logging is disabled, use this function to turn it on.
+ *
+ * @param verboseEnable - if true, verbose will be enabled if false, disabled.
+ *
+ */
+
+extern void rviSetVerboseLogs (bool verboseEnable );
 
 /** @brief Tear down the API.
  *

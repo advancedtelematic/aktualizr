@@ -129,6 +129,25 @@ $ autoreconf -i &amp;&amp; ./configure &amp;&amp; make
 </pre><p>Some operating systems will require <code>sudo</code> for either operation.</p>
 <h2>Cross-Platform Build</h2>
 <p>Cross-platform building is supported with the Yocto Project. The <a href="https://www.github.com/GENIVI/meta-rvi">meta-rvi</a> layer provides recipes for <code>librvi</code> and <code>libjwt</code>.</p>
+<p>Cross-platform building is also supported by autotools. To do so, ensure you have the appropriate cross-compiling SDK installed (and environment variables sourced), and supply the appropriate <code>--host</code> variable to the <code>./configure</code> script. For example, to cross-compile for <a href="http://www.qnx.com/support/knowledgebase.html?id=50114000001CRkJ">QNX660 on ARMv7</a>, modify the <b>Build</b> step to: </p><pre class="fragment">$ autoreconf -i &amp;&amp; ./configure --host=arm-unknown-nto-qnx6.6.0eabi &amp;&amp; make
+</pre><h2>Compile-Time Options</h2>
+<p>The typical compile-time options for a autotools-based project apply. Additional compile-time options are specific to the RVI library.</p>
+<h3>Build a debug version</h3>
+<p>Building a debug version of the library, appropriate for debugging via gdb or similar, is made possible by supplying appropriate flags to the <code>./configure</code> script: </p><pre class="fragment">$ ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
+</pre><p>Follow the remainder of the build process as described above.</p>
+<h3>Install to a specific location</h3>
+<p>Once again, this is specified by supplying the appropriate flag to the <code>./configure</code> script: </p><pre class="fragment">$ ./configure --prefix=/path/to/lib
+</pre><p>Follow the remainder of the build process as described above.</p>
+<h3>Specify a maximum incoming message size</h3>
+<p>Define the preprocessor variable <code>RVI_MAX_MSG_SIZE</code> by supplying an argument to the <code>./configure</code> script: </p><pre class="fragment">$ ./configure CFLAGS='-D RVI_MAX_MSG_SIZE=123456' CXXFLAGS='-D RVI_MAX_MSG_SIZE=123456'
+</pre><p>Defining this variable does the following:</p>
+<ol type="1">
+<li>Sets the <code>max_msg_size</code> parameter in the <code>au</code> negotiation with the remote RVI node to the specified value.</li>
+<li>Prior to reading new data over a network socket, checks whether the buffer size (including previously-read data if applicable) would exceed the maximum size</li>
+<li>If the maximum size would be exceeded, destroys the already-read data, frees the associated memory and causes <code>rviProcessInput</code> to return <code>RVI_ERR_JSON</code>.</li>
+<li>Note that if the remote RVI node sends data that is larger than the negotiated value, <code>rviProcessInput</code> will return <code>RVI_ERR_JSON</code> repeatedly as the incoming data is read and discarded (up to the boundary of a new RVI command frame).</li>
+</ol>
+<p>Setting the maximum message size to a value smaller than the maximum TLS frame size (2^14 bytes) results in undefined behavior.</p>
 <h4>Quick Start</h4>
 <p>If you would like to see an example of an application using <code>rvi_lib</code>, run the following: </p><pre class="fragment">$ make examples
 $ cd examples
@@ -210,7 +229,7 @@ and CSR" and "Sign the CSR" steps above for the server. See <a href="https://git
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 27 2017 09:37:07 for Remote Vehicle Interaction C API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Mar 24 2017 13:09:44 for Remote Vehicle Interaction C API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

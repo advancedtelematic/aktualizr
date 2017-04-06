@@ -4,6 +4,7 @@ var searchData=
   ['rvi_2eh',['rvi.h',['../rvi_8h.html',1,'']]],
   ['rvi_5ferr_5fclientcert',['RVI_ERR_CLIENTCERT',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddbafd47a7d0e4041c819c0974f873b9c80c',1,'rvi.h']]],
   ['rvi_5ferr_5fjson',['RVI_ERR_JSON',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba568f843abd268eaaebe2e980abd9714f',1,'rvi.h']]],
+  ['rvi_5ferr_5fjson_5fpart',['RVI_ERR_JSON_PART',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba56d42dd841e33ced44cc69d1572c8b56',1,'rvi.h']]],
   ['rvi_5ferr_5fnocmd',['RVI_ERR_NOCMD',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba8e509d3cc8c9fc2a9e02d3d3d156b0af',1,'rvi.h']]],
   ['rvi_5ferr_5fnoconfig',['RVI_ERR_NOCONFIG',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba361dfcd7d313967375342b4b763d3c1b',1,'rvi.h']]],
   ['rvi_5ferr_5fnocred',['RVI_ERR_NOCRED',['../rvi_8h.html#aeed1da6c6f4f94d99f37d7ac1ac71ddba0445312b4f9444564313242404481481',1,'rvi.h']]],

@@ -5,6 +5,7 @@
  * file, you can obtain one at http://mozilla.org/MPL/2.0.
  */
 
+#include <signal.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -48,6 +49,7 @@ TRviHandle myHandle = {0};
 
 int main(int argc, char *argv[])
 {
+    signal(SIGPIPE, SIG_IGN); // ignore broken pipes
     int choice;
 
     listChoices();
@@ -342,7 +344,9 @@ void smpl_process(void)
     int stat = rviProcessInput(myHandle, connections, len);
 
     free( connections );
-    if( stat ) {
+    if (stat == RVI_ERR_JSON_PART) {
+        printf("Data remaining to be read on one or more connections\n");
+    } else if (stat) {
         printf("Couldn't process input on one or more connections...\n");
     } else {
         printf("All input processed!\n");

@@ -6,7 +6,7 @@ LT_INIT([])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/config.h])
 
-AC_SUBST([AM_CFLAGS], [-Wall -g])
+AC_SUBST([AM_CFLAGS], [-Wall -std=gnu99])
 
 PKG_CHECK_MODULES([OPENSSL], [openssl >= 0.9.8])
 PKG_CHECK_MODULES([JANSSON], [jansson >= 2.0])
