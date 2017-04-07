@@ -142,7 +142,6 @@ TEST(ReportTest, post_called) {
   delete events_channel;
 }
 
-
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

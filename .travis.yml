@@ -1,9 +1,13 @@
 dist: trusty
 sudo: false
 language: cpp
+env:
+  - DOCKERFILE=Dockerfile SCRIPT=src/scripts/coverage.sh
+  - DOCKERFILE=Dockerfile SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
+  - DOCKERFILE=Dockerfile.deb-stable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
 services:
   - docker
 script:
-  - docker build -t advancedtelematic/aktualizr .
+  - docker build -t advancedtelematic/aktualizr -f ${DOCKERFILE} .
   - ci_env=`bash <(curl -s https://codecov.io/env)`
-  - docker run $ci_env --rm -it advancedtelematic/aktualizr src/scripts/coverage.sh
+  - docker run $ci_env --rm $DARGS -it advancedtelematic/aktualizr ${SCRIPT}

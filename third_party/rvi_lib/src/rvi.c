@@ -108,7 +108,7 @@ typedef struct TRviRights {
 
 TRviService *rviServiceCreate ( const char *name, const int registrant, 
                                     const TRviCallback callback, 
-                                    const void *serviceData );
+                                    void *serviceData );
 
 void rviServiceDestroy ( TRviService *service );
 
@@ -260,7 +260,7 @@ int rviComparePattern ( const char *pattern, const char *fqsn )
 
 TRviService *rviServiceCreate ( const char *name, const int registrant, 
                                     const TRviCallback callback, 
-                                    const void *serviceData )
+                                    void *serviceData )
 {
     /* If name is NULL or registrant is negative, there's an error */
     if ( !name || (registrant < 0) ) { return NULL; }

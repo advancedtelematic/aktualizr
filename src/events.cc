@@ -249,5 +249,4 @@ InstalledSoftwareNeeded::InstalledSoftwareNeeded() { variant = "InstalledSoftwar
 std::string InstalledSoftwareNeeded::toJson() { return Json::FastWriter().write(toBaseJson()); }
 
 UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
-
 };
