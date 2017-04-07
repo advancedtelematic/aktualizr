@@ -8,6 +8,10 @@ option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
 option(BUILD_TESTS "Build tests (requires gtest/gmock)" ON)
 
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
+endif()
+
 # clang-check and clang-format
 # The .clang-format file requires clang-format-3.8
 find_program(CLANG_FORMAT NAMES clang-format clang-format-3.8)
