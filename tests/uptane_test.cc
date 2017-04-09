@@ -165,10 +165,10 @@ TEST(uptane, get_endpoint) {
   event::Channel *events_channel = new event::Channel();
 
   SotaUptaneClient up(config, events_channel);
-  std::string result = up.getEndPointUrl(SotaUptaneClient::Director, "root");
+  std::string result = up.getEndPointUrl(SotaUptaneClient::Director, "root.json");
   EXPECT_EQ("https://director.com/root.json", result);
   
-  result = up.getEndPointUrl(SotaUptaneClient::Repo, "root");
+  result = up.getEndPointUrl(SotaUptaneClient::Repo, "root.json");
   EXPECT_EQ("https://repo.com/device_id/root.json", result);
 }
 
@@ -289,7 +289,7 @@ TEST(uptane, sign) {
   Json::Value signed_json = up.sign(tosign_json);
 
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
-  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(), "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(), "00a4c4f1fcb433b2354a523ed13f76708ee0737dc323e1467096251b9a90eeee");
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 

@@ -117,6 +117,13 @@ Json::Value OperationResult::toJson() {
   return json;
 }
 
+UpdateReport OperationResult::toReport(){
+  UpdateReport report;
+  report.update_id = id;
+  report.operation_results.push_back(*this);
+  return report;
+}
+
 OperationResult OperationResult::fromJson(const std::string& json_str) {
   Json::Reader reader;
   Json::Value json;

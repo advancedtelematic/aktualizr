@@ -23,9 +23,9 @@ Json::Value SotaUptaneClient::sign(const Json::Value &in_data) {
 
   std::ifstream key_path_stream(key_path.c_str());
   std::string key_content((std::istreambuf_iterator<char>(key_path_stream)), std::istreambuf_iterator<char>());
-  signature["keyid"] = boost::algorithm::hex(Crypto::sha256digest(key_content));
-
-  Json::Value out_data;
+  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(key_content));
+  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
+  signature["keyid"] = keyid;
   out_data["signed"] = in_data;
   out_data["signatures"] = Json::Value(Json::arrayValue);
   out_data["signatures"].append(signature);
@@ -39,7 +39,7 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
 
 void SotaUptaneClient::initService(SotaUptaneClient::ServiceType service) {
   ecu_versions.push_back(OstreePackage::getEcu(config.uptane.primary_ecu_serial).toEcuVersion(""));
-  Json::Value root_json = getJSON(service, "root", true);
+  Json::Value root_json = getJSON(service, "root", false);
   if (!root_json) {
     LOGGER_LOG(LVL_debug, "JSON is empty");
     return;
@@ -76,7 +76,7 @@ Json::Value SotaUptaneClient::getJSON(SotaUptaneClient::ServiceType service, con
     Json::Reader().parse(json_content, parsed_json);
     return parsed_json;
   } else {
-    return http->getJson(getEndPointUrl(service, role));
+    return http->getJson(getEndPointUrl(service, role) + ".json");
   }
 }
 
@@ -135,9 +135,9 @@ bool SotaUptaneClient::verifyData(SotaUptaneClient::ServiceType service, const s
 
 std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType service, const std::string &role) {
   if (service == Director) {
-    return config.uptane.director_server + "/" + role + ".json";
+    return config.uptane.director_server + "/" + role;
   } else {
-    return config.uptane.repo_server + "/" + config.device.uuid + "/" + role + ".json";
+    return config.uptane.repo_server + "/" + config.device.uuid + "/" + role;
   }
 }
 
@@ -235,8 +235,9 @@ bool SotaUptaneClient::ecuRegister() {
   std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
   ks.close();
   pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
+  
   std::string data = "{\"primary_ecu_serial\":\"" + config.uptane.primary_ecu_serial +
-                     "\", \"ecus\":[{\"ecu_serial\":\"" + config.uptane.primary_ecu_serial +
+                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid +"\",\"ecu_serial\":\"" + config.uptane.primary_ecu_serial +
                      "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
 
   std::string result = http->post(config.tls.server + "/director/ecus", data);
@@ -318,6 +319,7 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
 }
 
 void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
+  processing = true;
   data::PackageManagerCredentials cred;
   cred.ca_file = (config.device.certificates_path / config.tls.ca_file).string();
   cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
@@ -325,10 +327,16 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
   for (std::vector<OstreePackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
     if ((*it).install(cred).first != data::OK) {
       LOGGER_LOG(LVL_error, "error of installing package");
+      processing = false;
       return;
     }
   }
+<<<<<<< fde91a40f6728265efc2d41a12d96b4ad669a4a9
   putManifest(SotaUptaneClient::Director);
+=======
+  putManfiest(SotaUptaneClient::Director);
+  processing = false;
+>>>>>>> Ostree and uptane old api fixes
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
@@ -341,11 +349,15 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     }
   }
   authenticate();
-
   initService(Director);
+<<<<<<< fde91a40f6728265efc2d41a12d96b4ad669a4a9
 
   putManifest(Director);
 
+=======
+  putManfiest(Director);
+  processing = false;
+>>>>>>> Ostree and uptane old api fixes
   boost::thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;

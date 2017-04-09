@@ -137,6 +137,8 @@ void Config::updateFromToml(const std::string& filename) {
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
   CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
   CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
+  CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
+
 
   CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);

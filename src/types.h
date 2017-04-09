@@ -90,12 +90,14 @@ enum UpdateResultCode {
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
+struct UpdateReport;
 struct OperationResult {
   std::string id;
   UpdateResultCode result_code;
   std::string result_text;
   Json::Value toJson();
-  bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
+  UpdateReport toReport();
+  bool isSuccess(){ return result_code == OK || result_code == ALREADY_PROCESSED;};
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };
