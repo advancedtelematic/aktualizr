@@ -1,3 +1,10 @@
 ignore:
   - "src/third_party"
   - "src/tests"
+
+fixes:
+  - "src/::"     
+
+ignore:
+  - "tests"
+  - "third_party"

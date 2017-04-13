@@ -102,7 +102,10 @@ bool SotaUptaneClient::verifyData(SotaUptaneClient::ServiceType service, const s
   std::string canonical = Json::FastWriter().write(tuf_signed["signed"]);
   unsigned int valid_signatures = 0;
   for (Json::ValueIterator it = tuf_signed["signatures"].begin(); it != tuf_signed["signatures"].end(); it++) {
-    if ((*it)["method"].asString() != "rsassa-pss") {
+    std::string method((*it)["method"].asString());
+    std::transform(method.begin(), method.end(), method.begin(), ::tolower);
+
+    if (method != "rsassa-pss") {
       LOGGER_LOG(LVL_debug, "Unknown sign method: " << (*it)["method"].asString());
       continue;
     }
