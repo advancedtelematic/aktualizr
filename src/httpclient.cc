@@ -44,7 +44,7 @@ HttpClient::HttpClient() {
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
-  if (loggerGetSeverity() <= LVL_debug) {
+  if (loggerGetSeverity() == LVL_trace) {
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   }
 
@@ -103,6 +103,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   std::string response;
   curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_auth);
+  LOGGER_LOG(LVL_trace, "response:" << response);
 
   curl_easy_cleanup(curl_auth);
   if (result != CURLE_OK) {
@@ -188,6 +189,7 @@ std::string HttpClient::perform(CURL* curl_handler) {
     throw std::runtime_error(error_stream.str());
   }
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
+  LOGGER_LOG(LVL_trace, "response:" << response);
   return response;
 }
 
