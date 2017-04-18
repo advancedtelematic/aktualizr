@@ -219,23 +219,17 @@ TEST(event, InstallComplete_event_to_json) {
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
   operation_result.result_text = "text";
-  std::vector<data::OperationResult> operation_results;
-  operation_results.push_back(operation_result);
-  data::UpdateReport ur;
-  ur.update_id = "request_id";
-  ur.operation_results = operation_results;
 
-  event::InstallComplete event(ur);
+  event::InstallComplete event(operation_result);
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "InstallComplete");
-  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
+  EXPECT_EQ(json["fields"][0]["id"].asString(), "testid23");
+  EXPECT_EQ(json["fields"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  EXPECT_EQ(json["fields"][0]["result_text"].asString(), "text");
 }
 
 TEST(event, InstallFailed_event_to_json) {
@@ -243,23 +237,18 @@ TEST(event, InstallFailed_event_to_json) {
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
   operation_result.result_text = "text";
-  std::vector<data::OperationResult> operation_results;
-  operation_results.push_back(operation_result);
-  data::UpdateReport ur;
-  ur.update_id = "request_id";
-  ur.operation_results = operation_results;
+  
 
-  event::InstallFailed event(ur);
+  event::InstallFailed event(operation_result);
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "InstallFailed");
-  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(), data::NOT_FOUND);
-  EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
+  EXPECT_EQ(json["fields"][0]["id"].asString(), "testid23");
+  EXPECT_EQ(json["fields"][0]["result_code"].asUInt(), data::NOT_FOUND);
+  EXPECT_EQ(json["fields"][0]["result_text"].asString(), "text");
 }
 
 TEST(event, UpdateReportSent_event_to_json) {
@@ -415,30 +404,28 @@ TEST(event, InstallingUpdate_event_from_json) {
 
 TEST(event, InstallComplete_event_from_json) {
   std::string json =
-      "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
-      "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
+      "{\"fields\":[{\"id\":\"testid23\",\"result_"
+      "code\":16,\"result_text\":\"text\"}],"
       "\"variant\":\"InstallComplete\"}";
   event::InstallComplete event = event::InstallComplete::fromJson(json);
 
   EXPECT_EQ(event.variant, "InstallComplete");
-  EXPECT_EQ(event.update_report.operation_results[0].id, "testid23");
-  EXPECT_EQ(event.update_report.operation_results[0].result_code, 16);
-  EXPECT_EQ(event.update_report.operation_results[0].result_text, "text");
-  EXPECT_EQ(event.update_report.update_id, "request_id");
+  EXPECT_EQ(event.install_result.id, "testid23");
+  EXPECT_EQ(event.install_result.result_code, 16);
+  EXPECT_EQ(event.install_result.result_text, "text");
 }
 
 TEST(event, InstallFailed_event_from_json) {
   std::string json =
-      "{\"fields\":[{\"operation_results\":[{\"id\":\"testid23\",\"result_"
-      "code\":16,\"result_text\":\"text\"}],\"update_id\":\"request_id\"}],"
+      "{\"fields\":[{\"id\":\"testid23\",\"result_"
+      "code\":16,\"result_text\":\"text\"}],"
       "\"variant\":\"InstallFailed\"}";
   event::InstallFailed event = event::InstallFailed::fromJson(json);
 
   EXPECT_EQ(event.variant, "InstallFailed");
-  EXPECT_EQ(event.update_report.operation_results[0].id, "testid23");
-  EXPECT_EQ(event.update_report.operation_results[0].result_code, 16);
-  EXPECT_EQ(event.update_report.operation_results[0].result_text, "text");
-  EXPECT_EQ(event.update_report.update_id, "request_id");
+  EXPECT_EQ(event.install_result.id, "testid23");
+  EXPECT_EQ(event.install_result.result_code, 16);
+  EXPECT_EQ(event.install_result.result_text, "text");
 }
 
 #ifndef __NO_MAIN__

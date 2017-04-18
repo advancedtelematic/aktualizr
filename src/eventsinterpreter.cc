@@ -29,15 +29,11 @@ void EventsInterpreter::run() {
     gateway_manager.processEvents(event);
 
     if (event->variant == "DownloadComplete") {
-      event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
-      data::OperationResult operation_result;
-      operation_result.id = download_complete_event->download_complete.update_id;
-      operation_result.result_code = data::OK;
-      operation_result.result_text = "Downloaded";
-      data::UpdateReport update_report;
-      update_report.update_id = download_complete_event->download_complete.update_id;
-      update_report.operation_results.push_back(operation_result);
-      *commands_channel << boost::make_shared<command::SendUpdateReport>(update_report);
+      if (config.device.package_manager != PMOFF) {
+        event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
+        *commands_channel << boost::make_shared<command::StartInstall>(
+            download_complete_event->download_complete.update_id);
+      }
     } else if (event->variant == "UpdatesReceived") {
       std::vector<data::UpdateRequest> updates = static_cast<event::UpdatesReceived*>(event.get())->update_requests;
       for (std::vector<data::UpdateRequest>::iterator update = updates.begin(); update != updates.end(); ++update) {

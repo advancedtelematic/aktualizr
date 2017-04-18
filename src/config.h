@@ -14,6 +14,8 @@
 
 enum Auth { OAUTH2 = 0, CERTIFICATE };
 
+enum PackageManager { PMOFF = 0, PMOSTREE };
+
 struct CoreConfig {
   CoreConfig() : server("http://127.0.0.1:8080"), polling(true), polling_sec(10) {}
 
@@ -48,7 +50,10 @@ struct DbusConfig {
 
 struct DeviceConfig {
   DeviceConfig()
-      : uuid("123e4567-e89b-12d3-a456-426655440000"), packages_dir("/tmp/"), certificates_path("/tmp/aktualizr/") {
+      : uuid("123e4567-e89b-12d3-a456-426655440000"),
+        packages_dir("/tmp/"),
+        certificates_path("/tmp/aktualizr/"),
+        package_manager(PMOFF) {
     createCertificatesPath();
   }
   void createCertificatesPath() {
@@ -58,13 +63,9 @@ struct DeviceConfig {
   }
 
   std::string uuid;
-  std::string packages_dir;
+  boost::filesystem::path packages_dir;
   boost::filesystem::path certificates_path;
-  // TODO Need to be implemented soon
-  // PackageManager package_manager;
-  // std::string p12_path;
-  // std::string p12_password;
-  // std::string system_info;
+  PackageManager package_manager;
 };
 
 struct GatewayConfig {

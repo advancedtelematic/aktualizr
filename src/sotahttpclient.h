@@ -16,6 +16,7 @@ class SotaHttpClient {
   ~SotaHttpClient();
   std::vector<data::UpdateRequest> getAvailableUpdates();
   virtual void startDownload(const data::UpdateRequestId &update_request_id);
+  virtual void startInstall(const data::UpdateRequestId &update_request_id);
   virtual void sendUpdateReport(data::UpdateReport update_report);
   bool authenticate();
   void run(command::Channel *commands_channel);

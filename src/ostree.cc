@@ -7,7 +7,7 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
 
-InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred) {
   FILE *pipe;
   char buff[512];
   std::string env;
@@ -39,11 +39,11 @@ InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cre
   int status_code = pclose(pipe) / 256;
   if (status_code == 0) {
     // FIXME write json to NEW_PACKAGE
-    return InstallOutcome(data::OK, output);
+    return data::InstallOutcome(data::OK, output);
   } else if (status_code == 99) {
-    return InstallOutcome(data::ALREADY_PROCESSED, output);
+    return data::InstallOutcome(data::ALREADY_PROCESSED, output);
   }
-  return InstallOutcome(data::INSTALL_FAILED, output);
+  return data::InstallOutcome(data::INSTALL_FAILED, output);
 }
 
 OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &branch) {

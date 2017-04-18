@@ -194,7 +194,7 @@ data::OperationResult DbusGateway::getOperationResult(DBusMessageIter* iter) {
         dbus_message_iter_get_basic(&variant_iter, &string_param);
         result.result_text = string_param;
       }
-    } while(dbus_message_iter_next(&subiter));
+    } while (dbus_message_iter_next(&subiter));
   }
   return result;
 }
