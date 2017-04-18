@@ -145,10 +145,11 @@ TEST(uptane, get_json) {
   config.uptane.repo_server = "https://repo.com";
   config.device.uuid = "device_id";
   
-  config.uptane.metadata_path = "./tests/test_data/";
+  config.uptane.metadata_path = "tests/test_data/";
   event::Channel *events_channel = new event::Channel();
   SotaUptaneClient up(config, events_channel);
-  std::string expected = "D5912BC10D8AD16FEAF34715231FB4251CA72C7E3FEF4E34A48751D152006DFF";
+  std::string expected = "B3FBEDF18B9748CD8443762CAEC5610EB373C0CE9CA325E85F7EEC95FAA00BEF";
+
   std::string result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Director, "root", false))));
   EXPECT_EQ(expected, result);
   result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Repo, "root", false))));
@@ -295,6 +296,8 @@ TEST(uptane, sign) {
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 
+
+
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
@@ -344,6 +347,7 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   SotaUptaneClient up(config, events_channel);
   
   boost::filesystem::remove(test_manifest);
+  up.initService(SotaUptaneClient::Director);
 
   up.putManfiest(SotaUptaneClient::Director);
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
@@ -352,9 +356,11 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   Json::Reader reader;
   std::ifstream ks(test_manifest.c_str());
   std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-  reader.parse(mnfst_str, json);
-  EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
 
+  reader.parse(mnfst_str, json);
+  EXPECT_EQ(json["signatures"].size(), 1u);
+  EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 1u);
 }
 
 TEST(SotaUptaneClientTest, device_ecu_register) {

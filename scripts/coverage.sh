@@ -2,7 +2,7 @@
 set -e
 mkdir -p build-coverage
 cd build-coverage
-cmake -DBUILD_GENIVI=ON -DBUILD_WITH_CODE_COVERAGE=ON ../src
+cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_WITH_CODE_COVERAGE=ON ../src
 make -j8
 CTEST_OUTPUT_ON_FAILURE=1 make -j1 coverage
 cd ..
