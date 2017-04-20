@@ -30,7 +30,7 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
 // Discard the http body
 static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
 
-HttpClient::HttpClient():authenticated(false) {
+HttpClient::HttpClient() : authenticated(false) {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
@@ -52,7 +52,7 @@ HttpClient::HttpClient():authenticated(false) {
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, h);
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in):authenticated(false) {
+HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {
   curl = curl_easy_duphandle(curl_in.curl);
   token = curl_in.token;
 

@@ -102,7 +102,7 @@ void Config::updateFromToml(const std::string& filename) {
   CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
   CopyFromConfig(device.certificates_path, "device.certificates_path", LVL_trace, pt);
   device.createCertificatesPath();
-  if(pt.get_optional<std::string>("device.package_manager").is_initialized()){
+  if (pt.get_optional<std::string>("device.package_manager").is_initialized()) {
     std::string pm = strip_quotes(pt.get_optional<std::string>("device.package_manager").get());
     if (pm == "ostree") {
       device.package_manager = PMOSTREE;

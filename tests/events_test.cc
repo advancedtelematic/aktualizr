@@ -237,7 +237,6 @@ TEST(event, InstallFailed_event_to_json) {
   operation_result.id = "testid23";
   operation_result.result_code = data::NOT_FOUND;
   operation_result.result_text = "text";
-  
 
   event::InstallFailed event(operation_result);
 

@@ -4,7 +4,7 @@
 #include <json/json.h>
 
 namespace data {
-  
+
 typedef std::string UpdateRequestId;
 struct Package {
   std::string name;
@@ -95,11 +95,10 @@ struct OperationResult {
   UpdateResultCode result_code;
   std::string result_text;
   Json::Value toJson();
-  bool isSuccess(){ return result_code == OK || result_code == ALREADY_PROCESSED;};
+  bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
   static OperationResult fromJson(const std::string& json_str);
-  static OperationResult fromOutcome(const std::string& id, const InstallOutcome &outcome);
+  static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };
-
 
 struct UpdateReport {
   UpdateRequestId update_id;

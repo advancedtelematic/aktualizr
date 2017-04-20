@@ -128,7 +128,7 @@ OperationResult OperationResult::fromJson(const std::string& json_str) {
   return operation_result;
 }
 
-OperationResult OperationResult::fromOutcome(const std::string& id, const InstallOutcome &outcome){
+OperationResult OperationResult::fromOutcome(const std::string& id, const InstallOutcome& outcome) {
   OperationResult operation_result;
   operation_result.id = id;
   operation_result.result_code = outcome.first;
