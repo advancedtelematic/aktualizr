@@ -36,7 +36,6 @@ void callbackWrapper(int fd, void *service_data, const char *parameters) {
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
     : config(config_in), events_channel(events_channel_in), stop(false) {
-
   Json::Value json;
   json["dev"]["key"] = config.rvi.device_key;
   json["dev"]["cert"] = config.rvi.device_cert;
@@ -47,7 +46,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
 
   rviSetVerboseLogs(loggerGetSeverity() == LVL_trace);
 
-  rvi = rviJsonInit(const_cast<char*>(Json::FastWriter().write(json).c_str()));
+  rvi = rviJsonInit(const_cast<char *>(Json::FastWriter().write(json).c_str()));
   if (!rvi) {
     throw std::runtime_error("cannot initialize rvi with config " + Json::FastWriter().write(json));
   }
@@ -131,7 +130,7 @@ void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
   std::string output(base64_to_bin(b64_text.begin()), base64_to_bin(b64_text.end()));
   output.erase(output.end() - static_cast<unsigned int>(paddChars), output.end());
 
-  std::ofstream update_file((config.device.packages_dir + chunk_json["update_id"].asString()).c_str(),
+  std::ofstream update_file((config.device.packages_dir / chunk_json["update_id"].asString()).string().c_str(),
                             std::ios::out | std::ios::app | std::ios::binary);
   update_file << output;
   update_file.close();
@@ -144,7 +143,7 @@ void SotaRVIClient::downloadComplete(const Json::Value &parameters) {
   data::DownloadComplete download_complete;
   download_complete.update_id = parameters["update_id"].asString();
   download_complete.signature = parameters["signature"].asString();
-  download_complete.update_image = config.device.packages_dir + download_complete.update_id;
+  download_complete.update_image = (config.device.packages_dir / download_complete.update_id).string();
   sendEvent(boost::make_shared<event::DownloadComplete>(download_complete));
 }
 

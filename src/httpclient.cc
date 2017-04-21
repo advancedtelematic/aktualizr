@@ -30,7 +30,7 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
 // Discard the http body
 static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
 
-HttpClient::HttpClient() {
+HttpClient::HttpClient() : authenticated(false) {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
@@ -52,7 +52,7 @@ HttpClient::HttpClient() {
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, h);
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) {
+HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {
   curl = curl_easy_duphandle(curl_in.curl);
   token = curl_in.token;
 
@@ -223,11 +223,13 @@ bool HttpClient::download(const std::string& url, const std::string& filename) {
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, writeFile);
 
   struct stat st;
+  std::string mode = "w";
   if (!stat(filename.c_str(), &st)) {
     curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, st.st_size);
+    mode = "a";
   }
 
-  FILE* fp = fopen(filename.c_str(), "a");
+  FILE* fp = fopen(filename.c_str(), mode.c_str());
   curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, fp);
   result = curl_easy_perform(curl_download);
 

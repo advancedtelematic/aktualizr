@@ -192,7 +192,7 @@ InstallingUpdate InstallingUpdate::fromJson(const std::string& json_str) {
   return InstallingUpdate(json["fields"][0].asString());
 }
 
-InstallComplete::InstallComplete(const data::UpdateReport& ureport_in) : update_report(ureport_in) {
+InstallComplete::InstallComplete(const data::OperationResult& install_result_in) : install_result(install_result_in) {
   variant = "InstallComplete";
 }
 
@@ -201,22 +201,22 @@ InstallComplete InstallComplete::fromJson(const std::string& json_str) {
   Json::Value json;
   reader.parse(json_str, json);
 
-  return InstallComplete(data::UpdateReport::fromJson(Json::FastWriter().write(json["fields"][0])));
+  return InstallComplete(data::OperationResult::fromJson(Json::FastWriter().write(json["fields"][0])));
 }
 
 std::string InstallComplete::toJson() {
   Json::Value json = toBaseJson();
-  json["fields"].append(update_report.toJson());
+  json["fields"].append(install_result.toJson());
   return Json::FastWriter().write(json);
 }
 
-InstallFailed::InstallFailed(const data::UpdateReport& ureport_in) : update_report(ureport_in) {
+InstallFailed::InstallFailed(const data::OperationResult& install_result_in) : install_result(install_result_in) {
   variant = "InstallFailed";
 }
 
 std::string InstallFailed::toJson() {
   Json::Value json = toBaseJson();
-  json["fields"].append(update_report.toJson());
+  json["fields"].append(install_result.toJson());
   return Json::FastWriter().write(json);
 }
 
@@ -225,7 +225,7 @@ InstallFailed InstallFailed::fromJson(const std::string& json_str) {
   Json::Value json;
   reader.parse(json_str, json);
 
-  return InstallFailed(data::UpdateReport::fromJson(Json::FastWriter().write(json["fields"][0])));
+  return InstallFailed(data::OperationResult::fromJson(Json::FastWriter().write(json["fields"][0])));
 }
 
 UpdateReportSent::UpdateReportSent() { variant = "UpdateReportSent"; }

@@ -7,7 +7,6 @@
 #include "ostree-1/ostree.h"
 #include "types.h"
 
-typedef std::pair<data::UpdateResultCode, std::string> InstallOutcome;
 static const std::string NEW_PACKAGE = "/tmp/sota-package";
 static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
 
@@ -20,7 +19,7 @@ class OstreePackage {
   std::string commit;
   std::string description;
   std::string pull_uri;
-  InstallOutcome install(const data::PackageManagerCredentials &cred);
+  data::InstallOutcome install(const data::PackageManagerCredentials &cred);
   Json::Value toEcuVersion(const Json::Value &custom);
   static OstreePackage getEcu(const std::string &);
   static OstreePackage fromJson(const Json::Value &json);

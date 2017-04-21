@@ -47,7 +47,7 @@ TEST(DownloadTest, download_called) {
   testing::DefaultValue<bool>::Set(true);
   EXPECT_CALL(*http,
               download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" + update_request_id + "/download",
-                       conf.device.packages_dir + update_request_id));
+                       (conf.device.packages_dir / update_request_id).string()));
   aktualizr.startDownload(update_request_id);
   boost::shared_ptr<event::BaseEvent> ev;
   *events_channel >> ev;
@@ -68,7 +68,7 @@ TEST(DownloadTest, download_error) {
   testing::DefaultValue<bool>::Set(false);
   EXPECT_CALL(*http,
               download(conf.core.server + "/api/v1/mydevice/test_uuid/updates/" + update_request_id + "/download",
-                       conf.device.packages_dir + update_request_id));
+                       (conf.device.packages_dir / update_request_id).string()));
   aktualizr.startDownload(update_request_id);
   EXPECT_EQ(events_channel->hasValues(), false);
 }

@@ -118,16 +118,16 @@ class InstallingUpdate : public BaseEvent {
 
 class InstallComplete : public BaseEvent {
  public:
-  InstallComplete(const data::UpdateReport& ureport_in);
-  data::UpdateReport update_report;
+  InstallComplete(const data::OperationResult& install_result_in);
+  data::OperationResult install_result;
   virtual std::string toJson();
   static InstallComplete fromJson(const std::string& json_str);
 };
 
 class InstallFailed : public BaseEvent {
  public:
-  InstallFailed(const data::UpdateReport& ureport_in);
-  data::UpdateReport update_report;
+  InstallFailed(const data::OperationResult& install_result_in);
+  data::OperationResult install_result;
   virtual std::string toJson();
   static InstallFailed fromJson(const std::string& json_str);
 };

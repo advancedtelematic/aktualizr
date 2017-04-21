@@ -128,6 +128,14 @@ OperationResult OperationResult::fromJson(const std::string& json_str) {
   return operation_result;
 }
 
+OperationResult OperationResult::fromOutcome(const std::string& id, const InstallOutcome& outcome) {
+  OperationResult operation_result;
+  operation_result.id = id;
+  operation_result.result_code = outcome.first;
+  operation_result.result_text = outcome.second;
+  return operation_result;
+}
+
 Json::Value UpdateReport::toJson() {
   Json::Value json;
   json["update_id"] = update_id;

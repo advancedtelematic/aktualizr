@@ -52,7 +52,6 @@ void SotaUptaneClient::initService(SotaUptaneClient::ServiceType service) {
     services[service].roles[it.key().asString()].first = (*it)["threshold"].asUInt();
   }
 
-
   if (!verifyData(service, "root", root_json)) {
     std::runtime_error("veryfication of root.json failed");
   }
@@ -78,7 +77,6 @@ Json::Value SotaUptaneClient::getJSON(SotaUptaneClient::ServiceType service, con
     return http->getJson(getEndPointUrl(service, role));
   }
 }
-
 
 bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::string &role,
                               SotaUptaneClient::Verified &verified, bool force_fetch) {
