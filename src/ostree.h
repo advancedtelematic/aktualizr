@@ -4,7 +4,6 @@
 #include <string>
 
 #include <glib/gi18n.h>
-#include "ostree-1/ostree.h"
 #include "types.h"
 
 static const std::string NEW_PACKAGE = "/tmp/sota-package";

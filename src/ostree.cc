@@ -1,7 +1,9 @@
 #include "ostree.h"
 #include <stdio.h>
-#include <boost/filesystem.hpp>
 #include <fstream>
+#include <boost/filesystem.hpp>
+
+#include "ostree-1/ostree.h"
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)

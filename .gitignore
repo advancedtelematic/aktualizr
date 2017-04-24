@@ -43,7 +43,6 @@ CMakeCache.txt
 CMakeFiles/
 *-prefix/
 Testing/
-Makefile
 cmake_install.cmake
 CTestTestfile.cmake
 compile_commands.json

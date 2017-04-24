@@ -36,9 +36,9 @@ class SotaUptaneClient {
   void initService(SotaUptaneClient::ServiceType service);
   bool verify(SotaUptaneClient::ServiceType service, const std::string &role, SotaUptaneClient::Verified &verified,
               bool force_fetch);
-  void putManfiest(SotaUptaneClient::ServiceType service);
+  void putManifest(SotaUptaneClient::ServiceType service);
   Json::Value getJSON(SotaUptaneClient::ServiceType service, const std::string &role, bool force_fetch);
-  std::string sign(const Json::Value &in_data, Json::Value &out_data);
+  Json::Value sign(const Json::Value &in_data);
   void OstreeInstall(std::vector<OstreePackage> packages);
   std::vector<OstreePackage> getAvailableUpdates();
   bool deviceRegister();
@@ -50,7 +50,7 @@ class SotaUptaneClient {
  private:
   struct Service {
     std::map<std::string, std::string> keys;
-    // first argument in pair is thresold, second is version
+    // first argument in pair is threshold, second is version
     std::map<std::string, std::pair<unsigned int, unsigned long long> > roles;
   };
 
@@ -60,6 +60,5 @@ class SotaUptaneClient {
   event::Channel *events_channel;
 
   std::vector<Json::Value> ecu_versions;
-  bool processing;
   bool was_error;
 };
