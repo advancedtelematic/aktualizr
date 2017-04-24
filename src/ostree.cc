@@ -3,6 +3,8 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 
+#include "ostree-1/ostree.h"
+
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
