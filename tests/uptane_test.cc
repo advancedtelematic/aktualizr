@@ -286,11 +286,8 @@ TEST(uptane, sign) {
   up.initService(SotaUptaneClient::Director);
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
-  Json::Value signed_json;
-  
-  std::string signature = up.sign(tosign_json, signed_json);
-  
-  EXPECT_EQ(signature.size() != 0, true);
+  Json::Value signed_json = up.sign(tosign_json);
+
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(), "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE");
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);

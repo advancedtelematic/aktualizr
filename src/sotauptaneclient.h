@@ -38,7 +38,7 @@ class SotaUptaneClient {
               bool force_fetch);
   void putManfiest(SotaUptaneClient::ServiceType service);
   Json::Value getJSON(SotaUptaneClient::ServiceType service, const std::string &role, bool force_fetch);
-  std::string sign(const Json::Value &in_data, Json::Value &out_data);
+  Json::Value sign(const Json::Value &in_data);
   void OstreeInstall(std::vector<OstreePackage> packages);
   std::vector<OstreePackage> getAvailableUpdates();
   bool deviceRegister();

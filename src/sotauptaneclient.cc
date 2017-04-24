@@ -11,7 +11,7 @@
 #include "json/json.h"
 #include "logger.h"
 
-std::string SotaUptaneClient::sign(const Json::Value &in_data, Json::Value &out_data) {
+Json::Value SotaUptaneClient::sign(const Json::Value &in_data) {
   std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
   std::string signature_str = Crypto::RSAPSSSign(key_path, Json::FastWriter().write(in_data));
 
@@ -24,10 +24,12 @@ std::string SotaUptaneClient::sign(const Json::Value &in_data, Json::Value &out_
   std::ifstream key_path_stream(key_path.c_str());
   std::string key_content((std::istreambuf_iterator<char>(key_path_stream)), std::istreambuf_iterator<char>());
   signature["keyid"] = boost::algorithm::hex(Crypto::sha256digest(key_content));
+
+  Json::Value out_data;
   out_data["signed"] = in_data;
   out_data["signatures"] = Json::Value(Json::arrayValue);
   out_data["signatures"].append(signature);
-  return signature_str;
+  return out_data;
 }
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in)
@@ -87,7 +89,7 @@ bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::
   }
   verified.new_version = services[service].roles[role].second;
   verified.role = role;
-  verified.data = data["sigend"];
+  verified.data = data["signed"];
   return true;
 }
 
@@ -133,23 +135,21 @@ bool SotaUptaneClient::verifyData(SotaUptaneClient::ServiceType service, const s
 
 std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType service, const std::string &role) {
   if (service == Director) {
-    return config.uptane.director_server + "/" + role + ".json";
+    return config.tls.server + "/" + role + ".json";
   } else {
-    return config.uptane.repo_server + "/" + config.device.uuid + "/" + role + ".json";
+    return config.tls.server + "/" + config.device.uuid + "/" + role + ".json";
   }
 }
 
-void SotaUptaneClient::putManfiest(SotaUptaneClient::ServiceType service) {
+void SotaUptaneClient::putManifest(SotaUptaneClient::ServiceType service) {
   Json::Value version_manifest;
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
   for (std::vector<Json::Value>::iterator it = ecu_versions.begin(); it != ecu_versions.end(); ++it) {
-    Json::Value ecu_version_signed;
-    sign(*it, ecu_version_signed);
+    Json::Value ecu_version_signed = sign(*it);
     version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   }
-  Json::Value tuf_signed;
-  sign(version_manifest, tuf_signed);
+  Json::Value tuf_signed = sign(version_manifest);
 
   http->put(getEndPointUrl(service, "manifest"), Json::FastWriter().write(tuf_signed));
 }
