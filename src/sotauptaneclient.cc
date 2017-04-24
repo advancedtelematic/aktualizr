@@ -278,18 +278,14 @@ bool SotaUptaneClient::authenticate() {
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
-    if (processing) {
-      sleep(1);
+    if (!http->isAuthenticated()) {
+      *commands_channel << boost::make_shared<command::Authenticate>();
+    }
+    *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+    if (was_error) {
+      sleep(2);
     } else {
-      if (was_error) {
-        sleep(2);
-      } else {
-        sleep(static_cast<unsigned int>(config.core.polling_sec));
-      }
-      if (!http->isAuthenticated()) {
-        *commands_channel << boost::make_shared<command::Authenticate>();
-      }
-      *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+      sleep(static_cast<unsigned int>(config.core.polling_sec));
     }
   }
 }

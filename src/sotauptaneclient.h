@@ -60,6 +60,5 @@ class SotaUptaneClient {
   event::Channel *events_channel;
 
   std::vector<Json::Value> ecu_versions;
-  bool processing;
   bool was_error;
 };
