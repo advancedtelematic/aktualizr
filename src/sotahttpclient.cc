@@ -84,7 +84,7 @@ void SotaHttpClient::startInstall(const data::UpdateRequestId &InstallingUpdate)
                     json["description"].asString(), json["pullUri"].asString());
   data::PackageManagerCredentials cred;
   cred.access_token = http->token;
-  data::OperationResult result = data::OperationResult::fromOutcome(InstallingUpdate, pkg.install(cred));
+  data::OperationResult result = data::OperationResult::fromOutcome(InstallingUpdate, pkg.install(cred, config.ostree));
   if (result.isSuccess()) {
     *events_channel << boost::make_shared<event::InstallComplete>(result);
   } else {

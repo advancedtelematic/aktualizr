@@ -17,8 +17,9 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
   (void)cred;
+  (void)config;
   return data::InstallOutcome(data::OK, "Good");
 }
 

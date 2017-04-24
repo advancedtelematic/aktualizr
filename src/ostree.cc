@@ -79,7 +79,7 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
   const char remote[] = "aktualizr-remote";
   const char* const refs[] = {commit.c_str()};
   const char* opt_osname = NULL;
@@ -90,8 +90,10 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   GVariantBuilder builder;
   GVariant *options;
 
-
-  OstreeSysroot *sysroot = Ostree::LoadSysroot("");
+  if(config.os.size()){
+    opt_osname = config.os.c_str();
+  }
+  OstreeSysroot *sysroot = Ostree::LoadSysroot(config.sysroot);
   if (!ostree_sysroot_get_repo (sysroot, &repo, cancellable, &error)){
     LOGGER_LOG(LVL_error, "could not get repo");
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
@@ -126,7 +128,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   }
 
   OstreeDeployment* booted_deployment =  Ostree::getBootedDeployment();
-  if(booted_deployment == NULL){
+  if(booted_deployment == NULL && !config.os.size() && !config.sysroot.size()){
     LOGGER_LOG(LVL_error, "No booted deplyment");
     return data::InstallOutcome(data::INSTALL_FAILED, "No booted deplyment");
   }

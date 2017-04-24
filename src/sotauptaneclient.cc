@@ -25,6 +25,7 @@ Json::Value SotaUptaneClient::sign(const Json::Value &in_data) {
   std::string key_content((std::istreambuf_iterator<char>(key_path_stream)), std::istreambuf_iterator<char>());
   std::string keyid = boost::algorithm::hex(Crypto::sha256digest(key_content));
   std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
+  Json::Value out_data;
   signature["keyid"] = keyid;
   out_data["signed"] = in_data;
   out_data["signatures"] = Json::Value(Json::arrayValue);
@@ -325,18 +326,14 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
   cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
   cred.cert_file = (config.device.certificates_path / config.tls.client_certificate).string();
   for (std::vector<OstreePackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
-    if ((*it).install(cred).first != data::OK) {
+    if ((*it).install(cred, config.ostree).first != data::OK) {
       LOGGER_LOG(LVL_error, "error of installing package");
       processing = false;
       return;
     }
   }
-<<<<<<< fde91a40f6728265efc2d41a12d96b4ad669a4a9
   putManifest(SotaUptaneClient::Director);
-=======
-  putManfiest(SotaUptaneClient::Director);
   processing = false;
->>>>>>> Ostree and uptane old api fixes
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
@@ -350,14 +347,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   }
   authenticate();
   initService(Director);
-<<<<<<< fde91a40f6728265efc2d41a12d96b4ad669a4a9
-
   putManifest(Director);
-
-=======
-  putManfiest(Director);
   processing = false;
->>>>>>> Ostree and uptane old api fixes
   boost::thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;
