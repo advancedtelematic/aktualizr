@@ -346,7 +346,7 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   boost::filesystem::remove(test_manifest);
   up.initService(SotaUptaneClient::Director);
 
-  up.putManfiest(SotaUptaneClient::Director);
+  up.putManifest(SotaUptaneClient::Director);
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
   
   Json::Value json;

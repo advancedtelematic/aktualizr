@@ -115,17 +115,17 @@ bool SotaUptaneClient::verifyData(SotaUptaneClient::ServiceType service, const s
       continue;
     }
     std::string sigb64 = (*it)["sig"].asString();
-    unsigned long long paddChars = std::count(sigb64.begin(), sigb64.end(), '=');
+    unsigned long long paddingChars = std::count(sigb64.begin(), sigb64.end(), '=');
     std::replace(sigb64.begin(), sigb64.end(), '=', 'A');
     std::string sig(base64_to_bin(sigb64.begin()), base64_to_bin(sigb64.end()));
-    sig.erase(sig.end() - static_cast<unsigned int>(paddChars), sig.end());
+    sig.erase(sig.end() - static_cast<unsigned int>(paddingChars), sig.end());
 
     valid_signatures += Crypto::RSAPSSVerify(services[service].keys[keyid], sig, canonical);
   }
   if (valid_signatures == 0) {
     LOGGER_LOG(LVL_debug, "signature verification failed");
   } else if (valid_signatures < services[service].roles[role].first) {
-    LOGGER_LOG(LVL_debug, "signature treshold error");
+    LOGGER_LOG(LVL_debug, "signature threshold error");
   } else {
     services[service].roles[role].second = tuf_signed["signed"]["version"].asUInt();
     return true;
@@ -241,7 +241,7 @@ bool SotaUptaneClient::ecuRegister() {
 
   std::string result = http->post(config.tls.server + "/director/ecus", data);
   if (http->http_code != 200 && http->http_code != 201) {
-    LOGGER_LOG(LVL_error, "error uptone registering device, response: " << result);
+    LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << result);
     return false;
   }
 
@@ -328,7 +328,7 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
       return;
     }
   }
-  putManfiest(SotaUptaneClient::Director);
+  putManifest(SotaUptaneClient::Director);
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
@@ -344,7 +344,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
   initService(Director);
 
-  putManfiest(Director);
+  putManifest(Director);
 
   boost::thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
