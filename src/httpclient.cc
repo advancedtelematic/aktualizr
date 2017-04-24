@@ -129,6 +129,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
 std::string HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  LOGGER_LOG(LVL_debug, "GET " << url);
   return perform(curl);
 }
 
@@ -161,6 +162,7 @@ std::string HttpClient::post(const std::string& url, const std::string& data) {
   CURL* curl_post = curl_easy_duphandle(curl);
   curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
+  LOGGER_LOG(LVL_debug, "POST " << url);
   std::string result = perform(curl_post);
   curl_easy_cleanup(curl_post);
   return result;
@@ -172,6 +174,7 @@ std::string HttpClient::put(const std::string& url, const std::string& data) {
   curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
   curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
   struct curl_slist* h = curl_slist_append(headers, "Content-Type: application/json");
+  LOGGER_LOG(LVL_debug, "PUT " << url);
   std::string result = perform(curl_post);
   curl_easy_cleanup(curl_post);
   curl_slist_free_all(h);
