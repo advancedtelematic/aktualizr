@@ -8,6 +8,7 @@ RUN apt-get update -q && apt-get -qy install \
     g++ \
     libboost-dev \
     libboost-filesystem-dev \
+    libboost-log-dev \
     libboost-program-options-dev \
     libboost-system-dev \
     libcurl4-gnutls-dev \

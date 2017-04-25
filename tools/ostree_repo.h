@@ -32,8 +32,8 @@ class OSTreeRepo : private boost::noncopyable {
  */
 class OSTreeObjectMissing : std::exception {
  public:
-  OSTreeObjectMissing(const OSTreeHash missing_object)
-      : missing_object_(missing_object) {}
+  OSTreeObjectMissing(const OSTreeHash _missing_object)
+      : missing_object_(_missing_object) {}
 
   virtual const char* what() const noexcept {
     return "OSTree repository is missing an object";

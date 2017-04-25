@@ -12,8 +12,8 @@ class TreehubServer {
 
   void ca_certs(const std::string &cacerts) { ca_certs_ = cacerts; }
   void root_url(const std::string &root_url);
-  void username(const std::string &username) { username_ = username; }
-  void password(const std::string &password) { password_ = password; }
+  void username(const std::string &_username) { username_ = _username; }
+  void password(const std::string &_password) { password_ = _password; }
 
  private:
   std::string ca_certs_;

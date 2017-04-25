@@ -20,7 +20,7 @@ find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang
 find_program(PANDOC NAMES pandoc)
 
 # Boost
-find_package(Boost REQUIRED program_options filesystem system log)
+find_package(Boost REQUIRED program_options filesystem system thread log log_setup)
 include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(-DBOOST_LOG_DYN_LINK=1)
 
@@ -52,7 +52,11 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	endif()
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+if( ${CMAKE_VERSION} LESS 3.1 )
+    add_compile_options(-std=c++11)
+else()
+    set (CMAKE_CXX_STANDARD 11)
+endif()
 
 # QA virtual target
 add_custom_target(qa)
