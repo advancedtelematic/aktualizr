@@ -43,6 +43,12 @@ void EventsInterpreter::run() {
     } else if (event->variant == "UpdateAvailable") {
       *commands_channel << boost::shared_ptr<command::StartDownload>(
           new command::StartDownload(static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id));
+    } else if (event->variant == "InstallComplete") {
+      *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
+          new command::SendUpdateReport(static_cast<event::InstallComplete*>(event.get())->install_result.toReport()));
+    } else if (event->variant == "InstallFailed") {
+      *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
+          new command::SendUpdateReport(static_cast<event::InstallFailed*>(event.get())->install_result.toReport()));
     }
   }
 }

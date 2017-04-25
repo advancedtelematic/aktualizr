@@ -23,12 +23,13 @@ class HttpClient {
   bool isAuthenticated() { return authenticated; }
   void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
   unsigned int http_code;
+  std::string token; /**< the OAuth2 token stored as string */
+
 
  private:
   CURL *curl;
   curl_slist *headers;
   std::string perform(CURL *curl_handler);
-  std::string token; /**< the OAuth2 token stored as string */
   bool authenticated;
 };
 #endif

@@ -86,8 +86,7 @@ struct NetworkConfig {
   std::vector<std::string> socket_events;
 };
 
-class RviConfig {
- public:
+struct RviConfig {
   RviConfig()
       : node_host("localhost"),
         node_port("8810"),
@@ -105,8 +104,7 @@ class RviConfig {
   std::string cred_dir;
 };
 
-class TlsConfig {
- public:
+struct TlsConfig {
   TlsConfig() : server("localhost"), ca_file("ca.pem"), pkey_file("pkey.pem"), client_certificate("client.pem") {}
   std::string server;
   std::string ca_file;
@@ -114,8 +112,7 @@ class TlsConfig {
   std::string client_certificate;
 };
 
-class ProvisionConfig {
- public:
+struct ProvisionConfig {
   ProvisionConfig()
       : p12_path(""),
         p12_password(""),
@@ -127,8 +124,7 @@ class ProvisionConfig {
   std::string device_id;
 };
 
-class UptaneConfig {
- public:
+struct UptaneConfig {
   UptaneConfig()
       : primary_ecu_serial(""),
         director_server(""),
@@ -142,6 +138,12 @@ class UptaneConfig {
   boost::filesystem::path metadata_path;
   std::string private_key_path;
   std::string public_key_path;
+};
+
+struct OstreeConfig {
+  OstreeConfig(): os(""), sysroot("") {}
+  std::string os;
+  std::string sysroot;
 };
 
 class Config {
@@ -160,6 +162,7 @@ class Config {
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;
+  OstreeConfig ostree;
 };
 
 #endif  // CONFIG_H_

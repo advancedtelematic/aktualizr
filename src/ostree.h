@@ -2,12 +2,20 @@
 #define OSTREE_H_
 
 #include <string>
-
+#include <ostree-1/ostree.h>
 #include <glib/gi18n.h>
 #include "types.h"
+#include "config.h"
 
 static const std::string NEW_PACKAGE = "/tmp/sota-package";
-static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
+static const std::string BOOT_BRANCH = "/boot/sota/branchname";
+
+struct Ostree{
+ static OstreeDeployment* getBootedDeployment();
+ static OstreeSysroot * LoadSysroot(const std::string &path);
+ static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url, const data::PackageManagerCredentials &cred);
+
+};
 
 class OstreePackage {
  public:
@@ -18,11 +26,13 @@ class OstreePackage {
   std::string commit;
   std::string description;
   std::string pull_uri;
-  data::InstallOutcome install(const data::PackageManagerCredentials &cred);
+  data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config);
+
   Json::Value toEcuVersion(const Json::Value &custom);
   static OstreePackage getEcu(const std::string &);
   static OstreePackage fromJson(const Json::Value &json);
 };
+
 
 struct OstreeBranch {
   OstreeBranch(bool current_in, const std::string &os_name_in, const OstreePackage &package_in)

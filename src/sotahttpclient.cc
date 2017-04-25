@@ -83,10 +83,8 @@ void SotaHttpClient::startInstall(const data::UpdateRequestId &InstallingUpdate)
   OstreePackage pkg(config.uptane.primary_ecu_serial, json["refName"].asString(), json["commit"].asString(),
                     json["description"].asString(), json["pullUri"].asString());
   data::PackageManagerCredentials cred;
-  cred.ca_file = (config.device.certificates_path / config.tls.ca_file).string();
-  cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
-  cred.cert_file = (config.device.certificates_path / config.tls.client_certificate).string();
-  data::OperationResult result = data::OperationResult::fromOutcome(InstallingUpdate, pkg.install(cred));
+  cred.access_token = http->token;
+  data::OperationResult result = data::OperationResult::fromOutcome(InstallingUpdate, pkg.install(cred, config.ostree));
   if (result.isSuccess()) {
     *events_channel << boost::make_shared<event::InstallComplete>(result);
   } else {
