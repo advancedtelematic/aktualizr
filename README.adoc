@@ -1,5 +1,7 @@
 # Garage Client
 
+image:https://travis-ci.org/advancedtelematic/sota-tools.svg?branch=master["Build Status", link="https://travis-ci.org/advancedtelematic/sota-tools"]
+
 ## Developing
 
 Getting started:
