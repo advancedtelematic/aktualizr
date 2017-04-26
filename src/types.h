@@ -97,7 +97,7 @@ struct OperationResult {
   std::string result_text;
   Json::Value toJson();
   UpdateReport toReport();
-  bool isSuccess(){ return result_code == OK || result_code == ALREADY_PROCESSED;};
+  bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };

@@ -25,7 +25,6 @@ class HttpClient {
   unsigned int http_code;
   std::string token; /**< the OAuth2 token stored as string */
 
-
  private:
   CURL *curl;
   curl_slist *headers;

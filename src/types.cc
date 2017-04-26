@@ -117,7 +117,7 @@ Json::Value OperationResult::toJson() {
   return json;
 }
 
-UpdateReport OperationResult::toReport(){
+UpdateReport OperationResult::toReport() {
   UpdateReport report;
   report.update_id = id;
   report.operation_results.push_back(*this);
