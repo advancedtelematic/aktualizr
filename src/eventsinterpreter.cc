@@ -40,9 +40,16 @@ void EventsInterpreter::run() {
         LOGGER_LOG(LVL_info, "sending  StartDownload command");
         *commands_channel << boost::shared_ptr<command::StartDownload>(new command::StartDownload(update->requestId));
       }
-    } else if (event->variant == "UpdateAvailable") {
-      *commands_channel << boost::shared_ptr<command::StartDownload>(
-          new command::StartDownload(static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id));
+    } 
+#ifdef BUILD_OSTREE
+    else if(event->variant == "UptaneTargetsUpdated") {
+      *commands_channel << boost::make_shared<command::OstreeInstall>(
+          static_cast<event::UptaneTargetsUpdated*>(event.get())->packages);
+    }
+#endif
+    else if (event->variant == "UpdateAvailable") {
+      *commands_channel << boost::make_shared<command::StartDownload>(
+          static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
     } else if (event->variant == "InstallComplete") {
       *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
           new command::SendUpdateReport(static_cast<event::InstallComplete*>(event.get())->install_result.toReport()));

@@ -3,6 +3,10 @@
 
 #include "events.h"
 
+#ifdef BUILD_OSTREE
+#include "ostree.h"
+#endif
+
 TEST(event, Error_event_to_json) {
   std::string error = "Error123";
   event::Error event(error);
@@ -299,6 +303,33 @@ TEST(event, InstalledSoftwareNeeded_event_to_json) {
 
   EXPECT_EQ(json["variant"].asString(), "InstalledSoftwareNeeded");
 }
+
+
+TEST(event, UptaneTimestampUpdated_event_to_json) {
+  event::UptaneTimestampUpdated event;
+
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(event.toJson(), json);
+
+  EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
+}
+#ifdef BUILD_OSTREE
+
+TEST(event, UptaneTargetsUpdated_event_to_json) {
+  OstreePackage package("test1", "test2", "test3", "test4", "test5");
+  std::vector<OstreePackage> packages;
+  packages.push_back(package);
+  
+  event::UptaneTargetsUpdated event(packages);
+  Json::Reader reader;
+  Json::Value json;
+  reader.parse(event.toJson(), json);
+
+  EXPECT_EQ(json["variant"].asString(), "UptaneTargetsUpdated");
+
+}
+#endif
 
 TEST(event, Error_event_from_json) {
   std::string json = "{\"fields\":[\"Error123\"],\"variant\":\"Error\"}";

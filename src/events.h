@@ -8,6 +8,9 @@
 
 #include "channel.h"
 #include "types.h"
+#ifdef BUILD_OSTREE
+#include "ostree.h"
+#endif
 
 namespace event {
 
@@ -162,11 +165,23 @@ class InstalledSoftwareNeeded : public BaseEvent {
   virtual std::string toJson();
 };
 
-typedef std::map<std::string, Json::Value> TufMetaMap;
 class UptaneTimestampUpdated : public BaseEvent {
  public:
   UptaneTimestampUpdated();
+  virtual std::string toJson();
 };
+
+
+#ifdef BUILD_OSTREE
+class UptaneTargetsUpdated : public BaseEvent {
+ public:
+  std::vector<OstreePackage> packages;
+  virtual std::string toJson();
+
+  UptaneTargetsUpdated(std::vector<OstreePackage> packages_in);
+};
+#endif
+
 };
 
 #endif

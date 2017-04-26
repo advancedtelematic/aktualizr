@@ -3,7 +3,8 @@
 #include <fstream>
 
 #include <string>
-#include "boost/algorithm/hex.hpp"
+#include <boost/algorithm/hex.hpp>
+#include <boost/make_shared.hpp>
 
 #include "sotauptaneclient.h"
 #include "crypto.h"
@@ -23,13 +24,6 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Good");
 }
 
-
-// OstreePackage OstreePackage::fromJson(const std::string &package_str) {
-//   Json::Reader reader;
-//   Json::Value json;
-//   reader.parse(package_str, json);
-//   return OstreePackage::fromJson(json);
-// }
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
   return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["commit"].asString(),
@@ -85,13 +79,20 @@ bool HttpClient::authenticate(const std::string& cert, const std::string& ca_fil
 
 std::string HttpClient::get(const std::string& url) {
   if (url.find(tls_server) == 0){
-    std::string path = url.substr(tls_server.size());
-    std::ifstream ks((metadata_path+ path).c_str());
+    std::string path = metadata_path + url.substr(tls_server.size());
+    if (url.find("timestamp.json") != std::string::npos){
+      if (boost::filesystem::exists(path)){
+        boost::filesystem::copy_file(metadata_path + "/timestamp2.json", path, boost::filesystem::copy_option::overwrite_if_exists);
+      }else{
+        boost::filesystem::copy_file(metadata_path + "/timestamp1.json", path, boost::filesystem::copy_option::overwrite_if_exists);
+      }
+    } 
+    
+    std::ifstream ks(path.c_str());
     std::string content((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-    ks.close();  
+    ks.close();
     return content;
-
-}
+  }
   return url;
 }
 
@@ -285,6 +286,7 @@ TEST(uptane, sign) {
 
   SotaUptaneClient up(config, events_channel);
   up.initService(SotaUptaneClient::Director);
+  
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
   Json::Value signed_json = up.sign(tosign_json);
@@ -380,7 +382,7 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
 
 TEST(SotaUptaneClientTest, getAvailableUpdates) {
   Config config;
-  config.uptane.metadata_path = "tests/test_dat";
+  config.uptane.metadata_path = "tests/test_data";
   config.uptane.director_server = tls_server + "/director";
   config.device.certificates_path = "tests/test_data/";
   config.uptane.repo_server = "https://repo.com";
@@ -391,9 +393,112 @@ TEST(SotaUptaneClientTest, getAvailableUpdates) {
   event::Channel *events_channel = new event::Channel();
 
   SotaUptaneClient up(config, events_channel);
+  up.initService(SotaUptaneClient::Director);
+
   std::vector<OstreePackage> packages =  up.getAvailableUpdates();
 
 }
+
+
+
+TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
+  Config conf;
+  conf.updateFromToml("tests/config_tests_prov.toml");
+  conf.uptane.director_server = tls_server + "/director";
+
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_cert.pem");
+  boost::filesystem::remove(metadata_path + "director/timestamp.json");
+
+  conf.tls.server = tls_server;
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  *commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, events_channel);
+  up.runForever(commands_channel);
+  boost::shared_ptr<event::BaseEvent> event;
+  *events_channel >> event;
+  EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+}
+
+
+
+TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
+  Config conf;
+  conf.updateFromToml("tests/config_tests_prov.toml");
+  conf.uptane.director_server = tls_server + "/director";
+
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_cert.pem");
+  boost::filesystem::remove(metadata_path + "director/timestamp.json");
+
+  conf.tls.server = tls_server;
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  *commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, events_channel);
+  up.initService(SotaUptaneClient::Director);
+  up.runForever(commands_channel);
+  boost::shared_ptr<event::BaseEvent> event;
+  *events_channel >> event;
+  EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+  *events_channel >> event;
+  EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
+  event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());
+  EXPECT_EQ(targets_event->packages.size(), 1u);
+  EXPECT_EQ(targets_event->packages[0].commit, "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+}
+
+
+
+
+TEST(SotaUptaneClientTest, RunForeverInstall) {
+  Config conf;
+  conf.updateFromToml("tests/config_tests_prov.toml");
+  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.uptane.private_key_path = "private.key";
+
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.device.certificates_path / "bootstrap_cert.pem");
+  boost::filesystem::remove(test_manifest);
+
+  conf.tls.server = tls_server;
+  event::Channel *events_channel = new event::Channel();
+  command::Channel *commands_channel = new command::Channel();
+
+  std::vector<OstreePackage> packages_to_install;
+  packages_to_install.push_back(OstreePackage("test1","test2","test3","test4","test5"));
+  *commands_channel << boost::make_shared<command::OstreeInstall>(packages_to_install);
+  *commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, events_channel);
+  up.initService(SotaUptaneClient::Director);
+  up.runForever(commands_channel);
+
+  EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
+  
+  Json::Value json;
+  Json::Reader reader;
+  std::ifstream ks(test_manifest.c_str());
+  std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
+
+  reader.parse(mnfst_str, json);
+  EXPECT_EQ(json["signatures"].size(), 1u);
+  EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
+}
+
+
 
 
 #ifndef __NO_MAIN__

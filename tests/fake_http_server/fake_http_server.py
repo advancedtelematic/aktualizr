@@ -40,6 +40,9 @@ class Handler(BaseHTTPRequestHandler):
 			length = int(self.headers.getheader('content-length'))
 			result = '{"data": %s, "path": "%s"}'%(self.rfile.read(length), self.path)
 			self.wfile.write(result)
+	
+	def do_PUT(self):
+		self.do_POST()
 
 
 server_address = ('', 8800)
