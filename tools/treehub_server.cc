@@ -44,8 +44,8 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix,
 // Set the url of the treehub server, this should be something like
 // "https://treehub-staging.atsgarage.com/api/v2/"
 // The trailing slash is optional, and will be appended if required
-void TreehubServer::root_url(const std::string& root_url) {
-  root_url_ = root_url;
+void TreehubServer::root_url(const std::string& _root_url) {
+  root_url_ = _root_url;
   if (root_url_.size() > 0 && root_url_[root_url_.size() - 1] != '/') {
     root_url_.append("/");
   }
