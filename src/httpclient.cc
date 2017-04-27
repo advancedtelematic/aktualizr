@@ -192,10 +192,10 @@ std::string HttpClient::perform(CURL* curl_handler) {
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_handler);
   if (result != CURLE_OK) {
-    std::ostringstream error_stream;
-    error_stream << "curl error:" << result;
-    LOGGER_LOG(LVL_error, error_stream.str());
-    throw std::runtime_error(error_stream.str());
+    std::ostringstream error_message;
+    error_message << "curl error:" << curl_easy_strerror(result);
+    LOGGER_LOG(LVL_error, error_message.str());
+    throw std::runtime_error(error_message.str());
   }
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
   LOGGER_LOG(LVL_trace, "response:" << response);
