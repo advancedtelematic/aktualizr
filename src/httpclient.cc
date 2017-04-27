@@ -49,6 +49,7 @@ HttpClient::HttpClient() : authenticated(false) {
   }
 
   headers = curl_slist_append(headers, "Content-Type: application/json");
+  headers = curl_slist_append(headers, "Accept: */*");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 }
 

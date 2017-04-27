@@ -14,6 +14,12 @@
 Json::Value SotaUptaneClient::sign(const Json::Value &in_data) {
   std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
   std::string signature_str = Crypto::RSAPSSSign(key_path, Json::FastWriter().write(in_data));
+  
+  std::ifstream public_stream((config.device.certificates_path / config.uptane.public_key_path).string().c_str());
+  std::string public_stream_content((std::istreambuf_iterator<char>(public_stream)), std::istreambuf_iterator<char>());
+  
+  bool good = Crypto::RSAPSSVerify(public_stream_content, signature_str, Json::FastWriter().write(in_data));
+  std::cout << "Verified: " << good << "\n\n\n\n";
 
   Json::Value signature;
   signature["method"] = "rsassa-pss";
@@ -151,8 +157,8 @@ void SotaUptaneClient::putManifest(SotaUptaneClient::ServiceType service) {
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
   for (std::vector<Json::Value>::iterator it = ecu_versions.begin(); it != ecu_versions.end(); ++it) {
-    Json::Value ecu_version_signed = sign(*it);
-    version_manifest["ecu_version_manifest"].append(ecu_version_signed);
+   Json::Value ecu_version_signed = sign(*it);
+   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   }
   Json::Value tuf_signed = sign(version_manifest);
 
@@ -179,7 +185,7 @@ bool SotaUptaneClient::deviceRegister() {
 
   http->setCerts(bootstrap_ca_pem, bootstrap_cert_pem, bootstrap_pkey_pem);
   std::string data =
-      "{\"deviceId\":\"" + config.provision.device_id + "\", \"ttl\":" + config.provision.expiry_days + "}";
+      "{\"deviceId\":\"" + config.uptane.primary_ecu_serial + "\", \"ttl\":" + config.provision.expiry_days + "}";
   std::string result = http->post(config.tls.server + "/devices", data);
   if (http->http_code != 200 && http->http_code != 201) {
     LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
@@ -199,24 +205,20 @@ bool SotaUptaneClient::deviceRegister() {
 bool SotaUptaneClient::ecuRegister() {
   int bits = 1024;
   int ret = 0;
-  RSA *r = RSA_new();
 
-  BIGNUM *bne = BN_new();
-  ret = BN_set_word(bne, RSA_F4);
-  if (ret != 1) {
-    BN_free(bne);
-    return false;
-  }
-
-  RSA_generate_key_ex(r, bits, bne, NULL);
-
-  EVP_PKEY *pkey = NULL;
+  RSA *r = RSA_generate_key(
+      bits,   /* number of bits for the key - 2048 is a sensible value */
+      RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
+      NULL,   /* callback - can be NULL if we aren't displaying progress */
+      NULL    /* callback argument - not needed in this case */
+  );
+  EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
   std::string public_key = (config.device.certificates_path / config.uptane.public_key_path).string();
   BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
-  ret = PEM_write_bio_RSAPublicKey(bp_public, r);
+  ret = PEM_write_bio_PUBKEY(bp_public, pkey);
+  //ret = PEM_write_bio_RSAPublicKey(bp_public, r);
   if (ret != 1) {
-    BN_free(bne);
     RSA_free(r);
     BIO_free_all(bp_public);
     return false;
@@ -225,27 +227,27 @@ bool SotaUptaneClient::ecuRegister() {
   BIO *bp_private = BIO_new_file((config.device.certificates_path / config.uptane.private_key_path).c_str(), "w");
   ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
   if (ret != 1) {
-    BN_free(bne);
     RSA_free(r);
     BIO_free_all(bp_public);
     BIO_free_all(bp_private);
     return false;
   }
-  BN_free(bne);
   RSA_free(r);
   BIO_free_all(bp_public);
   BIO_free_all(bp_private);
 
   std::ifstream ks(public_key.c_str());
   std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
+  pub_key_str = pub_key_str.substr(0, pub_key_str.size()-1);
   ks.close();
   pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
 
   std::string data = "{\"primary_ecu_serial\":\"" + config.uptane.primary_ecu_serial +
-                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
-                     config.uptane.primary_ecu_serial +
-                     "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
+                    "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
+                    config.uptane.primary_ecu_serial +
+                    "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
 
+  authenticate();
   std::string result = http->post(config.tls.server + "/director/ecus", data);
   if (http->http_code != 200 && http->http_code != 201) {
     LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << result);
