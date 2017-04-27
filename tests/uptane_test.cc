@@ -1,18 +1,17 @@
 #include <gtest/gtest.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-#include <string>
 #include <boost/algorithm/hex.hpp>
 #include <boost/make_shared.hpp>
+#include <string>
 
-#include "sotauptaneclient.h"
 #include "crypto.h"
 #include "ostree.h"
+#include "sotauptaneclient.h"
 std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
 std::string tls_server = "https://tlsserver.com";
 std::string metadata_path = "tests/test_data/";
-
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
@@ -23,7 +22,6 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   (void)config;
   return data::InstallOutcome(data::OK, "Good");
 }
-
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
   return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["commit"].asString(),
@@ -43,10 +41,10 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   value["ecu_serial"] = ecu_serial;
   value["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   value["timeserver_time"] = "1970-01-01T00:00:00Z";
-  if (custom != Json::nullValue){
+  if (custom != Json::nullValue) {
     value["custom"] = custom;
-  }else{
-    value["custom"]  = false;
+  } else {
+    value["custom"] = false;
   }
   return value;
 }
@@ -55,39 +53,38 @@ OstreePackage OstreePackage::getEcu(const std::string &ecu_serial) {
   return OstreePackage(ecu_serial, "frgfdg", "sfsdf", "dsfsdf", "sfsdfs");
 }
 
-
-
-HttpClient::HttpClient(){}
-void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
+HttpClient::HttpClient() {}
+void HttpClient::setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) {
   (void)ca;
   (void)cert;
   (void)pkey;
 }
-HttpClient::~HttpClient(){}
-bool HttpClient::authenticate(const AuthConfig &conf){
+HttpClient::~HttpClient() {}
+bool HttpClient::authenticate(const AuthConfig &conf) {
   (void)conf;
   return true;
 }
-bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file, const std::string& pkey) {
+bool HttpClient::authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey) {
   (void)ca_file;
   (void)cert;
   (void)pkey;
-  
+
   return true;
 }
 
-
-std::string HttpClient::get(const std::string& url) {
-  if (url.find(tls_server) == 0){
+std::string HttpClient::get(const std::string &url) {
+  if (url.find(tls_server) == 0) {
     std::string path = metadata_path + url.substr(tls_server.size());
-    if (url.find("timestamp.json") != std::string::npos){
-      if (boost::filesystem::exists(path)){
-        boost::filesystem::copy_file(metadata_path + "/timestamp2.json", path, boost::filesystem::copy_option::overwrite_if_exists);
-      }else{
-        boost::filesystem::copy_file(metadata_path + "/timestamp1.json", path, boost::filesystem::copy_option::overwrite_if_exists);
+    if (url.find("timestamp.json") != std::string::npos) {
+      if (boost::filesystem::exists(path)) {
+        boost::filesystem::copy_file(metadata_path + "/timestamp2.json", path,
+                                     boost::filesystem::copy_option::overwrite_if_exists);
+      } else {
+        boost::filesystem::copy_file(metadata_path + "/timestamp1.json", path,
+                                     boost::filesystem::copy_option::overwrite_if_exists);
       }
-    } 
-    
+    }
+
     std::ifstream ks(path.c_str());
     std::string content((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
     ks.close();
@@ -96,17 +93,17 @@ std::string HttpClient::get(const std::string& url) {
   return url;
 }
 
-Json::Value HttpClient::getJson(const std::string& url) {
+Json::Value HttpClient::getJson(const std::string &url) {
   Json::Value json;
   Json::Reader reader;
   reader.parse(get(url), json);
   return json;
 }
 
-std::string HttpClient::post(const std::string &url, const std::string &data){
+std::string HttpClient::post(const std::string &url, const std::string &data) {
   (void)data;
   (void)url;
-  
+
   std::ifstream ks("tests/certs/cred.p12");
   std::string cert_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
   ks.close();
@@ -114,8 +111,7 @@ std::string HttpClient::post(const std::string &url, const std::string &data){
   return cert_str;
 }
 
-
-Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
+Json::Value HttpClient::post(const std::string &url, const Json::Value &data) {
   (void)url;
   (void)data;
   Json::Value json;
@@ -125,20 +121,18 @@ Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
   return json;
 }
 
-
-std::string HttpClient::put(const std::string &url, const std::string &data){
+std::string HttpClient::put(const std::string &url, const std::string &data) {
   std::ofstream director_file(test_manifest.c_str());
   director_file << data;
   director_file.close();
   return url;
 }
 
-bool HttpClient::download(const std::string &url, const std::string &filename){
+bool HttpClient::download(const std::string &url, const std::string &filename) {
   (void)url;
   (void)filename;
   return true;
 }
-
 
 TEST(uptane, get_json) {
   Config config;
@@ -146,15 +140,17 @@ TEST(uptane, get_json) {
   config.uptane.director_server = "https://director.com";
   config.uptane.repo_server = "https://repo.com";
   config.device.uuid = "device_id";
-  
+
   config.uptane.metadata_path = "tests/test_data/";
   event::Channel *events_channel = new event::Channel();
   SotaUptaneClient up(config, events_channel);
   std::string expected = "B3FBEDF18B9748CD8443762CAEC5610EB373C0CE9CA325E85F7EEC95FAA00BEF";
 
-  std::string result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Director, "root", false))));
+  std::string result = boost::algorithm::hex(
+      Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Director, "root", false))));
   EXPECT_EQ(expected, result);
-  result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Repo, "root", false))));
+  result = boost::algorithm::hex(
+      Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Repo, "root", false))));
   EXPECT_EQ(expected, result);
 }
 
@@ -169,7 +165,7 @@ TEST(uptane, get_endpoint) {
   SotaUptaneClient up(config, events_channel);
   std::string result = up.getEndPointUrl(SotaUptaneClient::Director, "root.json");
   EXPECT_EQ("https://director.com/root.json", result);
-  
+
   result = up.getEndPointUrl(SotaUptaneClient::Repo, "root.json");
   EXPECT_EQ("https://repo.com/device_id/root.json", result);
 }
@@ -190,8 +186,6 @@ TEST(uptane, verify) {
   EXPECT_EQ(verified.new_version, 1u);
   EXPECT_EQ(verified.old_version, 1u);
 }
-
-
 
 TEST(uptane, verify_data) {
   Config config;
@@ -222,7 +216,6 @@ TEST(uptane, verify_data_bad) {
   bool good = up.verifyData(SotaUptaneClient::Director, "root", data_json);
   EXPECT_EQ(good, false);
 }
-
 
 TEST(uptane, verify_data_unknow_type) {
   Config config;
@@ -256,7 +249,6 @@ TEST(uptane, verify_data_bed_keyid) {
   EXPECT_EQ(good, false);
 }
 
-
 TEST(uptane, verify_data_bed_threshold) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
@@ -272,8 +264,6 @@ TEST(uptane, verify_data_bed_threshold) {
   EXPECT_EQ(good, false);
 }
 
-
-
 TEST(uptane, sign) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
@@ -286,17 +276,16 @@ TEST(uptane, sign) {
 
   SotaUptaneClient up(config, events_channel);
   up.initService(SotaUptaneClient::Director);
-  
+
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
   Json::Value signed_json = up.sign(tosign_json);
 
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
-  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(), "00a4c4f1fcb433b2354a523ed13f76708ee0737dc323e1467096251b9a90eeee");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
+            "00a4c4f1fcb433b2354a523ed13f76708ee0737dc323e1467096251b9a90eeee");
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
-
-
 
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf;
@@ -329,9 +318,7 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
 
   bool result = uptane.deviceRegister();
   EXPECT_EQ(result, false);
-
 }
-
 
 TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   Config config;
@@ -345,13 +332,13 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   event::Channel *events_channel = new event::Channel();
 
   SotaUptaneClient up(config, events_channel);
-  
+
   boost::filesystem::remove(test_manifest);
   up.initService(SotaUptaneClient::Director);
 
   up.putManifest(SotaUptaneClient::Director);
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
-  
+
   Json::Value json;
   Json::Reader reader;
   std::ifstream ks(test_manifest.c_str());
@@ -395,11 +382,8 @@ TEST(SotaUptaneClientTest, getAvailableUpdates) {
   SotaUptaneClient up(config, events_channel);
   up.initService(SotaUptaneClient::Director);
 
-  std::vector<OstreePackage> packages =  up.getAvailableUpdates();
-
+  std::vector<OstreePackage> packages = up.getAvailableUpdates();
 }
-
-
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf;
@@ -424,8 +408,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
-
-
 
 TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   Config conf;
@@ -453,13 +435,10 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
-  event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());
+  event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
   EXPECT_EQ(targets_event->packages[0].commit, "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
 }
-
-
-
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
   Config conf;
@@ -478,7 +457,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   command::Channel *commands_channel = new command::Channel();
 
   std::vector<OstreePackage> packages_to_install;
-  packages_to_install.push_back(OstreePackage("test1","test2","test3","test4","test5"));
+  packages_to_install.push_back(OstreePackage("test1", "test2", "test3", "test4", "test5"));
   *commands_channel << boost::make_shared<command::OstreeInstall>(packages_to_install);
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
@@ -486,7 +465,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   up.runForever(commands_channel);
 
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
-  
+
   Json::Value json;
   Json::Reader reader;
   std::ifstream ks(test_manifest.c_str());
@@ -497,9 +476,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
 }
-
-
-
 
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {

@@ -90,8 +90,8 @@ bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::
   }
   verified.new_version = services[service].roles[role].second;
 
-  if(!verified.old_version){
-     verified.old_version = verified.new_version;
+  if (!verified.old_version) {
+    verified.old_version = verified.new_version;
   }
   verified.role = role;
   verified.data = data["signed"];
@@ -369,7 +369,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
       command::OstreeInstall *ot_command = command->toChild<command::OstreeInstall>();
       std::vector<OstreePackage> packages = ot_command->packages;
       OstreeInstall(packages);
-    } else if (command->variant == "Shutdown"){
+    } else if (command->variant == "Shutdown") {
       polling_thread.interrupt();
       return;
     }

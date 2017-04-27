@@ -171,7 +171,6 @@ class UptaneTimestampUpdated : public BaseEvent {
   virtual std::string toJson();
 };
 
-
 #ifdef BUILD_OSTREE
 class UptaneTargetsUpdated : public BaseEvent {
  public:
@@ -181,7 +180,6 @@ class UptaneTargetsUpdated : public BaseEvent {
   UptaneTargetsUpdated(std::vector<OstreePackage> packages_in);
 };
 #endif
-
 };
 
 #endif

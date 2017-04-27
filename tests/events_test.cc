@@ -304,7 +304,6 @@ TEST(event, InstalledSoftwareNeeded_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "InstalledSoftwareNeeded");
 }
 
-
 TEST(event, UptaneTimestampUpdated_event_to_json) {
   event::UptaneTimestampUpdated event;
 
@@ -320,14 +319,13 @@ TEST(event, UptaneTargetsUpdated_event_to_json) {
   OstreePackage package("test1", "test2", "test3", "test4", "test5");
   std::vector<OstreePackage> packages;
   packages.push_back(package);
-  
+
   event::UptaneTargetsUpdated event(packages);
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "UptaneTargetsUpdated");
-
 }
 #endif
 

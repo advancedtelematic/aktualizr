@@ -32,15 +32,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 
-set(ALL_TEST_SRCS tests/commands_test.cc
-                  tests/config_test.cc
-                  tests/dbusgateway_test.cc
-                  tests/events_test.cc
-                  tests/httpclient_test.cc
-                  tests/httpsotaclient_test.cc
-                  tests/rvisotaclient_test.cc
-                  tests/socketgateway_test.cc
-                  tests/swm_test.cc)
+set(ALL_TEST_SRCS
+    tests/commands_test.cc
+    tests/config_test.cc
+    tests/crypto_test.cc
+    tests/dbusgateway_test.cc
+    tests/events_test.cc
+    tests/httpclient_test.cc
+    tests/httpsotaclient_test.cc
+    tests/ostree_test.cc
+    tests/rvisotaclient_test.cc
+    tests/socketgateway_test.cc
+    tests/swm_test.cc
+    tests/uptane_test.cc)
 
 if(CLANG_FORMAT)
     add_custom_target(format-tests

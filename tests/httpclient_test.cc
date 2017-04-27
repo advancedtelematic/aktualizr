@@ -51,7 +51,6 @@ TEST(PostTest, post_performed) {
   EXPECT_EQ(response["data"]["key"].asString(), "val");
 }
 
-
 TEST(PostTest, put_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
@@ -61,11 +60,10 @@ TEST(PostTest, put_performed) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(response, json);
-  
+
   EXPECT_EQ(json["path"].asString(), path);
   EXPECT_EQ(json["data"]["key"].asString(), "val");
 }
-
 
 TEST(GetTest, file_downloaded) {
   HttpClient http;
