@@ -141,7 +141,7 @@ struct UptaneConfig {
 };
 
 struct OstreeConfig {
-  OstreeConfig(): os(""), sysroot("") {}
+  OstreeConfig() : os(""), sysroot("") {}
   std::string os;
   std::string sysroot;
 };

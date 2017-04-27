@@ -236,9 +236,10 @@ bool SotaUptaneClient::ecuRegister() {
   std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
   ks.close();
   pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
-  
+
   std::string data = "{\"primary_ecu_serial\":\"" + config.uptane.primary_ecu_serial +
-                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid +"\",\"ecu_serial\":\"" + config.uptane.primary_ecu_serial +
+                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
+                     config.uptane.primary_ecu_serial +
                      "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
 
   std::string result = http->post(config.tls.server + "/director/ecus", data);
