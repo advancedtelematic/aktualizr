@@ -89,6 +89,10 @@ bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::
     return false;
   }
   verified.new_version = services[service].roles[role].second;
+
+  if (!verified.old_version) {
+    verified.old_version = verified.new_version;
+  }
   verified.role = role;
   verified.data = data["signed"];
   return true;
@@ -289,9 +293,6 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
       } else {
         sleep(static_cast<unsigned int>(config.core.polling_sec));
       }
-      if (!http->isAuthenticated()) {
-        *commands_channel << boost::make_shared<command::Authenticate>();
-      }
       *commands_channel << boost::make_shared<command::GetUpdateRequests>();
     }
   }
@@ -310,7 +311,7 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
       LOGGER_LOG(LVL_error, "bad signature of targets");
       return result;
     }
-    Json::Value targets = verified_targets.data["signed"]["targets"];
+    Json::Value targets = verified_targets.data["targets"];
     for (Json::Value::iterator it = targets.begin(); it != targets.end(); ++it) {
       Json::Value m_json = *it;
       result.push_back(OstreePackage(m_json["custom"]["ecuIdentifier"].asString(), it.key().asString(),
@@ -350,30 +351,27 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   initService(Director);
   putManifest(Director);
   processing = false;
-  boost::thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
+  boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOGGER_LOG(LVL_info, "got " + command->variant + " command");
-    if (command->variant == "Authenticate") {
-      if (authenticate()) {
-        *events_channel << boost::make_shared<event::Authenticated>();
-      } else {
-        *events_channel << boost::make_shared<event::NotAuthenticated>();
-      }
-    } else if (command->variant == "GetUpdateRequests") {
+    if (command->variant == "GetUpdateRequests") {
       std::vector<OstreePackage> updates = getAvailableUpdates();
       if (updates.size()) {
         LOGGER_LOG(LVL_info, "got new updates");
-        *commands_channel << boost::shared_ptr<command::OstreeInstall>(new command::OstreeInstall(updates));
+        *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates);
       } else {
-        LOGGER_LOG(LVL_info, "no new updates, sending NoUpdateRequests event");
-        *events_channel << boost::shared_ptr<event::NoUpdateRequests>(new event::NoUpdateRequests());
+        LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
+        *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
       }
     } else if (command->variant == "OstreeInstall") {
       command::OstreeInstall *ot_command = command->toChild<command::OstreeInstall>();
       std::vector<OstreePackage> packages = ot_command->packages;
       OstreeInstall(packages);
+    } else if (command->variant == "Shutdown") {
+      polling_thread.interrupt();
+      return;
     }
   }
 }

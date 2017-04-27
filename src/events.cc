@@ -249,4 +249,15 @@ InstalledSoftwareNeeded::InstalledSoftwareNeeded() { variant = "InstalledSoftwar
 std::string InstalledSoftwareNeeded::toJson() { return Json::FastWriter().write(toBaseJson()); }
 
 UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
+
+std::string UptaneTimestampUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
+
+#ifdef BUILD_OSTREE
+UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<OstreePackage> packages_in) : packages(packages_in) {
+  variant = "UptaneTargetsUpdated";
+}
+
+std::string UptaneTargetsUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
+
+#endif
 };
