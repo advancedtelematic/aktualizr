@@ -88,6 +88,10 @@ add_test(NAME cacert-not-found
   COMMAND t/test-cacert-not-found $<TARGET_FILE:garage-push>
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_test(NAME server-500
+    COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/t)
+
 if (OAUTH2_TEST_CLIENT_ID)
   add_test(NAME auth-plus-happy-case
     COMMAND t/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}

@@ -1,6 +1,8 @@
 #include "request_pool.h"
 #include <exception>
 
+#include "logging.h"
+
 RequestPool::RequestPool(const TreehubServer& server, int max_requests)
     : max_requests_(max_requests),
       running_requests_(0),
@@ -13,10 +15,26 @@ RequestPool::RequestPool(const TreehubServer& server, int max_requests)
 RequestPool::~RequestPool() {
   Abort();
 
+  LOG_INFO << "Shutting down RequestPool...";
   while (!is_idle()) LoopListen();
+  LOG_INFO << "...done";
 
   curl_multi_cleanup(multi_);
   curl_global_cleanup();
+}
+
+void RequestPool::AddQuery(OSTreeObject::ptr request) {
+  request->LaunchNotify();
+  if (!stopped_) {
+    query_queue_.push_back(request);
+  }
+}
+
+void RequestPool::AddUpload(OSTreeObject::ptr request) {
+  request->LaunchNotify();
+  if (!stopped_) {
+    upload_queue_.push_back(request);
+  }
 }
 
 void RequestPool::LoopLaunch() {
@@ -40,6 +58,7 @@ void RequestPool::LoopLaunch() {
 }
 
 void RequestPool::LoopListen() {
+  CURLMcode mc;
   // Poll for IO
   fd_set fdread, fdwrite, fdexcept;
   int maxfd = 0;
@@ -47,17 +66,33 @@ void RequestPool::LoopListen() {
   FD_ZERO(&fdwrite);
   FD_ZERO(&fdexcept);
   long timeoutms = 0;
-  curl_multi_timeout(multi_, &timeoutms);
+  mc = curl_multi_timeout(multi_, &timeoutms);
+  if (mc != CURLM_OK) {
+    throw std::runtime_error("curl_multi_timeout failed with error");
+  }
   struct timeval timeout;
   timeout.tv_sec = timeoutms / 1000;
   timeout.tv_usec = 1000 * (timeoutms % 1000);
-  curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
-  select(maxfd + 1, &fdread, &fdwrite, &fdexcept,
-         timeoutms == -1 ? NULL : &timeout);
+
+  mc = curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
+  if (mc != CURLM_OK) {
+    throw std::runtime_error("curl_multi_fdset failed with error");
+  }
+
+  if (maxfd != -1) {
+    select(maxfd + 1, &fdread, &fdwrite, &fdexcept,
+           timeoutms == -1 ? NULL : &timeout);
+  } else {
+    LOG_DEBUG << "Waiting 100ms for curl";
+    // If maxfd == -1, then wait 100ms. See:
+    // https://curl.haxx.se/libcurl/c/curl_multi_timeout.html
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 100 * 1000;
+    select(0, NULL, NULL, NULL, &timeout);
+  }
 
   // Ask curl to handle IO
-  CURLMcode mc = curl_multi_perform(multi_, &running_requests_);
-
+  mc = curl_multi_perform(multi_, &running_requests_);
   if (mc != CURLM_OK) throw std::runtime_error("curl_multi failed with error");
 
   // Deal with any completed requests
