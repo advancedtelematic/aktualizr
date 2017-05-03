@@ -9,29 +9,43 @@
 #include "logger.h"
 #include "types.h"
 
-char service_names[6][12] = {"notify", "start", "chunk", "finish", "getpackages", "abort"};
 
-void callbackWrapper(int fd, void *service_data, const char *parameters) {
-  (void)fd;
-  SotaRVIClient *client = (SotaRVIClient *)((void **)service_data)[0];
-  std::string service((char *)((void **)service_data)[1]);
+Json::Value parseParameters(const char *parameters) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(parameters, json);
+  return json;
+}
 
-  std::cout << "got callback " << service << "\n";
-  if (service == "notify") {
-    client->sendEvent(boost::make_shared<event::UpdateAvailable>(
-        event::UpdateAvailable(data::UpdateAvailable::fromJson(json[0]["update_available"]))));
-  } else if (service == "start") {
-    client->invokeAck(json[0]["update_id"].asString());
-  } else if (service == "chunk") {
-    client->saveChunk(json[0]);
-  } else if (service == "finish") {
-    client->downloadComplete(json[0]);
-  } else if (service == "getpackages") {
-    client->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
-  }
+void notifyCallback(int fd, void *service_data, const char *parameters) {
+  (void)fd;
+  LOGGER_LOG(LVL_info, "got callback notify");
+  ((SotaRVIClient*)service_data)->sendEvent(boost::make_shared<event::UpdateAvailable>(event::UpdateAvailable(data::UpdateAvailable::fromJson(parseParameters(parameters)[0]["update_available"]))));
+}
+
+void startCallback(int fd, void *service_data, const char *parameters) {
+  (void)fd;
+  LOGGER_LOG(LVL_info, "got callback start");
+  ((SotaRVIClient*)service_data)->invokeAck(parseParameters(parameters)[0]["update_id"].asString());
+}
+
+void chunkCallback(int fd, void *service_data, const char *parameters) {
+  (void)fd;
+  LOGGER_LOG(LVL_info, "got callback chunk");
+  ((SotaRVIClient*)service_data)->saveChunk(parseParameters(parameters)[0]);
+}
+
+void finishCallback(int fd, void *service_data, const char *parameters) {
+  (void)fd;
+  LOGGER_LOG(LVL_info, "got callback finish");
+  ((SotaRVIClient*)service_data)->downloadComplete(parseParameters(parameters)[0]);
+}
+
+void getpackagesCallback(int fd, void *service_data, const char *parameters) {
+  (void)fd;
+  (void)parameters;
+  LOGGER_LOG(LVL_info, "got callback getpackages");
+  ((SotaRVIClient*)service_data)->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
 }
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
@@ -56,17 +70,37 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   if (connection <= 0) {
     LOGGER_LOG(LVL_error, "cannot connect to rvi node");
   }
-  unsigned int services_count = sizeof(service_names) / sizeof(service_names[0]);
-  void *pointers[2];
-  pointers[0] = (void *)(this);
-  for (unsigned int i = 0; i < services_count; ++i) {
-    pointers[1] = (void *)service_names[i];
-    int stat = rviRegisterService(rvi, (std::string("sota/") + service_names[i]).c_str(), callbackWrapper, pointers);
-    if (stat) {
-      LOGGER_LOG(LVL_error, "unable to register " << service_names[i]);
-    }
-    services[service_names[i]] = std::string("genivi.org/device/" + config.device.uuid + "/sota/") + service_names[i];
+  
+  std::string service_name = "notify";
+  int stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), notifyCallback, (void*)this);
+  if (stat) {
+    LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
+
+  service_name = "start";
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), startCallback, (void*)this);
+  if (stat) {
+    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+  }
+
+  service_name = "chunk";
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), chunkCallback, (void*)this);
+  if (stat) {
+    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+  }
+
+  service_name = "finish";
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), finishCallback, (void*)this);
+  if (stat) {
+    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+  }
+
+  service_name = "getpackages";
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), getpackagesCallback, (void*)this);
+  if (stat) {
+    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+  }
+
   LOGGER_LOG(LVL_info, "rvi services registered!!");
   thread = boost::thread(boost::bind(&SotaRVIClient::run, this));
 }
