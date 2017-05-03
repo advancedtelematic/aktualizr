@@ -103,7 +103,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   std::string response;
   curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
 
-  curl_slist *h = curl_slist_append(NULL, "Content-Type: application/x-www-form-urlencoded");
+  curl_slist* h = curl_slist_append(NULL, "Content-Type: application/x-www-form-urlencoded");
   h = curl_slist_append(h, "charsets: utf-8");
   curl_easy_setopt(curl_auth, CURLOPT_HTTPHEADER, h);
 
