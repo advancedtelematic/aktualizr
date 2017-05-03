@@ -44,6 +44,7 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
     json = http->getJson(url);
   } catch (std::runtime_error e) {
     retry();
+    processing = false;
     return update_requests;
   }
   unsigned int updates = json.size();
@@ -92,6 +93,7 @@ void SotaHttpClient::startInstall(const data::UpdateRequestId &InstallingUpdate)
   }
 
 #endif
+  processing = false;
 }
 
 void SotaHttpClient::sendUpdateReport(data::UpdateReport update_report) {

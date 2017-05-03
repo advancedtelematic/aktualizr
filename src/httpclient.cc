@@ -48,8 +48,8 @@ HttpClient::HttpClient() : authenticated(false) {
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   }
 
-  struct curl_slist* h = curl_slist_append(headers, "Accept: */*");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, h);
+  headers = curl_slist_append(headers, "Content-Type: application/json");
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {
@@ -102,6 +102,11 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
   std::string response;
   curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
+
+  curl_slist* h = curl_slist_append(NULL, "Content-Type: application/x-www-form-urlencoded");
+  h = curl_slist_append(h, "charsets: utf-8");
+  curl_easy_setopt(curl_auth, CURLOPT_HTTPHEADER, h);
+
   CURLcode result = curl_easy_perform(curl_auth);
   LOGGER_LOG(LVL_trace, "response:" << response);
 
@@ -119,9 +124,6 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
   std::string header = "Authorization: Bearer " + token;
   headers = curl_slist_append(headers, header.c_str());
-  headers = curl_slist_append(headers, "Accept: */*");
-  headers = curl_slist_append(headers, "Content-Type: application/json");
-  headers = curl_slist_append(headers, "charsets: utf-8");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   authenticated = true;
   return true;
@@ -129,6 +131,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
 std::string HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
   LOGGER_LOG(LVL_debug, "GET " << url);
   return perform(curl);
 }
@@ -159,31 +162,20 @@ void HttpClient::setCerts(const std::string& ca, const std::string& cert, const 
 }
 
 std::string HttpClient::post(const std::string& url, const std::string& data) {
-  CURL* curl_post = curl_easy_duphandle(curl);
-  curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
+  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_POST, 1);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
   LOGGER_LOG(LVL_trace, "post request body:" << data);
-  struct curl_slist* h = curl_slist_append(NULL, "Content-Type: application/json");
-  curl_easy_setopt(curl_post, CURLOPT_HTTPHEADER, h);
-  std::string result = perform(curl_post);
-  curl_easy_cleanup(curl_post);
-  curl_slist_free_all(h);
-
+  std::string result = perform(curl);
   return result;
 }
 
 std::string HttpClient::put(const std::string& url, const std::string& data) {
-  CURL* curl_post = curl_easy_duphandle(curl);
-  curl_easy_setopt(curl_post, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_post, CURLOPT_CUSTOMREQUEST, "PUT");
-  curl_easy_setopt(curl_post, CURLOPT_POSTFIELDS, data.c_str());
+  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
   LOGGER_LOG(LVL_trace, "put request body:" << data);
-  struct curl_slist* h = curl_slist_append(NULL, "Content-Type: application/json");
-  curl_easy_setopt(curl_post, CURLOPT_HTTPHEADER, h);
-
-  std::string result = perform(curl_post);
-  curl_easy_cleanup(curl_post);
-  curl_slist_free_all(h);
+  std::string result = perform(curl);
   return result;
 }
 
