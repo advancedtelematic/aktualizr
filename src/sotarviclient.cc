@@ -87,9 +87,14 @@ void SotaRVIClient::run() {
     if (stop) {
       break;
     }
-    if (result != 0) {
-      LOGGER_LOG(LVL_error, "rviProcessInput error: " << result);
-      sleep(5);
+    switch (result) {
+      case RVI_OK:
+        break;
+      case RVI_ERR_JSON_PART:
+        LOGGER_LOG(LVL_trace, "Partial RVI message, continuing");
+        break;
+      default: LOGGER_LOG(LVL_error, "rviProcessInput error: " << result);
+        sleep(5);
     }
   }
 }
