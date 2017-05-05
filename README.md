@@ -132,6 +132,62 @@ The following command will get a shell to perform an interactive build, but note
 docker run --rm -it advancedtelematic/aktualizr
 ~~~
 
+### Developing against an OpenEmbedded system
+
+By default OpenEmbedded builds fixed versions of software from a VCS using bitbake recipes. When developing Aktualizr itself it is useful to have a quicker edit-compile-run cycle and access to a debugger.  The following steps will use OpenEmbedded to create a cross-compilation environment, then build inside that.
+
+1. Add the following to local.conf
+~~~
+TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
+~~~
+
+2. Build the SDK. This will create a self-extracting installer that can be copied to your development machine:
+
+~~~
+# bitbake -c populate_sdk core-image-minimal
+~~~
+
+3. Install the SDK
+
+~~~
+# . tmp/deploy/sdk/oecore-x86_64-core2-64-toolchain-nodistro.0.sh
+~~~
+
+4. Update the environment to point to the cross compilers, and create a cmake build directory for this cross-compile
+
+~~~
+# . /home/phil/sdk/environment-setup-core2-64-poky-linux
+# which cmake
+/home/phil/sdk/sysroots/x86_64-oesdk-linux/usr/bin/cmake
+
+# mkdir build-cross
+# cd bulid-cross
+# cmake ..
+# make
+~~~
+
+The built 'aktualizr' executable can be copied to the remote system and run.
+
+Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu script in meta-updater-qemu-x86 does this), then:
+
+~~~
+On the target
+# gdbserver 0.0.0.0:2159 ./aktualizr --config /etc/sota.toml --loglevel 0
+~~~
+
+In CLion the remote debugger is configured as follows:
+
+![CLion GDB configuration](docs/clion-debugger.png)
+
+It is also possible to run it inside valgrind:
+
+~~~
+On the target
+# valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /etc/sota.toml
+# vgdb --port=2159
+...now connect the debugger as usual
+~~~
+
 ## Usage
 
 Run the client and provide a yaml formatted configuration file using the commandline option -c or --config. The configuration file has to contain the OAuth2 server URL, the SOTA server URL, a valid clientID and according secret and a valid device UUID. See the example config file at config/config.yml.example. The client will use the clientID and according secret to get an OAuth2 token from the authorization server which is then used to send API requests to the SOTA server.
