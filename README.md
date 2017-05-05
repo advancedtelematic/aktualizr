@@ -2,11 +2,13 @@
 [![TravisCI Build Status](https://travis-ci.org/advancedtelematic/aktualizr.svg?branch=master)](https://travis-ci.org/advancedtelematic/aktualizr)
 [![codecov](https://codecov.io/gh/advancedtelematic/aktualizr/branch/master/graph/badge.svg)](https://codecov.io/gh/advancedtelematic/aktualizr)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/674/badge)](https://bestpractices.coreinfrastructure.org/projects/674)
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat)](https://github.com/RichardLitt/standard-readme)
 
-aktualizr
-------
+# aktualizr
 
-This project houses the C++ reference implementation of a client for the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project. The client is intended to be installed on devices that wish to receive OTA updates from a GENIVI-compatible OTA server.
+> C++ reference implementation of [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) OTA update client.
+
+The client is intended to be installed on devices that wish to receive OTA updates from a GENIVI-compatible OTA server.
 
 The client is responsible for:
 
@@ -21,16 +23,29 @@ The client is responsible for:
 
 The client maintains the integrity and confidentiality of the OTA update in transit, communicating with the server over a TLS link. The client can run either as a system service, periodically checking for updates, or can by triggered by other system interactions (for example on user request, or on receipt of a wake-up message from the OTA server).
 
-Usage
-------
-Run the client and provide a yaml formatted configuration file using the commandline option -c or --config. The configuration file has to contain the OAuth2 server URL, the SOTA server URL, a valid clientID and according secret and a valid device UUID. See the example config file at config/config.yml.example. The client will use the clientID and according secret to get an OAuth2 token from the authorization server which is then used to send API requests to the SOTA server.
+## Table of Contents
 
-~~~
-aktualizr -c <path/configfile>
-~~~
+- [Security](#security)
+- [Install](#install)
+  - [Dependencies](#dependencies)
+  - [Building](#building)
+  - [Linting](#linting)
+  - [Testing](#testing)
+  - [Code Coverage](#code-coverage)
+  - [Building with Docker](#building-with-docker)
+- [Usage](#usage)
+- [Maintainers](#maintainers)
+- [Contribute](#contribute)
+- [License](#license)
 
-Dependencies
-------
+## Security
+
+This client, and the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota_server) project, is aligned with the [Uptane](https://uptane.github.io) security framework for software updates. Full details and whitepapers can be found on their site.
+
+## Install
+
+### Dependencies
+
 The following debian packages are used in the project:
 
  - libboost-dev
@@ -47,8 +62,7 @@ The following debian packages are used in the project:
  - lcov (when building for code coverage)
  - google-mock
 
-Building
-------
+### Building
 
 `aktualizr` is built using CMake. To setup your `build` directory:
 
@@ -64,8 +78,7 @@ You can then build the project from the `build` directory using Make:
 make
 ~~~
 
-Linting
------
+### Linting
 
 Before checking in code, the code linting checks should be run:
 
@@ -73,8 +86,7 @@ Before checking in code, the code linting checks should be run:
 make qa
 ~~~
 
-Testing
------
+### Testing
 
 To run the test suite:
 
@@ -82,8 +94,7 @@ To run the test suite:
 make test
 ~~~
 
-Code Coverage
------
+### Code Coverage
 
 The project can be configured to generate a code coverage report. First, create a CMake build directory for coverage builds, and invoke CMake with the `-DBUILD_WITH_CODE_COVERAGE=ON` flag:
 
@@ -101,8 +112,7 @@ make coverage
 
 The report will be output to the `coverage` folder in your `build-coverage` directory.
 
-Building / Testing with Docker
------
+### Building with Docker
 
 A Dockerfile is provided to support building / testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
 
@@ -121,4 +131,24 @@ The following command will get a shell to perform an interactive build, but note
 ~~~
 docker run --rm -it advancedtelematic/aktualizr
 ~~~
+
+## Usage
+
+Run the client and provide a yaml formatted configuration file using the commandline option -c or --config. The configuration file has to contain the OAuth2 server URL, the SOTA server URL, a valid clientID and according secret and a valid device UUID. See the example config file at config/config.yml.example. The client will use the clientID and according secret to get an OAuth2 token from the authorization server which is then used to send API requests to the SOTA server.
+
+~~~
+aktualizr -c <path/configfile>
+~~~
+
+## Maintainers
+
+This code is maintained by the team at [ATS Advanced Telematic Systems GmbH](https://www.advancedtelematic.com). If you have questions about the project, please reach us through Github issues for this repository.
+
+## Contribute
+
+Complete contibution guidelines can be found in [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## License
+
+This code is licensed under the [Mozilla Public License 2.0](LICENSE), a copy of which can be found in this repository. All code is copyright [ATS Advanced Telematic Systems GmbH](https://www.advancedtelematic.com), 2016-2017.
 
