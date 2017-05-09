@@ -6,7 +6,15 @@
 #include "sotarviclient.h"
 #include "types.h"
 
-void callbackWrapper(int fd, void *service_data, const char *parameters);
+void notifyCallback(int fd, void *service_data, const char *parameters);
+
+void startCallback(int fd, void *service_data, const char *parameters);
+
+void chunkCallback(int fd, void *service_data, const char *parameters);
+
+void finishCallback(int fd, void *service_data, const char *parameters);
+
+void getpackagesCallback(int fd, void *service_data, const char *parameters);
 
 TRviHandle rviJsonInit(char *configFilename) {
   (void)configFilename;
@@ -66,10 +74,6 @@ TEST(NotifyTest, UpdateAvailable_send) {
   Config conf;
   event::Channel chann;
   SotaRVIClient client(conf, &chann);
-  void *pointers[2];
-  pointers[0] = (void *)(&client);
-  char event[] = "notify";
-  pointers[1] = event;
 
   Json::Value value;
   value["update_available"]["update_id"] = "test_update_id";
@@ -81,7 +85,7 @@ TEST(NotifyTest, UpdateAvailable_send) {
   Json::Value params(Json::arrayValue);
   params.append(value);
 
-  callbackWrapper(1, pointers, Json::FastWriter().write(params).c_str());
+  notifyCallback(1, &client, Json::FastWriter().write(params).c_str());
   boost::shared_ptr<event::BaseEvent> ev;
   chann >> ev;
   EXPECT_EQ(ev->variant, "UpdateAvailable");
@@ -103,10 +107,6 @@ TEST(AckTest, ack_called) {
   Config conf;
   event::Channel chann;
   SotaRVIClient client(conf, &chann);
-  void *pointers[2];
-  pointers[0] = (void *)(&client);
-  char event[] = "start";
-  pointers[1] = event;
 
   Json::Value value;
   value["update_id"] = "test_update_id";
@@ -115,7 +115,7 @@ TEST(AckTest, ack_called) {
   params.append(value);
 
   try {
-    callbackWrapper(1, pointers, Json::FastWriter().write(params).c_str());
+    startCallback(1, &client, Json::FastWriter().write(params).c_str());
   } catch (std::string result) {
     EXPECT_EQ(result, "ack called");
   }
@@ -125,10 +125,6 @@ TEST(SaveTest, file_saved) {
   Config conf;
   event::Channel chann;
   SotaRVIClient client(conf, &chann);
-  void *pointers[2];
-  pointers[0] = (void *)(&client);
-  char event[] = "chunk";
-  pointers[1] = event;
 
   Json::Value value;
   value["update_id"] = "test_update_id";
@@ -139,7 +135,7 @@ TEST(SaveTest, file_saved) {
   params.append(value);
 
   try {
-    callbackWrapper(1, pointers, Json::FastWriter().write(params).c_str());
+    chunkCallback(1, &client, Json::FastWriter().write(params).c_str());
   } catch (std::string result) {
     EXPECT_EQ(result, "ack called");
   }
@@ -156,10 +152,6 @@ TEST(FinisTest, DownloadComplete_send) {
   Config conf;
   event::Channel chann;
   SotaRVIClient client(conf, &chann);
-  void *pointers[2];
-  pointers[0] = (void *)(&client);
-  char event[] = "finish";
-  pointers[1] = event;
 
   Json::Value value;
   value["update_id"] = "test_update_id";
@@ -169,7 +161,7 @@ TEST(FinisTest, DownloadComplete_send) {
   Json::Value params(Json::arrayValue);
   params.append(value);
 
-  callbackWrapper(1, pointers, Json::FastWriter().write(params).c_str());
+  finishCallback(1, &client, Json::FastWriter().write(params).c_str());
   boost::shared_ptr<event::BaseEvent> ev;
   chann >> ev;
   EXPECT_EQ(ev->variant, "DownloadComplete");
