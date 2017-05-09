@@ -6,17 +6,15 @@
 #include "sotarviclient.h"
 #include "types.h"
 
-
 void notifyCallback(int fd, void *service_data, const char *parameters);
 
 void startCallback(int fd, void *service_data, const char *parameters);
 
 void chunkCallback(int fd, void *service_data, const char *parameters);
 
-void finishCallback(int fd, void *service_data, const char *parameters) ;
+void finishCallback(int fd, void *service_data, const char *parameters);
 
 void getpackagesCallback(int fd, void *service_data, const char *parameters);
-
 
 TRviHandle rviJsonInit(char *configFilename) {
   (void)configFilename;

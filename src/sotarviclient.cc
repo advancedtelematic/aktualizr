@@ -9,7 +9,6 @@
 #include "logger.h"
 #include "types.h"
 
-
 Json::Value parseParameters(const char *parameters) {
   Json::Reader reader;
   Json::Value json;
@@ -20,32 +19,34 @@ Json::Value parseParameters(const char *parameters) {
 void notifyCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   LOGGER_LOG(LVL_info, "got callback notify");
-  ((SotaRVIClient*)service_data)->sendEvent(boost::make_shared<event::UpdateAvailable>(event::UpdateAvailable(data::UpdateAvailable::fromJson(parseParameters(parameters)[0]["update_available"]))));
+  ((SotaRVIClient *)service_data)
+      ->sendEvent(boost::make_shared<event::UpdateAvailable>(
+          event::UpdateAvailable(data::UpdateAvailable::fromJson(parseParameters(parameters)[0]["update_available"]))));
 }
 
 void startCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   LOGGER_LOG(LVL_info, "got callback start");
-  ((SotaRVIClient*)service_data)->invokeAck(parseParameters(parameters)[0]["update_id"].asString());
+  ((SotaRVIClient *)service_data)->invokeAck(parseParameters(parameters)[0]["update_id"].asString());
 }
 
 void chunkCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   LOGGER_LOG(LVL_info, "got callback chunk");
-  ((SotaRVIClient*)service_data)->saveChunk(parseParameters(parameters)[0]);
+  ((SotaRVIClient *)service_data)->saveChunk(parseParameters(parameters)[0]);
 }
 
 void finishCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   LOGGER_LOG(LVL_info, "got callback finish");
-  ((SotaRVIClient*)service_data)->downloadComplete(parseParameters(parameters)[0]);
+  ((SotaRVIClient *)service_data)->downloadComplete(parseParameters(parameters)[0]);
 }
 
 void getpackagesCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   (void)parameters;
   LOGGER_LOG(LVL_info, "got callback getpackages");
-  ((SotaRVIClient*)service_data)->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
+  ((SotaRVIClient *)service_data)->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
 }
 
 SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_channel_in)
@@ -70,33 +71,33 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   if (connection <= 0) {
     LOGGER_LOG(LVL_error, "cannot connect to rvi node");
   }
-  
+
   std::string service_name = "notify";
-  int stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), notifyCallback, (void*)this);
+  int stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), notifyCallback, (void *)this);
   if (stat) {
     LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
 
   service_name = "start";
-  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), startCallback, (void*)this);
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), startCallback, (void *)this);
   if (stat) {
     LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
 
   service_name = "chunk";
-  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), chunkCallback, (void*)this);
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), chunkCallback, (void *)this);
   if (stat) {
     LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
 
   service_name = "finish";
-  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), finishCallback, (void*)this);
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), finishCallback, (void *)this);
   if (stat) {
     LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
 
   service_name = "getpackages";
-  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), getpackagesCallback, (void*)this);
+  stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), getpackagesCallback, (void *)this);
   if (stat) {
     LOGGER_LOG(LVL_error, "unable to register " << service_name);
   }
