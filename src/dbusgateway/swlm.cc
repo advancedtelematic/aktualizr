@@ -1,12 +1,15 @@
 #include "swlm.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+
 #include "logger.h"
 
 SoftwareLoadingManagerProxy::SoftwareLoadingManagerProxy(const Config &config_in) : config(config_in) {
   dbus_error_init(&err);
-  conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
+  conn = dbus_bus_get(config_in.dbus.bus, &err);
+
   if (dbus_error_is_set(&err)) {
     LOGGER_LOG(LVL_error, "Dbus Connection Error: " << err.message);
     dbus_error_free(&err);

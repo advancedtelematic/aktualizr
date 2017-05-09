@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <sstream>
 
 #include "logger.h"
 
@@ -54,7 +55,7 @@ T StripQuotesFromStrings(const T& value) {
 
 template <typename T>
 void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
-                    boost::property_tree::ptree& pt) {
+                    const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());
@@ -68,7 +69,19 @@ void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warnin
 void Config::updateFromToml(const std::string& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);
+  updateFromPropertyTree(pt);
+  LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
+}
 
+// For testing
+void Config::updateFromTomlString(const std::string& contents) {
+  boost::property_tree::ptree pt;
+  std::stringstream stream(contents);
+  boost::property_tree::ini_parser::read_ini(stream, pt);
+  updateFromPropertyTree(pt);
+}
+
+void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   if (pt.get_optional<std::string>("tls.server").is_initialized() &&
       pt.get_optional<std::string>("tls.ca_file").is_initialized() &&
       pt.get_optional<std::string>("tls.client_certificate").is_initialized()) {
@@ -77,7 +90,7 @@ void Config::updateFromToml(const std::string& filename) {
     if (pt.get_optional<std::string>("auth.client_id").is_initialized() ||
         pt.get_optional<std::string>("auth.client_secret").is_initialized()) {
       throw std::logic_error(
-          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
+          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
     }
   } else {
     core.auth_type = OAUTH2;
@@ -92,11 +105,26 @@ void Config::updateFromToml(const std::string& filename) {
   CopyFromConfig(auth.client_id, "auth.client_id", LVL_warning, pt);
   CopyFromConfig(auth.client_secret, "auth.client_secret", LVL_warning, pt);
 
+#ifdef WITH_GENIVI
   CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
   CopyFromConfig(dbus.software_manager_path, "dbus.software_manager_path", LVL_trace, pt);
   CopyFromConfig(dbus.path, "dbus.path", LVL_trace, pt);
   CopyFromConfig(dbus.interface, "dbus.interface", LVL_trace, pt);
   CopyFromConfig(dbus.timeout, "dbus.timeout", LVL_trace, pt);
+  boost::optional<std::string> dbus_type = pt.get_optional<std::string>("dbus.bus");
+  if (dbus_type.is_initialized()) {
+    std::string bus = strip_quotes(dbus_type.get());
+    if (bus == "system") {
+      dbus.bus = DBUS_BUS_SYSTEM;
+    } else if (bus == "session") {
+      dbus.bus = DBUS_BUS_SESSION;
+    } else {
+      LOGGER_LOG(LVL_error, "Unrecognised value for dbus.bus:" << bus);
+    }
+  } else {
+    LOGGER_LOG(LVL_trace, "dbus.bus not in config file. Using default");
+  }
+#endif
 
   CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
   CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
@@ -152,8 +180,6 @@ void Config::updateFromToml(const std::string& filename) {
 
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
-
-  LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -168,5 +194,11 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("gateway-dbus") != 0) {
     gateway.dbus = cmd["gateway-dbus"].as<bool>();
+  }
+}
+
+void DeviceConfig::createCertificatesPath() {
+  if (boost::filesystem::create_directories(certificates_path)) {
+    LOGGER_LOG(LVL_info, "certificates_path directory has been created");
   }
 }

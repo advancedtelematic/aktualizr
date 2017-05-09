@@ -10,7 +10,9 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <string>
 
-#include "logger.h"
+#ifdef WITH_GENIVI
+#include <dbus/dbus.h>
+#endif
 
 enum Auth { OAUTH2 = 0, CERTIFICATE };
 
@@ -33,20 +35,28 @@ struct AuthConfig {
   std::string client_secret;
 };
 
+#ifdef WITH_GENIVI
+// DbusConfig depends on DBusBusType with is defined in libdbus
+// We don't want to take that dependency unless it is required
 struct DbusConfig {
   DbusConfig()
       : software_manager("org.genivi.SoftwareLoadingManager"),
         software_manager_path("/org/genivi/SoftwareLoadingManager"),
         path("/org/genivi/SotaClient"),
         interface("org.genivi.SotaClient"),
-        timeout(0) {}
+        timeout(0),
+        bus(DBUS_BUS_SESSION) {}
 
   std::string software_manager;
   std::string software_manager_path;
   std::string path;
   std::string interface;
   unsigned int timeout;
+  DBusBusType bus;
 };
+#else
+struct DbusConfig {};
+#endif
 
 struct DeviceConfig {
   DeviceConfig()
@@ -56,11 +66,7 @@ struct DeviceConfig {
         package_manager(PMOFF) {
     createCertificatesPath();
   }
-  void createCertificatesPath() {
-    if (boost::filesystem::create_directories(certificates_path)) {
-      LOGGER_LOG(LVL_info, "certificates_path directory has been created");
-    }
-  }
+  void createCertificatesPath();
 
   std::string uuid;
   boost::filesystem::path packages_dir;
@@ -148,8 +154,9 @@ struct OstreeConfig {
 
 class Config {
  public:
-  void updateFromToml(const std::string &filename);
-  void updateFromCommandLine(const boost::program_options::variables_map &cmd);
+  void updateFromToml(const std::string& filename);
+  void updateFromTomlString(const std::string& contents);
+  void updateFromCommandLine(const boost::program_options::variables_map& cmd);
 
   // config data structures
   CoreConfig core;
@@ -163,6 +170,9 @@ class Config {
   ProvisionConfig provision;
   UptaneConfig uptane;
   OstreeConfig ostree;
+
+ private:
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
 };
 
 #endif  // CONFIG_H_
