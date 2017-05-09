@@ -76,7 +76,7 @@ Json::Value SotaUptaneClient::getJSON(SotaUptaneClient::ServiceType service, con
   }
   path /= role + ".json";
 
-  if (!force_fetch || boost::filesystem::exists(path)) {
+  if (!force_fetch && boost::filesystem::exists(path)) {
     std::ifstream path_stream(path.c_str());
     std::string json_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
     Json::Value parsed_json;
@@ -96,9 +96,6 @@ bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::
   }
   verified.new_version = services[service].roles[role].second;
 
-  if (!verified.old_version) {
-    verified.old_version = verified.new_version;
-  }
   verified.role = role;
   verified.data = data["signed"];
   return true;

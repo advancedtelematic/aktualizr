@@ -132,7 +132,7 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
 std::string HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   LOGGER_LOG(LVL_debug, "GET " << url);
   return perform(curl);
 }
@@ -172,11 +172,14 @@ std::string HttpClient::post(const std::string& url, const std::string& data) {
 }
 
 std::string HttpClient::put(const std::string& url, const std::string& data) {
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+  CURL* curl_put = curl_easy_duphandle(curl);
+
+  curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data.c_str());
+  curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOGGER_LOG(LVL_trace, "put request body:" << data);
-  std::string result = perform(curl);
+  std::string result = perform(curl_put);
+  curl_easy_cleanup(curl_put);
   return result;
 }
 
