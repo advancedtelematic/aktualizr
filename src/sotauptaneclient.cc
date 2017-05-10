@@ -10,135 +10,19 @@
 #include "crypto.h"
 #include "json/json.h"
 #include "logger.h"
-
-Json::Value SotaUptaneClient::sign(const Json::Value &in_data) {
-  std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
-  std::string signature_str = Crypto::RSAPSSSign(key_path, Json::FastWriter().write(in_data));
-  
-  std::ifstream public_stream((config.device.certificates_path / config.uptane.public_key_path).string().c_str());
-  std::string public_stream_content((std::istreambuf_iterator<char>(public_stream)), std::istreambuf_iterator<char>());
-  
-  bool good = Crypto::RSAPSSVerify(public_stream_content, signature_str, Json::FastWriter().write(in_data));
-  std::cout << "Verified: " << good << "\n\n\n\n";
-
-  Json::Value signature;
-  signature["method"] = "rsassa-pss";
-  std::string b64sig(base64_text(signature_str.begin()), base64_text(signature_str.end()));
-  b64sig.append((3 - signature_str.length() % 3) % 3, '=');
-  signature["sig"] = b64sig;
-
-  std::ifstream key_path_stream(key_path.c_str());
-  std::string key_content((std::istreambuf_iterator<char>(key_path_stream)), std::istreambuf_iterator<char>());
-  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(key_content));
-  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
-  Json::Value out_data;
-  signature["keyid"] = keyid;
-  out_data["signed"] = in_data;
-  out_data["signatures"] = Json::Value(Json::arrayValue);
-  out_data["signatures"].append(signature);
-  return out_data;
-}
+#include "uptane/exceptions.h"
+#include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in)
-    : config(config_in), events_channel(events_channel_in) {
+    : config(config_in),
+      events_channel(events_channel_in),
+      director(config.uptane.metadata_path / "director"),
+      uptane_repo(config) {
   http = new HttpClient();
 }
 
-void SotaUptaneClient::initService(SotaUptaneClient::ServiceType service) {
-  ecu_versions.push_back(OstreePackage::getEcu(config.uptane.primary_ecu_serial).toEcuVersion(""));
-  Json::Value root_json = getJSON(service, "root", false);
-  if (!root_json) {
-    LOGGER_LOG(LVL_debug, "JSON is empty");
-    return;
-  }
-  Json::Value json_keys = root_json["signed"]["keys"];
-  for (Json::ValueIterator it = json_keys.begin(); it != json_keys.end(); it++) {
-    services[service].keys[it.key().asString()] = (*it)["keyval"]["public"].asString();
-  }
-
-  Json::Value json_roles = root_json["signed"]["roles"];
-  for (Json::ValueIterator it = json_roles.begin(); it != json_roles.end(); it++) {
-    services[service].roles[it.key().asString()].first = (*it)["threshold"].asUInt();
-  }
-
-  if (!verifyData(service, "root", root_json)) {
-    std::runtime_error("veryfication of root.json failed");
-  }
-}
-
-Json::Value SotaUptaneClient::getJSON(SotaUptaneClient::ServiceType service, const std::string &role,
-                                      bool force_fetch) {
-  boost::filesystem::path path = config.uptane.metadata_path;
-  if (service == Director) {
-    path /= "director";
-  } else {
-    path /= "repo";
-  }
-  path /= role + ".json";
-
-  if (!force_fetch && boost::filesystem::exists(path)) {
-    std::ifstream path_stream(path.c_str());
-    std::string json_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
-    Json::Value parsed_json;
-    Json::Reader().parse(json_content, parsed_json);
-    return parsed_json;
-  } else {
-    return http->getJson(getEndPointUrl(service, role) + ".json");
-  }
-}
-
-bool SotaUptaneClient::verify(SotaUptaneClient::ServiceType service, const std::string &role,
-                              SotaUptaneClient::Verified &verified, bool force_fetch) {
-  Json::Value data = getJSON(service, role, force_fetch);
-  verified.old_version = services[service].roles[role].second;
-  if (!verifyData(service, role, data)) {
-    return false;
-  }
-  verified.new_version = services[service].roles[role].second;
-
-  verified.role = role;
-  verified.data = data["signed"];
-  return true;
-}
-
-bool SotaUptaneClient::verifyData(SotaUptaneClient::ServiceType service, const std::string &role,
-                                  const Json::Value &tuf_signed) {
-  if (!tuf_signed["signatures"].size()) {
-    LOGGER_LOG(LVL_debug, "Missing signatures, verification failed");
-    return false;
-  }
-  std::string canonical = Json::FastWriter().write(tuf_signed["signed"]);
-  unsigned int valid_signatures = 0;
-  for (Json::ValueIterator it = tuf_signed["signatures"].begin(); it != tuf_signed["signatures"].end(); it++) {
-    std::string method((*it)["method"].asString());
-    std::transform(method.begin(), method.end(), method.begin(), ::tolower);
-
-    if (method != "rsassa-pss") {
-      LOGGER_LOG(LVL_debug, "Unknown sign method: " << (*it)["method"].asString());
-      continue;
-    }
-    std::string keyid = (*it)["keyid"].asString();
-    if (!services[service].keys.count(keyid)) {
-      LOGGER_LOG(LVL_debug, "Couldn't find a key: " << keyid);
-      continue;
-    }
-    std::string sigb64 = (*it)["sig"].asString();
-    unsigned long long paddingChars = std::count(sigb64.begin(), sigb64.end(), '=');
-    std::replace(sigb64.begin(), sigb64.end(), '=', 'A');
-    std::string sig(base64_to_bin(sigb64.begin()), base64_to_bin(sigb64.end()));
-    sig.erase(sig.end() - static_cast<unsigned int>(paddingChars), sig.end());
-
-    valid_signatures += Crypto::RSAPSSVerify(services[service].keys[keyid], sig, canonical);
-  }
-  if (valid_signatures == 0) {
-    LOGGER_LOG(LVL_debug, "signature verification failed");
-  } else if (valid_signatures < services[service].roles[role].first) {
-    LOGGER_LOG(LVL_debug, "signature threshold error");
-  } else {
-    services[service].roles[role].second = tuf_signed["signed"]["version"].asUInt();
-    return true;
-  }
-  return false;
+Json::Value SotaUptaneClient::getJSON(SotaUptaneClient::ServiceType service, const std::string &role) {
+  return http->getJson(getEndPointUrl(service, role) + ".json");
 }
 
 std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType service, const std::string &role) {
@@ -149,17 +33,8 @@ std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType servi
   }
 }
 
-void SotaUptaneClient::putManifest(SotaUptaneClient::ServiceType service) {
-  Json::Value version_manifest;
-  version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
-  version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
-  for (std::vector<Json::Value>::iterator it = ecu_versions.begin(); it != ecu_versions.end(); ++it) {
-   Json::Value ecu_version_signed = sign(*it);
-   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
-  }
-  Json::Value tuf_signed = sign(version_manifest);
-
-  http->put(getEndPointUrl(service, "manifest"), Json::FastWriter().write(tuf_signed));
+void SotaUptaneClient::putManifest(SotaUptaneClient::ServiceType service, const std::string &manifest) {
+  http->put(getEndPointUrl(service, "manifest"), manifest);
 }
 
 bool SotaUptaneClient::deviceRegister() {
@@ -196,6 +71,7 @@ bool SotaUptaneClient::deviceRegister() {
     return false;
   }
   fclose(device_p12);
+  authenticate();
   return true;
 }
 
@@ -203,18 +79,16 @@ bool SotaUptaneClient::ecuRegister() {
   int bits = 1024;
   int ret = 0;
 
-  RSA *r = RSA_generate_key(
-      bits,   /* number of bits for the key - 2048 is a sensible value */
-      RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
-      NULL,   /* callback - can be NULL if we aren't displaying progress */
-      NULL    /* callback argument - not needed in this case */
-  );
+  RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 2048 is a sensible value */
+                            RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
+                            NULL,   /* callback - can be NULL if we aren't displaying progress */
+                            NULL    /* callback argument - not needed in this case */
+                            );
   EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
   std::string public_key = (config.device.certificates_path / config.uptane.public_key_path).string();
   BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
   ret = PEM_write_bio_PUBKEY(bp_public, pkey);
-  //ret = PEM_write_bio_RSAPublicKey(bp_public, r);
   if (ret != 1) {
     RSA_free(r);
     BIO_free_all(bp_public);
@@ -235,44 +109,20 @@ bool SotaUptaneClient::ecuRegister() {
 
   std::ifstream ks(public_key.c_str());
   std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-  pub_key_str = pub_key_str.substr(0, pub_key_str.size()-1);
+  pub_key_str = pub_key_str.substr(0, pub_key_str.size() - 1);
   ks.close();
   pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
 
   std::string data = "{\"primary_ecu_serial\":\"" + config.uptane.primary_ecu_serial +
-                    "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
-                    config.uptane.primary_ecu_serial +
-                    "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
+                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
+                     config.uptane.primary_ecu_serial +
+                     "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
 
-  authenticate();
   std::string result = http->post(config.tls.server + "/director/ecus", data);
   if (http->http_code != 200 && http->http_code != 201) {
     LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << result);
     return false;
   }
-
-  result = http->get(config.tls.server + "/director/root.json");
-  if (http->http_code != 200) {
-    LOGGER_LOG(LVL_error, "could not get director root metadata: " << result);
-    return false;
-  }
-
-  boost::filesystem::create_directories(config.uptane.metadata_path / "director");
-
-  std::ofstream director_file((config.uptane.metadata_path / "director/root.json").c_str());
-  director_file << result;
-  director_file.close();
-
-  result = http->get(config.tls.server + "/repo/root.json");
-  if (http->http_code != 200) {
-    LOGGER_LOG(LVL_error, "could not get repo root metadata: " << result);
-    return false;
-  }
-  boost::filesystem::create_directories(config.uptane.metadata_path / "repo");
-  std::ofstream repo_file((config.uptane.metadata_path / "repo/root.json").c_str());
-  repo_file << result;
-  repo_file.close();
-
   return true;
 }
 
@@ -299,19 +149,13 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
   std::vector<OstreePackage> result;
-  Verified verified;
-  if (!verify(Director, "timestamp", verified, true)) {
-    LOGGER_LOG(LVL_error, "bad signature of timestamp");
-    return result;
-  }
-  if (verified.is_new()) {
-    Verified verified_targets;
-    if (!verify(Director, "targets", verified_targets, true)) {
-      LOGGER_LOG(LVL_error, "bad signature of targets");
-      return result;
-    }
-    Json::Value targets = verified_targets.data["targets"];
-    for (Json::Value::iterator it = targets.begin(); it != targets.end(); ++it) {
+
+  Json::Value timestamp = getJSON(Director, "timestamp");
+  if (director.updateTimestamp(timestamp)) {
+    Json::Value targets = getJSON(Director, "targets");
+    director.updateTargets(targets);
+    for (Json::Value::iterator it = targets["signed"]["targets"].begin(); it != targets["signed"]["targets"].end();
+         ++it) {
       Json::Value m_json = *it;
       result.push_back(OstreePackage(m_json["custom"]["ecuIdentifier"].asString(), it.key().asString(),
                                      m_json["hashes"]["sha256"].asString(), "", m_json["custom"]["uri"].asString()));
@@ -327,13 +171,12 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
   cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
   cred.cert_file = (config.device.certificates_path / config.tls.client_certificate).string();
   for (std::vector<OstreePackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
-    if ((*it).install(cred, config.ostree).first != data::OK) {
-      LOGGER_LOG(LVL_error, "error of installing package");
-      processing = false;
-      return;
-    }
+    data::InstallOutcome outcome = (*it).install(cred, config.ostree);
+    data::OperationResult result = data::OperationResult::fromOutcome((*it).ref_name, outcome);
+    Json::Value operation_result;
+    operation_result["operation_result"] = result.toJson();
+    putManifest(SotaUptaneClient::Director, uptane_repo.signManifest(operation_result));
   }
-  putManifest(SotaUptaneClient::Director);
   processing = false;
 }
 
@@ -347,30 +190,36 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     }
   }
   authenticate();
-  initService(Director);
-  putManifest(Director);
+  director.initRoot(getJSON(Director, "root"));
+  putManifest(Director, uptane_repo.signManifest());
   processing = false;
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOGGER_LOG(LVL_info, "got " + command->variant + " command");
-    if (command->variant == "GetUpdateRequests") {
-      std::vector<OstreePackage> updates = getAvailableUpdates();
-      if (updates.size()) {
-        LOGGER_LOG(LVL_info, "got new updates");
-        *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates);
-      } else {
-        LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
-        *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+
+    try {
+      if (command->variant == "GetUpdateRequests") {
+        std::vector<OstreePackage> updates = getAvailableUpdates();
+        if (updates.size()) {
+          LOGGER_LOG(LVL_info, "got new updates");
+          *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates);
+        } else {
+          LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
+          *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+        }
+      } else if (command->variant == "OstreeInstall") {
+        command::OstreeInstall *ot_command = command->toChild<command::OstreeInstall>();
+        std::vector<OstreePackage> packages = ot_command->packages;
+        OstreeInstall(packages);
+      } else if (command->variant == "Shutdown") {
+        polling_thread.interrupt();
+        return;
       }
-    } else if (command->variant == "OstreeInstall") {
-      command::OstreeInstall *ot_command = command->toChild<command::OstreeInstall>();
-      std::vector<OstreePackage> packages = ot_command->packages;
-      OstreeInstall(packages);
-    } else if (command->variant == "Shutdown") {
-      polling_thread.interrupt();
-      return;
+
+    } catch (Uptane::SecurityException e) {
+      LOGGER_LOG(LVL_error, e.what());
     }
   }
 }

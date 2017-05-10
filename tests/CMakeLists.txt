@@ -140,6 +140,9 @@ if(BUILD_OSTREE)
                   src/logger.cc
                   src/crypto.cc
                   src/types.cc
+                  src/uptane/tufrepository.cc
+                  src/uptane/uptanerepository.cc
+                  src/utils.cc
                   tests/uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto)
     add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

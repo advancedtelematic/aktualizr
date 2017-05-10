@@ -5,7 +5,7 @@
                 {
                         "keyid" : "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE",
                         "method" : "rsassa-pss",
-                        "sig" : "LaD/duYRUtan3OumW+ytwH1J/al8TSt2RBmTsZOdrhtaCugU+ZNyzCYAA/ZzEETy5RqgOjuA/xg6rFzAsYGfsHBIWoK35nid+xl0Y7Xycp2dTcIaa80i0G+gRXv8SYUH7bNJ6gslS+NGk7nYHUXjjxAdypCRrqZMeK/ZstnLQ3bEmZLXWaV9uSeuK5a5N0FOGN1f7KlLTjDcCiz2do8fqoSXL24e234EmmBadtChTd7m7ukUGrGr39KPlkAHTpCioV1dPDXk4gJKzmfPnYbdLesASBB8Op7joGojGfvJywqhyMsJFsFks/WXAvdr0O01C5AGgNH0oSB3hlomG5EZRw=="
+                        "sig" : "Ku8cR76WDaxKYRE71QYvdAk99xmf9eJfnkeQh53dYd0RiApSh5akJnLiPcZpulMh/7LUcIqIeIbJEoJzAvxalFhpkmhtn3h2TirRUjGnamYhn9AfkCJ3khHjwEzTAFeXJgX/E3z6TvsBgORTLKIO9o4IETiQAW26LOU1RsYCBbooPL66XhEbNNId8J3RgY6/+yYNS0CIRDjmxky3X2/iBYglOge7s7FWGbhnf3MEDZKH1vifm5K3O0Xs86ZIE5yCOr5BsdYkYr0uiZc71FUx67aWsq//Z+RpU8G2CZ3t30QnQ0Vf7Lxppq1lTxBu7iE+okfFAbqTTlEs3SfsTUpowQ=="
                 }
         ],
         "signed" : 
@@ -23,6 +23,6 @@
                                 "length" : 669
                         }
                 },
-                "version" : 2
+                "version" : 1
         }
 }

@@ -19,7 +19,8 @@ set(SOURCES third_party/jsoncpp/jsoncpp.cpp
             src/eventsinterpreter.cc
             src/gatewaymanager.cc
             src/socketgateway.cc
-            src/crypto.cc)
+            src/crypto.cc
+            src/utils.cc)
 # set headers used for clang format
 set(HEADERS
             src/logger.h
@@ -34,7 +35,10 @@ set(HEADERS
             src/gatewaymanager.h
             src/socketgateway.h
             src/crypto.h
-            src/ostree.h)
+            src/ostree.h
+            src/uptane/tufrepository.h
+            src/uptane/uptanerepository.h
+            src/uptane/exceptions.h)
 
 set(MAIN src/main.cc)
 
@@ -47,7 +51,7 @@ if(BUILD_GENIVI)
 endif(BUILD_GENIVI)
 
 if (BUILD_OSTREE)
-    list(APPEND SOURCES src/sotauptaneclient.cc
+    list(APPEND SOURCES src/sotauptaneclient.cc src/uptane/tufrepository.cc src/uptane/uptanerepository.cc
         src/ostree.cc)
 endif(BUILD_OSTREE)
 

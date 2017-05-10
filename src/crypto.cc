@@ -74,7 +74,6 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   RAND_poll();
   RSA *rsa = NULL;
 
-  std::cout << "PuBLIC KEY: " << public_key << "\n";
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());
   if (!PEM_read_bio_RSA_PUBKEY(bio, &rsa, NULL, NULL)) {
     LOGGER_LOG(LVL_error, "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL));
