@@ -1,5 +1,10 @@
 # build folder
 build/
+/build-*
+/cmake-*
+
+# clion
+/.idea
 
 # Compiled Object files
 *.slo
