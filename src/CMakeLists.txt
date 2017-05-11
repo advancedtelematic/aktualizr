@@ -51,8 +51,10 @@ if(BUILD_GENIVI)
 endif(BUILD_GENIVI)
 
 if (BUILD_OSTREE)
-    list(APPEND SOURCES src/sotauptaneclient.cc src/uptane/tufrepository.cc src/uptane/uptanerepository.cc
-        src/ostree.cc)
+    list(APPEND SOURCES src/ostree.cc
+                        src/sotauptaneclient.cc
+                        src/uptane/tufrepository.cc
+                        src/uptane/uptanerepository.cc)
 endif(BUILD_OSTREE)
 
 include_directories(src)

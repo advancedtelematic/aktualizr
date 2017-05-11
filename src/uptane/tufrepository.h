@@ -9,7 +9,7 @@
 #include <string>
 
 namespace Uptane {
-typedef std::map<std::string, unsigned int> RoleTreshold;
+typedef std::map<std::string, unsigned int> RoleThreshold;
 struct PublicKey {
   PublicKey() {}
   PublicKey(const std::string& v, const std::string& t) : value(v), type(t) {}
@@ -30,11 +30,15 @@ class TufRepository {
   void updateTargets(const Json::Value& new_contents);
 
  private:
+  static const int kMinSignatures = 1;
+  static const int kMaxSignatures = 1000;
+
   void saveRole(const Json::Value& content);
-  boost::filesystem::path path;
-  std::map<std::string, PublicKey> keys;
-  RoleTreshold tresholds;
-  Json::Value timestamp_signed;
+
+  boost::filesystem::path path_;
+  std::map<std::string, PublicKey> keys_;
+  RoleThreshold thresholds_;
+  Json::Value timestamp_signed_;
 
   // TODO: list of targets
 };

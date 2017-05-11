@@ -146,11 +146,12 @@ if(BUILD_OSTREE)
                   tests/uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto)
     add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_test_uptane)
 
     add_executable(aktualizr_test_ostree tests/ostree_test.cc)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
     add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(check aktualizr_test_uptane)
+    add_dependencies(check aktualizr_test_ostree)
 endif(BUILD_OSTREE)
 
 
