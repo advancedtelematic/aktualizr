@@ -22,7 +22,6 @@ std::string Crypto::sha256digest(const std::string &text) {
   EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
   EVP_MD_CTX_cleanup(md_ctx);
   EVP_MD_CTX_destroy(md_ctx);
-  EVP_cleanup();
   return std::string((char *)digest, 32);
 }
 
@@ -77,7 +76,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
 
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());
   if (!PEM_read_bio_RSA_PUBKEY(bio, &rsa, NULL, NULL)) {
-    LOGGER_LOG(LVL_error, "PEM_read_bio_RSAPublicKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOGGER_LOG(LVL_error, "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL));
     return false;
   }
   BIO_free_all(bio);

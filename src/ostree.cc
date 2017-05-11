@@ -190,7 +190,6 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
   installed_image["fileinfo"]["hashes"]["sha256"] = commit;
-  installed_image["fileinfo"]["custom"] = false;
 
   Json::Value value;
   value["attacks_detected"] = "";
@@ -200,8 +199,6 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   value["timeserver_time"] = "1970-01-01T00:00:00Z";
   if (custom != Json::nullValue) {
     value["custom"] = custom;
-  } else {
-    value["custom"] = false;
   }
   return value;
 }

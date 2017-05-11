@@ -1,20 +1,12 @@
 #include <map>
 
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/remove_whitespace.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-
 #include "commands.h"
 #include "config.h"
 #include "events.h"
 #include "httpclient.h"
 #include "ostree.h"
-
-using namespace boost::archive::iterators;
-
-typedef base64_from_binary<transform_width<std::string::const_iterator, 6, 8> > base64_text;
-typedef transform_width<binary_from_base64<remove_whitespace<std::string::const_iterator> >, 8, 6> base64_to_bin;
+#include "uptane/tufrepository.h"
+#include "uptane/uptanerepository.h"
 
 class SotaUptaneClient {
  public:
@@ -23,21 +15,11 @@ class SotaUptaneClient {
     Repo,
   };
   std::string getEndPointUrl(SotaUptaneClient::ServiceType, const std::string &endpoint);
-  struct Verified {
-    bool is_new() { return new_version > old_version; }
-    std::string role;
-    Json::Value data;
-    unsigned long long old_version;
-    unsigned long long new_version;
-  };
 
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in);
-  bool verifyData(SotaUptaneClient::ServiceType service, const std::string &role, const Json::Value &tuf_signed);
-  void initService(SotaUptaneClient::ServiceType service);
-  bool verify(SotaUptaneClient::ServiceType service, const std::string &role, SotaUptaneClient::Verified &verified,
-              bool force_fetch);
-  void putManifest(SotaUptaneClient::ServiceType service);
-  Json::Value getJSON(SotaUptaneClient::ServiceType service, const std::string &role, bool force_fetch);
+
+  void putManifest(SotaUptaneClient::ServiceType service, const std::string &manifest);
+  Json::Value getJSON(SotaUptaneClient::ServiceType service, const std::string &role);
   Json::Value sign(const Json::Value &in_data);
   void OstreeInstall(std::vector<OstreePackage> packages);
   std::vector<OstreePackage> getAvailableUpdates();
@@ -48,16 +30,11 @@ class SotaUptaneClient {
   void runForever(command::Channel *commands_channel);
 
  private:
-  struct Service {
-    std::map<std::string, std::string> keys;
-    // first argument in pair is threshold, second is version
-    std::map<std::string, std::pair<unsigned int, unsigned long long> > roles;
-  };
-
-  std::map<ServiceType, Service> services;
   HttpClient *http;
   Config config;
   event::Channel *events_channel;
+  Uptane::TufRepository director;
+  Uptane::Repository uptane_repo;
 
   std::vector<Json::Value> ecu_versions;
   bool processing;
