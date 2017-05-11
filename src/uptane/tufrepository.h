@@ -1,21 +1,16 @@
 #ifndef UPTANE_TUFREPOSITORY_H_
 #define UPTANE_TUFREPOSITORY_H_
 
-#include <json/json.h>
 #include <boost/filesystem.hpp>
-#include "uptane/exceptions.h"
-
 #include <map>
 #include <string>
 
+#include <json/json.h>
+#include "crypto.h"
+#include "uptane/exceptions.h"
+
 namespace Uptane {
 typedef std::map<std::string, unsigned int> RoleThreshold;
-struct PublicKey {
-  PublicKey() {}
-  PublicKey(const std::string& v, const std::string& t) : value(v), type(t) {}
-  std::string value;
-  std::string type;
-};
 
 class TufRepository {
  public:

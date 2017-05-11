@@ -5,7 +5,6 @@
 #include <openssl/x509.h>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/make_shared.hpp>
-#include "boost/algorithm/hex.hpp"
 
 #include "crypto.h"
 #include "json/json.h"

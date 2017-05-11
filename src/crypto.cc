@@ -1,5 +1,6 @@
 #include "crypto.h"
 
+#include <boost/algorithm/hex.hpp>
 #include <iostream>
 
 #include <openssl/err.h>
@@ -9,8 +10,10 @@
 #include <openssl/pkcs12.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#include <sodium.h>
 
 #include "logger.h"
+#include "utils.h"
 
 std::string Crypto::sha256digest(const std::string &text) {
   EVP_MD_CTX *md_ctx;
@@ -103,6 +106,21 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
     return true;
   }
   return false;
+}
+bool Crypto::ED25519Verify(const std::string &public_key, const std::string &signature, const std::string &message) {
+  return crypto_sign_verify_detached((const unsigned char *)signature.c_str(), (const unsigned char *)message.c_str(),
+                                     message.size(), (const unsigned char *)public_key.c_str()) == 0;
+}
+
+bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
+  if (public_key.type == "ed25519") {
+    return ED25519Verify(boost::algorithm::unhex(public_key.value), boost::algorithm::unhex(signature), message);
+  } else if (public_key.type == "rsa") {
+    return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
+  } else {
+    LOGGER_LOG(LVL_error, "unsupported keytype: " << public_key.type);
+    return false;
+  }
 }
 
 bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,

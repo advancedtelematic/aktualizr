@@ -5,6 +5,8 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
+pkg_search_module(SODIUM libsodium REQUIRED)
+
 find_package(Threads REQUIRED)
 
 # set source files excluded main for using the list for the test target
@@ -77,7 +79,7 @@ set_property(SOURCE third_party/jsoncpp/jsoncpp.cpp APPEND_STRING PROPERTY COMPI
 
 
 target_link_libraries(aktualizr aktualizr_static_lib
-    ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OSTREE_LIBS})
+    ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${SODIUM_LIBRARIES})
 
 if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
