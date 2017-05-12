@@ -1,6 +1,7 @@
 #include "uptane/tufrepository.h"
 
 #include <boost/algorithm/string.hpp>
+
 #include <fstream>
 
 #include "crypto.h"
@@ -68,16 +69,14 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
     std::string method((*it)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
 
-    if (method != "rsassa-pss") {
+    if (method != "rsassa-pss" && method != "ed25519") {
       throw SecurityException(std::string("Unsupported sign method: ") + (*it)["method"].asString());
     }
     std::string keyid = (*it)["keyid"].asString();
     if (!keys_.count(keyid)) {
       throw SecurityException(std::string("Couldn't find a key: ") + keyid);
     }
-    std::string sig = Utils::fromBase64((*it)["sig"].asString());
-
-    if (!Crypto::RSAPSSVerify(keys_[keyid].value, sig, canonical)) {
+    if (!Crypto::VerifySignature(keys_[keyid], (*it)["sig"].asString(), canonical)) {
       throw SecurityException("Invalid signature, verification failed");
     }
   }
@@ -93,7 +92,8 @@ void TufRepository::saveRole(const Json::Value& content) {
 void TufRepository::initRoot(const Json::Value& content) {
   Json::Value json_keys = content["signed"]["keys"];
   for (Json::ValueIterator it = json_keys.begin(); it != json_keys.end(); it++) {
-    if (boost::algorithm::to_lower_copy((*it)["keytype"].asString()) != "rsa") {
+    std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
+    if (key_type != "rsa" && key_type != "ed25519") {
       throw SecurityException("Unsupported key type: " + (*it)["keytype"].asString());
     }
     keys_.insert(std::make_pair(it.key().asString(),

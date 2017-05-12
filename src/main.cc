@@ -43,6 +43,8 @@
 #include "sotauptaneclient.h"
 #endif
 
+#include <sodium.h>
+
 /*****************************************************************************/
 
 namespace bpo = boost::program_options;
@@ -100,6 +102,10 @@ int main(int argc, char *argv[]) {
   int return_value = EXIT_SUCCESS;
 
   loggerInit();
+  if (sodium_init() == -1) {
+    LOGGER_LOG(LVL_error, "Unable to initialize libsodium");
+    return EXIT_FAILURE;
+  }
 
   // Initialize config with default values
   Config config;

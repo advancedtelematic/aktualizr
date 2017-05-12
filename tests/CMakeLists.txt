@@ -127,7 +127,7 @@ target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_
 add_test(NAME test_socket_gateway COMMAND aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr_test_crypto tests/crypto_test.cc)
-target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto)
+target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(BUILD_OSTREE)
@@ -144,7 +144,7 @@ if(BUILD_OSTREE)
                   src/uptane/uptanerepository.cc
                   src/utils.cc
                   tests/uptane_test.cc)
-    target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto)
+    target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(check aktualizr_test_uptane)
 
