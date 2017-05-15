@@ -98,7 +98,6 @@ endif()
 # Config Test
 add_executable(aktualizr_test_config tests/config_test.cc)
 target_link_libraries(aktualizr_test_config  aktualizr_static_lib ${TEST_LIBS})
-file(WRITE Testing/config.toml "")
 add_test(NAME test_config COMMAND aktualizr_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
@@ -156,6 +155,7 @@ endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)
+    include_directories(${LIBDBUS_INCLUDE_DIRS})
     add_executable(aktualizr_test_dbusgateway tests/dbusgateway_test.cc)
     target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})

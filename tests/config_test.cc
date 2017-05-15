@@ -51,19 +51,52 @@ TEST(config, config_toml_parsing) {
   EXPECT_EQ(conf.rvi.node_port, "9999");
 }
 
+#ifdef WITH_GENIVI
+
+TEST(config, config_toml_dbus_session) {
+  Config conf;
+  conf.dbus.bus = DBUS_BUS_SYSTEM;
+  conf.updateFromTomlString("[dbus]\nbus = \"session\"");
+
+  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SESSION);
+}
+
+TEST(config, config_toml_dbus_system) {
+  Config conf;
+  conf.dbus.bus = DBUS_BUS_SESSION;
+  conf.updateFromTomlString("[dbus]\nbus = \"system\"");
+
+  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SYSTEM);
+}
+
+TEST(config, config_toml_dbus_invalid) {
+  Config conf;
+  conf.dbus.bus = DBUS_BUS_SYSTEM;
+  conf.updateFromTomlString("[dbus]\nbus = \"foo\"");
+
+  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SYSTEM);
+
+  conf.dbus.bus = DBUS_BUS_SESSION;
+  conf.updateFromTomlString("[dbus]\nbus = 123");
+
+  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SESSION);
+}
+
+#endif
+
 TEST(config, config_oauth_tls_parsing) {
   Config conf;
   try {
     conf.updateFromToml("tests/config_tests_prov_bad.toml");
   } catch (std::logic_error e) {
     EXPECT_STREQ(e.what(),
-                 "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' proprties");
+                 "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
   }
 }
 
 TEST(config, config_toml_parsing_empty_file) {
   Config conf;
-  conf.updateFromToml("Testing/config.toml");
+  conf.updateFromTomlString("");
 
   EXPECT_EQ(conf.core.server, "http://127.0.0.1:8080");
   EXPECT_EQ(conf.core.polling, true);

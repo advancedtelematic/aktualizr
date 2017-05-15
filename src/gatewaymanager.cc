@@ -1,7 +1,10 @@
 #include "gateway.h"
+
 #include <boost/make_shared.hpp>
+
 #include "gatewaymanager.h"
 #include "socketgateway.h"
+
 #ifdef WITH_GENIVI
 #include "dbusgateway/dbusgateway.h"
 #endif

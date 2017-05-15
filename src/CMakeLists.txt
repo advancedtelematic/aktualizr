@@ -50,6 +50,8 @@ if(BUILD_GENIVI)
     list(APPEND SOURCES src/dbusgateway/dbusgateway.cc
                         src/dbusgateway/swlm.cc
                         src/sotarviclient.cc)
+    list(APPEND HEADERS src/dbusgateway/dbusgateway.h
+                        src/dbusgateway/swlm.h)
 endif(BUILD_GENIVI)
 
 if (BUILD_OSTREE)
@@ -85,6 +87,7 @@ if(BUILD_GENIVI)
     set_property(TARGET aktualizr PROPERTY CXX_STANDARD 11)
     add_definitions(-DWITH_GENIVI)
     target_compile_options(aktualizr_static_lib PUBLIC ${LIBDBUS_CFLAGS})
+    target_include_directories(aktualizr_static_lib PUBLIC ${LIBDBUS_INCLUDE_DIRS})
     target_include_directories(aktualizr_static_lib PUBLIC third_party/rvi_lib/include)
     target_link_libraries(aktualizr ${LIBDBUS_LIBRARIES} rvi)
 endif(BUILD_GENIVI)

@@ -1,6 +1,7 @@
 #include "dbusgateway.h"
 
 #include <boost/shared_ptr.hpp>
+
 #include "logger.h"
 #include "types.h"
 
@@ -8,7 +9,7 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
     : stop(false), config(config_in), command_channel(command_channel_in), swlm(config) {
   dbus_threads_init_default();
   dbus_error_init(&err);
-  conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
+  conn = dbus_bus_get(config_in.dbus.bus, &err);
   if (dbus_error_is_set(&err)) {
     LOGGER_LOG(LVL_error, "D-Bus Connection Error: " << err.message);
     dbus_error_free(&err);

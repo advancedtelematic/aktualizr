@@ -1,8 +1,8 @@
 #ifndef DBUSGATEWAY_H_
 #define DBUSGATEWAY_H_
 
-#include <boost/atomic.hpp>
 #include <dbus/dbus.h>
+#include <boost/atomic.hpp>
 
 #include "commands.h"
 #include "config.h"
