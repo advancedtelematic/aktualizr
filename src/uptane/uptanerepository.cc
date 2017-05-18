@@ -7,7 +7,10 @@
 
 namespace Uptane {
 
-Repository::Repository(const Config& config_in) : config(config_in) {}
+Repository::Repository(const Config& config_in)
+    : config(config_in),
+      director("director", config.uptane.director_server, config),
+      image("repo", config.uptane.repo_server + "/" + config.device.uuid, config) {}
 
 Json::Value Repository::sign(const Json::Value& in_data) {
   std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
@@ -39,5 +42,10 @@ std::string Repository::signManifest(const Json::Value& custom) {
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed = sign(version_manifest);
   return Json::FastWriter().write(tuf_signed);
+}
+
+std::vector<Uptane::Target> Repository::getNewTargets() {
+  director.refresh();
+  return director.getTargets();
 }
 };

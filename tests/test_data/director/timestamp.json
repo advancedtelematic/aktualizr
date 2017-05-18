@@ -1,0 +1,28 @@
+{
+        "signatures" : 
+        [
+
+                {
+                        "keyid" : "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE",
+                        "method" : "rsassa-pss",
+                        "sig" : "Ku8cR76WDaxKYRE71QYvdAk99xmf9eJfnkeQh53dYd0RiApSh5akJnLiPcZpulMh/7LUcIqIeIbJEoJzAvxalFhpkmhtn3h2TirRUjGnamYhn9AfkCJ3khHjwEzTAFeXJgX/E3z6TvsBgORTLKIO9o4IETiQAW26LOU1RsYCBbooPL66XhEbNNId8J3RgY6/+yYNS0CIRDjmxky3X2/iBYglOge7s7FWGbhnf3MEDZKH1vifm5K3O0Xs86ZIE5yCOr5BsdYkYr0uiZc71FUx67aWsq//Z+RpU8G2CZ3t30QnQ0Vf7Lxppq1lTxBu7iE+okfFAbqTTlEs3SfsTUpowQ=="
+                }
+        ],
+        "signed" : 
+        {
+                "_type" : "Timestamp",
+                "expires" : "2017-04-20T14:46:50Z",
+                "meta" : 
+                {
+                        "snapshot.json" : 
+                        {
+                                "hashes" : 
+                                {
+                                        "sha256" : "b5568d4afed95cda724fdef5ead244379455501499cfefb4479ee30999dcea21"
+                                },
+                                "length" : 669
+                        }
+                },
+                "version" : 1
+        }
+}

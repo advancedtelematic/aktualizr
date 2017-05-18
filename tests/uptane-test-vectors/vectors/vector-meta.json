@@ -1,0 +1,210 @@
+[
+  {
+    "is_success": true,
+    "repo": "001",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "TargetHashMismatch",
+        "error_msg": "The target's calculated hash did not match the hash in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "002",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      },
+      "repo": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "006",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "007",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "IllegalThreshold::Root",
+        "error_msg": "The role root had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "016",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "IllegalThreshold::Targets",
+        "error_msg": "The role targets had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "017",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "IllegalThreshold::Timestamp",
+        "error_msg": "The role timestamp had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "018",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "IllegalThreshold::Snapshot",
+        "error_msg": "The role snapshot had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "019",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "is_success": true,
+    "repo": "044",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  }
+]

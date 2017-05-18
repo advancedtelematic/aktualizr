@@ -33,7 +33,6 @@ class SotaUptaneClient {
   HttpClient *http;
   Config config;
   event::Channel *events_channel;
-  Uptane::TufRepository director;
   Uptane::Repository uptane_repo;
 
   std::vector<Json::Value> ecu_versions;

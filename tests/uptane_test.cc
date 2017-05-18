@@ -10,6 +10,7 @@
 #include "ostree.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
+#include "utils.h"
 
 std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
 std::string tls_server = "https://tlsserver.com";
@@ -185,7 +186,7 @@ TEST(uptane, verify) {
 
   SotaUptaneClient up(config, events_channel);
 
-  Uptane::TufRepository repo("tests/test_data/director");
+  Uptane::TufRepository repo("director", "tests/test_data/director", config);
 
   std::cout << up.getJSON(SotaUptaneClient::Director, "root");
   repo.verifyRole(up.getJSON(SotaUptaneClient::Director, "root"));
@@ -203,7 +204,7 @@ TEST(uptane, verify_data_bad) {
   Json::Value data_json = up.getJSON(SotaUptaneClient::Director, "root");
   std::cout << data_json;
   data_json.removeMember("signatures");
-  Uptane::TufRepository repo("tests/test_data/director");
+  Uptane::TufRepository repo("director", "tests/test_data/director", config);
   try {
     repo.verifyRole(data_json);
     FAIL();
@@ -223,7 +224,7 @@ TEST(uptane, verify_data_unknow_type) {
   Json::Value data_json = up.getJSON(SotaUptaneClient::Director, "root");
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
-  Uptane::TufRepository repo("tests/test_data/director");
+  Uptane::TufRepository repo("director", "tests/test_data/director", config);
   try {
     repo.verifyRole(data_json);
     FAIL();
@@ -243,7 +244,7 @@ TEST(uptane, verify_data_bed_keyid) {
   Json::Value data_json = up.getJSON(SotaUptaneClient::Director, "root");
   data_json["signatures"][0]["keyid"] = "badkeyid";
   data_json["signatures"][1]["keyid"] = "badsignature";
-  Uptane::TufRepository repo("tests/test_data/director");
+  Uptane::TufRepository repo("director", "tests/test_data/director", config);
   try {
     repo.verifyRole(data_json);
     FAIL();
@@ -262,7 +263,7 @@ TEST(uptane, verify_data_bed_threshold) {
   SotaUptaneClient up(config, events_channel);
   Json::Value data_json = up.getJSON(SotaUptaneClient::Director, "root");
   data_json["signatures"][0]["keyid"] = "bedsignature";
-  Uptane::TufRepository repo("tests/test_data/director");
+  Uptane::TufRepository repo("director", "tests/test_data/director", config);
   try {
     repo.verifyRole(data_json);
     FAIL();
@@ -387,7 +388,6 @@ TEST(SotaUptaneClientTest, getAvailableUpdates) {
   event::Channel *events_channel = new event::Channel();
 
   SotaUptaneClient up(config, events_channel);
-  // up.initService(SotaUptaneClient::Director);
 
   std::vector<OstreePackage> packages = up.getAvailableUpdates();
 }
@@ -395,7 +395,13 @@ TEST(SotaUptaneClientTest, getAvailableUpdates) {
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
+  conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
+  conf.device.certificates_path = "tests/test_data/";
+  conf.uptane.repo_server = "https://repo.com";
+  conf.device.uuid = "device_id";
+  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.uptane.private_key_path = "private.key";
 
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
@@ -425,7 +431,13 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
 TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
+  conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
+  conf.device.certificates_path = "tests/test_data/";
+  conf.uptane.repo_server = "https://repo.com";
+  conf.device.uuid = "device_id";
+  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.uptane.private_key_path = "private.key";
 
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
@@ -440,14 +452,13 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   *commands_channel << boost::make_shared<command::GetUpdateRequests>();
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
-  // up.initService(SotaUptaneClient::Director);
   up.runForever(commands_channel);
   boost::shared_ptr<event::BaseEvent> event;
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].commit, "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(targets_event->packages[0].commit, "A0FB2E119CF812F1AA9E993D01F5F07CB41679096CB4492F1265BFF5AC901D0D");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {

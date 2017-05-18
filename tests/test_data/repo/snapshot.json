@@ -1,0 +1,25 @@
+
+{
+	"signatures" : 
+	[
+		
+		{
+			"keyid" : "3ae6ab1fa0d2fa984ae0ad16def898d7ba9431c636c96f1955159cc7105750ba",
+			"method" : "rsassa-pss",
+			"sig" : "XuOyvKSq+NcQX9SWFGzh0TxJnBglaALEtURKyfP1e1dpzLvBbYxG97lNbmlWTMzOBZ8uq/EHiqDI758NGfTbnZD0DdBi+7xOGoaJtreW1XisBemERAEPzBHRp0br78s/edlYiWg0hHkuIvhqaC/YqFQ9znJh2LSiqlF/P3E5Emo="
+		}
+	],
+	"signed" : 
+	{
+		"_type" : "Snapshot",
+		"expires" : "2038-01-19T03:14:06Z",
+		"meta" : 
+		{
+			"targets.json" : 
+			{
+				"version" : 1
+			}
+		},
+		"version" : 1
+	}
+}
