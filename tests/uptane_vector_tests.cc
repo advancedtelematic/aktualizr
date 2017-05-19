@@ -14,15 +14,8 @@
 #include "logger.h"
 #include "utils.h"
 
-#include "uptane/tufrepository.h"
+#include "uptane/uptanerepository.h"
 
-// bool match_exception(, std::string exc_name){
-//     if (boost::starts_with(exc_name, "TargetHashMismatch") && typeid(Uptane::TargetHashMismatch) == typeid(*e)){
-//         return true;
-//     }
-//     std::cout << "Exception should be: '" << exc_name << "' but is '" << typeid(e).name() << "\n"; 
-//     return false;
-// }
 
 bool match_error(Json::Value errors, Uptane::Exception * e){
     std::string repos;
@@ -34,6 +27,8 @@ bool match_error(Json::Value errors, Uptane::Exception * e){
         if(boost::starts_with(exc_name, "SecurityException") && typeid(Uptane::SecurityException) != typeid(*e)) continue;
         else if(boost::starts_with(exc_name, "TargetHashMismatch") && typeid(Uptane::TargetHashMismatch) != typeid(*e)) continue;
         else if(boost::starts_with(exc_name, "OversizedTarget") && typeid(Uptane::OversizedTarget) != typeid(*e)) continue;
+        else if(boost::starts_with(exc_name, "MissingRepo") && typeid(Uptane::MissingRepo) != typeid(*e)) continue;
+        
 
         if(it.key().asString() == e->getName()){
             if ((*it)["error_msg"].asString() == e->what()){
@@ -49,43 +44,49 @@ bool match_error(Json::Value errors, Uptane::Exception * e){
 
 bool run_test(Json::Value vector){
     Config config;
-    std::string url = "http://127.0.0.1:8080/"+vector["repo"].asString()+"/director/repo";
-    try{
-        Uptane::TufRepository repo("director", url, config);
-        repo.updateRoot();
+    std::string url_director = "http://127.0.0.1:8080/"+vector["repo"].asString()+"/director/repo";
+    std::string url_image = "http://127.0.0.1:8080/"+vector["repo"].asString()+"/repo/repo";
+    config.uptane.director_server = url_director;
+    config.uptane.repo_server = url_image;
+    config.uptane.metadata_path  = "/tmp/aktualizr_repos";
+    boost::filesystem::remove_all(config.uptane.metadata_path / "director");
+    boost::filesystem::remove_all(config.uptane.metadata_path / "repo");
 
-        repo.refresh();
+    try{
+        Uptane::Repository repo(config);
+        repo.updateRoot();
+        repo.getNewTargets();
+
+        //repo.refresh();
     }
-    catch(Uptane::TargetHashMismatch e){
-        if (vector["is_success"].asBool()) return false;
+    catch(Uptane::Exception e){
+        if (vector["is_success"].asBool()) {
+            std::cout << "Exception "<< typeid(e).name() << " happen, but shouldn't\n";
+            std::cout << "exception message: " << e.what() << "\n";
+            return false;
+        }
         return match_error(vector["errors"], &e);
-    }
-    catch(Uptane::SecurityException e){
-       if (vector["is_success"].asBool()) return false;
-       return match_error(vector["errors"], &e);
-    }
-    catch(Uptane::OversizedTarget e){
-       if (vector["is_success"].asBool()) return false;
-       return match_error(vector["errors"], &e);
-    }
-    catch(Uptane::IllegalThreshold e){
-       if (vector["is_success"].asBool()) return false;
-       return match_error(vector["errors"], &e);
-    }
-    catch(...){
+
+    }catch(...){
+        //std::cout << "Exception "<< typeid(e).name() << " happen, but shouldn't\n";
         std::cout << "Undefined exception\n";
         return false;
     }
     
-    if (vector["is_success"].asBool())
+    
+    if (vector["is_success"].asBool()){
         return true;
-    else
+        
+    }
+    else{
+        std::cout << "No exceptions, but expects\n";
         return false;
+    }
 }
 
 int main(int argc, char*argv[]) {
   loggerInit();
-  loggerSetSeverity(LVL_minimum);
+  loggerSetSeverity(LVL_maximum);
   boost::filesystem::path full_path( boost::filesystem::current_path() );
     std::cout << "Current path is : " << full_path << std::endl;
 

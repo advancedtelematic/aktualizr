@@ -36,6 +36,9 @@ class Hasher {
 struct Target {
   Target(const Json::Value &custom, const std::string &filename, unsigned long long length, Hasher hash)
       : custom_(custom), filename_(filename), length_(length), hash_(hash) {}
+  bool operator==(const Target& t2){
+   return (filename_ == t2.filename_ && length_ == t2.length_ && hash_.hash_ == t2.hash_.hash_);
+  }
   Json::Value custom_;
   std::string filename_;
   unsigned long long length_;

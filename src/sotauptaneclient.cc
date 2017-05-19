@@ -25,7 +25,7 @@ std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType servi
   if (service == Director) {
     return config.uptane.director_server + "/" + role;
   } else {
-    return config.uptane.repo_server + "/" + config.device.uuid + "/" + role;
+    return config.uptane.repo_server + "/" + role;
   }
 }
 
@@ -150,7 +150,6 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
     result.push_back(OstreePackage((*it).custom_["ecuIdentifier"].asString(), (*it).filename_, (*it).hash_.hash_, "",
                                    (*it).custom_["uri"].asString()));
   }
-
   return result;
 }
 
@@ -181,6 +180,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   }
   authenticate();
   putManifest(Director, uptane_repo.signManifest());
+  uptane_repo.updateRoot();
   processing = false;
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 

@@ -43,17 +43,13 @@
   },
   {
     "errors": {
-      "director": {
-        "error": "OversizedTarget",
-        "error_msg": "The target's size was greater than the size in the metadata."
-      },
       "repo": {
-        "error": "OversizedTarget",
-        "error_msg": "The target's size was greater than the size in the metadata."
+        "error": "TargetHashMismatch",
+        "error_msg": "The target's calculated hash did not match the hash in the metadata."
       }
     },
     "is_success": false,
-    "repo": "006",
+    "repo": "003",
     "root_keys": {
       "director": [
         {
@@ -72,19 +68,14 @@
   {
     "errors": {
       "director": {
-        "error": "OversizedTarget",
-        "error_msg": "The target's size was greater than the size in the metadata."
+        "error": "MissingRepo::Director",
+        "error_msg": "The director repo is missing."
       }
     },
     "is_success": false,
-    "repo": "007",
+    "repo": "004",
     "root_keys": {
-      "director": [
-        {
-          "path": "1.root-1.pub",
-          "type": "ed25519"
-        }
-      ],
+      "director": [],
       "repo": [
         {
           "path": "1.root-1.pub",
@@ -190,8 +181,14 @@
     }
   },
   {
-    "is_success": true,
-    "repo": "044",
+    "errors": {
+      "repo": {
+        "error": "IllegalThreshold::Root",
+        "error_msg": "The role root had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "020",
     "root_keys": {
       "director": [
         {
@@ -202,6 +199,180 @@
       "repo": [
         {
           "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "IllegalThreshold::Targets",
+        "error_msg": "The role targets had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "021",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "IllegalThreshold::Timestamp",
+        "error_msg": "The role timestamp had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "022",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "IllegalThreshold::Snapshot",
+        "error_msg": "The role snapshot had an illegal signature threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "023",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "is_success": true,
+    "repo": "024",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "rsa"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "rsa"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "TargetHashMismatch",
+        "error_msg": "The target's calculated hash did not match the hash in the metadata."
+      },
+      "repo": {
+        "error": "TargetHashMismatch",
+        "error_msg": "The target's calculated hash did not match the hash in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "025",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "rsa"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "rsa"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "UnmetThreshold::Root",
+        "error_msg": "The root metadata had an unmet threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "026",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        },
+        {
+          "path": "1.root-2.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "UnmetThreshold::Root",
+        "error_msg": "The root metadata had an unmet threshold."
+      }
+    },
+    "is_success": false,
+    "repo": "030",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        },
+        {
+          "path": "1.root-2.pub",
           "type": "ed25519"
         }
       ]

@@ -11,6 +11,7 @@ namespace Uptane {
 class Repository {
  public:
   Repository(const Config& config);
+  void updateRoot();
   Json::Value sign(const Json::Value& in_data);
   std::string signManifest();
   std::string signManifest(const Json::Value&);

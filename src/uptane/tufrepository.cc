@@ -27,7 +27,13 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
   }
 }
 
-Json::Value TufRepository::getJSON(const std::string& role) { return http_.getJson(base_url_ + "/" + role); }
+Json::Value TufRepository::getJSON(const std::string& role) { 
+  Json::Value result = http_.getJson(base_url_ + "/" + role);
+  if (http_.http_code == 404){
+    throw MissingRepo(name_);
+  }
+  return result;
+}
 
 void TufRepository::updateRoot() {
   Json::Value content = getJSON("root.json");
@@ -55,7 +61,7 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
   if (!tuf_signed["signatures"].size()) {
     throw SecurityException(name_, "Missing signatures, verification failed");
   } else if (tuf_signed["signatures"].size() < thresholds_[role]) {
-    throw SecurityException(name_, "Signatures count is smaller then threshold, verification failed");
+    throw UnmetThreshold(name_, role);
   }
 
   std::string canonical = Json::FastWriter().write(tuf_signed["signed"]);
@@ -63,7 +69,7 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
     std::string method((*it)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
 
-    if (method != "rsassa-pss" && method != "ed25519") {
+    if (method != "rsassa-pss" && method != "rsassa-pss-sha256" && method != "ed25519") {
       throw SecurityException(name_, std::string("Unsupported sign method: ") + (*it)["method"].asString());
     }
     std::string keyid = (*it)["keyid"].asString();

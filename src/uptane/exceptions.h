@@ -30,7 +30,6 @@ class TargetHashMismatch : public Exception {
  public:
   TargetHashMismatch(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
   virtual ~TargetHashMismatch() throw() {}
-  const std::string reponame_;
 };
 
 class OversizedTarget : public Exception {
@@ -38,15 +37,30 @@ class OversizedTarget : public Exception {
   OversizedTarget(const std::string reponame)
       : Exception(reponame, "The target's size was greater than the size in the metadata.") {}
   virtual ~OversizedTarget() throw() {}
-  const std::string reponame_;
 };
 
 class IllegalThreshold : public Exception {
  public:
   IllegalThreshold(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
   virtual ~IllegalThreshold() throw() {}
-  const std::string reponame_;
 };
+
+class MissingRepo : public Exception {
+ public:
+  MissingRepo(const std::string reponame) : Exception(reponame, "The "+reponame+" repo is missing.") {}
+  virtual ~MissingRepo() throw() {}
+};
+
+class UnmetThreshold : public Exception {
+ public:
+  UnmetThreshold(const std::string reponame, const std::string &role) : Exception(reponame, "The "+role+" metadata had an unmet threshold.") {}
+  virtual ~UnmetThreshold() throw() {}
+};
+
+
+
+
+
 };
 
 #endif

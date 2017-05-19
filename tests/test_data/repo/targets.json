@@ -1,0 +1,34 @@
+
+{
+	"signatures" : 
+	[
+		
+		{
+			"keyid" : "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE",
+			"method" : "rsassa-pss",
+			"sig" : "oXlKN6u+WqmAmPcnIFgIcDWEFr8a6wI5U+WN8arsGrBG33DVcLwEWH5ui0nx6AVd39KbybO3tjh2n/ezVsOh0dxCerLCQwoae8itlWxKanEtvxpnETeZIMPsh2Owfc9tzUsxLFZtzDj3h8p6CkYYNZLcLXN7m8NHN93pKHWyM441AI5zYm5/kuLFYIzygOv1vi9E9jW0eIk9UFjVZeRc1OE1hLqmjSmCVEIJEyNfTTRUwIkxHIXeUvIuv8gcLIY0nM948U+b3ITuZWLT+MmEA6v/QQ23NSN0WiMpQ+4YisrLYCIwtWj6o4O7UV3Vd010fdDDfYhVazywWkaPRGkQEw=="
+		}
+	],
+	"signed" : 
+	{
+		"_type" : "Targets",
+		"expires" : "2017-04-20T14:46:50Z",
+		"targets" : 
+		{
+			"agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d" : 
+			{
+				"custom" : 
+				{
+					"ecuIdentifier" : "CA:FE:A6:D2:84:9D",
+					"uri" : "https://qa-treehub-pub.atsgarage.com/api/v2/mydevice"
+				},
+				"hashes" : 
+				{
+					"sha256" : "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"
+				},
+				"length" : 0
+			}
+		},
+		"version" : 1
+	}
+}
