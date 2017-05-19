@@ -1,7 +1,7 @@
 # build folder
 build/
 /build-*
-/cmake-*
+/cmake-build-debug
 
 # clion
 /.idea
