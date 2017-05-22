@@ -1,0 +1,67 @@
+{
+  "signatures": [
+    {
+      "keyid": "6a601d5c7583ee91925a8caa903c2a9e1f0abe9ddc02bfa2e7c597d1f869df11",
+      "method": "ed25519",
+      "sig": "2G8o+g2aL8EMkixlARYhlWIP3g2IPF2QYhPsLmSFvYZbj8mvUmIWr+KK2tU0Y0yi/Apklfejph/o7HQbxt6JAQ=="
+    }
+  ],
+  "signed": {
+    "_type": "Root",
+    "consistent_snapshot": false,
+    "expires": "2038-01-19T03:14:06Z",
+    "keys": {
+      "1da4b29aecda06a7cdd93e7a9c1bc478937761d3c7cdf2d67fedb7c6cfedd0d8": {
+        "keytype": "ed25519",
+        "keyval": {
+          "public": "c4a848d06be95b3cb5342f8e98b56ad4c772c1a8f75cd6afa389225419001721"
+        }
+      },
+      "6a601d5c7583ee91925a8caa903c2a9e1f0abe9ddc02bfa2e7c597d1f869df11": {
+        "keytype": "ed25519",
+        "keyval": {
+          "public": "c628cd6a607a2f47e4043a966d692f932e92d23b3c5a4d4a371f88a291723435"
+        }
+      },
+      "89118f802e180dbde483da80e2d24daa0819ef0a83043021fffe0535a374fb86": {
+        "keytype": "ed25519",
+        "keyval": {
+          "public": "fc33d39b2e95cb063ed1fccfbe65fde9961b16f18504421bc88e0460c70a1408"
+        }
+      },
+      "a5be7375e4780ce04e1971ba18685935912915911cf68b52eaf992ef9bb5faab": {
+        "keytype": "ed25519",
+        "keyval": {
+          "public": "94b12d895e750d5e99ec5da25b968fa6676e7faa77b42eb93da4365c1464df1e"
+        }
+      }
+    },
+    "roles": {
+      "root": {
+        "keyids": [
+          "6a601d5c7583ee91925a8caa903c2a9e1f0abe9ddc02bfa2e7c597d1f869df11"
+        ],
+        "threshold": 1
+      },
+      "snapshot": {
+        "keyids": [
+          "89118f802e180dbde483da80e2d24daa0819ef0a83043021fffe0535a374fb86"
+        ],
+        "threshold": 1
+      },
+      "targets": {
+        "keyids": [
+          "a5be7375e4780ce04e1971ba18685935912915911cf68b52eaf992ef9bb5faab"
+        ],
+        "threshold": 1
+      },
+      "timestamp": {
+        "keyids": [
+          "1da4b29aecda06a7cdd93e7a9c1bc478937761d3c7cdf2d67fedb7c6cfedd0d8"
+        ],
+        "threshold": 1
+      }
+    },
+    "version": 1
+  }
+}

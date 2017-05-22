@@ -87,6 +87,250 @@
   {
     "errors": {
       "director": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      },
+      "repo": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "006",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "OversizedTarget",
+        "error_msg": "The target's size was greater than the size in the metadata."
+      }
+    },
+    "is_success": false,
+    "repo": "007",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "ExpiredMetadata::Root",
+        "error_msg": "The root metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "008",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "ExpiredMetadata::Targets",
+        "error_msg": "The targets metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "009",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "ExpiredMetadata::Timestamp",
+        "error_msg": "The timestamp metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "010",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
+        "error": "ExpiredMetadata::Snapshot",
+        "error_msg": "The snapshot metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "011",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "ExpiredMetadata::Root",
+        "error_msg": "The root metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "012",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "ExpiredMetadata::Targets",
+        "error_msg": "The targets metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "013",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "ExpiredMetadata::Timestamp",
+        "error_msg": "The timestamp metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "014",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "repo": {
+        "error": "ExpiredMetadata::Snapshot",
+        "error_msg": "The snapshot metadata was expired."
+      }
+    },
+    "is_success": false,
+    "repo": "015",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "errors": {
+      "director": {
         "error": "IllegalThreshold::Root",
         "error_msg": "The role root had an illegal signature threshold."
       }

@@ -2,10 +2,10 @@
 #include <fstream>
 #include <iostream>
 
+#include <json/json.h>
 #include <boost/filesystem.hpp>
 #include <string>
 #include "boost/algorithm/hex.hpp"
-#include <json/json.h>
 
 #include "crypto.h"
 #include "utils.h"
@@ -32,8 +32,7 @@ TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());
   root_stream.close();
-  std::string signature =
-      "lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
+  std::string signature = "lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
   PublicKey pkey("cb07563157805c279ec90ccb057f2c3ea6e89200e1e67f8ae66185987ded9b1c", "ed25519");
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_TRUE(signe_is_ok);

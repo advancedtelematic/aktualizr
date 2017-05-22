@@ -1,6 +1,7 @@
 #include "uptane/tufrepository.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <fstream>
 
@@ -27,9 +28,9 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
   }
 }
 
-Json::Value TufRepository::getJSON(const std::string& role) { 
+Json::Value TufRepository::getJSON(const std::string& role) {
   Json::Value result = http_.getJson(base_url_ + "/" + role);
-  if (http_.http_code == 404){
+  if (http_.http_code == 404) {
     throw MissingRepo(name_);
   }
   return result;
@@ -56,6 +57,20 @@ Json::Value TufRepository::updateRole(const std::string& role) {
   return content;
 }
 
+bool TufRepository::hasExpired(const std::string& date) {
+  if (date.size() != 20 || date[19] != 'Z') {
+    throw Uptane::Exception(name_, "Wrong expires datetime field!!!");
+  }
+  try {
+    boost::posix_time::ptime parsed_date(boost::gregorian::from_string(date.substr(0, 10)),
+                                         boost::posix_time::duration_from_string(date.substr(11, 8)));
+    return boost::posix_time::second_clock::local_time() > parsed_date;
+  } catch (std::exception e) {
+    throw Uptane::Exception(name_, std::string("Wrong expires datetime field, what(): ") + e.what());
+  }
+  return false;
+}
+
 void TufRepository::verifyRole(const Json::Value& tuf_signed) {
   std::string role = boost::algorithm::to_lower_copy(tuf_signed["signed"]["_type"].asString());
   if (!tuf_signed["signatures"].size()) {
@@ -79,6 +94,9 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
     if (!Crypto::VerifySignature(keys_[keyid], (*it)["sig"].asString(), canonical)) {
       throw SecurityException(name_, "Invalid signature, verification failed");
     }
+  }
+  if (hasExpired(tuf_signed["signed"]["expires"].asString())) {
+    throw ExpiredMetadata(name_, role);
   }
 }
 

@@ -295,8 +295,7 @@ TEST(uptane, sign) {
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
-  
-  
+
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
   boost::filesystem::remove(conf.device.certificates_path / "bootstrap_ca.pem");
@@ -314,7 +313,7 @@ TEST(SotaUptaneClientTest, device_registered) {
 TEST(SotaUptaneClientTest, device_registered_fail) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
-  
+
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
   boost::filesystem::remove(conf.device.certificates_path / "bootstrap_ca.pem");
@@ -376,7 +375,6 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
   up.ecuRegister();
 }
 
-
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf;
   conf.updateFromToml("tests/config_tests_prov.toml");
@@ -394,7 +392,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   boost::filesystem::remove(conf.device.certificates_path / "bootstrap_cert.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
-
 
   conf.tls.server = tls_server;
   event::Channel *events_channel = new event::Channel();

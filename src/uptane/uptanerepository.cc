@@ -10,14 +10,12 @@ namespace Uptane {
 Repository::Repository(const Config& config_in)
     : config(config_in),
       director("director", config.uptane.director_server, config),
-      image("repo", config.uptane.repo_server, config) {
-      }
+      image("repo", config.uptane.repo_server, config) {}
 
-void Repository::updateRoot(){
-    director.updateRoot();
-    image.updateRoot();
+void Repository::updateRoot() {
+  director.updateRoot();
+  image.updateRoot();
 }
-
 
 Json::Value Repository::sign(const Json::Value& in_data) {
   std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
@@ -55,7 +53,7 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
   director.refresh();
   image.refresh();
   std::vector<Uptane::Target> targets = director.getTargets();
-  //std::equal(targets.begin(), targets.end(), image.getTargets().begin());
+  // std::equal(targets.begin(), targets.end(), image.getTargets().begin());
   return targets;
 }
 };

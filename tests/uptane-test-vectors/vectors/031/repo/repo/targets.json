@@ -1,0 +1,29 @@
+{
+  "signatures": [
+    {
+      "keyid": "e462da9e873c1a2db14dcf3c552c17e75778166b6f7ff64ba15458a458015fd5",
+      "method": "ed25519",
+      "sig": "A+ZXp7KCe9vz8RnP87qsS5n6sALkhcPpb6g6NhdQVMO/7bOqIyu7kesv1I4USbpe+7DfUdfHZTKW6I1N2EmJCQ=="
+    },
+    {
+      "keyid": "67e5248ef549e70fe0578631db89c9ec2cb3e89360220fede63c1a1bf41c053c",
+      "method": "ed25519",
+      "sig": "aFXAYw1T+9UzRNCESjh2F1tCKY3BpIFNcME5CdqbcsluA+fw5GOZjQy0SeDkR58dJxU18NlI+FdnmvQODVdpCQ=="
+    }
+  ],
+  "signed": {
+    "_type": "Targets",
+    "expires": "2038-01-19T03:14:06Z",
+    "releaseCounter": 1,
+    "targets": {
+      "targets/file.txt": {
+        "hashes": {
+          "sha256": "fbf121c8e85875ffb9d50eab2cfa2a692df0e3e06afc2913492abe128bae66d0",
+          "sha512": "ac51637364cff0f6802e087c8c6a51f1925384af639214282a67e093495ef746d8f1c2326cf7182a1067fd69f6049247f509a95a533032f9565c905ce4c5d5fe"
+        },
+        "length": 12
+      }
+    },
+    "version": 1
+  }
+}

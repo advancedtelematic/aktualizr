@@ -1,0 +1,35 @@
+{
+  "signatures": [
+    {
+      "keyid": "6b25f2551387d97232c9c11612399a5f08f1744beed4eb146d01a932e670cfa1",
+      "method": "ed25519",
+      "sig": "UXvzapkrsRHDpEja4Sm40DNuQ6j+9HW+Ae7Pmmis7PpK8wxAGY4lmfQFHwhEAr2eDVA6hUYrnPU1VEN+5jQLAw=="
+    }
+  ],
+  "signed": {
+    "_type": "Snapshot",
+    "expires": "2038-01-19T03:14:06Z",
+    "meta": {
+      "1.root.json": {
+        "hashes": {
+          "sha256": "8f3740572493d643fa45f8f48d3060b2d556b776f4ab8c886610ca28d5dfd46a",
+          "sha512": "224e0b5c2a6a6dd72c4bc493f93e5c1b4faa9a7fc05248634ba7c6307d9a5320ad5405070c1ced7dc25f0a24c10bd5d2ba3fc51941bac8d57667f13e0ad754c8"
+        },
+        "length": 1987,
+        "version": 1
+      },
+      "root.json": {
+        "hashes": {
+          "sha256": "8f3740572493d643fa45f8f48d3060b2d556b776f4ab8c886610ca28d5dfd46a",
+          "sha512": "224e0b5c2a6a6dd72c4bc493f93e5c1b4faa9a7fc05248634ba7c6307d9a5320ad5405070c1ced7dc25f0a24c10bd5d2ba3fc51941bac8d57667f13e0ad754c8"
+        },
+        "length": 1987,
+        "version": 1
+      },
+      "targets.json": {
+        "version": 1
+      }
+    },
+    "version": 1
+  }
+}

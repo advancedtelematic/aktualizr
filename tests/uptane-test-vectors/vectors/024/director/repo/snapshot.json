@@ -3,7 +3,7 @@
     {
       "keyid": "1d4ae7e8ca0d2d0599727b9a588f1cef485d96913c793ee89b835013cc308bca",
       "method": "rsassa-pss-sha256",
-      "sig": "0Rm79NwCT1AZTgqYIfFXF+MHW/PA4Nd2YvNHydSVo3hdgdDmGtCuu3aZjEF3clrTwSJoVJCW1Hd5/Ipyv5yMWwFTvfalrTiMffL/0fEjaUWod6DX6o7oK0kJhEbjBF8E++MXTwOhHLGORPhaM1rwZOcSynl8cTxUZPzlRHp7GANzjUvcpBlrH7q9zZ5NGZJD/zS4OBt3edYylJlLCyHPo1yOPeQaOH0WOmStY35TjXs4oOIrqHMB/au0usULzxN/8qAqpKaQhOaJe86fHKkYM1ytgkZdAPIeysG5WVlsXkR/emNIDYUUeMxuTSpwlPQAqyJhK7L75wX8w1iLPFNHLg=="
+      "sig": "jRGH0Dk/v1WIwbcxKLQaqaWBAUHTLPso8LJHuX9IiwWVxL9RjrQ65EOYOS3ukMbkk2W+nHNn0a8zK4No2u/eCyYNXNqtgP/Ppl8PC2BjpvtyK529sq+eXk//etXE5r0O1frN55zLWCcY3Xj+TcrLOtUmYf6crEyhkotD4M4vcR1IPCDdQ4uHWszo2SuCeXngPaNox9BmskeKbvlYqvyu7NbyZjnc2Uqv6PKT212WCwLKWaXdDyQACcSd09sJuFFlVXUb8+QYHxp4SNHlw7Jl8+QfYnUkP8Llb/vDN8op8Ja8EixBrdsVlG+KZ912+DTwm4Lj1pKE2DUXFDyVJfSxiQ=="
     }
   ],
   "signed": {
@@ -12,16 +12,16 @@
     "meta": {
       "1.root.json": {
         "hashes": {
-          "sha256": "a9164e7e26145134906a99cc09e4ad5878c49dcd672ff09197218a1dd9ce0117",
-          "sha512": "3506c8fa9099389be0e750d607d39aa4f913374d4c0dab835d45716c0a1aaef4e24cb0fad7773125f2dbbbea3051b8778dac8d2d24120ea2c3e2a456f77ba122"
+          "sha256": "7e01ff0b0d86dba9fb497cdfcf3ee61c68d28b26cd1fbb6824e86ff5e21f12dd",
+          "sha512": "3c346d8d3cdf1ed19396f9655c27af9d946fff3a3314280c53b246b64b9e89d9ffdd2c2a8a1bc68ec9f7a55b02cc25a796930ffb49f51b8e2e9643849d7b11dc"
         },
         "length": 3813,
         "version": 1
       },
       "root.json": {
         "hashes": {
-          "sha256": "a9164e7e26145134906a99cc09e4ad5878c49dcd672ff09197218a1dd9ce0117",
-          "sha512": "3506c8fa9099389be0e750d607d39aa4f913374d4c0dab835d45716c0a1aaef4e24cb0fad7773125f2dbbbea3051b8778dac8d2d24120ea2c3e2a456f77ba122"
+          "sha256": "7e01ff0b0d86dba9fb497cdfcf3ee61c68d28b26cd1fbb6824e86ff5e21f12dd",
+          "sha512": "3c346d8d3cdf1ed19396f9655c27af9d946fff3a3314280c53b246b64b9e89d9ffdd2c2a8a1bc68ec9f7a55b02cc25a796930ffb49f51b8e2e9643849d7b11dc"
         },
         "length": 3813,
         "version": 1

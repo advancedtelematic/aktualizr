@@ -36,8 +36,8 @@ class Hasher {
 struct Target {
   Target(const Json::Value &custom, const std::string &filename, unsigned long long length, Hasher hash)
       : custom_(custom), filename_(filename), length_(length), hash_(hash) {}
-  bool operator==(const Target& t2){
-   return (filename_ == t2.filename_ && length_ == t2.length_ && hash_.hash_ == t2.hash_.hash_);
+  bool operator==(const Target &t2) {
+    return (filename_ == t2.filename_ && length_ == t2.length_ && hash_.hash_ == t2.hash_.hash_);
   }
   Json::Value custom_;
   std::string filename_;
@@ -67,6 +67,7 @@ class TufRepository {
 
   void saveRole(const Json::Value &content);
   void saveTarget(Target target);
+  bool hasExpired(const std::string &date);
 
   std::string name_;
   boost::filesystem::path path_;

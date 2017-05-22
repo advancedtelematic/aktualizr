@@ -28,8 +28,8 @@ bool match_error(Json::Value errors, Uptane::Exception * e){
         else if(boost::starts_with(exc_name, "TargetHashMismatch") && typeid(Uptane::TargetHashMismatch) != typeid(*e)) continue;
         else if(boost::starts_with(exc_name, "OversizedTarget") && typeid(Uptane::OversizedTarget) != typeid(*e)) continue;
         else if(boost::starts_with(exc_name, "MissingRepo") && typeid(Uptane::MissingRepo) != typeid(*e)) continue;
+        else if(boost::starts_with(exc_name, "ExpiredMetadata") && typeid(Uptane::ExpiredMetadata) != typeid(*e)) continue;
         
-
         if(it.key().asString() == e->getName()){
             if ((*it)["error_msg"].asString() == e->what()){
                 return true;
@@ -52,12 +52,11 @@ bool run_test(Json::Value vector){
     boost::filesystem::remove_all(config.uptane.metadata_path / "director");
     boost::filesystem::remove_all(config.uptane.metadata_path / "repo");
 
-    try{
+   try{
         Uptane::Repository repo(config);
         repo.updateRoot();
         repo.getNewTargets();
 
-        //repo.refresh();
     }
     catch(Uptane::Exception e){
         if (vector["is_success"].asBool()) {
@@ -68,18 +67,15 @@ bool run_test(Json::Value vector){
         return match_error(vector["errors"], &e);
 
     }catch(...){
-        //std::cout << "Exception "<< typeid(e).name() << " happen, but shouldn't\n";
         std::cout << "Undefined exception\n";
         return false;
     }
     
-    
     if (vector["is_success"].asBool()){
         return true;
-        
     }
     else{
-        std::cout << "No exceptions, but expects\n";
+        std::cout << "No exceptions happen, but expects\n";
         return false;
     }
 }

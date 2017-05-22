@@ -21,7 +21,6 @@ class SecurityException : public Exception {
  public:
   SecurityException(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
   virtual ~SecurityException() throw() {}
-
 };
 
 static const std::string HASH_METADATA_MISMATCH =
@@ -47,20 +46,23 @@ class IllegalThreshold : public Exception {
 
 class MissingRepo : public Exception {
  public:
-  MissingRepo(const std::string reponame) : Exception(reponame, "The "+reponame+" repo is missing.") {}
+  MissingRepo(const std::string reponame) : Exception(reponame, "The " + reponame + " repo is missing.") {}
   virtual ~MissingRepo() throw() {}
 };
 
 class UnmetThreshold : public Exception {
  public:
-  UnmetThreshold(const std::string reponame, const std::string &role) : Exception(reponame, "The "+role+" metadata had an unmet threshold.") {}
+  UnmetThreshold(const std::string reponame, const std::string &role)
+      : Exception(reponame, "The " + role + " metadata had an unmet threshold.") {}
   virtual ~UnmetThreshold() throw() {}
 };
 
-
-
-
-
+class ExpiredMetadata : public Exception {
+ public:
+  ExpiredMetadata(const std::string reponame, const std::string &role)
+      : Exception(reponame, "The " + role + " metadata was expired.") {}
+  virtual ~ExpiredMetadata() throw() {}
+};
 };
 
 #endif
