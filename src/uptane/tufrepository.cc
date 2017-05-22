@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <sstream>
 
 #include <fstream>
 
@@ -38,6 +39,13 @@ Json::Value TufRepository::getJSON(const std::string& role) {
 
 void TufRepository::updateRoot() {
   Json::Value content = getJSON("root.json");
+  unsigned int root_version = content["signed"]["version"].asUInt();
+  if (root_version > 1) {
+    std::ostringstream ss;
+    ss << --root_version << ".root.json";
+    Json::Value prev_content = getJSON(ss.str());
+    updateKeys(prev_content["signed"]["keys"]);
+  }
   initRoot(content);
   verifyRole(content);
   saveRole(content);
@@ -123,9 +131,8 @@ void TufRepository::saveTarget(Target target) {
   targets_.push_back(target);
 }
 
-void TufRepository::initRoot(const Json::Value& content) {
-  Json::Value json_keys = content["signed"]["keys"];
-  for (Json::ValueIterator it = json_keys.begin(); it != json_keys.end(); it++) {
+void TufRepository::updateKeys(const Json::Value& keys) {
+  for (Json::ValueIterator it = keys.begin(); it != keys.end(); it++) {
     std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
       throw SecurityException(name_, "Unsupported key type: " + (*it)["keytype"].asString());
@@ -133,7 +140,10 @@ void TufRepository::initRoot(const Json::Value& content) {
     keys_.insert(std::make_pair(it.key().asString(),
                                 PublicKey((*it)["keyval"]["public"].asString(), (*it)["keytype"].asString())));
   }
+}
 
+void TufRepository::initRoot(const Json::Value& content) {
+  updateKeys(content["signed"]["keys"]);
   Json::Value json_roles = content["signed"]["roles"];
   for (Json::ValueIterator it = json_roles.begin(); it != json_roles.end(); it++) {
     std::string role = it.key().asString();

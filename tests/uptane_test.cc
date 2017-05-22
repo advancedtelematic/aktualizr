@@ -278,8 +278,6 @@ TEST(uptane, sign) {
   config.device.uuid = "device_id";
   config.uptane.private_key_path = "priv.key";
 
-  // SotaUptaneClient up(config, events_channel);
-  // up.initService(SotaUptaneClient::Director);
   Uptane::Repository uptane_repo(config);
 
   Json::Value tosign_json;

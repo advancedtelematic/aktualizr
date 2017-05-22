@@ -621,5 +621,41 @@
         }
       ]
     }
+  },
+  {
+    "is_success": true,
+    "repo": "042",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
+  },
+  {
+    "is_success": true,
+    "repo": "044",
+    "root_keys": {
+      "director": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ],
+      "repo": [
+        {
+          "path": "1.root-1.pub",
+          "type": "ed25519"
+        }
+      ]
+    }
   }
 ]

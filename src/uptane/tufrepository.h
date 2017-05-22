@@ -68,6 +68,7 @@ class TufRepository {
   void saveRole(const Json::Value &content);
   void saveTarget(Target target);
   bool hasExpired(const std::string &date);
+  void updateKeys(const Json::Value &keys);
 
   std::string name_;
   boost::filesystem::path path_;
