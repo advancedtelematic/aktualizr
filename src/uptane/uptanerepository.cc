@@ -1,5 +1,6 @@
 #include "uptane/uptanerepository.h"
 #include "boost/algorithm/hex.hpp"
+#include "boost/algorithm/string/trim.hpp"
 
 #include "crypto.h"
 #include "ostree.h"
@@ -25,9 +26,11 @@ Json::Value Repository::sign(const Json::Value& in_data) {
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
-  std::ifstream key_path_stream(key_path.c_str());
-  std::string key_content((std::istreambuf_iterator<char>(key_path_stream)), std::istreambuf_iterator<char>());
-  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(key_content));
+  std::string public_key_path = (config.device.certificates_path / config.uptane.public_key_path).string();
+  std::ifstream public_key_path_stream(public_key_path.c_str());
+  std::string key_content((std::istreambuf_iterator<char>(public_key_path_stream)), std::istreambuf_iterator<char>());
+  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
+  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
   std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
   Json::Value out_data;
   signature["keyid"] = keyid;

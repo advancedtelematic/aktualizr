@@ -149,8 +149,8 @@ TEST(uptane, get_json) {
   config.uptane.metadata_path = "tests/test_data/";
   event::Channel *events_channel = new event::Channel();
   SotaUptaneClient up(config, events_channel);
-  std::string expected_director = "B3FBEDF18B9748CD8443762CAEC5610EB373C0CE9CA325E85F7EEC95FAA00BEF";
-  std::string expected_repo = "B3FBEDF18B9748CD8443762CAEC5610EB373C0CE9CA325E85F7EEC95FAA00BEF";
+  std::string expected_director = "BAE736B5BB53309D333D56CB766204EA2330691845E6ED982040B1B025359471";
+  std::string expected_repo = "BAE736B5BB53309D333D56CB766204EA2330691845E6ED982040B1B025359471";
 
   std::string result = boost::algorithm::hex(
       Crypto::sha256digest(Json::FastWriter().write(up.getJSON(SotaUptaneClient::Director, "root"))));
@@ -269,6 +269,7 @@ TEST(uptane, verify_data_bed_threshold) {
   }
 }
 
+
 TEST(uptane, sign) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
@@ -277,6 +278,8 @@ TEST(uptane, sign) {
   config.uptane.repo_server = tls_server + "/repo";
   config.device.uuid = "device_id";
   config.uptane.private_key_path = "priv.key";
+  config.uptane.public_key_path = "public.key";
+
 
   Uptane::Repository uptane_repo(config);
 
@@ -286,7 +289,7 @@ TEST(uptane, sign) {
 
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
-            "00a4c4f1fcb433b2354a523ed13f76708ee0737dc323e1467096251b9a90eeee");
+            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 

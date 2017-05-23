@@ -158,6 +158,15 @@ void TufRepository::initRoot(const Json::Value& content) {
                                                                << requiredThreshold);
       throw IllegalThreshold(name_, "root.json contains a role that requires too many signatures");
     }
+    for (Json::ValueIterator it_keyid = (*it)["keyids"].begin(); it_keyid != (*it)["keyids"].end(); ++it_keyid) {
+      if (keys_.count((*it_keyid).asString())) {
+        std::string key_can = Json::FastWriter().write(Json::Value(keys_[(*it_keyid).asString()].value));
+        std::string key_id = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(key_can)));
+        if ((*it_keyid).asString() != key_id) {
+          throw UnmetThreshold(name_, role);
+        }
+      }
+    }
     thresholds_[role] = requiredThreshold;
   }
 }
