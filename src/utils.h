@@ -23,6 +23,7 @@ struct Utils{
     static std::string toBase64(std::string);
     static Json::Value parseJSON(const std::string &json_str);
     static Json::Value parseJSONFile(const boost::filesystem::path & filename);
+    static std::string intToString(unsigned int val);
 
     
 };

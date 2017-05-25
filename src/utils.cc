@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 std::string Utils::fromBase64(std::string base64_string) {
@@ -29,4 +30,11 @@ Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
   std::ifstream path_stream(filename.string().c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return Utils::parseJSON(content);
+}
+
+std::string Utils::intToString(unsigned int val) {
+  std::cout << "converting " << val << "\n";
+  std::ostringstream ss;
+  ss << val;
+  return ss.str();
 }

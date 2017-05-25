@@ -1,9 +1,9 @@
 {
   "signatures": [
     {
-      "keyid": "524790a307029a1881abe6472230c1ea43a7916091e8429c93c4378d30a7cc85",
+      "keyid": "5a45693fdd7775589b350237031026a362444bcb4e956cc62960d82810bfc80c",
       "method": "ed25519",
-      "sig": "wYXdbFIXAUzfivNFhqAJUiLojScqHQmlJpbq2YLEHOm8kmU1fDyVGn1r5ZZtcs/ViWJ5ykXQEr2u61+ZEUAHDw=="
+      "sig": "vCXfOie2Cm7Eo3c9nVK5aa3Wh/CShKuBicFopuarii0LBO0rSdesmqdyyJ90HDDcDVcBh5qDBO+k1YPy5q7ICQ=="
     }
   ],
   "signed": {

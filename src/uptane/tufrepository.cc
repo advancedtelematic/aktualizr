@@ -39,15 +39,7 @@ Json::Value TufRepository::getJSON(const std::string& role) {
 
 void TufRepository::updateRoot() {
   Json::Value content = getJSON("root.json");
-  unsigned int root_version = content["signed"]["version"].asUInt();
-  if (root_version > 1) {
-    std::ostringstream ss;
-    ss << --root_version << ".root.json";
-    Json::Value prev_content = getJSON(ss.str());
-    updateKeys(prev_content["signed"]["keys"]);
-  }
   initRoot(content);
-  verifyRole(content);
   saveRole(content);
 }
 
@@ -142,7 +134,40 @@ void TufRepository::updateKeys(const Json::Value& keys) {
   }
 }
 
-void TufRepository::initRoot(const Json::Value& content) {
+bool TufRepository::findSignatureByKeyId(const Json::Value& signatures, const std::string& keyid) {
+  for (Json::ValueIterator it = signatures.begin(); it != signatures.end(); it++) {
+    if ((*it)["keyid"].asString() == keyid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void TufRepository::initRoot(const Json::Value& new_content) {
+  keys_.clear();
+  thresholds_.clear();
+  Json::Value content(new_content);
+  unsigned int version = content["signed"]["version"].asUInt();
+  if (version > 1) {
+    Json::Value prev_root;
+    boost::filesystem::path prev_root_path = path_ / (Utils::intToString(version - 1) + ".root.json");
+    if (boost::filesystem::exists(prev_root_path)) {
+      prev_root = Utils::parseJSONFile(prev_root_path);
+    } else {
+      prev_root = getJSON(Utils::intToString(version - 1) + ".root.json");
+    }
+
+    Json::Value keyids = prev_root["signed"]["roles"]["root"]["keyids"];
+    Json::Value prev_keys;
+    for (Json::ValueIterator it = keyids.begin(); it != keyids.end(); it++) {
+      if (!findSignatureByKeyId(content["signatures"], (*it).asString())) {
+        throw UnmetThreshold(name_, "root");
+      }
+      prev_keys[(*it).asString()] = prev_root["signed"]["keys"][(*it).asString()];
+    }
+    updateKeys(prev_keys);
+    thresholds_["root"] = prev_root["signed"]["roles"]["root"]["threshold"].asInt();
+  }
   updateKeys(content["signed"]["keys"]);
   Json::Value json_roles = content["signed"]["roles"];
   for (Json::ValueIterator it = json_roles.begin(); it != json_roles.end(); it++) {
@@ -167,8 +192,9 @@ void TufRepository::initRoot(const Json::Value& content) {
         }
       }
     }
-    thresholds_[role] = requiredThreshold;
+    thresholds_[role] += requiredThreshold;
   }
+  verifyRole(content);
 }
 
 void TufRepository::refresh() {
@@ -176,13 +202,21 @@ void TufRepository::refresh() {
   if (checkTimestamp()) {
     Json::Value content = updateRole("snapshot.json");
     Json::Value updated_roles = content["signed"]["meta"];
-    if (updated_roles.isMember("root.json")) {  // Root should be updated first
-      initRoot(updateRole("root.json"));
-      updated_roles.removeMember("root.json");
-    }
+    std::vector<std::string> files_to_update;
+    bool init_root = false;
     for (Json::ValueIterator it = updated_roles.begin(); it != updated_roles.end(); it++) {
-      Json::Value new_content = updateRole(it.key().asString());
-      if (it.key() == "targets.json") {
+      if (boost::ends_with(it.key().asString(), "root.json")) {
+        init_root = true;
+      } else {
+        files_to_update.push_back(it.key().asString());
+      }
+    }
+    if (init_root) {  // Root should be updated first
+      initRoot(updateRole("root.json"));
+    }
+    for (std::vector<std::string>::iterator it = files_to_update.begin(); it != files_to_update.end(); it++) {
+      Json::Value new_content = updateRole(*it);
+      if ((*it) == "targets.json") {
         Json::Value json_targets = new_content["signed"]["targets"];
         for (Json::ValueIterator t_it = json_targets.begin(); t_it != json_targets.end(); t_it++) {
           Json::Value hashes = (*t_it)["hashes"];

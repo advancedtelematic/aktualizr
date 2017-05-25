@@ -1,9 +1,9 @@
 {
   "signatures": [
     {
-      "keyid": "1d4ae7e8ca0d2d0599727b9a588f1cef485d96913c793ee89b835013cc308bca",
+      "keyid": "01e88b5270d76e6334b22821c8dbc0ebb5629a75f4d0a99811613692d40064cf",
       "method": "rsassa-pss-sha256",
-      "sig": "jRGH0Dk/v1WIwbcxKLQaqaWBAUHTLPso8LJHuX9IiwWVxL9RjrQ65EOYOS3ukMbkk2W+nHNn0a8zK4No2u/eCyYNXNqtgP/Ppl8PC2BjpvtyK529sq+eXk//etXE5r0O1frN55zLWCcY3Xj+TcrLOtUmYf6crEyhkotD4M4vcR1IPCDdQ4uHWszo2SuCeXngPaNox9BmskeKbvlYqvyu7NbyZjnc2Uqv6PKT212WCwLKWaXdDyQACcSd09sJuFFlVXUb8+QYHxp4SNHlw7Jl8+QfYnUkP8Llb/vDN8op8Ja8EixBrdsVlG+KZ912+DTwm4Lj1pKE2DUXFDyVJfSxiQ=="
+      "sig": "eY1acxEQ/tGariMQI/8SHihr3dsKs2F7n1j8V7efWZ+y+evceQckPx6Fip+lRe5fMH9OkLTDxDA8jXBYjR1okBN/l8buhpWjwRGZlrqSVMUiK/z72PVoOW3OBC8xLyo7jx5Nds1XXH4IFBBuuUtZEuIb/9JbjNWfnoj6hnVFHJH/5I3Rs5hghNRQnWVWeApV7g01k4BkZJdeYauIS5bmKhCCHy6RxTOoErQTCbuPzp20+2gN/nBtmZmdPWdQ6wXoizhgrpgxmSJ1cm1CALjTtmUgIKtbgo7kB7unqQcWiWp7/MLC/tCkdg9N8A6MpFtq2vledisapN1bfmhPfYDMuQ=="
     }
   ],
   "signed": {
@@ -12,16 +12,16 @@
     "meta": {
       "1.root.json": {
         "hashes": {
-          "sha256": "7e01ff0b0d86dba9fb497cdfcf3ee61c68d28b26cd1fbb6824e86ff5e21f12dd",
-          "sha512": "3c346d8d3cdf1ed19396f9655c27af9d946fff3a3314280c53b246b64b9e89d9ffdd2c2a8a1bc68ec9f7a55b02cc25a796930ffb49f51b8e2e9643849d7b11dc"
+          "sha256": "da2f85b41be8dc2df7b04b74bd91e986ab08a21b11ed4be41feee2e8139ef4f2",
+          "sha512": "c46504916a99b587810a99805634c9396964dea18fd19937f0a70e44cef2e6c18aa2b402b4000756ebe724c76eb650802459fb525b92be88667b66aa059d1ece"
         },
         "length": 3813,
         "version": 1
       },
       "root.json": {
         "hashes": {
-          "sha256": "7e01ff0b0d86dba9fb497cdfcf3ee61c68d28b26cd1fbb6824e86ff5e21f12dd",
-          "sha512": "3c346d8d3cdf1ed19396f9655c27af9d946fff3a3314280c53b246b64b9e89d9ffdd2c2a8a1bc68ec9f7a55b02cc25a796930ffb49f51b8e2e9643849d7b11dc"
+          "sha256": "da2f85b41be8dc2df7b04b74bd91e986ab08a21b11ed4be41feee2e8139ef4f2",
+          "sha512": "c46504916a99b587810a99805634c9396964dea18fd19937f0a70e44cef2e6c18aa2b402b4000756ebe724c76eb650802459fb525b92be88667b66aa059d1ece"
         },
         "length": 3813,
         "version": 1

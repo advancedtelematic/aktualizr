@@ -1,9 +1,9 @@
 {
   "signatures": [
     {
-      "keyid": "2b5177ba49c65ae6f28e3f98707d99b106e33d8a9de1041ac4f46296cd72d72a",
+      "keyid": "2c72648181c68f9b56a7f188a385543c187834a2c090e2e65fa6c00055f3d605",
       "method": "ed25519",
-      "sig": "Wo90rKIiiGELeYPYF+S4j0gLOud0ZZOb+ch83AgQdyGxbW93uBlm581xoAAUTW7hLt0iQyEfzABE9PslDZ8OAQ=="
+      "sig": "nE8Sne+AxX7f1Gh1sTW6fJux+clVJEwqSJPc3qRmTdVIMTjg0tNGj0Jrfr84gmZEic1Z3HctjNHYVAFtpuXTCQ=="
     }
   ],
   "signed": {
@@ -12,8 +12,8 @@
     "meta": {
       "snapshot.json": {
         "hashes": {
-          "sha256": "2d676a529f8fc62ca6c51015229d8c79a99684cabace7858e51dd450b16a0ec1",
-          "sha512": "ab0f2af6bdd73b210862f5cb9a32c972c5776ab05eea0a3e5384d7cf7ce6ed60354b7715f38e99330447968138fb4063613143be79e0da7048d9022a02d4c981"
+          "sha256": "47f1645300bfc2ee2338e2f4c97702d16e0030c975837b453ecd3ccd862bc297",
+          "sha512": "cfb61cd418643179973481aca140c128286d356cf70287b3dc95c166e4f7fdac28273079b16a8a7a836af74109a82ee3a9eba5b560402c5323979d8c299b550b"
         },
         "length": 1118,
         "version": 1

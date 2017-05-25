@@ -69,6 +69,7 @@ class TufRepository {
   void saveTarget(Target target);
   bool hasExpired(const std::string &date);
   void updateKeys(const Json::Value &keys);
+  bool findSignatureByKeyId(const Json::Value &signatures, const std::string &keyid);
 
   std::string name_;
   boost::filesystem::path path_;
