@@ -1,5 +1,11 @@
 echo $PWD
+mv $1/CMakeFiles $1/CMakeFiles_back
+mv $1/CMakeCache.txt $1/CMakeCache.txt_back
+
 mkdir "$2"
 cd "$2"
 cmake $3 $1
 make -j8 aktualizr
+
+mv $1/CMakeFiles_back $1/CMakeFiles
+mv $1/CMakeCache.txt_back $1/CMakeCache.txt
