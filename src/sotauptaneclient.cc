@@ -13,10 +13,7 @@
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in)
-    : config(config_in),
-      events_channel(events_channel_in),
-      director(config.uptane.metadata_path / "director"),
-      uptane_repo(config) {
+    : config(config_in), events_channel(events_channel_in), uptane_repo(config) {
   http = new HttpClient();
 }
 
@@ -28,7 +25,7 @@ std::string SotaUptaneClient::getEndPointUrl(SotaUptaneClient::ServiceType servi
   if (service == Director) {
     return config.uptane.director_server + "/" + role;
   } else {
-    return config.uptane.repo_server + "/" + config.device.uuid + "/" + role;
+    return config.uptane.repo_server + "/" + role;
   }
 }
 
@@ -148,17 +145,10 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
   std::vector<OstreePackage> result;
-
-  Json::Value timestamp = getJSON(Director, "timestamp");
-  if (director.updateTimestamp(timestamp)) {
-    Json::Value targets = getJSON(Director, "targets");
-    director.updateTargets(targets);
-    for (Json::Value::iterator it = targets["signed"]["targets"].begin(); it != targets["signed"]["targets"].end();
-         ++it) {
-      Json::Value m_json = *it;
-      result.push_back(OstreePackage(m_json["custom"]["ecuIdentifier"].asString(), it.key().asString(),
-                                     m_json["hashes"]["sha256"].asString(), "", m_json["custom"]["uri"].asString()));
-    }
+  std::vector<Uptane::Target> targets = uptane_repo.getNewTargets();
+  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
+    result.push_back(OstreePackage((*it).custom_["ecuIdentifier"].asString(), (*it).filename_, (*it).hash_.hash_, "",
+                                   (*it).custom_["uri"].asString()));
   }
   return result;
 }
@@ -189,8 +179,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     }
   }
   authenticate();
-  director.initRoot(getJSON(Director, "root"));
   putManifest(Director, uptane_repo.signManifest());
+  uptane_repo.updateRoot();
   processing = false;
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 

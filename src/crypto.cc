@@ -28,6 +28,20 @@ std::string Crypto::sha256digest(const std::string &text) {
   return std::string((char *)digest, 32);
 }
 
+std::string Crypto::sha512digest(const std::string &text) {
+  unsigned int size = 64;
+  EVP_MD_CTX *md_ctx;
+  md_ctx = EVP_MD_CTX_create();
+  EVP_DigestInit_ex(md_ctx, EVP_sha512(), NULL);
+  EVP_DigestUpdate(md_ctx, (const void *)text.c_str(), text.size());
+  unsigned char digest[size];
+  unsigned int digest_len = size;
+  EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
+  EVP_MD_CTX_cleanup(md_ctx);
+  EVP_MD_CTX_destroy(md_ctx);
+  return std::string((char *)digest, size);
+}
+
 std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string &message) {
   RAND_poll();
 
@@ -114,7 +128,7 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
 
 bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
   if (public_key.type == "ed25519") {
-    return ED25519Verify(boost::algorithm::unhex(public_key.value), boost::algorithm::unhex(signature), message);
+    return ED25519Verify(boost::algorithm::unhex(public_key.value), Utils::fromBase64(signature), message);
   } else if (public_key.type == "rsa") {
     return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
   } else {

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <json/json.h>
 #include <boost/filesystem.hpp>
 #include <string>
 #include "boost/algorithm/hex.hpp"
@@ -31,17 +32,14 @@ TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());
   root_stream.close();
-  std::string signature =
-      "7b6dc82490c384e4524792f1960d0b978a773a605ab2f0794ad3c5e4dfd0507379f306c596fca79d500d202727f2e0d29a7078520f0c517d"
-      "a76d75a48dc4d809";
-  PublicKey pkey("02c3ad9a2cb1e3ecf2b5a0e0e6d996cf1de1bb44687c3c5e34fa24e2add5eb1d", "ed25519");
-  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
+  std::string signature = "lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
+  PublicKey pkey("cb07563157805c279ec90ccb057f2c3ea6e89200e1e67f8ae66185987ded9b1c", "ed25519");
+  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_TRUE(signe_is_ok);
 
   std::string signature_bad =
-      "8b6dc82490c384e4524792f1960d0b978a773a605ab2f0794ad3c5e4dfd0507379f306c596fca79d500d202727f2e0d29a7078520f0c517d"
-      "a76d75a48dc4d809";
-  signe_is_ok = Crypto::VerifySignature(pkey, signature_bad, text);
+      "33lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
+  signe_is_ok = Crypto::VerifySignature(pkey, signature_bad, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_FALSE(signe_is_ok);
 }
 

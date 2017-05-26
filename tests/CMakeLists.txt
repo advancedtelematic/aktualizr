@@ -151,6 +151,11 @@ if(BUILD_OSTREE)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
     add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(check aktualizr_test_ostree)
+    
+    add_executable(aktualizr_uptane_vector_tests tests/uptane_vector_tests.cc)
+    target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+    add_test(NAME test_uptane_vectors COMMAND aktualizr_uptane_vector_tests ${PROJECT_SOURCE_DIR}/tests/uptane-test-vectors/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(check aktualizr_uptane_vector_tests)
 endif(BUILD_OSTREE)
 
 

@@ -1,11 +1,12 @@
+
 {
 	"signatures" : 
 	[
 		
 		{
-			"keyid" : "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE",
+			"keyid" : "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187",
 			"method" : "rsassa-pss",
-			"sig" : "SNgFbAuSMu917rioPLVJxU7iRLZCRR6BEaXtmsJAZzZYS/q+vIl13f/B5TqbRGRxXRSMX+FAa/QO1qHTe4TWll8yVCcz31QbcCTSAI6h7+AGfXWy4fRf43Nsn5w2ZSFhAtT1QZ4ebzeu97490ns+ztY1k0BYynzY2YKYr19JxPFz+vhlexong5dUAhYoYrxLp2qT5p+fTskCrs7dfcJM3ABwyMGcYOo31ZsyK6pu50LMSchvsO/HdO470xefvgr598IlvWZ0wjWboUZF5GTxmNbXRcteAd+IZ0HOBr/2l6dKHlGb6A52B5U8UGM6kazRY6qRQGO+i5+1Am/MHDEpuw=="
+			"sig" : "SWtMJk01yd7Ge45vSU6KSWanpQZExUhCpKKF0siNwFBaq25ZFDrv3B9QvHsK3ViaMKWWeiyon6mmDt2GXx0QDoA1HVXyGGqjlCVRjn+5+4lxtSBFp9Cu0500skcgHNDgss5sa0CDpGBz/4D/f+caCXDhoRMw0CDZy3jrgvJP3/wN+WxHxAJ3WOAZZOHtDQNooUhqp7rkJwxZcfKX3F07RrfHebqdSlFCWdsPQkA4RtylI+n12RIddIVrV7R25htvB/QvwiTLfF6s8c3PUKBF/Pzn3SK/4pWTqmCELK1C2yTV+qzATF+WM1VbAHAneoCUJLgxu5KbGp4MDUcY3+4oCg=="
 		}
 	],
 	"signed" : 
@@ -16,15 +17,6 @@
 		"expires" : "2018-01-06T20:01:05Z",
 		"keys" : 
 		{
-			"00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE" : 
-			{
-				"keyid_hash_algorithms" : [ "sha256", "sha512" ],
-				"keytype" : "rsa",
-				"keyval" : 
-				{
-					"public" : "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\nOB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\nIEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\nrvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\nFMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\nGSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\nzQIDAQAB\n-----END PUBLIC KEY-----"
-				}
-			},
 			"19a1384696d031c756db1fa3d3c9434f3c97a0dcef39a2349ca7b0c546942881" : 
 			{
 				"keyid_hash_algorithms" : [ "sha256", "sha512" ],
@@ -41,6 +33,15 @@
 				"keyval" : 
 				{
 					"public" : "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr227ZVZDLpuliAmLo5B+\nHTE6xRoQyR1SkIdR85qfOeSFaDCZZpF5P1Ujav9bzlQJ4woebJhFf7dzQ3OWZGuB\n2URUk3JfpRU7PIZiLz/n+TOF7YQmGDAWs8PnbbQr4YOlthLFj49mW52xyRL3/Dw5\nJ2b0H9OCOLSJCUQyxPoQAm1fhp/U56L98TsZBFTx0uEC2HCaApgv6YxFG4EJE/3K\n0vYsxA7QLtkl31lDpopwhMDcx5aOgSWEwviufa81VqxMYLHUJnGR41COY0tPrlgP\nAU6acve0+BkNsMpil81fxceqd/0r7qj4dSE78K/VoKY7Q2Lce0fUtuj5MqJQEQY2\ntQIDAQAB\n-----END PUBLIC KEY-----"
+				}
+			},
+			"6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187" : 
+			{
+				"keyid_hash_algorithms" : [ "sha256", "sha512" ],
+				"keytype" : "rsa",
+				"keyval" : 
+				{
+					"public" : "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\nOB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\nIEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\nrvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\nFMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\nGSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\nzQIDAQAB\n-----END PUBLIC KEY-----"
 				}
 			},
 			"7b87f01cc161c88dd485f613f161b8e78240d1640a416250081b740ca6139e63" : 
@@ -66,22 +67,22 @@
 		{
 			"root" : 
 			{
-				"keyids" : [ "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE" ],
+				"keyids" : [ "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187" ],
 				"threshold" : 1
 			},
 			"snapshot" : 
 			{
-				"keyids" : [ "083ae0be8f9794b3c9864844654f7a53c5a2ee9296090a4f0fe689e48bfff760" ],
+				"keyids" : [ "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187" ],
 				"threshold" : 1
 			},
 			"targets" : 
 			{
-				"keyids" : [ "19a1384696d031c756db1fa3d3c9434f3c97a0dcef39a2349ca7b0c546942881" ],
+				"keyids" : [ "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187" ],
 				"threshold" : 1
 			},
 			"timestamp" : 
 			{
-				"keyids" : [ "00A4C4F1FCB433B2354A523ED13F76708EE0737DC323E1467096251B9A90EEEE" ],
+				"keyids" : [ "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187" ],
 				"threshold" : 1
 			}
 		},

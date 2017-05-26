@@ -1,0 +1,24 @@
+{
+  "signatures": [
+    {
+      "keyid": "234c6d066655fedaca31a1f9b555198aaf7f92d8e0f5b227206975d9db08d2c3",
+      "method": "rsassa-pss-sha256",
+      "sig": "ZBoI9rYQjVV7XywzNTA7M9E6n/zl3WEvqP15Cu9eZukX9/C6qSD8gHb/BsPlFaprDJtJhEL0GmTm/U+0+BOFKMEGI18j9DgxiVSnfvkyK53R4jO28rvVj7OHEbPkD7ANf5s1PcELpWHuDDOPAtCx5T0tcx8/n2NfDIqOAi7wyZs28BNMh/tg29AnMXDRVXdixvQn777yjO0RF2IaBcEKmoP7gIz36H/+4woaMeSfbq5TeUN1KFi7mc8bwmkPwpJLSTEFxp4qwnzU7/nnd81bINvwIJxNZtLTSjMpDbDFZz3tZS09VmBULe6Cx0a3+rLw2HrGakimZy3ioH3URqsOxQ=="
+    }
+  ],
+  "signed": {
+    "_type": "Timestamp",
+    "expires": "2038-01-19T03:14:06Z",
+    "meta": {
+      "snapshot.json": {
+        "hashes": {
+          "sha256": "ae5f5f88d7cd76b373339ee4da42f56c31bf9a6f4fa7361b615dfdc72bf6afb9",
+          "sha512": "62b966dbec68ca60bbc08c92a918d0ca529e4a21ca83b0fbbc13b0023324ecf80af357c34853abbe202d2dff278f1792a2b6fff530678008b4e09e2df5af2af8"
+        },
+        "length": 1384,
+        "version": 1
+      }
+    },
+    "version": 1
+  }
+}

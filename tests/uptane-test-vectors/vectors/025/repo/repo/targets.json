@@ -1,0 +1,24 @@
+{
+  "signatures": [
+    {
+      "keyid": "80da8cd79428955d0eb604ba979254dfd898f60df3d073a6192c48fa07f8d5c2",
+      "method": "rsassa-pss-sha256",
+      "sig": "mCi42NyGV6OBRfezHDKGoxmCO4ZAKhW6IkxLH8J0Pp17YWi2reZEcqyPzSipmI80ORy1Vr+v7Ex0tdKkE69opbgabQV+zeAb9Pt0XGohkFtzwKGmeipbs1qSY4KT1ujkJqLSRcYIn+mM3iMI0osN9lDeDyKjBz+ZRnRMsepK90J6dNsarFjnYbC62s5ZM/hnmoho9sjIIoGf0ppZ6jaXqG0+s1wuGuaHETZivhcIOKDN4onoSMu8e5oqXX4S7fSvSi0XKaoZnWD/6iPD/du4Mvphbq+Oi+2TWqualQfGdZF2mUAntjPlwtEje1f8wQkzUjYIAgxkDsSykiNAA3mSgg=="
+    }
+  ],
+  "signed": {
+    "_type": "Targets",
+    "expires": "2038-01-19T03:14:06Z",
+    "releaseCounter": 1,
+    "targets": {
+      "targets/file.txt": {
+        "hashes": {
+          "sha256": "fbf121c8e85875ffb9d50eab2cfa2a692df0e3e06afc2913492abe128bae66d0",
+          "sha512": "ac51637364cff0f6802e087c8c6a51f1925384af639214282a67e093495ef746d8f1c2326cf7182a1067fd69f6049247f509a95a533032f9565c905ce4c5d5fe"
+        },
+        "length": 12
+      }
+    },
+    "version": 1
+  }
+}
