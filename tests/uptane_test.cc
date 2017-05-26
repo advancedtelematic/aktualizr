@@ -52,7 +52,7 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   return value;
 }
 
-OstreePackage OstreePackage::getEcu(const std::string &ecu_serial) {
+OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string& ostree_sysroot, const std::string& ostree_os) {
   return OstreePackage(ecu_serial, "frgfdg", "sfsdf", "dsfsdf", "sfsdfs");
 }
 

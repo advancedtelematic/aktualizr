@@ -46,7 +46,7 @@ std::string Repository::signManifest(const Json::Value& custom) {
   Json::Value version_manifest;
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
-  Json::Value ecu_version_signed = sign(OstreePackage::getEcu(config.uptane.primary_ecu_serial).toEcuVersion(custom));
+  Json::Value ecu_version_signed = sign(OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot, config.ostree.os).toEcuVersion(custom));
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed = sign(version_manifest);
   return Json::FastWriter().write(tuf_signed);

@@ -22,8 +22,8 @@ OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
   return sysroot;
 }
 
-OstreeDeployment *Ostree::getBootedDeployment() {
-  OstreeSysroot *sysroot = Ostree::LoadSysroot("");
+OstreeDeployment *Ostree::getBootedDeployment(const std::string& path) {
+  OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
   OstreeRepo *repo = NULL;
   OstreeDeployment *booted_deployment = NULL;
 
@@ -121,7 +121,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return data::InstallOutcome(data::INSTALL_FAILED, error->message);
   }
 
-  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment();
+  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment(config.sysroot);
   if (booted_deployment == NULL && !config.os.size() && !config.sysroot.size()) {
     LOGGER_LOG(LVL_error, "No booted deplyment");
     return data::InstallOutcome(data::INSTALL_FAILED, "No booted deplyment");
@@ -170,8 +170,12 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Installation succesfull");
 }
 
-OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &branch) {
-  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment();
+OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &branch, const std::string &ostree_sysroot, const std::string &ostree_os) {
+  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment(ostree_sysroot);
+
+  if (!booted_deployment)
+    booted_deployment = ostree_sysroot_get_merge_deployment(Ostree::LoadSysroot(ostree_sysroot), ostree_os.c_str());
+
   GKeyFile *origin = ostree_deployment_get_origin(booted_deployment);
   const char *ref = ostree_deployment_get_csum(booted_deployment);
   char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
@@ -203,7 +207,7 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   return value;
 }
 
-OstreePackage OstreePackage::getEcu(const std::string &ecu_serial) {
+OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot, const std::string &ostree_os) {
   if (boost::filesystem::exists(NEW_PACKAGE)) {
     std::ifstream path_stream(NEW_PACKAGE.c_str());
     std::string json_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
@@ -213,7 +217,7 @@ OstreePackage OstreePackage::getEcu(const std::string &ecu_serial) {
       std::ifstream boot_branch_stream(BOOT_BRANCH.c_str());
       std::string branch_name((std::istreambuf_iterator<char>(boot_branch_stream)), std::istreambuf_iterator<char>());
       branch_name.erase(std::remove(branch_name.begin(), branch_name.end(), '\n'), branch_name.end());
-      return OstreeBranch::getCurrent(ecu_serial, branch_name).package;
+      return OstreeBranch::getCurrent(ecu_serial, branch_name, ostree_sysroot, ostree_os).package;
     }
   }
   throw std::runtime_error("unknown current branch");
