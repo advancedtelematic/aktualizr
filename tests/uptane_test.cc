@@ -269,7 +269,6 @@ TEST(uptane, verify_data_bed_threshold) {
   }
 }
 
-
 TEST(uptane, sign) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
@@ -279,7 +278,6 @@ TEST(uptane, sign) {
   config.device.uuid = "device_id";
   config.uptane.private_key_path = "priv.key";
   config.uptane.public_key_path = "public.key";
-
 
   Uptane::Repository uptane_repo(config);
 
