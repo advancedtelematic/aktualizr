@@ -8,7 +8,7 @@
 #include "types.h"
 
 static const std::string NEW_PACKAGE = "/tmp/sota-package";
-static const std::string BOOT_BRANCH = "/boot/sota/branchname";
+static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
 
 struct Ostree {
   static OstreeDeployment *getBootedDeployment();

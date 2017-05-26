@@ -1,6 +1,7 @@
 #include "crypto.h"
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 
 #include <openssl/err.h>
@@ -127,9 +128,12 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
 }
 
 bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
-  if (public_key.type == "ed25519") {
+  std::string type = public_key.type;
+  boost::algorithm::to_lower(type);
+
+  if (type == "ed25519") {
     return ED25519Verify(boost::algorithm::unhex(public_key.value), Utils::fromBase64(signature), message);
-  } else if (public_key.type == "rsa") {
+  } else if (type == "rsa") {
     return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
   } else {
     LOGGER_LOG(LVL_error, "unsupported keytype: " << public_key.type);
