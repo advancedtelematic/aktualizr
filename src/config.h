@@ -137,13 +137,17 @@ struct UptaneConfig {
         repo_server(""),
         metadata_path(""),
         private_key_path("ecukey.pem"),
-        public_key_path("ecukey.pub") {}
+        public_key_path("ecukey.pub"),
+        disable_keyid_validation(false),
+        allow_downgrade(false) {}
   std::string primary_ecu_serial;
   std::string director_server;
   std::string repo_server;
   boost::filesystem::path metadata_path;
   std::string private_key_path;
   std::string public_key_path;
+  bool disable_keyid_validation;
+  bool allow_downgrade;
 };
 
 struct OstreeConfig {

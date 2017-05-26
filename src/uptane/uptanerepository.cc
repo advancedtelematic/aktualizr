@@ -1,24 +1,31 @@
 #include "uptane/uptanerepository.h"
+
+#include <openssl/bio.h>
+#include <openssl/pem.h>
+#include <openssl/x509.h>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include "boost/algorithm/hex.hpp"
-#include "boost/algorithm/string/trim.hpp"
 
 #include "crypto.h"
+#include "logger.h"
 #include "ostree.h"
 #include "utils.h"
 
 namespace Uptane {
 
-Repository::Repository(const Config& config_in)
+Repository::Repository(const Config &config_in)
     : config(config_in),
       director("director", config.uptane.director_server, config),
-      image("repo", config.uptane.repo_server, config) {}
+      image("repo", config.uptane.repo_server, config),
+      http() {}
 
 void Repository::updateRoot() {
   director.updateRoot();
   image.updateRoot();
 }
 
-Json::Value Repository::sign(const Json::Value& in_data) {
+Json::Value Repository::sign(const Json::Value &in_data) {
   std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
   std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(key_path, Json::FastWriter().write(in_data)));
 
@@ -40,16 +47,16 @@ Json::Value Repository::sign(const Json::Value& in_data) {
   return out_data;
 }
 
-std::string Repository::signManifest() { return signManifest(Json::nullValue); }
+void Repository::putManifest() { putManifest(Json::nullValue); }
 
-std::string Repository::signManifest(const Json::Value& custom) {
+void Repository::putManifest(const Json::Value &custom) {
   Json::Value version_manifest;
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
   Json::Value ecu_version_signed = sign(OstreePackage::getEcu(config.uptane.primary_ecu_serial).toEcuVersion(custom));
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed = sign(version_manifest);
-  return Json::FastWriter().write(tuf_signed);
+  http.put(config.uptane.director_server + "/manifest", Json::FastWriter().write(tuf_signed));
 }
 
 std::vector<Uptane::Target> Repository::getNewTargets() {
@@ -58,5 +65,100 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
   std::vector<Uptane::Target> targets = director.getTargets();
   // std::equal(targets.begin(), targets.end(), image.getTargets().begin());
   return targets;
+}
+
+bool Repository::deviceRegister() {
+  std::string bootstrap_pkey_pem = (config.device.certificates_path / "bootstrap_pkey.pem").string();
+  std::string bootstrap_cert_pem = (config.device.certificates_path / "bootstrap_cert.pem").string();
+  std::string bootstrap_ca_pem = (config.device.certificates_path / "bootstrap_ca.pem").string();
+
+  FILE *reg_p12 = fopen((config.device.certificates_path / config.provision.p12_path).c_str(), "rb");
+  if (!reg_p12) {
+    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_path / config.provision.p12_path);
+    return false;
+  }
+
+  if (!Crypto::parseP12(reg_p12, config.provision.p12_password, bootstrap_pkey_pem, bootstrap_cert_pem,
+                        bootstrap_ca_pem)) {
+    fclose(reg_p12);
+    return false;
+  }
+  fclose(reg_p12);
+
+  http.setCerts(bootstrap_ca_pem, bootstrap_cert_pem, bootstrap_pkey_pem);
+  std::string data =
+      "{\"deviceId\":\"" + config.uptane.primary_ecu_serial + "\", \"ttl\":" + config.provision.expiry_days + "}";
+  std::string result = http.post(config.tls.server + "/devices", data);
+  if (http.http_code != 200 && http.http_code != 201) {
+    LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
+    return false;
+  }
+
+  FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
+  if (!Crypto::parseP12(device_p12, "", (config.device.certificates_path / config.tls.pkey_file).string(),
+                        (config.device.certificates_path / config.tls.client_certificate).string(),
+                        (config.device.certificates_path / config.tls.ca_file).string())) {
+    return false;
+  }
+  fclose(device_p12);
+  return true;
+}
+
+bool Repository::authenticate() {
+  return http.authenticate((config.device.certificates_path / config.tls.client_certificate).string(),
+                           (config.device.certificates_path / config.tls.ca_file).string(),
+                           (config.device.certificates_path / config.tls.pkey_file).string());
+}
+
+bool Repository::ecuRegister() {
+  int bits = 1024;
+  int ret = 0;
+
+  RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 2048 is a sensible value */
+                            RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
+                            NULL,   /* callback - can be NULL if we aren't displaying progress */
+                            NULL    /* callback argument - not needed in this case */
+                            );
+  EVP_PKEY *pkey = EVP_PKEY_new();
+  EVP_PKEY_assign_RSA(pkey, r);
+  std::string public_key = (config.device.certificates_path / config.uptane.public_key_path).string();
+  BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
+  ret = PEM_write_bio_PUBKEY(bp_public, pkey);
+  if (ret != 1) {
+    RSA_free(r);
+    BIO_free_all(bp_public);
+    return false;
+  }
+
+  BIO *bp_private = BIO_new_file((config.device.certificates_path / config.uptane.private_key_path).c_str(), "w");
+  ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
+  if (ret != 1) {
+    RSA_free(r);
+    BIO_free_all(bp_public);
+    BIO_free_all(bp_private);
+    return false;
+  }
+  RSA_free(r);
+  BIO_free_all(bp_public);
+  BIO_free_all(bp_private);
+
+  std::ifstream ks(public_key.c_str());
+  std::string pub_key_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
+  pub_key_str = pub_key_str.substr(0, pub_key_str.size() - 1);
+  ks.close();
+  pub_key_str = boost::replace_all_copy(pub_key_str, "\n", "\\n");
+
+  std::string data = "{\"primary_ecu_serial\":\"" + config.uptane.primary_ecu_serial +
+                     "\", \"ecus\":[{\"hardware_identifier\":\"" + config.device.uuid + "\",\"ecu_serial\":\"" +
+                     config.uptane.primary_ecu_serial +
+                     "\", \"clientKey\": {\"keytype\": \"RSA\", \"keyval\": {\"public\": \"" + pub_key_str + "\"}}}]}";
+
+  authenticate();
+  std::string result = http.post(config.tls.server + "/director/ecus", data);
+  if (http.http_code != 200 && http.http_code != 201) {
+    LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << result);
+    return false;
+  }
+  return true;
 }
 };

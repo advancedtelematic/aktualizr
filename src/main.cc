@@ -60,7 +60,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("gateway-rvi", bpo::value<bool>(), "enable the rvi gateway")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("gateway-dbus", bpo::value<bool>(), "enable the D-Bus gateway")
-      ("dbus-system-bus", "Use the D-Bus system bus (rather than the session bus)");
+      ("dbus-system-bus", "Use the D-Bus system bus (rather than the session bus)")
+      ("disable-keyid-validation", "Disable keyid validation on client side" )
+      ("allow-downgrade", "Allows downgrade versions" );
   // clang-format on
 
   bpo::variables_map vm;
