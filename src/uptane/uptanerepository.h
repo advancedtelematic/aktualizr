@@ -13,14 +13,18 @@ class Repository {
   Repository(const Config& config);
   void updateRoot();
   Json::Value sign(const Json::Value& in_data);
-  std::string signManifest();
-  std::string signManifest(const Json::Value&);
+  void putManifest();
+  void putManifest(const Json::Value&);
   std::vector<Uptane::Target> getNewTargets();
+  bool deviceRegister();
+  bool ecuRegister();
+  bool authenticate();
 
  private:
   Config config;
   TufRepository director;
   TufRepository image;
+  HttpClient http;
 };
 };
 

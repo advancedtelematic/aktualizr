@@ -45,9 +45,14 @@ void TufRepository::updateRoot() {
 
 bool TufRepository::checkTimestamp() {
   Json::Value content = updateRole("timestamp.json");
-  bool is_new = (content["signed"]["version"] > timestamp_signed_["version"]);
+  bool version_changed;
+  if (config_.uptane.allow_downgrade) {
+    version_changed = (content["signed"]["version"] != timestamp_signed_["version"]);
+  } else {
+    version_changed = (content["signed"]["version"] > timestamp_signed_["version"]);
+  }
   timestamp_signed_ = content["signed"];
-  return is_new;
+  return version_changed;
 }
 
 Json::Value TufRepository::updateRole(const std::string& role) {
@@ -183,12 +188,14 @@ void TufRepository::initRoot(const Json::Value& new_content) {
                                                                << requiredThreshold);
       throw IllegalThreshold(name_, "root.json contains a role that requires too many signatures");
     }
-    for (Json::ValueIterator it_keyid = (*it)["keyids"].begin(); it_keyid != (*it)["keyids"].end(); ++it_keyid) {
-      if (keys_.count((*it_keyid).asString())) {
-        std::string key_can = Json::FastWriter().write(Json::Value(keys_[(*it_keyid).asString()].value));
-        std::string key_id = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(key_can)));
-        if ((*it_keyid).asString() != key_id) {
-          throw UnmetThreshold(name_, role);
+    if (!config_.uptane.disable_keyid_validation) {
+      for (Json::ValueIterator it_keyid = (*it)["keyids"].begin(); it_keyid != (*it)["keyids"].end(); ++it_keyid) {
+        if (keys_.count((*it_keyid).asString())) {
+          std::string key_can = Json::FastWriter().write(Json::Value(keys_[(*it_keyid).asString()].value));
+          std::string key_id = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(key_can)));
+          if ((*it_keyid).asString() != key_id) {
+            throw UnmetThreshold(name_, role);
+          }
         }
       }
     }
