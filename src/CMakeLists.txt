@@ -1,6 +1,12 @@
 # set symbols used when compiling
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
+if(AKTUALIZR_VERSION)
+    add_definitions(-DAKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
+else(AKTUALIZR_VERSION)
+    add_definitions(-DAKTUALIZR_VERSION="dev")
+endif(AKTUALIZR_VERSION)
+
 # find all required libraries
 find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono date_time REQUIRED)
 find_package(CURL REQUIRED)

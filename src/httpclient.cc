@@ -30,7 +30,7 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
 // Discard the http body
 static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
 
-HttpClient::HttpClient() : authenticated(false) {
+HttpClient::HttpClient() : authenticated(false), user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
@@ -51,6 +51,7 @@ HttpClient::HttpClient() : authenticated(false) {
   headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "Accept: */*");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {

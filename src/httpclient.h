@@ -30,5 +30,6 @@ class HttpClient {
   curl_slist *headers;
   std::string perform(CURL *curl_handler);
   bool authenticated;
+  std::string user_agent;
 };
 #endif
