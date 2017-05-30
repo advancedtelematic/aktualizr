@@ -54,7 +54,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   // clang-format off
   description.add_options()
       ("help,h", "help screen")
-      ("version,v", "current aktualizr version")
+      ("version,v", "Current aktualizr version")
       ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
       ("gateway-http", bpo::value<bool>(), "enable the http gateway")
@@ -76,7 +76,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       exit(EXIT_SUCCESS);
     }
     if (vm.count("version") != 0) {
-      std::cout << "Cureent aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+      std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
       exit(EXIT_SUCCESS);
     }
 
