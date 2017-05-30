@@ -54,6 +54,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   // clang-format off
   description.add_options()
       ("help,h", "help screen")
+      ("version,v", "Current aktualizr version")
       ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
       ("gateway-http", bpo::value<bool>(), "enable the http gateway")
@@ -70,7 +71,16 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     bpo::store(bpo::parse_command_line(argc, argv, description), vm);
     bpo::notify(vm);
   } catch (const bpo::required_option &ex) {
-    if (ex.get_option_name() == "--config" && vm.count("help") == 0) {
+    if (vm.count("help") != 0) {
+      std::cout << description << '\n';
+      exit(EXIT_SUCCESS);
+    }
+    if (vm.count("version") != 0) {
+      std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+      exit(EXIT_SUCCESS);
+    }
+
+    if (ex.get_option_name() == "--config") {
       std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
                                            "file using toml format. See the example configuration file "
                                            "in config/config.toml.example"
@@ -94,11 +104,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  if (vm.count("help") != 0) {
-    // print the description off all known command line options
-    std::cout << description << '\n';
-    exit(EXIT_SUCCESS);
-  }
   return vm;
 }
 
