@@ -13,16 +13,8 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
-    if (processing) {
-      sleep(1);
-    } else {
-      if (was_error) {
-        sleep(2);
-      } else {
-        sleep(static_cast<unsigned int>(config.core.polling_sec));
-      }
-      *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-    }
+    *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+    sleep(static_cast<unsigned int>(config.core.polling_sec));
   }
 }
 
@@ -37,7 +29,6 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
 }
 
 void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
-  processing = true;
   data::PackageManagerCredentials cred;
   cred.ca_file = (config.device.certificates_path / config.tls.ca_file).string();
   cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
@@ -49,7 +40,6 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
     operation_result["operation_result"] = result.toJson();
     uptane_repo.putManifest(operation_result);
   }
-  processing = false;
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
@@ -64,7 +54,6 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   uptane_repo.authenticate();
   uptane_repo.putManifest();
   uptane_repo.updateRoot();
-  processing = false;
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;
