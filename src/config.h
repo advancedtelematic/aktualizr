@@ -133,6 +133,7 @@ struct ProvisionConfig {
 struct UptaneConfig {
   UptaneConfig()
       : primary_ecu_serial(""),
+        ostree_server(""),
         director_server(""),
         repo_server(""),
         metadata_path(""),
@@ -141,6 +142,7 @@ struct UptaneConfig {
         disable_keyid_validation(false),
         allow_downgrade(false) {}
   std::string primary_ecu_serial;
+  std::string ostree_server;
   std::string director_server;
   std::string repo_server;
   boost::filesystem::path metadata_path;
