@@ -28,8 +28,9 @@ class HttpClient {
  private:
   CURL *curl;
   curl_slist *headers;
-  std::string perform(CURL *curl_handler);
+  std::string perform(CURL *curl_handler, int retry_times);
   bool authenticated;
   std::string user_agent;
+  static const int RETRY_TIMES = 2;
 };
 #endif
