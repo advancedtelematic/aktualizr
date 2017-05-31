@@ -31,6 +31,4 @@ class SotaUptaneClient {
   Uptane::Repository uptane_repo;
 
   std::vector<Json::Value> ecu_versions;
-  bool processing;
-  bool was_error;
 };
