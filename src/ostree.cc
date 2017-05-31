@@ -1,5 +1,6 @@
 #include "ostree.h"
 #include <stdio.h>
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
@@ -74,7 +75,11 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
                              const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
+    : ecu_serial(ecu_serial_in),
+      ref_name(ref_name_in),
+      commit(boost::algorithm::to_lower_copy(commit_in)),
+      description(desc_in),
+      pull_uri(treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
   const char remote[] = "aktualizr-remote";
