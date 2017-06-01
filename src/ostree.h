@@ -32,6 +32,8 @@ class OstreePackage {
   static OstreePackage getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot,
                               const std::string &ostree_os);
   static OstreePackage fromJson(const Json::Value &json);
+  Json::Value toJson();
+
 };
 
 struct OstreeBranch {
