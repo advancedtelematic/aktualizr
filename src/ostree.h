@@ -12,6 +12,7 @@ static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
 
 struct Ostree {
   static OstreeDeployment *getBootedDeployment(const std::string &path);
+  static OstreeDeployment *getStagedDeployment(const std::string &path, const std::string &ostree_os);
   static OstreeSysroot *LoadSysroot(const std::string &path);
   static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
                         const data::PackageManagerCredentials &cred);

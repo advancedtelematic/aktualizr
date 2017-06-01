@@ -23,6 +23,33 @@ OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
   return sysroot;
 }
 
+OstreeDeployment *Ostree::getStagedDeployment(const std::string &path, const std::string &ostree_os) {
+  OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
+  GPtrArray *deployments = NULL;
+  OstreeDeployment *res = NULL;
+
+  const char* osname;
+  if (ostree_os.empty()) {
+    OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, NULL);
+    osname = ostree_deployment_get_osname(merge_deployment);
+  } else {
+    osname = ostree_os.c_str();
+  }
+
+  deployments = ostree_sysroot_get_deployments(sysroot);
+
+  for(unsigned int i = 0; i < deployments->len; i++) {
+    OstreeDeployment *d = static_cast<OstreeDeployment*>(deployments->pdata[i]);
+    if (strcmp(ostree_deployment_get_osname(d), osname) != 0)
+      continue;
+    res = static_cast<OstreeDeployment*>(g_object_ref(d));
+    break;
+  }
+
+  g_ptr_array_unref(deployments);
+  return res;
+}
+
 OstreeDeployment *Ostree::getBootedDeployment(const std::string &path) {
   OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
   OstreeRepo *repo = NULL;
@@ -177,17 +204,14 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
 OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &branch,
                                       const std::string &ostree_sysroot, const std::string &ostree_os) {
-  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment(ostree_sysroot);
+  OstreeDeployment *staged_deployment = Ostree::getStagedDeployment(ostree_sysroot, ostree_os);
 
-  if (!booted_deployment)
-    booted_deployment = ostree_sysroot_get_merge_deployment(Ostree::LoadSysroot(ostree_sysroot), ostree_os.c_str());
-
-  GKeyFile *origin = ostree_deployment_get_origin(booted_deployment);
-  const char *ref = ostree_deployment_get_csum(booted_deployment);
+  GKeyFile *origin = ostree_deployment_get_origin(staged_deployment);
+  const char *ref = ostree_deployment_get_csum(staged_deployment);
   char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
   OstreePackage package(ecu_serial, (branch + "-") + ref, ref, origin_refspec, "");
   g_free(origin_refspec);
-  return OstreeBranch(true, ostree_deployment_get_osname(booted_deployment), package);
+  return OstreeBranch(true, ostree_deployment_get_osname(staged_deployment), package);
 }
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
