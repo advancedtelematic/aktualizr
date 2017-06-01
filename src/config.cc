@@ -200,9 +200,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   if (cmd.count("disable-keyid-validation") != 0) {
     uptane.disable_keyid_validation = true;
   }
-  if (cmd.count("allow-downgrade") != 0) {
-    uptane.allow_downgrade = true;
-  }
 }
 
 void DeviceConfig::createCertificatesPath() {

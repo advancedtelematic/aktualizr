@@ -45,14 +45,9 @@ void TufRepository::updateRoot() {
 
 bool TufRepository::checkTimestamp() {
   Json::Value content = updateRole("timestamp.json");
-  bool version_changed;
-  if (config_.uptane.allow_downgrade) {
-    version_changed = (content["signed"]["version"] != timestamp_signed_["version"]);
-  } else {
-    version_changed = (content["signed"]["version"] > timestamp_signed_["version"]);
-  }
+  bool has_changed = (content["signed"]["version"].asUInt() > timestamp_signed_["version"].asUInt());
   timestamp_signed_ = content["signed"];
-  return version_changed;
+  return has_changed;
 }
 
 Json::Value TufRepository::updateRole(const std::string& role) {
