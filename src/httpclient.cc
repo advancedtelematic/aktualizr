@@ -135,7 +135,7 @@ std::string HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   LOGGER_LOG(LVL_debug, "GET " << url);
-  return perform(curl);
+  return perform(curl, RETRY_TIMES);
 }
 
 Json::Value HttpClient::getJson(const std::string& url) {
@@ -168,7 +168,7 @@ std::string HttpClient::post(const std::string& url, const std::string& data) {
   curl_easy_setopt(curl, CURLOPT_POST, 1);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
   LOGGER_LOG(LVL_trace, "post request body:" << data);
-  std::string result = perform(curl);
+  std::string result = perform(curl, RETRY_TIMES);
   return result;
 }
 
@@ -179,23 +179,28 @@ std::string HttpClient::put(const std::string& url, const std::string& data) {
   curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data.c_str());
   curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOGGER_LOG(LVL_trace, "put request body:" << data);
-  std::string result = perform(curl_put);
+  std::string result = perform(curl_put, RETRY_TIMES);
   curl_easy_cleanup(curl_put);
   return result;
 }
 
-std::string HttpClient::perform(CURL* curl_handler) {
+std::string HttpClient::perform(CURL* curl_handler, int retry_times) {
   std::string response;
   curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
   CURLcode result = curl_easy_perform(curl_handler);
   if (result != CURLE_OK) {
     std::ostringstream error_message;
-    error_message << "curl error:" << curl_easy_strerror(result);
+    error_message << "curl error: " << curl_easy_strerror(result);
     LOGGER_LOG(LVL_error, error_message.str());
-    throw std::runtime_error(error_message.str());
+    if (retry_times){
+      sleep(1);
+      perform(curl_handler, --retry_times);
+    }else{
+      throw std::runtime_error(error_message.str());
+    }
   }
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
-  LOGGER_LOG(LVL_trace, "response:" << response);
+  LOGGER_LOG(LVL_trace, "response: " << response);
   return response;
 }
 
