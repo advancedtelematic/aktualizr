@@ -62,6 +62,12 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("gateway-dbus", bpo::value<bool>(), "enable the D-Bus gateway")
       ("dbus-system-bus", "Use the D-Bus system bus (rather than the session bus)")
+      ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
+      ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
+      ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
+      ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
+      ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
+      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
       ("disable-keyid-validation", "Disable keyid validation on client side" );
   // clang-format on
 
@@ -117,28 +123,7 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  // Initialize config with default values
-  Config config;
-
   bpo::variables_map commandline_map = parse_options(argc, argv);
-
-  // check for config file commandline option
-  // The config file has to be checked before checking for loglevel
-  // as the loglevel option shall overwrite settings provided via
-  // a configuration file.
-  if (commandline_map.count("config") != 0) {
-    std::string filename = commandline_map["config"].as<std::string>();
-    try {
-      config.updateFromToml(filename);
-    } catch (boost::property_tree::ini_parser_error e) {
-      LOGGER_LOG(LVL_error, "Exception was thrown while parsing " << filename
-                                                                  << " config file, message: " << e.message());
-      return EXIT_FAILURE;
-    } catch (std::logic_error e) {
-      LOGGER_LOG(LVL_error, "Improperly configured error. " << e.what());
-      return EXIT_FAILURE;
-    }
-  }
 
   // check for loglevel
   if (commandline_map.count("loglevel") != 0) {
@@ -154,8 +139,9 @@ int main(int argc, char *argv[]) {
     }
     loggerSetSeverity(severity);
   }
-
-  config.updateFromCommandLine(commandline_map);
+  // Initialize config with default values, the update with config, then with cmd
+  std::string filename = commandline_map["config"].as<std::string>();
+  Config config(filename, commandline_map);
 
   command::Channel *commands_channel = new command::Channel();
   event::Channel *events_channel = new event::Channel();

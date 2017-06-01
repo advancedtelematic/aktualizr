@@ -15,6 +15,7 @@ namespace Uptane {
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config)
     : name_(name), path_(config.uptane.metadata_path / name_), config_(config), base_url_(base_url) {
   boost::filesystem::create_directories(path_);
+  boost::filesystem::create_directories(path_ / "targets");
   http_.authenticate((config_.device.certificates_path / config_.tls.client_certificate).string(),
                      (config_.device.certificates_path / config_.tls.ca_file).string(),
                      (config_.device.certificates_path / config_.tls.pkey_file).string());
@@ -102,7 +103,7 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
 
 void TufRepository::saveRole(const Json::Value& content) {
   std::string role = boost::algorithm::to_lower_copy(content["signed"]["_type"].asString());
-  std::ofstream file((path_ / name_ / (role + ".json")).string().c_str());
+  std::ofstream file((path_ / (role + ".json")).string().c_str());
   file << content;
   file.close();
 }
@@ -116,7 +117,7 @@ void TufRepository::saveTarget(Target target) {
     if (!target.hash_.matchWith(content)) {
       throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
     }
-    std::ofstream file((path_ / name_ / "targets" / target.filename_).string().c_str());
+    std::ofstream file((path_ / "targets" / target.filename_).string().c_str());
     file << content;
     file.close();
   }

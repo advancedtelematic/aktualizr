@@ -28,7 +28,7 @@ struct CoreConfig {
 };
 
 struct AuthConfig {
-  AuthConfig() : server("http://127.0.0.1:9001"), client_id("client-id"), client_secret("client-secret") {}
+  AuthConfig() : server("http://127.0.0.1:9001"), client_id(""), client_secret("") {}
 
   std::string server;
   std::string client_id;
@@ -63,11 +63,7 @@ struct DeviceConfig {
       : uuid("123e4567-e89b-12d3-a456-426655440000"),
         packages_dir("/tmp/"),
         certificates_path("/tmp/aktualizr/"),
-        package_manager(PMOFF) {
-    createCertificatesPath();
-  }
-  void createCertificatesPath();
-
+        package_manager(PMOFF) {}
   std::string uuid;
   boost::filesystem::path packages_dir;
   boost::filesystem::path certificates_path;
@@ -111,7 +107,7 @@ struct RviConfig {
 };
 
 struct TlsConfig {
-  TlsConfig() : server("localhost"), ca_file("ca.pem"), pkey_file("pkey.pem"), client_certificate("client.pem") {}
+  TlsConfig() : server(""), ca_file("ca.pem"), pkey_file("pkey.pem"), client_certificate("client.pem") {}
   std::string server;
   std::string ca_file;
   std::string pkey_file;
@@ -133,6 +129,7 @@ struct ProvisionConfig {
 struct UptaneConfig {
   UptaneConfig()
       : primary_ecu_serial(""),
+        primary_ecu_hardware_id(""),
         ostree_server(""),
         director_server(""),
         repo_server(""),
@@ -141,6 +138,7 @@ struct UptaneConfig {
         public_key_path("ecukey.pub"),
         disable_keyid_validation(false) {}
   std::string primary_ecu_serial;
+  std::string primary_ecu_hardware_id;
   std::string ostree_server;
   std::string director_server;
   std::string repo_server;
@@ -158,9 +156,12 @@ struct OstreeConfig {
 
 class Config {
  public:
-  void updateFromToml(const std::string& filename);
+  Config();
+  Config(const std::string& filename, const boost::program_options::variables_map& cmd);
+  Config(const std::string& filename);
+
   void updateFromTomlString(const std::string& contents);
-  void updateFromCommandLine(const boost::program_options::variables_map& cmd);
+  void postUpdateValues();
 
   // config data structures
   CoreConfig core;
@@ -177,6 +178,8 @@ class Config {
 
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void updateFromToml(const std::string& filename);
+  void updateFromCommandLine(const boost::program_options::variables_map& cmd);
 };
 
 #endif  // CONFIG_H_
