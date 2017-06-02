@@ -81,8 +81,8 @@ void SotaHttpClient::startInstall(const data::UpdateRequestId &InstallingUpdate)
   std::ifstream ps((config.device.packages_dir / InstallingUpdate).string().c_str());
   std::string pkg_str((std::istreambuf_iterator<char>(ps)), std::istreambuf_iterator<char>());
   reader.parse(pkg_str, json);
-  OstreePackage pkg(config.uptane.primary_ecu_serial, json["refName"].asString(), json["commit"].asString(),
-                    json["description"].asString(), json["pullUri"].asString());
+  OstreePackage pkg(config.uptane.primary_ecu_serial, json["refName"].asString(), json["description"].asString(),
+                    json["pullUri"].asString());
   data::PackageManagerCredentials cred;
   cred.access_token = http->token;
   data::OperationResult result = data::OperationResult::fromOutcome(InstallingUpdate, pkg.install(cred, config.ostree));

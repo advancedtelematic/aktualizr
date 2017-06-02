@@ -100,16 +100,18 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
 #include "ostree-1/ostree.h"
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
-                             const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in),
-      ref_name(ref_name_in),
-      commit(boost::algorithm::to_lower_copy(commit_in)),
-      description(desc_in),
-      pull_uri(treehub_in) {}
+                             const std::string &desc_in, const std::string &treehub_in)
+    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {
+  std::size_t pos = ref_name.find_last_of("-");
+  branch_name = ref_name.substr(0, pos);
+  refhash = ref_name.substr(pos + 1, std::string::npos);
+  if (branch_name.empty() || refhash.empty()) throw std::runtime_error("malformed OSTree target name: " + ref_name);
+}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
   const char remote[] = "aktualizr-remote";
-  const char *const refs[] = {commit.c_str()};
+  const char *const refs[] = {branch_name.c_str()};
+  const char *const commit_ids[] = {refhash.c_str()};
   const char *opt_osname = NULL;
   OstreeRepo *repo = NULL;
   GCancellable *cancellable = NULL;
@@ -135,6 +137,8 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   g_variant_builder_add(&builder, "{s@v}", "flags", g_variant_new_variant(g_variant_new_int32(0)));
 
   g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(refs, 1)));
+  g_variant_builder_add(&builder, "{s@v}", "override-commit-ids",
+                        g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
 
   if (cred.access_token.size()) {
     GVariantBuilder hdr_builder;
@@ -158,8 +162,8 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return data::InstallOutcome(data::INSTALL_FAILED, "No booted deplyment");
   }
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot, commit.c_str());
-  if (!ostree_repo_resolve_rev(repo, commit.c_str(), FALSE, &revision, &error)) {
+  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot, branch_name.c_str());
+  if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOGGER_LOG(LVL_error, error->message);
     return data::InstallOutcome(data::INSTALL_FAILED, error->message);
   }
@@ -201,28 +205,28 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Installation succesfull");
 }
 
-OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &branch,
-                                      const std::string &ostree_sysroot, const std::string &ostree_os) {
+OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot,
+                                      const std::string &ostree_os) {
   OstreeDeployment *staged_deployment = Ostree::getStagedDeployment(ostree_sysroot, ostree_os);
 
   GKeyFile *origin = ostree_deployment_get_origin(staged_deployment);
   const char *ref = ostree_deployment_get_csum(staged_deployment);
   char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
-  OstreePackage package(ecu_serial, (branch + "-") + ref, ref, origin_refspec, "");
+  OstreePackage package(ecu_serial, std::string(origin_refspec) + "-" + ref, origin_refspec, "");
   g_free(origin_refspec);
   return OstreeBranch(true, ostree_deployment_get_osname(staged_deployment), package);
 }
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
-  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["commit"].asString(),
-                       json["description"].asString(), json["pull_uri"].asString());
+  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["description"].asString(),
+                       json["pull_uri"].asString());
 }
 
 Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
-  installed_image["fileinfo"]["hashes"]["sha256"] = commit;
+  installed_image["fileinfo"]["hashes"]["sha256"] = refhash;
 
   Json::Value value;
   value["attacks_detected"] = "";
@@ -238,17 +242,5 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
 
 OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot,
                                     const std::string &ostree_os) {
-  if (boost::filesystem::exists(NEW_PACKAGE)) {
-    std::ifstream path_stream(NEW_PACKAGE.c_str());
-    std::string json_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
-    return OstreePackage::fromJson(json_content);
-  } else {
-    if (boost::filesystem::exists(BOOT_BRANCH)) {
-      std::ifstream boot_branch_stream(BOOT_BRANCH.c_str());
-      std::string branch_name((std::istreambuf_iterator<char>(boot_branch_stream)), std::istreambuf_iterator<char>());
-      branch_name.erase(std::remove(branch_name.begin(), branch_name.end(), '\n'), branch_name.end());
-      return OstreeBranch::getCurrent(ecu_serial, branch_name, ostree_sysroot, ostree_os).package;
-    }
-  }
-  throw std::runtime_error("unknown current branch");
+  return OstreeBranch::getCurrent(ecu_serial, ostree_sysroot, ostree_os).package;
 }

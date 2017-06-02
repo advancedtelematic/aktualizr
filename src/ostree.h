@@ -20,11 +20,12 @@ struct Ostree {
 
 class OstreePackage {
  public:
-  OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in, const std::string &commit_in,
-                const std::string &desc_in, const std::string &treehub_in);
+  OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in, const std::string &desc_in,
+                const std::string &treehub_in);
   std::string ecu_serial;
   std::string ref_name;
-  std::string commit;
+  std::string branch_name;
+  std::string refhash;
   std::string description;
   std::string pull_uri;
   data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config);
@@ -38,8 +39,8 @@ class OstreePackage {
 struct OstreeBranch {
   OstreeBranch(bool current_in, const std::string &os_name_in, const OstreePackage &package_in)
       : current(current_in), os_name(os_name_in), package(package_in) {}
-  static OstreeBranch getCurrent(const std::string &ecu_serial, const std::string &branch,
-                                 const std::string &ostree_sysroot, const std::string &ostree_os);
+  static OstreeBranch getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot,
+                                 const std::string &ostree_os);
   bool current;
   std::string os_name;
   OstreePackage package;
