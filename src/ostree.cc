@@ -28,7 +28,7 @@ OstreeDeployment *Ostree::getStagedDeployment(const std::string &path, const std
   GPtrArray *deployments = NULL;
   OstreeDeployment *res = NULL;
 
-  const char* osname;
+  const char *osname;
   if (ostree_os.empty()) {
     OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, NULL);
     osname = ostree_deployment_get_osname(merge_deployment);
@@ -38,11 +38,10 @@ OstreeDeployment *Ostree::getStagedDeployment(const std::string &path, const std
 
   deployments = ostree_sysroot_get_deployments(sysroot);
 
-  for(unsigned int i = 0; i < deployments->len; i++) {
-    OstreeDeployment *d = static_cast<OstreeDeployment*>(deployments->pdata[i]);
-    if (strcmp(ostree_deployment_get_osname(d), osname) != 0)
-      continue;
-    res = static_cast<OstreeDeployment*>(g_object_ref(d));
+  for (unsigned int i = 0; i < deployments->len; i++) {
+    OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[i]);
+    if (strcmp(ostree_deployment_get_osname(d), osname) != 0) continue;
+    res = static_cast<OstreeDeployment *>(g_object_ref(d));
     break;
   }
 
