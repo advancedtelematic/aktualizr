@@ -7,6 +7,7 @@ option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
 option(BUILD_TESTS "Build tests (requires gtest/gmock)" ON)
+option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
@@ -27,6 +28,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 if(BUILD_GENIVI)
     add_subdirectory("third_party/rvi_lib")
 endif(BUILD_GENIVI)
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

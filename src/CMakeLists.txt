@@ -36,6 +36,7 @@ set(HEADERS
             src/sotahttpclient.h
             src/sotauptaneclient.h
             src/config.h
+            src/channel.h
             src/events.h
             src/commands.h
             src/types.h
@@ -125,5 +126,12 @@ endif(CLANG_CHECK)
 ################## INSTALL RULES
 #configure_file(distribution/sota.service.cmake distribution/sota.service)
 #install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
-install(TARGETS aktualizr RUNTIME  DESTINATION bin)
+install(TARGETS aktualizr RUNTIME DESTINATION bin)
+if(INSTALL_LIB)
+  install(TARGETS aktualizr_static_lib ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
+  install(FILES ${HEADERS} DESTINATION include)
+  install(DIRECTORY third_party/jsoncpp/json DESTINATION include)
+  install(DIRECTORY third_party/picojson DESTINATION include)
+  install(DIRECTORY src/uptane DESTINATION include FILES_MATCHING PATTERN "*.h")
+endif()
 # vim: set tabstop=4 shiftwidth=4 expandtab:
