@@ -66,6 +66,44 @@ void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warnin
 
 // End template tricks
 
+Config::Config() { postUpdateValues(); }
+
+Config::Config(const std::string& filename) {
+  updateFromToml(filename);
+  postUpdateValues();
+}
+
+Config::Config(const std::string& filename, const boost::program_options::variables_map& cmd) {
+  updateFromToml(filename);
+  updateFromCommandLine(cmd);
+  postUpdateValues();
+}
+
+void Config::postUpdateValues() {
+  if (!tls.server.empty() && !tls.ca_file.empty() && !tls.client_certificate.empty()) {
+    core.auth_type = CERTIFICATE;
+    if (!auth.client_id.empty() || !auth.client_secret.empty()) {
+      throw std::logic_error(
+          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
+    }
+  } else {
+    core.auth_type = OAUTH2;
+  }
+
+  if (boost::filesystem::create_directories(device.certificates_path)) {
+    LOGGER_LOG(LVL_info, "certificates_path directory has been created");
+  }
+  if (uptane.repo_server.empty()) {
+    uptane.repo_server = tls.server + "/repo";
+  }
+  if (uptane.director_server.empty()) {
+    uptane.director_server = tls.server + "/director";
+  }
+  if (uptane.ostree_server.empty()) {
+    uptane.ostree_server = tls.server + "/treehub";
+  }
+}
+
 void Config::updateFromToml(const std::string& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);
@@ -82,20 +120,6 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  if (pt.get_optional<std::string>("tls.server").is_initialized() &&
-      pt.get_optional<std::string>("tls.ca_file").is_initialized() &&
-      pt.get_optional<std::string>("tls.client_certificate").is_initialized()) {
-    core.auth_type = CERTIFICATE;
-
-    if (pt.get_optional<std::string>("auth.client_id").is_initialized() ||
-        pt.get_optional<std::string>("auth.client_secret").is_initialized()) {
-      throw std::logic_error(
-          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
-    }
-  } else {
-    core.auth_type = OAUTH2;
-  }
-
   // Keep this order the same as in config.h
   CopyFromConfig(core.server, "core.server", LVL_debug, pt);
   CopyFromConfig(core.polling, "core.polling", LVL_trace, pt);
@@ -129,7 +153,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
   CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
   CopyFromConfig(device.certificates_path, "device.certificates_path", LVL_trace, pt);
-  device.createCertificatesPath();
   if (pt.get_optional<std::string>("device.package_manager").is_initialized()) {
     std::string pm = strip_quotes(pt.get_optional<std::string>("device.package_manager").get());
     if (pm == "ostree") {
@@ -172,6 +195,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
+  CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
 
   CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", LVL_warning, pt);
 
@@ -200,10 +224,22 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   if (cmd.count("disable-keyid-validation") != 0) {
     uptane.disable_keyid_validation = true;
   }
-}
-
-void DeviceConfig::createCertificatesPath() {
-  if (boost::filesystem::create_directories(certificates_path)) {
-    LOGGER_LOG(LVL_info, "certificates_path directory has been created");
+  if (cmd.count("primary-ecu-serial") != 0) {
+    uptane.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
+  }
+  if (cmd.count("primary-ecu-hardware-id") != 0) {
+    uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
+  }
+  if (cmd.count("tls-server") != 0) {
+    tls.server = cmd["tls-server"].as<std::string>();
+  }
+  if (cmd.count("repo-server") != 0) {
+    uptane.repo_server = cmd["repo-server"].as<std::string>();
+  }
+  if (cmd.count("director-server") != 0) {
+    uptane.director_server = cmd["director-server"].as<std::string>();
+  }
+  if (cmd.count("ostree-server") != 0) {
+    uptane.ostree_server = cmd["ostree-server"].as<std::string>();
   }
 }

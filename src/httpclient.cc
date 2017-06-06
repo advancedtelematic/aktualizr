@@ -192,10 +192,10 @@ std::string HttpClient::perform(CURL* curl_handler, int retry_times) {
     std::ostringstream error_message;
     error_message << "curl error: " << curl_easy_strerror(result);
     LOGGER_LOG(LVL_error, error_message.str());
-    if (retry_times){
+    if (retry_times) {
       sleep(1);
       perform(curl_handler, --retry_times);
-    }else{
+    } else {
       throw std::runtime_error(error_message.str());
     }
   }

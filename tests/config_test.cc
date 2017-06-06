@@ -16,8 +16,6 @@ TEST(config, config_initialized_values) {
   EXPECT_EQ(conf.core.polling_sec, 10u);
 
   EXPECT_EQ(conf.auth.server, "http://127.0.0.1:9001");
-  EXPECT_EQ(conf.auth.client_id, "client-id");
-  EXPECT_EQ(conf.auth.client_secret, "client-secret");
 
   EXPECT_EQ(conf.device.uuid, "123e4567-e89b-12d3-a456-426655440000");
   EXPECT_EQ(conf.device.packages_dir, "/tmp/");
@@ -27,8 +25,7 @@ TEST(config, config_initialized_values) {
 }
 
 TEST(config, config_toml_parsing) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests.toml");
+  Config conf("tests/config_tests.toml");
 
   EXPECT_EQ(conf.core.server, "https://example.com/core");
   EXPECT_EQ(conf.core.polling, false);
@@ -85,9 +82,8 @@ TEST(config, config_toml_dbus_invalid) {
 #endif
 
 TEST(config, config_oauth_tls_parsing) {
-  Config conf;
   try {
-    conf.updateFromToml("tests/config_tests_prov_bad.toml");
+    Config conf("tests/config_tests_prov_bad.toml");
   } catch (std::logic_error e) {
     EXPECT_STREQ(e.what(),
                  "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
@@ -103,8 +99,6 @@ TEST(config, config_toml_parsing_empty_file) {
   EXPECT_EQ(conf.core.polling_sec, 10u);
 
   EXPECT_EQ(conf.auth.server, "http://127.0.0.1:9001");
-  EXPECT_EQ(conf.auth.client_id, "client-id");
-  EXPECT_EQ(conf.auth.client_secret, "client-secret");
 
   EXPECT_EQ(conf.device.uuid, "123e4567-e89b-12d3-a456-426655440000");
   EXPECT_EQ(conf.device.packages_dir, "/tmp/");
@@ -114,7 +108,6 @@ TEST(config, config_toml_parsing_empty_file) {
 }
 
 TEST(config, config_cmdl_parsing) {
-  Config conf;
   int argc = 7;
   const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on", "--gateway-socket", "on"};
 
@@ -125,7 +118,7 @@ TEST(config, config_cmdl_parsing) {
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
-  conf.updateFromCommandLine(vm);
+  Config conf("tests/config_tests.toml", vm);
 
   EXPECT_EQ(conf.gateway.http, false);
   EXPECT_EQ(conf.gateway.rvi, true);

@@ -270,8 +270,7 @@ TEST(uptane, sign) {
 }
 
 TEST(SotaUptaneClientTest, device_registered) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests_prov.toml");
+  Config conf("tests/config_tests_prov.toml");
 
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
@@ -287,8 +286,7 @@ TEST(SotaUptaneClientTest, device_registered) {
 }
 
 TEST(SotaUptaneClientTest, device_registered_fail) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests_prov.toml");
+  Config conf("tests/config_tests_prov.toml");
 
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.client_certificate);
   boost::filesystem::remove(conf.device.certificates_path / conf.tls.ca_file);
@@ -349,8 +347,7 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
 }
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests_prov.toml");
+  Config conf("tests/config_tests_prov.toml");
   conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
   conf.device.certificates_path = "tests/test_data/";
@@ -386,8 +383,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
 }
 
 TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests_prov.toml");
+  Config conf("tests/config_tests_prov.toml");
   conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
   conf.device.certificates_path = "tests/test_data/";
@@ -419,8 +415,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
-  Config conf;
-  conf.updateFromToml("tests/config_tests_prov.toml");
+  Config conf("tests/config_tests_prov.toml");
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.private_key_path = "private.key";
   conf.uptane.director_server = tls_server + "/director";
