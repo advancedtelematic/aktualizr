@@ -84,19 +84,19 @@ int main(int argc, char*argv[]) {
   loggerInit();
   loggerSetSeverity(LVL_maximum);
   boost::filesystem::path full_path( boost::filesystem::current_path() );
-    std::cout << "Current path is : " << full_path << std::endl;
-
-  
+  std::cout << "Current path is : " << full_path << std::endl;
   if (argc >= 2) {
-    std::string command = std::string(argv[1]) + "/server.py &";
+    std::string prepare_cmd = std::string("cd ") + std::string(argv[1]) + "&& virtualenv -p python3 venv && venv/bin/pip3 install -r requirements.txt && ./generator.py -t uptane --signature-encoding base64 -o vectors";
+    system(prepare_cmd.c_str());
+    std::string command = std::string("cd ") + std::string(argv[1]) + "&& ./server.py &";
     std::cout << "command: " << command << "\n";
     system(command.c_str());
     sleep(3);
   }
-  Json::Value json_vectors = Utils::parseJSONFile("tests/uptane-test-vectors/vectors/vector-meta.json");
+  Json::Value json_vectors = Utils::parseJSONFile(std::string(argv[1]) + "/vectors/vector-meta.json");
   int passed = 0;
-  int failed = json_vectors.size();
-  for(Json::ValueIterator it = json_vectors.begin(); it != json_vectors.end(); it++){
+  int failed = json_vectors["vectors"].size();
+  for(Json::ValueIterator it = json_vectors["vectors"].begin(); it !=  json_vectors["vectors"].end(); it++){
      std::cout << "Running testvector " <<(*it)["repo"].asString() << "\n";
      bool pass = run_test(*it);
      passed += (int)pass;
