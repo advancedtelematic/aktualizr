@@ -23,45 +23,23 @@ OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
   return sysroot;
 }
 
-OstreeDeployment *Ostree::getStagedDeployment(const std::string &path, const std::string &ostree_os) {
+OstreeDeployment *Ostree::getStagedDeployment(const std::string &path) {
   OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
   GPtrArray *deployments = NULL;
   OstreeDeployment *res = NULL;
 
-  const char *osname;
-  if (ostree_os.empty()) {
-    OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, NULL);
-    osname = ostree_deployment_get_osname(merge_deployment);
-  } else {
-    osname = ostree_os.c_str();
-  }
-
   deployments = ostree_sysroot_get_deployments(sysroot);
 
-  for (unsigned int i = 0; i < deployments->len; i++) {
-    OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[i]);
-    if (strcmp(ostree_deployment_get_osname(d), osname) != 0) continue;
-    res = static_cast<OstreeDeployment *>(g_object_ref(d));
-    break;
+  if (deployments->len == 0) {
+    res =  NULL;
+  }
+  else {
+      OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
+      res = static_cast<OstreeDeployment *>(g_object_ref(d));
   }
 
   g_ptr_array_unref(deployments);
   return res;
-}
-
-OstreeDeployment *Ostree::getBootedDeployment(const std::string &path) {
-  OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
-  OstreeRepo *repo = NULL;
-  OstreeDeployment *booted_deployment = NULL;
-
-  GCancellable *cancellable = NULL;
-  GError **error = NULL;
-
-  if (!ostree_sysroot_get_repo(sysroot, &repo, cancellable, error)) throw std::runtime_error("could not get repo");
-
-  booted_deployment = ostree_sysroot_get_booted_deployment(sysroot);
-  // booted_deployment = (OstreeDeployment *)ostree_sysroot_get_deployments(sysroot)->pdata[0];
-  return booted_deployment;
 }
 
 bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
@@ -156,12 +134,6 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return data::InstallOutcome(data::INSTALL_FAILED, error->message);
   }
 
-  OstreeDeployment *booted_deployment = Ostree::getBootedDeployment(config.sysroot);
-  if (booted_deployment == NULL && !config.os.size() && !config.sysroot.size()) {
-    LOGGER_LOG(LVL_error, "No booted deplyment");
-    return data::InstallOutcome(data::INSTALL_FAILED, "No booted deplyment");
-  }
-
   GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot, branch_name.c_str());
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOGGER_LOG(LVL_error, error->message);
@@ -169,6 +141,10 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   }
 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, opt_osname);
+  if (merge_deployment == NULL) {
+    LOGGER_LOG(LVL_error, "No merge deployment");
+    return data::InstallOutcome(data::INSTALL_FAILED, "No merge deployment");
+  }
 
   if (!ostree_sysroot_prepare_cleanup(sysroot, cancellable, &error)) {
     LOGGER_LOG(LVL_error, error->message);
@@ -205,9 +181,8 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Installation succesfull");
 }
 
-OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot,
-                                      const std::string &ostree_os) {
-  OstreeDeployment *staged_deployment = Ostree::getStagedDeployment(ostree_sysroot, ostree_os);
+OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot) {
+  OstreeDeployment *staged_deployment = Ostree::getStagedDeployment(ostree_sysroot);
 
   GKeyFile *origin = ostree_deployment_get_origin(staged_deployment);
   const char *ref = ostree_deployment_get_csum(staged_deployment);
@@ -240,7 +215,6 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   return value;
 }
 
-OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot,
-                                    const std::string &ostree_os) {
-  return OstreeBranch::getCurrent(ecu_serial, ostree_sysroot, ostree_os).package;
+OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot) {
+  return OstreeBranch::getCurrent(ecu_serial, ostree_sysroot).package;
 }
