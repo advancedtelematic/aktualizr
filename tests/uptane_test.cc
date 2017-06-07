@@ -17,8 +17,8 @@ std::string tls_server = "https://tlsserver.com";
 std::string metadata_path = "tests/test_data/";
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
-                             const std::string &commit_in, const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), commit(commit_in), description(desc_in), pull_uri(treehub_in) {}
+                             const std::string &desc_in, const std::string &treehub_in)
+    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
   (void)cred;
@@ -27,15 +27,15 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 }
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
-  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["commit"].asString(),
-                       json["description"].asString(), json["pull_uri"].asString());
+  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["description"].asString(),
+                       json["pull_uri"].asString());
 }
 
 Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
-  installed_image["fileinfo"]["hashes"]["sha256"] = commit;
+  installed_image["fileinfo"]["hashes"]["sha256"] = refhash;
   installed_image["fileinfo"]["custom"] = false;
 
   Json::Value value;
@@ -53,9 +53,8 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
 }
 
 OstreePackage OstreePackage::getEcu(const std::string &ecu_serial,
-                                    const std::string &ostree_sysroot __attribute__((unused)),
-                                    const std::string &ostree_os __attribute__((unused))) {
-  return OstreePackage(ecu_serial, "frgfdg", "sfsdf", "dsfsdf", "sfsdfs");
+                                    const std::string &ostree_sysroot __attribute__((unused))) {
+  return OstreePackage(ecu_serial, "frgfdg", "dsfsdf", "sfsdfs");
 }
 
 HttpClient::HttpClient() {}
@@ -411,7 +410,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].commit, "A0FB2E119CF812F1AA9E993D01F5F07CB41679096CB4492F1265BFF5AC901D0D");
+  EXPECT_EQ(targets_event->packages[0].ref_name, "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
@@ -433,7 +432,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   command::Channel *commands_channel = new command::Channel();
 
   std::vector<OstreePackage> packages_to_install;
-  packages_to_install.push_back(OstreePackage("test1", "test2", "test3", "test4", "test5"));
+  packages_to_install.push_back(OstreePackage("test1", "test2", "test3", "test4"));
   *commands_channel << boost::make_shared<command::OstreeInstall>(packages_to_install);
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);

@@ -316,7 +316,7 @@ TEST(event, UptaneTimestampUpdated_event_to_json) {
 #ifdef BUILD_OSTREE
 
 TEST(event, UptaneTargetsUpdated_event_to_json) {
-  OstreePackage package("test1", "test2", "test3", "test4", "test5");
+  OstreePackage package("test1", "test2", "test3", "test4");
   std::vector<OstreePackage> packages;
   packages.push_back(package);
 
