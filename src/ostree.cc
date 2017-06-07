@@ -6,6 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include "logger.h"
+#include "utils.h"
+
 
 #include <gio/gio.h>
 
@@ -172,6 +174,10 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     LOGGER_LOG(LVL_error, "ostree_sysroot_simple_write_deployment:" << error->message);
     return data::InstallOutcome(data::INSTALL_FAILED, error->message);
   }
+  
+  std::ofstream package_file(NEW_PACKAGE.c_str());
+  package_file << Json::FastWriter().write(toJson());
+  package_file.close();
   return data::InstallOutcome(data::OK, "Installation succesfull");
 }
 
@@ -193,6 +199,16 @@ OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
   return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["commit"].asString(),
                        json["description"].asString(), json["pull_uri"].asString());
+}
+
+Json::Value OstreePackage::toJson() {
+  Json::Value json;
+  json["ecu_serial"] = ecu_serial;
+  json["ref_name"] = ref_name;
+  json["commit"] = commit;
+  json["description"] = description;
+  json["pull_uri"] = pull_uri;
+  return json;
 }
 
 Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
@@ -218,7 +234,7 @@ OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::st
   if (boost::filesystem::exists(NEW_PACKAGE)) {
     std::ifstream path_stream(NEW_PACKAGE.c_str());
     std::string json_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
-    return OstreePackage::fromJson(json_content);
+    return OstreePackage::fromJson(Utils::parseJSON(json_content));
   } else {
     if (boost::filesystem::exists(BOOT_BRANCH)) {
       std::ifstream boot_branch_stream(BOOT_BRANCH.c_str());

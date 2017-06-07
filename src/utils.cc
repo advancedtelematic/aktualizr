@@ -33,7 +33,6 @@ Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
 }
 
 std::string Utils::intToString(unsigned int val) {
-  std::cout << "converting " << val << "\n";
   std::ostringstream ss;
   ss << val;
   return ss.str();
