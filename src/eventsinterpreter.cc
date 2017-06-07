@@ -57,5 +57,13 @@ void EventsInterpreter::run() {
       *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
           new command::SendUpdateReport(static_cast<event::InstallFailed*>(event.get())->install_result.toReport()));
     }
+    if (event->variant == "InstallFailed" || event->variant == "InstallComplete" ||
+        event->variant == "UptaneTimestampUpdated" || event->variant == "NoUpdateRequests") {
+      // These events indicates the end of pooling cycle
+      if (!config.core.polling) {
+        // the option --pooling-once is set, so we need to exit now
+        *commands_channel << boost::make_shared<command::Shutdown>();
+      }
+    }
   }
 }

@@ -68,7 +68,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
-      ("disable-keyid-validation", "Disable keyid validation on client side" );
+      ("disable-keyid-validation", "Disable keyid validation on client side" )
+      ("poll-once", "Check for updates only once and exit");
   // clang-format on
 
   bpo::variables_map vm;

@@ -410,7 +410,8 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].ref_name, "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(targets_event->packages[0].ref_name,
+            "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {

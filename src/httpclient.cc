@@ -102,20 +102,17 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
 
   LOGGER_LOG(LVL_debug, "servercon - requesting token from server: " << conf.server);
 
-  std::string response;
-  curl_easy_setopt(curl_auth, CURLOPT_WRITEDATA, (void*)&response);
-
   curl_slist* h = curl_slist_append(NULL, "Content-Type: application/x-www-form-urlencoded");
   h = curl_slist_append(h, "charsets: utf-8");
   curl_easy_setopt(curl_auth, CURLOPT_HTTPHEADER, h);
 
-  CURLcode result = curl_easy_perform(curl_auth);
+  std::string response = perform(curl_auth, RETRY_TIMES);
+
   LOGGER_LOG(LVL_trace, "response:" << response);
 
   curl_easy_cleanup(curl_auth);
-  if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "authentication curl error: " << result << " with server: " << conf.server
-                                                        << "and auth header: " << auth_header);
+  if (response.empty()) {
+    LOGGER_LOG(LVL_error, "authentication error: server: " << conf.server << "and auth header: " << auth_header);
     return false;
   }
   Json::Reader reader;
@@ -195,8 +192,6 @@ std::string HttpClient::perform(CURL* curl_handler, int retry_times) {
     if (retry_times) {
       sleep(1);
       perform(curl_handler, --retry_times);
-    } else {
-      throw std::runtime_error(error_message.str());
     }
   }
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);

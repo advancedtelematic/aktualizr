@@ -54,8 +54,7 @@ void Repository::putManifest(const Json::Value &custom) {
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = Json::Value(Json::arrayValue);
   Json::Value ecu_version_signed =
-      sign(OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot)
-               .toEcuVersion(custom));
+      sign(OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom));
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed = sign(version_manifest);
   http.put(config.uptane.director_server + "/manifest", Json::FastWriter().write(tuf_signed));
