@@ -26,14 +26,14 @@ void Repository::updateRoot() {
 }
 
 Json::Value Repository::sign(const Json::Value &in_data) {
-  std::string key_path = (config.device.certificates_path / config.uptane.private_key_path).string();
+  std::string key_path = (config.device.certificates_directory / config.uptane.private_key_path).string();
   std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(key_path, Json::FastWriter().write(in_data)));
 
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
-  std::string public_key_path = (config.device.certificates_path / config.uptane.public_key_path).string();
+  std::string public_key_path = (config.device.certificates_directory / config.uptane.public_key_path).string();
   std::ifstream public_key_path_stream(public_key_path.c_str());
   std::string key_content((std::istreambuf_iterator<char>(public_key_path_stream)), std::istreambuf_iterator<char>());
   boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
@@ -69,13 +69,13 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
 }
 
 bool Repository::deviceRegister() {
-  std::string bootstrap_pkey_pem = (config.device.certificates_path / "bootstrap_pkey.pem").string();
-  std::string bootstrap_cert_pem = (config.device.certificates_path / "bootstrap_cert.pem").string();
-  std::string bootstrap_ca_pem = (config.device.certificates_path / "bootstrap_ca.pem").string();
+  std::string bootstrap_pkey_pem = (config.device.certificates_directory / "bootstrap_pkey.pem").string();
+  std::string bootstrap_cert_pem = (config.device.certificates_directory / "bootstrap_cert.pem").string();
+  std::string bootstrap_ca_pem = (config.device.certificates_directory / "bootstrap_ca.pem").string();
 
-  FILE *reg_p12 = fopen((config.device.certificates_path / config.provision.p12_path).c_str(), "rb");
+  FILE *reg_p12 = fopen((config.device.certificates_directory / config.provision.p12_path).c_str(), "rb");
   if (!reg_p12) {
-    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_path / config.provision.p12_path);
+    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_directory / config.provision.p12_path);
     return false;
   }
 
@@ -96,9 +96,9 @@ bool Repository::deviceRegister() {
   }
 
   FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
-  if (!Crypto::parseP12(device_p12, "", (config.device.certificates_path / config.tls.pkey_file).string(),
-                        (config.device.certificates_path / config.tls.client_certificate).string(),
-                        (config.device.certificates_path / config.tls.ca_file).string())) {
+  if (!Crypto::parseP12(device_p12, "", (config.device.certificates_directory / config.tls.pkey_file).string(),
+                        (config.device.certificates_directory / config.tls.client_certificate).string(),
+                        (config.device.certificates_directory / config.tls.ca_file).string())) {
     return false;
   }
   fclose(device_p12);
@@ -106,9 +106,9 @@ bool Repository::deviceRegister() {
 }
 
 bool Repository::authenticate() {
-  return http.authenticate((config.device.certificates_path / config.tls.client_certificate).string(),
-                           (config.device.certificates_path / config.tls.ca_file).string(),
-                           (config.device.certificates_path / config.tls.pkey_file).string());
+  return http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
+                           (config.device.certificates_directory / config.tls.ca_file).string(),
+                           (config.device.certificates_directory / config.tls.pkey_file).string());
 }
 
 bool Repository::ecuRegister() {
@@ -122,7 +122,7 @@ bool Repository::ecuRegister() {
                             );
   EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
-  std::string public_key = (config.device.certificates_path / config.uptane.public_key_path).string();
+  std::string public_key = (config.device.certificates_directory / config.uptane.public_key_path).string();
   BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
   ret = PEM_write_bio_PUBKEY(bp_public, pkey);
   if (ret != 1) {
@@ -131,7 +131,7 @@ bool Repository::ecuRegister() {
     return false;
   }
 
-  BIO *bp_private = BIO_new_file((config.device.certificates_path / config.uptane.private_key_path).c_str(), "w");
+  BIO *bp_private = BIO_new_file((config.device.certificates_directory / config.uptane.private_key_path).c_str(), "w");
   ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
   if (ret != 1) {
     RSA_free(r);

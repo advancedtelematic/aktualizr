@@ -90,8 +90,12 @@ void Config::postUpdateValues() {
     core.auth_type = OAUTH2;
   }
 
-  if (boost::filesystem::create_directories(device.certificates_path)) {
-    LOGGER_LOG(LVL_info, "certificates_path directory has been created");
+  boost::system::error_code error;
+  boost::filesystem::create_directories(device.certificates_directory, error);
+  if (error.value()) {
+    throw std::runtime_error(
+        std::string("Could not create directory for 'device.certificates_directory' option because: ") +
+        error.message());
   }
   if (uptane.repo_server.empty()) {
     uptane.repo_server = tls.server + "/repo";
@@ -152,7 +156,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
   CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
-  CopyFromConfig(device.certificates_path, "device.certificates_path", LVL_trace, pt);
+  CopyFromConfig(device.certificates_directory, "device.certificates_directory", LVL_trace, pt);
   if (pt.get_optional<std::string>("device.package_manager").is_initialized()) {
     std::string pm = strip_quotes(pt.get_optional<std::string>("device.package_manager").get());
     if (pm == "ostree") {
