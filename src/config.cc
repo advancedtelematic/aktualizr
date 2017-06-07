@@ -209,6 +209,9 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
+  if (cmd.count("poll-once") != 0) {
+    core.polling = false;
+  }
   if (cmd.count("gateway-http") != 0) {
     gateway.http = cmd["gateway-http"].as<bool>();
   }

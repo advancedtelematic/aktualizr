@@ -20,9 +20,6 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, event::Channel *events_c
   http = new HttpClient();
 
   core_url = config.core.server + "/api/v1";
-
-  processing = false;
-  retries = SotaHttpClient::MAX_RETRIES;
 }
 
 SotaHttpClient::~SotaHttpClient() { delete http; }
@@ -35,24 +32,15 @@ SotaHttpClient::SotaHttpClient(const Config &config_in, HttpClient *http_in, eve
 bool SotaHttpClient::authenticate() { return http->authenticate(config.auth); }
 
 std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
-  processing = true;
   std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates";
   std::vector<data::UpdateRequest> update_requests;
 
   Json::Value json;
-  try {
-    json = http->getJson(url);
-  } catch (std::runtime_error e) {
-    retry();
-    processing = false;
-    return update_requests;
-  }
+  json = http->getJson(url);
+
   unsigned int updates = json.size();
   for (unsigned int i = 0; i < updates; ++i) {
     update_requests.push_back(data::UpdateRequest::fromJson(json[i]));
-  }
-  if (!updates) {
-    processing = false;
   }
   return update_requests;
 }
@@ -61,7 +49,6 @@ void SotaHttpClient::startDownload(const data::UpdateRequestId &update_request_i
   std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates/" + update_request_id + "/download";
   std::string filename = (config.device.packages_dir / update_request_id).string();
   if (!http->download(url, filename)) {
-    retry();
     return;
   }
 
@@ -93,51 +80,26 @@ void SotaHttpClient::startInstall(const data::UpdateRequestId &InstallingUpdate)
   }
 
 #endif
-  processing = false;
 }
 
 void SotaHttpClient::sendUpdateReport(data::UpdateReport update_report) {
   std::string url = core_url + "/mydevice/" + config.device.uuid;
   url += "/updates/" + update_report.update_id;
-  try {
-    http->post(url, update_report.toJson()["operation_results"]);
-  } catch (std::runtime_error e) {
-    retry();
-    return;
-  }
-  processing = true;
-}
-
-void SotaHttpClient::retry() {
-  was_error = true;
-  processing = false;
-  retries--;
-  if (!retries) {
-    retries = SotaHttpClient::MAX_RETRIES;
-    was_error = false;
-  }
+  http->post(url, update_report.toJson()["operation_results"]);
 }
 
 void SotaHttpClient::run(command::Channel *commands_channel) {
   while (true) {
-    if (processing) {
-      sleep(1);
-    } else {
-      if (was_error) {
-        sleep(2);
-      } else {
-        sleep(static_cast<unsigned int>(config.core.polling_sec));
-      }
-      if (!http->isAuthenticated()) {
-        *commands_channel << boost::make_shared<command::Authenticate>();
-      }
-      *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+    if (!http->isAuthenticated()) {
+      *commands_channel << boost::make_shared<command::Authenticate>();
     }
+    *commands_channel << boost::make_shared<command::GetUpdateRequests>();
+    sleep(static_cast<unsigned int>(config.core.polling_sec));
   }
 }
 
 void SotaHttpClient::runForever(command::Channel *commands_channel) {
-  boost::thread(boost::bind(&SotaHttpClient::run, this, commands_channel));
+  boost::thread polling_thread(boost::bind(&SotaHttpClient::run, this, commands_channel));
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOGGER_LOG(LVL_info, "got " + command->variant + " command");
@@ -165,6 +127,9 @@ void SotaHttpClient::runForever(command::Channel *commands_channel) {
     } else if (command->variant == "SendUpdateReport") {
       command::SendUpdateReport *send_update_report_command = command->toChild<command::SendUpdateReport>();
       sendUpdateReport(send_update_report_command->update_report);
+    } else if (command->variant == "Shutdown") {
+      polling_thread.interrupt();
+      return;
     }
   }
 }
