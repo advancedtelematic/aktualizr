@@ -42,6 +42,8 @@ if(BUILD_TESTS)
     include("tests/CMakeLists.txt")
 endif(BUILD_TESTS)
 
+add_subdirectory("docs")
+
 if(BUILD_GENIVI)
     install(FILES dbus/org.genivi.SotaClient.conf DESTINATION /etc/dbus-1/system.d)
 endif(BUILD_GENIVI)
