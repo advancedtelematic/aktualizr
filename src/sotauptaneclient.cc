@@ -31,9 +31,9 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
 
 void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
   data::PackageManagerCredentials cred;
-  cred.ca_file = (config.device.certificates_path / config.tls.ca_file).string();
-  cred.pkey_file = (config.device.certificates_path / config.tls.pkey_file).string();
-  cred.cert_file = (config.device.certificates_path / config.tls.client_certificate).string();
+  cred.ca_file = (config.device.certificates_directory / config.tls.ca_file).string();
+  cred.pkey_file = (config.device.certificates_directory / config.tls.pkey_file).string();
+  cred.cert_file = (config.device.certificates_directory / config.tls.client_certificate).string();
   for (std::vector<OstreePackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
     data::InstallOutcome outcome = (*it).install(cred, config.ostree);
     data::OperationResult result = data::OperationResult::fromOutcome((*it).ref_name, outcome);
@@ -44,8 +44,8 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
-  if (!boost::filesystem::exists(config.device.certificates_path / config.tls.client_certificate) ||
-      !boost::filesystem::exists(config.device.certificates_path / config.tls.ca_file)) {
+  if (!boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate) ||
+      !boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file)) {
     if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
       throw std::runtime_error(
           "Fatal error of tls or ecu device registration, please look at previous error log messages to understand "

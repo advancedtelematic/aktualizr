@@ -31,11 +31,10 @@ OstreeDeployment *Ostree::getStagedDeployment(const std::string &path) {
   deployments = ostree_sysroot_get_deployments(sysroot);
 
   if (deployments->len == 0) {
-    res =  NULL;
-  }
-  else {
-      OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
-      res = static_cast<OstreeDeployment *>(g_object_ref(d));
+    res = NULL;
+  } else {
+    OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
+    res = static_cast<OstreeDeployment *>(g_object_ref(d));
   }
 
   g_ptr_array_unref(deployments);

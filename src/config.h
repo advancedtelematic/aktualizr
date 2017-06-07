@@ -62,11 +62,11 @@ struct DeviceConfig {
   DeviceConfig()
       : uuid("123e4567-e89b-12d3-a456-426655440000"),
         packages_dir("/tmp/"),
-        certificates_path("/tmp/aktualizr/"),
+        certificates_directory("/tmp/aktualizr/"),
         package_manager(PMOFF) {}
   std::string uuid;
   boost::filesystem::path packages_dir;
-  boost::filesystem::path certificates_path;
+  boost::filesystem::path certificates_directory;
   PackageManager package_manager;
 };
 

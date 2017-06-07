@@ -16,9 +16,9 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
     : name_(name), path_(config.uptane.metadata_path / name_), config_(config), base_url_(base_url) {
   boost::filesystem::create_directories(path_);
   boost::filesystem::create_directories(path_ / "targets");
-  http_.authenticate((config_.device.certificates_path / config_.tls.client_certificate).string(),
-                     (config_.device.certificates_path / config_.tls.ca_file).string(),
-                     (config_.device.certificates_path / config_.tls.pkey_file).string());
+  http_.authenticate((config_.device.certificates_directory / config_.tls.client_certificate).string(),
+                     (config_.device.certificates_directory / config_.tls.ca_file).string(),
+                     (config_.device.certificates_directory / config_.tls.pkey_file).string());
   LOGGER_LOG(LVL_debug, "TufRepository looking for root.json in:" << path_);
   if (boost::filesystem::exists(path_ / "root.json")) {
     initRoot(Utils::parseJSONFile(path_ / "root.json"));
