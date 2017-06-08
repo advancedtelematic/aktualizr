@@ -13,6 +13,7 @@
 #ifdef WITH_GENIVI
 #include <dbus/dbus.h>
 #endif
+#include "utils.h"
 
 enum Auth { OAUTH2 = 0, CERTIFICATE };
 
@@ -115,15 +116,10 @@ struct TlsConfig {
 };
 
 struct ProvisionConfig {
-  ProvisionConfig()
-      : p12_path(""),
-        p12_password(""),
-        expiry_days("36000"),
-        device_id(boost::lexical_cast<std::string>(boost::uuids::random_generator()())) {}
+  ProvisionConfig() : p12_path(""), p12_password(""), expiry_days("36000") {}
   std::string p12_path;
   std::string p12_password;
   std::string expiry_days;
-  std::string device_id;
 };
 
 struct UptaneConfig {
