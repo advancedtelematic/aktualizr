@@ -13,7 +13,6 @@
 #ifdef WITH_GENIVI
 #include <dbus/dbus.h>
 #endif
-#include "utils.h"
 
 enum Auth { OAUTH2 = 0, CERTIFICATE };
 

@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "logger.h"
+#include "utils.h"
 
 /**
  * \par Description:
