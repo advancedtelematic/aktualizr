@@ -1,7 +1,7 @@
 [auth]
 server = "https://url.com"
-client_id = "thisisaclientid"
-client_secret = "thisisaclientsecret"
+#client_id = "thisisaclientid"
+#client_secret = "thisisaclientsecret"
 
 [core]
 server = "https://url.com"
@@ -64,7 +64,6 @@ pkey_file = "pkey.pem"
 client_certificate = "client.pem"
 
 [uptane]
-primary_ecu_serial = "SOTA_DEVICE_ID"
 metadata_path = "/tmp/aktualizr/metadata"
 private_key_path = "ecukey.pem"
 public_key_path = "ecukey.pub"
