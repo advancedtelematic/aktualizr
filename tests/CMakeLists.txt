@@ -82,7 +82,7 @@ include_directories(${LIBOSTREE_INCLUDE_DIRS})
 
 # use the same libiraries as the normal target but add gtest
 set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} gtest gmock gcov)
-               
+
 if(BUILD_OSTREE)
     list(APPEND TEST_LIBS ${LIBOSTREE_LIBRARIES})
 endif()
@@ -93,7 +93,7 @@ if(BUILD_WITH_CODE_COVERAGE)
     setup_target_for_coverage(coverage ctest coverage)
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
     target_link_libraries(aktualizr gcov)
-endif()               
+endif()
 
 
 # Config Test
@@ -120,11 +120,12 @@ add_test(NAME test_http_aktualizr COMMAND aktualizr_test_http_aktualizr WORKING_
 add_executable(aktualizr_test_http_client tests/httpclient_test.cc)
 target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
+add_test(NAME test_valgrind_http_client COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr_test_socket_gateway tests/socketgateway_test.cc)
 target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_socket_gateway COMMAND aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr_test_crypto tests/crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
@@ -152,11 +153,14 @@ if(BUILD_OSTREE)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
     add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(check aktualizr_test_ostree)
-    
+
     add_executable(aktualizr_uptane_vector_tests tests/uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
     add_dependencies(check aktualizr_uptane_vector_tests)
+
+    add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
+
 endif(BUILD_OSTREE)
 
 
@@ -166,6 +170,9 @@ if(BUILD_GENIVI)
     target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_dbusgateway COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
     add_dependencies(check aktualizr_test_dbusgateway)
 
     add_executable(aktualizr_test_rvi_client tests/rvisotaclient_test.cc)

@@ -25,6 +25,7 @@ TEST(EventsTest, broadcasted) {
   command::Channel* chan = new command::Channel();
 
   SocketGateway gateway(conf, chan);
+  sleep(1);
   std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
