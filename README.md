@@ -61,8 +61,21 @@ The following debian packages are used in the project:
  - cmake (>= 3.5.1)
  - lcov (when building for code coverage)
  - google-mock
+ - python3-dev (when building tests)
 
 ### Building
+
+This project uses **git submodules**. To checkout the code:
+
+~~~
+git clone --recursive https://github.com/advancedtelematic/aktualizr
+~~~
+
+If you had an old checkout, forgot to include `--recursive` or need to update the submodules, run:
+
+~~~
+git submodule update --init --recursive
+~~~
 
 `aktualizr` is built using CMake. To setup your `build` directory:
 
