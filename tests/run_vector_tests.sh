@@ -7,7 +7,13 @@ $1/generator.py -t uptane --signature-encoding base64 -o vectors --cjson json-su
 $1/server.py --path "$(pwd)/vectors" &
 sleep 3
 trap 'kill %1' EXIT
-./aktualizr_uptane_vector_tests vectors/vector-meta.json
+
+if [ "$2" == "valgrind" ]; then
+    valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=$1/../aktualizr.supp ./aktualizr_uptane_vector_tests vectors/vector-meta.json
+else
+    ./aktualizr_uptane_vector_tests vectors/vector-meta.json
+fi
+
 RES=$?
 kill %1
 trap - EXIT
