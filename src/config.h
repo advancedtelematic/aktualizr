@@ -123,7 +123,8 @@ struct ProvisionConfig {
 
 struct UptaneConfig {
   UptaneConfig()
-      : primary_ecu_serial(""),
+      : device_id(""),
+        primary_ecu_serial(""),
         primary_ecu_hardware_id(""),
         ostree_server(""),
         director_server(""),
@@ -132,6 +133,7 @@ struct UptaneConfig {
         private_key_path("ecukey.pem"),
         public_key_path("ecukey.pub"),
         disable_keyid_validation(false) {}
+  std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
   std::string ostree_server;
