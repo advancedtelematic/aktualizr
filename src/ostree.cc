@@ -18,8 +18,11 @@ OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
     sysroot = ostree_sysroot_new_default();
   }
   GCancellable *cancellable = NULL;
-  GError **error = NULL;
-  if (!ostree_sysroot_load(sysroot, cancellable, error)) throw std::runtime_error("could not load sysroot");
+  GError *error = NULL;
+  if (!ostree_sysroot_load(sysroot, cancellable, &error)) {
+    g_error_free(error);
+    throw std::runtime_error("could not load sysroot");
+  }
   return sysroot;
 }
 
@@ -64,11 +67,13 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
   if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_DELETE_IF_EXISTS, remote.c_str(), url.c_str(),
                                  options, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "Error of adding remote: " << error->message);
+    g_error_free(error);
     return false;
   }
   if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_ADD_IF_NOT_EXISTS, remote.c_str(), url.c_str(),
                                  options, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "Error of adding remote: " << error->message);
+    g_error_free(error);
     return false;
   }
   return true;
@@ -103,6 +108,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   OstreeSysroot *sysroot = Ostree::LoadSysroot(config.sysroot);
   if (!ostree_sysroot_get_repo(sysroot, &repo, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "could not get repo");
+    g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
@@ -130,13 +136,17 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
   if (!ostree_repo_pull_with_options(repo, remote, options, NULL, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "Error of pulling image: " << error->message);
-    return data::InstallOutcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    g_error_free(error);
+    return install_outcome;
   }
 
   GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot, branch_name.c_str());
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOGGER_LOG(LVL_error, error->message);
-    return data::InstallOutcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    g_error_free(error);
+    return install_outcome;
   }
 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, opt_osname);
@@ -147,7 +157,9 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
   if (!ostree_sysroot_prepare_cleanup(sysroot, cancellable, &error)) {
     LOGGER_LOG(LVL_error, error->message);
-    return data::InstallOutcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    g_error_free(error);
+    return install_outcome;
   }
 
   std::ifstream args_stream("/proc/cmdline");
@@ -168,14 +180,18 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   if (!ostree_sysroot_deploy_tree(sysroot, opt_osname, revision, origin, merge_deployment, kargs_strv, &new_deployment,
                                   cancellable, &error)) {
     LOGGER_LOG(LVL_error, "ostree_sysroot_deploy_tree: " << error->message);
-    return data::InstallOutcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    g_error_free(error);
+    return install_outcome;
   }
 
   if (!ostree_sysroot_simple_write_deployment(sysroot, "", new_deployment, merge_deployment,
                                               OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_RETAIN, cancellable,
                                               &error)) {
     LOGGER_LOG(LVL_error, "ostree_sysroot_simple_write_deployment:" << error->message);
-    return data::InstallOutcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    g_error_free(error);
+    return install_outcome;
   }
   return data::InstallOutcome(data::OK, "Installation succesfull");
 }
