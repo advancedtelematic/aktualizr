@@ -24,7 +24,6 @@ std::string Crypto::sha256digest(const std::string &text) {
   unsigned char digest[32];
   unsigned int digest_len = 32;
   EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_cleanup(md_ctx);
   EVP_MD_CTX_destroy(md_ctx);
   return std::string((char *)digest, 32);
 }
@@ -38,7 +37,6 @@ std::string Crypto::sha512digest(const std::string &text) {
   unsigned char digest[size];
   unsigned int digest_len = size;
   EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_cleanup(md_ctx);
   EVP_MD_CTX_destroy(md_ctx);
   return std::string((char *)digest, size);
 }
