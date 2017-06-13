@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #define TLS_BUFSIZE  16384 /* Maximum TLS frame size is 16K bytes */

@@ -24,7 +24,6 @@ std::string Crypto::sha256digest(const std::string &text) {
   unsigned char digest[32];
   unsigned int digest_len = 32;
   EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_cleanup(md_ctx);
   EVP_MD_CTX_destroy(md_ctx);
   return std::string((char *)digest, 32);
 }
@@ -38,7 +37,6 @@ std::string Crypto::sha512digest(const std::string &text) {
   unsigned char digest[size];
   unsigned int digest_len = size;
   EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_cleanup(md_ctx);
   EVP_MD_CTX_destroy(md_ctx);
   return std::string((char *)digest, size);
 }
@@ -143,7 +141,9 @@ bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &sig
 
 bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,
                       const std::string &client_pem, const std::string ca_pem) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000
   SSLeay_add_all_algorithms();
+#endif
   PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
   if (!p12) {
     LOGGER_LOG(LVL_error, "Could not read from " << p12_fp << " file pointer");

@@ -61,6 +61,9 @@ The following debian packages are used in the project:
  - cmake (>= 3.5.1)
  - lcov (when building for code coverage)
  - google-mock
+ - libostree-dev
+ - valgrind
+ - libjansson-dev
  - python3-dev (when building tests)
 
 ### Building
