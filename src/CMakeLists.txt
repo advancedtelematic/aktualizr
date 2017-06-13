@@ -44,6 +44,7 @@ set(HEADERS
             src/gatewaymanager.h
             src/socketgateway.h
             src/crypto.h
+            src/openssl_compat.h
             src/ostree.h
             src/uptane/tufrepository.h
             src/uptane/uptanerepository.h
