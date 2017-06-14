@@ -14,6 +14,7 @@
 #include <sodium.h>
 
 #include "logger.h"
+#include "openssl_compat.h"
 #include "utils.h"
 
 std::string Crypto::sha256digest(const std::string &text) {
@@ -141,7 +142,7 @@ bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &sig
 
 bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,
                       const std::string &client_pem, const std::string ca_pem) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000
+#if AKTUALIZR_OPENSSL_PRE_11
   SSLeay_add_all_algorithms();
 #endif
   PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);

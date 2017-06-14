@@ -9,6 +9,7 @@
 
 #include "crypto.h"
 #include "logger.h"
+#include "openssl_compat.h"
 #include "ostree.h"
 #include "utils.h"
 
@@ -116,13 +117,13 @@ bool Repository::ecuRegister() {
   int bits = 1024;
   int ret = 0;
 
-  #if OPENSSL_VERSION_NUMBER < 0x10100000
+#if AKTUALIZR_OPENSSL_PRE_11
   RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 2048 is a sensible value */
                             RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
                             NULL,   /* callback - can be NULL if we aren't displaying progress */
                             NULL    /* callback argument - not needed in this case */
                             );
-  #else
+#else
   BIGNUM *bne = BN_new();
   ret = BN_set_word(bne, RSA_F4);
   if (ret != 1) {
@@ -131,17 +132,16 @@ bool Repository::ecuRegister() {
   }
 
   RSA *r = RSA_new();
-  ret = RSA_generate_key_ex(r,
-                            bits,   /* number of bits for the key - 2048 is a sensible value */
-                            bne,    /* exponent - RSA_F4 is defined as 0x10001L */
-                            NULL    /* callback argument - not needed in this case */
+  ret = RSA_generate_key_ex(r, bits, /* number of bits for the key - 2048 is a sensible value */
+                            bne,     /* exponent - RSA_F4 is defined as 0x10001L */
+                            NULL     /* callback argument - not needed in this case */
                             );
   if (ret != 1) {
     RSA_free(r);
     BN_free(bne);
     return false;
   }
-  #endif
+#endif
 
   EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
@@ -150,9 +150,9 @@ bool Repository::ecuRegister() {
   ret = PEM_write_bio_PUBKEY(bp_public, pkey);
   if (ret != 1) {
     RSA_free(r);
-    #if openssl_version_number >= 0x01010000
-    bn_free(bne);
-    #endif
+#if AKTUALIZR_OPENSSL_AFTER_11
+    BN_free(bne);
+#endif
     BIO_free_all(bp_public);
     return false;
   }
@@ -161,17 +161,17 @@ bool Repository::ecuRegister() {
   ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
   if (ret != 1) {
     RSA_free(r);
-    #if openssl_version_number >= 0x01010000
-    bn_free(bne);
-    #endif
+#if AKTUALIZR_OPENSSL_AFTER_11
+    BN_free(bne);
+#endif
     BIO_free_all(bp_public);
     BIO_free_all(bp_private);
     return false;
   }
   RSA_free(r);
-  #if openssl_version_number >= 0x01010000
-  bn_free(bne);
-  #endif
+#if AKTUALIZR_OPENSSL_AFTER_11
+  BN_free(bne);
+#endif
   BIO_free_all(bp_public);
   BIO_free_all(bp_private);
 
