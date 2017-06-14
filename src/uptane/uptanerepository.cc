@@ -87,21 +87,14 @@ bool Repository::deviceRegister() {
   fclose(reg_p12);
 
   http.setCerts(bootstrap_ca_pem, bootstrap_cert_pem, bootstrap_pkey_pem);
-  int tries = 4;
   std::string result;
-  do {
-    std::string data =
-        "{\"deviceId\":\"" + Utils::genPrettyName() + "\", \"ttl\":" + config.provision.expiry_days + "}";
-    result = http.post(config.tls.server + "/devices", data);
-    if (http.http_code != 200 && http.http_code != 201) {
-      LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
-      Json::Value result_json = Utils::parseJSON(result);
-      if (result_json.isMember("code") && result_json["code"] == "device_already_registered") {
-        continue;  // generate new name and try again
-      }
-      return false;
-    }
-  } while (--tries);
+
+  std::string data = "{\"deviceId\":\"" + config.uptane.device_id + "\", \"ttl\":" + config.provision.expiry_days + "}";
+  result = http.post(config.tls.server + "/devices", data);
+  if (http.http_code != 200 && http.http_code != 201) {
+    LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
+    return false;
+  }
 
   FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
   if (!Crypto::parseP12(device_p12, "", (config.device.certificates_directory / config.tls.pkey_file).string(),

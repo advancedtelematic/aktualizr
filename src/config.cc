@@ -119,6 +119,18 @@ void Config::postUpdateValues() {
       Utils::writeFile((device.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
     }
   }
+
+  std::string device_id_filename = "device_id";
+  if (!uptane.device_id.empty()) {
+    Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
+  } else {
+    if (boost::filesystem::exists(device.certificates_directory / device_id_filename)) {
+      uptane.device_id = Utils::readFile((device.certificates_directory / device_id_filename).string());
+    } else {
+      uptane.device_id = Utils::genPrettyName();
+      Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
+    }
+  }
 }
 
 void Config::updateFromToml(const std::string& filename) {
@@ -211,6 +223,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
 
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
+  CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
 
