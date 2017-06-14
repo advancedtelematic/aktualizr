@@ -3,6 +3,7 @@
 
 #include <glib/gi18n.h>
 #include <ostree-1/ostree.h>
+#include <boost/shared_ptr.hpp>
 #include <string>
 #include "config.h"
 #include "types.h"
@@ -11,8 +12,8 @@ static const std::string NEW_PACKAGE = "/tmp/sota-package";
 static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
 
 struct Ostree {
-  static OstreeDeployment *getStagedDeployment(const std::string &path);
-  static OstreeSysroot *LoadSysroot(const std::string &path);
+  static boost::shared_ptr<OstreeDeployment> getStagedDeployment(const std::string &path);
+  static boost::shared_ptr<OstreeSysroot> LoadSysroot(const std::string &path);
   static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
                         const data::PackageManagerCredentials &cred);
 };

@@ -9,7 +9,7 @@
 
 #include <gio/gio.h>
 
-OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
+boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const std::string &path) {
   OstreeSysroot *sysroot = NULL;
 
   if (path.size()) {
@@ -23,15 +23,15 @@ OstreeSysroot *Ostree::LoadSysroot(const std::string &path) {
     g_error_free(error);
     throw std::runtime_error("could not load sysroot");
   }
-  return sysroot;
+  return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
 }
 
-OstreeDeployment *Ostree::getStagedDeployment(const std::string &path) {
-  OstreeSysroot *sysroot = Ostree::LoadSysroot(path);
+boost::shared_ptr<OstreeDeployment> Ostree::getStagedDeployment(const std::string &path) {
+  boost::shared_ptr<OstreeSysroot> sysroot = Ostree::LoadSysroot(path);
   GPtrArray *deployments = NULL;
   OstreeDeployment *res = NULL;
 
-  deployments = ostree_sysroot_get_deployments(sysroot);
+  deployments = ostree_sysroot_get_deployments(sysroot.get());
 
   if (deployments->len == 0) {
     res = NULL;
@@ -41,7 +41,7 @@ OstreeDeployment *Ostree::getStagedDeployment(const std::string &path) {
   }
 
   g_ptr_array_unref(deployments);
-  return res;
+  return boost::shared_ptr<OstreeDeployment>(res, g_object_unref);
 }
 
 bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
@@ -105,8 +105,8 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   if (config.os.size()) {
     opt_osname = config.os.c_str();
   }
-  OstreeSysroot *sysroot = Ostree::LoadSysroot(config.sysroot);
-  if (!ostree_sysroot_get_repo(sysroot, &repo, cancellable, &error)) {
+  boost::shared_ptr<OstreeSysroot> sysroot = Ostree::LoadSysroot(config.sysroot);
+  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "could not get repo");
     g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
@@ -141,7 +141,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return install_outcome;
   }
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot, branch_name.c_str());
+  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), branch_name.c_str());
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOGGER_LOG(LVL_error, error->message);
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
@@ -149,13 +149,13 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return install_outcome;
   }
 
-  OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot, opt_osname);
+  OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
   if (merge_deployment == NULL) {
     LOGGER_LOG(LVL_error, "No merge deployment");
     return data::InstallOutcome(data::INSTALL_FAILED, "No merge deployment");
   }
 
-  if (!ostree_sysroot_prepare_cleanup(sysroot, cancellable, &error)) {
+  if (!ostree_sysroot_prepare_cleanup(sysroot.get(), cancellable, &error)) {
     LOGGER_LOG(LVL_error, error->message);
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
@@ -177,15 +177,15 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   GStrv kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
   OstreeDeployment *new_deployment = NULL;
-  if (!ostree_sysroot_deploy_tree(sysroot, opt_osname, revision, origin, merge_deployment, kargs_strv, &new_deployment,
-                                  cancellable, &error)) {
+  if (!ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin, merge_deployment, kargs_strv,
+                                  &new_deployment, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "ostree_sysroot_deploy_tree: " << error->message);
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
 
-  if (!ostree_sysroot_simple_write_deployment(sysroot, "", new_deployment, merge_deployment,
+  if (!ostree_sysroot_simple_write_deployment(sysroot.get(), "", new_deployment, merge_deployment,
                                               OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_RETAIN, cancellable,
                                               &error)) {
     LOGGER_LOG(LVL_error, "ostree_sysroot_simple_write_deployment:" << error->message);
@@ -197,14 +197,14 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 }
 
 OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot) {
-  OstreeDeployment *staged_deployment = Ostree::getStagedDeployment(ostree_sysroot);
+  boost::shared_ptr<OstreeDeployment> staged_deployment = Ostree::getStagedDeployment(ostree_sysroot);
 
-  GKeyFile *origin = ostree_deployment_get_origin(staged_deployment);
-  const char *ref = ostree_deployment_get_csum(staged_deployment);
+  GKeyFile *origin = ostree_deployment_get_origin(staged_deployment.get());
+  const char *ref = ostree_deployment_get_csum(staged_deployment.get());
   char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
   OstreePackage package(ecu_serial, std::string(origin_refspec) + "-" + ref, origin_refspec, "");
   g_free(origin_refspec);
-  return OstreeBranch(true, ostree_deployment_get_osname(staged_deployment), package);
+  return OstreeBranch(true, ostree_deployment_get_osname(staged_deployment.get()), package);
 }
 
 OstreePackage OstreePackage::fromJson(const Json::Value &json) {
