@@ -143,6 +143,9 @@ if(BUILD_OSTREE)
                   src/types.cc
                   src/uptane/tufrepository.cc
                   src/uptane/uptanerepository.cc
+                  src/uptane/secondary.cc
+                  src/uptane/testbusprimary.cc
+                  src/uptane/testbussecondary.cc
                   src/utils.cc
                   tests/uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})

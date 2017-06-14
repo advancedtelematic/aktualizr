@@ -66,7 +66,8 @@ class TufRepository {
   static const int kMaxSignatures = 1000;
 
   void saveRole(const Json::Value &content);
-  void saveTarget(Target target);
+  std::string downloadTarget(Target target);
+  void saveTarget(const Target &target);
   bool hasExpired(const std::string &date);
   void updateKeys(const Json::Value &keys);
   bool findSignatureByKeyId(const Json::Value &signatures, const std::string &keyid);
@@ -80,6 +81,7 @@ class TufRepository {
   HttpClient http_;
   std::vector<Target> targets_;
   std::string base_url_;
+  friend class TestBusSecondary;
 
   // TODO: list of targets
 };

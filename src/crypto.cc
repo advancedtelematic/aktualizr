@@ -1,7 +1,6 @@
 #include "crypto.h"
 
 #include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string.hpp>
 #include <iostream>
 
 #include <openssl/err.h>
@@ -87,6 +86,26 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   return std::string((char *)pSignature, sign_size);
 }
 
+Json::Value Crypto::signTuf(const std::string &private_key_path, const std::string &public_key_path,
+                            const Json::Value &in_data) {
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(private_key_path, Json::FastWriter().write(in_data)));
+
+  Json::Value signature;
+  signature["method"] = "rsassa-pss";
+  signature["sig"] = b64sig;
+
+  std::string key_content(Utils::readFile(public_key_path));
+  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
+  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
+  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
+  Json::Value out_data;
+  signature["keyid"] = keyid;
+  out_data["signed"] = in_data;
+  out_data["signatures"] = Json::Value(Json::arrayValue);
+  out_data["signatures"].append(signature);
+  return out_data;
+}
+
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
   RAND_poll();
   RSA *rsa = NULL;
@@ -127,12 +146,10 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
 }
 
 bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
-  std::string type = public_key.type;
-  boost::algorithm::to_lower(type);
 
-  if (type == "ed25519") {
+  if (public_key.type == PublicKey::ED25519) {
     return ED25519Verify(boost::algorithm::unhex(public_key.value), Utils::fromBase64(signature), message);
-  } else if (type == "rsa") {
+  } else if (public_key.type == PublicKey::RSA) {
     return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
   } else {
     LOGGER_LOG(LVL_error, "unsupported keytype: " << public_key.type);
@@ -190,5 +207,68 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
   sk_X509_pop_free(ca_certs, X509_free);
   X509_free(x509_cert);
 
+  return true;
+}
+
+bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string &private_key) {
+  int bits = 1024;
+  int ret = 0;
+
+#if AKTUALIZR_OPENSSL_PRE_11
+  RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 2048 is a sensible value */
+                            RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
+                            NULL,   /* callback - can be NULL if we aren't displaying progress */
+                            NULL    /* callback argument - not needed in this case */
+                            );
+#else
+  BIGNUM *bne = BN_new();
+  ret = BN_set_word(bne, RSA_F4);
+  if (ret != 1) {
+    BN_free(bne);
+    return false;
+  }
+
+  RSA *r = RSA_new();
+  ret = RSA_generate_key_ex(r, bits, /* number of bits for the key - 2048 is a sensible value */
+                            bne,     /* exponent - RSA_F4 is defined as 0x10001L */
+                            NULL     /* callback argument - not needed in this case */
+                            );
+  if (ret != 1) {
+    RSA_free(r);
+    BN_free(bne);
+    return false;
+  }
+#endif
+
+  EVP_PKEY *pkey = EVP_PKEY_new();
+  EVP_PKEY_assign_RSA(pkey, r);
+  BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
+  ret = PEM_write_bio_PUBKEY(bp_public, pkey);
+  if (ret != 1) {
+    RSA_free(r);
+#if AKTUALIZR_OPENSSL_AFTER_11
+    BN_free(bne);
+#endif
+    BIO_free_all(bp_public);
+    return false;
+  }
+
+  BIO *bp_private = BIO_new_file(private_key.c_str(), "w");
+  ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
+  if (ret != 1) {
+    RSA_free(r);
+#if AKTUALIZR_OPENSSL_AFTER_11
+    BN_free(bne);
+#endif
+    BIO_free_all(bp_public);
+    BIO_free_all(bp_private);
+    return false;
+  }
+  RSA_free(r);
+#if AKTUALIZR_OPENSSL_AFTER_11
+  BN_free(bne);
+#endif
+  BIO_free_all(bp_public);
+  BIO_free_all(bp_private);
   return true;
 }
