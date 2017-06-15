@@ -1,0 +1,15 @@
+= Aktualizr Debugging Tips
+
+
+== Dumping information about SSL Certificates
+
+    openssl s_client -state -debug -connect d3db2ce3-848b-4ca1-bd61-f76354601371.tcpgw.prod01.advancedtelematic.com:8000 -key bootstrap_pkey.pem -cert bootstrap_cert.pem -CAfile bootstrap_ca.pem   -servername d3db2ce3-848b-4ca1-bd61-f76354601371.tcpgw.prod01.advancedtelematic.com
+
+
+    openssl x509 -in phil.p12.pem -text -noout
+
+== Creating a temporary OSTree environment
+
+    ostree admin os-init --sysroot /tmp/sysroot myos
+    sudo ostree pull-local --repo /tmp/sysroot/ostree/repo/ /build-qemu/tmp/deploy/images/qemux86-64/ostree_repo/ -v
+    sudo ostree admin deploy --sysroot /tmp/sysroot --os myos a818c3132783a652f913ea337ddc81d6900a3da618b0a0456953819d3d546e9b
