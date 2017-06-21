@@ -6,8 +6,8 @@ namespace Uptane {
 Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *primary)
     : config(config_in), transport(primary) {
   if (!boost::filesystem::exists(config.full_client_dir / config.ecu_private_key)) {
-    Crypto::generateRSAKeyPair((config.full_client_dir / config.ecu_public_key).string(),
-                               (config.full_client_dir / config.ecu_private_key).string());
+    // Crypto::generateRSAKeyPair((config.full_client_dir / config.ecu_public_key).string(),
+    //                           (config.full_client_dir / config.ecu_private_key).string());
   }
 }
 Json::Value Secondary::genAndSendManifest() {
@@ -50,6 +50,10 @@ void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
       break;
     }
   }
+}
+
+void Secondary::setPrivateKey(const std::string &pkey){
+  Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), pkey);
 }
 
 void Secondary::install(const Uptane::Target &target) {

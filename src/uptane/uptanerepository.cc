@@ -27,7 +27,7 @@ Repository::Repository(const Config &config_in)
   std::vector<Uptane::SecondaryConfig>::iterator it;
   for (it = config.uptane.secondaries.begin(); it != config.uptane.secondaries.end(); ++it) {
     Secondary s(*it, this);
-    addSecondary(it->ecu_serial, it->ecu_hardware_id, PublicKey((it->full_client_dir / it->ecu_public_key).string()));
+    addSecondary(it->ecu_serial, it->ecu_hardware_id);
     secondaries.push_back(s);
   }
 }
@@ -128,12 +128,18 @@ bool Repository::ecuRegister() {
   all_ecus["ecus"].append(primary_ecu);
   std::vector<SecondaryConfig>::iterator it;
   for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
+    std::string pub_path = (config.device.certificates_directory / (it->ecu_serial+".pub")).string();
+    std::string priv_path = (config.device.certificates_directory / (it->ecu_serial+".priv")).string();
+    Crypto::generateRSAKeyPair(pub_path,
+                               priv_path);
+    transport.sendPrivateKey(it->ecu_serial, Utils::readFile(priv_path));
     Json::Value ecu;
-    ecu["hardware_identifier"] = (*it).ecu_hardware_id;
-    ecu["ecu_serial"] = (*it).ecu_serial;
+    ecu["hardware_identifier"] = it->ecu_hardware_id;
+    ecu["ecu_serial"] = it->ecu_serial;
     ecu["clientKey"]["keytype"] = "RSA";
-    ecu["clientKey"]["keyval"]["public"] = (*it).ecu_public_key.value;
+    ecu["clientKey"]["keyval"]["public"] = Utils::readFile(pub_path);
     all_ecus["ecus"].append(ecu);
+
   }
 
   std::string data = Json::FastWriter().write(all_ecus);
@@ -147,12 +153,10 @@ bool Repository::ecuRegister() {
   return true;
 }
 
-void Repository::addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
-                              const PublicKey &public_key) {
+void Repository::addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier) {
   SecondaryConfig c;
   c.ecu_serial = ecu_serial;
   c.ecu_hardware_id = hardware_identifier;
-  c.ecu_public_key = public_key;
   registered_secondaries.push_back(c);
 }
 };

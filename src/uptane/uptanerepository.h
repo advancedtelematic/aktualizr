@@ -19,7 +19,7 @@ class Repository {
   Json::Value sign(const Json::Value &in_data);
   void putManifest();
   void putManifest(const Json::Value &);
-  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier, const PublicKey &public_key);
+  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
   std::vector<Uptane::Target> getNewTargets();
   bool deviceRegister();
@@ -30,7 +30,6 @@ class Repository {
   struct SecondaryConfig {
     std::string ecu_serial;
     std::string ecu_hardware_id;
-    PublicKey ecu_public_key;
   };
   Config config;
   TufRepository director;
