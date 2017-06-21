@@ -210,7 +210,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
 }
 
 bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string &private_key) {
-  int bits = 1024;
+  int bits = 2048;
   int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
