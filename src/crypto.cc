@@ -146,7 +146,6 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
 }
 
 bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
-
   if (public_key.type == PublicKey::ED25519) {
     return ED25519Verify(boost::algorithm::unhex(public_key.value), Utils::fromBase64(signature), message);
   } else if (public_key.type == PublicKey::RSA) {

@@ -155,5 +155,4 @@ void Repository::addSecondary(const std::string &ecu_serial, const std::string &
   c.ecu_public_key = public_key;
   registered_secondaries.push_back(c);
 }
-
 };
