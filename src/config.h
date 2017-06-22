@@ -14,6 +14,8 @@
 #include <dbus/dbus.h>
 #endif
 
+#include "uptane/secondaryconfig.h"
+
 enum Auth { OAUTH2 = 0, CERTIFICATE };
 
 enum PackageManager { PMOFF = 0, PMOSTREE };
@@ -143,6 +145,7 @@ struct UptaneConfig {
   std::string private_key_path;
   std::string public_key_path;
   bool disable_keyid_validation;
+  std::vector<Uptane::SecondaryConfig> secondaries;
 };
 
 struct OstreeConfig {

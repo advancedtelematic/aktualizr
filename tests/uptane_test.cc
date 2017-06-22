@@ -260,7 +260,11 @@ TEST(uptane, sign) {
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
-  Json::Value signed_json = uptane_repo.sign(tosign_json);
+
+  std::cout << "privatekey full path: " << config.uptane.private_key_path << "\n";
+  Json::Value signed_json =
+      Crypto::signTuf((config.device.certificates_directory / config.uptane.private_key_path).string(),
+                      (config.device.certificates_directory / config.uptane.public_key_path).string(), tosign_json);
 
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),

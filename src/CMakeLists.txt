@@ -48,6 +48,9 @@ set(HEADERS
             src/ostree.h
             src/uptane/tufrepository.h
             src/uptane/uptanerepository.h
+            src/uptane/secondary.h
+            src/uptane/testbusprimary.h
+            src/uptane/testbussecondary.h
             src/uptane/exceptions.h)
 
 set(MAIN src/main.cc)
@@ -66,7 +69,10 @@ if (BUILD_OSTREE)
     list(APPEND SOURCES src/ostree.cc
                         src/sotauptaneclient.cc
                         src/uptane/tufrepository.cc
-                        src/uptane/uptanerepository.cc)
+                        src/uptane/uptanerepository.cc
+                        src/uptane/secondary.cc
+                        src/uptane/testbusprimary.cc
+                        src/uptane/testbussecondary.cc)
 endif(BUILD_OSTREE)
 
 include_directories(src)

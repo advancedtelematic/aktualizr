@@ -108,18 +108,21 @@ void TufRepository::saveRole(const Json::Value& content) {
   file.close();
 }
 
-void TufRepository::saveTarget(Target target) {
+std::string TufRepository::downloadTarget(Target target) {
+  std::string content = http_.get(base_url_ + "/" + target.filename_);
+  if (content.length() > target.length_) {
+    throw OversizedTarget(name_);
+  }
+  if (!target.hash_.matchWith(content.c_str())) {
+    throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
+  }
+  return content;
+}
+
+void TufRepository::saveTarget(const Target& target) {
   if (target.length_ > 0) {
-    std::string content = http_.get(base_url_ + "/" + target.filename_);
-    if (content.length() > target.length_) {
-      throw OversizedTarget(name_);
-    }
-    if (!target.hash_.matchWith(content)) {
-      throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
-    }
-    std::ofstream file((path_ / "targets" / target.filename_).string().c_str());
-    file << content;
-    file.close();
+    std::string content = downloadTarget(target);
+    Utils::writeFile((path_ / "targets" / target.filename_).string(), content);
   }
   targets_.push_back(target);
 }

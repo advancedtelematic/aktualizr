@@ -131,6 +131,8 @@ void Config::postUpdateValues() {
       Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
     }
   }
+  uptane.public_key_path = (device.certificates_directory / uptane.public_key_path).string();
+  uptane.private_key_path = (device.certificates_directory / uptane.private_key_path).string();
 }
 
 void Config::updateFromToml(const std::string& filename) {
@@ -275,5 +277,21 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("ostree-server") != 0) {
     uptane.ostree_server = cmd["ostree-server"].as<std::string>();
+  }
+
+  // temporary
+  if (cmd.count("secondary-config") != 0) {
+    std::vector<std::string> configs = cmd["secondary-config"].as<std::vector<std::string> >();
+    std::vector<std::string>::iterator it;
+    for (it = configs.begin(); it != configs.end(); ++it) {
+      Json::Value config_json = Utils::parseJSONFile(*it);
+      Uptane::SecondaryConfig ecu_config;
+      ecu_config.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
+      ecu_config.ecu_serial = config_json["ecu_serial"].asString();
+      ecu_config.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
+      ecu_config.ecu_private_key = config_json["ecu_private_key"].asString();
+      ecu_config.ecu_public_key = config_json["ecu_public_key"].asString();
+      uptane.secondaries.push_back(ecu_config);
+    }
   }
 }

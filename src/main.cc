@@ -71,7 +71,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
       ("disable-keyid-validation", "Disable keyid validation on client side" )
-      ("poll-once", "Check for updates only once and exit");
+      ("poll-once", "Check for updates only once and exit")
+      ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "set config for secondary");
   // clang-format on
 
   bpo::variables_map vm;
@@ -144,6 +145,7 @@ int main(int argc, char *argv[]) {
     }
     loggerSetSeverity(severity);
   }
+
   // Initialize config with default values, the update with config, then with cmd
   std::string filename = commandline_map["config"].as<std::string>();
   Config config(filename, commandline_map);
@@ -170,6 +172,7 @@ int main(int argc, char *argv[]) {
   } else {
     if (config.core.auth_type == CERTIFICATE) {
 #ifdef BUILD_OSTREE
+
       SotaUptaneClient(config, events_channel).runForever(commands_channel);
 #endif
     } else {
