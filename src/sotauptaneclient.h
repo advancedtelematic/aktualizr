@@ -26,6 +26,7 @@ class SotaUptaneClient {
   void runForever(command::Channel *commands_channel);
 
  private:
+  void reportHWInfo();
   Config config;
   event::Channel *events_channel;
   Uptane::Repository uptane_repo;

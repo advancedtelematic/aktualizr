@@ -4,6 +4,7 @@
 #include <boost/make_shared.hpp>
 
 #include "crypto.h"
+#include "httpclient.h"
 #include "json/json.h"
 #include "logger.h"
 #include "uptane/exceptions.h"
@@ -44,6 +45,18 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
   }
 }
 
+void SotaUptaneClient::reportHWInfo() {
+  HttpClient http;
+  http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
+                    (config.device.certificates_directory / config.tls.ca_file).string(),
+                    (config.device.certificates_directory / config.tls.pkey_file).string());
+
+  std::string hw_info = Utils::getHardwareInfo();
+  if (!hw_info.empty()){
+    http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
+  }
+}
+
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   if (!boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate) ||
       !boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file)) {
@@ -56,6 +69,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     LOGGER_LOG(LVL_info, "Provisioning complete, sync()ing");
     sync();
   }
+  reportHWInfo();
   uptane_repo.authenticate();
   uptane_repo.putManifest();
   uptane_repo.updateRoot();
