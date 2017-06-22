@@ -27,6 +27,7 @@ class SotaUptaneClient {
 
  private:
   void reportHWInfo();
+  void reportInstalledPackages();
   Config config;
   event::Channel *events_channel;
   Uptane::Repository uptane_repo;

@@ -7,7 +7,7 @@
 #include "boost/algorithm/hex.hpp"
 
 #include "ostree.h"
-
+#include "utils.h"
 TEST(ostree, constructor) {
   OstreePackage op("ecu_serial", "branch-name-hash", "description", "pull_uri");
   EXPECT_EQ(op.ecu_serial, "ecu_serial");
@@ -42,6 +42,16 @@ TEST(ostree, toEcuVersion) {
   EXPECT_EQ(ecuver["ecu_serial"], "ecu_serial");
   EXPECT_EQ(ecuver["installed_image"]["fileinfo"]["hashes"]["sha256"], "hash");
   EXPECT_EQ(ecuver["installed_image"]["filepath"], "branch-name-hash");
+}
+
+TEST(ostree, parse_installed_packages) {
+  Json::Value packages = Utils::parseJSON(Ostree::getInstalledPackages("tests/test_data/package.manifest"));
+  EXPECT_EQ(packages[0]["name"], "vim");
+  EXPECT_EQ(packages[0]["version"], "1.0");
+  EXPECT_EQ(packages[1]["name"], "emacs");
+  EXPECT_EQ(packages[1]["version"], "2.0");
+  EXPECT_EQ(packages[2]["name"], "bash");
+  EXPECT_EQ(packages[2]["version"], "1.1");
 }
 
 #ifndef __NO_MAIN__

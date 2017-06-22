@@ -16,6 +16,7 @@ struct Ostree {
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const std::string &path);
   static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
                         const data::PackageManagerCredentials &cred);
+  static std::string getInstalledPackages(const std::string &file_path);
 };
 
 class OstreePackage {

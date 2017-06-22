@@ -239,6 +239,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
+  CopyFromConfig(ostree.packages_file, "ostree.packages_file", LVL_warning, pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {

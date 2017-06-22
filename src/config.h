@@ -149,9 +149,10 @@ struct UptaneConfig {
 };
 
 struct OstreeConfig {
-  OstreeConfig() : os(""), sysroot("") {}
+  OstreeConfig() : os(""), sysroot(""), packages_file("/usr/package.manifest") {}
   std::string os;
   std::string sysroot;
+  std::string packages_file;
 };
 
 class Config {
