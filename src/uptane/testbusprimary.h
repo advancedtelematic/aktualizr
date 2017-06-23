@@ -14,7 +14,6 @@ class TestBusPrimary {
   virtual void sendTargets(const std::vector<Target> &targets);
   virtual void sendPrivateKey(const std::string &ecu_serial, const std::string &key);
 
-
  private:
   std::vector<Secondary> *secondaries_;
 };

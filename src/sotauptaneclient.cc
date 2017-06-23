@@ -1,7 +1,7 @@
 #include "sotauptaneclient.h"
 
-#include <boost/make_shared.hpp>
 #include <unistd.h>
+#include <boost/make_shared.hpp>
 
 #include "crypto.h"
 #include "json/json.h"

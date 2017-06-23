@@ -128,10 +128,9 @@ bool Repository::ecuRegister() {
   all_ecus["ecus"].append(primary_ecu);
   std::vector<SecondaryConfig>::iterator it;
   for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
-    std::string pub_path = (config.device.certificates_directory / (it->ecu_serial+".pub")).string();
-    std::string priv_path = (config.device.certificates_directory / (it->ecu_serial+".priv")).string();
-    Crypto::generateRSAKeyPair(pub_path,
-                               priv_path);
+    std::string pub_path = (config.device.certificates_directory / (it->ecu_serial + ".pub")).string();
+    std::string priv_path = (config.device.certificates_directory / (it->ecu_serial + ".priv")).string();
+    Crypto::generateRSAKeyPair(pub_path, priv_path);
     transport.sendPrivateKey(it->ecu_serial, Utils::readFile(priv_path));
     Json::Value ecu;
     ecu["hardware_identifier"] = it->ecu_hardware_id;
@@ -139,7 +138,6 @@ bool Repository::ecuRegister() {
     ecu["clientKey"]["keytype"] = "RSA";
     ecu["clientKey"]["keyval"]["public"] = Utils::readFile(pub_path);
     all_ecus["ecus"].append(ecu);
-
   }
 
   std::string data = Json::FastWriter().write(all_ecus);

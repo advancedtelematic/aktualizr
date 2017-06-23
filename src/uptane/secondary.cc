@@ -52,7 +52,7 @@ void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
   }
 }
 
-void Secondary::setPrivateKey(const std::string &pkey){
+void Secondary::setPrivateKey(const std::string &pkey) {
   Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), pkey);
 }
 

@@ -16,7 +16,7 @@ class Secondary {
   Json::Value genAndSendManifest();
   void newTargetsCallBack(const std::vector<Target> &targets);
   void setPrivateKey(const std::string &pkey);
-  std::string getEcuSerial(){return config.ecu_serial;}
+  std::string getEcuSerial() { return config.ecu_serial; }
 
  private:
   SecondaryConfig config;
