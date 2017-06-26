@@ -1,5 +1,6 @@
 #include "sotauptaneclient.h"
 
+#include <unistd.h>
 #include <boost/make_shared.hpp>
 
 #include "crypto.h"
@@ -46,11 +47,14 @@ void SotaUptaneClient::OstreeInstall(std::vector<OstreePackage> packages) {
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   if (!boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate) ||
       !boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file)) {
+    LOGGER_LOG(LVL_info, "Automatically provisioning device");
     if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
       throw std::runtime_error(
           "Fatal error of tls or ecu device registration, please look at previous error log messages to understand "
           "the reason");
     }
+    LOGGER_LOG(LVL_info, "Provisioning complete, sync()ing");
+    sync();
   }
   uptane_repo.authenticate();
   uptane_repo.putManifest();

@@ -1,5 +1,6 @@
 #include "ostree.h"
 #include <stdio.h>
+#include <unistd.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -193,7 +194,9 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     g_error_free(error);
     return install_outcome;
   }
-  return data::InstallOutcome(data::OK, "Installation succesfull");
+  LOGGER_LOG(LVL_info, "Performing sync()");
+  sync();
+  return data::InstallOutcome(data::OK, "Installation successful");
 }
 
 OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::string &ostree_sysroot) {

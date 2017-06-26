@@ -23,14 +23,13 @@ void TestBusPrimary::sendPrivateKey(const std::string &ecu_serial, const std::st
   std::vector<Secondary>::iterator it;
   bool found = false;
   for (it = secondaries_->begin(); it != secondaries_->end(); ++it) {
-    if (ecu_serial == it->getEcuSerial()){
+    if (ecu_serial == it->getEcuSerial()) {
       it->setPrivateKey(key);
       found = true;
     }
   }
-  if(!found){
+  if (!found) {
     throw std::runtime_error("ecu_serial - " + ecu_serial + " not found");
   }
 }
-
 };
