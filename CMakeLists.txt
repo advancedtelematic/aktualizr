@@ -13,40 +13,74 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
 endif()
 
-# clang-check and clang-format
-# The .clang-format file requires clang-format-3.8
-find_program(CLANG_FORMAT NAMES clang-format clang-format-3.8)
-find_program(CLANG_CHECK NAMES clang-check clang-check-3.8 clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
+if(AKTUALIZR_VERSION)
+    add_definitions(-DAKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
+else(AKTUALIZR_VERSION)
+    add_definitions(-DAKTUALIZR_VERSION="dev")
+endif(AKTUALIZR_VERSION)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
+
+# find all required libraries
+find_package(PkgConfig REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono date_time REQUIRED)
+find_package(CURL REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(SODIUM libsodium REQUIRED)
+
+if(BUILD_OSTREE)
+    find_package(OSTree REQUIRED)
+    add_definitions(-DBUILD_OSTREE)
+endif(BUILD_OSTREE)
+
+if(BUILD_GENIVI)
+    pkg_search_module(LIBDBUS REQUIRED dbus-1)
+    add_definitions(-DWITH_GENIVI)
+endif(BUILD_GENIVI)
+
+# set symbols used when compiling
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Debug")
     set(CMAKE_BUILD_TYPE Debug)
 endif(NOT CMAKE_BUILD_TYPE)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+
+
+################ QA RULES
+add_custom_target(qa)
+
+# clang-check and clang-format
+# The .clang-format file requires clang-format-3.8
+find_program(CLANG_FORMAT NAMES clang-format clang-format-3.8)
+find_program(CLANG_CHECK NAMES clang-check clang-check-3.8 clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
+
+############### BUILD RULES
+include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
+include_directories(${LIBOSTREE_INCLUDE_DIRS})
+include_directories(${LIBDBUS_INCLUDE_DIRS})
+
+set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
 if(BUILD_GENIVI)
+    set_property(GLOBAL PROPERTY CXX_STANDARD 11)
     add_subdirectory("third_party/rvi_lib")
 endif(BUILD_GENIVI)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-add_custom_target(qa)
-#add_subdirectory("src")
-# FIXME temporary use include because of bugs with coverage
-include("src/CMakeLists.txt")
+add_subdirectory("src")
 
 if(BUILD_TESTS)
-    include("tests/CMakeLists.txt")
+    include(CTest)
+    add_subdirectory("tests")
 endif(BUILD_TESTS)
 
 add_subdirectory("docs")
-
-if(BUILD_GENIVI)
-    install(FILES dbus/org.genivi.SotaClient.conf DESTINATION /etc/dbus-1/system.d)
-endif(BUILD_GENIVI)
 
 # Generate ctags
 set_source_files_properties(tags PROPERTIES GENERATED true)
