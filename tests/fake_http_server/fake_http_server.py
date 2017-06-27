@@ -2,8 +2,11 @@
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
+last_fails = False
+
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
+		global last_fails
 		if self.path == '/download':
 			self.send_response(301)
 			self.send_header('Location', '/download/file')
@@ -21,11 +24,29 @@ class Handler(BaseHTTPRequestHandler):
 					self.wfile.write('{"status": "good"}')
 			self.wfile.write('{}')
 		else:
+			if not last_fails:
+				self.send_response(503)
+				self.end_headers()
+				last_fails = True
+				self.wfile.write("Internal server error")
+				return
+			else:
+				last_fails = False
+
 			self.send_response(200)
 			self.end_headers()
 			self.wfile.write('{"path": "%s"}'%self.path)
-	
+
 	def do_POST(self):
+		global last_fails
+		if not last_fails:
+			self.send_response(503)
+			self.end_headers()
+			last_fails = True
+			self.wfile.write("Internal server error")
+			return
+		else:
+			last_fails = False
 		if self.path == '/token':
 			self.send_response(200)
 			self.end_headers()
@@ -33,14 +54,14 @@ class Handler(BaseHTTPRequestHandler):
 				self.wfile.write("{\"access_token\": \"token\"}")
 			else:
 				self.wfile.write('')
-					
+
 		else:
 			self.send_response(200)
 			self.end_headers()
 			length = int(self.headers.getheader('content-length'))
 			result = '{"data": %s, "path": "%s"}'%(self.rfile.read(length), self.path)
 			self.wfile.write(result)
-	
+
 	def do_PUT(self):
 		self.do_POST()
 
