@@ -1,10 +1,12 @@
 #include "utils.h"
+#include <stdio.h>
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "logger.h"
 
 const char *adverbs[] = {
     "adorable", "acidic",     "ample",        "aromatic",   "artistic", "attractive", "basic",    "beautiful",
@@ -166,4 +168,26 @@ void Utils::writeFile(const std::string &filename, const std::string &content) {
   std::ofstream file(filename.c_str());
   file << content;
   file.close();
+}
+
+std::string Utils::getHardwareInfo() {
+  char buffer[128];
+  std::string result = "";
+  FILE* pipe = popen("lshw -json", "r");
+  if (!pipe) {
+    LOGGER_LOG(LVL_warning, "Could not execute shell.");
+    return "";
+  }
+
+  while (!feof(pipe)) {
+    if (fgets(buffer, 128, pipe) != NULL) result += buffer;
+  }
+
+  int exit_code = pclose(pipe);
+  if (exit_code) {
+    LOGGER_LOG(LVL_warning, "Could not execute lshw (is it installed?).");
+    return "";
+  } else {
+    return result;
+  }
 }
