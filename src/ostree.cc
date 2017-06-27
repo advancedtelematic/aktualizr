@@ -1,4 +1,5 @@
 #include "ostree.h"
+#include <json/json.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <boost/algorithm/string.hpp>
@@ -7,6 +8,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include "logger.h"
+#include "utils.h"
 
 #include <gio/gio.h>
 
@@ -235,4 +237,25 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
 
 OstreePackage OstreePackage::getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot) {
   return OstreeBranch::getCurrent(ecu_serial, ostree_sysroot).package;
+}
+
+std::string Ostree::getInstalledPackages(const std::string &file_path) {
+  std::string packages_str = Utils::readFile(file_path);
+  std::vector<std::string> package_lines;
+  boost::split(package_lines, packages_str, boost::is_any_of("\n"));
+  Json::Value packages(Json::arrayValue);
+  for (std::vector<std::string>::iterator it = package_lines.begin(); it != package_lines.end(); ++it) {
+    if (it->empty()) {
+      continue;
+    }
+    size_t pos = it->find(" ");
+    if (pos == std::string::npos) {
+      throw std::runtime_error("Wrong packages file format");
+    }
+    Json::Value package;
+    package["name"] = it->substr(0, pos);
+    package["version"] = it->substr(pos + 1);
+    packages.append(package);
+  }
+  return Json::FastWriter().write(packages);
 }

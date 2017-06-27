@@ -57,6 +57,16 @@ void SotaUptaneClient::reportHWInfo() {
   }
 }
 
+void SotaUptaneClient::reportInstalledPackages() {
+  HttpClient http;
+  http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
+                    (config.device.certificates_directory / config.tls.ca_file).string(),
+                    (config.device.certificates_directory / config.tls.pkey_file).string());
+
+  http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
+
+}
+
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   if (!boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate) ||
       !boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file)) {
@@ -70,6 +80,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     sync();
   }
   reportHWInfo();
+  reportInstalledPackages();
   uptane_repo.authenticate();
   uptane_repo.putManifest();
   uptane_repo.updateRoot();
