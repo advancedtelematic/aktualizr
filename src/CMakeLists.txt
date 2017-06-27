@@ -30,6 +30,7 @@ set(HEADERS
             crypto.h
             openssl_compat.h
             ostree.h
+            utils.h
             uptane/tufrepository.h
             uptane/uptanerepository.h
             uptane/secondary.h
@@ -111,9 +112,9 @@ endif(BUILD_GENIVI)
 if(INSTALL_LIB)
   install(TARGETS aktualizr_static_lib ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
   install(FILES ${HEADERS} DESTINATION include)
-  install(DIRECTORY third_party/jsoncpp/json DESTINATION include)
-  install(DIRECTORY third_party/picojson DESTINATION include)
-  install(DIRECTORY src/uptane DESTINATION include FILES_MATCHING PATTERN "*.h")
+  install(DIRECTORY ../third_party/jsoncpp/json DESTINATION include)
+  install(DIRECTORY ../third_party/picojson DESTINATION include)
+  install(DIRECTORY uptane DESTINATION include FILES_MATCHING PATTERN "*.h")
 endif()
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
