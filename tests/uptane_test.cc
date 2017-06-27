@@ -78,7 +78,7 @@ bool HttpClient::authenticate(const std::string &cert, const std::string &ca_fil
   return true;
 }
 
-std::string HttpClient::get(const std::string &url) {
+HttpResponse HttpClient::get(const std::string &url) {
   std::cout << "URL:" << url << "\n";
   if (url.find(tls_server) == 0) {
     std::string path = metadata_path + url.substr(tls_server.size());
@@ -96,44 +96,27 @@ std::string HttpClient::get(const std::string &url) {
     std::ifstream ks(path.c_str());
     std::string content((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
     ks.close();
-    return content;
+    return HttpResponse(content, 200, CURLE_OK, "");
   }
-  return url;
+  return HttpResponse(url, 200, CURLE_OK, "");
 }
 
-Json::Value HttpClient::getJson(const std::string &url) {
-  Json::Value json;
-  Json::Reader reader;
-  reader.parse(get(url), json);
-  return json;
-}
-
-std::string HttpClient::post(const std::string &url, const std::string &data) {
+HttpResponse HttpClient::post(const std::string &url, const Json::Value &data) {
   (void)data;
   (void)url;
 
   std::ifstream ks("tests/certs/cred.p12");
   std::string cert_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
   ks.close();
-  http_code = 200;
-  return cert_str;
+
+  return HttpResponse(cert_str, 200, CURLE_OK, "");
 }
 
-Json::Value HttpClient::post(const std::string &url, const Json::Value &data) {
-  (void)url;
-  (void)data;
-  Json::Value json;
-  Json::Reader reader;
-
-  reader.parse("{}", json);
-  return json;
-}
-
-std::string HttpClient::put(const std::string &url, const std::string &data) {
+HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
   std::ofstream director_file(test_manifest.c_str());
   director_file << data;
   director_file.close();
-  return url;
+  return HttpResponse(url, 200, CURLE_OK, "");
 }
 
 bool HttpClient::download(const std::string &url, const std::string &filename) {

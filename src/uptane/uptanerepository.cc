@@ -51,7 +51,7 @@ void Repository::putManifest(const Json::Value &custom) {
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed =
       Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, version_manifest);
-  http.put(config.uptane.director_server + "/manifest", Json::FastWriter().write(tuf_signed));
+  http.put(config.uptane.director_server + "/manifest", tuf_signed);
 }
 
 std::vector<Uptane::Target> Repository::getNewTargets() {
@@ -84,16 +84,17 @@ bool Repository::deviceRegister() {
   fclose(reg_p12);
 
   http.setCerts(bootstrap_ca_pem, bootstrap_cert_pem, bootstrap_pkey_pem);
-  std::string result;
 
-  std::string data = "{\"deviceId\":\"" + config.uptane.device_id + "\", \"ttl\":" + config.provision.expiry_days + "}";
-  result = http.post(config.tls.server + "/devices", data);
-  if (http.http_code != 200 && http.http_code != 201) {
-    LOGGER_LOG(LVL_error, "error tls registering device, response: " << result);
+  Json::Value data;
+  data["deviceId"] = config.uptane.device_id;
+  data["ttl"] = config.provision.expiry_days;
+  HttpResponse response = http.post(config.tls.server + "/devices", data);
+  if (!response.isOk()) {
+    LOGGER_LOG(LVL_error, "error tls registering device, response: " << response.body);
     return false;
   }
 
-  FILE *device_p12 = fmemopen(const_cast<char *>(result.c_str()), result.size(), "rb");
+  FILE *device_p12 = fmemopen(const_cast<char *>(response.body.c_str()), response.body.size(), "rb");
   if (!Crypto::parseP12(device_p12, "", (config.device.certificates_directory / config.tls.pkey_file).string(),
                         (config.device.certificates_directory / config.tls.client_certificate).string(),
                         (config.device.certificates_directory / config.tls.ca_file).string())) {
@@ -140,12 +141,10 @@ bool Repository::ecuRegister() {
     all_ecus["ecus"].append(ecu);
   }
 
-  std::string data = Json::FastWriter().write(all_ecus);
-
   authenticate();
-  std::string result = http.post(config.tls.server + "/director/ecus", data);
-  if (http.http_code != 200 && http.http_code != 201) {
-    LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << result);
+  HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
+  if (!response.isOk()) {
+    LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << response.body);
     return false;
   }
   return true;

@@ -35,8 +35,7 @@ std::vector<data::UpdateRequest> SotaHttpClient::getAvailableUpdates() {
   std::string url = core_url + "/mydevice/" + config.device.uuid + "/updates";
   std::vector<data::UpdateRequest> update_requests;
 
-  Json::Value json;
-  json = http->getJson(url);
+  Json::Value json = http->get(url).getJson();
 
   unsigned int updates = json.size();
   for (unsigned int i = 0; i < updates; ++i) {

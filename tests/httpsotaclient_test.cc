@@ -10,8 +10,8 @@ class HttpClientMock : public HttpClient {
  public:
   HttpClientMock() { http_code = 200; }
   MOCK_METHOD1(authenticate, bool(const AuthConfig &conf));
-  MOCK_METHOD1(get, std::string(const std::string &url));
-  MOCK_METHOD2(post, std::string(const std::string &url, const std::string &data));
+  MOCK_METHOD1(get, HttpResponse(const std::string &url));
+  MOCK_METHOD2(post, HttpResponse(const std::string &url, const Json::Value &data));
   MOCK_METHOD2(download, bool(const std::string &url, const std::string &filename));
 };
 
@@ -98,7 +98,7 @@ TEST(GetAvailableUpdatesTest, get_performed) {
       "	}\n"
       "]");
 
-  testing::DefaultValue<std::string>::Set(message);
+  testing::DefaultValue<HttpResponse>::Set(HttpResponse(message, 200, CURLE_OK, ""));
   EXPECT_CALL(*http, get(conf.core.server + "/api/v1/mydevice/" + conf.device.uuid + "/updates"));
   std::vector<data::UpdateRequest> update_requests = aktualizr.getAvailableUpdates();
   EXPECT_EQ(update_requests.size(), 1u);
@@ -137,7 +137,7 @@ TEST(ReportTest, post_called) {
 
   std::string url = conf.core.server + "/api/v1/mydevice/" + conf.device.uuid;
   url += "/updates/" + update_report.update_id;
-  EXPECT_CALL(*http, post(url, Json::FastWriter().write(update_report.toJson()["operation_results"])));
+  EXPECT_CALL(*http, post(url, update_report.toJson()["operation_results"]));
   aktualizr.sendUpdateReport(update_report);
   delete events_channel;
 }

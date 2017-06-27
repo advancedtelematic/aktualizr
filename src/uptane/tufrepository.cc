@@ -31,11 +31,11 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
 }
 
 Json::Value TufRepository::getJSON(const std::string& role) {
-  Json::Value result = http_.getJson(base_url_ + "/" + role);
-  if (http_.http_code == 404) {
+  HttpResponse response = http_.get(base_url_ + "/" + role);
+  if (!response.isOk()) {
     throw MissingRepo(name_);
   }
-  return result;
+  return response.getJson();
 }
 
 void TufRepository::updateRoot() {
@@ -109,14 +109,17 @@ void TufRepository::saveRole(const Json::Value& content) {
 }
 
 std::string TufRepository::downloadTarget(Target target) {
-  std::string content = http_.get(base_url_ + "/" + target.filename_);
-  if (content.length() > target.length_) {
+  HttpResponse response = http_.get(base_url_ + "/" + target.filename_);
+  if (!response.isOk()) {
+    throw Exception(name_, "Could not download file");
+  }
+  if (response.body.length() > target.length_) {
     throw OversizedTarget(name_);
   }
-  if (!target.hash_.matchWith(content.c_str())) {
+  if (!target.hash_.matchWith(response.body.c_str())) {
     throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
   }
-  return content;
+  return response.body;
 }
 
 void TufRepository::saveTarget(const Target& target) {
