@@ -52,7 +52,7 @@ void SotaUptaneClient::reportHWInfo() {
                     (config.device.certificates_directory / config.tls.pkey_file).string());
 
   std::string hw_info = Utils::getHardwareInfo();
-  if (!hw_info.empty()){
+  if (!hw_info.empty()) {
     http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
   }
 }

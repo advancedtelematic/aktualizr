@@ -173,14 +173,21 @@ void Utils::writeFile(const std::string &filename, const std::string &content) {
 std::string Utils::getHardwareInfo() {
   char buffer[128];
   std::string result = "";
-  boost::shared_ptr<FILE> pipe(popen("lshw -json", "r"), pclose);
+  FILE* pipe = popen("lshw -json", "r");
   if (!pipe) {
-    LOGGER_LOG(LVL_warning, "could not execute lshw command, is it installed?");
-    return result;
+    LOGGER_LOG(LVL_warning, "Could not execute shell.");
+    return "";
   }
 
-  while (!feof(pipe.get())) {
-    if (fgets(buffer, 128, pipe.get()) != NULL) result += buffer;
+  while (!feof(pipe)) {
+    if (fgets(buffer, 128, pipe) != NULL) result += buffer;
   }
-  return result;
+
+  int exit_code = pclose(pipe);
+  if (exit_code) {
+    LOGGER_LOG(LVL_warning, "Could not execute lshw (is it installed?).");
+    return "";
+  } else {
+    return result;
+  }
 }
