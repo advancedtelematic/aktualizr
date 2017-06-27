@@ -1,5 +1,4 @@
 
-
 if(NOT GTEST_ROOT )
     set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
 endif()
@@ -7,160 +6,94 @@ endif()
 if(NOT GMOCK_ROOT )
     set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
 endif()
-
-
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
 
-# Setup warnings
-if (CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-fstack-protector-all)
-    # Enable maximum of Warnings :
-    add_definitions(-Wall -Wextra -Wswitch-default -Wswitch -Winit-self -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
-        add_definitions (-Wfloat-conversion)
-        add_definitions (-Wshadow)
-    endif ()
+# use the same libiraries as the normal target but add gtest gmock and gcov
+set (TEST_LIBS
+    ${Boost_LIBRARIES}
+    ${CURL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${SODIUM_LIBRARIES}
+    ${LIBOSTREE_LIBRARIES}
+    ${LIBDBUS_LIBRARIES}
+    gtest gmock gcov)
 
-    if(WARNING_AS_ERROR)
-        add_definitions (-Werror)
-    endif()
-endif()
+if(BUILD_GENIVI)
+    list(APPEND TEST_LIBS rvi)
+endif(BUILD_GENIVI)
 
-
-# Export compile_commands.json for clang-check
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-
-
-set(ALL_TEST_SRCS
-    tests/commands_test.cc
-    tests/config_test.cc
-    tests/crypto_test.cc
-    tests/dbusgateway_test.cc
-    tests/events_test.cc
-    tests/httpclient_test.cc
-    tests/httpsotaclient_test.cc
-    tests/ostree_test.cc
-    tests/rvisotaclient_test.cc
-    tests/socketgateway_test.cc
-    tests/swm_test.cc
-    tests/uptane_vector_tests.cc
-    tests/uptane_test.cc)
-
-if(CLANG_FORMAT)
-    add_custom_target(format-tests
-        COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_TEST_SRCS}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-format on tests"
-        VERBATIM)
-    add_dependencies(qa format-tests)
-else()
-    message(WARNING "clang-format not found, skipping")
-endif()
-
-###############################################################################
-
-# Workaround a cmake bug where tests are not dependent on their executables
-# http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
-add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=1 ${CMAKE_CTEST_COMMAND}
-  DEPENDS aktualizr_test_config aktualizr_test_commands aktualizr_test_events
-        aktualizr_test_http_aktualizr aktualizr_test_http_client aktualizr_test_socket_gateway
-        aktualizr_test_crypto)
-
-add_dependencies(qa check)
-
-###############################################################################
-
-#Setup CMake to run tests
-
-#enable test features of cmake
-enable_testing()
-
-include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
-include_directories(${LIBOSTREE_INCLUDE_DIRS})
-
-# use the same libiraries as the normal target but add gtest
-set (TEST_LIBS ${Boost_LIBRARIES} ${CURL_LIBRARIES} ${OPENSSL_LIBRARIES} gtest gmock gcov)
-
-if(BUILD_OSTREE)
-    list(APPEND TEST_LIBS ${LIBOSTREE_LIBRARIES})
-endif()
 
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
     setup_target_for_coverage(coverage ctest coverage)
-    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
-    target_link_libraries(aktualizr gcov)
-endif()
-
+    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage --coverage )
+    target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage --coverage)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 # Config Test
-add_executable(aktualizr_test_config tests/config_test.cc)
-target_link_libraries(aktualizr_test_config  aktualizr_static_lib ${TEST_LIBS})
+add_executable(aktualizr_test_config config_test.cc)
+target_link_libraries(aktualizr_test_config aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_config COMMAND aktualizr_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(aktualizr_test_events tests/events_test.cc)
+add_executable(aktualizr_test_events events_test.cc)
 target_link_libraries(aktualizr_test_events aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_events COMMAND aktualizr_test_events WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(aktualizr_test_commands tests/commands_test.cc)
+add_executable(aktualizr_test_commands commands_test.cc)
 target_link_libraries(aktualizr_test_commands aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_commands COMMAND aktualizr_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(aktualizr_test_http_aktualizr tests/httpsotaclient_test.cc)
+add_executable(aktualizr_test_http_aktualizr httpsotaclient_test.cc)
 target_link_libraries(aktualizr_test_http_aktualizr aktualizr_static_lib ${TEST_LIBS} crypto)
 add_test(NAME test_http_aktualizr COMMAND aktualizr_test_http_aktualizr WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(aktualizr_test_http_client tests/httpclient_test.cc)
+add_executable(aktualizr_test_http_client httpclient_test.cc)
 target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_test(NAME test_valgrind_http_client COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_http_client COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(aktualizr_test_socket_gateway tests/socketgateway_test.cc)
+add_executable(aktualizr_test_socket_gateway socketgateway_test.cc)
 target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_socket_gateway COMMAND aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(aktualizr_test_crypto tests/crypto_test.cc)
+add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 if(BUILD_OSTREE)
     add_executable(aktualizr_test_uptane
-                  third_party/jsoncpp/jsoncpp.cpp
-                  src/commands.cc
-                  src/config.cc
-                  src/events.cc
-                  src/sotauptaneclient.cc
-                  src/logger.cc
-                  src/crypto.cc
-                  src/types.cc
-                  src/uptane/tufrepository.cc
-                  src/uptane/uptanerepository.cc
-                  src/uptane/secondary.cc
-                  src/uptane/testbusprimary.cc
-                  src/uptane/testbussecondary.cc
-                  src/utils.cc
-                  tests/uptane_test.cc)
+                  ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
+                  ${PROJECT_SOURCE_DIR}/src/commands.cc
+                  ${PROJECT_SOURCE_DIR}/src/config.cc
+                  ${PROJECT_SOURCE_DIR}/src/events.cc
+                  ${PROJECT_SOURCE_DIR}/src/sotauptaneclient.cc
+                  ${PROJECT_SOURCE_DIR}/src/logger.cc
+                  ${PROJECT_SOURCE_DIR}/src/crypto.cc
+                  ${PROJECT_SOURCE_DIR}/src/types.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/tufrepository.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/uptanerepository.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/secondary.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/testbusprimary.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/testbussecondary.cc
+                  ${PROJECT_SOURCE_DIR}/src/utils.cc
+                  uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(check aktualizr_test_uptane)
 
-    add_executable(aktualizr_test_ostree tests/ostree_test.cc)
+    add_executable(aktualizr_test_ostree ostree_test.cc)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
     add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(check aktualizr_test_ostree)
 
-    add_executable(aktualizr_uptane_vector_tests tests/uptane_vector_tests.cc)
+    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
-    add_dependencies(check aktualizr_uptane_vector_tests)
 
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 
@@ -168,45 +101,42 @@ endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)
-    include_directories(${LIBDBUS_INCLUDE_DIRS})
-    add_executable(aktualizr_test_dbusgateway tests/dbusgateway_test.cc)
-    target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
+    add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
+    #target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_dbusgateway COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_dbusgateway COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-    add_dependencies(check aktualizr_test_dbusgateway)
-
-    add_executable(aktualizr_test_rvi_client tests/rvisotaclient_test.cc)
+    add_executable(aktualizr_test_rvi_client rvisotaclient_test.cc)
     target_link_libraries(aktualizr_test_rvi_client aktualizr_static_lib ${TEST_LIBS})
     add_test(NAME test_rvi_client COMMAND aktualizr_test_rvi_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(check aktualizr_test_rvi_client)
 
-    add_executable(aktualizr_test_swm tests/swm_test.cc)
-    target_compile_options(aktualizr_test_swm PUBLIC ${LIBDBUS_CFLAGS})
+    add_executable(aktualizr_test_swm swm_test.cc)
+    #target_compile_options(aktualizr_test_swm PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_swm COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(check aktualizr_test_swm)
+    add_test(NAME test_swm COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif(BUILD_GENIVI)
 
 if(BUILD_WITH_CODE_COVERAGE)
-    add_dependencies(coverage aktualizr)
+    #add_dependencies(coverage aktualizr)
     add_dependencies(coverage aktualizr_test_config)
     add_dependencies(coverage aktualizr_test_events)
     add_dependencies(coverage aktualizr_test_commands)
     if(BUILD_OSTREE)
         add_dependencies(coverage aktualizr_test_uptane)
+        add_dependencies(coverage aktualizr_test_ostree)
     endif(BUILD_OSTREE)
     add_dependencies(coverage aktualizr_test_crypto)
     if(BUILD_GENIVI)
         add_dependencies(coverage aktualizr_test_dbusgateway)
+        add_dependencies(coverage aktualizr_test_rvi_client)
+        add_dependencies(coverage aktualizr_test_swm)
+
     endif(BUILD_GENIVI)
     add_dependencies(coverage aktualizr_test_http_aktualizr)
     add_dependencies(coverage aktualizr_test_http_client)
     add_dependencies(coverage aktualizr_test_socket_gateway)
-    add_dependencies(coverage aktualizr_test_rvi_client)
-    add_dependencies(coverage aktualizr_test_swm)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 ###############################################################################
@@ -258,5 +188,31 @@ add_test(NAME test_build_debug
 add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
 
+
+set(ALL_TEST_SRCS
+    commands_test.cc
+    config_test.cc
+    crypto_test.cc
+    dbusgateway_test.cc
+    events_test.cc
+    httpclient_test.cc
+    httpsotaclient_test.cc
+    ostree_test.cc
+    rvisotaclient_test.cc
+    socketgateway_test.cc
+    swm_test.cc
+    uptane_vector_tests.cc
+    uptane_test.cc)
+
+if(CLANG_FORMAT)
+    add_custom_target(format-tests
+        COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_TEST_SRCS}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running clang-format on src"
+        VERBATIM)
+    add_dependencies(qa format-tests)
+else()
+    message(WARNING "clang-format not found, skipping")
+endif()
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

@@ -145,12 +145,12 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 		COMMAND ${test_command} ${ARGV3}
 
 		# Capturing lcov counters and generating report
-		COMMAND ${LCOV_PATH} --directory . --capture --output-file ${coverage_info}
-                COMMAND ${LCOV_PATH} --remove ${coverage_info} 'tests/*' '/usr/*' 'third_party/*' 'src/dbusgateway/src-gen/*' '*_install/*' --output-file ${coverage_cleaned}
+		COMMAND ${LCOV_PATH} --directory ${CMAKE_BINARY_DIR} --capture --output-file ${coverage_info}
+        COMMAND ${LCOV_PATH} --remove ${coverage_info} 'tests/*' '/usr/*' 'third_party/*' 'src/dbusgateway/src-gen/*' '*_install/*' --output-file ${coverage_cleaned}
 		COMMAND ${GENHTML_PATH} -o ${_outputname} ${coverage_cleaned}
 		COMMAND ${CMAKE_COMMAND} -E remove ${coverage_info} ${coverage_cleaned}
 
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		COMMENT "Resetting code coverage counters to zero.\nProcessing code coverage counters and generating report."
 	)
 
