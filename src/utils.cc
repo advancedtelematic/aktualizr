@@ -173,7 +173,7 @@ void Utils::writeFile(const std::string &filename, const std::string &content) {
 std::string Utils::getHardwareInfo() {
   char buffer[128];
   std::string result = "";
-  FILE* pipe = popen("lshw -json", "r");
+  FILE *pipe = popen("lshw -json", "r");
   if (!pipe) {
     LOGGER_LOG(LVL_warning, "Could not execute shell.");
     return "";
