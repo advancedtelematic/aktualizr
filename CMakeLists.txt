@@ -6,7 +6,6 @@ option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
-option(BUILD_TESTS "Build tests (requires gtest/gmock)" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -75,12 +74,12 @@ endif(BUILD_GENIVI)
 
 add_subdirectory("src")
 
-if(BUILD_TESTS)
-    include(CTest)
-    add_subdirectory("tests")
-endif(BUILD_TESTS)
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory("tests" EXCLUDE_FROM_ALL)
+endif(BUILD_TESTING)
 
-add_subdirectory("docs")
+add_subdirectory("docs" EXCLUDE_FROM_ALL)
 
 # Generate ctags
 set_source_files_properties(tags PROPERTIES GENERATED true)

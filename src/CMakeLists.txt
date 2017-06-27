@@ -94,7 +94,7 @@ if(CLANG_CHECK)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-check"
         VERBATIM)
-    add_dependencies(qa check-src aktualizr)
+    add_dependencies(qa check-src)
 else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
