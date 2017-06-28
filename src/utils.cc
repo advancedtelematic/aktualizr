@@ -155,6 +155,7 @@ std::string Utils::genPrettyName() {
   pretty_name += names[std::rand() % (sizeof(names) / sizeof(char *))];
   pretty_name += "-";
   pretty_name += Utils::intToString(std::rand() % 1000);
+  std::transform(pretty_name.begin(), pretty_name.end(), pretty_name.begin(), ::tolower);
   return pretty_name;
 }
 
