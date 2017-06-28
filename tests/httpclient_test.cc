@@ -8,6 +8,7 @@
 #include "httpclient.h"
 #include "json/json.h"
 #include "types.h"
+#include "utils.h"
 
 const std::string server = "http://127.0.0.1:8800";
 
@@ -15,7 +16,7 @@ TEST(CopyConstructorTest, copied) {
   HttpClient* http = new HttpClient();
   HttpClient http_copy(*http);
   std::string path = "/path/1/2/3";
-  Json::Value resp = http_copy.getJson(server + path);
+  Json::Value resp = Utils::parseJSON(http_copy.get(server + path).body);
   EXPECT_EQ(resp["path"].asString(), path);
 }
 
@@ -27,14 +28,14 @@ TEST(AuthenticateTest, authenticated) {
   conf.client_secret = "secret";
   bool response = http.authenticate(conf);
   EXPECT_EQ(response, true);
-  Json::Value resp = http.getJson(server + "/auth_call");
+  Json::Value resp = Utils::parseJSON(http.get(server + "/auth_call").body);
   EXPECT_EQ(resp["status"].asString(), "good");
 }
 
 TEST(GetTest, get_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  Json::Value response = http.getJson(server + path);
+  Json::Value response = Utils::parseJSON(http.get(server + path).body);
   EXPECT_EQ(response["path"].asString(), path);
 }
 
@@ -42,10 +43,8 @@ TEST(PostTest, post_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
   std::string data = "{\"key\":\"val\"}";
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(data, json);
-  Json::Value response = http.post(server + path, json);
+
+  Json::Value response = Utils::parseJSON(http.post(server + path, Utils::parseJSON(data)).body);
   EXPECT_EQ(response["path"].asString(), path);
   EXPECT_EQ(response["data"]["key"].asString(), "val");
 }
@@ -55,10 +54,7 @@ TEST(PostTest, put_performed) {
   std::string path = "/path/1/2/3";
   std::string data = "{\"key\":\"val\"}";
 
-  std::string response = http.put(server + path, data);
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(response, json);
+  Json::Value json = Utils::parseJSON(http.put(server + path, Utils::parseJSON(data)).body);
 
   EXPECT_EQ(json["path"].asString(), path);
   EXPECT_EQ(json["data"]["key"].asString(), "val");

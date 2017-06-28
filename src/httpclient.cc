@@ -106,19 +106,16 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   h = curl_slist_append(h, "charsets: utf-8");
   curl_easy_setopt(curl_auth, CURLOPT_HTTPHEADER, h);
 
-  std::string response = perform(curl_auth, RETRY_TIMES);
+  HttpResponse response = perform(curl_auth, RETRY_TIMES);
 
-  LOGGER_LOG(LVL_trace, "response:" << response);
+  LOGGER_LOG(LVL_trace, "response:" << response.body);
 
   curl_easy_cleanup(curl_auth);
-  if (response.empty()) {
+  if (!response.isOk()) {
     LOGGER_LOG(LVL_error, "authentication error: server: " << conf.server << "and auth header: " << auth_header);
     return false;
   }
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(response, json);
-
+  Json::Value json = response.getJson();
   token = json["access_token"].asString();
 
   std::string header = "Authorization: Bearer " + token;
@@ -128,29 +125,11 @@ bool HttpClient::authenticate(const AuthConfig& conf) {
   return true;
 }
 
-std::string HttpClient::get(const std::string& url) {
+HttpResponse HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   LOGGER_LOG(LVL_debug, "GET " << url);
   return perform(curl, RETRY_TIMES);
-}
-
-Json::Value HttpClient::getJson(const std::string& url) {
-  Json::Value json;
-  Json::Reader reader;
-
-  std::string response = get(url);
-  reader.parse(response, json);
-  return json;
-}
-
-Json::Value HttpClient::post(const std::string& url, const Json::Value& data) {
-  Json::Value json;
-  Json::Reader reader;
-
-  std::string response = post(url, Json::FastWriter().write(data));
-  reader.parse(response, json);
-  return json;
 }
 
 void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
@@ -160,42 +139,44 @@ void HttpClient::setCerts(const std::string& ca, const std::string& cert, const 
   curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
 }
 
-std::string HttpClient::post(const std::string& url, const std::string& data) {
+HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_POST, 1);
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+  std::string data_str = Json::FastWriter().write(data);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data_str.c_str());
   LOGGER_LOG(LVL_trace, "post request body:" << data);
-  std::string result = perform(curl, RETRY_TIMES);
-  return result;
+  return perform(curl, RETRY_TIMES);
 }
 
-std::string HttpClient::put(const std::string& url, const std::string& data) {
+HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   CURL* curl_put = curl_easy_duphandle(curl);
 
   curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data.c_str());
+  std::string data_str = Json::FastWriter().write(data);
+  curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
   curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOGGER_LOG(LVL_trace, "put request body:" << data);
-  std::string result = perform(curl_put, RETRY_TIMES);
+  HttpResponse result = perform(curl_put, RETRY_TIMES);
   curl_easy_cleanup(curl_put);
   return result;
 }
 
-std::string HttpClient::perform(CURL* curl_handler, int retry_times) {
-  std::string response;
-  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response);
+HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
+  std::string response_str;
+  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response_str);
   CURLcode result = curl_easy_perform(curl_handler);
-  if (result != CURLE_OK) {
+  curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
+  HttpResponse response(response_str, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+  if (!response.isOk()) {
     std::ostringstream error_message;
-    error_message << "curl error: " << curl_easy_strerror(result);
+    error_message << "curl error: " << response.error_message;
     LOGGER_LOG(LVL_error, error_message.str());
     if (retry_times) {
       sleep(1);
-      perform(curl_handler, --retry_times);
+      response = perform(curl_handler, --retry_times);
     }
   }
-  curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
-  LOGGER_LOG(LVL_trace, "response: " << response);
+  LOGGER_LOG(LVL_trace, "response: " << response.body);
   return response;
 }
 
