@@ -16,7 +16,7 @@ TEST(CopyConstructorTest, copied) {
   HttpClient* http = new HttpClient();
   HttpClient http_copy(*http);
   std::string path = "/path/1/2/3";
-  Json::Value resp = Utils::parseJSON(http_copy.get(server + path).body);
+  Json::Value resp = http_copy.get(server + path).getJson();
   EXPECT_EQ(resp["path"].asString(), path);
 }
 
@@ -28,23 +28,24 @@ TEST(AuthenticateTest, authenticated) {
   conf.client_secret = "secret";
   bool response = http.authenticate(conf);
   EXPECT_EQ(response, true);
-  Json::Value resp = Utils::parseJSON(http.get(server + "/auth_call").body);
+  Json::Value resp = http.get(server + "/auth_call").getJson();
   EXPECT_EQ(resp["status"].asString(), "good");
 }
 
 TEST(GetTest, get_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  Json::Value response = Utils::parseJSON(http.get(server + path).body);
+  Json::Value response = http.get(server + path).getJson();
   EXPECT_EQ(response["path"].asString(), path);
 }
 
 TEST(PostTest, post_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  std::string data = "{\"key\":\"val\"}";
+  Json::Value data;
+  data["key"] = "val";
 
-  Json::Value response = Utils::parseJSON(http.post(server + path, Utils::parseJSON(data)).body);
+  Json::Value response = http.post(server + path, data).getJson();
   EXPECT_EQ(response["path"].asString(), path);
   EXPECT_EQ(response["data"]["key"].asString(), "val");
 }
@@ -52,9 +53,10 @@ TEST(PostTest, post_performed) {
 TEST(PostTest, put_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  std::string data = "{\"key\":\"val\"}";
+  Json::Value data;
+  data["key"] = "val";
 
-  Json::Value json = Utils::parseJSON(http.put(server + path, Utils::parseJSON(data)).body);
+  Json::Value json = http.put(server + path, data).getJson();
 
   EXPECT_EQ(json["path"].asString(), path);
   EXPECT_EQ(json["data"]["key"].asString(), "val");
