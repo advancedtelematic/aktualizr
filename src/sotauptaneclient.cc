@@ -64,7 +64,6 @@ void SotaUptaneClient::reportInstalledPackages() {
                     (config.device.certificates_directory / config.tls.pkey_file).string());
 
   http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
-
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
