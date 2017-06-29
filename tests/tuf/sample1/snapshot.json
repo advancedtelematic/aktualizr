@@ -1,26 +1,35 @@
 {
- "signatures": [
-  {
-   "keyid": "083ae0be8f9794b3c9864844654f7a53c5a2ee9296090a4f0fe689e48bfff760",
-   "method": "RSASSA-PSS",
-   "sig": "a7d76e3eb1facf543f0fda68ee632fe9eb0af4a70aabfefb7fe35da89d9bfca2326690437025e44002a11a70edb04087211c062c0de8448e83aac1e82a88f1f7a68ce3c342ba72e74063dc82cb5861053c22efa03d2dc63b61b6da7d38112ee2e8603424eab5b7c76efae188eba3ecb2aadce2801cb86a97a85a101e578e058c204f74e756b0786e197696c8ab6bf18f10305883e31b743f422cd316aa5e3433e6babffca88281c63771208f0d944ea57a2188bacd0aaa1bf5156bddd8d4fa830d68825673bcd8b52de443bcd026aa628b6af64a258096f9635d2f889bbafbbbfdf64650ea10e12a348d2a59724efbf3db73a1013dadcde2b2e66428e63f5ee26f7e7d89e18956f20402b3626311f308c764c0c2d16a4fb4a0eca1258ae8b6d69aeb8d8f53d2e66f25cf1a4f1818b060dc170b87a6f9ef91948f93e6d65fec6e437eb94f5de8493791af418dc5b99ceccbf3c05326c62ecbd61bf40ae49a66e406d2ee19c891188834d0ae4c12bb2d25c2a2e73ecebcff7afa034d38a5de09e0"
-  }
- ],
- "signed": {
-  "_type": "Snapshot",
-  "expires": "2017-01-13T14:12:45Z",
-  "meta": {
-   "root.json": {
-    "hashes": {
-     "sha256": "490c78346656d0f5ad5f583aab7b1678152ce6eab80def05422527b856ac3706"
+  "signatures": [
+    {
+      "keyid": "03720d5870f7042f550e111f17b16495517c864af38971ab8457a885b87790a5",
+      "method": "ed25519",
+      "sig": "3uic7zKJJpBQyapiwfrbjK+Qf/pjPmt5dTBlZWpsJnb1O3rKd2byvftVAYl02b8mj2eWNgj57MzIc7UQtPRMAA=="
+    }
+  ],
+  "signed": {
+    "_type": "Snapshot",
+    "expires": "2038-01-19T03:14:06Z",
+    "meta": {
+      "1.root.json": {
+        "hashes": {
+          "sha256": "29a310c70d01ce27ff6462f68669d19cce145a3886d6da9bf2e5c0fea5921087",
+          "sha512": "e2ab67b503cd99101efd796c297b2a7d3b46802fc2da55cc7d27a373e0364e7de664a65e65394f54b3b0e06100425582ff6a6d57cbb70a02b1e182e46bd15cf7"
+        },
+        "length": 1987,
+        "version": 1
+      },
+      "root.json": {
+        "hashes": {
+          "sha256": "29a310c70d01ce27ff6462f68669d19cce145a3886d6da9bf2e5c0fea5921087",
+          "sha512": "e2ab67b503cd99101efd796c297b2a7d3b46802fc2da55cc7d27a373e0364e7de664a65e65394f54b3b0e06100425582ff6a6d57cbb70a02b1e182e46bd15cf7"
+        },
+        "length": 1987,
+        "version": 1
+      },
+      "targets.json": {
+        "version": 1
+      }
     },
-    "length": 6407,
     "version": 1
-   },
-   "targets.json": {
-    "version": 2
-   }
-  },
-  "version": 2
- }
+  }
 }

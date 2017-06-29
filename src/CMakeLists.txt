@@ -31,6 +31,7 @@ set(HEADERS
             openssl_compat.h
             ostree.h
             utils.h
+            uptane/tuf.h
             uptane/tufrepository.h
             uptane/uptanerepository.h
             uptane/secondary.h
@@ -49,6 +50,7 @@ endif(BUILD_GENIVI)
 if (BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc
                         sotauptaneclient.cc
+                        uptane/tuf.cc
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc
                         uptane/secondary.cc

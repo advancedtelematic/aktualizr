@@ -1,5 +1,6 @@
 #include "uptane/tufrepository.h"
 
+#include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
@@ -13,7 +14,12 @@
 namespace Uptane {
 
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config)
-    : name_(name), path_(config.uptane.metadata_path / name_), config_(config), base_url_(base_url) {
+    : root_(Root::kRejectAll),
+      name_(name),
+      path_(config.uptane.metadata_path / name_),
+      config_(config),
+      last_timestamp_(0),
+      base_url_(base_url) {
   boost::filesystem::create_directories(path_);
   boost::filesystem::create_directories(path_ / "targets");
   http_.authenticate((config_.device.certificates_directory / config_.tls.client_certificate).string(),
@@ -21,12 +27,17 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
                      (config_.device.certificates_directory / config_.tls.pkey_file).string());
   LOGGER_LOG(LVL_debug, "TufRepository looking for root.json in:" << path_);
   if (boost::filesystem::exists(path_ / "root.json")) {
-    initRoot(Utils::parseJSONFile(path_ / "root.json"));
+    // Bootstrap root.json (security assumption: the filesystem contents are not modified)
+    Json::Value root_json = Utils::parseJSONFile(path_ / "root.json");
+    root_ = Root(name_, root_json["signed"]);
+  } else {
+    LOGGER_LOG(LVL_info, path_ << " not found, will provision from server");
+    root_ = Root(Root::kAcceptAll);
   }
   if (boost::filesystem::exists(path_ / "timestamp.json")) {
-    timestamp_signed_ = Utils::parseJSONFile(path_ / "timestamp.json");
-  } else {
-    timestamp_signed_["version"] = 0;
+    Json::Value timestamp_json = Utils::parseJSONFile(path_ / "timestamp.json");
+    last_timestamp_ = timestamp_json["signed"]["version"].asInt();
+    LOGGER_LOG(LVL_debug, "Read last timestamp.json version:" << last_timestamp_ << " for " << name);
   }
 }
 
@@ -38,207 +49,95 @@ Json::Value TufRepository::getJSON(const std::string& role) {
   return response.getJson();
 }
 
-void TufRepository::updateRoot() {
-  Json::Value content = getJSON("root.json");
-  initRoot(content);
-  saveRole(content);
+void TufRepository::updateRoot(Version version) {
+  Json::Value new_root_json = fetchAndCheckRole(kRoot, version);
+  LOGGER_LOG(LVL_debug, "New Root is:" << new_root_json);
+  // Validation passed.
+  root_ = Root(name_, new_root_json);
 }
 
 bool TufRepository::checkTimestamp() {
-  Json::Value content = updateRole("timestamp.json");
-  bool has_changed = (content["signed"]["version"].asUInt() > timestamp_signed_["version"].asUInt());
-  timestamp_signed_ = content["signed"];
+  Json::Value content = fetchAndCheckRole(kTimestamp, Version());
+  int new_timestamp = content["version"].asInt();
+  bool has_changed = last_timestamp_ < new_timestamp;
+  last_timestamp_ = new_timestamp;
   return has_changed;
 }
 
-Json::Value TufRepository::updateRole(const std::string& role) {
-  Json::Value content = getJSON(role);
-  verifyRole(content);
-  saveRole(content);
-  return content;
-}
-
-bool TufRepository::hasExpired(const std::string& date) {
-  if (date.size() != 20 || date[19] != 'Z') {
-    throw Uptane::Exception(name_, "Wrong expires datetime field!!!");
+/**
+ * Note this doesn't check the validity of version numbers, only that the signed part is actually signed.
+ * @param role
+ * @return The contents of the "signed" section
+ */
+Json::Value TufRepository::fetchAndCheckRole(Uptane::Role role, Version version) {
+  Json::Value content = getJSON(version.RoleFileName(role));
+  TimeStamp now(TimeStamp::Now());
+  Json::Value result = root_.UnpackSignedObject(now, name_, role, content);
+  if (role == kRoot) {
+    // Also check that the new root is suitably self-signed
+    Root new_root = Root(name_, result);
+    new_root.UnpackSignedObject(TimeStamp::Now(), name_, kRoot, content);
   }
-  try {
-    boost::posix_time::ptime parsed_date(boost::gregorian::from_string(date.substr(0, 10)),
-                                         boost::posix_time::duration_from_string(date.substr(11, 8)));
-    return boost::posix_time::second_clock::local_time() > parsed_date;
-  } catch (std::exception e) {
-    throw Uptane::Exception(name_, std::string("Wrong expires datetime field, what(): ") + e.what());
-  }
-  return false;
-}
-
-void TufRepository::verifyRole(const Json::Value& tuf_signed) {
-  std::string role = boost::algorithm::to_lower_copy(tuf_signed["signed"]["_type"].asString());
-  if (!tuf_signed["signatures"].size()) {
-    throw SecurityException(name_, "Missing signatures, verification failed");
-  } else if (tuf_signed["signatures"].size() < thresholds_[role]) {
-    throw UnmetThreshold(name_, role);
-  }
-
-  std::string canonical = Json::FastWriter().write(tuf_signed["signed"]);
-  for (Json::ValueIterator it = tuf_signed["signatures"].begin(); it != tuf_signed["signatures"].end(); it++) {
-    std::string method((*it)["method"].asString());
-    std::transform(method.begin(), method.end(), method.begin(), ::tolower);
-
-    if (method != "rsassa-pss" && method != "rsassa-pss-sha256" && method != "ed25519") {
-      throw SecurityException(name_, std::string("Unsupported sign method: ") + (*it)["method"].asString());
-    }
-    std::string keyid = (*it)["keyid"].asString();
-    if (!keys_.count(keyid)) {
-      throw SecurityException(name_, std::string("Couldn't find a key: ") + keyid);
-    }
-    if (!Crypto::VerifySignature(keys_[keyid], (*it)["sig"].asString(), canonical)) {
-      throw SecurityException(name_, "Invalid signature, verification failed");
-    }
-  }
-  if (hasExpired(tuf_signed["signed"]["expires"].asString())) {
-    throw ExpiredMetadata(name_, role);
-  }
-}
-
-void TufRepository::saveRole(const Json::Value& content) {
-  std::string role = boost::algorithm::to_lower_copy(content["signed"]["_type"].asString());
-  std::ofstream file((path_ / (role + ".json")).string().c_str());
+  // UnpackSignedObject throws on error--write the (now known to be valid) content to disk
+  std::ofstream file((path_ / (StringFromRole(role) + ".json")).string().c_str());
   file << content;
   file.close();
+  return result;
+}
+
+void TufRepository::verifyRole(Uptane::Role role, const Json::Value& tuf_signed) {
+  Uptane::TimeStamp now("2017-01-01T01:00:00Z");
+  (void)root_.UnpackSignedObject(now, name_, role, tuf_signed);
 }
 
 std::string TufRepository::downloadTarget(Target target) {
-  HttpResponse response = http_.get(base_url_ + "/" + target.filename_);
+  HttpResponse response = http_.get(base_url_ + "/" + target.filename());
   if (!response.isOk()) {
     throw Exception(name_, "Could not download file");
   }
-  if (response.body.length() > target.length_) {
+  if (response.body.length() > target.length()) {
     throw OversizedTarget(name_);
   }
-  if (!target.hash_.matchWith(response.body.c_str())) {
+  if (!target.MatchWith(response.body.c_str())) {
     throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
   }
   return response.body;
 }
 
 void TufRepository::saveTarget(const Target& target) {
-  if (target.length_ > 0) {
+  if (target.length() > 0) {
     std::string content = downloadTarget(target);
-    Utils::writeFile((path_ / "targets" / target.filename_).string(), content);
+    Utils::writeFile((path_ / "targets" / target.filename()).string(), content);
   }
   targets_.push_back(target);
 }
 
-void TufRepository::updateKeys(const Json::Value& keys) {
-  for (Json::ValueIterator it = keys.begin(); it != keys.end(); it++) {
-    std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
-    if (key_type != "rsa" && key_type != "ed25519") {
-      throw SecurityException(name_, "Unsupported key type: " + (*it)["keytype"].asString());
-    }
-    keys_.insert(std::make_pair(it.key().asString(),
-                                PublicKey((*it)["keyval"]["public"].asString(), (*it)["keytype"].asString())));
-  }
-}
-
-bool TufRepository::findSignatureByKeyId(const Json::Value& signatures, const std::string& keyid) {
-  for (Json::ValueIterator it = signatures.begin(); it != signatures.end(); it++) {
-    if ((*it)["keyid"].asString() == keyid) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void TufRepository::initRoot(const Json::Value& new_content) {
-  keys_.clear();
-  thresholds_.clear();
-  Json::Value content(new_content);
-  unsigned int version = content["signed"]["version"].asUInt();
-  if (version > 1) {
-    Json::Value prev_root;
-    boost::filesystem::path prev_root_path = path_ / (Utils::intToString(version - 1) + ".root.json");
-    if (boost::filesystem::exists(prev_root_path)) {
-      prev_root = Utils::parseJSONFile(prev_root_path);
-    } else {
-      prev_root = getJSON(Utils::intToString(version - 1) + ".root.json");
-    }
-
-    Json::Value keyids = prev_root["signed"]["roles"]["root"]["keyids"];
-    Json::Value prev_keys;
-    for (Json::ValueIterator it = keyids.begin(); it != keyids.end(); it++) {
-      if (!findSignatureByKeyId(content["signatures"], (*it).asString())) {
-        throw UnmetThreshold(name_, "root");
-      }
-      prev_keys[(*it).asString()] = prev_root["signed"]["keys"][(*it).asString()];
-    }
-    updateKeys(prev_keys);
-    thresholds_["root"] = prev_root["signed"]["roles"]["root"]["threshold"].asInt();
-  }
-  updateKeys(content["signed"]["keys"]);
-  Json::Value json_roles = content["signed"]["roles"];
-  for (Json::ValueIterator it = json_roles.begin(); it != json_roles.end(); it++) {
-    std::string role = it.key().asString();
-    int requiredThreshold = (*it)["threshold"].asInt();
-    if (requiredThreshold < kMinSignatures) {
-      LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
-                                                               << kMinSignatures);
-      throw IllegalThreshold(name_, "The role " + role + " had an illegal signature threshold.");
-    }
-    if (kMaxSignatures < requiredThreshold) {
-      LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too large: " << kMaxSignatures << " < "
-                                                               << requiredThreshold);
-      throw IllegalThreshold(name_, "root.json contains a role that requires too many signatures");
-    }
-    if (!config_.uptane.disable_keyid_validation) {
-      for (Json::ValueIterator it_keyid = (*it)["keyids"].begin(); it_keyid != (*it)["keyids"].end(); ++it_keyid) {
-        if (keys_.count((*it_keyid).asString())) {
-          std::string key_can = Json::FastWriter().write(Json::Value(keys_[(*it_keyid).asString()].value));
-          std::string key_id = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(key_can)));
-          if ((*it_keyid).asString() != key_id) {
-            throw UnmetThreshold(name_, role);
-          }
-        }
-      }
-    }
-    thresholds_[role] += requiredThreshold;
-  }
-  verifyRole(content);
-}
-
+// See UPTANE Implementation Specification section 8.3.2
 void TufRepository::refresh() {
-  targets_.clear();
+  targets_.clear();  // TODO, this is used to signal 'no new updates'
+  updateRoot(Version());
   if (checkTimestamp()) {
-    Json::Value content = updateRole("snapshot.json");
-    Json::Value updated_roles = content["signed"]["meta"];
-    std::vector<std::string> files_to_update;
-    bool init_root = false;
-    for (Json::ValueIterator it = updated_roles.begin(); it != updated_roles.end(); it++) {
-      if (boost::ends_with(it.key().asString(), "root.json")) {
-        init_root = true;
-      } else {
-        files_to_update.push_back(it.key().asString());
+    Json::Value snapshot_json = fetchAndCheckRole(kSnapshot);
+    // TODO snapshots
+
+    Json::Value targets_json = fetchAndCheckRole(kTargets);
+    Json::Value target_list = targets_json["targets"];
+    for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
+      Json::Value hashes = (*t_it)["hashes"];
+      int64_t length = (*t_it)["length"].asInt64();
+
+      Hash::Type type;
+      std::string hash_string;
+      if (hashes.isMember("sha512")) {
+        type = Hash::sha512;
+        hash_string = hashes["sha512"].asString();
+      } else if (hashes.isMember("sha256")) {
+        type = Hash::sha256;
+        hash_string = hashes["sha256"].asString();
       }
-    }
-    if (init_root) {  // Root should be updated first
-      initRoot(updateRole("root.json"));
-    }
-    for (std::vector<std::string>::iterator it = files_to_update.begin(); it != files_to_update.end(); it++) {
-      Json::Value new_content = updateRole(*it);
-      if ((*it) == "targets.json") {
-        Json::Value json_targets = new_content["signed"]["targets"];
-        for (Json::ValueIterator t_it = json_targets.begin(); t_it != json_targets.end(); t_it++) {
-          Json::Value hashes = (*t_it)["hashes"];
-          Hasher hash;
-          if (hashes.isMember("sha512")) {
-            hash = Hasher(Hasher::sha512, hashes["sha512"].asString());
-          } else if (hashes.isMember("sha256")) {
-            hash = Hasher(Hasher::sha256, hashes["sha256"].asString());
-          }
-          Target t(Target((*t_it)["custom"], t_it.key().asString(), (*t_it)["length"].asUInt64(), hash));
-          saveTarget(t);
-        }
-      }
+      Hash hash(type, hash_string);
+      Target t((*t_it)["custom"], t_it.key().asString(), hash, length);
+      saveTarget(t);
     }
   }
 }

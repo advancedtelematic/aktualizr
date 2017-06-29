@@ -1,51 +1,28 @@
 {
- "signatures": [
-  {
-   "keyid": "19a1384696d031c756db1fa3d3c9434f3c97a0dcef39a2349ca7b0c546942881",
-   "method": "RSASSA-PSS",
-   "sig": "46d92f79de89724e781175e4c325baebf244fa415764b8778337149336205b204c7fe3b9d271f112a7004b26e651408100a2610660072bafe434c93c2f0d02ba84901d2d392bb8055b7a9c5076539c7a3623d98f4e24a16c112a17dd531e8b3e2ed6044d4e4e81c25dd56cd82fd71b9bc224c308bb0d6e334fe66945fddf1a1c2d645407ed46e17590c2619052e2e5f49a04710ca8a11c2b1e73527bd8b34fcee061ca7882584c19a147f4b217126170f9b56db34aff41bf94768adf165ed563fa68c4c741c700fd2d8aafca573066c75cd7eb06c99970b5af84e87934b94e0b7c5bc19ff625f73de5d5c1347ebc139ee8f2c5917dece245467bbcacb8fe0a090cbd3399d6d66abd54dca34bd6559896c074f74cb13056878f0f793614ef6ecb5acf6b0ce0be89fdd09a278cba49ee748557ad8bd4807eb0c8c7d90d93d2a3fc9cdbd789af315e8b7150c8faee293262ff6ce15693f4eb01613dad8d1c64ad077561e03c11da9821b03674af07f117beecbeba2acdc0b0e4e5a3d7620fabb38f"
+  "signatures": [
+    {
+      "keyid": "81fb31257466d68af9c63d0cc1b649b9420362601df991fbf4d81f08003d2628",
+      "method": "ed25519",
+      "sig": "dXF2d4u1tf5UuoDyNmgvp3UV7ZZ04pvap3Pij7Gpq1oUv9+zi5HXISnBqFRiKdyFPLA19iwrYDoa5hyPI3XqCA=="
+    }
+  ],
+  "signed": {
+    "_type": "Targets",
+    "expires": "2038-01-19T03:14:06Z",
+    "targets": {
+      "targets/file.txt": {
+        "custom": {
+          "ecu_identifier": "01:02:03:04:05:06",
+          "hardware_identifier": "abc-def",
+          "release_counter": 1
+        },
+        "hashes": {
+          "sha256": "fbf121c8e85875ffb9d50eab2cfa2a692df0e3e06afc2913492abe128bae66d0",
+          "sha512": "ac51637364cff0f6802e087c8c6a51f1925384af639214282a67e093495ef746d8f1c2326cf7182a1067fd69f6049247f509a95a533032f9565c905ce4c5d5fe"
+        },
+        "length": 12
+      }
+    },
+    "version": 1
   }
- ],
- "signed": {
-  "_type": "Targets",
-  "delegations": {
-   "keys": {},
-   "roles": []
-  },
-  "expires": "2017-04-07T21:39:55Z",
-  "targets": {
-   "/file1.txt": {
-    "hashes": {
-     "sha256": "ecdc5536f73bdae8816f0ea40726ef5e9b810d914493075903bb90623d97b1d8",
-     "sha512": "6cc7bddc064350c67080357976ea6b0538fadf2075d3fe2f65e7345505ac7d7cf9b05af2577f08408a4bdb4478982ca6f52326ba25b5c5ff64c7b8bead0992e0"
-    },
-    "length": 6
-   },
-   "/file2.txt": {
-    "hashes": {
-     "sha256": "67ee5478eaadb034ba59944eb977797b49ca6aa8d3574587f36ebcbeeb65f70e",
-     "sha512": "24407506629c73302e01cf15c79cf02856a755abbdd2e9f8002a47515933460993afbaa4e806abb4d79ae332f331796c504f2a2ba39847a95f24a3a55159ff9e"
-    },
-    "length": 6
-   },
-   "/file3.txt": {
-    "hashes": {
-     "sha256": "94f6e58bd04a4513b8301e75f40527cf7610c66d1960b26f6ac2e743e108bdac",
-     "sha512": "1cf808cd26db62d8cc0064a3d98c23113927cd15800db3f801afc292ab14e984154f07a8a7629b3bdf7fda6394cc73b0739a6ceeeeb2b5922a468894ee51c66e"
-    },
-    "length": 6
-   },
-   "/myproject/file4.txt": {
-    "custom": {
-     "file_permissions": "644"
-    },
-    "hashes": {
-     "sha256": "899e08f22584531d18a4ec45a5dd1daef683ea941daa8c95969f1fe5c08a8137",
-     "sha512": "9293eb4798eca3d267cb8a747dbc1d0d8690b6e44608fd9d667fac1225d6e3100db1a821c041a0cd881ce6455850195eacced7b144c763204c3ff387cf3293c5"
-    },
-    "length": 6
-   }
-  },
-  "version": 2
- }
 }

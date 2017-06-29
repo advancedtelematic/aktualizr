@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <logger.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/make_shared.hpp>
 #include <string>
@@ -153,10 +154,9 @@ TEST(uptane, verify) {
   config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
-  repo.updateRoot();
-  ;
+  repo.updateRoot(Uptane::Version());
 
-  repo.verifyRole(repo.getJSON("root.json"));
+  repo.verifyRole(Uptane::kRoot, repo.getJSON("root.json"));
 }
 
 TEST(uptane, verify_data_bad) {
@@ -171,9 +171,9 @@ TEST(uptane, verify_data_bad) {
   data_json.removeMember("signatures");
 
   try {
-    repo.verifyRole(data_json);
+    repo.verifyRole(Uptane::kRoot, data_json);
     FAIL();
-  } catch (Uptane::SecurityException ex) {
+  } catch (Uptane::UnmetThreshold ex) {
   }
 }
 
@@ -190,7 +190,7 @@ TEST(uptane, verify_data_unknow_type) {
   data_json["signatures"][1]["method"] = "badsignature";
 
   try {
-    repo.verifyRole(data_json);
+    repo.verifyRole(Uptane::kRoot, data_json);
     FAIL();
   } catch (Uptane::SecurityException ex) {
   }
@@ -208,7 +208,7 @@ TEST(uptane, verify_data_bed_keyid) {
   data_json["signatures"][0]["keyid"] = "badkeyid";
   data_json["signatures"][1]["keyid"] = "badsignature";
   try {
-    repo.verifyRole(data_json);
+    repo.verifyRole(Uptane::kRoot, data_json);
     FAIL();
   } catch (Uptane::SecurityException ex) {
   }
@@ -225,7 +225,7 @@ TEST(uptane, verify_data_bed_threshold) {
   Json::Value data_json = repo.getJSON("root");
   data_json["signatures"][0]["keyid"] = "bedsignature";
   try {
-    repo.verifyRole(data_json);
+    repo.verifyRole(Uptane::kRoot, data_json);
     FAIL();
   } catch (Uptane::SecurityException ex) {
   }
@@ -444,6 +444,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  loggerSetSeverity(LVL_trace);
   return RUN_ALL_TESTS();
 }
 #endif

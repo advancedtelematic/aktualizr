@@ -15,7 +15,7 @@ namespace Uptane {
 class Repository {
  public:
   Repository(const Config &config);
-  void updateRoot();
+  void updateRoot(Version version = Version());
   Json::Value sign(const Json::Value &in_data);
   void putManifest();
   void putManifest(const Json::Value &);
