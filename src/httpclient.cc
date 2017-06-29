@@ -67,7 +67,7 @@ HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {
 
     if (!tmp) {
       curl_slist_free_all(headers);
-      return;
+      throw std::runtime_error("curl_slist_append returned null");
     }
 
     headers = tmp;
