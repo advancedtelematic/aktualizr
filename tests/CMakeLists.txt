@@ -23,13 +23,16 @@ if(BUILD_GENIVI)
     list(APPEND TEST_LIBS rvi)
 endif(BUILD_GENIVI)
 
+add_custom_target(build_tests DEPENDS aktualizr)
+add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=1 ${CMAKE_CTEST_COMMAND} DEPENDS build_tests)
 
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
     setup_target_for_coverage(coverage ctest coverage)
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage --coverage )
-    target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage --coverage)
+    target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage)
+    add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 # Config Test
@@ -66,6 +69,14 @@ add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes 
 add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_dependencies(build_tests
+        aktualizr_test_config
+        aktualizr_test_events
+        aktualizr_test_commands
+        aktualizr_test_http_aktualizr
+        aktualizr_test_http_client
+        aktualizr_test_socket_gateway
+        aktualizr_test_crypto)
 
 if(BUILD_OSTREE)
     add_executable(aktualizr_test_uptane
@@ -97,12 +108,12 @@ if(BUILD_OSTREE)
 
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 
+    add_dependencies(build_tests aktualizr_test_uptane aktualizr_test_ostree aktualizr_uptane_vector_tests)
 endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)
     add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
-    #target_compile_options(aktualizr_test_dbusgateway PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_dbusgateway COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -116,28 +127,10 @@ if(BUILD_GENIVI)
     #target_compile_options(aktualizr_test_swm PUBLIC ${LIBDBUS_CFLAGS})
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_swm COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_rvi_client aktualizr_test_swm)
+
 endif(BUILD_GENIVI)
 
-if(BUILD_WITH_CODE_COVERAGE)
-    #add_dependencies(coverage aktualizr)
-    add_dependencies(coverage aktualizr_test_config)
-    add_dependencies(coverage aktualizr_test_events)
-    add_dependencies(coverage aktualizr_test_commands)
-    if(BUILD_OSTREE)
-        add_dependencies(coverage aktualizr_test_uptane)
-        add_dependencies(coverage aktualizr_test_ostree)
-    endif(BUILD_OSTREE)
-    add_dependencies(coverage aktualizr_test_crypto)
-    if(BUILD_GENIVI)
-        add_dependencies(coverage aktualizr_test_dbusgateway)
-        add_dependencies(coverage aktualizr_test_rvi_client)
-        add_dependencies(coverage aktualizr_test_swm)
-
-    endif(BUILD_GENIVI)
-    add_dependencies(coverage aktualizr_test_http_aktualizr)
-    add_dependencies(coverage aktualizr_test_http_client)
-    add_dependencies(coverage aktualizr_test_socket_gateway)
-endif(BUILD_WITH_CODE_COVERAGE)
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program
@@ -188,6 +181,7 @@ add_test(NAME test_build_debug
 add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
 
+add_dependencies(qa check)
 
 set(ALL_TEST_SRCS
     commands_test.cc
@@ -208,7 +202,7 @@ if(CLANG_FORMAT)
     add_custom_target(format-tests
         COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_TEST_SRCS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-format on src"
+        COMMENT "Running clang-format on tests"
         VERBATIM)
     add_dependencies(qa format-tests)
 else()
