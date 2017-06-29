@@ -13,3 +13,56 @@
     ostree admin os-init --sysroot /tmp/sysroot myos
     sudo ostree pull-local --repo /tmp/sysroot/ostree/repo/ /build-qemu/tmp/deploy/images/qemux86-64/ostree_repo/ -v
     sudo ostree admin deploy --sysroot /tmp/sysroot --os myos a818c3132783a652f913ea337ddc81d6900a3da618b0a0456953819d3d546e9b
+
+== Debuging secondaries update
+To do it, You need to create temporary OSTree environment described above and add `sysroot` and `os` to your config file:
+```
+[ostree]
+os = "myos"
+sysroot = "/tmp/sysroot "
+
+```
+
+Then for each secondary You need to create a config file:
+```
+{
+    "ecu_serial": "Your secondary serial",
+    "ecu_hardware_id": "Your secondary hardware id",
+    "ecu_private_key": "/tmp/priv.key",
+    "ecu_public_key": "/tmp/pub.key"
+}
+
+```
+Now You are ready to run aktualizr:
+
+`./aktualizr -c config.toml --secondary-config mysecondary1.json --secondary-config mysecondary2.json`
+
+This will create needed keys and register Your secondaries. But currently You cannot shcedule updates
+for secondaries because of it is not implemented in UI. So You have 2 options, You can change the ecu_serial
+for Your secondary to primaries ecu_serial. By default it is located in ${certificates_directory}/primary_ecu_serial.
+
+The second option is to use the following script to schedule your updates for the secondaries:
+```
+# We need the csrf-token and the cookies so that we can proxy via ci-app
+# These needs to be filled in
+CSRF_TOKEN=""
+COOKIE=""
+# The device we will target
+DEVICE=""
+
+# We will create a multi target update, though only targeting one thing
+ECU_HARDWARE="qemux86-64" # hardware of the ecu to target
+TARGET="target"           # the filepath of target
+HASH="ea5fb32a7a43f081de0abe11528d7dee41cf2f36c13b66308b9b69d83f4dbd11" # the hash of the target
+TARGET_LENGTH="130"       # the size of the target
+
+
+# This command will create the update (but not schedule it anywhere)
+MTU_UPDATE=$(http POST 'https://ci-app.atsgarage.com/api/v1/multi_target_updates' Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE" targets:="{\"$ECU_HARDWARE\": {\"to\": {\"target\": \"$TARGET\", \"checksum\": {\"method\": \"sha256\", \"hash\":\"$HASH\"}, \"targetLength\": $TARGET_LENGTH}}}" | tr -d '"')
+echo "The mtu-update is: $MTU_UPDATE"
+
+# Schedule the update on the device
+http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target_update/$MTU_UPDATE" Csrf-Token:"$CSRF_TOKEN" Cookie:"$COOKIE"
+
+
+```
