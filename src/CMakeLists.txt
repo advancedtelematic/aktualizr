@@ -79,7 +79,7 @@ endif(BUILD_GENIVI)
 ################ QA RULES
 if(CLANG_FORMAT)
     add_custom_target(format-src
-        COMMAND ${CLANG_FORMAT} -i -style=file ${SOURCES} ${HEADERS}
+        COMMAND ${CLANG_FORMAT} -i -style=file main.cc ${SOURCES} ${HEADERS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-format on src"
         VERBATIM)
