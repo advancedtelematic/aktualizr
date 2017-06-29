@@ -109,7 +109,7 @@ void TufRepository::saveRole(const Json::Value& content) {
 }
 
 std::string TufRepository::downloadTarget(Target target) {
-  HttpResponse response = http_.get(base_url_ + "/" + target.filename_);
+  HttpResponse response = http_.get(base_url_ + "/targets/" + target.filename_);
   if (!response.isOk()) {
     throw Exception(name_, "Could not download file");
   }
@@ -243,3 +243,4 @@ void TufRepository::refresh() {
   }
 }
 };
+
