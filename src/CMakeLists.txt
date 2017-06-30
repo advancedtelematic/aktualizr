@@ -74,7 +74,8 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${CMAKE_THREAD_LIBS_INIT}
         ${SODIUM_LIBRARIES}
         ${LIBOSTREE_LIBRARIES}
-        ${LIBDBUS_LIBRARIES} gcov)
+        ${LIBDBUS_LIBRARIES}
+        ${LibArchive_LIBRARIES} gcov)
 
 if(BUILD_GENIVI)
     target_link_libraries(aktualizr rvi)

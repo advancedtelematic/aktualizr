@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include <archive.h>
+#include <archive_entry.h>
+#include <fcntl.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <sstream>
@@ -81,6 +84,56 @@ Config::Config(const std::string& filename, const boost::program_options::variab
 }
 
 void Config::postUpdateValues() {
+  boost::system::error_code error;
+  boost::filesystem::create_directories(device.certificates_directory, error);
+  if (error.value()) {
+    throw std::runtime_error(
+        std::string("Could not create directory for 'device.certificates_directory' option because: ") +
+        error.message());
+  }
+#ifdef BUILD_OSTREE
+  std::string autoprov_url = "autoprov.url";
+  if (!isProvisioned() && boost::filesystem::exists(provision.provision_path)) {
+    struct archive* a = archive_read_new();
+    archive_read_support_filter_all(a);
+    archive_read_support_format_all(a);
+    int r = archive_read_open_filename(a, provision.provision_path.c_str(), 20 * 512);
+    if (r == ARCHIVE_OK) {
+      struct archive_entry* entry;
+      while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+        std::string filename(archive_entry_pathname(entry));
+        if (filename == autoprov_url && tls.server.empty()) {
+          int urlfp = open((device.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
+          if (urlfp) {
+            archive_read_data_into_fd(a, urlfp);
+            close(urlfp);
+          }
+        } else if (filename == "autoprov_credentials.p12") {
+          std::string p12_filename = boost::filesystem::unique_path().string();
+          boost::filesystem::path p12_path = device.certificates_directory / p12_filename;
+          int credfp = open(p12_path.string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
+          if (credfp) {
+            archive_read_data_into_fd(a, credfp);
+            close(credfp);
+            provision.p12_path = p12_filename;
+          } else {
+            LOGGER_LOG(LVL_error, "Could not create file: " << p12_path);
+          }
+        }
+      }
+      r = archive_read_free(a);
+    } else {
+      LOGGER_LOG(LVL_error, "Could not read provision archive file, are You sure it is valid archive?");
+    }
+  } else {
+    LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' not exists!");
+  }
+
+  if (tls.server.empty() && boost::filesystem::exists(device.certificates_directory / autoprov_url)) {
+    tls.server = Utils::readFile((device.certificates_directory / autoprov_url).string());
+  }
+#endif
+
   if (!tls.server.empty() && !tls.ca_file.empty() && !tls.client_certificate.empty()) {
     core.auth_type = CERTIFICATE;
     if (!auth.client_id.empty() || !auth.client_secret.empty()) {
@@ -91,13 +144,6 @@ void Config::postUpdateValues() {
     core.auth_type = OAUTH2;
   }
 
-  boost::system::error_code error;
-  boost::filesystem::create_directories(device.certificates_directory, error);
-  if (error.value()) {
-    throw std::runtime_error(
-        std::string("Could not create directory for 'device.certificates_directory' option because: ") +
-        error.message());
-  }
   if (uptane.repo_server.empty()) {
     uptane.repo_server = tls.server + "/repo";
   }
@@ -131,6 +177,7 @@ void Config::postUpdateValues() {
       Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
     }
   }
+
   uptane.public_key_path = (device.certificates_directory / uptane.public_key_path).string();
   uptane.private_key_path = (device.certificates_directory / uptane.private_key_path).string();
 }
@@ -223,6 +270,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
+  CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
 
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.disable_keyid_validation, "uptane.disable_keyid_validation", LVL_debug, pt);

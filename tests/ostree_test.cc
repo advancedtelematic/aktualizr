@@ -45,7 +45,7 @@ TEST(ostree, toEcuVersion) {
 }
 
 TEST(ostree, parse_installed_packages) {
-  Json::Value packages = Utils::parseJSON(Ostree::getInstalledPackages("tests/test_data/package.manifest"));
+  Json::Value packages = Ostree::getInstalledPackages("tests/test_data/package.manifest");
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");
   EXPECT_EQ(packages[1]["name"], "emacs");

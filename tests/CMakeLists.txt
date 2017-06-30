@@ -17,6 +17,7 @@ set (TEST_LIBS
     ${SODIUM_LIBRARIES}
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
+    ${LibArchive_LIBRARIES}
     gtest gmock gcov)
 
 if(BUILD_GENIVI)
