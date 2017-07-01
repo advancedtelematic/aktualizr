@@ -70,6 +70,12 @@ class InvalidMetadata : public Exception {
       : Exception(reponame, "The " + role + " metadata failed to parse:" + reason) {}
   virtual ~InvalidMetadata() throw() {}
 };
+
+class IllegalRsaKeySize : public Exception {
+ public:
+  IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
+  virtual ~IllegalRsaKeySize() throw() {}
+};
 };
 
 #endif

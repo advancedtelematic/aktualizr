@@ -1,6 +1,13 @@
 #ifndef CRYPTO_H_
 #define CRYPTO_H_
 
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/opensslv.h>
+#include <openssl/pem.h>
+#include <openssl/pkcs12.h>
+#include <openssl/rand.h>
+#include <openssl/rsa.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
@@ -21,6 +28,10 @@ struct PublicKey {
     std::string type_str = boost::algorithm::to_lower_copy(t);
     if (type_str == "rsa") {
       type = RSA;
+      BIO *bufio = BIO_new_mem_buf((void *)value.c_str(), value.length());
+      ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, 0, 0, 0);
+      key_length = RSA_size(rsa);
+      RSA_free(rsa);
     } else if (type_str == "ed25519") {
       type = ED25519;
     } else {
@@ -29,6 +40,7 @@ struct PublicKey {
   }
   std::string value;
   Type type;
+  int key_length;
 };
 
 class Crypto {
