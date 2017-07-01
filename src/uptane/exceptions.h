@@ -63,6 +63,12 @@ class ExpiredMetadata : public Exception {
       : Exception(reponame, "The " + role + " metadata was expired.") {}
   virtual ~ExpiredMetadata() throw() {}
 };
+
+class IllegalRsaKeySize : public Exception {
+ public:
+  IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
+  virtual ~IllegalRsaKeySize() throw() {}
+};
 };
 
 #endif

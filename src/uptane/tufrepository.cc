@@ -136,8 +136,11 @@ void TufRepository::updateKeys(const Json::Value& keys) {
     if (key_type != "rsa" && key_type != "ed25519") {
       throw SecurityException(name_, "Unsupported key type: " + (*it)["keytype"].asString());
     }
-    keys_.insert(std::make_pair(it.key().asString(),
-                                PublicKey((*it)["keyval"]["public"].asString(), (*it)["keytype"].asString())));
+    PublicKey pkey((*it)["keyval"]["public"].asString(), (*it)["keytype"].asString());
+    if (pkey.type == PublicKey::RSA && pkey.key_length < 256) {
+      throw IllegalRsaKeySize(name_);
+    }
+    keys_.insert(std::make_pair(it.key().asString(), pkey));
   }
 }
 
