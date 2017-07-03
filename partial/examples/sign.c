@@ -17,13 +17,13 @@ int main(int argc, const char** argv)
 		hex_byte[1] = argv[1][2*i + 1];
 		hex_byte[2] = 0;
 
-		public[i] = strtol(hex_byte, NULL, 16);
+		public[i] = strtol((const char*)hex_byte, NULL, 16);
 
 		hex_byte[0] = argv[2][2*i];
 		hex_byte[1] = argv[2][2*i + 1];
 		hex_byte[2] = 0;
 
-		secret[i] = strtol(hex_byte, NULL, 16);
+		secret[i] = strtol((const char*)hex_byte, NULL, 16);
 	}
 
 	FILE* message_file = fopen(argv[3], "r");

@@ -102,8 +102,12 @@ bool targets_init(targets_ctx_t* ctx, int version_prev, uptane_time_t time,
 	ctx->threshold = threshold;
 	ctx->ecu_id = ecu_id;
 	ctx->hardware_id = hardware_id;
+
+	ctx->read = read_cb;
+	ctx->peek = peek_cb;
 	ctx->priv = cb_priv;
 	ctx->in_signed = false;
+	return true;
 }
 
 static bool read_verify_wrapper(targets_ctx_t* ctx, uint8_t* buf, int len) {
@@ -116,6 +120,7 @@ static bool read_verify_wrapper(targets_ctx_t* ctx, uint8_t* buf, int len) {
 			if(ctx->sig_valid[i])
 				crypto_verify_feed(ctx->sig_ctx[i], buf, len);
 	}
+	return true;
 }
 
 static bool is_hex(uint8_t c) {
@@ -124,31 +129,57 @@ static bool is_hex(uint8_t c) {
 	       (c >= 'a' && c <= 'f');
 }
 static uint8_t from_hex(uint8_t hi, uint8_t lo) {
-	uint8_t digit;
+	uint8_t res;
 
 	if(hi >= '0' && hi <= '9')
-		digit = hi - '0';
+		res = hi - '0';
 	else if (hi >= 'A' && hi <= 'F')
-		digit = hi - 'A' + 10;
+		res = hi - 'A' + 10;
 	else /* inputs are validated outside */
-		digit = hi - 'a' + 10;
+		res = hi - 'a' + 10;
+
+	res <<= 4;
+
+	if(lo >= '0' && lo <= '9')
+		res |= lo - '0';
+	else if (lo >= 'A' && lo <= 'F')
+		res |= lo - 'A' + 10;
+	else /* inputs are validated outside */
+		res |= lo - 'a' + 10;
+
+	return res;
 }
 // TODO: consider having more return codes to differentiate between read errors
 // and malformed JSON
 static bool one_char(targets_ctx_t* ctx, uint8_t* buf) {
-	if(!read_verify_wrapper(ctx, buf, 1))
-		return false;
+	return read_verify_wrapper(ctx, buf, 1);
 }
 
-static bool fixed_data(targets_ctx_t* ctx, const uint8_t* string) {
+#ifdef CONFIG_UPTANE_RELAXED_JSON
+static bool skip_bytes(targets_ctx_t* ctx, int n) {
+	uint8_t b;
+	while(--n) {
+		if(!one_char(ctx, &b))
+			return false;
+	}
+	return true;
+}
+#define fixed_data(ctx, str) skip_bytes(ctx, sizeof(str))
+#endif /*CONFIG_UPTANE_RELAXED_JSON*/
+
+#ifndef
+static bool fixed_data(targets_ctx_t* ctx, const char* string) {
 	uint8_t buf[MAXFIXED];
+	size_t len = strlen(string);
 
 	// don't check string length, should be OK for internal function
-	if(!read_verify_wrapper(ctx, buf, strlen(string)))
+	if(!read_verify_wrapper(ctx, buf, len))
 		return false;
 
-	return(!strcmp(buf, string));
+	return(!strncmp((const char*) buf, string, len));
 }
+#endif /*!CONFIG_UPTANE_RELAXED_JSON*/
+ 
 
 /* Hex string including quotes*/
 static int hex_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
@@ -161,7 +192,7 @@ static int hex_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
 	if(hex[0] != '\"')
 		return -2;
 
-	for(i = 0; i < (max_len << 1); i++) {
+	for(i = 0; i < (max_len << 1) + 1; i++) {
 		int ind = i&1;
 		if(!one_char(ctx, &hex[ind]))
 			return -1;
@@ -172,12 +203,14 @@ static int hex_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
 			data[i>>1] = from_hex(hex[0], hex[1]);
 		} else {
 			if(hex[0] == '\"')
-				break;
+				return (i >> 1);
 			if(!is_hex(hex[0]))
 				return -2;
 		}
 	}
-	return (i >> 1);
+
+	/* didn't encounter quotation mark */
+	return -2;
 }
 
 /* String including quotes*/
@@ -210,7 +243,7 @@ static bool text_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
 }
 
 static inline bool ignore_string(targets_ctx_t* ctx) {
-	text_string(ctx, 0, INT_MAX);
+	return text_string(ctx, 0, INT_MAX);
 }
 
 static bool integer_number(targets_ctx_t* ctx, uint32_t* num) {
@@ -236,47 +269,48 @@ static bool integer_number(targets_ctx_t* ctx, uint32_t* num) {
 }
 
 /* Expected format is yyyy-mm-ddThh:mm:ssZ*/
-bool time_string(targets_ctx_t *ctx, uptane_time_t* time) {
+static bool time_string(targets_ctx_t *ctx, uptane_time_t* time) {
 	uint32_t num;
 
 	if(!fixed_data(ctx, "\""))
 		return false;
-	if(!integer_number(ctx, &num) || num > 0xffff)
+	if(!integer_number(ctx, &num)/* || num > 0xffff*/)
 		return false;
 	time->year = num;
 
 	if(!fixed_data(ctx, "-"))
 		return false;
-	if(!integer_number(ctx, &num) || num > 12)
+	if(!integer_number(ctx, &num)/* || num > 12*/)
 		return false;
 	time->month = num;
 
 	if(!fixed_data(ctx, "-"))
 		return false;
-	if(!integer_number(ctx, &num) || num > 31)
+	if(!integer_number(ctx, &num))
 		return false;
 	time->day = num;
 
 	if(!fixed_data(ctx, "T"))
 		return false;
-	if(!integer_number(ctx, &num) || num > 23)
+	if(!integer_number(ctx, &num))
 		return false;
 	time->hour = num;
 
 	if(!fixed_data(ctx, ":"))
 		return false;
-	if(!integer_number(ctx, &num) || num > 59)
+	if(!integer_number(ctx, &num))
 		return false;
 	time->minute = num;
 
 	if(!fixed_data(ctx, ":"))
 		return false;
-	if(!integer_number(ctx, &num) || num > 59)
+	if(!integer_number(ctx, &num))
 		return false;
 	time->second = num;
 
-	if(!fixed_data(ctx, "Z"))
+	if(!fixed_data(ctx, "Z\""))
 		return false;
+	return true;
 }
 
 targets_result_t targets_process(targets_ctx_t* ctx) {
@@ -313,7 +347,7 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 		if(!text_string(ctx, buf, CONFIG_UPTANE_TARGETS_BUF_SIZE))
 			return TARGETS_JSONERR;
 
-		if(!crypto_keytype_supported(buf))
+		if(!crypto_keytype_supported((const char*) buf))
 			ignore_sig = true;
 
 		if(!fixed_data(ctx, ",\"sig\":"))
@@ -333,6 +367,8 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 			crypto_verify_init(ctx->sig_ctx[current_sig], ctx->sigs[current_sig]);
 		}
 
+		if(!fixed_data(ctx, "}"))
+			return TARGETS_JSONERR;
 
 		if(!one_char(ctx, buf))
 			return TARGETS_JSONERR;
@@ -360,7 +396,7 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 	if(!text_string(ctx, buf, CONFIG_UPTANE_TARGETS_BUF_SIZE))
 		return TARGETS_JSONERR;
 
-	if(strcmp(buf, "Targets"));
+	if(strcmp((const char*) buf, "Targets"))
 		return TARGETS_WRONGTYPE;
 
 	if(!fixed_data(ctx, ",\"expires\":"))
@@ -389,7 +425,7 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 		if(!text_string(ctx, buf, CONFIG_UPTANE_TARGETS_BUF_SIZE))
 			return TARGETS_JSONERR;
 
-		if(strcmp(buf, ctx->ecu_id))
+		if(strcmp((const char*) buf, (const char*) ctx->ecu_id))
 			ignore_image = true;
 
 		if(!fixed_data(ctx, ",\"hardware_identifier\":"))
@@ -398,7 +434,7 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 		if(!text_string(ctx, buf, CONFIG_UPTANE_TARGETS_BUF_SIZE))
 			return TARGETS_JSONERR;
 
-		if(strcmp(buf, ctx->hardware_id))
+		if(strcmp((const char*) buf, (const char*) ctx->hardware_id))
 			ignore_image = true;
 
 		if(!fixed_data(ctx, ",\"release_counter\":"))
@@ -415,8 +451,10 @@ targets_result_t targets_process(targets_ctx_t* ctx) {
 		for(;;) {
 			if(!text_string(ctx, buf, CONFIG_UPTANE_TARGETS_BUF_SIZE))
 				return TARGETS_JSONERR;
+			if(!fixed_data(ctx, ":"))
+				return TARGETS_JSONERR;
 
-			if(!ignore_image && !strcmp(buf, "sha512")) {
+			if(!ignore_image && !strcmp((const char*) buf, "sha512")) {
 				if(hex_string(ctx, ctx->sha512_hash,
 					      SHA512_HASH_SIZE) != SHA512_HASH_SIZE)
 					return TARGETS_JSONERR;

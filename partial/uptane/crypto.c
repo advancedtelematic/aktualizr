@@ -84,7 +84,7 @@ void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, int len) 
 			if(ctx->bytes_fed == SHA512_BLOCK_SIZE - 64)
 				edsign_verify_init(&ctx->sha_state, ctx->signature,
 						   ctx->pub, ctx->block,
-						   SHA512_BLOCK_SIZE);
+						   SHA512_BLOCK_SIZE - 64);
 		} else {
 			/* Trust compiler to use masking instead of actual division */
 			int ind = (ctx->bytes_fed - (SHA512_BLOCK_SIZE - 64))

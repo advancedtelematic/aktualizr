@@ -15,14 +15,16 @@ bool peek_char(void* priv, uint8_t* buf) {
 
 	*buf = c;
 	ungetc(c, inp);
+	return true;
 }
 
 bool read_data(void* priv, uint8_t* buf, int len) {
 	FILE* inp = (FILE*) priv;
 	for(int i = 0; i < len; i++) {
-		buf[i] = fgetc(inp);
-		if(buf[i] == EOF)
+		char c = fgetc(inp);
+		if(c == EOF)
 			return false;
+		buf[i] = (uint8_t) c;
 	}
 	return true;
 }
@@ -66,8 +68,8 @@ int main(int argc, const char** argv) {
 		for(int i = 0; i < CRYPTO_KEYVAL_LEN; i++) {
 			char hex[3];
 
-			hex[0] = buf[2*i];
-			hex[1] = buf[2*i + 1];
+			hex[0] = buf[1+2*CRYPTO_KEYID_LEN+2*i];
+			hex[1] = buf[1+2*CRYPTO_KEYID_LEN+2*i + 1];
 			hex[2] = 0;
 			keys[n].keyval[i] = strtol(hex, NULL, 16);
 		}
@@ -86,10 +88,10 @@ int main(int argc, const char** argv) {
 	struct timeval epoch_time;
 	gettimeofday(&epoch_time, NULL);
 	struct tm* time = gmtime(&epoch_time.tv_sec);
-	uptane_time_t uptane_time = {time->tm_year, time->tm_mon, time->tm_mday,
+	uptane_time_t uptane_time = {1900 + time->tm_year, time->tm_mon, time->tm_mday,
 				     time->tm_hour, time->tm_min, time->tm_sec};
 
-	targets_init(ctx, prev_version, uptane_time, argv[5], argv[6], 
+	targets_init(ctx, prev_version, uptane_time, (const uint8_t*) argv[5], (const uint8_t*) argv[6], 
 		     keys, n, threshold, read_data, peek_char, targets_file);
 
 	targets_result_t res = targets_process(ctx);

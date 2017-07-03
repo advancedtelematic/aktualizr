@@ -53,13 +53,20 @@ add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
 
 # Machine is not set, building tests to run in Linux environment
 if(NOT MACHINE)
+	enable_testing()
+
 	add_executable(verify_targets examples/verify_targets.c)
 	target_link_libraries(verify_targets uptane_partial_lib)
-	target_compile_options(verify_targets PUBLIC -Os)
-	target_compile_options(uptane_partial_lib PUBLIC -Os)
+	#target_compile_options(verify_targets PUBLIC -Os)
+	#target_compile_options(uptane_partial_lib PUBLIC -Os -fno-inline-functions-called-once -fno-inline-small-functions)
+	target_compile_options(verify_targets PUBLIC -O0 -g)
+	target_compile_options(uptane_partial_lib PUBLIC -Os -g -fno-inline-functions-called-once -fno-inline-small-functions -Wpedantic -Wextra)
 	set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
 	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
 	add_executable(sign ${C25519_SOURCES} examples/sign.c)
 
+	set(test_exec ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/test.sh)
+	add_test(NAME test_valid COMMAND ${test_exec} pass ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
+	add_test(NAME test_invalid COMMAND ${test_exec} fail ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
 endif()
