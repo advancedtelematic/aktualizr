@@ -171,6 +171,12 @@ void Utils::writeFile(const std::string &filename, const std::string &content) {
   file.close();
 }
 
+void Utils::writeFile(const std::string &filename, const Json::Value &content) {
+  std::ofstream file(filename.c_str());
+  file << content;
+  file.close();
+}
+
 std::string Utils::getHardwareInfo() {
   char buffer[128];
   std::string result = "";

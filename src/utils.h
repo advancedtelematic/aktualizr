@@ -24,6 +24,7 @@ struct Utils {
   static std::string genPrettyName();
   static std::string readFile(const std::string &filename);
   static void writeFile(const std::string &filename, const std::string &content);
+  static void writeFile(const std::string &filename, const Json::Value &content);
   static std::string getHardwareInfo();
 };
 

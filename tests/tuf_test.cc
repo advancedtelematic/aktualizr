@@ -1,20 +1,43 @@
 #include <gtest/gtest.h>
 #include <json/json.h>
 #include <logger.h>
+#include <uptane/exceptions.h>
 
 #include "uptane/tuf.h"
 #include "utils.h"
+
+Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(Root, RootValidates) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOGGER_LOG(LVL_info, "Root is:" << initial_root);
 
   Uptane::Root root1(Uptane::Root::kAcceptAll);
-  Json::Value i = root1.UnpackSignedObject(Uptane::TimeStamp(), "director", Uptane::kRoot, initial_root);
+  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   Uptane::Root root("director", i);
 
-  Json::Value unpacked = root.UnpackSignedObject(Uptane::TimeStamp(), "director", Uptane::kRoot, initial_root);
+  Json::Value unpacked = root.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   EXPECT_EQ(unpacked, initial_root["signed"]);
+}
+
+TEST(Root, RootJsonNoKeys) {
+  Uptane::Root root1(Uptane::Root::kAcceptAll);
+  Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
+  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
+  i.removeMember("keys");
+  Uptane::Root dut("director", i);
+  EXPECT_THROW(dut.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root), Uptane::SecurityException);
+}
+
+TEST(Root, RootJsonNoRoles) {
+  Uptane::Root root1(Uptane::Root::kAcceptAll);
+  Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
+  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
+  i.removeMember("roles");
+  Uptane::Root dut("director", i);
+  EXPECT_THROW(dut.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root), Uptane::SecurityException);
 }
 
 TEST(TimeStamp, Parsing) {

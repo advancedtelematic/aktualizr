@@ -1,9 +1,9 @@
+#ifndef AKTUALIZR_UPTANE_TUF_H_
+#define AKTUALIZR_UPTANE_TUF_H_
+
 /**
  * Base data types that are used in The Update Framework (TUF), part of UPTANE.
  */
-
-#ifndef AKTUALIZR_UPTANE_TUF_H_
-#define AKTUALIZR_UPTANE_TUF_H_
 
 #include <ostream>
 #include <set>
@@ -16,11 +16,28 @@ typedef std::string KeyId;
 /**
  * TUF Roles
  */
-enum Role { kRoot, kSnapshot, kTargets, kTimestamp, kInvalidRole };
+class Role {
+ public:
+  static Role Root() { return Role(kRoot); }
+  static Role Snapshot() { return Role(kSnapshot); }
+  static Role Targets() { return Role(kTargets); }
+  static Role Timestamp() { return Role(kTimestamp); }
+  static Role InvalidRole() { return Role(kInvalidRole); }
+  explicit Role(const std::string &);
+  std::string ToString() const;
+  bool operator==(const Role &other) const { return role_ == other.role_; }
+  bool operator!=(const Role &other) const { return !(*this == other); }
+  bool operator<(const Role &other) const { return role_ < other.role_; }
 
-Role RoleFromString(const std::string &rolename);
+  friend std::ostream &operator<<(std::ostream &os, const Role &t);
 
-std::string StringFromRole(Role role);
+ private:
+  enum RoleEnum { kRoot, kSnapshot, kTargets, kTimestamp, kInvalidRole };
+
+  Role(RoleEnum role) : role_(role) {}
+
+  RoleEnum role_;
+};
 
 /**
  * Metadata version numbers
@@ -43,10 +60,11 @@ class TimeStamp {
   /** An invalid TimeStamp */
   TimeStamp() {}
   explicit TimeStamp(std::string rfc3339);
+  bool IsExpiredAt(const TimeStamp &now) const;
+  bool IsValid() const;
   bool operator<(const TimeStamp &other) const;
   bool operator>(const TimeStamp &other) const;
   friend std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
-  bool valid() const;
 
  private:
   std::string time_;
@@ -58,8 +76,9 @@ class TimeStamp {
  */
 class Hash {
  public:
-  enum Type { sha256, sha512 };
+  enum Type { kSha256, kSha512, kUnknownAlgorithm };
 
+  Hash(const std::string &type, const std::string &hash);
   Hash(Type type, const std::string &hash);
 
   /**
@@ -67,8 +86,9 @@ class Hash {
    * @param content
    * @return
    */
-  bool matchWith(const std::string &content) const;
+  bool MatchWith(const std::string &content) const;
 
+  bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
 
  private:
@@ -78,31 +98,26 @@ class Hash {
 
 class Target {
  public:
-  Target(const Json::Value &custom, const std::string &filename, Hash hash, int64_t length)
-      : custom_(custom), filename_(filename), hash_(hash), length_(length) {}
-  bool operator==(const Target &t2) const { return (filename_ == t2.filename_ && hash_ == t2.hash_); }
+  Target(const std::string &name, const Json::Value &content);
 
-  std::string ecu_identifier() const { return custom_["ecuIdentifier"].asString(); }
+  std::string ecu_identifier() const { return ecu_identifier_; }
 
   std::string filename() const { return filename_; }
 
-  bool MatchWith(const std::string &content) const {
-    // TODO: We should have some priority/ordering here
-    return content.length() == length_ && hash_.matchWith(content);
-  }
+  bool MatchWith(const std::string &content) const;
 
   int64_t length() const { return length_; }
 
   bool IsForSecondary(const std::string &ecuIdentifier) const {
-    return length() > 0 && ecu_identifier() == ecuIdentifier;
+    return (length() > 0) && (ecu_identifier() == ecuIdentifier);
   };
 
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
 
  private:
-  Json::Value custom_;
   std::string filename_;
-  Hash hash_;
+  std::string ecu_identifier_;
+  std::vector<Hash> hashes_;
   int64_t length_;
 };
 

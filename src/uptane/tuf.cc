@@ -16,12 +16,48 @@ using Uptane::Role;
 using Uptane::TimeStamp;
 using Uptane::Version;
 
+Role::Role(const std::string &role_name) {
+  std::string role_name_lower;
+  std::transform(role_name.begin(), role_name.end(), std::back_inserter(role_name_lower), ::tolower);
+  if (role_name_lower == "root") {
+    role_ = kRoot;
+  } else if (role_name_lower == "snapshot") {
+    role_ = kSnapshot;
+  } else if (role_name_lower == "targets") {
+    role_ = kTargets;
+  } else if (role_name_lower == "timestamp") {
+    role_ = kTimestamp;
+  } else {
+    role_ = kInvalidRole;
+  }
+}
+
+std::string Role::ToString() const {
+  switch (role_) {
+    case kRoot:
+      return "root";
+    case kSnapshot:
+      return "snapshot";
+    case kTargets:
+      return "targets";
+    case kTimestamp:
+      return "timestamp";
+    default:
+      return "invalidrole";
+  }
+}
+
+std::ostream &Uptane::operator<<(std::ostream &os, const Role &t) {
+  os << t.ToString();
+  return os;
+}
+
 std::string Version::RoleFileName(Role role) const {
   std::stringstream ss;
   if (version_ != Version::ANY_VERSION) {
     ss << version_ << ".";
   }
-  ss << StringFromRole(role) << ".json";
+  ss << role.ToString() << ".json";
   return ss.str();
 }
 
@@ -52,9 +88,19 @@ TimeStamp::TimeStamp(std::string rfc3339) {
   }
 }
 
-bool TimeStamp::valid() const { return time_.length() != 0; }
+bool TimeStamp::IsValid() const { return time_.length() != 0; }
 
-bool TimeStamp::operator<(const TimeStamp &other) const { return valid() && other.valid() && time_ < other.time_; }
+bool TimeStamp::IsExpiredAt(const TimeStamp &now) const {
+  if (!IsValid()) {
+    return true;
+  }
+  if (!now.IsValid()) {
+    return true;
+  }
+  return *this < now;
+}
+
+bool TimeStamp::operator<(const TimeStamp &other) const { return IsValid() && other.IsValid() && time_ < other.time_; }
 
 bool TimeStamp::operator>(const TimeStamp &other) const { return (other < *this); }
 
@@ -63,42 +109,26 @@ std::ostream &Uptane::operator<<(std::ostream &os, const TimeStamp &t) {
   return os;
 }
 
-Role Uptane::RoleFromString(const std::string &rolename) {
-  if (rolename == "root" || rolename == "Root") {
-    return Uptane::kRoot;
-  } else if (rolename == "snapshot" || rolename == "Snapshot") {
-    return Uptane::kSnapshot;
-  } else if (rolename == "targets" || rolename == "Targets") {
-    return Uptane::kTargets;
-  } else if (rolename == "timestamp" || rolename == "Timestamp") {
-    return Uptane::kTimestamp;
+Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
+  if (type == "sha512") {
+    type_ = Hash::kSha512;
+  } else if (type == "sha256") {
+    type_ = Hash::kSha256;
   } else {
-    return Uptane::kInvalidRole;
+    type_ = Hash::kUnknownAlgorithm;
   }
 }
 
-std::string Uptane::StringFromRole(Role role) {
-  switch (role) {
-    case kRoot:
-      return "root";
-    case kSnapshot:
-      return "snapshot";
-    case kTargets:
-      return "targets";
-    case kTimestamp:
-      return "timestamp";
-    default:
-      return "invalidrole";
-  }
-}
 Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algorithm::to_upper_copy(hash)) {}
 
-bool Hash::matchWith(const std::string &content) const {
+bool Hash::MatchWith(const std::string &content) const {
   switch (type_) {
-    case sha256:
+    case kSha256:
       return hash_ == boost::algorithm::hex(Crypto::sha256digest(content));
-    case sha512:
+    case kSha512:
       return hash_ == boost::algorithm::hex(Crypto::sha512digest(content));
+    case kUnknownAlgorithm:
+      return false;
     default:
       throw std::invalid_argument("type_");  // Unreachable
   }
@@ -106,13 +136,43 @@ bool Hash::matchWith(const std::string &content) const {
 
 bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
 
+Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
+  if (content.isMember("custom")) {
+    Json::Value custom = content["custom"];
+    if (custom.isMember("ecuIdentifier")) {
+      ecu_identifier_ = content["custom"]["ecuIdentifier"].asString();
+    }
+  }
+
+  length_ = content["length"].asInt64();
+
+  Json::Value hashes = content["hashes"];
+  for (Json::ValueIterator i = hashes.begin(); i != hashes.end(); ++i) {
+    Hash h(i.key().asString(), (*i).asString());
+    if (h.HaveAlgorithm()) {
+      hashes_.push_back(h);
+    }
+  }
+}
+
+bool Target::MatchWith(const std::string &content) const {
+  if (content.length() != length_) {
+    return false;
+  }
+  if (hashes_.size() == 0) {
+    return false;
+  }
+  // TODO: We should have some priority/ordering here
+  return hashes_[0].MatchWith(content);
+}
+
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length() << ")";
   return os;
 }
 
 Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCheck) {
-  if (!json.isObject()) {
+  if (!json.isObject() || !json.isMember("keys") || !json.isMember("roles")) {
     LOGGER_LOG(LVL_error, "Trying to construct Tuf Root from invalid json");
     LOGGER_LOG(LVL_trace, json);
     policy_ = kRejectAll;
@@ -132,8 +192,8 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
   Json::Value roles = json["roles"];
   for (Json::ValueIterator it = roles.begin(); it != roles.end(); it++) {
     std::string role_name = it.key().asString();
-    Role role = RoleFromString(role_name);
-    if (role == kInvalidRole) {
+    Role role = Role(role_name);
+    if (role == Role::InvalidRole()) {
       LOGGER_LOG(LVL_warning, "Invalid role in root.json");
       LOGGER_LOG(LVL_trace, "Role name:" << role_name);
       LOGGER_LOG(LVL_trace, "root.json is:" << json);
@@ -144,7 +204,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
     if (requiredThreshold < kMinSignatures) {
       LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
                                                                << kMinSignatures);
-      throw IllegalThreshold(repository, "The role " + StringFromRole(role) + " had an illegal signature threshold.");
+      throw IllegalThreshold(repository, "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
       LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too large: " << kMaxSignatures << " < "
@@ -191,6 +251,7 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
     if (!keys_for_role_.count(std::make_pair(role, keyid))) {
       LOGGER_LOG(LVL_warning, "KeyId is not valid to sign for this role");
       LOGGER_LOG(LVL_trace, "KeyId: " << keyid);
+      continue;
     }
 
     std::string signature = (*sig)["sig"].asString();
@@ -208,18 +269,19 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
     throw IllegalThreshold(repository, "Invalid signature threshold");
   }
   if (valid_signatures < threshold) {
-    throw UnmetThreshold(repository, StringFromRole(role));
+    throw UnmetThreshold(repository, role.ToString());
   }
   Json::Value res = Utils::parseJSON(canonical);
 
   // TODO check _type matches role
   // TODO check timestamp
   Uptane::TimeStamp expiry(Uptane::TimeStamp(res["expires"].asString()));
-  if (!expiry.valid() || expiry < TimeStamp::Now()) {
-    throw ExpiredMetadata(repository, StringFromRole(role));
+  if (expiry.IsExpiredAt(now)) {
+    LOGGER_LOG(LVL_trace, "Metadata expired at:" << expiry);
+    throw ExpiredMetadata(repository, role.ToString());
   }
 
-  Uptane::Role actual_role(Uptane::RoleFromString(res["_type"].asString()));
+  Uptane::Role actual_role(Uptane::Role(res["_type"].asString()));
   if (role != actual_role) {
     LOGGER_LOG(LVL_warning, "Object was signed for a different role");
     LOGGER_LOG(LVL_trace, "  role:" << role);

@@ -50,14 +50,14 @@ Json::Value TufRepository::getJSON(const std::string& role) {
 }
 
 void TufRepository::updateRoot(Version version) {
-  Json::Value new_root_json = fetchAndCheckRole(kRoot, version);
+  Json::Value new_root_json = fetchAndCheckRole(Role::Root(), version);
   LOGGER_LOG(LVL_debug, "New Root is:" << new_root_json);
   // Validation passed.
   root_ = Root(name_, new_root_json);
 }
 
 bool TufRepository::checkTimestamp() {
-  Json::Value content = fetchAndCheckRole(kTimestamp, Version());
+  Json::Value content = fetchAndCheckRole(Role::Timestamp(), Version());
   int new_timestamp = content["version"].asInt();
   bool has_changed = last_timestamp_ < new_timestamp;
   last_timestamp_ = new_timestamp;
@@ -70,24 +70,21 @@ bool TufRepository::checkTimestamp() {
  * @return The contents of the "signed" section
  */
 Json::Value TufRepository::fetchAndCheckRole(Uptane::Role role, Version version) {
-  Json::Value content = getJSON(version.RoleFileName(role));
   TimeStamp now(TimeStamp::Now());
-  Json::Value result = root_.UnpackSignedObject(now, name_, role, content);
-  if (role == kRoot) {
-    // Also check that the new root is suitably self-signed
-    Root new_root = Root(name_, result);
-    new_root.UnpackSignedObject(TimeStamp::Now(), name_, kRoot, content);
-  }
-  // UnpackSignedObject throws on error--write the (now known to be valid) content to disk
-  std::ofstream file((path_ / (StringFromRole(role) + ".json")).string().c_str());
-  file << content;
-  file.close();
-  return result;
+  Json::Value content = getJSON(version.RoleFileName(role));
+  return verifyRole(role, now, content);
 }
 
-void TufRepository::verifyRole(Uptane::Role role, const Json::Value& tuf_signed) {
-  Uptane::TimeStamp now("2017-01-01T01:00:00Z");
-  (void)root_.UnpackSignedObject(now, name_, role, tuf_signed);
+Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, const Json::Value& content) {
+  Json::Value result = root_.UnpackSignedObject(now, name_, role, content);
+  if (role == Role::Root()) {
+    // Also check that the new root is suitably self-signed
+    Root new_root = Root(name_, result);
+    new_root.UnpackSignedObject(now, name_, Role::Root(), content);
+  }
+  // UnpackSignedObject throws on error--write the (now known to be valid) content to disk
+  Utils::writeFile((path_ / (role.ToString() + ".json")).string(), content);
+  return result;
 }
 
 std::string TufRepository::downloadTarget(Target target) {
@@ -117,26 +114,13 @@ void TufRepository::refresh() {
   targets_.clear();  // TODO, this is used to signal 'no new updates'
   updateRoot(Version());
   if (checkTimestamp()) {
-    Json::Value snapshot_json = fetchAndCheckRole(kSnapshot);
+    Json::Value snapshot_json = fetchAndCheckRole(Role::Snapshot());
     // TODO snapshots
 
-    Json::Value targets_json = fetchAndCheckRole(kTargets);
+    Json::Value targets_json = fetchAndCheckRole(Role::Targets());
     Json::Value target_list = targets_json["targets"];
     for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
-      Json::Value hashes = (*t_it)["hashes"];
-      int64_t length = (*t_it)["length"].asInt64();
-
-      Hash::Type type;
-      std::string hash_string;
-      if (hashes.isMember("sha512")) {
-        type = Hash::sha512;
-        hash_string = hashes["sha512"].asString();
-      } else if (hashes.isMember("sha256")) {
-        type = Hash::sha256;
-        hash_string = hashes["sha256"].asString();
-      }
-      Hash hash(type, hash_string);
-      Target t((*t_it)["custom"], t_it.key().asString(), hash, length);
+      Target t(t_it.key().asString(), *t_it);
       saveTarget(t);
     }
   }

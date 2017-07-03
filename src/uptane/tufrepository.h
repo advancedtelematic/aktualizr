@@ -19,7 +19,7 @@ typedef std::map<std::string, unsigned int> RoleThreshold;
 class TufRepository {
  public:
   TufRepository(const std::string &name, const std::string &base_url, const Config &config);
-  void verifyRole(Role role, const Json::Value &);
+  Json::Value verifyRole(Role role, const TimeStamp &now, const Json::Value &);
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect
   void updateRoot(Version version);
