@@ -24,18 +24,18 @@ typedef enum {
 struct targets_ctx;
 typedef struct targets_ctx targets_ctx_t;
 
-/* Both are blocking functions returning false if the processing should
- * be interrupted. They are generally responsible for timeout logic, preventing
- * failures due to too large input etc. Processing procedure yields to these functions
- * from time to time, so it is also a right place to perform system tasks, unrelated
- * to JSON processing 
+/* Both are blocking functions. Read should return exactly as many bytes as requested.
+ * If the processing is to be cancelled, it is recommended that both functions write
+ * zeros to provided buffer without blocking, targets_process should then return after
+ * no longer than it takes to process a valid JSON. Cancellation points might be added
+ * in future.
  *
  * TODO: isolate from targets, the interface should be the same for root.json and time.json
  * as well, including, probably, read_verify_wrapper (see targets.c)
  * */
 
-typedef bool (*targets_read_t)(void* priv, uint8_t* buf, int len);
-typedef bool (*targets_peek_t)(void* priv, uint8_t* buf);
+typedef void (*targets_read_t)(void* priv, uint8_t* buf, int len);
+typedef void (*targets_peek_t)(void* priv, uint8_t* buf);
 
 targets_ctx_t* targets_ctx_new(void);
 void targets_ctx_free(targets_ctx_t* ctx);

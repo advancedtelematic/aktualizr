@@ -7,26 +7,33 @@
 
 #define BUF_SIZE 2048
 #define NUM_KEYS 16
-bool peek_char(void* priv, uint8_t* buf) {
+
+bool eof_reached = false;
+
+void peek_char(void* priv, uint8_t* buf) {
 	FILE* inp = (FILE*) priv;
-	char c = fgetc(inp);
-	if(c == EOF)
-		return false;
+	char c = eof_reached ? EOF : fgetc(inp);
+	if(c == EOF) {
+		eof_reached = true;
+		*buf = 0;
+		return;
+	}
 
 	*buf = c;
 	ungetc(c, inp);
-	return true;
+	return;
 }
 
-bool read_data(void* priv, uint8_t* buf, int len) {
+void read_data(void* priv, uint8_t* buf, int len) {
 	FILE* inp = (FILE*) priv;
 	for(int i = 0; i < len; i++) {
-		char c = fgetc(inp);
+		char c = eof_reached ? EOF : fgetc(inp);
 		if(c == EOF)
-			return false;
-		buf[i] = (uint8_t) c;
+			buf[i] = 0;
+		else
+			buf[i] = (uint8_t) c;
 	}
-	return true;
+	return;
 }
 
 crypto_key_t keys[NUM_KEYS];

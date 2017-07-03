@@ -50,7 +50,7 @@ set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
 
 include_directories(. ed25519 uptane)
 add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
-target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long)
+target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
 # Machine is not set, building tests to run in Linux environment
 if(NOT MACHINE)
