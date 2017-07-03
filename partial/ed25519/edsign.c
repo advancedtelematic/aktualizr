@@ -193,7 +193,7 @@ uint8_t edsign_verify_init(struct sha512_state* s, const uint8_t *signature,
 			   const uint8_t *pub, const uint8_t *message, size_t len)
 {
 	hash_message_init(s, signature, pub, message, len);
-	// TODO: isolate
+
 	if(len < SHA512_BLOCK_SIZE - 64)
 		return edsign_verify_finalize(s, signature, pub, message);
 	return 0;

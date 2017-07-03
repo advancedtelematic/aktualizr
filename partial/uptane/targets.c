@@ -43,12 +43,19 @@ struct targets_ctx {
 };
 
 #ifdef CONFIG_UPTANE_NOMALLOC
+#  if (CONFIG_UPTANE_TARGETS_NUM_CONTEXTS == 1)
+#define SINGLECONTEXT
+static targets_ctx_t targets_ctx_s;
+#  else
 static targets_ctx_t targets_ctxs[CONFIG_UPTANE_TARGETS_NUM_CONTEXTS];
-static bool targets_ctx_busy[CONFIG_UPTANE_TARGETS_NUM_CONTEXTS] = {0, }; //could be reduce to a bitmask when new/free performance is an issue
+static bool targets_ctx_busy[CONFIG_UPTANE_TARGETS_NUM_CONTEXTS] = {0, }; /*could be reduce to a bitmask when new/free performance is an issue*/
+#  endif
 #endif
 
 targets_ctx_t* targets_ctx_new() {
-#ifdef CONFIG_UPTANE_NOMALLOC
+#if defined(SINGLECONTEXT)
+	return &targets_ctx_s;
+#elif defined(CONFIG_UPTANE_NOMALLOC)
 	int i;
 
 	for(i = 0; i < CONFIG_UPTANE_TARGETS_NUM_CONTEXTS; i++)
@@ -63,7 +70,7 @@ targets_ctx_t* targets_ctx_new() {
 
 void targets_ctx_free(targets_ctx_t* ctx) {
 	int i;
-#ifdef CONFIG_UPTANE_NOMALLOC
+#if defined(CONFIG_UPTANE_NOMALLOC) && !defined(SINGLECONTEXT)
 	uintptr_t j = ((uintptr_t) ctx - (uintptr_t) targets_ctxs)/sizeof(targets_ctx_t); 
 #endif
 
@@ -73,7 +80,8 @@ void targets_ctx_free(targets_ctx_t* ctx) {
 			crypto_verify_ctx_free(ctx->sig_ctx[i]);
 	}
 
-#ifdef CONFIG_UPTANE_NOMALLOC
+#if defined(SINGLECONTEXT)
+#elif defined(CONFIG_UPTANE_NOMALLOC)
 	targets_ctx_busy[j] = 0;
 #else
 	free(ctx);
@@ -110,7 +118,13 @@ bool targets_init(targets_ctx_t* ctx, int version_prev, uptane_time_t time,
 	return true;
 }
 
+#if defined(SINGLECONTEXT)
+#define read_verify_wrapper(ctx, buf, len) read_verify_wrapper_s(buf, len)
+static bool read_verify_wrapper_s(uint8_t* buf, int len) {
+	targets_ctx_t* ctx = &targets_ctx_s;
+#else
 static bool read_verify_wrapper(targets_ctx_t* ctx, uint8_t* buf, int len) {
+#endif /*defined(SINGLECONTEXT)*/
 	if(!ctx->read(ctx->priv, buf, len))
 		return false;
 
@@ -123,6 +137,15 @@ static bool read_verify_wrapper(targets_ctx_t* ctx, uint8_t* buf, int len) {
 	return true;
 }
 
+#if defined(SINGLECONTEXT)
+#define peek_wrapper(ctx, buf) peek_wrapper_s(buf)
+static bool peek_wrapper_s(uint8_t* buf) {
+	targets_ctx_t* ctx = &targets_ctx_s;
+#else
+static bool peek_wrapper(targets_ctx_t* ctx, uint8_t* buf) {
+#endif /*defined(SINGLECONTEXT)*/
+	return ctx->peek(ctx->priv, buf);
+}
 static bool is_hex(uint8_t c) {
 	return (c >= '0' && c <= '9') ||
 	       (c >= 'A' && c <= 'F') ||
@@ -149,14 +172,24 @@ static uint8_t from_hex(uint8_t hi, uint8_t lo) {
 
 	return res;
 }
-// TODO: consider having more return codes to differentiate between read errors
-// and malformed JSON
+/* TODO: consider having more return codes to differentiate between read errors
+   and malformed JSON*/
+#if defined(SINGLECONTEXT)
+#define one_char(ctx, buf) one_char_s(buf)
+static inline bool one_char_s(uint8_t* buf) {
+#else
 static bool one_char(targets_ctx_t* ctx, uint8_t* buf) {
+#endif
 	return read_verify_wrapper(ctx, buf, 1);
 }
 
 #ifdef CONFIG_UPTANE_RELAXED_JSON
+#  if defined(SINGLECONTEXT)
+#define skip_bytes(ctx, buf) skip_bytes_s(buf)
+static bool skip_bytes_s(int n) {
+#  else
 static bool skip_bytes(targets_ctx_t* ctx, int n) {
+#  endif /*defined(SINGLECONTEXT)*/
 	uint8_t b;
 	while(--n) {
 		if(!one_char(ctx, &b))
@@ -167,12 +200,17 @@ static bool skip_bytes(targets_ctx_t* ctx, int n) {
 #define fixed_data(ctx, str) skip_bytes(ctx, sizeof(str))
 #endif /*CONFIG_UPTANE_RELAXED_JSON*/
 
-#ifndef
+#ifndef CONFIG_UPTANE_RELAXED_JSON
+#  if defined(SINGLECONTEXT)
+#define fixed_data(ctx, string) fixed_data_s(string)
+static bool fixed_data_s(const char* string) {
+#  else
 static bool fixed_data(targets_ctx_t* ctx, const char* string) {
+#  endif /*defined(SINGLECONTEXT)*/
 	uint8_t buf[MAXFIXED];
 	size_t len = strlen(string);
 
-	// don't check string length, should be OK for internal function
+	/* don't check string length, should be OK for internal function */
 	if(!read_verify_wrapper(ctx, buf, len))
 		return false;
 
@@ -182,7 +220,12 @@ static bool fixed_data(targets_ctx_t* ctx, const char* string) {
  
 
 /* Hex string including quotes*/
+#if defined(SINGLECONTEXT)
+#define hex_string(ctx, data, max_len) hex_string_s(data, max_len)
+static int hex_string_s(uint8_t* data, int max_len) {
+#else
 static int hex_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
+#endif /*defined(SINGLECONTEXT)*/
 	int i;
 	uint8_t hex[2];
 
@@ -214,7 +257,12 @@ static int hex_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
 }
 
 /* String including quotes*/
+#if defined(SINGLECONTEXT)
+#define text_string(ctx, data, max_len) text_string_s(data, max_len)
+static bool text_string_s(uint8_t* data, int max_len) {
+#else
 static bool text_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
+#endif /*defined(SINGLECONTEXT)*/
 	uint8_t byte;
 	int i;
 
@@ -242,17 +290,27 @@ static bool text_string(targets_ctx_t* ctx, uint8_t* data, int max_len) {
 	return false;
 }
 
+#if defined(SINGLECONTEXT)
+#define ignore_string(ctx) ignore_string_s()
+static inline bool ignore_string_s() {
+#else
 static inline bool ignore_string(targets_ctx_t* ctx) {
+#endif /*defined(SINGLECONTEXT)*/
 	return text_string(ctx, 0, INT_MAX);
 }
 
+#if defined(SINGLECONTEXT)
+#define integer_number(ctx, num) integer_number_s(num)
+static bool integer_number_s(uint32_t* num) {
+#else
 static bool integer_number(targets_ctx_t* ctx, uint32_t* num) {
+#endif /*defined(SINGLECONTEXT)*/
 	uint32_t res = 0;
 	bool valid = false;
 	uint8_t byte;
 
 	for(;;){
-		if(!ctx->peek(ctx->priv, &byte))
+		if(!peek_wrapper(ctx, &byte))
 			return false;
 		if(byte >= '0' && byte <= '9') {
 			res = res*10 + (byte - '0');
@@ -269,7 +327,12 @@ static bool integer_number(targets_ctx_t* ctx, uint32_t* num) {
 }
 
 /* Expected format is yyyy-mm-ddThh:mm:ssZ*/
+#if defined(SINGLECONTEXT)
+#define time_string(ctx, time) time_string_s(time)
+static bool time_string_s(uptane_time_t* time) {
+#else
 static bool time_string(targets_ctx_t *ctx, uptane_time_t* time) {
+#endif /*defined(SINGLECONTEXT)*/
 	uint32_t num;
 
 	if(!fixed_data(ctx, "\""))

@@ -56,11 +56,11 @@ void edsign_sign(uint8_t *signature, const uint8_t *pub,
 uint8_t edsign_verify_init(struct sha512_state* s, const uint8_t *signature,
 			const uint8_t *pub, const uint8_t *message, size_t len);
 
-// add block of size SHA512_BLOCK_SIZE to stream
+/* add block of size SHA512_BLOCK_SIZE to stream */
 void edsign_verify_block(struct sha512_state* s, const uint8_t *message);
 
-// add last block and return result. message points to the last block, not the whole message
-//  Non-zero indicates success
+/* add last block and return result. message points to the last block, not the whole message
+    Non-zero indicates success */
 uint8_t edsign_verify_final(struct sha512_state* s, const uint8_t *signature,
 			       const uint8_t* pub, const uint8_t *message,
 			       size_t total_len);

@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include "sha512.h"
 
-#define CRYPTO_KEYID_LEN 32 // SHA256 hash
-#define CRYPTO_KEYVAL_LEN 32 // public key length, 32 for ed25519
-#define CRYPTO_SIGNATURE_LEN 64 // signature length, 64 for ed25519
+#define CRYPTO_KEYID_LEN 32	/* SHA256 hash */
+#define CRYPTO_KEYVAL_LEN 32	/* public key length, 32 for ed25519 */
+#define CRYPTO_SIGNATURE_LEN 64 /* signature length, 64 for ed25519 */
 
 typedef enum {ED25519} crypto_algorithm_t;
 typedef struct {
@@ -35,4 +35,4 @@ bool crypto_verify_result(crypto_verify_ctx_t* ctx);
 
 bool crypto_keytype_supported(const char* keytype);
 
-#endif //AKTUALIZR_PARTIAL_CRYPTO_H
+#endif /*AKTUALIZR_PARTIAL_CRYPTO_H_*/

@@ -8,17 +8,17 @@
 #include "uptane_time.h"
 
 typedef enum {
-	TARGETS_OK_NOIMAGE,		// Valid targets.json, no image for this ECU
-	TARGETS_OK_NOUPDATE,		// Valid targets.json, version is the same
-	TARGETS_OK_UPDATE,		// Valid targets.json, new image available
-	TARGETS_NOMEM,			// Dynamic memory error
-	TARGETS_ECUDUPLICATE,		// ECU is mentioned twice
-	TARGETS_NOHASH,			// No suitable hash found
-	TARGETS_SIGFAIL,		// Signature verification failed
-	TARGETS_JSONERR,		// Malformed JSON
-	TARGETS_WRONGTYPE,		// _type field is not "Targets"
-	TARGETS_EXPIRED,		// targets.json has expired
-	TARGETS_DOWNGRADE,		// New version is lower that the previous one
+	TARGETS_OK_NOIMAGE,		/* Valid targets.json, no image for this ECU  */
+	TARGETS_OK_NOUPDATE,		/* Valid targets.json, version is the same    */
+	TARGETS_OK_UPDATE,		/* Valid targets.json, new image available    */
+	TARGETS_NOMEM,			/* Dynamic memory error			      */
+	TARGETS_ECUDUPLICATE,		/* ECU is mentioned twice		      */
+	TARGETS_NOHASH,			/* No suitable hash found		      */
+	TARGETS_SIGFAIL,		/* Signature verification failed	      */
+	TARGETS_JSONERR,		/* Malformed JSON			      */
+	TARGETS_WRONGTYPE,		/* _type field is not "Targets"		      */
+	TARGETS_EXPIRED,		/* targets.json has expired		      */
+	TARGETS_DOWNGRADE		/* New version is lower that the previous one */
 } targets_result_t;
 
 struct targets_ctx;
@@ -45,4 +45,5 @@ bool targets_init(targets_ctx_t* ctx, int version_prev, uptane_time_t time,
 		  targets_read_t read_cb, targets_peek_t peek_cb, void* cb_priv);
 targets_result_t targets_process(targets_ctx_t* ctx);
 bool targets_get_result(const targets_ctx_t* ctx, uint8_t* sha512_hash, int* length, int* version);
-#endif //AKTUALIZR_PARTIAL_TARGETS_H_
+#endif /* AKTUALIZR_PARTIAL_TARGETS_H_ */
+

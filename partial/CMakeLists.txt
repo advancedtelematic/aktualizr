@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(uptane-partial)
 if(MACHINE)
-	if(${MACHINE} EQUAL "kea128")
+	if(${MACHINE} STREQUAL "kea128")
 		find_path(
 			NXP_TOOLCHAIN_PATH
 			NAMES Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc
@@ -50,6 +50,7 @@ set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
 
 include_directories(. ed25519 uptane)
 add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
+target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long)
 
 # Machine is not set, building tests to run in Linux environment
 if(NOT MACHINE)
@@ -57,10 +58,7 @@ if(NOT MACHINE)
 
 	add_executable(verify_targets examples/verify_targets.c)
 	target_link_libraries(verify_targets uptane_partial_lib)
-	#target_compile_options(verify_targets PUBLIC -Os)
-	#target_compile_options(uptane_partial_lib PUBLIC -Os -fno-inline-functions-called-once -fno-inline-small-functions)
 	target_compile_options(verify_targets PUBLIC -O0 -g)
-	target_compile_options(uptane_partial_lib PUBLIC -Os -g -fno-inline-functions-called-once -fno-inline-small-functions -Wpedantic -Wextra)
 	set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
 	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)

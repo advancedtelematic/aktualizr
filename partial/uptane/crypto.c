@@ -14,7 +14,7 @@ static const char* supported_keytypes[] = {"ed25519"};
 
 #ifdef CONFIG_UPTANE_NOMALLOC
 static crypto_verify_ctx_t crypto_verify_ctxs[CONFIG_UPTANE_VERIFY_NUM_CONTEXTS];
-static bool crypto_verify_ctx_busy[CONFIG_UPTANE_VERIFY_NUM_CONTEXTS] = {0, }; //could be reduce to a bitmask when new/free performance is an issue
+static bool crypto_verify_ctx_busy[CONFIG_UPTANE_VERIFY_NUM_CONTEXTS] = {0, }; /* could be reduced to a bitmask when new/free performance is an issue */
 
 static crypto_key_and_signature_t crypto_sigs[CONFIG_UPTANE_CRYPTO_NUM_SIGS];
 static bool crypto_sig_busy[CONFIG_UPTANE_CRYPTO_NUM_SIGS] = {0, };
