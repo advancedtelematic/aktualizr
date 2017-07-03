@@ -26,6 +26,7 @@ struct Utils {
   static void writeFile(const std::string &filename, const std::string &content);
   static void writeFile(const std::string &filename, const Json::Value &content);
   static std::string getHardwareInfo();
+  static std::string randomUuid();
 };
 
 #endif  // UTILS_H_
