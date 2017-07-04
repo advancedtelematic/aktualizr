@@ -3,6 +3,7 @@ LABEL Description="Aktualizr testing dockerfile"
 
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN echo "deb http://ftp.de.debian.org/debian stable main" > /etc/apt/sources.list
 
 RUN apt-get update && apt-get -y install debian-archive-keyring
 RUN echo "deb http://ftp.de.debian.org/debian jessie-backports main contrib non-free" > /etc/apt/sources.list.d/jessie-backports.list
