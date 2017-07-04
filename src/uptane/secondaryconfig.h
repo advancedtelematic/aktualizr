@@ -8,6 +8,7 @@ struct SecondaryConfig{
     std::string ecu_public_key;
     boost::filesystem::path full_client_dir;
     bool partial_verifying;
+    boost::filesystem::path firmware_path;
 };
 };
 
