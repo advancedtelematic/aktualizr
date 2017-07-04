@@ -4,6 +4,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 
+#include <algorithm>
 #include <fstream>
 
 #include "crypto.h"
@@ -81,7 +82,14 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
   }
 
   std::string canonical = Json::FastWriter().write(tuf_signed["signed"]);
+  std::vector<std::string> signatures;
   for (Json::ValueIterator it = tuf_signed["signatures"].begin(); it != tuf_signed["signatures"].end(); it++) {
+    std::string signature = (*it)["sig"].asString();
+    if (std::find(signatures.begin(), signatures.end(), signature) != signatures.end()) {
+      throw NonUniqueSignatures(name_, role);
+    } else {
+      signatures.push_back(signature);
+    }
     std::string method((*it)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
 
@@ -92,7 +100,7 @@ void TufRepository::verifyRole(const Json::Value& tuf_signed) {
     if (!keys_.count(keyid)) {
       throw SecurityException(name_, std::string("Couldn't find a key: ") + keyid);
     }
-    if (!Crypto::VerifySignature(keys_[keyid], (*it)["sig"].asString(), canonical)) {
+    if (!Crypto::VerifySignature(keys_[keyid], signature, canonical)) {
       throw SecurityException(name_, "Invalid signature, verification failed");
     }
   }

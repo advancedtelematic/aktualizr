@@ -69,6 +69,13 @@ class IllegalRsaKeySize : public Exception {
   IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
   virtual ~IllegalRsaKeySize() throw() {}
 };
+
+class NonUniqueSignatures : public Exception {
+ public:
+  NonUniqueSignatures(const std::string reponame, const std::string &role)
+      : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
+  virtual ~NonUniqueSignatures() throw() {}
+};
 };
 
 #endif
