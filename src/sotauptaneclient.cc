@@ -24,8 +24,10 @@ std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
   std::vector<OstreePackage> result;
   std::vector<Uptane::Target> targets = uptane_repo.getNewTargets();
   for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
+    std::string ecu_identifier(it->ecu_identifier());
+    std::string filename(it->filename());
     result.push_back(
-        OstreePackage((*it).custom_["ecuIdentifier"].asString(), (*it).filename_, "",
+        OstreePackage(ecu_identifier, filename, "",
                       config.uptane.ostree_server));  // should be changed when multiple targets are supported
   }
   return result;

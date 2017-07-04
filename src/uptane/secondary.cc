@@ -1,5 +1,7 @@
-#include "secondary.h"
+#include <boost/algorithm/hex.hpp>
+
 #include "crypto.h"
+#include "secondary.h"
 
 static const std::string IMAGE_PATH = "/secondary_firmware.txt";
 namespace Uptane {
@@ -40,14 +42,11 @@ void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
 
   std::vector<Uptane::Target>::const_iterator it;
   for (it = targets.begin(); it != targets.end(); ++it) {
-    if (it->custom_["ecuIdentifier"].asString() == config.ecu_serial) {
-      if (it->length_) {
-        std::cout << "Good, it is my target\n";
-        install(*it);
-      } else {
-        std::cout << "Size of target is zero, maybe it is an ostree package\n";
-      }
+    if (it->IsForSecondary(config.ecu_serial)) {
+      install(*it);
       break;
+    } else {
+      std::cout << "Target " << *it << " isn't for this ECU\n";
     }
   }
 }

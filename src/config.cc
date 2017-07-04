@@ -115,7 +115,7 @@ void Config::postUpdateValues() {
     if (boost::filesystem::exists(device.certificates_directory / ecu_serial_filename)) {
       uptane.primary_ecu_serial = Utils::readFile((device.certificates_directory / ecu_serial_filename).string());
     } else {
-      uptane.primary_ecu_serial = boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+      uptane.primary_ecu_serial = Utils::randomUuid();
       Utils::writeFile((device.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
     }
   }

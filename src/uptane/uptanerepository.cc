@@ -32,9 +32,9 @@ Repository::Repository(const Config &config_in)
   }
 }
 
-void Repository::updateRoot() {
-  director.updateRoot();
-  image.updateRoot();
+void Repository::updateRoot(Version version) {
+  director.updateRoot(version);
+  image.updateRoot(version);
 }
 
 void Repository::putManifest() { putManifest(Json::nullValue); }

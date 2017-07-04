@@ -1,6 +1,9 @@
 #include "utils.h"
 #include <stdio.h>
 #include <algorithm>
+#include <boost/random/random_device.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -171,6 +174,12 @@ void Utils::writeFile(const std::string &filename, const std::string &content) {
   file.close();
 }
 
+void Utils::writeFile(const std::string &filename, const Json::Value &content) {
+  std::ofstream file(filename.c_str());
+  file << content;
+  file.close();
+}
+
 std::string Utils::getHardwareInfo() {
   char buffer[128];
   std::string result = "";
@@ -191,4 +200,10 @@ std::string Utils::getHardwareInfo() {
   } else {
     return result;
   }
+}
+
+std::string Utils::randomUuid() {
+  boost::random::random_device urandom;
+  boost::uuids::basic_random_generator<boost::random::random_device> uuid_gen(urandom);
+  return boost::uuids::to_string(uuid_gen());
 }

@@ -63,6 +63,13 @@ class ExpiredMetadata : public Exception {
       : Exception(reponame, "The " + role + " metadata was expired.") {}
   virtual ~ExpiredMetadata() throw() {}
 };
+
+class InvalidMetadata : public Exception {
+ public:
+  InvalidMetadata(const std::string reponame, const std::string &role, const std::string reason)
+      : Exception(reponame, "The " + role + " metadata failed to parse:" + reason) {}
+  virtual ~InvalidMetadata() throw() {}
+};
 };
 
 #endif

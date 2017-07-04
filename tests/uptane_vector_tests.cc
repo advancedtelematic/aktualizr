@@ -9,6 +9,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
+#include <gtest/gtest.h>
 #include <string>
 #include "config.h"
 #include "logger.h"
@@ -58,7 +59,7 @@ bool run_test(Json::Value vector) {
 
   try {
     Uptane::Repository repo(config);
-    repo.updateRoot();
+    repo.updateRoot(Uptane::Version(1));
     repo.getNewTargets();
 
   } catch (Uptane::Exception e) {
@@ -83,6 +84,7 @@ bool run_test(Json::Value vector) {
 }
 
 int main(int argc, char* argv[]) {
+  ::testing::InitGoogleTest(&argc, argv);
   loggerInit();
   loggerSetSeverity(LVL_maximum);
 

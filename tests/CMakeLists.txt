@@ -88,6 +88,9 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/logger.cc
                   ${PROJECT_SOURCE_DIR}/src/crypto.cc
                   ${PROJECT_SOURCE_DIR}/src/types.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/role.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/root.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/tuf.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/tufrepository.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/uptanerepository.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/secondary.cc
@@ -96,11 +99,15 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/utils.cc
                   uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_uptane COMMAND aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_ostree ostree_test.cc)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
     add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    add_executable(aktualizr_tuf_tests tuf_test.cc)
+    target_link_libraries(aktualizr_tuf_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
@@ -108,7 +115,7 @@ if(BUILD_OSTREE)
 
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 
-    add_dependencies(build_tests aktualizr_test_uptane aktualizr_test_ostree aktualizr_uptane_vector_tests)
+    add_dependencies(build_tests aktualizr_test_uptane aktualizr_test_ostree aktualizr_tuf_tests aktualizr_uptane_vector_tests)
 endif(BUILD_OSTREE)
 
 
@@ -195,6 +202,7 @@ set(ALL_TEST_SRCS
     rvisotaclient_test.cc
     socketgateway_test.cc
     swm_test.cc
+    tuf_test.cc
     uptane_vector_tests.cc
     uptane_test.cc)
 
