@@ -65,7 +65,15 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
   Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 
+  std::vector<std::string> sig_values;
   for (Json::ValueIterator sig = signatures.begin(); sig != signatures.end(); ++sig) {
+    std::string signature = (*sig)["sig"].asString();
+    if (std::find(sig_values.begin(), sig_values.end(), signature) != sig_values.end()) {
+      throw NonUniqueSignatures(repository, role.ToString());
+    } else {
+      sig_values.push_back(signature);
+    }
+
     std::string method((*sig)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
 
@@ -85,7 +93,6 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
       continue;
     }
 
-    std::string signature = (*sig)["sig"].asString();
     if (Crypto::VerifySignature(keys_[keyid], signature, canonical)) {
       valid_signatures++;
     } else {

@@ -23,11 +23,10 @@ class SecurityException : public Exception {
   virtual ~SecurityException() throw() {}
 };
 
-static const std::string HASH_METADATA_MISMATCH =
-    "The target's calculated hash did not match the hash in the metadata.";
 class TargetHashMismatch : public Exception {
  public:
-  TargetHashMismatch(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
+  TargetHashMismatch(const std::string targetname)
+      : Exception(targetname, "The target's calculated hash did not match the hash in the metadata.") {}
   virtual ~TargetHashMismatch() throw() {}
 };
 
@@ -75,6 +74,20 @@ class IllegalRsaKeySize : public Exception {
  public:
   IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
   virtual ~IllegalRsaKeySize() throw() {}
+};
+
+class MissMatchTarget : public Exception {
+ public:
+  MissMatchTarget(const std::string reponame)
+      : Exception(reponame, "The target missmatch between image and director.") {}
+  virtual ~MissMatchTarget() throw() {}
+};
+
+class NonUniqueSignatures : public Exception {
+ public:
+  NonUniqueSignatures(const std::string reponame, const std::string &role)
+      : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
+  virtual ~NonUniqueSignatures() throw() {}
 };
 };
 

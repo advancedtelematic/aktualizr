@@ -4,7 +4,7 @@ virtualenv -p python3 venv
 . venv/bin/activate
 pip install -r "$1/requirements.txt"
 $1/generator.py -t uptane --signature-encoding base64 -o vectors --cjson json-subset
-$1/server.py --path "$(pwd)/vectors" &
+$1/server.py -t uptane --signature-encoding base64 &
 sleep 3
 trap 'kill %1' EXIT
 

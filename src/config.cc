@@ -93,40 +93,42 @@ void Config::postUpdateValues() {
   }
 #ifdef BUILD_OSTREE
   std::string autoprov_url = "autoprov.url";
-  if (!isProvisioned() && boost::filesystem::exists(provision.provision_path)) {
-    struct archive* a = archive_read_new();
-    archive_read_support_filter_all(a);
-    archive_read_support_format_all(a);
-    int r = archive_read_open_filename(a, provision.provision_path.c_str(), 20 * 512);
-    if (r == ARCHIVE_OK) {
-      struct archive_entry* entry;
-      while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-        std::string filename(archive_entry_pathname(entry));
-        if (filename == autoprov_url && tls.server.empty()) {
-          int urlfp = open((device.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
-          if (urlfp) {
-            archive_read_data_into_fd(a, urlfp);
-            close(urlfp);
-          }
-        } else if (filename == "autoprov_credentials.p12") {
-          std::string p12_filename = boost::filesystem::unique_path().string();
-          boost::filesystem::path p12_path = device.certificates_directory / p12_filename;
-          int credfp = open(p12_path.string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
-          if (credfp) {
-            archive_read_data_into_fd(a, credfp);
-            close(credfp);
-            provision.p12_path = p12_filename;
-          } else {
-            LOGGER_LOG(LVL_error, "Could not create file: " << p12_path);
+  if (!isProvisioned() && !provision.provision_path.empty()) {
+    if (boost::filesystem::exists(provision.provision_path)) {
+      struct archive* a = archive_read_new();
+      archive_read_support_filter_all(a);
+      archive_read_support_format_all(a);
+      int r = archive_read_open_filename(a, provision.provision_path.c_str(), 20 * 512);
+      if (r == ARCHIVE_OK) {
+        struct archive_entry* entry;
+        while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+          std::string filename(archive_entry_pathname(entry));
+          if (filename == autoprov_url && tls.server.empty()) {
+            int urlfp = open((device.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
+            if (urlfp) {
+              archive_read_data_into_fd(a, urlfp);
+              close(urlfp);
+            }
+          } else if (filename == "autoprov_credentials.p12") {
+            std::string p12_filename = boost::filesystem::unique_path().string();
+            boost::filesystem::path p12_path = device.certificates_directory / p12_filename;
+            int credfp = open(p12_path.string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
+            if (credfp) {
+              archive_read_data_into_fd(a, credfp);
+              close(credfp);
+              provision.p12_path = p12_filename;
+            } else {
+              LOGGER_LOG(LVL_error, "Could not create file: " << p12_path);
+            }
           }
         }
+        r = archive_read_free(a);
+      } else {
+        LOGGER_LOG(LVL_error, "Could not read provision archive file, are You sure it is valid archive?");
       }
-      r = archive_read_free(a);
     } else {
-      LOGGER_LOG(LVL_error, "Could not read provision archive file, are You sure it is valid archive?");
+      LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' not exists!");
     }
-  } else {
-    LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' not exists!");
   }
 
   if (tls.server.empty() && boost::filesystem::exists(device.certificates_directory / autoprov_url)) {
