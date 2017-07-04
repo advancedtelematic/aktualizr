@@ -39,6 +39,8 @@ class Role {
   RoleEnum role_;
 };
 
+std::ostream &operator<<(std::ostream &os, const Role &t);
+
 /**
  * Metadata version numbers
  */
@@ -53,6 +55,8 @@ class Version {
   int version_;
   friend std::ostream &operator<<(std::ostream &os, const Version &t);
 };
+
+std::ostream &operator<<(std::ostream &os, const Version &t);
 
 class TimeStamp {
  public:
@@ -69,6 +73,8 @@ class TimeStamp {
  private:
   std::string time_;
 };
+
+std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
 
 /**
  * The hash of a file or TUF metadata.  File hashes/checksums in TUF include the length of the object, in order to

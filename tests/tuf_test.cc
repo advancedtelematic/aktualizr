@@ -26,8 +26,7 @@ TEST(Root, RootJsonNoKeys) {
   LOGGER_LOG(LVL_info, "Root is:" << initial_root);
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   i.removeMember("keys");
-  Uptane::Root dut("director", i);
-  EXPECT_THROW(dut.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root), Uptane::SecurityException);
+  EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
 }
 
 TEST(Root, RootJsonNoRoles) {
@@ -36,14 +35,14 @@ TEST(Root, RootJsonNoRoles) {
   LOGGER_LOG(LVL_info, "Root is:" << initial_root);
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   i.removeMember("roles");
-  Uptane::Root dut("director", i);
-  EXPECT_THROW(dut.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root), Uptane::SecurityException);
+  EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
 }
 
 TEST(TimeStamp, Parsing) {
   Uptane::TimeStamp t_old("2038-01-19T02:00:00Z");
   Uptane::TimeStamp t_new("2038-01-19T03:14:06Z");
-  Uptane::TimeStamp t_invalid("2038-01-");
+
+  Uptane::TimeStamp t_invalid;
 
   EXPECT_LT(t_old, t_new);
   EXPECT_GT(t_new, t_old);
@@ -51,6 +50,8 @@ TEST(TimeStamp, Parsing) {
   EXPECT_FALSE(t_old < t_invalid);
   EXPECT_FALSE(t_invalid < t_invalid);
 }
+
+TEST(TimeStamp, ParsingInvalid) { EXPECT_THROW(Uptane::TimeStamp("2038-01-19T0"), Uptane::InvalidMetadata); }
 
 TEST(TimeStamp, Now) {
   Uptane::TimeStamp t_past("1982-12-13T02:00:00Z");

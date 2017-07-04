@@ -88,6 +88,8 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/logger.cc
                   ${PROJECT_SOURCE_DIR}/src/crypto.cc
                   ${PROJECT_SOURCE_DIR}/src/types.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/role.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/root.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/tuf.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/tufrepository.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/uptanerepository.cc

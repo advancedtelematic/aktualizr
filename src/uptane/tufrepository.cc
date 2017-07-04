@@ -51,7 +51,6 @@ Json::Value TufRepository::getJSON(const std::string& role) {
 
 void TufRepository::updateRoot(Version version) {
   Json::Value new_root_json = fetchAndCheckRole(Role::Root(), version);
-  LOGGER_LOG(LVL_debug, "New Root is:" << new_root_json);
   // Validation passed.
   root_ = Root(name_, new_root_json);
 }

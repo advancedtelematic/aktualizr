@@ -50,6 +50,8 @@ endif(BUILD_GENIVI)
 if (BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc
                         sotauptaneclient.cc
+                        uptane/role.cc
+                        uptane/root.cc
                         uptane/tuf.cc
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc
