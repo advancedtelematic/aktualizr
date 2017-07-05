@@ -20,8 +20,6 @@ Json::Value Secondary::genAndSendManifest() {
   installed_image["filepath"] = IMAGE_PATH;
   std::string content = Utils::readFile(IMAGE_PATH);  // FIXME this is bad idea to read all image to memory, we need to
                                                       // implement progressive hash function
-  installed_image["fileinfo"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(content)));
   installed_image["fileinfo"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
   installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
