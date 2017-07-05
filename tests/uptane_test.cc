@@ -58,7 +58,7 @@ OstreePackage OstreePackage::getEcu(const std::string &ecu_serial,
   return OstreePackage(ecu_serial, "frgfdg", "dsfsdf", "sfsdfs");
 }
 
-std::string Ostree::getInstalledPackages(const std::string &file_path) { return file_path; }
+Json::Value Ostree::getInstalledPackages(const std::string &file_path) { return Json::Value(); }
 
 HttpClient::HttpClient() {}
 void HttpClient::setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) {

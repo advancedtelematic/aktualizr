@@ -117,10 +117,11 @@ struct TlsConfig {
 };
 
 struct ProvisionConfig {
-  ProvisionConfig() : p12_path(""), p12_password(""), expiry_days("36000") {}
+  ProvisionConfig() : p12_path(""), p12_password(""), expiry_days("36000"), provision_path() {}
   std::string p12_path;
   std::string p12_password;
   std::string expiry_days;
+  std::string provision_path;
 };
 
 struct UptaneConfig {
@@ -163,6 +164,10 @@ class Config {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
+  bool isProvisioned() {
+    return (boost::filesystem::exists(device.certificates_directory / tls.client_certificate) &&
+            boost::filesystem::exists(device.certificates_directory / tls.ca_file));
+  };
 
   // config data structures
   CoreConfig core;
