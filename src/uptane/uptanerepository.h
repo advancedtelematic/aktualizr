@@ -16,7 +16,6 @@ class Repository {
  public:
   Repository(const Config &config);
   void updateRoot(Version version = Version());
-  Json::Value sign(const Json::Value &in_data);
   void putManifest();
   void putManifest(const Json::Value &);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
