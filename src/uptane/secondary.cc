@@ -5,8 +5,7 @@
 
 namespace Uptane {
 Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *primary)
-    : config(config_in), transport(primary) {
-}
+    : config(config_in), transport(primary) {}
 
 Json::Value Secondary::genAndSendManifest() {
   Json::Value manifest;
@@ -14,8 +13,9 @@ Json::Value Secondary::genAndSendManifest() {
   // package manager will generate this part in future
   Json::Value installed_image;
   installed_image["filepath"] = config.firmware_path.string();
-  std::string content = Utils::readFile(config.firmware_path.string());  // FIXME this is bad idea to read all image to memory, we need to
-                                                      // implement progressive hash function
+  std::string content =
+      Utils::readFile(config.firmware_path.string());  // FIXME this is bad idea to read all image to memory, we need to
+                                                       // implement progressive hash function
   installed_image["fileinfo"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
   installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
