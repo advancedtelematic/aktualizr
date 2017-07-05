@@ -363,6 +363,9 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
+  if(!events_channel->hasValues()){
+    FAIL();
+  }
   boost::shared_ptr<event::BaseEvent> event;
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
@@ -387,6 +390,8 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
   boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
+  boost::filesystem::remove(metadata_path + "repo/timestamp.json");
+
 
   conf.tls.server = tls_server;
   event::Channel *events_channel = new event::Channel();
@@ -396,6 +401,9 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
+  if(!events_channel->hasValues()){
+    FAIL();
+  }
   boost::shared_ptr<event::BaseEvent> event;
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");

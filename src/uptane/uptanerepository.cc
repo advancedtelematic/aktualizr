@@ -61,7 +61,13 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
   if (!targets.empty()) {
     transport.sendTargets(targets);
   }
-  // std::equal(targets.begin(), targets.end(), image.getTargets().begin());
+
+  std::vector<Uptane::Target> image_targets = image.getTargets();
+  for(std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it){
+    if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()){
+      throw MissMatchTarget("director and image");
+    }
+  }
   return targets;
 }
 
