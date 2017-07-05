@@ -189,8 +189,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   }
 
   if (!ostree_sysroot_simple_write_deployment(sysroot.get(), "", new_deployment, merge_deployment,
-                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_RETAIN, cancellable,
-                                              &error)) {
+                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable, &error)) {
     LOGGER_LOG(LVL_error, "ostree_sysroot_simple_write_deployment:" << error->message);
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
