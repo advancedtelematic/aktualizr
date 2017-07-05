@@ -3,23 +3,19 @@
 #include "crypto.h"
 #include "secondary.h"
 
-static const std::string IMAGE_PATH = "/secondary_firmware.txt";
 namespace Uptane {
 Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *primary)
-    : config(config_in), transport(primary) {
-  if (!boost::filesystem::exists(config.full_client_dir / config.ecu_private_key)) {
-    // Crypto::generateRSAKeyPair((config.full_client_dir / config.ecu_public_key).string(),
-    //                           (config.full_client_dir / config.ecu_private_key).string());
-  }
-}
+    : config(config_in), transport(primary) {}
+
 Json::Value Secondary::genAndSendManifest() {
   Json::Value manifest;
 
   // package manager will generate this part in future
   Json::Value installed_image;
-  installed_image["filepath"] = IMAGE_PATH;
-  std::string content = Utils::readFile(IMAGE_PATH);  // FIXME this is bad idea to read all image to memory, we need to
-                                                      // implement progressive hash function
+  installed_image["filepath"] = config.firmware_path.string();
+  std::string content =
+      Utils::readFile(config.firmware_path.string());  // FIXME this is bad idea to read all image to memory, we need to
+                                                       // implement progressive hash function
   installed_image["fileinfo"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
   installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
@@ -55,6 +51,6 @@ void Secondary::setPrivateKey(const std::string &pkey) {
 
 void Secondary::install(const Uptane::Target &target) {
   std::string image = transport.getImage(target);
-  Utils::writeFile(IMAGE_PATH, image);
+  Utils::writeFile(config.firmware_path.string(), image);
 }
 };

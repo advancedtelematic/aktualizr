@@ -29,7 +29,8 @@ Then for each secondary You need to create a config file:
     "ecu_serial": "Your secondary serial",
     "ecu_hardware_id": "Your secondary hardware id",
     "ecu_private_key": "/tmp/priv.key",
-    "ecu_public_key": "/tmp/pub.key"
+    "ecu_public_key": "/tmp/pub.key",
+    "firmware_path": "/firmware.txt"
 }
 
 ```

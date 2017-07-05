@@ -340,6 +340,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       ecu_config.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
       ecu_config.ecu_private_key = config_json["ecu_private_key"].asString();
       ecu_config.ecu_public_key = config_json["ecu_public_key"].asString();
+      ecu_config.firmware_path = config_json["firmware_path"].asString();
       uptane.secondaries.push_back(ecu_config);
     }
   }
