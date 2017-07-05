@@ -180,7 +180,7 @@ void Utils::writeFile(const std::string &filename, const Json::Value &content) {
   file.close();
 }
 
-std::string Utils::getHardwareInfo() {
+Json::Value Utils::getHardwareInfo() {
   char buffer[128];
   std::string result = "";
   FILE *pipe = popen("lshw -json", "r");
@@ -196,9 +196,9 @@ std::string Utils::getHardwareInfo() {
   int exit_code = pclose(pipe);
   if (exit_code) {
     LOGGER_LOG(LVL_warning, "Could not execute lshw (is it installed?).");
-    return "";
+    return Json::Value();
   } else {
-    return result;
+    return Utils::parseJSON(result);
   }
 }
 
