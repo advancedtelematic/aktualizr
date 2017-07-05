@@ -118,6 +118,11 @@ class Target {
     return (length() > 0) && (ecu_identifier() == ecuIdentifier);
   };
 
+  bool operator==(const Target &t2) {
+    return (filename_ == t2.filename_ && length_ == t2.length_ && ecu_identifier_ == t2.ecu_identifier_ &&
+    std::equal(hashes_.begin(), hashes_.end(), t2.hashes_.begin()));
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
 
  private:

@@ -38,6 +38,13 @@ class OversizedTarget : public Exception {
   virtual ~OversizedTarget() throw() {}
 };
 
+class MissMatchTarget : public Exception {
+ public:
+  MissMatchTarget(const std::string reponame)
+      : Exception(reponame, "The target missmatch between image and director.") {}
+  virtual ~MissMatchTarget() throw() {}
+};
+
 class IllegalThreshold : public Exception {
  public:
   IllegalThreshold(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
