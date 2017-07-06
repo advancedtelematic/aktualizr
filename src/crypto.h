@@ -45,6 +45,34 @@ struct PublicKey {
   int key_length;
 };
 
+class MultiPartSHA512Hasher {
+ public:
+  MultiPartSHA512Hasher() { crypto_hash_sha512_init(&state_); }
+  void update(const unsigned char *part, int64_t size) { crypto_hash_sha512_update(&state_, part, size); }
+  std::string getHexDigest() {
+    unsigned char sha512_hash[crypto_hash_sha512_BYTES];
+    crypto_hash_sha512_final(&state_, sha512_hash);
+    return boost::algorithm::hex(std::string((char*)sha512_hash, crypto_hash_sha512_BYTES));
+  }
+
+ private:
+  crypto_hash_sha512_state state_;
+};
+
+class MultiPartSHA256Hasher {
+ public:
+  MultiPartSHA256Hasher() { crypto_hash_sha256_init(&state_); }
+  void update(const unsigned char *part, int64_t size) { crypto_hash_sha256_update(&state_, part, size); }
+  std::string getHexDigest() {
+    unsigned char sha256_hash[crypto_hash_sha256_BYTES];
+    crypto_hash_sha256_final(&state_, sha256_hash);
+    return boost::algorithm::hex(std::string((char*)sha256_hash, crypto_hash_sha256_BYTES));
+  }
+
+ private:
+  crypto_hash_sha256_state state_;
+};
+
 class Crypto {
  public:
   static std::string sha256digest(const std::string &text);

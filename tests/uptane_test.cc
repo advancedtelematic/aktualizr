@@ -124,6 +124,13 @@ HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
   return HttpResponse(url, 200, CURLE_OK, "");
 }
 
+HttpResponse HttpClient::download(const std::string &url, curl_write_callback callback, void *userp) {
+  (void)url;
+  (void)callback;
+  (void)userp;
+  return HttpResponse(url, 200, CURLE_OK, "");
+}
+
 bool HttpClient::download(const std::string &url, const std::string &filename) {
   (void)url;
   (void)filename;
