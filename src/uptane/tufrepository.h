@@ -16,6 +16,14 @@
 namespace Uptane {
 typedef std::map<std::string, unsigned int> RoleThreshold;
 
+struct DownloadMetaStruct {
+  int64_t expected_length;
+  int64_t downloaded_length;
+  FILE *fp;
+  MultiPartSHA256Hasher sha256_hasher;
+  MultiPartSHA512Hasher sha512_hasher;
+};
+
 class TufRepository {
  public:
   TufRepository(const std::string &name, const std::string &base_url, const Config &config);

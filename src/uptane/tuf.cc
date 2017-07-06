@@ -76,19 +76,6 @@ Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algo
 
 Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algorithm::to_upper_copy(hash)) {}
 
-bool Hash::MatchWith(const std::string &content) const {
-  switch (type_) {
-    case kSha256:
-      return hash_ == boost::algorithm::hex(Crypto::sha256digest(content));
-    case kSha512:
-      return hash_ == boost::algorithm::hex(Crypto::sha512digest(content));
-    case kUnknownAlgorithm:
-      return false;
-    default:
-      throw std::invalid_argument("type_");  // Unreachable
-  }
-}
-
 bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
 
 Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
@@ -110,15 +97,8 @@ Target::Target(const std::string &filename, const Json::Value &content) : filena
   }
 }
 
-bool Target::MatchWith(const std::string &content) const {
-  if (content.length() != length_) {
-    return false;
-  }
-  if (hashes_.size() == 0) {
-    return false;
-  }
-  // TODO: We should have some priority/ordering here
-  return hashes_[0].MatchWith(content);
+bool Target::MatchWith(const Hash &hash) const {
+  return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {

@@ -180,6 +180,20 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
   return response;
 }
 
+HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp) {
+  CURL* curl_download = curl_easy_duphandle(curl);
+  curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);
+  curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, userp);
+
+  CURLcode result = curl_easy_perform(curl_download);
+  curl_easy_getinfo(curl_download, CURLINFO_RESPONSE_CODE, &http_code);
+  HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+  curl_easy_cleanup(curl_download);
+  return response;
+}
+
 bool HttpClient::download(const std::string& url, const std::string& filename) {
   // Download an update from SOTA Server. This requires two requests: the first
   // is to the sota server, and needs an Authentication: header to be present.

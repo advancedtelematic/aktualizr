@@ -14,6 +14,21 @@
 
 namespace Uptane {
 
+static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
+  assert(userp);
+  Uptane::DownloadMetaStruct* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
+  ds->downloaded_length += size * nmemb;
+  if (ds->downloaded_length > ds->expected_length) {
+    return (size * nmemb) + 1;  // curl will abort if return unexpected size;
+  }
+  fwrite(contents, size, nmemb, ds->fp);
+  size_t data_size = size * nmemb;
+  ds->sha256_hasher.update((const unsigned char*)contents, data_size);
+  ds->sha512_hasher.update((const unsigned char*)contents, data_size);
+
+  return data_size;
+}
+
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config)
     : root_(Root::kRejectAll),
       name_(name),
@@ -88,14 +103,24 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
 }
 
 std::string TufRepository::downloadTarget(Target target) {
-  HttpResponse response = http_.get(base_url_ + "/targets/" + target.filename());
+  DownloadMetaStruct ds;
+  FILE* fp = fopen((path_ / "targets" / target.filename()).string().c_str(), "w");
+  ds.fp = fp;
+  ds.downloaded_length = 0;
+  ds.expected_length = target.length();
+
+  HttpResponse response = http_.download(base_url_ + "/targets/" + target.filename(), DownloadHandler, &ds);
+  fclose(fp);
   if (!response.isOk()) {
-    throw Exception(name_, "Could not download file");
+    if (response.curl_code == CURLE_WRITE_ERROR) {
+      throw OversizedTarget(target.filename());
+    } else {
+      throw Exception(name_, "Could not download file, error: " + response.error_message);
+    }
   }
-  if (response.body.length() > target.length()) {
-    throw OversizedTarget(target.filename());
-  }
-  if (!target.MatchWith(response.body.c_str())) {
+
+  if (!target.MatchWith(Hash(Hash::kSha256, ds.sha256_hasher.getHexDigest())) &&
+      !target.MatchWith(Hash(Hash::kSha512, ds.sha512_hasher.getHexDigest()))) {
     throw TargetHashMismatch(target.filename());
   }
   return response.body;
