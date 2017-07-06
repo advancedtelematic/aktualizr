@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
   if (argc >= 2) {
     std::string command = std::string(argv[1]) + "/fake_http_server.py &";
     EXPECT_EQ(system(command.c_str()), 0);
-    sleep(1);
+    sleep(4);
   }
   int ret = RUN_ALL_TESTS();
   if (argc >= 2) {
