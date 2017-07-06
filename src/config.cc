@@ -3,6 +3,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <sstream>
@@ -178,6 +179,11 @@ void Config::postUpdateValues() {
       uptane.device_id = Utils::genPrettyName();
       Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
     }
+  }
+  if (uptane.primary_ecu_hardware_id.empty()) {
+    char hostname[200];
+    gethostname(hostname, 200);
+    uptane.primary_ecu_hardware_id = hostname;
   }
 
   uptane.public_key_path = (device.certificates_directory / uptane.public_key_path).string();
