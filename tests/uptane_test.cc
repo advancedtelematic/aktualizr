@@ -387,6 +387,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
   boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
+  boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
   conf.tls.server = tls_server;
   event::Channel *events_channel = new event::Channel();

@@ -55,13 +55,24 @@ void Repository::putManifest(const Json::Value &custom) {
 }
 
 std::vector<Uptane::Target> Repository::getNewTargets() {
-  director.refresh();
-  image.refresh();
-  std::vector<Uptane::Target> targets = director.getTargets();
-  if (!targets.empty()) {
-    transport.sendTargets(targets);
+  std::vector<Uptane::Target> targets;
+  director.updateRoot(Version());
+  image.updateRoot(Version());
+  if (image.checkTimestamp()) {
+    Json::Value snapshot_json = image.fetchAndCheckRole(Role::Snapshot());
+    targets = director.fetchTargets(false);
+    std::vector<Uptane::Target> image_targets = image.fetchTargets();
+
+    for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
+      if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()) {
+        throw MissMatchTarget("director and image");
+      }
+    }
+
+    if (!targets.empty()) {
+      transport.sendTargets(targets);
+    }
   }
-  // std::equal(targets.begin(), targets.end(), image.getTargets().begin());
   return targets;
 }
 

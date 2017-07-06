@@ -5,6 +5,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 
+#include <algorithm>
 #include <fstream>
 
 #include "crypto.h"
@@ -87,15 +88,15 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
 }
 
 std::string TufRepository::downloadTarget(Target target) {
-  HttpResponse response = http_.get(base_url_ + "/" + target.filename());
+  HttpResponse response = http_.get(base_url_ + "/targets/" + target.filename());
   if (!response.isOk()) {
     throw Exception(name_, "Could not download file");
   }
   if (response.body.length() > target.length()) {
-    throw OversizedTarget(name_);
+    throw OversizedTarget(target.filename());
   }
   if (!target.MatchWith(response.body.c_str())) {
-    throw TargetHashMismatch(name_, HASH_METADATA_MISMATCH);
+    throw TargetHashMismatch(target.filename());
   }
   return response.body;
 }
@@ -105,23 +106,19 @@ void TufRepository::saveTarget(const Target& target) {
     std::string content = downloadTarget(target);
     Utils::writeFile((path_ / "targets" / target.filename()).string(), content);
   }
-  targets_.push_back(target);
 }
 
-// See UPTANE Implementation Specification section 8.3.2
-void TufRepository::refresh() {
+std::vector<Target> TufRepository::fetchTargets(bool save) {
   targets_.clear();  // TODO, this is used to signal 'no new updates'
-  updateRoot(Version());
-  if (checkTimestamp()) {
-    Json::Value snapshot_json = fetchAndCheckRole(Role::Snapshot());
-    // TODO snapshots
-
-    Json::Value targets_json = fetchAndCheckRole(Role::Targets());
-    Json::Value target_list = targets_json["targets"];
-    for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
-      Target t(t_it.key().asString(), *t_it);
+  Json::Value targets_json = fetchAndCheckRole(Role::Targets());
+  Json::Value target_list = targets_json["targets"];
+  for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
+    Target t(t_it.key().asString(), *t_it);
+    targets_.push_back(t);
+    if (save) {
       saveTarget(t);
     }
   }
+  return targets_;
 }
 };

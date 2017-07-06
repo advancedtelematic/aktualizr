@@ -28,13 +28,11 @@ class TufRepository {
   Json::Value getJSON(const std::string &role);
   Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version());
   std::vector<Target> getTargets() { return targets_; }
-
-  void refresh();
+  std::vector<Target> fetchTargets(bool save = true);
+  void saveTarget(const Target &target);
+  std::string downloadTarget(Target target);
 
  private:
-  std::string downloadTarget(Target target);
-  void saveTarget(const Target &target);
-
   std::string name_;
   boost::filesystem::path path_;
   Config config_;
