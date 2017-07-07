@@ -186,6 +186,17 @@ void Config::postUpdateValues() {
     uptane.primary_ecu_hardware_id = hostname;
   }
 
+  std::vector<Uptane::SecondaryConfig>::iterator it;
+  int index = 0;
+  for (it = uptane.secondaries.begin(); it != uptane.secondaries.end(); ++it) {
+    if (it->ecu_serial.empty()) {
+      it->ecu_serial = Utils::intToString(index++) + "-" + uptane.primary_ecu_serial;
+    }
+    if (it->ecu_hardware_id.empty()) {
+      it->ecu_hardware_id = uptane.primary_ecu_hardware_id;
+    }
+  }
+
   uptane.public_key_path = (device.certificates_directory / uptane.public_key_path).string();
   uptane.private_key_path = (device.certificates_directory / uptane.private_key_path).string();
 }

@@ -1,11 +1,14 @@
 #include <boost/algorithm/hex.hpp>
+#include <boost/filesystem.hpp>
 
 #include "crypto.h"
 #include "secondary.h"
 
 namespace Uptane {
 Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *primary)
-    : config(config_in), transport(primary) {}
+    : config(config_in), transport(primary) {
+  boost::filesystem::create_directories(config.firmware_path.parent_path());
+}
 
 Json::Value Secondary::genAndSendManifest() {
   Json::Value manifest;
