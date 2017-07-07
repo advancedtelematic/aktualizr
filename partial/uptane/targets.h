@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "crypto.h"
 #include "uptane_time.h"
+#include "readjson.h"
 
 typedef enum {
 	TARGETS_OK_NOIMAGE,		/* Valid targets.json, no image for this ECU  */
@@ -24,26 +25,12 @@ typedef enum {
 struct targets_ctx;
 typedef struct targets_ctx targets_ctx_t;
 
-/* Both are blocking functions. Read should return exactly as many bytes as requested.
- * If the processing is to be cancelled, it is recommended that both functions write
- * zeros to provided buffer without blocking, targets_process should then return after
- * no longer than it takes to process a valid JSON. Cancellation points might be added
- * in future.
- *
- * TODO: isolate from targets, the interface should be the same for root.json and time.json
- * as well, including, probably, read_verify_wrapper (see targets.c)
- * */
-
-typedef void (*targets_read_t)(void* priv, uint8_t* buf, int len);
-typedef void (*targets_peek_t)(void* priv, uint8_t* buf);
-
 targets_ctx_t* targets_ctx_new(void);
 void targets_ctx_free(targets_ctx_t* ctx);
 bool targets_init(targets_ctx_t* ctx, int version_prev, uptane_time_t time,
 		  const uint8_t* ecu_id, const uint8_t* hardware_id,
-		  const crypto_key_t* keys, int key_num, int threshold,
-		  targets_read_t read_cb, targets_peek_t peek_cb, void* cb_priv);
+		  const role_keys_t* target_keys, const read_cb_t* callbacks);
 targets_result_t targets_process(targets_ctx_t* ctx);
-bool targets_get_result(const targets_ctx_t* ctx, uint8_t* sha512_hash, int* length, int* version);
+void targets_get_result(const targets_ctx_t* ctx, uint8_t* sha512_hash, int* length, int* version);
 #endif /* AKTUALIZR_PARTIAL_TARGETS_H_ */
 
