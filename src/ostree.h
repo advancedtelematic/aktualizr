@@ -8,9 +8,6 @@
 #include "config.h"
 #include "types.h"
 
-static const std::string NEW_PACKAGE = "/tmp/sota-package";
-static const std::string BOOT_BRANCH = "/usr/share/sota/branchname";
-
 struct Ostree {
   static boost::shared_ptr<OstreeDeployment> getStagedDeployment(const std::string &path);
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const std::string &path);
