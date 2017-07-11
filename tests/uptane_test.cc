@@ -103,14 +103,10 @@ HttpResponse HttpClient::get(const std::string &url) {
 }
 
 HttpResponse HttpClient::post(const std::string &url, const Json::Value &data) {
-  (void)data;
   (void)url;
 
-  std::ifstream ks("tests/certs/cred.p12");
-  std::string cert_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-  ks.close();
-
-  return HttpResponse(cert_str, 200, CURLE_OK, "");
+  Utils::writeFile("tests/test_data/post.json", data);
+  return HttpResponse(Utils::readFile("tests/certs/cred.p12"), 200, CURLE_OK, "");
 }
 
 HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
@@ -334,6 +330,10 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
 
   Uptane::Repository uptane(config);
   uptane.ecuRegister();
+  Json::Value ecu_data = Utils::parseJSONFile("tests/test_data/post.json");
+  EXPECT_EQ(ecu_data["ecus"].size(), 1);
+  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
+
 }
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
@@ -363,6 +363,9 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
+  if(!events_channel->hasValues()){
+    FAIL();
+  }
   boost::shared_ptr<event::BaseEvent> event;
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
@@ -397,6 +400,9 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
+  if(!events_channel->hasValues()){
+    FAIL();
+  }
   boost::shared_ptr<event::BaseEvent> event;
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
@@ -442,6 +448,40 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 1u);
+}
+
+
+TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
+  Config config;
+  config.uptane.metadata_path = "tests/";
+  config.uptane.repo_server = tls_server + "/director";
+  config.device.certificates_directory = "tests/test_data/";
+  config.uptane.repo_server = tls_server + "/repo";
+  config.device.uuid = "device_id";
+  config.tls.server = tls_server;
+
+  config.uptane.primary_ecu_serial = "testecuserial";
+  config.uptane.private_key_path = "private.key";
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = "/tmp/firmware.txt";
+  config.uptane.secondaries.push_back(ecu_config);
+
+  Uptane::Repository uptane(config);
+
+  uptane.ecuRegister();
+  Json::Value ecu_data = Utils::parseJSONFile("tests/test_data/post.json");
+  EXPECT_EQ(ecu_data["ecus"].size(), 2);
+  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
+  EXPECT_EQ(ecu_data["ecus"][1]["ecu_serial"].asString(), "secondary_ecu_serial");
+  EXPECT_EQ(ecu_data["ecus"][1]["hardware_identifier"].asString(), "secondary_hardware");
+  EXPECT_EQ(ecu_data["ecus"][1]["clientKey"]["keytype"].asString(), "RSA");
+  EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size()>0);
 }
 
 #ifndef __NO_MAIN__

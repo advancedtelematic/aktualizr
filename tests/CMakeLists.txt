@@ -108,7 +108,7 @@ if(BUILD_OSTREE)
 
     add_executable(aktualizr_tuf_tests tuf_test.cc)
     target_link_libraries(aktualizr_tuf_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
