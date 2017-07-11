@@ -296,6 +296,17 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   config.uptane.primary_ecu_serial = "testecuserial";
   config.uptane.private_key_path = "private.key";
 
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = "/tmp/firmware.txt";
+  config.uptane.secondaries.push_back(ecu_config);
+
+
   Uptane::Repository uptane(config);
 
   boost::filesystem::remove(test_manifest);
@@ -304,16 +315,14 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
 
   uptane.putManifest();
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
+  Json::Value json = Utils::parseJSONFile(test_manifest);
 
-  Json::Value json;
-  Json::Reader reader;
-  std::ifstream ks(test_manifest.c_str());
-  std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-
-  reader.parse(mnfst_str, json);
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 1u);
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["ecu_serial"], "secondary_ecu_serial");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"], "/tmp/firmware.txt");
+
 }
 
 TEST(SotaUptaneClientTest, device_ecu_register) {
