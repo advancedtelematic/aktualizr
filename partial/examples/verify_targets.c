@@ -55,7 +55,23 @@ const char* code_to_string(targets_result_t res) {
 	}
 }
 
-/* verify_targets targets.json keys.txt <threshold> <prev_version> <ecu_id> <hardware_id> */
+static bool hash_matches(const uint8_t* bin_hash, const char* text_hash) {
+	if(strlen(text_hash) != 2*SHA512_HASH_SIZE)
+		return false;
+
+	for(int i = 0; i < SHA512_HASH_SIZE; i++) {
+		char hex[3];
+		hex[0] = text_hash[2*i];
+		hex[1] = text_hash[2*i + 1];
+		hex[2] = 0;
+
+		if(bin_hash[i] != strtoul(hex, NULL, 16))
+			return false;
+	}
+	return true;
+}
+
+/* verify_targets targets.json keys.txt <threshold> <prev_version> <ecu_id> <hardware_id> <expected_hash>*/
 int main(int argc, const char** argv) {
 	FILE* keys_file = fopen(argv[2], "r");
 
@@ -98,14 +114,20 @@ int main(int argc, const char** argv) {
 	uptane_time_t uptane_time = {1900 + time->tm_year, time->tm_mon, time->tm_mday,
 				     time->tm_hour, time->tm_min, time->tm_sec};
 
-	targets_init(ctx, prev_version, uptane_time, (const uint8_t*) argv[5], (const uint8_t*) argv[6], 
-		     keys, n, threshold, read_data, peek_char, targets_file);
+	role_keys_t keyset = {keys, n, threshold};
+	read_cb_t callbacks = {read_data, peek_char, targets_file};
+	targets_init(ctx, prev_version, uptane_time, (const uint8_t*) argv[5],
+		     (const uint8_t*) argv[6], &keyset, &callbacks);
 
 	targets_result_t res = targets_process(ctx);
+	int res_len;
+	int res_version;
+	uint8_t res_hash[SHA512_HASH_SIZE];
+	targets_get_result(ctx, res_hash, &res_len, &res_version);
 
 	printf("Result: %s\n", code_to_string(res));
 
-	if(res == TARGETS_OK_NOIMAGE || res == TARGETS_OK_NOUPDATE || res == TARGETS_OK_UPDATE)
+	if((res == TARGETS_OK_NOIMAGE || res == TARGETS_OK_NOUPDATE || res == TARGETS_OK_UPDATE) && hash_matches(res_hash, argv[7]))
 		return 0;
 	else
 		return 1;
