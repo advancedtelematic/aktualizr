@@ -296,7 +296,6 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   config.uptane.primary_ecu_serial = "testecuserial";
   config.uptane.private_key_path = "private.key";
 
-
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -321,7 +320,6 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["ecu_serial"], "secondary_ecu_serial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"], "/tmp/firmware.txt");
-
 }
 
 TEST(SotaUptaneClientTest, device_ecu_register) {
@@ -341,7 +339,6 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
   Json::Value ecu_data = Utils::parseJSONFile("tests/test_data/post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 1);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
-
 }
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
@@ -371,7 +368,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
-  if(!events_channel->hasValues()){
+  if (!events_channel->hasValues()) {
     FAIL();
   }
   boost::shared_ptr<event::BaseEvent> event;
@@ -417,7 +414,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
-  if(!events_channel->hasValues()){
+  if (!events_channel->hasValues()) {
     FAIL();
   }
   boost::shared_ptr<event::BaseEvent> event;
@@ -427,9 +424,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(targets_event->packages.size(), 2u);
   EXPECT_EQ(targets_event->packages[0].ref_name,
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
-  EXPECT_EQ(Utils::readFile("tests/test_data/firmware.txt"),
-            "This is content");
-
+  EXPECT_EQ(Utils::readFile("tests/test_data/firmware.txt"), "This is content");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
@@ -470,7 +465,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 1u);
 }
 
-
 TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   Config config;
   config.uptane.metadata_path = "tests/";
@@ -501,7 +495,7 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   EXPECT_EQ(ecu_data["ecus"][1]["ecu_serial"].asString(), "secondary_ecu_serial");
   EXPECT_EQ(ecu_data["ecus"][1]["hardware_identifier"].asString(), "secondary_hardware");
   EXPECT_EQ(ecu_data["ecus"][1]["clientKey"]["keytype"].asString(), "RSA");
-  EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size()>0);
+  EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
 }
 
 #ifndef __NO_MAIN__
