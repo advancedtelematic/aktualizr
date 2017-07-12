@@ -6,7 +6,7 @@
 		{
 			"keyid" : "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187",
 			"method" : "rsassa-pss",
-			"sig" : "tKMU24qb8HZDjB0BjTCMAas+YfxIYxU23jt8ozz9Boz3FQk7jVahEie63jBs9H2D2IJEVCdFO5j29I/YFgJ3ghyl3rzMVFaectIWJqzJRSgWT2SLsd/GKqFlkwchZq/2rC1RJLtjOQN8kJia8J3S8oRGMWp2nXpkrhd2E76TzHfDSfCyIJeKfVj3aMn5dlhH1qQalEi1Ut/VHUt0ZEzB7Ty+oodRAZmgiSZDWMncik+cWjObFWEJKBmKkmAhxFpumnCfLxeDhe1f589ZUaMurBigB+JN/xQvSBD6cKbwVJMLGI+ws/Fh13JK27a3Xdae0qz3VVdBCcaIHFolhFHWmA=="
+			"sig" : "GlH4cBYvE8dAAPruYiBS6ra0YyrO8qPkqJTK2CWp/qoxMAhuaF4MyEc6TKfzGG3e7Y86aCi+Q9MCRrnDmGlWnbIGhZwusZpw5BaTY5iJSCNSapJoIrygSU017ef3qGYu89jcOuD7RnjAijBrvSPP7fCvk7suNkt82uLf6cX9wa8gcGgAN6pkO49IhTZ3jog3TF919yhw1/22V8SY6F5RHZAJupCYgzmOWzb9TVQJJOrsOK7QeXa56AaPIvAv3RnnFHS2r6A2yiC5sUhzbyFYlojirtvxk5dRHV5vgYyeg/Nt76INm2rN/ZrRql7HBQGkFGtQPyxnREdrEVnLCzEgRA=="
 		}
 	],
 	"signed" : 
@@ -27,6 +27,18 @@
 					"sha256" : "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"
 				},
 				"length" : 0
+			},
+			"secondary_firmware.txt" : 
+			{
+				"custom" : 
+				{
+					"ecuIdentifier" : "secondary_ecu_serial"
+				},
+				"hashes" : 
+				{
+					"sha256" : "1bbb15aa921ffffd5079567d630f43298dbe5e7cbc1b14e0ccdd6718fde28e47"
+				},
+				"length" : 15
 			}
 		},
 		"version" : 1
