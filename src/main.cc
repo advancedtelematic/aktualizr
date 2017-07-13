@@ -46,6 +46,7 @@
 #include "utils.h"
 
 #include <sodium.h>
+#include <sys/time.h>
 
 /*****************************************************************************/
 
@@ -118,7 +119,10 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
-  std::srand(static_cast<unsigned int>(std::time(0)));  // seeds pseudo random generator with cuurent time
+  // seeds pseudo random generator with current time
+  struct timeval current_time;
+  gettimeofday(&current_time , 0);
+  std::srand(static_cast<unsigned int>(current_time.tv_sec * 1000000 + current_time.tv_usec));
 
   // create and initialize the return value to zero (everything is OK)
   int return_value = EXIT_SUCCESS;
