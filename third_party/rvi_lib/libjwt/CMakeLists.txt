@@ -62,26 +62,3 @@ install(TARGETS ${LIBRARY_NAME} ${LIBRARY_NAME}_static
 
 install(FILES include/jwt.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/jwt")
 
-if (CHECK_FOUND)
-  include_directories(${CHECK_INCLUDE_DIRS})
-  link_directories(${CHECK_LIBRARY_DIRS})
-  add_definitions(${CHECK_CFLAGS_OTHER} -DKEYDIR="${PROJECT_SOURCE_DIR}/tests/keys")
-
-  enable_testing()
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} OPTIONAL)
-
-  function(InitialiseTest test_name file)
-      add_executable(${test_name} ${file})
-      target_link_libraries(${test_name} ${LIBS} ${LIBRARY_NAME}
-		${CHECK_LIBRARIES} ${CHECK_LDFLAGS})
-      add_test(NAME ${test_name} COMMAND ${test_name} OPTIONAL)
-      add_dependencies(check ${test_name})
-  endfunction()
-
-  InitialiseTest(jwt_dump tests/jwt_dump.c)
-  InitialiseTest(jwt_encode tests/jwt_encode.c)
-  InitialiseTest(jwt_grant tests/jwt_grant.c)
-  InitialiseTest(jwt_new tests/jwt_new.c)
-  InitialiseTest(jwt_rsa tests/jwt_rsa.c)
-  InitialiseTest(jwt_ec tests/jwt_ec.c)
-endif (CHECK_FOUND)
