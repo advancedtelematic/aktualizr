@@ -118,7 +118,11 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
-  std::srand(static_cast<unsigned int>(std::time(0)));  // seeds pseudo random generator with cuurent time
+  char block[4];
+  std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
+  urandom.read(block, 4);
+  urandom.close();
+  std::srand(*(unsigned int *)block);  // seeds pseudo random generator with random number
 
   // create and initialize the return value to zero (everything is OK)
   int return_value = EXIT_SUCCESS;
