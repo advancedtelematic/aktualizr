@@ -35,8 +35,6 @@ std::string Crypto::sha512digest(const std::string &text) {
 }
 
 std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string &message) {
-  RAND_poll();
-
   EVP_PKEY *key;
   RSA *rsa = NULL;
 
@@ -100,7 +98,6 @@ Json::Value Crypto::signTuf(const std::string &private_key_path, const std::stri
 }
 
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
-  RAND_poll();
   RSA *rsa = NULL;
 
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());

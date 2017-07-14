@@ -19,33 +19,14 @@
  */
 
 /*****************************************************************************/
-#include <signal.h>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <boost/thread.hpp>
 #include <iostream>
-#include <memory>
 
-#include "channel.h"
-#include "commands.h"
+#include "aktualizr.h"
 #include "config.h"
-#include "events.h"
-#include "eventsinterpreter.h"
 #include "logger.h"
-#include "sotahttpclient.h"
-#ifdef WITH_GENIVI
-#include "sotarviclient.h"
-#endif
-
-#ifdef BUILD_OSTREE
-#include "crypto.h"
-#include "ostree.h"
-#include "sotauptaneclient.h"
-#endif
-
 #include "utils.h"
-
-#include <sodium.h>
 
 /*****************************************************************************/
 
@@ -118,20 +99,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
-  char block[4];
-  std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
-  urandom.read(block, 4);
-  urandom.close();
-  std::srand(*(unsigned int *)block);  // seeds pseudo random generator with random number
-
-  // create and initialize the return value to zero (everything is OK)
-  int return_value = EXIT_SUCCESS;
-
   loggerInit();
-  if (sodium_init() == -1) {
-    LOGGER_LOG(LVL_error, "Unable to initialize libsodium");
-    return EXIT_FAILURE;
-  }
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
@@ -154,35 +122,7 @@ int main(int argc, char *argv[]) {
   std::string filename = commandline_map["config"].as<std::string>();
   Config config(filename, commandline_map);
 
-  command::Channel *commands_channel = new command::Channel();
-  event::Channel *events_channel = new event::Channel();
+  Aktualizr aktualizr(config);
 
-  EventsInterpreter events_interpreter(config, events_channel, commands_channel);
-  // run events interpreter in background
-  events_interpreter.interpret();
-
-  if (config.gateway.rvi) {
-#ifdef WITH_GENIVI
-    try {
-      SotaRVIClient(config, events_channel).runForever(commands_channel);
-    } catch (std::runtime_error e) {
-      LOGGER_LOG(LVL_error, "Missing RVI configurations: " << e.what());
-      exit(EXIT_FAILURE);
-    }
-#else
-    LOGGER_LOG(LVL_error, "RVI support is not enabled");
-    return EXIT_FAILURE;
-#endif
-  } else {
-    if (config.core.auth_type == CERTIFICATE) {
-#ifdef BUILD_OSTREE
-
-      SotaUptaneClient(config, events_channel).runForever(commands_channel);
-#endif
-    } else {
-      SotaHttpClient(config, events_channel).runForever(commands_channel);
-    }
-  }
-
-  return return_value;
+  return aktualizr.run();
 }

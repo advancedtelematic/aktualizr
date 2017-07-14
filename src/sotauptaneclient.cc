@@ -16,7 +16,8 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
     *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-    sleep(static_cast<unsigned int>(config.core.polling_sec));
+    std::cout << "POLLING: " << config.core.polling_sec;
+    sleep((unsigned long long)config.core.polling_sec);
   }
 }
 

@@ -1,6 +1,7 @@
 
 # set source files excluded main
 set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
+            aktualizr.cc
             logger.cc
             httpclient.cc
             sotahttpclient.cc
@@ -15,6 +16,7 @@ set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
             utils.cc)
 # set headers used for clang format
 set(HEADERS
+            aktualizr.h
             logger.h
             httpclient.h
             sotahttpclient.h
