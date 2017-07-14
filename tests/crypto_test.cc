@@ -18,15 +18,43 @@ TEST(crypto, sha256_is_correct) {
 }
 
 TEST(crypto, sign_verify_rsa) {
-  std::ifstream path_stream("tests/test_data/public.key");
-  std::string public_key((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
-  path_stream.close();
   std::string text = "This is text for sign";
-  PublicKey pkey(public_key, "rsa");
+  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
+
+
+TEST(crypto, sign_bad_key_no_crash) {
+  std::string text = "This is text for sign";
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("this is bad key path", text));
+  EXPECT_TRUE(signature.empty());
+}
+
+
+TEST(crypto, verify_bad_key_no_crash) {
+  std::string text = "This is text for sign";
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
+  bool signe_is_ok = Crypto::RSAPSSVerify("this is bad key", signature, text);
+  EXPECT_EQ(signe_is_ok, false);
+}
+
+TEST(crypto, verify_bad_sign_no_crash) {
+  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
+  std::string text = "This is text for sign";
+  bool signe_is_ok = Crypto::VerifySignature(pkey, "this is bad signature", text);
+  EXPECT_EQ(signe_is_ok, false);
+}
+
+TEST(crypto, verify_bad_key_type) {
+  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
+  pkey.type = (PublicKey::Type)99;
+  std::string text = "This is text for sign";
+  bool signe_is_ok = Crypto::VerifySignature(pkey, "this is bad signature", text);
+  EXPECT_EQ(signe_is_ok, false);
+}
+
 
 TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
@@ -60,16 +88,26 @@ TEST(crypto, parsep12) {
   EXPECT_EQ(boost::filesystem::exists(ca_file), true);
 }
 
+
+
 TEST(crypto, parsep12_FAIL) {
   std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";
   std::string cert_file = "/tmp/aktualizr_cert_test.pem";
   std::string ca_file = "/tmp/aktualizr_ca_test.pem";
 
+  FILE *bad_p12file = fopen("tests/test_data/priv.key", "rb");
+  if (!bad_p12file) {
+    EXPECT_TRUE(false) << " could not open tests/test_data/priv.key";
+  }
+  bool result = Crypto::parseP12(bad_p12file, "", pkey_file, cert_file, ca_file);
+  fclose(bad_p12file);
+  EXPECT_EQ(result, false);
+
   FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
   if (!p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
   }
-  bool result = Crypto::parseP12(p12file, "", "", cert_file, ca_file);
+  result = Crypto::parseP12(p12file, "", "", cert_file, ca_file);
   EXPECT_EQ(result, false);
   fclose(p12file);
 

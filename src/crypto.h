@@ -8,6 +8,8 @@
 #include <openssl/pkcs12.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
+#include <sodium.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
@@ -43,6 +45,7 @@ struct PublicKey {
   int key_length;
 };
 
+
 class Crypto {
  public:
   static std::string sha256digest(const std::string &text);
@@ -55,7 +58,6 @@ class Crypto {
                        const std::string &client_pem, const std::string ca_pem);
   static bool generateRSAKeyPair(const std::string &public_key, const std::string &private_key);
 
- private:
   static bool RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message);
   static bool ED25519Verify(const std::string &public_key, const std::string &signature, const std::string &message);
 };
