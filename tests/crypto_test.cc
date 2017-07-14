@@ -25,13 +25,11 @@ TEST(crypto, sign_verify_rsa) {
   EXPECT_TRUE(signe_is_ok);
 }
 
-
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign("this is bad key path", text));
   EXPECT_TRUE(signature.empty());
 }
-
 
 TEST(crypto, verify_bad_key_no_crash) {
   std::string text = "This is text for sign";
@@ -54,7 +52,6 @@ TEST(crypto, verify_bad_key_type) {
   bool signe_is_ok = Crypto::VerifySignature(pkey, "this is bad signature", text);
   EXPECT_EQ(signe_is_ok, false);
 }
-
 
 TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
@@ -87,8 +84,6 @@ TEST(crypto, parsep12) {
   EXPECT_EQ(boost::filesystem::exists(cert_file), true);
   EXPECT_EQ(boost::filesystem::exists(ca_file), true);
 }
-
-
 
 TEST(crypto, parsep12_FAIL) {
   std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";

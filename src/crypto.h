@@ -45,7 +45,6 @@ struct PublicKey {
   int key_length;
 };
 
-
 class Crypto {
  public:
   static std::string sha256digest(const std::string &text);
