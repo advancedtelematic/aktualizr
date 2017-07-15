@@ -17,6 +17,13 @@ TEST(crypto, sha256_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
+TEST(crypto, sha512_is_correct) {
+  std::string test_str = "This is string for testing";
+  std::string expected_result = "D3780CA0200DA69209D204429E034AEA4F661EF20EF38D3F9A0EFA13E1A9E3B37AE4E16308B720B010B6D53D5C020C11B3B7012705C9060F843D7628FEBC8791";
+  std::string result = boost::algorithm::hex(Crypto::sha512digest(test_str));
+  EXPECT_EQ(expected_result, result);
+}
+
 TEST(crypto, sign_verify_rsa) {
   std::string text = "This is text for sign";
   PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
