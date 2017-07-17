@@ -107,7 +107,6 @@ class Target {
   Target(const std::string &name, const Json::Value &content);
 
   std::string ecu_identifier() const { return ecu_identifier_; }
-
   std::string filename() const { return filename_; }
 
   bool MatchWith(const std::string &content) const;
@@ -119,7 +118,7 @@ class Target {
   };
 
   bool operator==(const Target &t2) {
-    return (filename_ == t2.filename_ && length_ == t2.length_ && ecu_identifier_ == t2.ecu_identifier_ &&
+    return (filename_ == t2.filename_ && length_ == t2.length_ &&
             std::equal(hashes_.begin(), hashes_.end(), t2.hashes_.begin()));
   }
 

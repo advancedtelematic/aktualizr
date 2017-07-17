@@ -54,25 +54,30 @@ void Repository::putManifest(const Json::Value &custom) {
   http.put(config.uptane.director_server + "/manifest", tuf_signed);
 }
 
-std::vector<Uptane::Target> Repository::getNewTargets() {
-  std::vector<Uptane::Target> targets;
+void Repository::refresh() {
   director.updateRoot(Version());
   image.updateRoot(Version());
-  if (image.checkTimestamp()) {
-    Json::Value snapshot_json = image.fetchAndCheckRole(Role::Snapshot());
-    targets = director.fetchTargets(false);
-    std::vector<Uptane::Target> image_targets = image.fetchTargets();
+  image.fetchAndCheckRole(Role::Snapshot());
+  image.fetchAndCheckRole(Role::Timestamp());
+}
 
-    for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
-      if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()) {
-        throw MissMatchTarget("director and image");
-      }
-    }
+std::vector<Uptane::Target> Repository::getNewTargets() {
+  refresh();
 
-    if (!targets.empty()) {
-      transport.sendTargets(targets);
+  std::vector<Uptane::Target> targets;
+  targets = director.fetchTargets(false);
+  std::vector<Uptane::Target> image_targets = image.fetchTargets();
+
+  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
+    if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()) {
+      throw MissMatchTarget("director and image");
     }
   }
+
+  if (!targets.empty()) {
+    transport.sendTargets(targets);
+  }
+
   return targets;
 }
 

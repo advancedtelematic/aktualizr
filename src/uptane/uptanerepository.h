@@ -20,6 +20,7 @@ class Repository {
   void putManifest(const Json::Value &);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
+  void refresh();
   std::vector<Uptane::Target> getNewTargets();
   bool deviceRegister();
   bool ecuRegister();

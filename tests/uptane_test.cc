@@ -93,6 +93,14 @@ HttpResponse HttpClient::get(const std::string &url) {
                                      boost::filesystem::copy_option::overwrite_if_exists);
       }
     }
+    if (url.find("targets.json") != std::string::npos) {
+      Json::Value timestamp = Utils::parseJSONFile(metadata_path + "repo/timestamp.json");
+      if (timestamp["signed"]["version"].asInt64() == 2) {
+        return HttpResponse(Utils::readFile(metadata_path + "/targets_noupdates.json"), 200, CURLE_OK, "");
+      } else {
+        return HttpResponse(Utils::readFile(metadata_path + "/targets_hasupdates.json"), 200, CURLE_OK, "");
+      }
+    }
 
     std::ifstream ks(path.c_str());
     std::string content((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
@@ -248,7 +256,6 @@ TEST(uptane, sign) {
   Json::Value signed_json =
       Crypto::signTuf((config.device.certificates_directory / config.uptane.private_key_path).string(),
                       (config.device.certificates_directory / config.uptane.public_key_path).string(), tosign_json);
-
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
@@ -375,7 +382,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   *events_channel >> event;
-  EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
+  EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
