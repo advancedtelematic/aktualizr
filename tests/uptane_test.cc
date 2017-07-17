@@ -93,13 +93,12 @@ HttpResponse HttpClient::get(const std::string &url) {
                                      boost::filesystem::copy_option::overwrite_if_exists);
       }
     }
-    if (url.find("targets.json") != std::string::npos ){
-      Json::Value timestamp =  Utils::parseJSONFile(metadata_path + "repo/timestamp.json");
-      if (timestamp["signed"]["version"].asInt64() == 2){
+    if (url.find("targets.json") != std::string::npos) {
+      Json::Value timestamp = Utils::parseJSONFile(metadata_path + "repo/timestamp.json");
+      if (timestamp["signed"]["version"].asInt64() == 2) {
         return HttpResponse(Utils::readFile(metadata_path + "/targets_noupdates.json"), 200, CURLE_OK, "");
-      }else{
+      } else {
         return HttpResponse(Utils::readFile(metadata_path + "/targets_hasupdates.json"), 200, CURLE_OK, "");
-
       }
     }
 
@@ -365,7 +364,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
-
 
   conf.tls.server = tls_server;
   event::Channel *events_channel = new event::Channel();
