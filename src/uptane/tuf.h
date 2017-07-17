@@ -95,11 +95,14 @@ class Hash {
 
   bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
+  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
 
  private:
   Type type_;
   std::string hash_;
 };
+
+std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class Target {
  public:

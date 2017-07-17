@@ -128,12 +128,12 @@ HttpResponse HttpClient::download(const std::string &url, curl_write_callback ca
   (void)callback;
   (void)userp;
   std::cout << "URL: " << url << "\n";
-  std::string path = metadata_path + url.substr(url.rfind("/targets/")+9);
-  std::cout << "filetoopen: " <<path << "\n\n\n";
+  std::string path = metadata_path + url.substr(url.rfind("/targets/") + 9);
+  std::cout << "filetoopen: " << path << "\n\n\n";
 
   std::string content = Utils::readFile(path);
 
-  callback((char*)content.c_str(), content.size(), 1, userp);
+  callback((char *)content.c_str(), content.size(), 1, userp);
   return HttpResponse(content, 200, CURLE_OK, "");
 }
 
