@@ -52,7 +52,7 @@ class MultiPartSHA512Hasher {
   std::string getHexDigest() {
     unsigned char sha512_hash[crypto_hash_sha512_BYTES];
     crypto_hash_sha512_final(&state_, sha512_hash);
-    return boost::algorithm::hex(std::string((char*)sha512_hash, crypto_hash_sha512_BYTES));
+    return boost::algorithm::hex(std::string((char *)sha512_hash, crypto_hash_sha512_BYTES));
   }
 
  private:
@@ -66,7 +66,7 @@ class MultiPartSHA256Hasher {
   std::string getHexDigest() {
     unsigned char sha256_hash[crypto_hash_sha256_BYTES];
     crypto_hash_sha256_final(&state_, sha256_hash);
-    return boost::algorithm::hex(std::string((char*)sha256_hash, crypto_hash_sha256_BYTES));
+    return boost::algorithm::hex(std::string((char *)sha256_hash, crypto_hash_sha256_BYTES));
   }
 
  private:
