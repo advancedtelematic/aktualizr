@@ -25,7 +25,6 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   size_t data_size = size * nmemb;
   ds->sha256_hasher.update((const unsigned char*)contents, data_size);
   ds->sha512_hasher.update((const unsigned char*)contents, data_size);
-
   return data_size;
 }
 
@@ -118,9 +117,10 @@ std::string TufRepository::downloadTarget(Target target) {
       throw Exception(name_, "Could not download file, error: " + response.error_message);
     }
   }
+  std::string h256 = ds.sha256_hasher.getHexDigest();
+  std::string h512 = ds.sha512_hasher.getHexDigest();
 
-  if (!target.MatchWith(Hash(Hash::kSha256, ds.sha256_hasher.getHexDigest())) &&
-      !target.MatchWith(Hash(Hash::kSha512, ds.sha512_hasher.getHexDigest()))) {
+  if (!target.MatchWith(Hash(Hash::kSha256, h256)) && !target.MatchWith(Hash(Hash::kSha512, h512))) {
     throw TargetHashMismatch(target.filename());
   }
   return response.body;
@@ -133,16 +133,13 @@ void TufRepository::saveTarget(const Target& target) {
   }
 }
 
-std::vector<Target> TufRepository::fetchTargets(bool save) {
+std::vector<Target> TufRepository::fetchTargets() {
   targets_.clear();  // TODO, this is used to signal 'no new updates'
   Json::Value targets_json = fetchAndCheckRole(Role::Targets());
   Json::Value target_list = targets_json["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets_.push_back(t);
-    if (save) {
-      saveTarget(t);
-    }
   }
   return targets_;
 }
