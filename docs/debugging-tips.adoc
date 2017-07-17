@@ -75,3 +75,7 @@ http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target
 
 
 ```
+
+== Valgrind and gdb
+
+If the target application or test is running under valgrind, then gdb can still be connected to the process without stopping it.  First run `vgdb --port=2159` in a different shell on the same machine, then connect to it using `target remote localhost:2159` in gdb
