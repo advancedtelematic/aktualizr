@@ -2,6 +2,12 @@
 set -e
 virtualenv -p python3 venv
 . venv/bin/activate
+
+if [ ! -d "sysroot" ]; then
+curl https://s3.eu-central-1.amazonaws.com/pw-dropbox/ostree-sysroot.tar.gz -o ostree-sysroot.tar.gz
+tar -xf ostree-sysroot.tar.gz
+fi
+
 pip install -r "$1/requirements.txt"
 $1/generator.py -t uptane --signature-encoding base64 -o vectors --cjson json-subset
 $1/server.py -t uptane --signature-encoding base64 &
