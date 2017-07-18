@@ -100,7 +100,7 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/utils.cc
                   uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --track-origins=yes --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_ostree ostree_test.cc)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
