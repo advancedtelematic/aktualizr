@@ -368,7 +368,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   conf.device.certificates_directory = "tests/test_data/";
   conf.uptane.repo_server = tls_server + "/repo";
   conf.device.uuid = "device_id";
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.private_key_path = "private.key";
 
   boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
@@ -407,7 +407,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   conf.device.certificates_directory = "tests/test_data/";
   conf.uptane.repo_server = tls_server + "/repo";
   conf.device.uuid = "device_id";
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.private_key_path = "private.key";
 
   Uptane::SecondaryConfig ecu_config;
@@ -441,7 +441,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
-  EXPECT_EQ(targets_event->packages.size(), 2u);
+  EXPECT_EQ(targets_event->packages.size(), 1u);
   EXPECT_EQ(targets_event->packages[0].ref_name,
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(Utils::readFile("tests/test_data/firmware.txt"), "This is content");

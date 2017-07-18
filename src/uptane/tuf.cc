@@ -103,10 +103,6 @@ Target::Target(const std::string &filename, const Json::Value &content) : filena
 }
 
 bool Target::MatchWith(const Hash &hash) const {
-  std::cout << "looking for hash:" << hash << "\nin:\n";
-  std::cout << *this;
-  std::cout << "\n";
-
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 
