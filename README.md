@@ -54,6 +54,7 @@ The following debian packages are used in the project:
  - libboost-thread-dev (>= 1.58.0)
  - libboost-log-dev (>= 1.58.0)
  - libboost-regex-dev (>= 1.58.0)
+ - libboost-random-dev (>= 1.58.0)
  - libpthread-stubs0-dev (>=0.3)
  - libyaml-cpp-dev (>=0.5.2)
  - curl (>= 7.47)
@@ -65,6 +66,11 @@ The following debian packages are used in the project:
  - valgrind
  - libjansson-dev
  - python3-dev (when building tests)
+ - libssl-dev
+ - libarchive-dev
+ - libsodium-dev
+ - clang (optional)
+ - clang-format (optional)
 
 ### Building
 
