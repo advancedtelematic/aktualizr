@@ -83,7 +83,7 @@ HttpResponse HttpClient::get(const std::string &url) {
   std::cout << "URL:" << url << "\n";
   if (url.find(tls_server) == 0) {
     std::string path = metadata_path + url.substr(tls_server.size());
-    std::cout << "filetoopen:" << path << "\n\n\n";
+    std::cout << "filetoopen: " << path << "\n\n\n";
     if (url.find("timestamp.json") != std::string::npos) {
       if (boost::filesystem::exists(path)) {
         boost::filesystem::copy_file(metadata_path + "/timestamp2.json", path,
@@ -122,6 +122,19 @@ HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
   director_file << data;
   director_file.close();
   return HttpResponse(url, 200, CURLE_OK, "");
+}
+
+HttpResponse HttpClient::download(const std::string &url, curl_write_callback callback, void *userp) {
+  (void)callback;
+  (void)userp;
+  std::cout << "URL: " << url << "\n";
+  std::string path = metadata_path + url.substr(url.rfind("/targets/") + 9);
+  std::cout << "filetoopen: " << path << "\n\n\n";
+
+  std::string content = Utils::readFile(path);
+
+  callback((char *)content.c_str(), content.size(), 1, userp);
+  return HttpResponse(content, 200, CURLE_OK, "");
 }
 
 bool HttpClient::download(const std::string &url, const std::string &filename) {

@@ -55,6 +55,15 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
   }
 
   if (vector["director"]["update"]["is_success"].asBool() && vector["image_repo"]["update"]["is_success"].asBool()) {
+    for (Json::ValueIterator it = vector["director"]["targets"].begin(); it != vector["director"]["targets"].end();
+         ++it) {
+      if (!(*it)["is_success"].asBool()) return false;
+    }
+    for (Json::ValueIterator it = vector["image_repo"]["targets"].begin(); it != vector["image_repo"]["targets"].end();
+         ++it) {
+      if (!(*it)["is_success"].asBool()) return false;
+    }
+
     return true;
   } else {
     std::cout << "No exceptions happen, but expects ";
