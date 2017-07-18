@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <algorithm>
 #include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <cstdlib>
@@ -153,13 +155,20 @@ std::string Utils::intToString(unsigned int val) {
 }
 
 std::string Utils::genPrettyName() {
-  std::string pretty_name = adverbs[std::rand() % (sizeof(adverbs) / sizeof(char *))];
-  pretty_name += "-";
-  pretty_name += names[std::rand() % (sizeof(names) / sizeof(char *))];
-  pretty_name += "-";
-  pretty_name += Utils::intToString(std::rand() % 1000);
-  std::transform(pretty_name.begin(), pretty_name.end(), pretty_name.begin(), ::tolower);
-  return pretty_name;
+  boost::random::random_device urandom;
+
+  boost::random::uniform_int_distribution<> adverbs_dist(0, (sizeof(adverbs) / sizeof(char *)) - 1);
+  boost::random::uniform_int_distribution<> nouns_dist(0, (sizeof(names) / sizeof(char *)) - 1);
+  boost::random::uniform_int_distribution<> digits(0, 999);
+  std::stringstream pretty_name;
+  pretty_name << adverbs[adverbs_dist(urandom)];
+  pretty_name << "-";
+  pretty_name << names[nouns_dist(urandom)];
+  pretty_name << "-";
+  pretty_name << digits(urandom);
+  std::string res = pretty_name.str();
+  std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+  return res;
 }
 
 std::string Utils::readFile(const std::string &filename) {

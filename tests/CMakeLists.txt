@@ -70,6 +70,12 @@ add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes 
 add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_executable(aktualizr_test_utils utils_test.cc)
+target_link_libraries(aktualizr_test_utils aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+add_test(NAME test_utils COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
+
+
 add_dependencies(build_tests
         aktualizr_test_config
         aktualizr_test_events
@@ -77,7 +83,8 @@ add_dependencies(build_tests
         aktualizr_test_http_aktualizr
         aktualizr_test_http_client
         aktualizr_test_socket_gateway
-        aktualizr_test_crypto)
+        aktualizr_test_crypto
+        aktualizr_test_utils)
 
 if(BUILD_OSTREE)
     add_executable(aktualizr_test_uptane
@@ -205,7 +212,8 @@ set(ALL_TEST_SRCS
     swm_test.cc
     tuf_test.cc
     uptane_vector_tests.cc
-    uptane_test.cc)
+    uptane_test.cc
+    utils_test.cc)
 
 if(CLANG_FORMAT)
     add_custom_target(format-tests
