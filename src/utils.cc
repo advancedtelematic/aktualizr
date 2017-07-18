@@ -1,6 +1,10 @@
 #include "utils.h"
 #include <stdio.h>
 #include <algorithm>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/remove_whitespace.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -121,6 +125,16 @@ const char *names[] = {"Aal",
                        "Zipfel",
                        "Zwiebelkuchen"};
 
+typedef boost::archive::iterators::base64_from_binary<
+    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >
+    base64_text;
+
+typedef boost::archive::iterators::transform_width<
+    boost::archive::iterators::binary_from_base64<
+        boost::archive::iterators::remove_whitespace<std::string::const_iterator> >,
+    8, 6>
+    base64_to_bin;
+
 std::string Utils::fromBase64(std::string base64_string) {
   unsigned long long paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
   std::replace(base64_string.begin(), base64_string.end(), '=', 'A');
@@ -129,7 +143,7 @@ std::string Utils::fromBase64(std::string base64_string) {
   return result;
 }
 
-std::string Utils::toBase64(std::string tob64) {
+std::string Utils::toBase64(const std::string &tob64) {
   std::string b64sig(base64_text(tob64.begin()), base64_text(tob64.end()));
   b64sig.append((3 - tob64.length() % 3) % 3, '=');
   return b64sig;

@@ -1,5 +1,8 @@
 #include "utils.h"
 #include <gtest/gtest.h>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+#include <boost/random/uniform_smallint.hpp>
 #include <set>
 
 bool CharOk(char c) {
@@ -50,6 +53,33 @@ TEST(Utils, RandomUuidSane) {
     EXPECT_EQ(0, uuids.count(uuid));
     uuids.insert(uuid);
     EXPECT_EQ(1, uuids.count(uuid));
+  }
+}
+
+TEST(Utils, FromBase64) {
+  // Generated using python's base64.b64encode
+  EXPECT_EQ("aGVsbG8=", Utils::toBase64("hello"));
+  EXPECT_EQ("", Utils::toBase64(""));
+  EXPECT_EQ("CQ==", Utils::toBase64("\t"));
+  EXPECT_EQ("YWI=", Utils::toBase64("ab"));
+  EXPECT_EQ("YWJj", Utils::toBase64("abc"));
+}
+
+TEST(Utils, Base64RoundTrip) {
+  boost::mt19937 gen;
+  boost::random::uniform_smallint<char> chars(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
+
+  boost::random::uniform_smallint<int> length(0, 20);
+
+  for (int test = 0; test < 100; test++) {
+    int len = length(gen);
+    std::string original;
+    for (int i = 0; i < len; i++) {
+      original += chars(gen);
+    }
+    std::string b64 = Utils::toBase64(original);
+    std::string output = Utils::fromBase64(b64);
+    EXPECT_EQ(original, output);
   }
 }
 
