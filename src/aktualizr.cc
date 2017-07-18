@@ -25,11 +25,11 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
 
   RAND_poll();
 
-  char block[4];
-  std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
-  urandom.read(block, 4);
+  unsigned int seed;
+  std::ifstream urandom("/dev/random", std::ios::in | std::ios::binary);
+  urandom.read(reinterpret_cast<char *>(&seed), sizeof(seed));
   urandom.close();
-  std::srand(*(unsigned int *)block);  // seeds pseudo random generator with random number
+  std::srand(seed);  // seeds pseudo random generator with random number
 }
 
 int Aktualizr::run() {
