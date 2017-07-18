@@ -73,7 +73,7 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
     OstreePackage installed_package = OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot);
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
       if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
-        if (it->MatchWith(Hash(Hash::kSha256, installed_package.ref_name))) {
+        if (it->MatchWith(Hash(Hash::kSha256, installed_package.refhash))) {
           LOGGER_LOG(LVL_debug, "Ostree package with hash " << installed_package.ref_name
                                                             << " already installed, skipping.");
           continue;
