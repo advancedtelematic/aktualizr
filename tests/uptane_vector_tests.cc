@@ -39,6 +39,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
   config.uptane.director_server = url_director;
   config.uptane.repo_server = url_image;
   config.uptane.metadata_path = "/tmp/aktualizr_repos";
+  config.ostree.os = "myos";
+  config.ostree.sysroot = "./sysroot";
   boost::filesystem::remove_all(config.uptane.metadata_path / "director");
   boost::filesystem::remove_all(config.uptane.metadata_path / "repo");
 
@@ -49,12 +51,21 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
 
   } catch (Uptane::Exception e) {
     return match_error(vector, &e);
-  } catch (...) {
-    std::cout << "Undefined exception\n";
+  } catch (std::exception ex) {
+    std::cout << "Undefined exception: " << ex.what();
     return false;
   }
 
   if (vector["director"]["update"]["is_success"].asBool() && vector["image_repo"]["update"]["is_success"].asBool()) {
+    for (Json::ValueIterator it = vector["director"]["targets"].begin(); it != vector["director"]["targets"].end();
+         ++it) {
+      if (!(*it)["is_success"].asBool()) return false;
+    }
+    for (Json::ValueIterator it = vector["image_repo"]["targets"].begin(); it != vector["image_repo"]["targets"].end();
+         ++it) {
+      if (!(*it)["is_success"].asBool()) return false;
+    }
+
     return true;
   } else {
     std::cout << "No exceptions happen, but expects ";

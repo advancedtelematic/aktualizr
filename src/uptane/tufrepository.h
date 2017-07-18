@@ -16,6 +16,14 @@
 namespace Uptane {
 typedef std::map<std::string, unsigned int> RoleThreshold;
 
+struct DownloadMetaStruct {
+  int64_t expected_length;
+  int64_t downloaded_length;
+  FILE *fp;
+  MultiPartSHA256Hasher sha256_hasher;
+  MultiPartSHA512Hasher sha512_hasher;
+};
+
 class TufRepository {
  public:
   TufRepository(const std::string &name, const std::string &base_url, const Config &config);
@@ -28,7 +36,7 @@ class TufRepository {
   Json::Value getJSON(const std::string &role);
   Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version());
   std::vector<Target> getTargets() { return targets_; }
-  std::vector<Target> fetchTargets(bool save = true);
+  std::vector<Target> fetchTargets();
   void saveTarget(const Target &target);
   std::string downloadTarget(Target target);
 

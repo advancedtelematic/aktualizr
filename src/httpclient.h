@@ -34,6 +34,7 @@ class HttpClient {
   virtual HttpResponse put(const std::string &url, const Json::Value &data);
 
   virtual bool download(const std::string &url, const std::string &filename);
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
   bool isAuthenticated() { return authenticated; }
   void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
   unsigned int http_code;

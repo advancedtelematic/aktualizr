@@ -64,21 +64,37 @@ void Repository::refresh() {
 std::vector<Uptane::Target> Repository::getNewTargets() {
   refresh();
 
-  std::vector<Uptane::Target> targets;
-  targets = director.fetchTargets(false);
+  std::vector<Uptane::Target> director_targets = director.fetchTargets();
   std::vector<Uptane::Target> image_targets = image.fetchTargets();
 
-  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
-    if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()) {
-      throw MissMatchTarget("director and image");
+  if (!director_targets.empty()) {
+    OstreePackage installed_package = OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot);
+    for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
+      if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
+        if (it->MatchWith(Hash(Hash::kSha256, installed_package.ref_name))) {
+          LOGGER_LOG(LVL_debug, "Ostree package with hash " << installed_package.ref_name
+                                                            << " already installed, skipping.");
+          continue;
+        }
+      }
+      bool found = false;
+      std::vector<Uptane::Target>::iterator image_target_it;
+      for (image_target_it = image_targets.begin(); image_target_it != image_targets.end(); ++image_target_it) {
+        if (it->filename() == image_target_it->filename()) {
+          image.saveTarget(*image_target_it);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        throw MissMatchTarget("director and image");
+      }
     }
+
+    transport.sendTargets(director_targets);
   }
 
-  if (!targets.empty()) {
-    transport.sendTargets(targets);
-  }
-
-  return targets;
+  return director_targets;
 }
 
 bool Repository::deviceRegister() {
