@@ -55,6 +55,7 @@ void Repository::putManifest(const Json::Value &custom) {
 }
 
 void Repository::refresh() {
+  putManifest();
   director.updateRoot(Version());
   image.updateRoot(Version());
   image.fetchAndCheckRole(Role::Snapshot());
