@@ -124,6 +124,10 @@ if(BUILD_OSTREE)
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 
     add_dependencies(build_tests aktualizr_test_uptane aktualizr_test_ostree aktualizr_tuf_tests aktualizr_uptane_vector_tests)
+
+    add_test(NAME test_ostree_invalid
+        COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
+    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not load installed ostree package")
 endif(BUILD_OSTREE)
 
 

@@ -30,7 +30,7 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
   urandom.read(reinterpret_cast<char *>(&seed), sizeof(seed));
   urandom.close();
   std::srand(seed);  // seeds pseudo random generator with random number
-  
+
 #ifdef BUILD_OSTREE
   try {
     OstreeBranch::getCurrent("", config.ostree.sysroot);
