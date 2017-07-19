@@ -1,7 +1,13 @@
 #include "utils.h"
 #include <stdio.h>
 #include <algorithm>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/remove_whitespace.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 #include <boost/random/random_device.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <cstdlib>
@@ -119,6 +125,16 @@ const char *names[] = {"Aal",
                        "Zipfel",
                        "Zwiebelkuchen"};
 
+typedef boost::archive::iterators::base64_from_binary<
+    boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8> >
+    base64_text;
+
+typedef boost::archive::iterators::transform_width<
+    boost::archive::iterators::binary_from_base64<
+        boost::archive::iterators::remove_whitespace<std::string::const_iterator> >,
+    8, 6>
+    base64_to_bin;
+
 std::string Utils::fromBase64(std::string base64_string) {
   unsigned long long paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
   std::replace(base64_string.begin(), base64_string.end(), '=', 'A');
@@ -127,7 +143,7 @@ std::string Utils::fromBase64(std::string base64_string) {
   return result;
 }
 
-std::string Utils::toBase64(std::string tob64) {
+std::string Utils::toBase64(const std::string &tob64) {
   std::string b64sig(base64_text(tob64.begin()), base64_text(tob64.end()));
   b64sig.append((3 - tob64.length() % 3) % 3, '=');
   return b64sig;
@@ -153,13 +169,20 @@ std::string Utils::intToString(unsigned int val) {
 }
 
 std::string Utils::genPrettyName() {
-  std::string pretty_name = adverbs[std::rand() % (sizeof(adverbs) / sizeof(char *))];
-  pretty_name += "-";
-  pretty_name += names[std::rand() % (sizeof(names) / sizeof(char *))];
-  pretty_name += "-";
-  pretty_name += Utils::intToString(std::rand() % 1000);
-  std::transform(pretty_name.begin(), pretty_name.end(), pretty_name.begin(), ::tolower);
-  return pretty_name;
+  boost::random::random_device urandom;
+
+  boost::random::uniform_int_distribution<> adverbs_dist(0, (sizeof(adverbs) / sizeof(char *)) - 1);
+  boost::random::uniform_int_distribution<> nouns_dist(0, (sizeof(names) / sizeof(char *)) - 1);
+  boost::random::uniform_int_distribution<> digits(0, 999);
+  std::stringstream pretty_name;
+  pretty_name << adverbs[adverbs_dist(urandom)];
+  pretty_name << "-";
+  pretty_name << names[nouns_dist(urandom)];
+  pretty_name << "-";
+  pretty_name << digits(urandom);
+  std::string res = pretty_name.str();
+  std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+  return res;
 }
 
 std::string Utils::readFile(const std::string &filename) {

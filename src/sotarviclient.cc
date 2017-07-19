@@ -8,6 +8,7 @@
 
 #include "logger.h"
 #include "types.h"
+#include "utils.h"
 
 Json::Value parseParameters(const char *parameters) {
   Json::Reader reader;
@@ -166,10 +167,7 @@ void SotaRVIClient::invokeAck(const std::string &update_id) {
 void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
   std::string b64_text = chunk_json["bytes"].asString();
 
-  unsigned long long paddChars = std::count(b64_text.begin(), b64_text.end(), '=');
-  std::replace(b64_text.begin(), b64_text.end(), '=', 'A');
-  std::string output(base64_to_bin(b64_text.begin()), base64_to_bin(b64_text.end()));
-  output.erase(output.end() - static_cast<unsigned int>(paddChars), output.end());
+  std::string output = Utils::fromBase64(b64_text);
 
   std::ofstream update_file((config.device.packages_dir / chunk_json["update_id"].asString()).string().c_str(),
                             std::ios::out | std::ios::app | std::ios::binary);
