@@ -1,5 +1,6 @@
 #!/usr/bin/python
-
+import sys
+import socket
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 last_fails = False
@@ -66,7 +67,12 @@ class Handler(BaseHTTPRequestHandler):
 		self.do_POST()
 
 
-server_address = ('', 8800)
-httpd = HTTPServer(server_address, Handler)
+class ReUseHTTPServer(HTTPServer):
+	def server_bind(self):
+		self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		HTTPServer.server_bind(self)
+
+server_address = ('', int(sys.argv[1]))
+httpd = ReUseHTTPServer(server_address, Handler)
 httpd.serve_forever()
 
