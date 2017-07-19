@@ -119,10 +119,13 @@ int main(int argc, char *argv[]) {
   }
 
   // Initialize config with default values, the update with config, then with cmd
-  std::string filename = commandline_map["config"].as<std::string>();
-  Config config(filename, commandline_map);
-
-  Aktualizr aktualizr(config);
-
-  return aktualizr.run();
+  try {
+    std::string filename = commandline_map["config"].as<std::string>();
+    Config config(filename, commandline_map);
+    Aktualizr aktualizr(config);
+    return aktualizr.run();
+  } catch(std::runtime_error e) {
+    LOGGER_LOG(LVL_error, "ERROR: " << e.what());
+    exit(EXIT_FAILURE);
+  }
 }
