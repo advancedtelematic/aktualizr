@@ -83,8 +83,6 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   reportHWInfo();
   reportInstalledPackages();
   uptane_repo.authenticate();
-  uptane_repo.putManifest();
-  uptane_repo.updateRoot();
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;

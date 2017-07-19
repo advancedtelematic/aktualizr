@@ -95,11 +95,14 @@ class Hash {
 
   bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
+  friend std::ostream &operator<<(std::ostream &os, const Hash &h);
 
  private:
   Type type_;
   std::string hash_;
 };
+
+std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class Target {
  public:
@@ -117,7 +120,7 @@ class Target {
   };
 
   bool operator==(const Target &t2) {
-    if (filename_ == t2.filename_ && length_ == t2.length_ && ecu_identifier_ == t2.ecu_identifier_) {
+    if (filename_ == t2.filename_ && length_ == t2.length_) {
       for (std::vector<Hash>::iterator it = hashes_.begin(); it != hashes_.end(); ++it) {
         if (t2.MatchWith(*it)) {
           return true;

@@ -78,6 +78,11 @@ Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algor
 
 bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
 
+std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
+  os << "Hash: " << h.hash_;
+  return os;
+}
+
 Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
@@ -102,6 +107,12 @@ bool Target::MatchWith(const Hash &hash) const {
 }
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
-  os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length() << ")";
+  os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length();
+  os << " hashes: (";
+  for (std::vector<Hash>::const_iterator it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
+    std::cout << *it << ", ";
+  }
+  os << "))";
+
   return os;
 }

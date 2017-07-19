@@ -55,6 +55,7 @@ void Repository::putManifest(const Json::Value &custom) {
 }
 
 void Repository::refresh() {
+  putManifest();
   director.updateRoot(Version());
   image.updateRoot(Version());
   image.fetchAndCheckRole(Role::Snapshot());
@@ -64,21 +65,37 @@ void Repository::refresh() {
 std::vector<Uptane::Target> Repository::getNewTargets() {
   refresh();
 
-  std::vector<Uptane::Target> targets;
-  targets = director.fetchTargets(false);
+  std::vector<Uptane::Target> director_targets = director.fetchTargets();
   std::vector<Uptane::Target> image_targets = image.fetchTargets();
+  std::vector<Uptane::Target> primary_targets;
+  std::vector<Uptane::Target> secondary_targets;
 
-  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
-    if (std::find(image_targets.begin(), image_targets.end(), *it) == image_targets.end()) {
-      throw MissMatchTarget("director and image");
+  if (!director_targets.empty()) {
+    OstreePackage installed_package = OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot);
+    for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
+      if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
+        if (it->MatchWith(Hash(Hash::kSha256, installed_package.refhash))) {
+          LOGGER_LOG(LVL_debug, "Ostree package with hash " << installed_package.ref_name
+                                                            << " already installed, skipping.");
+          continue;
+        }
+      }
+      std::vector<Uptane::Target>::iterator image_target_it;
+      image_target_it = std::find(image_targets.begin(), image_targets.end(), *it);
+      if (image_target_it != image_targets.end()) {
+        image.saveTarget(*image_target_it);
+        if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
+          primary_targets.push_back(*it);
+        } else {
+          secondary_targets.push_back(*it);
+        }
+      } else {
+        throw MissMatchTarget("director and image");
+      }
     }
+    transport.sendTargets(secondary_targets);
   }
-
-  if (!targets.empty()) {
-    transport.sendTargets(targets);
-  }
-
-  return targets;
+  return primary_targets;
 }
 
 bool Repository::deviceRegister() {
