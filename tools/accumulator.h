@@ -7,11 +7,11 @@
 #ifndef PROGRAM_OPTIONS_ACCUMULATOR_HPP
 #define PROGRAM_OPTIONS_ACCUMULATOR_HPP
 
-#include <boost/program_options/value_semantic.hpp>
 #include <boost/any.hpp>
 #include <boost/function.hpp>
-#include <vector>
+#include <boost/program_options/value_semantic.hpp>
 #include <string>
+#include <vector>
 
 /// An accumulating option value to handle multiple incrementing options.
 template <typename T>

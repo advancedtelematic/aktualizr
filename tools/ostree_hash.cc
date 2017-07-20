@@ -1,8 +1,8 @@
 #include "ostree_hash.h"
 
 #include <cstring>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 OSTreeHash::OSTreeHash(const uint8_t hash[32]) { std::memcpy(hash_, hash, 32); }
 

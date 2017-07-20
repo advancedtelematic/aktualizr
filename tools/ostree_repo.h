@@ -6,8 +6,8 @@
 #include <list>
 #include <map>
 
-#include "ostree_object.h"
 #include "ostree_hash.h"
+#include "ostree_object.h"
 
 class OSTreeRepo : private boost::noncopyable {
  public:
