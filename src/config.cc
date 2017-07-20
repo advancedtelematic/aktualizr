@@ -84,6 +84,11 @@ Config::Config(const std::string& filename, const boost::program_options::variab
   postUpdateValues();
 }
 
+Config::Config(const boost::property_tree::ptree& pt) {
+  updateFromPropertyTree(pt);
+  postUpdateValues();
+}
+
 void Config::postUpdateValues() {
   boost::system::error_code error;
   boost::filesystem::create_directories(device.certificates_directory, error);

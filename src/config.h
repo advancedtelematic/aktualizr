@@ -159,6 +159,7 @@ struct OstreeConfig {
 class Config {
  public:
   Config();
+  Config(const boost::property_tree::ptree& pt);
   Config(const std::string& filename, const boost::program_options::variables_map& cmd);
   Config(const std::string& filename);
 
