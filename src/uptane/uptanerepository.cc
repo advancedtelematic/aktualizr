@@ -46,11 +46,13 @@ void Repository::putManifest(const Json::Value &custom) {
 
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom);
-  Json::Value ecu_version_signed =
-      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, unsigned_ecu_version);
+  Json::Value ecu_version_signed = Crypto::signTuf(
+      (config.device.certificates_directory / config.uptane.private_key_path).string(),
+      (config.device.certificates_directory / config.uptane.public_key_path).string(), unsigned_ecu_version);
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
-  Json::Value tuf_signed =
-      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, version_manifest);
+  Json::Value tuf_signed = Crypto::signTuf(
+      (config.device.certificates_directory / config.uptane.private_key_path).string(),
+      (config.device.certificates_directory / config.uptane.public_key_path).string(), version_manifest);
   http.put(config.uptane.director_server + "/manifest", tuf_signed);
 }
 
@@ -75,8 +77,8 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
       if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
         if (it->MatchWith(Hash(Hash::kSha256, installed_package.refhash))) {
-          LOGGER_LOG(LVL_debug, "Ostree package with hash " << installed_package.ref_name
-                                                            << " already installed, skipping.");
+          LOGGER_LOG(LVL_debug,
+                     "Ostree package with hash " << installed_package.ref_name << " already installed, skipping.");
           continue;
         }
       }
