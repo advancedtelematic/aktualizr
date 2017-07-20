@@ -12,7 +12,7 @@ set (GARAGE_PUSH_SRCS
 )
 
 add_executable(garage-push ${GARAGE_PUSH_SRCS})
-target_link_libraries(garage-push ${CURL_LIBRARIES} ${GLIB2_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(garage-push ${CURL_LIBRARIES} ${GLIB2_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LibArchive_LIBRARIES})
 
 set (ALL_SRCS
   ${GARAGE_PUSH_SRCS})

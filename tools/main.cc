@@ -1,3 +1,5 @@
+#include <archive.h>
+#include <archive_entry.h>
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
@@ -10,6 +12,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include "accumulator.h"
 #include "logging.h"
@@ -47,11 +50,65 @@ int authenticate(const string &cacerts, string filepath,
   std::string ostree_server;
   std::string client_id;
   std::string client_secret;
+  std::stringstream json_stream;
+  bool found = false;
+
+  struct archive *a;
+  struct archive_entry *entry;
+  int r;
+
+  /* Try reading the file as an archive of any format. If that fails, try
+   * reading it as a json. */
+  a = archive_read_new();
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  r = archive_read_open_filename(a, filepath.c_str(), 1024);
+  if (r == ARCHIVE_OK) {
+    const char *filename = NULL;
+    while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+      filename = archive_entry_pathname(entry);
+      if (!strcmp(filename, "treehub.json")) {
+        const char *buff;
+        size_t size;
+        int64_t offset;
+
+        for (;;) {
+          r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
+          if (r == ARCHIVE_EOF) {
+            break;
+          } else if (r != ARCHIVE_OK) {
+            std::cerr << archive_error_string(a) << std::endl;
+            return EXIT_FAILURE;
+          } else if (size > 0 && buff != nullptr) {
+            json_stream.write(buff, size);
+          }
+        }
+        found = true;
+      } else {
+        archive_read_data_skip(a);
+      }
+    }
+    r = archive_read_free(a);
+    if (r != ARCHIVE_OK) {
+      std::cerr << "Error closing zipped credentials file: " << filepath
+                << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (!found) {
+      std::cerr << "treehub.json not found in zippled credentials file: "
+                << filepath << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
 
   try {
     ptree pt;
 
-    read_json(filepath, pt);
+    if (found) {
+      read_json(json_stream, pt);
+    } else {
+      read_json(filepath, pt);
+    }
 
     if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
       method = OAUTH2;
@@ -70,6 +127,8 @@ int authenticate(const string &cacerts, string filepath,
 
   } catch (json_parser_error e) {
     std::cerr << e.what() << std::endl;
+    std::cerr << "Unable to read " << filepath << " as archive or json file."
+              << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -176,7 +235,7 @@ int main(int argc, char **argv) {
     ("quiet,q", "Quiet mode")
     ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials")
+    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
     ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
