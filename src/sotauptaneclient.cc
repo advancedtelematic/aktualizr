@@ -70,16 +70,11 @@ void SotaUptaneClient::reportInstalledPackages() {
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
-  if (!config.isProvisioned()) {
-    LOGGER_LOG(LVL_info, "Automatically provisioning device");
-    if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
-      throw std::runtime_error(
-          "Fatal error of tls or ecu device registration, please look at previous error log messages to understand "
-          "the reason");
-    }
-    LOGGER_LOG(LVL_info, "Provisioning complete, sync()ing");
-    sync();
+  LOGGER_LOG(LVL_info, "Automatically provisioning device");
+  if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
+    throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
+  LOGGER_LOG(LVL_info, "Provisioning complete");
   reportHWInfo();
   reportInstalledPackages();
   uptane_repo.authenticate();

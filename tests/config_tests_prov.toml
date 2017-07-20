@@ -43,6 +43,7 @@ p12_password = ""
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
 ca_file = "ca.pem"
 client_certificate = "client.pem"
+pkey_file = "pkey.pem"
 
 [uptane]
 #primary_ecu_serial = "$SOTA_DEVICE_ID"

@@ -99,6 +99,21 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
 }
 
 bool Repository::deviceRegister() {
+  bool pkey_exists = boost::filesystem::exists(config.device.certificates_directory / config.tls.pkey_file);
+  bool certificate_exists =
+      boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate);
+  bool ca_exists = boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file);
+
+  if (pkey_exists && certificate_exists && ca_exists) {
+    LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
+    return true;
+  }
+
+  if (pkey_exists || certificate_exists || ca_exists) {
+    LOGGER_LOG(LVL_error, "Device registration was interrupted nothing can be done");
+    return false;
+  }
+
   std::string bootstrap_pkey_pem = (config.device.certificates_directory / "bootstrap_pkey.pem").string();
   std::string bootstrap_cert_pem = (config.device.certificates_directory / "bootstrap_cert.pem").string();
   std::string bootstrap_ca_pem = (config.device.certificates_directory / "bootstrap_ca.pem").string();
@@ -134,6 +149,7 @@ bool Repository::deviceRegister() {
     return false;
   }
   fclose(device_p12);
+  sync();
   return true;
 }
 
@@ -177,8 +193,14 @@ bool Repository::ecuRegister() {
   authenticate();
   HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
   if (!response.isOk()) {
-    LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << response.body);
-    return false;
+    Json::Value resp_code = Utils::parseJSON(response.body)["code"];
+    if (resp_code.isString() && resp_code.asString() == "ecu_already_registered") {
+      LOGGER_LOG(LVL_trace, "ECUs are already registered, proceeding");
+      return true;
+    } else {
+      LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << response.body);
+      return false;
+    }
   }
   return true;
 }
