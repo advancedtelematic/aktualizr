@@ -20,18 +20,6 @@ TEST(CopyConstructorTest, copied) {
   EXPECT_EQ(resp["path"].asString(), path);
 }
 
-TEST(AuthenticateTest, authenticated) {
-  HttpClient http;
-  AuthConfig conf;
-  conf.server = "http://127.0.0.1:8800";
-  conf.client_id = "id";
-  conf.client_secret = "secret";
-  bool response = http.authenticate(conf);
-  EXPECT_EQ(response, true);
-  Json::Value resp = http.get(server + "/auth_call").getJson();
-  EXPECT_EQ(resp["status"].asString(), "good");
-}
-
 TEST(GetTest, get_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
@@ -62,33 +50,7 @@ TEST(PostTest, put_performed) {
   EXPECT_EQ(json["data"]["key"].asString(), "val");
 }
 
-TEST(GetTest, file_downloaded) {
-  HttpClient http;
-  std::string path = "/download";
-  std::string filename = "/tmp/aktualizr_test_http.txt";
-  remove(filename.c_str());
-  bool result = http.download(server + path, filename);
-  EXPECT_EQ(result, true);
-  std::ifstream file_stream(filename.c_str());
-  std::string content;
-  std::getline(file_stream, content);
-  EXPECT_EQ(content, "content");
-}
-
-TEST(GetTest, file_downloaded_resume) {
-  HttpClient http;
-  std::string path = "/download";
-  std::string filename = "/tmp/aktualizr_test_http.txt";
-  remove(filename.c_str());
-  bool result = http.download(server + path, filename);
-  EXPECT_EQ(result, true);
-  result = http.download(server + path, filename);
-  EXPECT_EQ(result, true);
-  std::ifstream file_stream(filename.c_str());
-  std::string content;
-  std::getline(file_stream, content);
-  EXPECT_EQ(content, "contentcontent");
-}
+// TODO: add tests for HttpClient::download
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {

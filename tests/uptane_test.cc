@@ -67,10 +67,6 @@ void HttpClient::setCerts(const std::string &ca, const std::string &cert, const 
   (void)pkey;
 }
 HttpClient::~HttpClient() {}
-bool HttpClient::authenticate(const AuthConfig &conf) {
-  (void)conf;
-  return true;
-}
 bool HttpClient::authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey) {
   (void)ca_file;
   (void)cert;
@@ -135,12 +131,6 @@ HttpResponse HttpClient::download(const std::string &url, curl_write_callback ca
 
   callback((char *)content.c_str(), content.size(), 1, userp);
   return HttpResponse(content, 200, CURLE_OK, "");
-}
-
-bool HttpClient::download(const std::string &url, const std::string &filename) {
-  (void)url;
-  (void)filename;
-  return true;
 }
 
 TEST(uptane, get_json) {

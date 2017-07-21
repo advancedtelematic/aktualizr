@@ -25,12 +25,6 @@ struct BaseCommand {
 };
 typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 
-class Authenticate : public BaseCommand {
- public:
-  Authenticate();
-  std::string toJson();
-};
-
 class Shutdown : public BaseCommand {
  public:
   Shutdown();
@@ -40,18 +34,6 @@ class Shutdown : public BaseCommand {
 class GetUpdateRequests : public BaseCommand {
  public:
   GetUpdateRequests();
-  std::string toJson();
-};
-
-class ListInstalledPackages : public BaseCommand {
- public:
-  ListInstalledPackages();
-  std::string toJson();
-};
-
-class ListSystemInfo : public BaseCommand {
- public:
-  ListSystemInfo();
   std::string toJson();
 };
 
@@ -69,36 +51,6 @@ class AbortDownload : public BaseCommand {
   data::UpdateRequestId update_request_id;
   std::string toJson();
   static AbortDownload fromJson(const std::string& json_str);
-};
-
-class StartInstall : public BaseCommand {
- public:
-  StartInstall(const data::UpdateRequestId& ur_in);
-  data::UpdateRequestId update_request_id;
-  std::string toJson();
-  static StartInstall fromJson(const std::string& json_str);
-};
-
-class SendInstalledPackages : public BaseCommand {
- public:
-  SendInstalledPackages(const std::vector<data::Package>&);
-  std::vector<data::Package> packages;
-  std::string toJson();
-  static SendInstalledPackages fromJson(const std::string& json_str);
-};
-
-class SendInstalledSoftware : public BaseCommand {
- public:
-  SendInstalledSoftware(const data::InstalledSoftware&);
-  data::InstalledSoftware installed_software;
-  std::string toJson();
-  static SendInstalledSoftware fromJson(const std::string& json_str);
-};
-
-class SendSystemInfo : public BaseCommand {
- public:
-  SendSystemInfo();
-  std::string toJson();
 };
 
 class SendUpdateReport : public BaseCommand {

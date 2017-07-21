@@ -4,14 +4,12 @@ set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
             aktualizr.cc
             logger.cc
             httpclient.cc
-            sotahttpclient.cc
             config.cc
             events.cc
             commands.cc
             types.cc
             eventsinterpreter.cc
             gatewaymanager.cc
-            socketgateway.cc
             crypto.cc
             utils.cc)
 # set headers used for clang format
@@ -19,7 +17,6 @@ set(HEADERS
             aktualizr.h
             logger.h
             httpclient.h
-            sotahttpclient.h
             sotauptaneclient.h
             config.h
             channel.h
@@ -28,7 +25,6 @@ set(HEADERS
             types.h
             eventsinterpreter.h
             gatewaymanager.h
-            socketgateway.h
             crypto.h
             openssl_compat.h
             ostree.h

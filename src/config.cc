@@ -17,11 +17,8 @@
  *    us to print its content, i.e. for logging purposes.
  */
 std::ostream& operator<<(std::ostream& os, const Config& cfg) {
-  return os << "\tAuthentication Server: " << cfg.auth.server << std::endl
-            << "\tSota Server: " << cfg.core.server << std::endl
-            << "\tPooling enabled : " << cfg.core.polling << std::endl
-            << "\tPooling interval : " << cfg.core.polling_sec << std::endl
-            << "\tClient: " << cfg.auth.client_id << std::endl
+  return os << "\tPooling enabled : " << cfg.uptane.polling << std::endl
+            << "\tPooling interval : " << cfg.uptane.polling_sec << std::endl
             << "\tDevice UUID: " << cfg.device.uuid;
 }
 
@@ -142,16 +139,6 @@ void Config::postUpdateValues() {
   }
 #endif
 
-  if (!tls.server.empty() && !tls.ca_file.empty() && !tls.client_certificate.empty()) {
-    core.auth_type = CERTIFICATE;
-    if (!auth.client_id.empty() || !auth.client_secret.empty()) {
-      throw std::logic_error(
-          "It is not possible to set [tls] section with 'auth.client_id' or 'auth.client_secret' properties");
-    }
-  } else {
-    core.auth_type = OAUTH2;
-  }
-
   if (uptane.repo_server.empty()) {
     uptane.repo_server = tls.server + "/repo";
   }
@@ -223,13 +210,6 @@ void Config::updateFromTomlString(const std::string& contents) {
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h
-  CopyFromConfig(core.server, "core.server", LVL_debug, pt);
-  CopyFromConfig(core.polling, "core.polling", LVL_trace, pt);
-  CopyFromConfig(core.polling_sec, "core.polling_sec", LVL_trace, pt);
-
-  CopyFromConfig(auth.server, "auth.server", LVL_info, pt);
-  CopyFromConfig(auth.client_id, "auth.client_id", LVL_warning, pt);
-  CopyFromConfig(auth.client_secret, "auth.client_secret", LVL_warning, pt);
 
 #ifdef WITH_GENIVI
   CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
@@ -264,20 +244,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
   CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
-  CopyFromConfig(gateway.socket, "gateway.socket", LVL_info, pt);
   CopyFromConfig(gateway.dbus, "gateway.dbus", LVL_info, pt);
-
-  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", LVL_trace, pt);
-  CopyFromConfig(network.socket_events_path, "network.socket_events_path", LVL_trace, pt);
-
-  boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
-  if (events_string.is_initialized()) {
-    std::string e = strip_quotes(events_string.get());
-    network.socket_events.empty();
-    boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
-  } else {
-    LOGGER_LOG(LVL_trace, "network.socket_events not in config file. Using default");
-  }
 
   CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
   CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
@@ -296,6 +263,8 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
 
+  CopyFromConfig(uptane.polling, "uptane.polling", LVL_trace, pt);
+  CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", LVL_trace, pt);
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.disable_keyid_validation, "uptane.disable_keyid_validation", LVL_debug, pt);
   CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
@@ -316,16 +285,13 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("poll-once") != 0) {
-    core.polling = false;
+    uptane.polling = false;
   }
   if (cmd.count("gateway-http") != 0) {
     gateway.http = cmd["gateway-http"].as<bool>();
   }
   if (cmd.count("gateway-rvi") != 0) {
     gateway.rvi = cmd["gateway-rvi"].as<bool>();
-  }
-  if (cmd.count("gateway-socket") != 0) {
-    gateway.socket = cmd["gateway-socket"].as<bool>();
   }
   if (cmd.count("gateway-dbus") != 0) {
     gateway.dbus = cmd["gateway-dbus"].as<bool>();
