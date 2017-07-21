@@ -150,6 +150,7 @@ bool Repository::deviceRegister() {
   }
   fclose(device_p12);
   sync();
+  LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
   return true;
 }
 
@@ -160,7 +161,7 @@ bool Repository::authenticate() {
 }
 
 bool Repository::ecuRegister() {
-  if (!Crypto::generateRSAKeyPair(config.uptane.public_key_path, config.uptane.private_key_path)) {
+  if (!Crypto::generateRSAKeyPairIfMissing(config.uptane.public_key_path, config.uptane.private_key_path)) {
     LOGGER_LOG(LVL_error, "Could not generate rsa keys for primary.");
     return false;
   }
@@ -180,7 +181,7 @@ bool Repository::ecuRegister() {
   for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
     std::string pub_path = (config.device.certificates_directory / (it->ecu_serial + ".pub")).string();
     std::string priv_path = (config.device.certificates_directory / (it->ecu_serial + ".priv")).string();
-    Crypto::generateRSAKeyPair(pub_path, priv_path);
+    Crypto::generateRSAKeyPairIfMissing(pub_path, priv_path);
     transport.sendPrivateKey(it->ecu_serial, Utils::readFile(priv_path));
     Json::Value ecu;
     ecu["hardware_identifier"] = it->ecu_hardware_id;
@@ -191,10 +192,15 @@ bool Repository::ecuRegister() {
   }
 
   authenticate();
+  sync();  // Ensure that the keys written above are on disk before we talk to the server
   HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
-  if (!response.isOk()) {
-    Json::Value resp_code = Utils::parseJSON(response.body)["code"];
-    if (resp_code.isString() && resp_code.asString() == "ecu_already_registered") {
+  if (response.isOk()) {
+    LOGGER_LOG(LVL_info, "Provisioned successfully on Director");
+  } else {
+    Json::Value resp_code = response.getJson()["code"];
+    // This doesn't work device_already_registered and ecu_already_registered are possible
+    if (resp_code.isString() &&
+        (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
       LOGGER_LOG(LVL_trace, "ECUs are already registered, proceeding");
       return true;
     } else {

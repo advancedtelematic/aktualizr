@@ -20,4 +20,18 @@ struct Utils {
   static std::string randomUuid();
 };
 
+/**
+ * RAII Temporary file creation
+ */
+class TemporaryFile {
+ public:
+  TemporaryFile(const std::string &hint = "");
+  ~TemporaryFile();
+  boost::filesystem::path Path() const;
+  std::string PathString() const;
+
+ private:
+  boost::filesystem::path tmp_name_;
+};
+
 #endif  // UTILS_H_

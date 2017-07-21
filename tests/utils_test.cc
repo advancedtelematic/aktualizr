@@ -3,6 +3,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_smallint.hpp>
+#include <fstream>
 #include <set>
 
 bool CharOk(char c) {
@@ -81,6 +82,22 @@ TEST(Utils, Base64RoundTrip) {
     std::string output = Utils::fromBase64(b64);
     EXPECT_EQ(original, output);
   }
+}
+
+TEST(Utils, TemporaryFile) {
+  boost::filesystem::path p;
+  {
+    TemporaryFile f("ahint");
+    p = f.Path();
+    EXPECT_FALSE(boost::filesystem::exists(p));  // The file shouldn't already exist
+    std::ofstream file(p.c_str());
+    file << "test";
+    file.close();
+    EXPECT_TRUE(file);                                       // The write succeeded
+    EXPECT_TRUE(boost::filesystem::exists(p));               // The file should exist here
+    EXPECT_NE(p.string().find("ahint"), std::string::npos);  // The hint is included in the filename
+  }
+  EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
 
 #ifndef __NO_MAIN__
