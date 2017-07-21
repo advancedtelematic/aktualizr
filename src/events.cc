@@ -64,12 +64,9 @@ UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpd
 
 std::string UptaneTimestampUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
 
-#ifdef BUILD_OSTREE
-UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<OstreePackage> packages_in) : packages(packages_in) {
+UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
   variant = "UptaneTargetsUpdated";
 }
 
 std::string UptaneTargetsUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
-
-#endif
 };

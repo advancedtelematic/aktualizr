@@ -62,24 +62,18 @@ void Repository::refresh() {
   image.fetchAndCheckRole(Role::Timestamp());
 }
 
-std::vector<Uptane::Target> Repository::getNewTargets() {
+std::pair<uint32_t, std::vector<Uptane::Target>> Repository::getTargets() {
   refresh();
 
-  std::vector<Uptane::Target> director_targets = director.fetchTargets();
-  std::vector<Uptane::Target> image_targets = image.fetchTargets();
+  std::pair<uint32_t, std::vector<Uptane::Target>> director_targets_pair = director.fetchTargets();
+  std::vector<Uptane::Target> director_targets = director_targets_pair.second;
+  uint32_t version = director_targets_pair.first;
+  std::vector<Uptane::Target> image_targets = image.fetchTargets().second;
   std::vector<Uptane::Target> primary_targets;
   std::vector<Uptane::Target> secondary_targets;
 
   if (!director_targets.empty()) {
-    OstreePackage installed_package = OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot);
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
-      if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
-        if (it->MatchWith(Hash(Hash::kSha256, installed_package.refhash))) {
-          LOGGER_LOG(LVL_debug, "Ostree package with hash " << installed_package.ref_name
-                                                            << " already installed, skipping.");
-          continue;
-        }
-      }
       std::vector<Uptane::Target>::iterator image_target_it;
       image_target_it = std::find(image_targets.begin(), image_targets.end(), *it);
       if (image_target_it != image_targets.end()) {
@@ -95,7 +89,7 @@ std::vector<Uptane::Target> Repository::getNewTargets() {
     }
     transport.sendTargets(secondary_targets);
   }
-  return primary_targets;
+  return std::pair<uint32_t, std::vector<Uptane::Target>>(version, primary_targets);
 }
 
 bool Repository::deviceRegister() {
@@ -117,7 +111,6 @@ bool Repository::deviceRegister() {
   std::string bootstrap_pkey_pem = (config.device.certificates_directory / "bootstrap_pkey.pem").string();
   std::string bootstrap_cert_pem = (config.device.certificates_directory / "bootstrap_cert.pem").string();
   std::string bootstrap_ca_pem = (config.device.certificates_directory / "bootstrap_ca.pem").string();
-
   FILE *reg_p12 = fopen((config.device.certificates_directory / config.provision.p12_path).c_str(), "rb");
   if (!reg_p12) {
     LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_directory / config.provision.p12_path);

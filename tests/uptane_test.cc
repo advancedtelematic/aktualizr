@@ -21,7 +21,7 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
                              const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   (void)cred;
   (void)config;
   return data::InstallOutcome(data::OK, "Good");
@@ -32,7 +32,7 @@ OstreePackage OstreePackage::fromJson(const Json::Value &json) {
                        json["pull_uri"].asString());
 }
 
-Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
+Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
@@ -439,7 +439,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].ref_name,
+  EXPECT_EQ(targets_event->packages[0].filename(),
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(Utils::readFile("tests/test_data/firmware.txt"), "This is content");
 }
@@ -464,9 +464,13 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 
-  std::vector<OstreePackage> packages_to_install;
-  packages_to_install.push_back(OstreePackage("test1", "test2", "test3", "test4"));
-  *commands_channel << boost::make_shared<command::OstreeInstall>(packages_to_install);
+  std::vector<Uptane::Target> packages_to_install;
+  Json::Value ot_json;
+  ot_json["custom"]["ecuIdentifier"] = "testecuserial";
+  ot_json["custom"]["targetFormat"] = "OSTREE";
+  ot_json["length"] = 10;
+  packages_to_install.push_back(Uptane::Target("testostree", ot_json));
+  *commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);

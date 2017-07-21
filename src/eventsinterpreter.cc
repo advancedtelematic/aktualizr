@@ -31,13 +31,10 @@ void EventsInterpreter::run() {
     if (event->variant == "UpdateAvailable") {
       *commands_channel << boost::make_shared<command::StartDownload>(
           static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
-    }
-#ifdef BUILD_OSTREE
-    else if (event->variant == "UptaneTargetsUpdated") {
-      *commands_channel << boost::make_shared<command::OstreeInstall>(
+    } else if (event->variant == "UptaneTargetsUpdated") {
+      *commands_channel << boost::make_shared<command::UptaneInstall>(
           static_cast<event::UptaneTargetsUpdated*>(event.get())->packages);
     }
-#endif
     if (event->variant == "UptaneTimestampUpdated") {
       // These events indicates the end of pooling cycle
       if (!config.uptane.polling) {

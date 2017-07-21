@@ -86,9 +86,8 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
 Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
-    if (custom.isMember("ecuIdentifier")) {
-      ecu_identifier_ = content["custom"]["ecuIdentifier"].asString();
-    }
+    if (custom.isMember("ecuIdentifier")) ecu_identifier_ = custom["ecuIdentifier"].asString();
+    if (custom.isMember("targetFormat")) type_ = custom["targetFormat"].asString();
   }
 
   length_ = content["length"].asInt64();

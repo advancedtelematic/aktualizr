@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 
 #include <json/json.h>
 #include "config.h"
@@ -36,7 +37,7 @@ class TufRepository {
   Json::Value getJSON(const std::string &role);
   Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version());
   std::vector<Target> getTargets() { return targets_; }
-  std::vector<Target> fetchTargets();
+  std::pair<uint32_t, std::vector<Target>> fetchTargets();
   void saveTarget(const Target &target);
   std::string downloadTarget(Target target);
 

@@ -15,13 +15,12 @@ namespace Uptane {
 class Repository {
  public:
   Repository(const Config &config);
-  void updateRoot(Version version = Version());
   void putManifest();
   void putManifest(const Json::Value &);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
-  void refresh();
-  std::vector<Uptane::Target> getNewTargets();
+  // pair of (Version, targets[])
+  std::pair<uint32_t, std::vector<Uptane::Target>> getTargets();
   bool deviceRegister();
   bool ecuRegister();
   bool authenticate();
@@ -41,6 +40,8 @@ class Repository {
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
+  void updateRoot(Version version = Version());
+  void refresh();
 };
 };
 
