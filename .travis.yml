@@ -1,6 +1,9 @@
 dist: trusty
 sudo: false
 language: cpp
+branches:
+  only:
+    - master
 env:
   - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
   - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
