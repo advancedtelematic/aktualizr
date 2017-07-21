@@ -1,5 +1,6 @@
 
 set (GARAGE_PUSH_SRCS
+  authenticate.cc
   logging.cc
   main.cc
   oauth2.cc
@@ -20,6 +21,7 @@ set (ALL_SRCS
 # For clang-format
 set(ALL_HEADERS
   accumulator.h
+  authenticate.h
   logging.h
   oauth2.h
   ostree_hash.h
