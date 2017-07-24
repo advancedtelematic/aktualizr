@@ -199,6 +199,21 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
   return true;
 }
 
+/**
+ * Generate a RSA keypair if it doesn't exist already
+ * @param public_key_path Path to public part of key
+ * @param private_key_path Path to private part of key
+ * @return true if the keys are present at the end of this function (either they were created or existed already)
+ *         false if key generation failed
+ */
+bool Crypto::generateRSAKeyPairIfMissing(const std::string &public_key_path, const std::string &private_key_path) {
+  if (boost::filesystem::exists(public_key_path) && boost::filesystem::exists(private_key_path)) {
+    return true;
+  }
+  // If one or both are missing, generate them both
+  return Crypto::generateRSAKeyPair(public_key_path, private_key_path);
+}
+
 bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string &private_key) {
   int bits = 2048;
   int ret = 0;

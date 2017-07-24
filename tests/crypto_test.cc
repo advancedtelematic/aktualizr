@@ -131,6 +131,23 @@ TEST(crypto, parsep12_FAIL) {
   fclose(p12file);
 }
 
+TEST(crypto, generateRSAKeyPairIfMissing) {
+  TemporaryFile public_key("pub");
+  TemporaryFile private_key("priv");
+  // Generation should succeed
+  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key.PathString()));
+  std::string old_contents = Utils::readFile(public_key.PathString());
+  // Already exists, trivial success
+  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key.PathString()));
+  // Contents don't change
+  EXPECT_EQ(old_contents, Utils::readFile(public_key.PathString()));
+
+  // If one of the files is missing, they are both generated
+  TemporaryFile private_key2("priv");
+  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key2.PathString()));
+  EXPECT_NE(old_contents, Utils::readFile(public_key.PathString()));
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

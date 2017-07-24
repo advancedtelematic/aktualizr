@@ -230,3 +230,12 @@ std::string Utils::randomUuid() {
   boost::uuids::basic_random_generator<boost::random::random_device> uuid_gen(urandom);
   return boost::uuids::to_string(uuid_gen());
 }
+
+TemporaryFile::TemporaryFile(const std::string &hint)
+    : tmp_name_(boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}
+
+TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
+
+boost::filesystem::path TemporaryFile::Path() const { return tmp_name_; }
+
+std::string TemporaryFile::PathString() const { return Path().string(); }
