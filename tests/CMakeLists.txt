@@ -8,7 +8,7 @@ if(NOT GMOCK_ROOT )
 endif()
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
 
-# use the same libiraries as the normal target but add gtest gmock and gcov
+# use the same libraries as the normal target but add gtest gmock and gcov
 set (TEST_LIBS
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
