@@ -32,6 +32,7 @@ TEST(config, config_toml_parsing) {
   EXPECT_EQ(conf.gateway.dbus, true);
   EXPECT_EQ(conf.gateway.http, false);
   EXPECT_EQ(conf.gateway.rvi, true);
+  EXPECT_EQ(conf.gateway.socket, true);
 
   EXPECT_EQ(conf.rvi.node_host, "rvi.example.com");
 
@@ -86,12 +87,13 @@ TEST(config, config_toml_parsing_empty_file) {
 }
 
 TEST(config, config_cmdl_parsing) {
-  int argc = 5;
-  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on"};
+  int argc = 7;
+  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on", "--gateway-socket", "on"};
 
   bpo::options_description description("CommandLine Options");
   description.add_options()("gateway-http", bpo::value<bool>(), "on/off the http gateway")(
-      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway");
+      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")("gateway-socket", bpo::value<bool>(),
+      "on/off the socket gateway");
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
@@ -99,6 +101,7 @@ TEST(config, config_cmdl_parsing) {
 
   EXPECT_EQ(conf.gateway.http, false);
   EXPECT_EQ(conf.gateway.rvi, true);
+  EXPECT_EQ(conf.gateway.socket, true);
 }
 
 TEST(config, config_is_provisioned) {

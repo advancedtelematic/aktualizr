@@ -54,10 +54,21 @@ struct DeviceConfig {
 };
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), rvi(false), dbus(false) {}
+  GatewayConfig() : http(true), rvi(false), socket(false), dbus(false) {}
   bool http;
   bool rvi;
+  bool socket;
   bool dbus;
+};
+
+struct NetworkConfig {
+  NetworkConfig() : socket_commands_path("/tmp/sota-commands.socket"), socket_events_path("/tmp/sota-events.socket") {
+    socket_events.push_back("DownloadComplete");
+    socket_events.push_back("DownloadFailed");
+  }
+  std::string socket_commands_path;
+  std::string socket_events_path;
+  std::vector<std::string> socket_events;
 };
 
 struct RviConfig {
@@ -149,6 +160,7 @@ class Config {
   DbusConfig dbus;
   GatewayConfig gateway;
   RviConfig rvi;
+  NetworkConfig network;
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;

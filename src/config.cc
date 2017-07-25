@@ -244,7 +244,20 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
   CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
+  CopyFromConfig(gateway.socket, "gateway.socket", LVL_info, pt);
   CopyFromConfig(gateway.dbus, "gateway.dbus", LVL_info, pt);
+
+  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", LVL_trace, pt);
+  CopyFromConfig(network.socket_events_path, "network.socket_events_path", LVL_trace, pt);
+
+  boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
+  if (events_string.is_initialized()) {
+    std::string e = strip_quotes(events_string.get());
+    network.socket_events.empty();
+    boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
+  } else {
+    LOGGER_LOG(LVL_trace, "network.socket_events not in config file. Using default");
+  }
 
   CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
   CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
@@ -295,6 +308,9 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("gateway-dbus") != 0) {
     gateway.dbus = cmd["gateway-dbus"].as<bool>();
+  }
+  if (cmd.count("gateway-socket") != 0) {
+    gateway.socket = cmd["gateway-socket"].as<bool>();
   }
   if (cmd.count("disable-keyid-validation") != 0) {
     uptane.disable_keyid_validation = true;

@@ -10,6 +10,7 @@ set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
             types.cc
             eventsinterpreter.cc
             gatewaymanager.cc
+            socketgateway.cc
             crypto.cc
             utils.cc)
 # set headers used for clang format
@@ -25,6 +26,7 @@ set(HEADERS
             types.h
             eventsinterpreter.h
             gatewaymanager.h
+            socketgateway.h
             crypto.h
             openssl_compat.h
             ostree.h

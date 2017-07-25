@@ -18,12 +18,16 @@ console = false
 dbus = false
 http = true
 rvi = false
+socket = false
 websocket = false
 
 [network]
 http_server = "127.0.0.1:8888"
 rvi_edge_server = "127.0.0.1:9080"
 websocket_server = "127.0.0.1:3012"
+socket_commands_path = "/tmp/sota-commands.socket"
+socket_events_path = "/tmp/sota-events.socket"
+socket_events = "DownloadComplete, UpdateAvailable"
 
 
 [rvi]

@@ -57,6 +57,11 @@ target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIB
 add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_test(NAME test_valgrind_http_client COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+add_executable(aktualizr_test_socket_gateway socketgateway_test.cc)
+target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
+add_test(NAME test_socket_gateway COMMAND aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -71,6 +76,7 @@ add_dependencies(build_tests
         aktualizr_test_events
         aktualizr_test_commands
         aktualizr_test_http_client
+        aktualizr_test_socket_gateway
         aktualizr_test_crypto
         aktualizr_test_utils)
 
@@ -199,6 +205,7 @@ set(ALL_TEST_SRCS
     httpclient_test.cc
     ostree_test.cc
     rvisotaclient_test.cc
+    socketgateway_test.cc
     swm_test.cc
     tuf_test.cc
     uptane_vector_tests.cc
