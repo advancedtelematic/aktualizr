@@ -13,6 +13,7 @@ RUN apt-get update -q && apt-get -qy install \
     libboost-system-dev \
     libcurl4-gnutls-dev \
     libglib2.0-dev \
+    libarchive-dev \
     ninja-build \
   && rm -rf /var/lib/apt/lists/*
 

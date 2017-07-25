@@ -6,14 +6,19 @@ image:https://travis-ci.org/advancedtelematic/sota-tools.svg?branch=master["Buil
 
 Getting started:
 
-    sudo apt-get install build-essential cmake g++ libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-log-dev libcurl4-gnutls-dev clang clang-format-3.5 ninja-build
+    git clone --recursive https://github.com/advancedtelematic/sota-tools
+    sudo apt-get install build-essential cmake g++ libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-system-dev libboost-log-dev libcurl4-gnutls-dev libarchive-dev clang clang-format ninja-build
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Debug ..
     make
     ./garage-push --help
 
-Generate tags
+Git submodules are used to run some tests. If you had an old checkout, forgot to include `--recursive` or need to update the submodules, run:
+
+    git submodule update --init --recursive
+
+Generate tags:
 
     make tags
 

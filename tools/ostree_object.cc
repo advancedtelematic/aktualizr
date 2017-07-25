@@ -1,5 +1,5 @@
-#include "logging.h"
 #include "ostree_object.h"
+#include "logging.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
 

@@ -36,6 +36,9 @@ find_package(Threads REQUIRED)
 # strace
 find_program(STRACE NAMES strace)
 
+find_package(LibArchive REQUIRED)
+include_directories(${LibArchive_INCLUDE_DIRS})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 if (CMAKE_COMPILER_IS_GNUCXX)

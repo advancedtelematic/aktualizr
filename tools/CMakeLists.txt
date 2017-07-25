@@ -1,5 +1,6 @@
 
 set (GARAGE_PUSH_SRCS
+  authenticate.cc
   logging.cc
   main.cc
   oauth2.cc
@@ -11,8 +12,14 @@ set (GARAGE_PUSH_SRCS
   treehub_server.cc
 )
 
-add_executable(garage-push ${GARAGE_PUSH_SRCS})
-target_link_libraries(garage-push ${CURL_LIBRARIES} ${GLIB2_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+add_executable(garage-push main.cc)
+add_library(garage_push_static_lib STATIC ${GARAGE_PUSH_SRCS})
+target_link_libraries(garage-push garage_push_static_lib
+  ${CURL_LIBRARIES}
+  ${GLIB2_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${LibArchive_LIBRARIES})
 
 set (ALL_SRCS
   ${GARAGE_PUSH_SRCS})
@@ -20,6 +27,7 @@ set (ALL_SRCS
 # For clang-format
 set(ALL_HEADERS
   accumulator.h
+  authenticate.h
   logging.h
   oauth2.h
   ostree_hash.h
@@ -51,6 +59,8 @@ add_custom_target(check-tools
     VERBATIM)
 
 add_dependencies(qa check-tools garage-push)
+
+add_subdirectory(t EXCLUDE_FROM_ALL)
 
 # Check the --help option works
 add_test(NAME option-help
@@ -115,7 +125,7 @@ endif()
 # Workaround a cmake bug where tests are not dependent on their executables
 # http://stackoverflow.com/questions/733475/cmake-ctest-make-test-doesnt-build-tests#736838
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-  DEPENDS garage-push)
+  DEPENDS garage-push build_tests)
 
 add_dependencies(qa check)
 
