@@ -52,6 +52,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 ################ QA RULES
 add_custom_target(qa)
+add_custom_target(check-format)
 
 # clang-check and clang-format
 # The .clang-format file requires clang-format-3.8
