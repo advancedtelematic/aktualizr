@@ -82,7 +82,7 @@ HttpClient::~HttpClient() {
 
 bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file, const std::string& pkey) {
   // TODO return false in case of wrong certificates
-  setCerts(ca_file, cert, pkey); 
+  setCerts(ca_file, cert, pkey);
   return true;
 }
 

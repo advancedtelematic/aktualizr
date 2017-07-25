@@ -108,8 +108,8 @@ struct ProvisionConfig {
 struct UptaneConfig {
   UptaneConfig()
       : polling(true),
-	polling_sec(10u),
-	device_id(""),
+        polling_sec(10u),
+        device_id(""),
         primary_ecu_serial(""),
         primary_ecu_hardware_id(""),
         ostree_server(""),

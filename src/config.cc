@@ -209,7 +209,7 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  // Keep this order the same as in config.h
+// Keep this order the same as in config.h
 
 #ifdef WITH_GENIVI
   CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
