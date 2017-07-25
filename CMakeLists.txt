@@ -56,8 +56,8 @@ add_custom_target(check-format)
 
 # clang-check and clang-format
 # The .clang-format file requires clang-format-3.8
-find_program(CLANG_FORMAT NAMES clang-format clang-format-3.8)
-find_program(CLANG_CHECK NAMES clang-check clang-check-3.8 clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
+find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format)
+find_program(CLANG_CHECK NAMES clang-check-3.8 clang-check)
 
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src)
