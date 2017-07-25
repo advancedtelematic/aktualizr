@@ -219,6 +219,13 @@ set(ALL_TEST_SRCS
     uptane_test.cc
     utils_test.cc)
 
+add_custom_target(check-format-tests
+    COMMAND ../scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Checking clang-format on tests"
+    VERBATIM)
+add_dependencies(check-format check-format-tests)
+
 if(CLANG_FORMAT)
     add_custom_target(format-tests
         COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_TEST_SRCS}
