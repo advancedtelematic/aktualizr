@@ -34,6 +34,7 @@ struct PublicKey {
       ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, 0, 0, 0);
       key_length = RSA_size(rsa);
       RSA_free(rsa);
+      BIO_free_all(bufio);
     } else if (type_str == "ed25519") {
       type = ED25519;
     } else {

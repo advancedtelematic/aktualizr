@@ -18,8 +18,8 @@
 static std::string server = "http://127.0.0.1:";
 
 TEST(CopyConstructorTest, copied) {
-  HttpClient* http = new HttpClient();
-  HttpClient http_copy(*http);
+  HttpClient http;
+  HttpClient http_copy(http);
   std::string path = "/path/1/2/3";
   Json::Value resp = http_copy.get(server + path).getJson();
   EXPECT_EQ(resp["path"].asString(), path);

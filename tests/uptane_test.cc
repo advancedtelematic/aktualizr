@@ -368,24 +368,24 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
   conf.tls.server = tls_server;
-  event::Channel *events_channel = new event::Channel();
-  command::Channel *commands_channel = new command::Channel();
+  event::Channel events_channel;
+  command::Channel commands_channel;
 
-  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  *commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, events_channel);
-  up.runForever(commands_channel);
-  if (!events_channel->hasValues()) {
+  commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, &events_channel);
+  up.runForever(&commands_channel);
+  if (!events_channel.hasValues()) {
     FAIL();
   }
   boost::shared_ptr<event::BaseEvent> event;
-  *events_channel >> event;
+  events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
-  *events_channel >> event;
+  events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
-  *events_channel >> event;
+  events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
@@ -417,18 +417,18 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
   conf.tls.server = tls_server;
-  event::Channel *events_channel = new event::Channel();
-  command::Channel *commands_channel = new command::Channel();
+  event::Channel events_channel;
+  command::Channel commands_channel;
 
-  *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  *commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, events_channel);
-  up.runForever(commands_channel);
-  if (!events_channel->hasValues()) {
+  commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, &events_channel);
+  up.runForever(&commands_channel);
+  if (!events_channel.hasValues()) {
     FAIL();
   }
   boost::shared_ptr<event::BaseEvent> event;
-  *events_channel >> event;
+  events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
@@ -454,8 +454,8 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   boost::filesystem::remove(test_manifest);
 
   conf.tls.server = tls_server;
-  event::Channel *events_channel = new event::Channel();
-  command::Channel *commands_channel = new command::Channel();
+  event::Channel events_channel;
+  command::Channel commands_channel;
 
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
@@ -463,10 +463,10 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 10;
   packages_to_install.push_back(Uptane::Target("testostree", ot_json));
-  *commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
-  *commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, events_channel);
-  up.runForever(commands_channel);
+  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
+  commands_channel << boost::make_shared<command::Shutdown>();
+  SotaUptaneClient up(conf, &events_channel);
+  up.runForever(&commands_channel);
 
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
 

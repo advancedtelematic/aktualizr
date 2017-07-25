@@ -51,7 +51,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
 
   } catch (Uptane::Exception e) {
     return match_error(vector, &e);
-  } catch (std::exception ex) {
+  } catch (const std::exception& ex) {
     std::cout << "Undefined exception: " << ex.what();
     return false;
   }

@@ -11,28 +11,15 @@
 #include "utils.h"
 
 std::string Crypto::sha256digest(const std::string &text) {
-  EVP_MD_CTX *md_ctx;
-  md_ctx = EVP_MD_CTX_create();
-  EVP_DigestInit_ex(md_ctx, EVP_sha256(), NULL);
-  EVP_DigestUpdate(md_ctx, (const void *)text.c_str(), text.size());
-  unsigned char digest[32];
-  unsigned int digest_len = 32;
-  EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_destroy(md_ctx);
-  return std::string((char *)digest, 32);
+  unsigned char sha256_hash[crypto_hash_sha256_BYTES];
+  crypto_hash_sha256(sha256_hash, (const unsigned char *)text.c_str(), text.size());
+  return std::string((char *)sha256_hash, crypto_hash_sha256_BYTES);
 }
 
 std::string Crypto::sha512digest(const std::string &text) {
-  const unsigned int size = 64;
-  EVP_MD_CTX *md_ctx;
-  md_ctx = EVP_MD_CTX_create();
-  EVP_DigestInit_ex(md_ctx, EVP_sha512(), NULL);
-  EVP_DigestUpdate(md_ctx, (const void *)text.c_str(), text.size());
-  unsigned char digest[size];
-  unsigned int digest_len = size;
-  EVP_DigestFinal_ex(md_ctx, digest, &digest_len);
-  EVP_MD_CTX_destroy(md_ctx);
-  return std::string((char *)digest, size);
+  unsigned char sha512_hash[crypto_hash_sha512_BYTES];
+  crypto_hash_sha512(sha512_hash, (const unsigned char *)text.c_str(), text.size());
+  return std::string((char *)sha512_hash, crypto_hash_sha512_BYTES);
 }
 
 std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string &message) {
@@ -82,7 +69,6 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
 Json::Value Crypto::signTuf(const std::string &private_key_path, const std::string &public_key_path,
                             const Json::Value &in_data) {
   std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(private_key_path, Json::FastWriter().write(in_data)));
-
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
@@ -105,6 +91,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());
   if (!PEM_read_bio_RSA_PUBKEY(bio, &rsa, NULL, NULL)) {
     LOGGER_LOG(LVL_error, "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    BIO_free_all(bio);
     return false;
   }
   BIO_free_all(bio);
@@ -112,7 +99,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   const unsigned int size = RSA_size(rsa);
   boost::scoped_array<unsigned char> pDecrypted(new unsigned char[size]);
   /* now we will verify the signature
-     Start by a RAW decrypt of the signature
+    Start by a RAW decrypt of the signature
   */
   int status = RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted.get(),
                                   rsa, RSA_NO_PADDING);
@@ -165,16 +152,20 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
   STACK_OF(X509) *ca_certs = NULL;
   if (!PKCS12_parse(p12, p12_password.c_str(), &pkey, &x509_cert, &ca_certs)) {
     LOGGER_LOG(LVL_error, "Could not parse file from " << p12_fp << " file pointer");
+    PKCS12_free(p12);
     return false;
   }
+  PKCS12_free(p12);
 
   FILE *pkey_pem_file = fopen(pkey_pem.c_str(), "w");
   if (!pkey_pem_file) {
     LOGGER_LOG(LVL_error, "Could not open " << pkey_pem << " for writting");
+    EVP_PKEY_free(pkey);
     return false;
   }
   PEM_write_PrivateKey(pkey_pem_file, pkey, NULL, NULL, 0, 0, NULL);
   fclose(pkey_pem_file);
+  EVP_PKEY_free(pkey);
 
   FILE *cert_file = fopen(client_pem.c_str(), "w");
   if (!cert_file) {

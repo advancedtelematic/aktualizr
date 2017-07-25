@@ -6,6 +6,8 @@
 class Aktualizr {
  public:
   Aktualizr(const Config &config);
+  ~Aktualizr();
+
   int run();
 
  private:

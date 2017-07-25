@@ -16,14 +16,18 @@ boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const std::string &path) {
   OstreeSysroot *sysroot = NULL;
 
   if (path.size()) {
-    sysroot = ostree_sysroot_new(g_file_new_for_path(path.c_str()));
+    GFile *fl = g_file_new_for_path(path.c_str());
+    sysroot = ostree_sysroot_new(fl);
+    g_object_unref(fl);
   } else {
     sysroot = ostree_sysroot_new_default();
   }
-  GCancellable *cancellable = NULL;
   GError *error = NULL;
-  if (!ostree_sysroot_load(sysroot, cancellable, &error)) {
-    g_error_free(error);
+  if (!ostree_sysroot_load(sysroot, NULL, &error)) {
+    if (error != NULL) {
+      g_error_free(error);
+    }
+    g_object_unref(sysroot);
     throw std::runtime_error("could not load sysroot");
   }
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
