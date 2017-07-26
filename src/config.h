@@ -16,26 +16,7 @@
 
 #include "uptane/secondaryconfig.h"
 
-enum Auth { OAUTH2 = 0, CERTIFICATE };
-
 enum PackageManager { PMOFF = 0, PMOSTREE };
-
-struct CoreConfig {
-  CoreConfig() : server("http://127.0.0.1:8080"), polling(true), polling_sec(10) {}
-
-  std::string server;
-  bool polling;
-  unsigned long long polling_sec;
-  Auth auth_type;
-};
-
-struct AuthConfig {
-  AuthConfig() : server("http://127.0.0.1:9001"), client_id(""), client_secret("") {}
-
-  std::string server;
-  std::string client_id;
-  std::string client_secret;
-};
 
 #ifdef WITH_GENIVI
 // DbusConfig depends on DBusBusType with is defined in libdbus
@@ -126,7 +107,9 @@ struct ProvisionConfig {
 
 struct UptaneConfig {
   UptaneConfig()
-      : device_id(""),
+      : polling(true),
+        polling_sec(10u),
+        device_id(""),
         primary_ecu_serial(""),
         primary_ecu_hardware_id(""),
         ostree_server(""),
@@ -136,6 +119,8 @@ struct UptaneConfig {
         private_key_path("ecukey.pem"),
         public_key_path("ecukey.pub"),
         disable_keyid_validation(false) {}
+  bool polling;
+  unsigned long long polling_sec;
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
@@ -171,8 +156,6 @@ class Config {
   };
 
   // config data structures
-  CoreConfig core;
-  AuthConfig auth;
   DeviceConfig device;
   DbusConfig dbus;
   GatewayConfig gateway;

@@ -52,11 +52,6 @@ target_link_libraries(aktualizr_test_commands aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_commands COMMAND aktualizr_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(aktualizr_test_http_aktualizr httpsotaclient_test.cc)
-target_link_libraries(aktualizr_test_http_aktualizr aktualizr_static_lib ${TEST_LIBS} crypto)
-add_test(NAME test_http_aktualizr COMMAND aktualizr_test_http_aktualizr WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-
 add_executable(aktualizr_test_http_client httpclient_test.cc)
 target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIBS})
 add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -80,7 +75,6 @@ add_dependencies(build_tests
         aktualizr_test_config
         aktualizr_test_events
         aktualizr_test_commands
-        aktualizr_test_http_aktualizr
         aktualizr_test_http_client
         aktualizr_test_socket_gateway
         aktualizr_test_crypto
@@ -209,7 +203,6 @@ set(ALL_TEST_SRCS
     dbusgateway_test.cc
     events_test.cc
     httpclient_test.cc
-    httpsotaclient_test.cc
     ostree_test.cc
     rvisotaclient_test.cc
     socketgateway_test.cc

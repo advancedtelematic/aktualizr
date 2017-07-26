@@ -30,7 +30,7 @@ static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
 // Discard the http body
 static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
 
-HttpClient::HttpClient() : authenticated(false), user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
+HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
   headers = NULL;
@@ -54,7 +54,7 @@ HttpClient::HttpClient() : authenticated(false), user_agent(std::string("Aktuali
   curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) : authenticated(false) {
+HttpClient::HttpClient(const HttpClient& curl_in) {
   curl = curl_easy_duphandle(curl_in.curl);
   token = curl_in.token;
 
@@ -83,45 +83,6 @@ HttpClient::~HttpClient() {
 bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file, const std::string& pkey) {
   // TODO return false in case of wrong certificates
   setCerts(ca_file, cert, pkey);
-  authenticated = true;
-  return true;
-}
-
-bool HttpClient::authenticate(const AuthConfig& conf) {
-  CURL* curl_auth = curl_easy_duphandle(curl);
-  std::string auth_url = conf.server + "/token";
-  curl_easy_setopt(curl_auth, CURLOPT_URL, auth_url.c_str());
-  // let curl put the username and password using HTTP basic authentication
-  curl_easy_setopt(curl_auth, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
-  curl_easy_setopt(curl_auth, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-
-  // compose username and password
-  std::string auth_header = conf.client_id + ":" + conf.client_secret;
-  // forward username and password to curl
-  curl_easy_setopt(curl_auth, CURLOPT_USERPWD, auth_header.c_str());
-
-  LOGGER_LOG(LVL_debug, "servercon - requesting token from server: " << conf.server);
-
-  curl_slist* h = curl_slist_append(NULL, "Content-Type: application/x-www-form-urlencoded");
-  h = curl_slist_append(h, "charsets: utf-8");
-  curl_easy_setopt(curl_auth, CURLOPT_HTTPHEADER, h);
-
-  HttpResponse response = perform(curl_auth, RETRY_TIMES);
-
-  LOGGER_LOG(LVL_trace, "response:" << response.body);
-
-  curl_easy_cleanup(curl_auth);
-  if (!response.isOk()) {
-    LOGGER_LOG(LVL_error, "authentication error: server: " << conf.server << "and auth header: " << auth_header);
-    return false;
-  }
-  Json::Value json = response.getJson();
-  token = json["access_token"].asString();
-
-  std::string header = "Authorization: Bearer " + token;
-  headers = curl_slist_append(headers, header.c_str());
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  authenticated = true;
   return true;
 }
 
@@ -194,59 +155,4 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   return response;
 }
 
-bool HttpClient::download(const std::string& url, const std::string& filename) {
-  // Download an update from SOTA Server. This requires two requests: the first
-  // is to the sota server, and needs an Authentication: header to be present.
-  // This request will return a 30x redirect to S3, which we must not send our
-  // secret to (s3 also throws an error in this case :)
-
-  CURL* curl_redir = curl_easy_duphandle(curl);
-  curl_easy_setopt(curl_redir, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_redir, CURLOPT_FOLLOWLOCATION, 0L);
-  curl_easy_setopt(curl_redir, CURLOPT_WRITEFUNCTION, writeDiscard);
-
-  CURLcode result = curl_easy_perform(curl_redir);
-  if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "curl download error: " << result);
-    curl_easy_cleanup(curl_redir);
-    return false;
-  }
-
-  char* newurl;
-  curl_easy_getinfo(curl_redir, CURLINFO_REDIRECT_URL, &newurl);
-  LOGGER_LOG(LVL_debug, "AWS Redirect URL:" << newurl);
-
-  // Now perform the actual download
-  CURL* curl_download = curl_easy_init();
-  curl_easy_setopt(curl_download, CURLOPT_URL, newurl);
-  // Let AWS Redirect us
-  curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
-  curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, writeFile);
-
-  struct stat st;
-  std::string mode = "w";
-  if (!stat(filename.c_str(), &st)) {
-    curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, st.st_size);
-    mode = "a";
-  }
-
-  FILE* fp = fopen(filename.c_str(), mode.c_str());
-  curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, fp);
-  result = curl_easy_perform(curl_download);
-
-  if (result == CURLE_RANGE_ERROR) {
-    fseek(fp, 0, SEEK_SET);
-    curl_easy_setopt(curl_download, CURLOPT_RESUME_FROM, 0);
-    result = curl_easy_perform(curl_download);
-  }
-  curl_easy_cleanup(curl_download);
-  curl_easy_cleanup(curl_redir);  // Keep newurl alive
-  fclose(fp);
-
-  if (result != CURLE_OK) {
-    LOGGER_LOG(LVL_error, "curl download error: " << result);
-    return false;
-  }
-  return true;
-}
 // vim: set tabstop=2 shiftwidth=2 expandtab:

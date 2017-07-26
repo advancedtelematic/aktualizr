@@ -4,7 +4,6 @@
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
-#include "sotahttpclient.h"
 #ifdef WITH_GENIVI
 #include "sotarviclient.h"
 #endif
@@ -61,14 +60,12 @@ int Aktualizr::run() {
     return EXIT_FAILURE;
 #endif
   } else {
-    if (config_.core.auth_type == CERTIFICATE) {
 #ifdef BUILD_OSTREE
-
-      SotaUptaneClient(config_, events_channel).runForever(commands_channel);
+    SotaUptaneClient(config_, events_channel).runForever(commands_channel);
+#else
+    LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");
+    return EXIT_FAILURE;
 #endif
-    } else {
-      SotaHttpClient(config_, events_channel).runForever(commands_channel);
-    }
   }
   return EXIT_SUCCESS;
 }

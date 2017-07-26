@@ -4,7 +4,6 @@ set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
             aktualizr.cc
             logger.cc
             httpclient.cc
-            sotahttpclient.cc
             config.cc
             events.cc
             commands.cc
@@ -19,7 +18,6 @@ set(HEADERS
             aktualizr.h
             logger.h
             httpclient.h
-            sotahttpclient.h
             sotauptaneclient.h
             config.h
             channel.h

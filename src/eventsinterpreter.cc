@@ -28,18 +28,9 @@ void EventsInterpreter::run() {
     LOGGER_LOG(LVL_info, "got " << event->variant << " event");
     gateway_manager.processEvents(event);
 
-    if (event->variant == "DownloadComplete") {
-      if (config.device.package_manager != PMOFF) {
-        event::DownloadComplete* download_complete_event = static_cast<event::DownloadComplete*>(event.get());
-        *commands_channel << boost::make_shared<command::StartInstall>(
-            download_complete_event->download_complete.update_id);
-      }
-    } else if (event->variant == "UpdatesReceived") {
-      std::vector<data::UpdateRequest> updates = static_cast<event::UpdatesReceived*>(event.get())->update_requests;
-      for (std::vector<data::UpdateRequest>::iterator update = updates.begin(); update != updates.end(); ++update) {
-        LOGGER_LOG(LVL_info, "sending  StartDownload command");
-        *commands_channel << boost::shared_ptr<command::StartDownload>(new command::StartDownload(update->requestId));
-      }
+    if (event->variant == "UpdateAvailable") {
+      *commands_channel << boost::make_shared<command::StartDownload>(
+          static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
     }
 #ifdef BUILD_OSTREE
     else if (event->variant == "UptaneTargetsUpdated") {
@@ -47,20 +38,9 @@ void EventsInterpreter::run() {
           static_cast<event::UptaneTargetsUpdated*>(event.get())->packages);
     }
 #endif
-    else if (event->variant == "UpdateAvailable") {
-      *commands_channel << boost::make_shared<command::StartDownload>(
-          static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
-    } else if (event->variant == "InstallComplete") {
-      *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
-          new command::SendUpdateReport(static_cast<event::InstallComplete*>(event.get())->install_result.toReport()));
-    } else if (event->variant == "InstallFailed") {
-      *commands_channel << boost::shared_ptr<command::SendUpdateReport>(
-          new command::SendUpdateReport(static_cast<event::InstallFailed*>(event.get())->install_result.toReport()));
-    }
-    if (event->variant == "InstallFailed" || event->variant == "InstallComplete" ||
-        event->variant == "UptaneTimestampUpdated" || event->variant == "NoUpdateRequests") {
+    if (event->variant == "UptaneTimestampUpdated") {
       // These events indicates the end of pooling cycle
-      if (!config.core.polling) {
+      if (!config.uptane.polling) {
         // the option --pooling-once is set, so we need to exit now
         *commands_channel << boost::make_shared<command::Shutdown>();
       }

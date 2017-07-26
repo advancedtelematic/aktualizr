@@ -27,15 +27,12 @@ class HttpClient {
   HttpClient();
   HttpClient(const HttpClient &);
   virtual ~HttpClient();
-  virtual bool authenticate(const AuthConfig &conf);
   virtual bool authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey);
   virtual HttpResponse get(const std::string &url);
   virtual HttpResponse post(const std::string &url, const Json::Value &data);
   virtual HttpResponse put(const std::string &url, const Json::Value &data);
 
-  virtual bool download(const std::string &url, const std::string &filename);
   HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
-  bool isAuthenticated() { return authenticated; }
   void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
   unsigned int http_code;
   std::string token; /**< the OAuth2 token stored as string */
@@ -52,7 +49,6 @@ class HttpClient {
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times);
-  bool authenticated;
   std::string user_agent;
   static const int RETRY_TIMES = 2;
 };

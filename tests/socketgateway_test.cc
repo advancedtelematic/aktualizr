@@ -18,7 +18,7 @@ TEST(EventsTest, broadcasted) {
   NetworkConfig network_conf;
   network_conf.socket_commands_path = "/tmp/sota-commands.socket";
   network_conf.socket_events_path = "/tmp/sota-events.socket";
-  network_conf.socket_events.push_back("NoUpdateRequests");
+  network_conf.socket_events.push_back("InstalledSoftwareNeeded");
   Config conf;
   conf.network = network_conf;
 
@@ -29,12 +29,12 @@ TEST(EventsTest, broadcasted) {
   std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
+  gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
   sleep(1);
   std::ifstream file_stream("/tmp/sota-events.socket.txt");
   std::string content;
   std::getline(file_stream, content);
-  EXPECT_EQ("{\"fields\":[],\"variant\":\"NoUpdateRequests\"}", content);
+  EXPECT_EQ("{\"fields\":[],\"variant\":\"InstalledSoftwareNeeded\"}", content);
 }
 
 TEST(EventsTest, not_broadcasted) {
@@ -51,7 +51,7 @@ TEST(EventsTest, not_broadcasted) {
   std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(boost::make_shared<event::NoUpdateRequests>(event::NoUpdateRequests()));
+  gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
   sleep(1);
   std::ifstream file_stream("/tmp/sota-events.socket.txt");
   std::string content;
@@ -75,7 +75,7 @@ TEST(CommandsTest, recieved) {
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
 
-  EXPECT_EQ(command->variant, "GetUpdateRequests");
+  EXPECT_EQ(command->variant, "Shutdown");
 }
 
 #ifndef __NO_MAIN__
