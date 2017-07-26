@@ -39,11 +39,6 @@ namespace logtrv = boost::log::trivial;
 static LoggerLevels logger_global_level; /**< store the currently used severity level */
 
 /*****************************************************************************/
-
-// refer to boost::log::trivial::severity_level enumeration
-#define LOG_INIT_LEVEL LVL_warning /**< default logging level used for initialization */
-
-/*****************************************************************************/
 void loggerInit(void) {
   // choose stderr as logging console
   logging::add_console_log(std::cout, keywords::format = "[%TimeStamp%]: %Message%");
