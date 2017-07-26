@@ -29,10 +29,10 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 }
 
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config)
-    : root_(Root::kRejectAll),
-      name_(name),
+    : name_(name),
       path_(config.uptane.metadata_path / name_),
       config_(config),
+      root_(Root::kRejectAll),
       last_timestamp_(0),
       base_url_(base_url) {
   boost::filesystem::create_directories(path_);

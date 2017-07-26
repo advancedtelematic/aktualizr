@@ -54,14 +54,6 @@ TEST(crypto, verify_bad_sign_no_crash) {
   EXPECT_EQ(signe_is_ok, false);
 }
 
-TEST(crypto, verify_bad_key_type) {
-  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
-  pkey.type = (PublicKey::Type)99;
-  std::string text = "This is text for sign";
-  bool signe_is_ok = Crypto::VerifySignature(pkey, "this is bad signature", text);
-  EXPECT_EQ(signe_is_ok, false);
-}
-
 TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());

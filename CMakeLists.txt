@@ -67,12 +67,27 @@ include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${LIBDBUS_INCLUDE_DIRS})
 
-set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
 if(BUILD_GENIVI)
     set_property(GLOBAL PROPERTY CXX_STANDARD 11)
     add_subdirectory("third_party/rvi_lib")
 endif(BUILD_GENIVI)
+
+# Setup warnings. Do this after rvi_lib is added so that it isn't affected.
+if (CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-fstack-protector-all)
+    # Enable maximum set of warnings. -Wno-sign-compare is required because of
+    # problems in gtest. -Wswitch-default would be nice as well, but also causes
+    # problems in gtest.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare)
+
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR MAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
+        add_definitions(-Wshadow)
+    endif ()
+
+    if(WARNING_AS_ERROR)
+        add_definitions(-Werror)
+    endif()
+endif()
 
 add_subdirectory("src")
 

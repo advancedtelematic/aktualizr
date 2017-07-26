@@ -1,6 +1,7 @@
+set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
-# set source files excluded main
-set(SOURCES ../third_party/jsoncpp/jsoncpp.cpp
+# set source files excluding main
+set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             aktualizr.cc
             logger.cc
             httpclient.cc

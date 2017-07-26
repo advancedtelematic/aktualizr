@@ -124,11 +124,14 @@ void Config::postUpdateValues() {
           }
         }
         r = archive_read_free(a);
+        if (r != ARCHIVE_OK) {
+          LOGGER_LOG(LVL_error, "Error closing provision archive file!");
+        }
       } else {
-        LOGGER_LOG(LVL_error, "Could not read provision archive file, are You sure it is valid archive?");
+        LOGGER_LOG(LVL_error, "Could not read provision archive file, are you sure it is valid archive?");
       }
     } else {
-      LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' not exists!");
+      LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
     }
   }
 

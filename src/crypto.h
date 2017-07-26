@@ -30,7 +30,7 @@ struct PublicKey {
     std::string type_str = boost::algorithm::to_lower_copy(t);
     if (type_str == "rsa") {
       type = RSA;
-      BIO *bufio = BIO_new_mem_buf((void *)value.c_str(), value.length());
+      BIO *bufio = BIO_new_mem_buf((const void *)value.c_str(), (int)value.length());
       ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, 0, 0, 0);
       key_length = RSA_size(rsa);
       RSA_free(rsa);
