@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
+
+if [ ! -f venv/bin/activate ]; then
 virtualenv -p python3 venv
+fi
+
 . venv/bin/activate
 
 if [ ! -d "sysroot" ]; then

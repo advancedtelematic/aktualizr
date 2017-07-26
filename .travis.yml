@@ -6,7 +6,7 @@ branches:
     - master
 env:
   - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
-  - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
+  - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh
   - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
   - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
 services:
