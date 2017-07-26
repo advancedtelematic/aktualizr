@@ -20,10 +20,11 @@ class Repository {
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
   // pair of (Version, targets[])
-  std::pair<uint32_t, std::vector<Uptane::Target>> getTargets();
+  std::pair<uint32_t, std::vector<Uptane::Target> > getTargets();
   bool deviceRegister();
   bool ecuRegister();
   bool authenticate();
+  void updateRoot(Version version = Version());
 
  private:
   struct SecondaryConfig {
@@ -40,7 +41,6 @@ class Repository {
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
-  void updateRoot(Version version = Version());
   void refresh();
 };
 };

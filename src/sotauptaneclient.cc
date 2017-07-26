@@ -21,19 +21,6 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
   }
 }
 
-/*std::vector<OstreePackage> SotaUptaneClient::getAvailableUpdates() {
-  std::vector<OstreePackage> result;
-  std::vector<Uptane::Target> targets = uptane_repo.getNewTargets();
-  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it) {
-    std::string ecu_identifier(it->ecu_identifier());
-    std::string filename(it->filename());
-    result.push_back(
-        OstreePackage(ecu_identifier, filename, "",
-                      config.uptane.ostree_server));  // should be changed when multiple targets are supported
-  }
-  return result;
-}*/
-
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == config.uptane.primary_ecu_serial) {
     return target.filename() == OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).ref_name;
@@ -66,7 +53,7 @@ std::vector<Uptane::Target> SotaUptaneClient::getUpdates() {
   std::vector<Uptane::Target> targets = uptane_repo.getTargets().second;
   std::vector<Uptane::Target> result;
   for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
-    if (!isInstalled(*it)) result.push_back(std::move(*it));
+    if (!isInstalled(*it)) result.push_back(*it);
   return result;
 }
 
@@ -76,9 +63,9 @@ OstreePackage SotaUptaneClient::uptaneToOstree(const Uptane::Target &target) {
 
 void SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
   data::PackageManagerCredentials cred;
-  cred.ca_file = (config.device.certificates_directory / config.tls.ca_file).string();
-  cred.pkey_file = (config.device.certificates_directory / config.tls.pkey_file).string();
-  cred.cert_file = (config.device.certificates_directory / config.tls.client_certificate).string();
+  cred.ca_file = (config.tls.certificates_directory / config.tls.ca_file).string();
+  cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
+  cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
   data::InstallOutcome outcome = package.install(cred, config.ostree);
   data::OperationResult result = data::OperationResult::fromOutcome(package.ref_name, outcome);
   Json::Value operation_result;
@@ -88,9 +75,9 @@ void SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
 
 void SotaUptaneClient::reportHWInfo() {
   HttpClient http;
-  http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
-                    (config.device.certificates_directory / config.tls.ca_file).string(),
-                    (config.device.certificates_directory / config.tls.pkey_file).string());
+  http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
+                    (config.tls.certificates_directory / config.tls.ca_file).string(),
+                    (config.tls.certificates_directory / config.tls.pkey_file).string());
 
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
@@ -100,9 +87,9 @@ void SotaUptaneClient::reportHWInfo() {
 
 void SotaUptaneClient::reportInstalledPackages() {
   HttpClient http;
-  http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
-                    (config.device.certificates_directory / config.tls.ca_file).string(),
-                    (config.device.certificates_directory / config.tls.pkey_file).string());
+  http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
+                    (config.tls.certificates_directory / config.tls.ca_file).string(),
+                    (config.tls.certificates_directory / config.tls.pkey_file).string());
 
   http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
 }

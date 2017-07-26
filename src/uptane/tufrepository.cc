@@ -37,9 +37,9 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
       base_url_(base_url) {
   boost::filesystem::create_directories(path_);
   boost::filesystem::create_directories(path_ / "targets");
-  http_.authenticate((config_.device.certificates_directory / config_.tls.client_certificate).string(),
-                     (config_.device.certificates_directory / config_.tls.ca_file).string(),
-                     (config_.device.certificates_directory / config_.tls.pkey_file).string());
+  http_.authenticate((config_.tls.certificates_directory / config_.tls.client_certificate).string(),
+                     (config_.tls.certificates_directory / config_.tls.ca_file).string(),
+                     (config_.tls.certificates_directory / config_.tls.pkey_file).string());
   LOGGER_LOG(LVL_debug, "TufRepository looking for root.json in:" << path_);
   if (boost::filesystem::exists(path_ / "root.json")) {
     // Bootstrap root.json (security assumption: the filesystem contents are not modified)
@@ -133,7 +133,7 @@ void TufRepository::saveTarget(const Target& target) {
   }
 }
 
-std::pair<uint32_t, std::vector<Target>> TufRepository::fetchTargets() {
+std::pair<uint32_t, std::vector<Target> > TufRepository::fetchTargets() {
   targets_.clear();  // TODO, this is used to signal 'no new updates'
   Json::Value targets_json = fetchAndCheckRole(Role::Targets());
   Json::Value target_list = targets_json["targets"];
@@ -141,6 +141,6 @@ std::pair<uint32_t, std::vector<Target>> TufRepository::fetchTargets() {
     Target t(t_it.key().asString(), *t_it);
     targets_.push_back(t);
   }
-  return std::pair<uint32_t, std::vector<Target>>(targets_json["version"].asInt(), targets_);
+  return std::pair<uint32_t, std::vector<Target> >(targets_json["version"].asInt(), targets_);
 }
 };

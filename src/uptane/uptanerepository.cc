@@ -62,10 +62,10 @@ void Repository::refresh() {
   image.fetchAndCheckRole(Role::Timestamp());
 }
 
-std::pair<uint32_t, std::vector<Uptane::Target>> Repository::getTargets() {
+std::pair<uint32_t, std::vector<Uptane::Target> > Repository::getTargets() {
   refresh();
 
-  std::pair<uint32_t, std::vector<Uptane::Target>> director_targets_pair = director.fetchTargets();
+  std::pair<uint32_t, std::vector<Uptane::Target> > director_targets_pair = director.fetchTargets();
   std::vector<Uptane::Target> director_targets = director_targets_pair.second;
   uint32_t version = director_targets_pair.first;
   std::vector<Uptane::Target> image_targets = image.fetchTargets().second;
@@ -89,14 +89,14 @@ std::pair<uint32_t, std::vector<Uptane::Target>> Repository::getTargets() {
     }
     transport.sendTargets(secondary_targets);
   }
-  return std::pair<uint32_t, std::vector<Uptane::Target>>(version, primary_targets);
+  return std::pair<uint32_t, std::vector<Uptane::Target> >(version, primary_targets);
 }
 
 bool Repository::deviceRegister() {
-  bool pkey_exists = boost::filesystem::exists(config.device.certificates_directory / config.tls.pkey_file);
+  bool pkey_exists = boost::filesystem::exists(config.tls.certificates_directory / config.tls.pkey_file);
   bool certificate_exists =
-      boost::filesystem::exists(config.device.certificates_directory / config.tls.client_certificate);
-  bool ca_exists = boost::filesystem::exists(config.device.certificates_directory / config.tls.ca_file);
+      boost::filesystem::exists(config.tls.certificates_directory / config.tls.client_certificate);
+  bool ca_exists = boost::filesystem::exists(config.tls.certificates_directory / config.tls.ca_file);
 
   if (pkey_exists && certificate_exists && ca_exists) {
     LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
@@ -108,12 +108,12 @@ bool Repository::deviceRegister() {
     return false;
   }
 
-  std::string bootstrap_pkey_pem = (config.device.certificates_directory / "bootstrap_pkey.pem").string();
-  std::string bootstrap_cert_pem = (config.device.certificates_directory / "bootstrap_cert.pem").string();
-  std::string bootstrap_ca_pem = (config.device.certificates_directory / "bootstrap_ca.pem").string();
-  FILE *reg_p12 = fopen((config.device.certificates_directory / config.provision.p12_path).c_str(), "rb");
+  std::string bootstrap_pkey_pem = (config.tls.certificates_directory / "bootstrap_pkey.pem").string();
+  std::string bootstrap_cert_pem = (config.tls.certificates_directory / "bootstrap_cert.pem").string();
+  std::string bootstrap_ca_pem = (config.tls.certificates_directory / "bootstrap_ca.pem").string();
+  FILE *reg_p12 = fopen((config.tls.certificates_directory / config.provision.p12_path).c_str(), "rb");
   if (!reg_p12) {
-    LOGGER_LOG(LVL_error, "Could not open " << config.device.certificates_directory / config.provision.p12_path);
+    LOGGER_LOG(LVL_error, "Could not open " << config.tls.certificates_directory / config.provision.p12_path);
     return false;
   }
 
@@ -136,9 +136,9 @@ bool Repository::deviceRegister() {
   }
 
   FILE *device_p12 = fmemopen(const_cast<char *>(response.body.c_str()), response.body.size(), "rb");
-  if (!Crypto::parseP12(device_p12, "", (config.device.certificates_directory / config.tls.pkey_file).string(),
-                        (config.device.certificates_directory / config.tls.client_certificate).string(),
-                        (config.device.certificates_directory / config.tls.ca_file).string())) {
+  if (!Crypto::parseP12(device_p12, "", (config.tls.certificates_directory / config.tls.pkey_file).string(),
+                        (config.tls.certificates_directory / config.tls.client_certificate).string(),
+                        (config.tls.certificates_directory / config.tls.ca_file).string())) {
     return false;
   }
   fclose(device_p12);
@@ -148,9 +148,9 @@ bool Repository::deviceRegister() {
 }
 
 bool Repository::authenticate() {
-  return http.authenticate((config.device.certificates_directory / config.tls.client_certificate).string(),
-                           (config.device.certificates_directory / config.tls.ca_file).string(),
-                           (config.device.certificates_directory / config.tls.pkey_file).string());
+  return http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
+                           (config.tls.certificates_directory / config.tls.ca_file).string(),
+                           (config.tls.certificates_directory / config.tls.pkey_file).string());
 }
 
 bool Repository::ecuRegister() {
@@ -172,8 +172,8 @@ bool Repository::ecuRegister() {
   all_ecus["ecus"].append(primary_ecu);
   std::vector<SecondaryConfig>::iterator it;
   for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
-    std::string pub_path = (config.device.certificates_directory / (it->ecu_serial + ".pub")).string();
-    std::string priv_path = (config.device.certificates_directory / (it->ecu_serial + ".priv")).string();
+    std::string pub_path = (config.tls.certificates_directory / (it->ecu_serial + ".pub")).string();
+    std::string priv_path = (config.tls.certificates_directory / (it->ecu_serial + ".priv")).string();
     Crypto::generateRSAKeyPairIfMissing(pub_path, priv_path);
     transport.sendPrivateKey(it->ecu_serial, Utils::readFile(priv_path));
     Json::Value ecu;

@@ -1,21 +1,3 @@
-[auth]
-server = "https://example.com/auth"
-client_id = "thisisaclientid"
-client_secret = "thisisaclientsecret"
-
-[core]
-server = "https://example.com/core"
-polling = false
-polling_sec = 91
-
-[device]
-uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
-vin = "64285c3c-ca04-4d58-b8d7-f0e002483647"
-packages_dir = "/tmp/packages_dir"
-package_manager = "off"
-certificates_directory = "/tmp/aktualizr"
-system_info = "system_info.sh"
-
 [gateway]
 dbus = true
 http = false
@@ -31,6 +13,8 @@ socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
 
 [rvi]
+packages_dir = "/tmp/packages_dir"
+uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
 node_host = "rvi.example.com"
 node_port = 9999
 client_config = "my/rvi_conf.json"
@@ -40,12 +24,12 @@ p12_path = "config/cred.p12"
 p12_password = ""
 
 [tls]
+certificates_directory = "/tmp/aktualizr"
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
 ca_file = "ca.pem"
 client_certificate = "client.pem"
 
 [uptane]
-#primary_ecu_serial = "$SOTA_DEVICE_ID"
 metadata_path = "/tmp/aktualizr/metadata"
 private_key_path = "ecukey.pem"
 public_key_path = "ecukey.pub"

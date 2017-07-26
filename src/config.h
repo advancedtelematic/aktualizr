@@ -41,18 +41,6 @@ struct DbusConfig {
 struct DbusConfig {};
 #endif
 
-struct DeviceConfig {
-  DeviceConfig()
-      : uuid("123e4567-e89b-12d3-a456-426655440000"),
-        packages_dir("/tmp/"),
-        certificates_directory("/tmp/aktualizr/"),
-        package_manager(PMOFF) {}
-  std::string uuid;
-  boost::filesystem::path packages_dir;
-  boost::filesystem::path certificates_directory;
-  PackageManager package_manager;
-};
-
 struct GatewayConfig {
   GatewayConfig() : http(true), rvi(false), socket(false), dbus(false) {}
   bool http;
@@ -79,7 +67,9 @@ struct RviConfig {
         device_cert("device.crt"),
         ca_cert("ca.pem"),
         cert_dir(""),
-        cred_dir("") {}
+        cred_dir(""),
+        packages_dir("/tmp/"),
+        uuid("123e4567-e89b-12d3-a456-426655440000") {}
   std::string node_host;
   std::string node_port;
   std::string device_key;
@@ -87,10 +77,18 @@ struct RviConfig {
   std::string ca_cert;
   std::string cert_dir;
   std::string cred_dir;
+  boost::filesystem::path packages_dir;
+  std::string uuid;
 };
 
 struct TlsConfig {
-  TlsConfig() : server(""), ca_file("ca.pem"), pkey_file("pkey.pem"), client_certificate("client.pem") {}
+  TlsConfig()
+      : certificates_directory("/tmp/aktualizr"),
+        server(""),
+        ca_file("ca.pem"),
+        pkey_file("pkey.pem"),
+        client_certificate("client.pem") {}
+  boost::filesystem::path certificates_directory;
   std::string server;
   std::string ca_file;
   std::string pkey_file;
@@ -150,13 +148,8 @@ class Config {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
-  bool isProvisioned() {
-    return (boost::filesystem::exists(device.certificates_directory / tls.client_certificate) &&
-            boost::filesystem::exists(device.certificates_directory / tls.ca_file));
-  };
 
   // config data structures
-  DeviceConfig device;
   DbusConfig dbus;
   GatewayConfig gateway;
   RviConfig rvi;
@@ -170,6 +163,10 @@ class Config {
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
+  bool isUnpacked() {
+    return (boost::filesystem::exists(tls.certificates_directory / "autoprov.url") &&
+            boost::filesystem::exists(tls.certificates_directory / "autoprov_credentials.p12"));
+  };
 };
 
 #endif  // CONFIG_H_
