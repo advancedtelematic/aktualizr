@@ -93,7 +93,7 @@ TEST(config, config_cmdl_parsing) {
   bpo::options_description description("CommandLine Options");
   description.add_options()("gateway-http", bpo::value<bool>(), "on/off the http gateway")(
       "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")("gateway-socket", bpo::value<bool>(),
-      "on/off the socket gateway");
+                                                                   "on/off the socket gateway");
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
