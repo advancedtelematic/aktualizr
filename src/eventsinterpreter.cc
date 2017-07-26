@@ -28,7 +28,9 @@ void EventsInterpreter::run() {
     LOGGER_LOG(LVL_info, "got " << event->variant << " event");
     gateway_manager.processEvents(event);
 
-    if (event->variant == "DownloadComplete") {
+    if (event->variant == "UpdateAvailable") {
+      *commands_channel << boost::make_shared<command::StartDownload>(
+          static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
     }
 #ifdef BUILD_OSTREE
     else if (event->variant == "UptaneTargetsUpdated") {
@@ -36,10 +38,6 @@ void EventsInterpreter::run() {
           static_cast<event::UptaneTargetsUpdated*>(event.get())->packages);
     }
 #endif
-    else if (event->variant == "UpdateAvailable") {
-      *commands_channel << boost::make_shared<command::StartDownload>(
-          static_cast<event::UpdateAvailable*>(event.get())->update_vailable.update_id);
-    }
     if (event->variant == "UptaneTimestampUpdated") {
       // These events indicates the end of pooling cycle
       if (!config.uptane.polling) {
