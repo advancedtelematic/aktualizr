@@ -18,9 +18,9 @@ echo ${BRANCHNAME} > ${TARGETDIR}/usr/share/sota/branchname
 mkdir -p ${TARGETDIR}/var/sota
 
 #etc
-mkdir -p ${TARGETDIR}/etc
-echo ${HARDWARE} > ${TARGETDIR}/etc/hostname
-cat <<EOF >${TARGETDIR}/etc/os-release
+mkdir -p ${TARGETDIR}/usr/etc
+echo ${HARDWARE} > ${TARGETDIR}/usr/etc/hostname
+cat <<EOF >${TARGETDIR}/usr/etc/os-release
 ID="dummy-os"
 NAME="Generated OSTree-enabled OS"
 VERSION="3.14159"

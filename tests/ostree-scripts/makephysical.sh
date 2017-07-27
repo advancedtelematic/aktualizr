@@ -28,7 +28,7 @@ OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXX)
 CURDIR=${pwd}
 
 cd ${OSTREE_DIR}/repo
-python -m http.server 56042&
+python3 -m http.server 56042&
 sleep 2
 
 ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remote http://127.0.0.1:56042 ${BRANCHNAME}
