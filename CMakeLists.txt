@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 project(aktualizr)
 
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
+option(PEDANTIC_WARNINGS "Compile with pedantic warnings" OFF)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
@@ -68,7 +69,7 @@ include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${LIBDBUS_INCLUDE_DIRS})
 
 if(BUILD_GENIVI)
-    set_property(GLOBAL PROPERTY CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 11)
     add_subdirectory("third_party/rvi_lib")
 endif(BUILD_GENIVI)
 
@@ -87,6 +88,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     if(WARNING_AS_ERROR)
         add_definitions(-Werror)
     endif()
+
+    if (PEDANTIC_WARNINGS)
+        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare)
+    endif (PEDANTIC_WARNINGS)
 endif()
 
 add_subdirectory("src")

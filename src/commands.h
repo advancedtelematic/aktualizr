@@ -19,7 +19,7 @@ struct BaseCommand {
   template <typename T>
   T* toChild() {
     return (T*)this;
-  };
+  }
 };
 typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
 
@@ -64,5 +64,5 @@ class UptaneInstall : public BaseCommand {
   UptaneInstall(std::vector<Uptane::Target>);
   std::vector<Uptane::Target> packages;
 };
-};
+}
 #endif

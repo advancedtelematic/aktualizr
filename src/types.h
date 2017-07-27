@@ -85,7 +85,7 @@ enum UpdateResultCode {
   /// SWM Internal integrity error
   INTERNAL_ERROR,
   /// Other error
-  GENERAL_ERROR,
+  GENERAL_ERROR
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
@@ -139,6 +139,6 @@ struct PackageManagerCredentials {
   std::string cert_file;
   std::string pkey_file;
 };
-};
+}
 
 #endif

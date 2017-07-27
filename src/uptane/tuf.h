@@ -181,6 +181,6 @@ class Root {
   std::set<std::pair<Role, KeyId> > keys_for_role_;
   std::map<Role, int> thresholds_for_role_;
 };
-};
+}
 
 #endif  // AKTUALIZR_UPTANE_TUF_H_

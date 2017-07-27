@@ -210,4 +210,4 @@ void Repository::addSecondary(const std::string &ecu_serial, const std::string &
   c.ecu_hardware_id = hardware_identifier;
   registered_secondaries.push_back(c);
 }
-};
+}

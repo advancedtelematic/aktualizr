@@ -45,7 +45,7 @@ typedef enum {
   LVL_info,
   LVL_warning,
   LVL_error,
-  LVL_maximum = LVL_error,
+  LVL_maximum = LVL_error
 } LoggerLevels; /**< define own logging levels */
 
 /*****************************************************************************/

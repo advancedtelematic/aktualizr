@@ -10,10 +10,7 @@
 
 class SotaUptaneClient {
  public:
-  enum ServiceType {
-    Director = 0,
-    Repo,
-  };
+  enum ServiceType { Director = 0, Repo };
   std::string getEndPointUrl(SotaUptaneClient::ServiceType, const std::string &endpoint);
 
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in);

@@ -143,4 +143,4 @@ std::pair<uint32_t, std::vector<Target> > TufRepository::fetchTargets() {
   }
   return std::pair<uint32_t, std::vector<Target> >(targets_json["version"].asInt(), targets_);
 }
-};
+}

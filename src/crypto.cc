@@ -1,6 +1,7 @@
 #include "crypto.h"
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/scoped_array.hpp>
 #include <iostream>
 
 #include <sodium.h>
@@ -22,7 +23,7 @@ std::string Crypto::sha256digest(const std::string &text) {
 }
 
 std::string Crypto::sha512digest(const std::string &text) {
-  unsigned int size = 64;
+  const unsigned int size = 64;
   EVP_MD_CTX *md_ctx;
   md_ctx = EVP_MD_CTX_create();
   EVP_DigestInit_ex(md_ctx, EVP_sha512(), NULL);
@@ -53,12 +54,12 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
     LOGGER_LOG(LVL_error, "PEM_read_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
     return std::string();
   }
-  unsigned int sign_size = RSA_size(rsa);
-  unsigned char EM[sign_size];
-  unsigned char pSignature[sign_size];
+  const unsigned int sign_size = RSA_size(rsa);
+  boost::scoped_array<unsigned char> EM(new unsigned char[sign_size]);
+  boost::scoped_array<unsigned char> pSignature(new unsigned char[sign_size]);
 
   std::string digest = Crypto::sha256digest(message);
-  int status = RSA_padding_add_PKCS1_PSS(rsa, EM, (const unsigned char *)digest.c_str(), EVP_sha256(),
+  int status = RSA_padding_add_PKCS1_PSS(rsa, EM.get(), (const unsigned char *)digest.c_str(), EVP_sha256(),
                                          -1 /* maximum salt length*/);
   if (!status) {
     LOGGER_LOG(LVL_error, "RSA_padding_add_PKCS1_PSS failed with error " << ERR_error_string(ERR_get_error(), NULL));
@@ -67,14 +68,15 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   }
 
   /* perform digital signature */
-  status = RSA_private_encrypt(RSA_size(rsa), EM, pSignature, rsa, RSA_NO_PADDING);
+  status = RSA_private_encrypt(RSA_size(rsa), EM.get(), pSignature.get(), rsa, RSA_NO_PADDING);
   if (status == -1) {
     LOGGER_LOG(LVL_error, "RSA_private_encrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
     RSA_free(rsa);
     return std::string();
   }
+  std::string retval = std::string((char *)(pSignature.get()), sign_size);
   RSA_free(rsa);
-  return std::string((char *)pSignature, sign_size);
+  return retval;
 }
 
 Json::Value Crypto::signTuf(const std::string &private_key_path, const std::string &public_key_path,
@@ -107,12 +109,13 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   }
   BIO_free_all(bio);
 
-  unsigned char pDecrypted[RSA_size(rsa)];
+  const unsigned int size = RSA_size(rsa);
+  boost::scoped_array<unsigned char> pDecrypted(new unsigned char[size]);
   /* now we will verify the signature
      Start by a RAW decrypt of the signature
   */
-  int status = RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted, rsa,
-                                  RSA_NO_PADDING);
+  int status = RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted.get(),
+                                  rsa, RSA_NO_PADDING);
   if (status == -1) {
     LOGGER_LOG(LVL_error, "RSA_public_decrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
     RSA_free(rsa);
@@ -122,7 +125,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   std::string digest = Crypto::sha256digest(message);
 
   /* verify the data */
-  status = RSA_verify_PKCS1_PSS(rsa, (const unsigned char *)digest.c_str(), EVP_sha256(), pDecrypted,
+  status = RSA_verify_PKCS1_PSS(rsa, (const unsigned char *)digest.c_str(), EVP_sha256(), pDecrypted.get(),
                                 -2 /* salt length recovered from signature*/);
   RSA_free(rsa);
   if (status == 1) {

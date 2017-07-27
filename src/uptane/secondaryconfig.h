@@ -10,6 +10,6 @@ struct SecondaryConfig{
     bool partial_verifying;
     boost::filesystem::path firmware_path;
 };
-};
+}
 
 #endif

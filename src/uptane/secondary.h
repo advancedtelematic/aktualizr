@@ -22,6 +22,6 @@ class Secondary {
   SecondaryConfig config;
   TestBusSecondary transport;
 };
-};
+}
 
 #endif

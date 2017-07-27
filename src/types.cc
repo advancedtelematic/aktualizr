@@ -241,5 +241,5 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   installed_software.firmwares = firmwares;
   return installed_software;
 }
-};
+}
 // vim: set tabstop=2 shiftwidth=2 expandtab:

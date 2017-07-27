@@ -17,6 +17,6 @@ class TestBusPrimary {
  private:
   std::vector<Secondary> *secondaries_;
 };
-};
+}
 
 #endif
