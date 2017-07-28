@@ -8,6 +8,7 @@
 #include <string>
 
 #include "crypto.h"
+#include "fsstorage.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
@@ -15,7 +16,7 @@
 
 std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
 std::string tls_server = "https://tlsserver.com";
-std::string metadata_path = "tests/tmp_data/";
+std::string metadata_path = "tests/test_data";
 
 HttpClient::HttpClient() {}
 void HttpClient::setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) {
@@ -40,22 +41,22 @@ HttpResponse HttpClient::get(const std::string &url) {
     if (url.find("timestamp.json") != std::string::npos) {
       std::cout << "CHECK PATH: " << metadata_path + "/timestamp.json\n";
       if (boost::filesystem::exists(path)) {
-        boost::filesystem::copy_file("tests/test_data/timestamp2.json", path,
+        boost::filesystem::copy_file("tests/test_data_tmp/timestamp2.json", path,
                                      boost::filesystem::copy_option::overwrite_if_exists);
       } else {
-        boost::filesystem::copy_file("tests/test_data/timestamp1.json", path,
+        boost::filesystem::copy_file("tests/test_data_tmp/timestamp1.json", path,
                                      boost::filesystem::copy_option::overwrite_if_exists);
       }
       return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
     } else if (url.find("targets.json") != std::string::npos) {
       Json::Value timestamp = Utils::parseJSONFile(metadata_path + "repo/timestamp.json");
       if (timestamp["signed"]["version"].asInt64() == 2) {
-        return HttpResponse(Utils::readFile("tests/test_data/targets_noupdates.json"), 200, CURLE_OK, "");
+        return HttpResponse(Utils::readFile("tests/test_data_tmp/targets_noupdates.json"), 200, CURLE_OK, "");
       } else {
-        return HttpResponse(Utils::readFile("tests/test_data/targets_hasupdates.json"), 200, CURLE_OK, "");
+        return HttpResponse(Utils::readFile("tests/test_data_tmp/targets_hasupdates.json"), 200, CURLE_OK, "");
       }
     } else {
-      return HttpResponse(Utils::readFile("tests/test_data/" + url.substr(tls_server.size())), 200, CURLE_OK, "");
+      return HttpResponse(Utils::readFile("tests/test_data_tmp/" + url.substr(tls_server.size())), 200, CURLE_OK, "");
     }
   }
   return HttpResponse(url, 200, CURLE_OK, "");
@@ -64,8 +65,9 @@ HttpResponse HttpClient::get(const std::string &url) {
 HttpResponse HttpClient::post(const std::string &url, const Json::Value &data) {
   (void)url;
 
-  Utils::writeFile("tests/tmp_data/post.json", data);
-  return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+  Utils::writeFile("tests/test_data_tmp/post.json", data);
+  sync();
+  return HttpResponse(Utils::readFile("tests/certs/cred.p12"), 200, CURLE_OK, "");
 }
 
 HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
@@ -79,7 +81,7 @@ HttpResponse HttpClient::download(const std::string &url, curl_write_callback ca
   (void)callback;
   (void)userp;
   std::cout << "URL: " << url << "\n";
-  std::string path = "tests/test_data/" + url.substr(url.rfind("/targets/") + 9);
+  std::string path = "tests/test_data_tmp/" + url.substr(url.rfind("/targets/") + 9);
   std::cout << "filetoopen: " << path << "\n\n\n";
 
   std::string content = Utils::readFile(path);
@@ -89,47 +91,32 @@ HttpResponse HttpClient::download(const std::string &url, curl_write_callback ca
   return HttpResponse(content, 200, CURLE_OK, "");
 }
 
-TEST(uptane, get_json) {
-  Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
-
-  config.uptane.metadata_path = "tests/tmp_data/";
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
-  Uptane::TufRepository repo_repo("repo", tls_server + "/repo", config);
-
-  std::string expected_director = "BAE736B5BB53309D333D56CB766204EA2330691845E6ED982040B1B025359471";
-  std::string expected_repo = "BAE736B5BB53309D333D56CB766204EA2330691845E6ED982040B1B025359471";
-
-  std::string result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(repo.getJSON("root.json"))));
-  EXPECT_EQ(expected_director, result);
-  result = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(repo_repo.getJSON("root.json"))));
-  EXPECT_EQ(expected_repo, result);
-}
-
 Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(uptane, verify) {
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  config.uptane.metadata_path = "tests/test_data_tmp";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
+  FSStorage storage(config);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage);
   repo.updateRoot(Uptane::Version());
 
   repo.verifyRole(Uptane::Role::Root(), now, repo.getJSON("root.json"));
 }
 
 TEST(uptane, verify_data_bad) {
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  config.uptane.metadata_path = "tests/test_data_tmp";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
-  Json::Value data_json = repo.getJSON("root");
+  FSStorage storage(config);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage);
+  Json::Value data_json = repo.getJSON("root.json");
   data_json.removeMember("signatures");
 
   try {
@@ -140,13 +127,15 @@ TEST(uptane, verify_data_bad) {
 }
 
 TEST(uptane, verify_data_unknow_type) {
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  config.uptane.metadata_path = "tests/test_data_tmp/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
-  Json::Value data_json = repo.getJSON("root");
+  FSStorage storage(config);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage);
+  Json::Value data_json = repo.getJSON("root.json");
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
 
@@ -157,54 +146,60 @@ TEST(uptane, verify_data_unknow_type) {
   }
 }
 
-TEST(uptane, verify_data_bed_keyid) {
+TEST(uptane, verify_data_bad_keyid) {
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  config.uptane.metadata_path = "tests/test_data_tmp/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
-  Json::Value data_json = repo.getJSON("root");
+  FSStorage storage(config);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage);
+  Json::Value data_json = repo.getJSON("root.json");
+
   data_json["signatures"][0]["keyid"] = "badkeyid";
-  data_json["signatures"][1]["keyid"] = "badsignature";
   try {
     repo.verifyRole(Uptane::Role::Root(), now, data_json);
     FAIL();
-  } catch (Uptane::SecurityException ex) {
+  } catch (Uptane::UnmetThreshold ex) {
   }
 }
 
-TEST(uptane, verify_data_bed_threshold) {
+TEST(uptane, verify_data_bad_threshold) {
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  config.uptane.metadata_path = "tests/test_data_tmp/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
-  Uptane::TufRepository repo("director", tls_server + "/director", config);
-  Json::Value data_json = repo.getJSON("root");
-  data_json["signatures"][0]["keyid"] = "bedsignature";
+  FSStorage storage(config);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage);
+  Json::Value data_json = repo.getJSON("root.json");
+  data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
     repo.verifyRole(Uptane::Role::Root(), now, data_json);
     FAIL();
-  } catch (Uptane::SecurityException ex) {
+  } catch (Uptane::IllegalThreshold ex) {
+  } catch (Uptane::UnmetThreshold ex) {
   }
 }
 
 TEST(uptane, sign) {
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  config.uptane.metadata_path = "tests/test_data_tmp/";
   config.uptane.director_server = tls_server + "/director";
-  config.tls.certificates_directory = "tests/test_data/";
+  config.tls.certificates_directory = "tests/test_data_tmp/";
   config.uptane.repo_server = tls_server + "/repo";
   config.uptane.private_key_path = "priv.key";
   config.uptane.public_key_path = "public.key";
 
-  Uptane::Repository uptane_repo(config);
+  FSStorage storage(config);
+  Uptane::Repository uptane_repo(config, storage);
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
 
-  std::cout << "privatekey full path: " << config.uptane.private_key_path << "\n";
   Json::Value signed_json =
       Crypto::signTuf((config.tls.certificates_directory / config.uptane.private_key_path).string(),
                       (config.tls.certificates_directory / config.uptane.public_key_path).string(), tosign_json);
@@ -224,7 +219,8 @@ TEST(SotaUptaneClientTest, device_registered) {
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
 
-  Uptane::Repository uptane(conf);
+  FSStorage storage(conf);
+  Uptane::Repository uptane(conf, storage);
 
   bool result = uptane.deviceRegister();
   EXPECT_EQ(result, true);
@@ -241,7 +237,8 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
 
-  Uptane::Repository uptane(conf);
+  FSStorage storage(conf);
+  Uptane::Repository uptane(conf, storage);
 
   bool result = uptane.deviceRegister();
   EXPECT_EQ(result, false);
@@ -249,12 +246,13 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
 
 TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   Config config;
-  config.uptane.metadata_path = "tests/tmp_data/";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  config.uptane.metadata_path = "tests/test_data_tmp/";
   config.uptane.repo_server = tls_server + "/director";
-  config.tls.certificates_directory = "tests/tmp_data/";
+  config.tls.certificates_directory = "tests/test_data_tmp/";
   config.uptane.repo_server = tls_server + "/repo";
   config.uptane.primary_ecu_serial = "testecuserial";
-  config.uptane.private_key_path = "tests/tmp_data/private.key";
+  config.uptane.private_key_path = "private.key";
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
@@ -265,11 +263,10 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   ecu_config.firmware_path = "/tmp/firmware.txt";
   config.uptane.secondaries.push_back(ecu_config);
 
-  Uptane::Repository uptane(config);
+  FSStorage storage(config);
+  Uptane::Repository uptane(config, storage);
 
   boost::filesystem::remove(test_manifest);
-
-  Uptane::Repository uptane_repo(config);
 
   uptane.putManifest();
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
@@ -284,30 +281,34 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
 
 TEST(SotaUptaneClientTest, device_ecu_register) {
   Config config;
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   config.uptane.metadata_path = "tests/";
   config.uptane.repo_server = tls_server + "/director";
-  config.tls.certificates_directory = "tests/tmp_data/certs/";
+  config.tls.certificates_directory = "tests/test_data_tmp/certs";
+
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;
 
   config.uptane.primary_ecu_serial = "testecuserial";
-  config.uptane.private_key_path = "tests/tmp_data/private.key";
+  config.uptane.private_key_path = "private.key";
 
-  Uptane::Repository uptane(config);
+  FSStorage storage(config);
+  Uptane::Repository uptane(config, storage);
   uptane.ecuRegister();
-  Json::Value ecu_data = Utils::parseJSONFile("tests/tmp_data/post.json");
+  Json::Value ecu_data = Utils::parseJSONFile("tests/test_data_tmp/post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 1);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
 }
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf("tests/config_tests_prov.toml");
-  conf.uptane.metadata_path = "tests/tmp_data";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  conf.uptane.metadata_path = "tests/test_data_tmp";
   conf.uptane.director_server = tls_server + "/director";
-  conf.tls.certificates_directory = "tests/tmp_data/";
+  conf.tls.certificates_directory = "tests/test_data_tmp/";
   conf.uptane.repo_server = tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.uptane.private_key_path = "tests/tmp_data/private.key";
+  conf.uptane.private_key_path = "private.key";
 
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
@@ -326,28 +327,39 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, &events_channel);
+
+  FSStorage storage(conf);
+  Uptane::Repository repo(conf, storage);
+  SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
+
+  boost::shared_ptr<event::BaseEvent> event;
   if (!events_channel.hasValues()) {
     FAIL();
   }
-  boost::shared_ptr<event::BaseEvent> event;
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
+  if (!events_channel.hasValues()) {
+    FAIL();
+  }
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+  if (!events_channel.hasValues()) {
+    FAIL();
+  }
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
 TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   Config conf("tests/config_tests_prov.toml");
-  conf.uptane.metadata_path = "tests/tmp_data";
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
+  conf.uptane.metadata_path = "tests/test_data_tmp";
   conf.uptane.director_server = tls_server + "/director";
-  conf.tls.certificates_directory = "tests/tmp_data/";
+  conf.tls.certificates_directory = "tests/test_data_tmp/";
   conf.uptane.repo_server = tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.uptane.private_key_path = "tests/tmp_data/private.key";
+  conf.uptane.private_key_path = "private.key";
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
@@ -355,7 +367,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = "tests/tmp_data/firmware.txt";
+  ecu_config.firmware_path = "tests/test_data_tmp/firmware.txt";
   conf.uptane.secondaries.push_back(ecu_config);
 
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
@@ -373,27 +385,33 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
 
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, &events_channel);
+  FSStorage storage(conf);
+  Uptane::Repository repo(conf, storage);
+  SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
-  if (!events_channel.hasValues()) {
+
+  boost::shared_ptr<event::BaseEvent> event;
+  if(!events_channel.hasValues()) {
     FAIL();
   }
-  boost::shared_ptr<event::BaseEvent> event;
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].filename(),
-            "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
-  EXPECT_EQ(Utils::readFile("tests/tmp_data/firmware.txt"), "This is content");
+  if (targets_event->packages.size()) {
+    EXPECT_EQ(targets_event->packages[0].filename(),
+              "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  }
+  EXPECT_EQ(Utils::readFile("tests/test_data_tmp/firmware.txt"), "This is content");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
   Config conf("tests/config_tests_prov.toml");
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   conf.uptane.primary_ecu_serial = "testecuserial";
-  conf.uptane.private_key_path = "tests/tmp_data/private.key";
+  conf.uptane.private_key_path = "private.key";
   conf.uptane.director_server = tls_server + "/director";
-  conf.tls.certificates_directory = "tests/tmp_data/";
+  conf.tls.certificates_directory = "tests/test_data_tmp/";
   conf.uptane.repo_server = tls_server + "/repo";
 
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
@@ -416,7 +434,9 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   packages_to_install.push_back(Uptane::Target("testostree", ot_json));
   commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
-  SotaUptaneClient up(conf, &events_channel);
+  FSStorage storage(conf);
+  Uptane::Repository repo(conf, storage);
+  SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
 
   EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
@@ -434,14 +454,16 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
 
 TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   Config config;
+  Utils::copyDir("tests/test_data", "tests/test_data_tmp");
   config.uptane.metadata_path = "tests/";
   config.uptane.repo_server = tls_server + "/director";
-  config.tls.certificates_directory = "tests/tmp_data/";
+  config.tls.certificates_directory = "tests/test_data_tmp/";
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;
 
   config.uptane.primary_ecu_serial = "testecuserial";
-  config.uptane.private_key_path = "tests/tmp_data/private.key";
+  config.uptane.private_key_path = "private.key";
+  config.uptane.public_key_path = "public.key";
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = boost::filesystem::path("mybasedir");
@@ -452,10 +474,11 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   ecu_config.firmware_path = "/tmp/firmware.txt";
   config.uptane.secondaries.push_back(ecu_config);
 
-  Uptane::Repository uptane(config);
+  FSStorage storage(config);
+  Uptane::Repository uptane(config, storage);
 
   uptane.ecuRegister();
-  Json::Value ecu_data = Utils::parseJSONFile("tests/tmp_data/post.json");
+  Json::Value ecu_data = Utils::parseJSONFile("tests/test_data_tmp/post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
   EXPECT_EQ(ecu_data["ecus"][1]["ecu_serial"].asString(), "secondary_ecu_serial");

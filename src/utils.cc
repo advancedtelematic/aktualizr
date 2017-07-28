@@ -236,6 +236,20 @@ std::string Utils::randomUuid() {
   return boost::uuids::to_string(uuid_gen());
 }
 
+void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to) {
+  if (boost::filesystem::exists(to)) boost::filesystem::remove_all(to);
+
+  boost::filesystem::create_directories(to);
+  boost::filesystem::directory_iterator it(from);
+
+  for (; it != boost::filesystem::directory_iterator(); it++) {
+    if (boost::filesystem::is_directory(it->path()))
+      copyDir(it->path(), to / it->path().filename());
+    else
+      boost::filesystem::copy_file(it->path(), to / it->path().filename());
+  }
+}
+
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}
 

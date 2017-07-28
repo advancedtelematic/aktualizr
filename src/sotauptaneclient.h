@@ -13,7 +13,7 @@ class SotaUptaneClient {
   enum ServiceType { Director = 0, Repo };
   std::string getEndPointUrl(SotaUptaneClient::ServiceType, const std::string &endpoint);
 
-  SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in);
+  SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
 
   void putManifest(SotaUptaneClient::ServiceType service, const std::string &manifest);
   Json::Value sign(const Json::Value &in_data);
@@ -31,7 +31,7 @@ class SotaUptaneClient {
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, std::string ecu_id);
   Config config;
   event::Channel *events_channel;
-  Uptane::Repository uptane_repo;
+  Uptane::Repository &uptane_repo;
 
   std::vector<Json::Value> ecu_versions;
 };

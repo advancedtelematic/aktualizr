@@ -8,6 +8,9 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             config.cc
             crypto.cc
             events.cc
+            fsstorage.cc
+            commands.cc
+            types.cc
             eventsinterpreter.cc
             gatewaymanager.cc
             httpclient.cc
@@ -27,6 +30,8 @@ set(HEADERS
             channel.h
             events.h
             commands.h
+            invstorage.h
+            fsstorage.h
             types.h
             eventsinterpreter.h
             gatewaymanager.h

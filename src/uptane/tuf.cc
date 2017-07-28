@@ -78,6 +78,17 @@ Hash::Hash(Type type, const std::string &hash) : type_(type), hash_(boost::algor
 
 bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && hash_ == other.hash_; }
 
+std::string Hash::TypeString() const {
+  switch (type_) {
+    case kSha256:
+      return "sha256";
+    case kSha512:
+      return "sha512";
+    default:
+      return "unknown";
+  }
+}
+
 std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   os << "Hash: " << h.hash_;
   return os;
@@ -86,6 +97,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
 Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
+    // TODO: Hardware identifier?
     if (custom.isMember("ecuIdentifier")) ecu_identifier_ = custom["ecuIdentifier"].asString();
     if (custom.isMember("targetFormat")) type_ = custom["targetFormat"].asString();
   }
@@ -101,6 +113,19 @@ Target::Target(const std::string &filename, const Json::Value &content) : filena
   }
 }
 
+Json::Value Uptane::Target::toJson() const {
+  Json::Value res;
+  res["custom"]["ecuIdentifier"] = ecu_identifier_;
+  res["custom"]["targetFormat"] = type_;
+
+  std::vector<Uptane::Hash>::const_iterator it;
+  for (it = hashes_.begin(); it != hashes_.end(); it++) {
+    res["hashes"][it->TypeString()] = it->HashString();
+  }
+  res["length"] = Json::Value((Json::Value::Int64)length_);
+  return res;
+}
+
 bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
@@ -114,4 +139,81 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "))";
 
   return os;
+}
+
+Uptane::Targets::Targets(const Json::Value &json) {
+  if (!json.isObject() || json["_type"] != "Targets")
+    throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
+
+  version = json["version"].asInt();
+  expiry = Uptane::TimeStamp(json["expires"].asString());
+
+  Json::Value target_list = json["targets"];
+  for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
+    Target t(t_it.key().asString(), *t_it);
+    targets.push_back(t);
+  }
+}
+
+Uptane::Targets::Targets() { version = -1; }
+
+Json::Value Uptane::Targets::toJson() const {
+  Json::Value res;
+  res["_type"] = "Targets";
+  res["expires"] = expiry.ToString();
+
+  std::vector<Uptane::Target>::const_iterator it;
+  for (it = targets.begin(); it != targets.end(); it++) {
+    res["targets"][it->filename()] = it->toJson();
+  }
+  res["version"] = version;
+  return res;
+}
+
+Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) {
+  if (!json.isObject() || json["_type"] != "Timestamp")
+    throw Uptane::InvalidMetadata("", "timestamp", "invalid timestamp.json");
+
+  version = json["version"].asInt();
+  expiry = Uptane::TimeStamp(json["expires"].asString());
+
+  // TODO: METAFILES
+}
+
+Uptane::TimestampMeta::TimestampMeta() { version = -1; }
+
+Json::Value Uptane::TimestampMeta::toJson() const {
+  Json::Value res;
+  res["_type"] = "Timestamp";
+  res["expires"] = expiry.ToString();
+  res["version"] = version;
+  // TODO: METAFILES
+  return res;
+}
+
+Uptane::Snapshot::Snapshot(const Json::Value &json) {
+  if (!json.isObject() || json["_type"] != "Snapshot")
+    throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
+
+  version = json["version"].asInt();
+  expiry = Uptane::TimeStamp(json["expires"].asString());
+
+  Json::Value meta_list = json["meta"];
+  for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++)
+    versions[m_it.key().asString()] = (*m_it)["version"].asInt();
+}
+
+Uptane::Snapshot::Snapshot() { version = -1; }
+
+Json::Value Uptane::Snapshot::toJson() const {
+  Json::Value res;
+  res["_type"] = "Snapshot";
+  res["expires"] = expiry.ToString();
+
+  std::map<std::string, int>::const_iterator it;
+  for (it = versions.begin(); it != versions.end(); it++) {
+    res["meta"][it->first]["version"] = it->second;
+  }
+  res["version"] = version;
+  return res;
 }

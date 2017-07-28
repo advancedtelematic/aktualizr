@@ -4,6 +4,7 @@
 #include <json/json.h>
 #include <vector>
 #include "config.h"
+#include "invstorage.h"
 #include "uptane/secondary.h"
 #include "uptane/testbusprimary.h"
 #include "uptane/tufrepository.h"
@@ -14,16 +15,16 @@ namespace Uptane {
 
 class Repository {
  public:
-  Repository(const Config &config);
+  Repository(const Config &config, INvStorage &storage);
   bool putManifest();
   bool putManifest(const Json::Value &);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
   // pair of (Version, targets[])
-  std::pair<uint32_t, std::vector<Uptane::Target> > getTargets();
+  std::pair<int, std::vector<Uptane::Target> > getTargets();
   bool deviceRegister();
   bool ecuRegister();
-  bool authenticate();
+  // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
 
  private:
@@ -34,6 +35,7 @@ class Repository {
   Config config;
   TufRepository director;
   TufRepository image;
+  INvStorage &storage;
   HttpClient http;
   Json::Value manifests;
   std::vector<SecondaryConfig> registered_secondaries;
@@ -41,7 +43,8 @@ class Repository {
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
-  void refresh();
+  bool verifyMeta(const Uptane::MetaPack &meta);
+  bool getMeta();
 };
 }
 

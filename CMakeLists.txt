@@ -79,7 +79,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default would be nice as well, but also causes
     # problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare)
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare -Wno-error=conversion)
 
     if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR MAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "crypto.h"
 #include "httpclient.h"
+#include "invstorage.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
 
@@ -20,39 +21,54 @@ typedef std::map<std::string, unsigned int> RoleThreshold;
 struct DownloadMetaStruct {
   int64_t expected_length;
   int64_t downloaded_length;
-  FILE *fp;
+  FILE* fp;
   MultiPartSHA256Hasher sha256_hasher;
   MultiPartSHA512Hasher sha512_hasher;
 };
 
 class TufRepository {
  public:
-  TufRepository(const std::string &name, const std::string &base_url, const Config &config);
-  Json::Value verifyRole(Role role, const TimeStamp &now, const Json::Value &);
+  TufRepository(const std::string& name, const std::string& base_url, const Config& config, INvStorage& storage);
+  Json::Value verifyRole(Role role, const TimeStamp& now, const Json::Value&, Uptane::Root* root_used = NULL);
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect
   void updateRoot(Version version);
   bool checkTimestamp();
 
-  Json::Value getJSON(const std::string &role);
-  Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version());
-  std::vector<Target> getTargets() { return targets_; }
-  std::pair<uint32_t, std::vector<Target> > fetchTargets();
-  void saveTarget(const Target &target);
+  Json::Value getJSON(const std::string& role);
+  Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version(), Uptane::Root* root_used = NULL);
+  std::vector<Target> getTargets() { return targets_.targets; }
+  // std::pair<uint32_t, std::vector<Target> > fetchTargets();
+  void saveTarget(const Target& target);
   std::string downloadTarget(Target target);
+  int rootVersion() { return root_.version(); }
+  int targetsVersion() { return targets_.version; }
+  int timestampVersion() { return timestamp_.version; }
+
+  const Uptane::Root& root() { return root_; }
+  const Uptane::Targets& targets() { return targets_; }
+  const Uptane::TimestampMeta& timestamp() { return timestamp_; }
+  const Uptane::Snapshot& snapshot() { return snapshot_; }
+  void setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp = NULL,
+               Uptane::Snapshot* snapshot = NULL);
+  void setTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
+    http_.setCerts(ca, cert, pkey);
+  }
 
  private:
   std::string name_;
   boost::filesystem::path path_;
   Config config_;
-  Uptane::Root root_;
-  int last_timestamp_;
+  INvStorage& storage_;
   HttpClient http_;
-  std::vector<Target> targets_;
   std::string base_url_;
-  friend class TestBusSecondary;
 
-  // TODO: list of targets
+  // Metadata
+  Uptane::Root root_;
+  Uptane::Targets targets_;
+  Uptane::TimestampMeta timestamp_;
+  Uptane::Snapshot snapshot_;
+  friend class TestBusSecondary;
 };
 }
 

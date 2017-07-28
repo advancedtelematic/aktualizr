@@ -12,6 +12,7 @@
 
 #include "bootstrap.h"
 #include "crypto.h"
+#include "invstorage.h"
 #include "logger.h"
 #include "openssl_compat.h"
 #include "ostree.h"
@@ -19,10 +20,11 @@
 
 namespace Uptane {
 
-Repository::Repository(const Config &config_in)
+Repository::Repository(const Config &config_in, INvStorage &storage_in)
     : config(config_in),
-      director("director", config.uptane.director_server, config),
-      image("repo", config.uptane.repo_server, config),
+      director("director", config.uptane.director_server, config, storage_in),
+      image("repo", config.uptane.repo_server, config, storage_in),
+      storage(storage_in),
       http(),
       manifests(Json::arrayValue),
       transport(&secondaries) {
@@ -57,37 +59,65 @@ bool Repository::putManifest(const Json::Value &custom) {
   return reponse.isOk();
 }
 
-void Repository::refresh() {
-  putManifest();
-  director.updateRoot(Version());
-  image.updateRoot(Version());
-  image.fetchAndCheckRole(Role::Snapshot());
-  image.fetchAndCheckRole(Role::Timestamp());
+// Check for consistency, signatures are already checked
+bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
+  // verify that director and image targets are consistent
+  for (std::vector<Uptane::Target>::const_iterator it = meta.director_targets.targets.begin();
+       it != meta.director_targets.targets.end(); ++it) {
+    std::vector<Uptane::Target>::const_iterator image_target_it;
+    image_target_it = std::find(meta.image_targets.targets.begin(), meta.image_targets.targets.end(), *it);
+    if (image_target_it == meta.image_targets.targets.end()) return false;
+  }
+  return true;
 }
 
-std::pair<uint32_t, std::vector<Uptane::Target> > Repository::getTargets() {
-  refresh();
+bool Repository::getMeta() {
+  Uptane::MetaPack meta;
+  meta.director_root = Uptane::Root("director", director.fetchAndCheckRole(Role::Root()));
+  meta.image_root = Uptane::Root("repo", image.fetchAndCheckRole(Role::Root()));
 
-  std::pair<uint32_t, std::vector<Uptane::Target> > director_targets_pair = director.fetchTargets();
-  std::vector<Uptane::Target> director_targets = director_targets_pair.second;
-  uint32_t version = director_targets_pair.first;
-  std::vector<Uptane::Target> image_targets = image.fetchTargets().second;
+  meta.image_timestamp = Uptane::TimestampMeta(image.fetchAndCheckRole(Role::Timestamp(), Version(), &meta.image_root));
+  if (meta.image_timestamp.version > image.timestampVersion()) {
+    meta.image_snapshot = Uptane::Snapshot(image.fetchAndCheckRole(Role::Snapshot(), Version(), &meta.image_root));
+    meta.image_targets = Uptane::Targets(image.fetchAndCheckRole(Role::Targets(), Version(), &meta.image_root));
+  } else {
+    meta.image_snapshot = image.snapshot();
+    meta.image_targets = image.targets();
+  }
+
+  meta.director_targets = Uptane::Targets(director.fetchAndCheckRole(Role::Targets(), Version(), &meta.director_root));
+
+  if (meta.director_root.version() > director.rootVersion() || meta.image_root.version() > image.rootVersion() ||
+      meta.director_targets.version > director.targetsVersion() ||
+      meta.image_timestamp.version > image.timestampVersion()) {
+    if (verifyMeta(meta)) {
+      storage.storeMetadata(meta);
+      image.setMeta(&meta.image_root, &meta.image_targets, &meta.image_timestamp, &meta.image_snapshot);
+      director.setMeta(&meta.director_root, &meta.director_targets);
+    } else {
+      LOGGER_LOG(LVL_info, "Metadata consistency check failed");
+      return false;
+    }
+  }
+  return true;
+}
+
+std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
+  if (!getMeta()) return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
+
+  std::vector<Uptane::Target> director_targets = director.getTargets();
+  int version = director.targetsVersion();
   std::vector<Uptane::Target> primary_targets;
   std::vector<Uptane::Target> secondary_targets;
 
   if (!director_targets.empty()) {
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
-      std::vector<Uptane::Target>::iterator image_target_it;
-      image_target_it = std::find(image_targets.begin(), image_targets.end(), *it);
-      if (image_target_it != image_targets.end()) {
-        image.saveTarget(*image_target_it);
-        if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
-          primary_targets.push_back(*it);
-        } else {
-          secondary_targets.push_back(*it);
-        }
+      // TODO: support downloading encrypted targets from director
+      image.saveTarget(*it);
+      if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
+        primary_targets.push_back(*it);
       } else {
-        throw MissMatchTarget("director and image");
+        secondary_targets.push_back(*it);
       }
     }
     transport.sendTargets(secondary_targets);
@@ -96,36 +126,38 @@ std::pair<uint32_t, std::vector<Uptane::Target> > Repository::getTargets() {
 }
 
 bool Repository::deviceRegister() {
-  bool pkey_exists = boost::filesystem::exists(config.tls.certificates_directory / config.tls.pkey_file);
-  bool certificate_exists =
-      boost::filesystem::exists(config.tls.certificates_directory / config.tls.client_certificate);
-  bool ca_exists = boost::filesystem::exists(config.tls.certificates_directory / config.tls.ca_file);
-
-  if (pkey_exists && certificate_exists && ca_exists) {
+  if (storage.loadTlsCreds(NULL, NULL, NULL)) {
+    // TODO: acknowledgement to server
     LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
     return true;
   }
 
-  if (pkey_exists || certificate_exists || ca_exists) {
-    LOGGER_LOG(LVL_error, "Device registration was interrupted nothing can be done");
-    return false;
-  }
+  std::string pkey;
+  std::string cert;
+  std::string ca;
+  if (!storage.loadBootstrapTlsCreds(&ca, &cert, &pkey)) {
+    Bootstrap boot(config.provision.provision_path);
+    std::string p12_str = boot.getP12Str();
+    if (p12_str.empty()) {
+      return false;
+    }
+    FILE *reg_p12 = fmemopen(const_cast<char *>(p12_str.c_str()), p12_str.size(), "rb");
 
-  Bootstrap boot(config.provision.provision_path);
-  std::string p12_str = boot.getP12Str();
-  if (p12_str.empty()) {
-    return false;
-  }
+    if (!reg_p12) {
+      LOGGER_LOG(LVL_error, "Could not open bootstrapped credentials");
+      return false;
+    }
 
-  FILE *reg_p12 = fmemopen(const_cast<char *>(p12_str.c_str()), p12_str.size(), "rb");
-  if (!Crypto::parseP12(reg_p12, config.provision.p12_password, boot.getPkeyPath(), boot.getCertPath(),
-                        boot.getCaPath())) {
+    if (!Crypto::parseP12(reg_p12, config.provision.p12_password, &pkey, &cert, &ca)) {
+      fclose(reg_p12);
+      return false;
+    }
     fclose(reg_p12);
-    return false;
+    storage.storeBootstrapTlsCreds(ca, cert, pkey);
   }
-  fclose(reg_p12);
 
-  http.setCerts(boot.getCaPath(), boot.getCertPath(), boot.getPkeyPath());
+  // set bootstrap credentials
+  http.setCerts(ca, cert, pkey);
 
   Json::Value data;
   data["deviceId"] = config.uptane.device_id;
@@ -137,27 +169,34 @@ bool Repository::deviceRegister() {
   }
 
   FILE *device_p12 = fmemopen(const_cast<char *>(response.body.c_str()), response.body.size(), "rb");
-  if (!Crypto::parseP12(device_p12, "", (config.tls.certificates_directory / config.tls.pkey_file).string(),
-                        (config.tls.certificates_directory / config.tls.client_certificate).string(),
-                        (config.tls.certificates_directory / config.tls.ca_file).string())) {
+  if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
     return false;
   }
   fclose(device_p12);
-  sync();
+  storage.storeTlsCreds(ca, cert, pkey);
+
+  // set provisioned credentials
+  http.setCerts(ca, cert, pkey);
+  director.setTlsCreds(ca, cert, pkey);
+  image.setTlsCreds(ca, cert, pkey);
+
+  // TODO: acknowledgement to the server
   LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
   return true;
 }
 
-bool Repository::authenticate() {
-  return http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
-                           (config.tls.certificates_directory / config.tls.ca_file).string(),
-                           (config.tls.certificates_directory / config.tls.pkey_file).string());
-}
-
 bool Repository::ecuRegister() {
-  if (!Crypto::generateRSAKeyPairIfMissing(config.uptane.public_key_path, config.uptane.private_key_path)) {
-    LOGGER_LOG(LVL_error, "Could not generate rsa keys for primary.");
-    return false;
+  // register primary ECU
+  std::string public_key;
+  std::string private_key;
+  if (!storage.loadEcuKeys(true, config.uptane.primary_ecu_serial, config.uptane.primary_ecu_hardware_id, &public_key,
+                           &private_key)) {
+    if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
+      LOGGER_LOG(LVL_error, "Could not generate rsa keys for primary");
+      return false;
+    }
+    storage.storeEcu(true, config.uptane.primary_ecu_serial, config.uptane.primary_ecu_hardware_id, public_key,
+                     private_key);
   }
 
   Json::Value all_ecus;
@@ -169,24 +208,33 @@ bool Repository::ecuRegister() {
   primary_ecu["hardware_identifier"] = config.uptane.primary_ecu_hardware_id;
   primary_ecu["ecu_serial"] = config.uptane.primary_ecu_serial;
   primary_ecu["clientKey"]["keytype"] = "RSA";
-  primary_ecu["clientKey"]["keyval"]["public"] = primary_pub_key.value;
+  primary_ecu["clientKey"]["keyval"]["public"] = public_key;
   all_ecus["ecus"].append(primary_ecu);
+
+  // register secondary ECUs
   std::vector<SecondaryConfig>::iterator it;
   for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
-    std::string pub_path = (config.tls.certificates_directory / (it->ecu_serial + ".pub")).string();
-    std::string priv_path = (config.tls.certificates_directory / (it->ecu_serial + ".priv")).string();
-    Crypto::generateRSAKeyPairIfMissing(pub_path, priv_path);
-    transport.sendPrivateKey(it->ecu_serial, Utils::readFile(priv_path));
+    std::string secondary_public_key;
+    std::string secondary_private_key;
+    if (!storage.loadEcuKeys(false, it->ecu_serial, it->ecu_hardware_id, &secondary_public_key,
+                             &secondary_private_key)) {
+      if (!Crypto::generateRSAKeyPair(&secondary_public_key, &secondary_private_key)) {
+        LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << it->ecu_hardware_id << "@"
+                                                                           << it->ecu_serial);
+        return false;
+      }
+      storage.storeEcu(true, it->ecu_serial, it->ecu_hardware_id, secondary_public_key, secondary_private_key);
+    }
+
+    transport.sendPrivateKey(it->ecu_serial, secondary_private_key);
     Json::Value ecu;
     ecu["hardware_identifier"] = it->ecu_hardware_id;
     ecu["ecu_serial"] = it->ecu_serial;
     ecu["clientKey"]["keytype"] = "RSA";
-    ecu["clientKey"]["keyval"]["public"] = Utils::readFile(pub_path);
+    ecu["clientKey"]["keyval"]["public"] = secondary_public_key;
     all_ecus["ecus"].append(ecu);
   }
 
-  authenticate();
-  sync();  // Ensure that the keys written above are on disk before we talk to the server
   HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
   if (response.isOk()) {
     LOGGER_LOG(LVL_info, "Provisioned successfully on Director");

@@ -10,8 +10,8 @@
 #include "uptane/exceptions.h"
 #include "utils.h"
 
-SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(config) {}
+SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
+    : config(config_in), events_channel(events_channel_in), uptane_repo(repo) {}
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
@@ -24,7 +24,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == config.uptane.primary_ecu_serial) {
     return target.filename() == OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).ref_name;
   } else {
-    // TODO: iterate throgh secondaries, compare version when found, throw exception otherwise
+    // TODO: iterate through secondaries, compare version when found, throw exception otherwise
     return false;
   }
 }
@@ -101,7 +101,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "... provisioned OK");
   reportHWInfo();
   reportInstalledPackages();
-  uptane_repo.authenticate();
+
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;

@@ -2,6 +2,7 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
+#include <boost/thread/mutex.hpp>
 #include "json/json.h"
 #include "utils.h"
 
@@ -50,6 +51,13 @@ class HttpClient {
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times);
   std::string user_agent;
+
+  static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
+  boost::mutex tls_mutex;
+  // SSL certificates, fed to Curl by sslCtxFunction
+  std::string tls_ca;
+  std::string tls_cert;
+  std::string tls_pkey;
   static const int RETRY_TIMES = 2;
 };
 #endif
