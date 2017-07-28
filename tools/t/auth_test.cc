@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "../authenticate.h"
-#include "../treehub_server.h"
+#include "authenticate.h"
+#include "treehub_server.h"
 
 TEST(authenticate, good_zip) {
   std::string filepath = "tools/t/auth_test_good.zip";

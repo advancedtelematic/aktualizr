@@ -60,6 +60,7 @@ add_custom_target(check-tools
 
 add_dependencies(qa check-tools garage-push)
 
+include_directories(${PROJECT_SOURCE_DIR}/tools)
 add_subdirectory(t EXCLUDE_FROM_ALL)
 
 # Check the --help option works
