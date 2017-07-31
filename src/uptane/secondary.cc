@@ -56,4 +56,4 @@ void Secondary::install(const Uptane::Target &target) {
   std::string image = transport.getImage(target);
   Utils::writeFile(config.firmware_path.string(), image);
 }
-};
+}

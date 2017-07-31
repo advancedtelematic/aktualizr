@@ -43,6 +43,6 @@ class Repository {
   friend class TestBusSecondary;
   void refresh();
 };
-};
+}
 
 #endif

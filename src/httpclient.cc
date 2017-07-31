@@ -22,14 +22,6 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-static size_t writeFile(void* contents, size_t size, size_t nmemb, FILE* fp) {
-  size_t written = fwrite(contents, size, nmemb, fp);
-  return written;
-}
-
-// Discard the http body
-static size_t writeDiscard(void*, size_t size, size_t nmemb) { return size * nmemb; }
-
 HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
   curl_global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();

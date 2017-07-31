@@ -1,4 +1,3 @@
-
 if(NOT GTEST_ROOT )
     set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
 endif()
@@ -81,6 +80,8 @@ add_dependencies(build_tests
         aktualizr_test_utils)
 
 if(BUILD_OSTREE)
+    set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
+
     add_executable(aktualizr_test_uptane
                   ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
                   ${PROJECT_SOURCE_DIR}/src/commands.cc

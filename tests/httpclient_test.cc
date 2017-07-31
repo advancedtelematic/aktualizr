@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
       sleep(4);
       server += port;
       int ret = RUN_ALL_TESTS();
-      int killReturn = kill(pID, SIGTERM);
+      kill(pID, SIGTERM);
       return ret;
     }
   }

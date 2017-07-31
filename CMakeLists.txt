@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 project(aktualizr)
 
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
+option(PEDANTIC_WARNINGS "Compile with pedantic warnings" OFF)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
@@ -67,12 +68,31 @@ include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${LIBDBUS_INCLUDE_DIRS})
 
-set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
 if(BUILD_GENIVI)
-    set_property(GLOBAL PROPERTY CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 11)
     add_subdirectory("third_party/rvi_lib")
 endif(BUILD_GENIVI)
+
+# Setup warnings. Do this after rvi_lib is added so that it isn't affected.
+if (CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-fstack-protector-all)
+    # Enable maximum set of warnings. -Wno-sign-compare is required because of
+    # problems in gtest. -Wswitch-default would be nice as well, but also causes
+    # problems in gtest.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare)
+
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR MAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
+        add_definitions(-Wshadow)
+    endif ()
+
+    if(WARNING_AS_ERROR)
+        add_definitions(-Werror)
+    endif()
+
+    if (PEDANTIC_WARNINGS)
+        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare)
+    endif (PEDANTIC_WARNINGS)
+endif()
 
 add_subdirectory("src")
 

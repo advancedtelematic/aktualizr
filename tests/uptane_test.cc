@@ -58,7 +58,10 @@ OstreePackage OstreePackage::getEcu(const std::string &ecu_serial,
   return OstreePackage(ecu_serial, "frgfdg", "dsfsdf", "sfsdfs");
 }
 
-Json::Value Ostree::getInstalledPackages(const std::string &file_path) { return Json::Value(); }
+Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
+  (void)file_path;
+  return Json::Value();
+}
 
 HttpClient::HttpClient() {}
 void HttpClient::setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) {
@@ -129,7 +132,8 @@ HttpResponse HttpClient::download(const std::string &url, curl_write_callback ca
 
   std::string content = Utils::readFile(path);
 
-  callback((char *)content.c_str(), content.size(), 1, userp);
+  // Hack since the signature strangely requires non-const.
+  callback(const_cast<char *>(content.c_str()), content.size(), 1, userp);
   return HttpResponse(content, 200, CURLE_OK, "");
 }
 

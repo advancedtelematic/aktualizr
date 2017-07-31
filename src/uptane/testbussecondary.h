@@ -17,6 +17,6 @@ class TestBusSecondary {
  private:
   Uptane::Repository *primary_;
 };
-};
+}
 
 #endif

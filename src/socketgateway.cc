@@ -39,7 +39,7 @@ SocketGateway::~SocketGateway() {
 }
 
 void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
-  int buff_size = 512;
+  const int buff_size = 512;
   char buf[buff_size];
   std::string data;
 

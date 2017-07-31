@@ -32,4 +32,4 @@ void TestBusPrimary::sendPrivateKey(const std::string &ecu_serial, const std::st
     throw std::runtime_error("ecu_serial - " + ecu_serial + " not found");
   }
 }
-};
+}
