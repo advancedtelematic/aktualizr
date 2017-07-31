@@ -27,11 +27,11 @@ find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(LibArchive REQUIRED)
 pkg_search_module(SODIUM libsodium REQUIRED)
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
-    find_package(LibArchive REQUIRED)
     add_definitions(-DBUILD_OSTREE)
 endif(BUILD_OSTREE)
 

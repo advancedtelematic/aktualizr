@@ -55,7 +55,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   Json::Value json;
   json["dev"]["key"] = config.rvi.device_key;
   json["dev"]["cert"] = config.rvi.device_cert;
-  json["dev"]["id"] = std::string("genivi.org/device/") + config.device.uuid;
+  json["dev"]["id"] = std::string("genivi.org/device/") + config.rvi.uuid;
   json["ca"]["cert"] = config.rvi.ca_cert;
   json["ca"]["dir"] = config.rvi.cert_dir;
   json["creddir"] = config.rvi.cred_dir;
@@ -138,7 +138,7 @@ void SotaRVIClient::run() {
 
 void SotaRVIClient::startDownload(const data::UpdateRequestId &update_id) {
   Json::Value value;
-  value["device"] = config.device.uuid;
+  value["device"] = config.rvi.uuid;
   value["update_id"] = update_id;
   value["services"] = services;
   Json::Value params(Json::arrayValue);
@@ -151,7 +151,7 @@ void SotaRVIClient::invokeAck(const std::string &update_id) {
   std::vector<int> chunks = chunks_map[update_id];
 
   Json::Value value;
-  value["device"] = config.device.uuid;
+  value["device"] = config.rvi.uuid;
   value["update_id"] = update_id;
   value["chunks"] = Json::arrayValue;
 
@@ -169,7 +169,7 @@ void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
 
   std::string output = Utils::fromBase64(b64_text);
 
-  std::ofstream update_file((config.device.packages_dir / chunk_json["update_id"].asString()).string().c_str(),
+  std::ofstream update_file((config.rvi.packages_dir / chunk_json["update_id"].asString()).string().c_str(),
                             std::ios::out | std::ios::app | std::ios::binary);
   update_file << output;
   update_file.close();
@@ -182,14 +182,14 @@ void SotaRVIClient::downloadComplete(const Json::Value &parameters) {
   data::DownloadComplete download_complete;
   download_complete.update_id = parameters["update_id"].asString();
   download_complete.signature = parameters["signature"].asString();
-  download_complete.update_image = (config.device.packages_dir / download_complete.update_id).string();
+  download_complete.update_image = (config.rvi.packages_dir / download_complete.update_id).string();
   sendEvent(boost::make_shared<event::DownloadComplete>(download_complete));
 }
 
 void SotaRVIClient::sendUpdateReport(data::UpdateReport update_report) {
   Json::Value params(Json::arrayValue);
   Json::Value report;
-  report["device"] = config.device.uuid;
+  report["device"] = config.rvi.uuid;
   report["update_report"] = update_report.toJson();
   params.append(report);
 

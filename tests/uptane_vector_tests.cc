@@ -47,7 +47,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
   try {
     Uptane::Repository repo(config);
     repo.updateRoot(Uptane::Version(1));
-    repo.getNewTargets();
+    repo.getTargets();
 
   } catch (Uptane::Exception e) {
     return match_error(vector, &e);

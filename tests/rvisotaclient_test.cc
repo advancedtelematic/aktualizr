@@ -139,12 +139,12 @@ TEST(SaveTest, file_saved) {
   } catch (std::string result) {
     EXPECT_EQ(result, "ack called");
   }
-  std::ifstream saved_file((conf.device.packages_dir / "test_update_id").string().c_str());
+  std::ifstream saved_file((conf.rvi.packages_dir / "test_update_id").string().c_str());
   std::string content;
   saved_file >> content;
   std::cout << content;
   saved_file.close();
-  remove((conf.device.packages_dir / "test_update_id").string().c_str());
+  remove((conf.rvi.packages_dir / "test_update_id").string().c_str());
   EXPECT_EQ(content, "testmessage");
 }
 

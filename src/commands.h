@@ -8,9 +8,7 @@
 
 #include "channel.h"
 #include "types.h"
-#ifdef BUILD_OSTREE
-#include "ostree.h"
-#endif
+#include "uptane/tuf.h"
 
 namespace command {
 
@@ -61,12 +59,10 @@ class SendUpdateReport : public BaseCommand {
   static SendUpdateReport fromJson(const std::string& json_str);
 };
 
-#ifdef BUILD_OSTREE
-class OstreeInstall : public BaseCommand {
+class UptaneInstall : public BaseCommand {
  public:
-  OstreeInstall(std::vector<OstreePackage>);
-  std::vector<OstreePackage> packages;
+  UptaneInstall(std::vector<Uptane::Target>);
+  std::vector<Uptane::Target> packages;
 };
-#endif
 };
 #endif

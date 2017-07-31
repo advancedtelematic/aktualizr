@@ -110,6 +110,7 @@ class Target {
 
   std::string ecu_identifier() const { return ecu_identifier_; }
   std::string filename() const { return filename_; }
+  std::string format() const { return type_; }
 
   bool MatchWith(const Hash &hash) const;
 
@@ -134,6 +135,7 @@ class Target {
 
  private:
   std::string filename_;
+  std::string type_;
   std::string ecu_identifier_;
   std::vector<Hash> hashes_;
   int64_t length_;

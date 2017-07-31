@@ -26,9 +26,9 @@ class OstreePackage {
   std::string refhash;
   std::string description;
   std::string pull_uri;
-  data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config);
+  data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config) const;
 
-  Json::Value toEcuVersion(const Json::Value &custom);
+  Json::Value toEcuVersion(const Json::Value &custom) const;
   static OstreePackage getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot);
   static OstreePackage fromJson(const Json::Value &json);
 };

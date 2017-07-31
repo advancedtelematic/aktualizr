@@ -93,7 +93,7 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
   if (branch_name.empty() || refhash.empty()) throw std::runtime_error("malformed OSTree target name: " + ref_name);
 }
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   const char remote[] = "aktualizr-remote";
   const char *const refs[] = {branch_name.c_str()};
   const char *const commit_ids[] = {refhash.c_str()};
@@ -216,7 +216,7 @@ OstreePackage OstreePackage::fromJson(const Json::Value &json) {
                        json["pull_uri"].asString());
 }
 
-Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
+Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;

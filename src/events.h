@@ -11,6 +11,7 @@
 #ifdef BUILD_OSTREE
 #include "ostree.h"
 #endif
+#include "uptane/tuf.h"
 
 namespace event {
 
@@ -58,15 +59,13 @@ class UptaneTimestampUpdated : public BaseEvent {
   virtual std::string toJson();
 };
 
-#ifdef BUILD_OSTREE
 class UptaneTargetsUpdated : public BaseEvent {
  public:
-  std::vector<OstreePackage> packages;
+  std::vector<Uptane::Target> packages;
   virtual std::string toJson();
 
-  UptaneTargetsUpdated(std::vector<OstreePackage> packages_in);
+  UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
 };
-#endif
 };
 
 #endif

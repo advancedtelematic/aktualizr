@@ -17,9 +17,8 @@
  *    us to print its content, i.e. for logging purposes.
  */
 std::ostream& operator<<(std::ostream& os, const Config& cfg) {
-  return os << "\tPooling enabled : " << cfg.uptane.polling << std::endl
-            << "\tPooling interval : " << cfg.uptane.polling_sec << std::endl
-            << "\tDevice UUID: " << cfg.device.uuid;
+  return os << "\tPolling enabled : " << cfg.uptane.polling << std::endl
+            << "\tPolling interval : " << cfg.uptane.polling_sec << std::endl;
 }
 
 // Strip leading and trailing quotes
@@ -88,15 +87,14 @@ Config::Config(const boost::property_tree::ptree& pt) {
 
 void Config::postUpdateValues() {
   boost::system::error_code error;
-  boost::filesystem::create_directories(device.certificates_directory, error);
+  boost::filesystem::create_directories(tls.certificates_directory, error);
   if (error.value()) {
     throw std::runtime_error(
-        std::string("Could not create directory for 'device.certificates_directory' option because: ") +
-        error.message());
+        std::string("Could not create directory for 'tls.certificates_directory' option because: ") + error.message());
   }
-#ifdef BUILD_OSTREE
-  std::string autoprov_url = "autoprov.url";
-  if (!isProvisioned() && !provision.provision_path.empty()) {
+
+  // TODO: atomic operation
+  if (!isUnpacked() && !provision.provision_path.empty()) {
     if (boost::filesystem::exists(provision.provision_path)) {
       struct archive* a = archive_read_new();
       archive_read_support_filter_all(a);
@@ -106,15 +104,15 @@ void Config::postUpdateValues() {
         struct archive_entry* entry;
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
           std::string filename(archive_entry_pathname(entry));
-          if (filename == autoprov_url && tls.server.empty()) {
-            int urlfp = open((device.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
+          if (filename == "autoprov.url" && tls.server.empty()) {
+            int urlfp = open((tls.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
             if (urlfp) {
               archive_read_data_into_fd(a, urlfp);
               close(urlfp);
             }
           } else if (filename == "autoprov_credentials.p12") {
             std::string p12_filename = boost::filesystem::unique_path().string();
-            boost::filesystem::path p12_path = device.certificates_directory / p12_filename;
+            boost::filesystem::path p12_path = tls.certificates_directory / p12_filename;
             int credfp = open(p12_path.string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
             if (credfp) {
               archive_read_data_into_fd(a, credfp);
@@ -134,10 +132,9 @@ void Config::postUpdateValues() {
     }
   }
 
-  if (tls.server.empty() && boost::filesystem::exists(device.certificates_directory / autoprov_url)) {
-    tls.server = Utils::readFile((device.certificates_directory / autoprov_url).string());
+  if (tls.server.empty() && boost::filesystem::exists(tls.certificates_directory / "autoprov.url")) {
+    tls.server = Utils::readFile((tls.certificates_directory / "autoprov.url").string());
   }
-#endif
 
   if (uptane.repo_server.empty()) {
     uptane.repo_server = tls.server + "/repo";
@@ -151,25 +148,25 @@ void Config::postUpdateValues() {
   std::string ecu_serial_filename = "primary_ecu_serial";
 
   if (!uptane.primary_ecu_serial.empty()) {
-    Utils::writeFile((device.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
+    Utils::writeFile((tls.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
   } else {
-    if (boost::filesystem::exists(device.certificates_directory / ecu_serial_filename)) {
-      uptane.primary_ecu_serial = Utils::readFile((device.certificates_directory / ecu_serial_filename).string());
+    if (boost::filesystem::exists(tls.certificates_directory / ecu_serial_filename)) {
+      uptane.primary_ecu_serial = Utils::readFile((tls.certificates_directory / ecu_serial_filename).string());
     } else {
       uptane.primary_ecu_serial = Utils::randomUuid();
-      Utils::writeFile((device.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
+      Utils::writeFile((tls.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
     }
   }
 
   std::string device_id_filename = "device_id";
   if (!uptane.device_id.empty()) {
-    Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
+    Utils::writeFile((tls.certificates_directory / device_id_filename).string(), uptane.device_id);
   } else {
-    if (boost::filesystem::exists(device.certificates_directory / device_id_filename)) {
-      uptane.device_id = Utils::readFile((device.certificates_directory / device_id_filename).string());
+    if (boost::filesystem::exists(tls.certificates_directory / device_id_filename)) {
+      uptane.device_id = Utils::readFile((tls.certificates_directory / device_id_filename).string());
     } else {
       uptane.device_id = Utils::genPrettyName();
-      Utils::writeFile((device.certificates_directory / device_id_filename).string(), uptane.device_id);
+      Utils::writeFile((tls.certificates_directory / device_id_filename).string(), uptane.device_id);
     }
   }
   if (uptane.primary_ecu_hardware_id.empty()) {
@@ -189,8 +186,8 @@ void Config::postUpdateValues() {
     }
   }
 
-  uptane.public_key_path = (device.certificates_directory / uptane.public_key_path).string();
-  uptane.private_key_path = (device.certificates_directory / uptane.private_key_path).string();
+  uptane.public_key_path = (tls.certificates_directory / uptane.public_key_path).string();
+  uptane.private_key_path = (tls.certificates_directory / uptane.private_key_path).string();
 }
 
 void Config::updateFromToml(const std::string& filename) {
@@ -232,16 +229,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   }
 #endif
 
-  CopyFromConfig(device.uuid, "device.uuid", LVL_warning, pt);
-  CopyFromConfig(device.packages_dir, "device.packages_dir", LVL_trace, pt);
-  CopyFromConfig(device.certificates_directory, "device.certificates_directory", LVL_trace, pt);
-  if (pt.get_optional<std::string>("device.package_manager").is_initialized()) {
-    std::string pm = strip_quotes(pt.get_optional<std::string>("device.package_manager").get());
-    if (pm == "ostree") {
-      device.package_manager = PMOSTREE;
-    }
-  }
-
   CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
   CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
   CopyFromConfig(gateway.socket, "gateway.socket", LVL_info, pt);
@@ -266,12 +253,15 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(rvi.ca_cert, "rvi.ca_cert", LVL_warning, pt);
   CopyFromConfig(rvi.cert_dir, "rvi.cert_dir", LVL_warning, pt);
   CopyFromConfig(rvi.cred_dir, "rvi.cred_dir", LVL_warning, pt);
+  CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", LVL_trace, pt);
+  CopyFromConfig(rvi.uuid, "rvi.uuid", LVL_warning, pt);
 
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
   CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
   CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
   CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
 
+  CopyFromConfig(tls.certificates_directory, "tls.certificates_directory", LVL_trace, pt);
   CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);

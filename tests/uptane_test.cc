@@ -21,7 +21,7 @@ OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string
                              const std::string &desc_in, const std::string &treehub_in)
     : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   (void)cred;
   (void)config;
   return data::InstallOutcome(data::OK, "Good");
@@ -32,7 +32,7 @@ OstreePackage OstreePackage::fromJson(const Json::Value &json) {
                        json["pull_uri"].asString());
 }
 
-Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) {
+Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
@@ -138,7 +138,6 @@ TEST(uptane, get_json) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   config.uptane.metadata_path = "tests/test_data/";
   Uptane::TufRepository repo("director", tls_server + "/director", config);
@@ -160,7 +159,6 @@ TEST(uptane, verify) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
   repo.updateRoot(Uptane::Version());
@@ -173,7 +171,6 @@ TEST(uptane, verify_data_bad) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
   Json::Value data_json = repo.getJSON("root");
@@ -191,7 +188,6 @@ TEST(uptane, verify_data_unknow_type) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
   Json::Value data_json = repo.getJSON("root");
@@ -210,7 +206,6 @@ TEST(uptane, verify_data_bed_keyid) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
   Json::Value data_json = repo.getJSON("root");
@@ -228,7 +223,6 @@ TEST(uptane, verify_data_bed_threshold) {
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
 
   Uptane::TufRepository repo("director", tls_server + "/director", config);
   Json::Value data_json = repo.getJSON("root");
@@ -244,9 +238,8 @@ TEST(uptane, sign) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.director_server = tls_server + "/director";
-  config.device.certificates_directory = "tests/test_data/";
+  config.tls.certificates_directory = "tests/test_data/";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
   config.uptane.private_key_path = "priv.key";
   config.uptane.public_key_path = "public.key";
 
@@ -257,8 +250,8 @@ TEST(uptane, sign) {
 
   std::cout << "privatekey full path: " << config.uptane.private_key_path << "\n";
   Json::Value signed_json =
-      Crypto::signTuf((config.device.certificates_directory / config.uptane.private_key_path).string(),
-                      (config.device.certificates_directory / config.uptane.public_key_path).string(), tosign_json);
+      Crypto::signTuf((config.tls.certificates_directory / config.uptane.private_key_path).string(),
+                      (config.tls.certificates_directory / config.uptane.public_key_path).string(), tosign_json);
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
@@ -268,29 +261,29 @@ TEST(uptane, sign) {
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf("tests/config_tests_prov.toml");
 
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_pkey.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
 
   Uptane::Repository uptane(conf);
 
   bool result = uptane.deviceRegister();
   EXPECT_EQ(result, true);
-  EXPECT_EQ(boost::filesystem::exists(conf.device.certificates_directory / conf.tls.client_certificate), true);
-  EXPECT_EQ(boost::filesystem::exists(conf.device.certificates_directory / conf.tls.ca_file), true);
-  EXPECT_EQ(boost::filesystem::exists(conf.device.certificates_directory / conf.tls.pkey_file), true);
+  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate), true);
+  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file), true);
+  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file), true);
 }
 
 TEST(SotaUptaneClientTest, device_registered_fail) {
   Config conf("tests/config_tests_prov.toml");
 
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
   conf.provision.p12_path = "nonexistent";
 
   Uptane::Repository uptane(conf);
@@ -303,9 +296,8 @@ TEST(SotaUptaneClientTest, device_registered_putmanifest) {
   Config config;
   config.uptane.metadata_path = "tests/test_data/";
   config.uptane.repo_server = tls_server + "/director";
-  config.device.certificates_directory = "tests/test_data/";
+  config.tls.certificates_directory = "tests/test_data/";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
   config.uptane.primary_ecu_serial = "testecuserial";
   config.uptane.private_key_path = "private.key";
 
@@ -339,9 +331,8 @@ TEST(SotaUptaneClientTest, device_ecu_register) {
   Config config;
   config.uptane.metadata_path = "tests/";
   config.uptane.repo_server = tls_server + "/director";
-  config.device.certificates_directory = "tests/test_data/";
+  config.tls.certificates_directory = "tests/test_data/";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
   config.tls.server = tls_server;
 
   config.uptane.primary_ecu_serial = "testecuserial";
@@ -358,18 +349,17 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
-  conf.device.certificates_directory = "tests/test_data/";
+  conf.tls.certificates_directory = "tests/test_data/";
   conf.uptane.repo_server = tls_server + "/repo";
-  conf.device.uuid = "device_id";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.private_key_path = "private.key";
 
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_pkey.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
@@ -399,9 +389,8 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.metadata_path = "tests/test_data";
   conf.uptane.director_server = tls_server + "/director";
-  conf.device.certificates_directory = "tests/test_data/";
+  conf.tls.certificates_directory = "tests/test_data/";
   conf.uptane.repo_server = tls_server + "/repo";
-  conf.device.uuid = "device_id";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.private_key_path = "private.key";
 
@@ -414,12 +403,12 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   ecu_config.firmware_path = "tests/test_data/firmware.txt";
   conf.uptane.secondaries.push_back(ecu_config);
 
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_pkey.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
@@ -439,7 +428,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 1u);
-  EXPECT_EQ(targets_event->packages[0].ref_name,
+  EXPECT_EQ(targets_event->packages[0].filename(),
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(Utils::readFile("tests/test_data/firmware.txt"), "This is content");
 }
@@ -449,24 +438,28 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.private_key_path = "private.key";
   conf.uptane.director_server = tls_server + "/director";
-  conf.device.certificates_directory = "tests/test_data/";
+  conf.tls.certificates_directory = "tests/test_data/";
   conf.uptane.repo_server = tls_server + "/repo";
 
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.device.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.device.certificates_directory / "bootstrap_pkey.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
+  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(test_manifest);
 
   conf.tls.server = tls_server;
   event::Channel *events_channel = new event::Channel();
   command::Channel *commands_channel = new command::Channel();
 
-  std::vector<OstreePackage> packages_to_install;
-  packages_to_install.push_back(OstreePackage("test1", "test2", "test3", "test4"));
-  *commands_channel << boost::make_shared<command::OstreeInstall>(packages_to_install);
+  std::vector<Uptane::Target> packages_to_install;
+  Json::Value ot_json;
+  ot_json["custom"]["ecuIdentifier"] = "testecuserial";
+  ot_json["custom"]["targetFormat"] = "OSTREE";
+  ot_json["length"] = 10;
+  packages_to_install.push_back(Uptane::Target("testostree", ot_json));
+  *commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << boost::make_shared<command::Shutdown>();
   SotaUptaneClient up(conf, events_channel);
   up.runForever(commands_channel);
@@ -488,9 +481,8 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   Config config;
   config.uptane.metadata_path = "tests/";
   config.uptane.repo_server = tls_server + "/director";
-  config.device.certificates_directory = "tests/test_data/";
+  config.tls.certificates_directory = "tests/test_data/";
   config.uptane.repo_server = tls_server + "/repo";
-  config.device.uuid = "device_id";
   config.tls.server = tls_server;
 
   config.uptane.primary_ecu_serial = "testecuserial";

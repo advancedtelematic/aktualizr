@@ -79,8 +79,13 @@ TEST(event, UptaneTimestampUpdated_event_to_json) {
 #ifdef BUILD_OSTREE
 
 TEST(event, UptaneTargetsUpdated_event_to_json) {
-  OstreePackage package("test1", "test2", "test3", "test4");
-  std::vector<OstreePackage> packages;
+  Json::Value target_json;
+  target_json["ecu_serial"] = "test1";
+  target_json["ref_name"] = "test2";
+  target_json["description"] = "test3";
+  target_json["pull_uri"] = "test4";
+  Uptane::Target package("test_package", target_json);
+  std::vector<Uptane::Target> packages;
   packages.push_back(package);
 
   event::UptaneTargetsUpdated event(packages);
