@@ -38,7 +38,7 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
   try {
     OstreeBranch::getCurrent("", config.ostree.sysroot);
   } catch (...) {
-    throw std::runtime_error("Could not load installed ostree package");
+    throw std::runtime_error("Could not find OSTree sysroot at:" + config.ostree.sysroot);
   }
 #endif
 }

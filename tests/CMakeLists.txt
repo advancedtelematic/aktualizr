@@ -132,7 +132,7 @@ if(BUILD_OSTREE)
 
     add_test(NAME test_ostree_invalid
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
-    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not load installed ostree package")
+    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     if(SOTA_PACKED_CREDENTIALS)
         add_executable(aktualizr_test_uptane_ci ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_ci_test.cc)
