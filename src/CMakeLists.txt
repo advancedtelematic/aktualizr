@@ -13,6 +13,7 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             httpclient.cc
             logger.cc
             socketgateway.cc
+            timer.cc
             types.cc
             utils.cc)
 
@@ -33,6 +34,7 @@ set(HEADERS
             crypto.h
             openssl_compat.h
             ostree.h
+            timer.h
             utils.h
             bootstrap.h
             uptane/tuf.h
