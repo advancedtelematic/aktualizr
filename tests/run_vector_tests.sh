@@ -19,7 +19,7 @@ sleep 3
 trap 'kill %1' EXIT
 
 if [ "$2" == "valgrind" ]; then
-    valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=$1/../aktualizr.supp ./aktualizr_uptane_vector_tests vectors/vector-meta.json
+    valgrind --track-origins=yes --show-possibly-lost=no --error-exitcode=1 --suppressions=$1/../aktualizr.supp ./aktualizr_uptane_vector_tests vectors/vector-meta.json
 else
     ./aktualizr_uptane_vector_tests vectors/vector-meta.json
 fi

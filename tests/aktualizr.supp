@@ -1,10 +1,4 @@
 {
-   ignore_externa_libs_Leak
-   Memcheck:Leak
-   ...
-   obj:*/lib/*/*
-}
-{
    ignore_externa_libs_Cond
    Memcheck:Cond
    ...

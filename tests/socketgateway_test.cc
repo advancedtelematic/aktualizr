@@ -22,9 +22,9 @@ TEST(EventsTest, broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel* chan = new command::Channel();
+  command::Channel chan;
 
-  SocketGateway gateway(conf, chan);
+  SocketGateway gateway(conf, &chan);
   sleep(1);
   std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
@@ -45,9 +45,9 @@ TEST(EventsTest, not_broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel* chan = new command::Channel();
+  command::Channel chan;
 
-  SocketGateway gateway(conf, chan);
+  SocketGateway gateway(conf, &chan);
   std::string cmd = "python " + fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
@@ -66,14 +66,14 @@ TEST(CommandsTest, recieved) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel* chan = new command::Channel();
+  command::Channel chan;
 
-  SocketGateway gateway(conf, chan);
+  SocketGateway gateway(conf, &chan);
   std::string cmd = "python " + fake_path + "commands.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   boost::shared_ptr<command::BaseCommand> command;
-  *chan >> command;
+  chan >> command;
 
   EXPECT_EQ(command->variant, "Shutdown");
 }

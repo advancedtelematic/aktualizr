@@ -39,18 +39,21 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
 #endif
 }
 
-int Aktualizr::run() {
-  command::Channel *commands_channel = new command::Channel();
-  event::Channel *events_channel = new event::Channel();
+Aktualizr::~Aktualizr() { CRYPTO_cleanup_all_ex_data(); }
 
-  EventsInterpreter events_interpreter(config_, events_channel, commands_channel);
+int Aktualizr::run() {
+  command::Channel commands_channel;
+  event::Channel events_channel;
+
+  EventsInterpreter events_interpreter(config_, &events_channel, &commands_channel);
+
   // run events interpreter in background
   events_interpreter.interpret();
 
   if (config_.gateway.rvi) {
 #ifdef WITH_GENIVI
     try {
-      SotaRVIClient(config_, events_channel).runForever(commands_channel);
+      SotaRVIClient(config_, &events_channel).runForever(&commands_channel);
     } catch (std::runtime_error e) {
       LOGGER_LOG(LVL_error, "Missing RVI configurations: " << e.what());
       return EXIT_FAILURE;
@@ -61,7 +64,7 @@ int Aktualizr::run() {
 #endif
   } else {
 #ifdef BUILD_OSTREE
-    SotaUptaneClient(config_, events_channel).runForever(commands_channel);
+    SotaUptaneClient(config_, &events_channel).runForever(&commands_channel);
 #else
     LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");
     return EXIT_FAILURE;

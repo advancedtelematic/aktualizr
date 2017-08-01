@@ -55,11 +55,12 @@ add_test(NAME test_commands COMMAND aktualizr_test_commands WORKING_DIRECTORY ${
 
 add_executable(aktualizr_test_http_client httpclient_test.cc)
 target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_valgrind_http_client COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_http_client COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr_test_socket_gateway socketgateway_test.cc)
 target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
@@ -67,7 +68,7 @@ add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJ
 
 add_executable(aktualizr_test_utils utils_test.cc)
 target_link_libraries(aktualizr_test_utils aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-add_test(NAME test_utils COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
+add_test(NAME test_utils COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
 
 
 add_dependencies(build_tests
@@ -102,7 +103,7 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/utils.cc
                   uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --track-origins=yes --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_ostree ostree_test.cc)
     target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
@@ -110,7 +111,7 @@ if(BUILD_OSTREE)
 
     add_executable(aktualizr_tuf_tests tuf_test.cc)
     target_link_libraries(aktualizr_tuf_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
@@ -130,7 +131,7 @@ endif(BUILD_OSTREE)
 if(BUILD_GENIVI)
     add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --track-origins=yes --leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_rvi_client rvisotaclient_test.cc)
     target_link_libraries(aktualizr_test_rvi_client aktualizr_static_lib ${TEST_LIBS})
