@@ -1,4 +1,4 @@
-[device]
+[tls]
 certificates_directory = "sota-prov"
 
 [ostree]
