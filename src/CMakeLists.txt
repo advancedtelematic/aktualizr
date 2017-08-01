@@ -3,18 +3,19 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cp
 # set source files excluding main
 set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             aktualizr.cc
-            logger.cc
-            httpclient.cc
-            config.cc
-            events.cc
+            bootstrap.cc
             commands.cc
-            types.cc
+            config.cc
+            crypto.cc
+            events.cc
             eventsinterpreter.cc
             gatewaymanager.cc
+            httpclient.cc
+            logger.cc
             socketgateway.cc
-            crypto.cc
-            utils.cc
-            bootstrap.cc)
+            types.cc
+            utils.cc)
+
 # set headers used for clang format
 set(HEADERS
             aktualizr.h
