@@ -161,7 +161,6 @@ add_test(NAME feat1_test--something
 add_test(NAME feat1_test-sth
          COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 
-
 # calle the executable without any options
 add_test(NAME test_plain
          COMMAND aktualizr)
@@ -179,6 +178,20 @@ set_tests_properties(feat1_test--something
                      test_plain
                      test_log_invalid
                      PROPERTIES WILL_FAIL TRUE)
+
+# test the return code when running the executable with non-existing configuration file
+add_test(NAME test-no-config-check-code
+         COMMAND aktualizr -c non-existing-config.toml)
+
+set_tests_properties(test-no-config-check-code
+                     PROPERTIES WILL_FAIL TRUE)
+
+# test the error message when running the executable with non-existing configuration file
+add_test(NAME test-no-config-check-message
+         COMMAND aktualizr -c non-existing-config.toml)
+
+set_tests_properties(test-no-config-check-message
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr: configuration file .* not found. Exiting.")
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
