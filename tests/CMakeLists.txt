@@ -27,7 +27,6 @@ add_custom_target(build_tests DEPENDS aktualizr)
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
 add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_uptane_vectors DEPENDS build_tests)
 
-
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
@@ -83,8 +82,8 @@ add_dependencies(build_tests
 if(BUILD_OSTREE)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
-    add_executable(aktualizr_test_uptane
-                  ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
+
+    set(OSTREE_SRC ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
                   ${PROJECT_SOURCE_DIR}/src/commands.cc
                   ${PROJECT_SOURCE_DIR}/src/config.cc
                   ${PROJECT_SOURCE_DIR}/src/events.cc
@@ -101,7 +100,10 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbusprimary.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbussecondary.cc
                   ${PROJECT_SOURCE_DIR}/src/utils.cc
-                  uptane_test.cc)
+                  fake_ostree.cc)
+
+
+    add_executable(aktualizr_test_uptane ${OSTREE_SRC} uptane_test.cc)
     target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
@@ -113,8 +115,8 @@ if(BUILD_OSTREE)
     target_link_libraries(aktualizr_tuf_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
     add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
-    target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+    add_executable(aktualizr_uptane_vector_tests  ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_vector_tests.cc)
+    target_link_libraries(aktualizr_uptane_vector_tests ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 
     add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
@@ -125,6 +127,14 @@ if(BUILD_OSTREE)
     add_test(NAME test_ostree_invalid
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not load installed ostree package")
+
+    if(SOTA_PACKED_CREDENTIALS)
+        add_executable(aktualizr_test_uptane_ci ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_ci_test.cc)
+        target_link_libraries(aktualizr_test_uptane_ci ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+        add_test(NAME test_uptane_ci COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane_ci ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+        add_dependencies(build_tests aktualizr_test_uptane_ci)
+    endif(SOTA_PACKED_CREDENTIALS)
+
 endif(BUILD_OSTREE)
 
 
@@ -224,6 +234,8 @@ set(ALL_TEST_SRCS
     tuf_test.cc
     uptane_vector_tests.cc
     uptane_test.cc
+    uptane_ci_test.cc
+    fake_ostree.cc
     utils_test.cc)
 
 add_custom_target(check-format-tests

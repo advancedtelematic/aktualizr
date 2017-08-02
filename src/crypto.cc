@@ -225,7 +225,6 @@ bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string
     BN_free(bne);
     return false;
   }
-
   RSA *r = RSA_new();
   ret = RSA_generate_key_ex(r, bits, /* number of bits for the key - 2048 is a sensible value */
                             bne,     /* exponent - RSA_F4 is defined as 0x10001L */

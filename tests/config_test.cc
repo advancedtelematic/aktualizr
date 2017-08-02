@@ -108,7 +108,8 @@ TEST(config, config_extract_credentials) {
   Config conf;
   conf.tls.certificates_directory = "tests/tmp_data/prov";
   conf.provision.provision_path = "tests/test_data/credentials.zip";
-  system("rm -rf tests/test_data/prov");
+
+  boost::filesystem::remove_all("tests/tmp_data/prov");
   conf.tls.server.clear();
   conf.postUpdateValues();
   EXPECT_EQ(conf.tls.server, "9c8e58a5-3777-40db-99ad-8e1dae1622fe.tcpgw.prod01.advancedtelematic.com");
