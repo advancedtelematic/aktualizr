@@ -19,6 +19,7 @@
  */
 
 /*****************************************************************************/
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <iostream>
@@ -119,10 +120,16 @@ int main(int argc, char *argv[]) {
   }
 
   // Initialize config with default values, the update with config, then with cmd
-  std::string filename = commandline_map["config"].as<std::string>();
+  std::string sota_config_file = commandline_map["config"].as<std::string>();
+  boost::filesystem::path sota_config_path(sota_config_file);
+  if (false == boost::filesystem::exists(sota_config_path)) {
+    std::cout << "aktualizr: configuration file " << boost::filesystem::absolute(sota_config_path)
+              << " not found. Exiting." << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   try {
-    Config config(filename, commandline_map);
+    Config config(sota_config_path.string(), commandline_map);
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {
