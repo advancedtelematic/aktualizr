@@ -51,7 +51,10 @@ void Repository::putManifest(const Json::Value &custom) {
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed =
       Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, version_manifest);
-  http.put(config.uptane.director_server + "/manifest", tuf_signed);
+  HttpResponse reponse = http.put(config.uptane.director_server + "/manifest", tuf_signed);
+  if (!reponse.isOk()) {
+    throw std::runtime_error("Could not put manifest");
+  }
 }
 
 void Repository::refresh() {
