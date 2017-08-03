@@ -137,8 +137,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     } catch (Uptane::Exception e) {
       LOGGER_LOG(LVL_error, e.what());
-    } catch (...) {
-      LOGGER_LOG(LVL_error, "Unknown exception was thrown");
+    } catch (const std::exception &ex) {
+      LOGGER_LOG(LVL_error, "Unknown exception was thrown: " << ex.what());
     }
   }
 }

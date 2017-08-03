@@ -1,3 +1,4 @@
+
 [gateway]
 dbus = true
 http = false
@@ -24,7 +25,7 @@ p12_path = "cred.p12"
 p12_password = ""
 
 [tls]
-certificates_directory = "tests/certs/"
+certificates_directory = "tests/tmp_data/"
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
 ca_file = "ca.pem"
 client_certificate = "client.pem"

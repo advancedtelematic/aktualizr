@@ -51,4 +51,4 @@ Testing/
 cmake_install.cmake
 CTestTestfile.cmake
 compile_commands.json
-/tests/test_data/private.key
+/tests/tmp_data/
