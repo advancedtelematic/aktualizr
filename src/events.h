@@ -61,10 +61,10 @@ class UptaneTimestampUpdated : public BaseEvent {
 
 class UptaneTargetsUpdated : public BaseEvent {
  public:
-  std::vector<Uptane::Target> packages;
+  std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages;
   virtual std::string toJson();
 
-  UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
+  UptaneTargetsUpdated(std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_in);
 };
 }
 

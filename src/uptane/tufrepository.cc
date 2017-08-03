@@ -5,6 +5,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
 
+#include <fcntl.h>
 #include <algorithm>
 #include <fstream>
 
@@ -21,7 +22,8 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   if (ds->downloaded_length > ds->expected_length) {
     return (size * nmemb) + 1;  // curl will abort if return unexpected size;
   }
-  fwrite(contents, size, nmemb, ds->fp);
+
+  write(ds->fp, contents, nmemb * size);
   size_t data_size = size * nmemb;
   ds->sha256_hasher.update((const unsigned char*)contents, data_size);
   ds->sha512_hasher.update((const unsigned char*)contents, data_size);
@@ -95,13 +97,14 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
 
 std::string TufRepository::downloadTarget(Target target) {
   DownloadMetaStruct ds;
-  FILE* fp = fopen((path_ / "targets" / target.filename()).string().c_str(), "w");
+  int fp = open((path_ / "targets" / target.filename()).string().c_str(), O_WRONLY | O_CREAT,
+                S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   ds.fp = fp;
   ds.downloaded_length = 0;
   ds.expected_length = target.length();
 
   HttpResponse response = http_.download(base_url_ + "/targets/" + target.filename(), DownloadHandler, &ds);
-  fclose(fp);
+  close(fp);
   if (!response.isOk()) {
     if (response.curl_code == CURLE_WRITE_ERROR) {
       throw OversizedTarget(target.filename());
@@ -125,11 +128,16 @@ void TufRepository::saveTarget(const Target& target) {
   }
 }
 
+std::string TufRepository::getTargetPath(const Target& target) {
+  return (path_ / "targets" / target.filename()).string();
+}
+
 void TufRepository::setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp,
                             Uptane::Snapshot* snapshot) {
   if (root) root_ = *root;
   if (targets) targets_ = *targets;
   if (timestamp) timestamp_ = *timestamp;
   if (snapshot) snapshot_ = *snapshot;
+
 }
 }

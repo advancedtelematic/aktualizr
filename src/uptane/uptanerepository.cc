@@ -41,22 +41,26 @@ void Repository::updateRoot(Version version) {
   image.updateRoot(version);
 }
 
-bool Repository::putManifest() { return putManifest(Json::nullValue); }
-
-bool Repository::putManifest(const Json::Value &custom) {
-  Json::Value version_manifest;
-  version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
-  version_manifest["ecu_version_manifest"] = transport.getManifests();
-
+Json::Value Repository::getVersionManifest(Json::Value custom) {
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom);
   Json::Value ecu_version_signed =
       Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, unsigned_ecu_version);
-  version_manifest["ecu_version_manifest"].append(ecu_version_signed);
-  Json::Value tuf_signed =
-      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, version_manifest);
-  HttpResponse reponse = http.put(config.uptane.director_server + "/manifest", tuf_signed);
-  return reponse.isOk();
+  return ecu_version_signed;
+}
+
+bool Repository::putManifest(Json::Value version_manifests) {
+  Json::Value manifest;
+  manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
+  if (!version_manifests) {
+    manifest["ecu_version_manifest"] = transport.getManifests();
+    manifest["ecu_version_manifest"].append(getVersionManifest());
+  } else {
+    manifest["ecu_version_manifest"] = version_manifests;
+  }
+  Json::Value tuf_signed = Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, manifest);
+  HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
+  return response.isOk();
 }
 
 // Check for consistency, signatures are already checked
@@ -116,15 +120,14 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
       // TODO: support downloading encrypted targets from director
       image.saveTarget(*it);
-      if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
-        primary_targets.push_back(*it);
-      } else {
-        secondary_targets.push_back(*it);
-      }
     }
-    transport.sendTargets(secondary_targets);
+    // transport.sendTargets(secondary_targets);
   }
-  return std::pair<uint32_t, std::vector<Uptane::Target> >(version, primary_targets);
+  return director_targets;
+}
+
+Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
+  return transport.sendTargets(secondary_targets);
 }
 
 bool Repository::deviceRegister() {

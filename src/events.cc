@@ -64,7 +64,9 @@ UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpd
 
 std::string UptaneTimestampUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
 
-UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
+UptaneTargetsUpdated::UptaneTargetsUpdated(
+    std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_in)
+    : packages(packages_in) {
   variant = "UptaneTargetsUpdated";
 }
 

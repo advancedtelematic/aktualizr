@@ -29,15 +29,6 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   }
 }
 
-std::vector<Uptane::Target> SotaUptaneClient::findOstree(const std::vector<Uptane::Target> &targets) {
-  std::vector<Uptane::Target> result;
-  for (std::vector<Uptane::Target>::const_iterator it = targets.begin(); it != targets.end(); ++it) {
-    // treat empty format as OSTree for backwards compatibility
-    if (it->format().empty() || it->format() == "OSTREE") result.push_back(*it);
-  }
-  return result;
-}
-
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
                                                          std::string ecu_id) {
   std::vector<Uptane::Target> result;
@@ -46,26 +37,11 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
   return result;
 }
 
-// For now just returns vector on size 1 with the update for the primary. Next step is to move secondaries to
-// SotaUptaneClient
-std::vector<Uptane::Target> SotaUptaneClient::getUpdates() {
-  std::vector<Uptane::Target> result;
-  std::pair<int, std::vector<Uptane::Target> > versioned_targets = uptane_repo.getTargets();
-  int version = versioned_targets.first;
-  if (version > last_targets_version) {
-    last_targets_version = version;
-    std::vector<Uptane::Target> targets = versioned_targets.second;
-    for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
-      if (!isInstalled(*it)) result.push_back(*it);
-  }
-  return result;
-}
-
 OstreePackage SotaUptaneClient::uptaneToOstree(const Uptane::Target &target) {
   return OstreePackage(target.ecu_identifier(), target.filename(), "", config.uptane.ostree_server);
 }
 
-void SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
+Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
   data::PackageManagerCredentials cred;
   cred.ca_file = (config.tls.certificates_directory / config.tls.ca_file).string();
   cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
@@ -74,7 +50,7 @@ void SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
   data::OperationResult result = data::OperationResult::fromOutcome(package.ref_name, outcome);
   Json::Value operation_result;
   operation_result["operation_result"] = result.toJson();
-  uptane_repo.putManifest(operation_result);
+  return uptane_repo.getVersionManifest(operation_result);
 }
 
 void SotaUptaneClient::reportHWInfo() {
@@ -110,8 +86,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
-        std::vector<Uptane::Target> updates = getUpdates();
-        if (updates.size()) {
+        std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
+        if (updates.first.size() || updates.second.size()) {
           LOGGER_LOG(LVL_info, "got new updates");
           *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates);
         } else {
@@ -119,16 +95,27 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
-        std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
-        std::vector<Uptane::Target> primary_updates = findForEcu(updates, config.uptane.primary_ecu_serial);
+        std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > updates =
+            command->toChild<command::UptaneInstall>()->packages;
+        std::vector<Uptane::Target> primary_updates = findForEcu(updates.first, config.uptane.primary_ecu_serial);
+        Json::Value manifests(Json::arrayValue);
+        if (updates.second.size()) {
+          manifests = uptane_repo.updateSecondaries(updates.second);
+        }
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
-          std::vector<Uptane::Target> main_ostree = findOstree(primary_updates);
-          if (main_ostree.size()) OstreeInstall(uptaneToOstree(main_ostree[0]));
-
+          for (std::vector<Uptane::Target>::const_iterator it = primary_updates.begin(); it != primary_updates.end();
+               ++it) {
+            // treat empty format as OSTree for backwards compatibility
+            if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
+              Json::Value p_manifest = OstreeInstall(uptaneToOstree(*it));
+              manifests.append(p_manifest);
+              break;
+            }
+          }
           // TODO: other updates for primary
         }
-        // TODO: updates to secondaries
+        uptane_repo.putManifest(manifests);
 
       } else if (command->variant == "Shutdown") {
         polling_thread.interrupt();

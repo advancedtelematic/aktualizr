@@ -21,7 +21,7 @@ typedef std::map<std::string, unsigned int> RoleThreshold;
 struct DownloadMetaStruct {
   int64_t expected_length;
   int64_t downloaded_length;
-  FILE* fp;
+  int fp;
   MultiPartSHA256Hasher sha256_hasher;
   MultiPartSHA512Hasher sha512_hasher;
 };
@@ -54,6 +54,7 @@ class TufRepository {
   void setTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
     http_.setCerts(ca, cert, pkey);
   }
+  std::string getTargetPath(const Target &target);
 
  private:
   std::string name_;
