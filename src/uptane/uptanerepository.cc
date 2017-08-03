@@ -111,10 +111,8 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
       // TODO: support downloading encrypted targets from director
       image.saveTarget(*it);
     }
-    // transport.sendTargets(secondary_targets);
   }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
-  ;
 }
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {

@@ -600,13 +600,15 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   event::Channel events_channel;
   command::Channel commands_channel;
 
+  std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_to_install_pair;
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
   ot_json["custom"]["ecuIdentifier"] = "testecuserial";
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 10;
   packages_to_install.push_back(Uptane::Target("testostree", ot_json));
-  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
+  packages_to_install_pair.first = packages_to_install;
+  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install_pair);
   commands_channel << boost::make_shared<command::Shutdown>();
   FSStorage storage(conf);
   HttpFake http(uptane_test_dir);
