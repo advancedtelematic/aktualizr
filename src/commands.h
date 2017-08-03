@@ -61,8 +61,8 @@ class SendUpdateReport : public BaseCommand {
 
 class UptaneInstall : public BaseCommand {
  public:
-  UptaneInstall(std::vector<Uptane::Target>);
-  std::vector<Uptane::Target> packages;
+  UptaneInstall(std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> >);
+  std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages;
 };
 }
 #endif

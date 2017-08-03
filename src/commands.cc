@@ -87,7 +87,8 @@ SendUpdateReport SendUpdateReport::fromJson(const std::string& json_str) {
   return SendUpdateReport(data::UpdateReport::fromJson(Json::FastWriter().write(json["fields"][0])));
 }
 
-UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
+UptaneInstall::UptaneInstall(std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_in)
+    : packages(packages_in) {
   variant = "UptaneInstall";
 }
 }
