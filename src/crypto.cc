@@ -159,7 +159,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
 
   FILE *pkey_pem_file = fopen(pkey_pem.c_str(), "w");
   if (!pkey_pem_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << pkey_pem << " for writting");
+    LOGGER_LOG(LVL_error, "Could not open " << pkey_pem << " for writing");
     EVP_PKEY_free(pkey);
     return false;
   }
@@ -169,14 +169,14 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
 
   FILE *cert_file = fopen(client_pem.c_str(), "w");
   if (!cert_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writting");
+    LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writing");
     return false;
   }
   PEM_write_X509(cert_file, x509_cert);
 
   FILE *ca_file = fopen(ca_pem.c_str(), "w");
   if (!ca_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << ca_pem << " for writting");
+    LOGGER_LOG(LVL_error, "Could not open " << ca_pem << " for writing");
     return false;
   }
   X509 *ca_cert = NULL;
