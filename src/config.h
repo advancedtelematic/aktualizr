@@ -96,8 +96,7 @@ struct TlsConfig {
 };
 
 struct ProvisionConfig {
-  ProvisionConfig() : p12_path(""), p12_password(""), expiry_days("36000"), provision_path() {}
-  std::string p12_path;
+  ProvisionConfig() : p12_password(""), expiry_days("36000"), provision_path() {}
   std::string p12_password;
   std::string expiry_days;
   std::string provision_path;
@@ -163,10 +162,6 @@ class Config {
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
-  bool isUnpacked() {
-    return (boost::filesystem::exists(tls.certificates_directory / "autoprov.url") &&
-            boost::filesystem::exists(provision.p12_path));
-  };
 };
 
 #endif  // CONFIG_H_

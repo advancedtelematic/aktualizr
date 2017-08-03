@@ -242,7 +242,6 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
   boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  conf.provision.p12_path = "nonexistent";
 
   Uptane::Repository uptane(conf);
 

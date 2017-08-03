@@ -84,6 +84,7 @@ if(BUILD_OSTREE)
 
 
     set(OSTREE_SRC ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
+                  ${PROJECT_SOURCE_DIR}/src/bootstrap.cc
                   ${PROJECT_SOURCE_DIR}/src/commands.cc
                   ${PROJECT_SOURCE_DIR}/src/config.cc
                   ${PROJECT_SOURCE_DIR}/src/events.cc

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include "bootstrap.h"
 #include "config.h"
 #include "crypto.h"
 #include "utils.h"
@@ -113,8 +114,10 @@ TEST(config, config_extract_credentials) {
   conf.tls.server.clear();
   conf.postUpdateValues();
   EXPECT_EQ(conf.tls.server, "9c8e58a5-3777-40db-99ad-8e1dae1622fe.tcpgw.prod01.advancedtelematic.com");
-  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(
-                Utils::readFile((conf.tls.certificates_directory / conf.provision.p12_path).string()))),
+
+  Bootstrap boot(conf.provision.provision_path);
+  std::string p12_str = boot.getP12Str();
+  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(p12_str)),
             "31DC21BEF3EC17A41438E6183820556790A738A88E8A08FCB59BE6D54064807E");
 }
 
