@@ -57,12 +57,12 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
   }
 
   if (vector["director"]["update"]["is_success"].asBool() && vector["image_repo"]["update"]["is_success"].asBool()) {
-    for (Json::ValueIterator it = vector["director"]["targets"].begin(); it != vector["director"]["targets"].end();
+    for (Json::ValueConstIterator it = vector["director"]["targets"].begin(); it != vector["director"]["targets"].end();
          ++it) {
       if (!(*it)["is_success"].asBool()) return false;
     }
-    for (Json::ValueIterator it = vector["image_repo"]["targets"].begin(); it != vector["image_repo"]["targets"].end();
-         ++it) {
+    for (Json::ValueConstIterator it = vector["image_repo"]["targets"].begin();
+         it != vector["image_repo"]["targets"].end(); ++it) {
       if (!(*it)["is_success"].asBool()) return false;
     }
 
@@ -92,10 +92,10 @@ int main(int argc, char* argv[]) {
     return 1;
   }
   HttpClient http_client;
-  Json::Value json_vectors = http_client.get("http://127.0.0.1:8080/").getJson();
+  const Json::Value json_vectors = http_client.get("http://127.0.0.1:8080/").getJson();
   int passed = 0;
   int failed = 0;
-  for (Json::ValueIterator it = json_vectors.begin(); it != json_vectors.end(); it++) {
+  for (Json::ValueConstIterator it = json_vectors.begin(); it != json_vectors.end(); it++) {
     std::cout << "Running test vector " << (*it).asString() << "\n";
     while (true) {
       HttpResponse response = http_client.post("http://127.0.0.1:8080/" + (*it).asString() + "/step", Json::Value());

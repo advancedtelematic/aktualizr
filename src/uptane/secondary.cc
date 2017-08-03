@@ -1,3 +1,4 @@
+#include <logger.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
@@ -35,7 +36,7 @@ Json::Value Secondary::genAndSendManifest() {
 }
 
 void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
-  std::cout << "I am " << config.ecu_serial << " and just got a new targets\n";
+  LOGGER_LOG(LVL_trace, "I am " << config.ecu_serial << " and just got a new targets");
 
   std::vector<Uptane::Target>::const_iterator it;
   for (it = targets.begin(); it != targets.end(); ++it) {
@@ -43,7 +44,7 @@ void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
       install(*it);
       break;
     } else {
-      std::cout << "Target " << *it << " isn't for this ECU\n";
+      LOGGER_LOG(LVL_trace, "Target " << *it << " isn't for this ECU");
     }
   }
 }

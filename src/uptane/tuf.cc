@@ -109,7 +109,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length();
   os << " hashes: (";
   for (std::vector<Hash>::const_iterator it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
-    std::cout << *it << ", ";
+    os << *it << ", ";
   }
   os << "))";
 
