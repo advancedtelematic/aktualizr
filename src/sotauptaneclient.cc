@@ -11,7 +11,7 @@
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(repo) {}
+    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {}
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
@@ -25,7 +25,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
     return target.filename() == OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).ref_name;
   } else {
     // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-    return false;
+    return true;
   }
 }
 
@@ -49,10 +49,15 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 // For now just returns vector on size 1 with the update for the primary. Next step is to move secondaries to
 // SotaUptaneClient
 std::vector<Uptane::Target> SotaUptaneClient::getUpdates() {
-  std::vector<Uptane::Target> targets = uptane_repo.getTargets().second;
   std::vector<Uptane::Target> result;
-  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
-    if (!isInstalled(*it)) result.push_back(*it);
+  std::pair<int, std::vector<Uptane::Target> > versioned_targets = uptane_repo.getTargets();
+  int version = versioned_targets.first;
+  if (version > last_targets_version) {
+    last_targets_version = version;
+    std::vector<Uptane::Target> targets = versioned_targets.second;
+    for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
+      if (!isInstalled(*it)) result.push_back(*it);
+  }
   return result;
 }
 

@@ -41,22 +41,22 @@ HttpResponse HttpClient::get(const std::string &url) {
     if (url.find("timestamp.json") != std::string::npos) {
       std::cout << "CHECK PATH: " << metadata_path + "/timestamp.json\n";
       if (boost::filesystem::exists(path)) {
-        boost::filesystem::copy_file("tests/test_data_tmp/timestamp2.json", path,
+        boost::filesystem::copy_file("tests/test_data/timestamp2.json", path,
                                      boost::filesystem::copy_option::overwrite_if_exists);
       } else {
-        boost::filesystem::copy_file("tests/test_data_tmp/timestamp1.json", path,
+        boost::filesystem::copy_file("tests/test_data/timestamp1.json", path,
                                      boost::filesystem::copy_option::overwrite_if_exists);
       }
       return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
     } else if (url.find("targets.json") != std::string::npos) {
       Json::Value timestamp = Utils::parseJSONFile(metadata_path + "repo/timestamp.json");
       if (timestamp["signed"]["version"].asInt64() == 2) {
-        return HttpResponse(Utils::readFile("tests/test_data_tmp/targets_noupdates.json"), 200, CURLE_OK, "");
+        return HttpResponse(Utils::readFile("tests/test_data/targets_noupdates.json"), 200, CURLE_OK, "");
       } else {
-        return HttpResponse(Utils::readFile("tests/test_data_tmp/targets_hasupdates.json"), 200, CURLE_OK, "");
+        return HttpResponse(Utils::readFile("tests/test_data/targets_hasupdates.json"), 200, CURLE_OK, "");
       }
     } else {
-      return HttpResponse(Utils::readFile("tests/test_data_tmp/" + url.substr(tls_server.size())), 200, CURLE_OK, "");
+      return HttpResponse(Utils::readFile("tests/test_data/" + url.substr(tls_server.size())), 200, CURLE_OK, "");
     }
   }
   return HttpResponse(url, 200, CURLE_OK, "");
@@ -391,7 +391,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   up.runForever(&commands_channel);
 
   boost::shared_ptr<event::BaseEvent> event;
-  if(!events_channel.hasValues()) {
+  if (!events_channel.hasValues()) {
     FAIL();
   }
   events_channel >> event;

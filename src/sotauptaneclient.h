@@ -34,4 +34,5 @@ class SotaUptaneClient {
   Uptane::Repository &uptane_repo;
 
   std::vector<Json::Value> ecu_versions;
+  int last_targets_version;
 };
