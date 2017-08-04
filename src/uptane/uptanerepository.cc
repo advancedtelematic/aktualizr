@@ -125,7 +125,7 @@ bool Repository::deviceRegister() {
   }
   fclose(reg_p12);
 
-  http.setCerts(boot.getPkeyPath(), boot.getCertPath(), boot.getCaPath());
+  http.setCerts(boot.getCaPath(), boot.getCertPath(), boot.getPkeyPath());
 
   Json::Value data;
   data["deviceId"] = config.uptane.device_id;
