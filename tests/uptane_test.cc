@@ -65,7 +65,7 @@ HttpResponse HttpClient::post(const std::string &url, const Json::Value &data) {
   (void)url;
 
   Utils::writeFile("tests/tmp_data/post.json", data);
-  return HttpResponse(Utils::readFile("tests/certs/cred.p12"), 200, CURLE_OK, "");
+  return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
 }
 
 HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
@@ -217,8 +217,6 @@ TEST(uptane, sign) {
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf("tests/config_tests_prov.toml");
 
-  boost::filesystem::copy_file("tests/certs/cred.p12", conf.tls.certificates_directory / "cred.p12",
-                               boost::filesystem::copy_option::overwrite_if_exists);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
@@ -311,8 +309,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.private_key_path = "tests/tmp_data/private.key";
 
-  boost::filesystem::copy_file("tests/certs/cred.p12", conf.tls.certificates_directory / "cred.p12",
-                               boost::filesystem::copy_option::overwrite_if_exists);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
@@ -362,8 +358,6 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   ecu_config.firmware_path = "tests/tmp_data/firmware.txt";
   conf.uptane.secondaries.push_back(ecu_config);
 
-  boost::filesystem::copy_file("tests/certs/cred.p12", conf.tls.certificates_directory / "cred.p12",
-                               boost::filesystem::copy_option::overwrite_if_exists);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
@@ -402,8 +396,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   conf.tls.certificates_directory = "tests/tmp_data/";
   conf.uptane.repo_server = tls_server + "/repo";
 
-  boost::filesystem::copy_file("tests/certs/cred.p12", conf.tls.certificates_directory / "cred.p12",
-                               boost::filesystem::copy_option::overwrite_if_exists);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);

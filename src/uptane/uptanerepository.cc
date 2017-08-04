@@ -113,6 +113,9 @@ bool Repository::deviceRegister() {
 
   Bootstrap boot(config.provision.provision_path);
   std::string p12_str = boot.getP12Str();
+  if (p12_str.empty()) {
+    return false;
+  }
 
   FILE *reg_p12 = fmemopen(const_cast<char *>(p12_str.c_str()), p12_str.size(), "rb");
   if (!Crypto::parseP12(reg_p12, config.provision.p12_password, boot.getPkeyPath(), boot.getCertPath(),
