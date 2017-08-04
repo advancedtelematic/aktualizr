@@ -9,7 +9,7 @@
 #include "events.h"
 #include "gateway.h"
 
-class SocketGateway : public Gateway {
+class SocketGateway : public Gateway, boost::noncopyable {
  public:
   SocketGateway(const Config &config_in, command::Channel *commands_channel_in);
   virtual ~SocketGateway();
@@ -20,9 +20,9 @@ class SocketGateway : public Gateway {
   command::Channel *commands_channel;
   std::vector<int> event_connections;
   std::vector<int> command_connections;
-  std::vector<boost::thread *> command_workers;
-  boost::thread *events_server_thread;
-  boost::thread *commands_server_thread;
+  std::vector<boost::shared_ptr<boost::thread> > command_workers;
+  boost::shared_ptr<boost::thread> events_server_thread;
+  boost::shared_ptr<boost::thread> commands_server_thread;
   int events_socket;
   int commands_socket;
 
