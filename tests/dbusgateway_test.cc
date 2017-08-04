@@ -132,7 +132,11 @@ int main(int argc, char** argv) {
   if (argc >= 2) {
     fake_path = argv[1];
     std::string cmd = "python " + fake_path + "dbus_recieve.py &";
-    EXPECT_EQ(0, system(cmd.c_str()));
+    int res = system(cmd.c_str());
+    EXPECT_EQ(res, 0);
+    if (res) {
+      return 1;
+    }
     sleep(2);
   }
   return RUN_ALL_TESTS();

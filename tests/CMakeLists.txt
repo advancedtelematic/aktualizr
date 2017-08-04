@@ -1,3 +1,5 @@
+find_program(VALGRIND NAMES valgrind)
+
 if(NOT GTEST_ROOT )
     set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
 endif()
@@ -27,6 +29,37 @@ add_custom_target(build_tests DEPENDS aktualizr)
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
 add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_uptane_vectors DEPENDS build_tests)
 
+include(CMakeParseArguments)
+
+function(add_aktualizr_test)
+    set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    set(oneValueArgs NAME)
+    set(multiValueArgs SOURCES ARGS)
+    cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    add_executable(t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_SOURCES})
+    target_link_libraries(t_${AKTUALIZR_TEST_NAME} aktualizr_static_lib ${TEST_LIBS})
+    if(AKTUALIZR_TEST_PROJECT_WORKING_DIRECTORY)
+        set(WD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    else()
+        set(WD )
+    endif()
+        # Running tests that are both instrumented by gcov and valgrind at
+        # the same time is very expensive.  Disable valgrind when running
+        # under gcov, or when the test is explicitly flagged that it fails
+        # under valgrind (these should be fixed)
+        if(AKTUALIZR_TEST_NO_VALGRIND OR BUILD_WITH_CODE_COVERAGE)
+            add_test(NAME test_${AKTUALIZR_TEST_NAME}
+                    COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                    ${WD})
+        else()
+            add_test(NAME test_${AKTUALIZR_TEST_NAME}
+                     COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     ${WD})
+        endif()
+    add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
+
+endfunction(add_aktualizr_test)
+
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
@@ -36,61 +69,44 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-# Config Test
-add_executable(aktualizr_test_config config_test.cc)
-target_link_libraries(aktualizr_test_config aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_config COMMAND aktualizr_test_config WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+configure_file(run-valgrind.in run-valgrind @ONLY)
+SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
 
-add_executable(aktualizr_test_events events_test.cc)
-target_link_libraries(aktualizr_test_events aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_events COMMAND aktualizr_test_events WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_aktualizr_test(NAME config SOURCES config_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME events SOURCES events_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_executable(aktualizr_test_commands commands_test.cc)
-target_link_libraries(aktualizr_test_commands aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_commands COMMAND aktualizr_test_commands WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_aktualizr_test(NAME commands SOURCES commands_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME http_client
+                   SOURCES httpclient_test.cc
+                   ARGS ${PROJECT_SOURCE_DIR}/tests/fake_http_server/
+                   PROJECT_WORKING_DIRECTORY)
 
-add_executable(aktualizr_test_http_client httpclient_test.cc)
-target_link_libraries(aktualizr_test_http_client aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_http_client COMMAND aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_test(NAME test_valgrind_http_client COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_http_client ${PROJECT_SOURCE_DIR}/tests/fake_http_server/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+if(NOT BUILD_WITH_CODE_COVERAGE)
+    # Code coverage disables valgrind, and this test is only checking that
+    # valgrind finds memory leaks
+    add_aktualizr_test(NAME leak SOURCES leak_test.cc)
+    set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
+endif()
 
-add_executable(aktualizr_test_socket_gateway socketgateway_test.cc)
-target_link_libraries(aktualizr_test_socket_gateway aktualizr_static_lib ${TEST_LIBS})
-add_test(NAME test_valgrind_socket_gateway COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_socket_gateway ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/ WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_aktualizr_test(NAME socket_gateway
+                   SOURCES socketgateway_test.cc
+                   ARGS ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/)
 
-add_executable(aktualizr_test_crypto crypto_test.cc)
-target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
-add_executable(aktualizr_test_timer timer_test.cc)
-target_link_libraries(aktualizr_test_timer aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-add_test(NAME test_timer COMMAND aktualizr_test_timer)
+add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
-add_executable(aktualizr_test_utils utils_test.cc)
-target_link_libraries(aktualizr_test_utils aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-add_test(NAME test_utils COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
+add_aktualizr_test(NAME fsstorage SOURCES fsstorage_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_executable(aktualizr_test_fsstorage fsstorage_test.cc)
-target_link_libraries(aktualizr_test_fsstorage aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-add_test(NAME test_fsstorage COMMAND aktualizr_test_fsstorage WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-add_dependencies(build_tests
-        aktualizr_test_config
-        aktualizr_test_events
-        aktualizr_test_commands
-        aktualizr_test_http_client
-        aktualizr_test_socket_gateway
-        aktualizr_test_crypto
-        aktualizr_test_timer
-        aktualizr_test_utils
-        aktualizr_test_fsstorage)
+add_aktualizr_test(NAME crypto
+                   SOURCES crypto_test.cc
+                   PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
 if(BUILD_OSTREE)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
 
     set(OSTREE_SRC ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
                   ${PROJECT_SOURCE_DIR}/src/bootstrap.cc
@@ -113,55 +129,46 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/fsstorage.cc
                   fake_ostree.cc)
 
+    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc ${OSTREE_SRC}
+                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
-    add_executable(aktualizr_test_uptane ${OSTREE_SRC} uptane_test.cc)
-    target_link_libraries(aktualizr_test_uptane ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_uptane COMMAND  valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
-    add_executable(aktualizr_test_ostree ostree_test.cc)
-    target_link_libraries(aktualizr_test_ostree aktualizr_static_lib ${TEST_LIBS} crypto)
-    add_test(NAME test_ostree COMMAND aktualizr_test_ostree WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
-    add_executable(aktualizr_tuf_tests tuf_test.cc)
-    target_link_libraries(aktualizr_tuf_tests aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-    add_test(NAME test_tuf COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_tuf_tests WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-    add_executable(aktualizr_uptane_vector_tests  ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_vector_tests.cc)
+    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc)
     target_link_libraries(aktualizr_uptane_vector_tests ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 
     add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
-
-
-    add_dependencies(build_tests aktualizr_test_uptane aktualizr_test_ostree aktualizr_tuf_tests aktualizr_uptane_vector_tests)
+    add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
     add_test(NAME test_ostree_invalid
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     if(SOTA_PACKED_CREDENTIALS)
-        add_executable(aktualizr_test_uptane_ci ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_ci_test.cc)
-        target_link_libraries(aktualizr_test_uptane_ci ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
-        add_test(NAME test_uptane_ci COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_uptane_ci ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-        add_dependencies(build_tests aktualizr_test_uptane_ci)
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc )
     endif(SOTA_PACKED_CREDENTIALS)
 
 endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)
+    add_aktualizr_test(NAME rvi_client SOURCES rvisotaclient_test.cc PROJECT_WORKING_DIRECTORY)
+
     add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_valgrind_dbusgateway COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-    add_executable(aktualizr_test_rvi_client rvisotaclient_test.cc)
-    target_link_libraries(aktualizr_test_rvi_client aktualizr_static_lib ${TEST_LIBS})
-    add_test(NAME test_rvi_client COMMAND aktualizr_test_rvi_client WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_test(NAME test_dbusgateway
+             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
+             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_swm swm_test.cc)
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_swm COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf bash -c "${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_rvi_client aktualizr_test_swm)
+    add_test(NAME test_swm
+             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
+             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_swm)
 
 endif(BUILD_GENIVI)
 
