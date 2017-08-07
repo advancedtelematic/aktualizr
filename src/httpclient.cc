@@ -10,6 +10,7 @@
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
 #include <sys/stat.h>
+#include <boost/move/make_unique.hpp>
 
 #include "logger.h"
 #include "openssl_compat.h"
@@ -94,97 +95,28 @@ HttpResponse HttpClient::get(const std::string& url) {
   return perform(curl, RETRY_TIMES);
 }
 
-CURLcode HttpClient::sslCtxFunction(CURL* handle __attribute__((unused)), void* sslctx, void* parm) {
-  X509_STORE* store;
-  X509* cert = NULL;
-  BIO* bio;
-  int ret;
-  HttpClient* client = reinterpret_cast<HttpClient*>(parm);
-  boost::unique_lock<boost::mutex> lock(client->tls_mutex);
-
-  // Set CA info
-  bio = BIO_new_mem_buf(client->tls_ca.c_str(), -1);
-  if (!bio) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  PEM_read_bio_X509(bio, &cert, 0, NULL);
-  if (!cert) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  store = SSL_CTX_get_cert_store((SSL_CTX*)sslctx);
-
-  if (X509_STORE_add_cert(store, cert) == 0) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  X509_free(cert);
-  BIO_free(bio);
-
-  // Set client certificate
-  bio = BIO_new_mem_buf(client->tls_cert.c_str(), -1);
-
-  if (!bio) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  cert = PEM_read_bio_X509(bio, NULL, 0, NULL);
-  if (!cert) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  ret = SSL_CTX_use_certificate((SSL_CTX*)sslctx, cert);
-  if (ret != 1) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  // Set client key
-  /*create a bio for the RSA key*/
-  bio = BIO_new_mem_buf(client->tls_pkey.c_str(), -1);
-  if (!bio) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bio, NULL, 0, NULL);
-  if (!pkey) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  ret = SSL_CTX_use_PrivateKey((SSL_CTX*)sslctx, pkey);
-  if (ret != 1) {
-    LOGGER_LOG(LVL_error, "error setting TLS credentials");
-    return CURLE_SSL_CONNECT_ERROR;
-  }
-
-  return CURLE_OK;
-}
-
 void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
-  boost::unique_lock<boost::mutex> lock(tls_mutex);
+  TemporaryFile* ca_tf = tls_ca_file.release();
+  TemporaryFile* cert_tf = tls_cert_file.release();
+  TemporaryFile* pkey_tf = tls_pkey_file.release();
 
-  tls_ca = ca;
-  tls_cert = cert;
-  tls_pkey = pkey;
+  tls_ca_file = boost::movelib::make_unique<TemporaryFile>(TemporaryFile("tls-ca"));
+  tls_cert_file = boost::movelib::make_unique<TemporaryFile>(TemporaryFile("tls-cert"));
+  tls_pkey_file = boost::movelib::make_unique<TemporaryFile>(TemporaryFile("tls-pkey"));
+
+  Utils::writeFile(tls_ca_file->Path().native(), ca);
+  Utils::writeFile(tls_cert_file->Path().native(), cert);
+  Utils::writeFile(tls_pkey_file->Path().native(), pkey);
+
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
-  curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, sslCtxFunction);
-  curl_easy_setopt(curl, CURLOPT_SSL_CTX_DATA, this);
+  curl_easy_setopt(curl, CURLOPT_CAINFO, tls_ca_file->Path().c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLCERT, tls_cert_file->Path().c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLKEY, tls_pkey_file->Path().c_str());
+
+  if (ca_tf) delete ca_tf;
+  if (cert_tf) delete cert_tf;
+  if (pkey_tf) delete pkey_tf;
 }
-
-/*void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
-  curl_easy_setopt(curl, CURLOPT_CAINFO, ca.c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
-}*/
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());

@@ -7,14 +7,9 @@
 #include "utils.h"
 
 FSStorage::FSStorage(const Config& config) : config_(config) {
-  if (!boost::filesystem::exists(config_.tls.certificates_directory))
-    boost::filesystem::create_directories(config_.tls.certificates_directory);
-  if (!boost::filesystem::exists(config_.uptane.metadata_path))
-    boost::filesystem::create_directories(config_.uptane.metadata_path);
-  if (!boost::filesystem::exists(config_.uptane.metadata_path / "repo"))
-    boost::filesystem::create_directories(config_.uptane.metadata_path / "repo");
-  if (!boost::filesystem::exists(config_.uptane.metadata_path / "director"))
-    boost::filesystem::create_directories(config_.uptane.metadata_path / "director");
+  boost::filesystem::create_directories(config_.tls.certificates_directory);
+  boost::filesystem::create_directories(config_.uptane.metadata_path / "repo");
+  boost::filesystem::create_directories(config_.uptane.metadata_path / "director");
 }
 FSStorage::~FSStorage() {
   // TODO: clear director_files, image_files
@@ -33,9 +28,8 @@ void FSStorage::storeEcu(bool is_primary, const std::string& hardware_id __attri
     private_key_path = config_.tls.certificates_directory / (ecu_id + ".priv");
   }
 
-  if (boost::filesystem::exists(public_key_path)) boost::filesystem::remove(public_key_path);
-
-  if (boost::filesystem::exists(private_key_path)) boost::filesystem::remove(private_key_path);
+  boost::filesystem::remove(public_key_path);
+  boost::filesystem::remove(private_key_path);
 
   Utils::writeFile(public_key_path.native(), public_key);
   Utils::writeFile(private_key_path.native(), private_key);
@@ -58,19 +52,17 @@ bool FSStorage::loadEcuKeys(bool is_primary, const std::string& hardware_id __at
 
   if (!boost::filesystem::exists(public_key_path) || !boost::filesystem::exists(private_key_path)) return false;
 
-  *public_key = Utils::readFile(public_key_path.native());
-  *private_key = Utils::readFile(private_key_path.native());
+  if (public_key) *public_key = Utils::readFile(public_key_path.native());
+  if (private_key) *private_key = Utils::readFile(private_key_path.native());
   return true;
 }
 
 void FSStorage::storeTlsCredsCommon(const boost::filesystem::path& ca_path, const boost::filesystem::path& cert_path,
                                     const boost::filesystem::path& pkey_path, const std::string& ca,
                                     const std::string& cert, const std::string& pkey) {
-  if (boost::filesystem::exists(ca_path)) boost::filesystem::remove(ca_path);
-
-  if (boost::filesystem::exists(cert_path)) boost::filesystem::remove(cert_path);
-
-  if (boost::filesystem::exists(pkey_path)) boost::filesystem::remove(pkey_path);
+  boost::filesystem::remove(ca_path);
+  boost::filesystem::remove(cert_path);
+  boost::filesystem::remove(pkey_path);
 
   Utils::writeFile(ca_path.native(), ca);
   Utils::writeFile(cert_path.native(), cert);
@@ -100,9 +92,9 @@ bool FSStorage::loadTlsCredsCommon(const boost::filesystem::path& ca_path, const
       !boost::filesystem::exists(pkey_path))
     return false;
 
-  *ca = Utils::readFile(ca_path.native());
-  *cert = Utils::readFile(cert_path.native());
-  *pkey = Utils::readFile(pkey_path.native());
+  if (ca) *ca = Utils::readFile(ca_path.native());
+  if (cert) *cert = Utils::readFile(cert_path.native());
+  if (pkey) *pkey = Utils::readFile(pkey_path.native());
 
   return false;
 }

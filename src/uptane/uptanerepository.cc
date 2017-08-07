@@ -72,6 +72,8 @@ bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
 }
 
 bool Repository::getMeta() {
+  putManifest();
+
   Uptane::MetaPack meta;
   meta.director_root = Uptane::Root("director", director.fetchAndCheckRole(Role::Root()));
   meta.image_root = Uptane::Root("repo", image.fetchAndCheckRole(Role::Root()));
@@ -126,15 +128,19 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 }
 
 bool Repository::deviceRegister() {
-  if (storage.loadTlsCreds(NULL, NULL, NULL)) {
-    // TODO: acknowledgement to server
-    LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
-    return true;
-  }
-
   std::string pkey;
   std::string cert;
   std::string ca;
+
+  if (storage.loadTlsCreds(&ca, &cert, &pkey)) {
+    LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
+    // set provisioned credentials
+    http.setCerts(ca, cert, pkey);
+    director.setTlsCreds(ca, cert, pkey);
+    image.setTlsCreds(ca, cert, pkey);
+    return true;
+  }
+
   if (!storage.loadBootstrapTlsCreds(&ca, &cert, &pkey)) {
     Bootstrap boot(config.provision.provision_path);
     std::string p12_str = boot.getP12Str();
