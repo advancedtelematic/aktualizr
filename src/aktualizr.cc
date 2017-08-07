@@ -16,6 +16,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <sodium.h>
+#include "timer.h"
 
 Aktualizr::Aktualizr(const Config &config) : config_(config) {
   if (sodium_init() == -1) {
@@ -24,17 +25,20 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
 
   RAND_poll();
 
+  LOGGER_LOG(LVL_trace, "Seeding random number generator from /dev/random...");
+  Timer timer;
   unsigned int seed;
   std::ifstream urandom("/dev/random", std::ios::in | std::ios::binary);
   urandom.read(reinterpret_cast<char *>(&seed), sizeof(seed));
   urandom.close();
   std::srand(seed);  // seeds pseudo random generator with random number
+  LOGGER_LOG(LVL_trace, "... seeding complete in " << timer);
 
 #ifdef BUILD_OSTREE
   try {
     OstreeBranch::getCurrent("", config.ostree.sysroot);
   } catch (...) {
-    throw std::runtime_error("Could not load installed ostree package");
+    throw std::runtime_error("Could not find OSTree sysroot at:" + config.ostree.sysroot);
   }
 #endif
 }

@@ -119,6 +119,8 @@ int main(int argc, char *argv[]) {
     loggerSetSeverity(severity);
   }
 
+  LOGGER_LOG(LVL_info, "Aktualizr version " AKTUALIZR_VERSION " starting");
+  LOGGER_LOG(LVL_debug, "Current directory: " << boost::filesystem::current_path().string());
   // Initialize config with default values, the update with config, then with cmd
   std::string sota_config_file = commandline_map["config"].as<std::string>();
   boost::filesystem::path sota_config_path(sota_config_file);

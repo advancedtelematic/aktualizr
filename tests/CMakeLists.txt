@@ -65,6 +65,10 @@ add_executable(aktualizr_test_crypto crypto_test.cc)
 target_link_libraries(aktualizr_test_crypto aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_crypto COMMAND aktualizr_test_crypto WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+add_executable(aktualizr_test_timer timer_test.cc)
+target_link_libraries(aktualizr_test_timer aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+add_test(NAME test_timer COMMAND aktualizr_test_timer)
+
 add_executable(aktualizr_test_utils utils_test.cc)
 target_link_libraries(aktualizr_test_utils aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_utils COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
@@ -77,6 +81,7 @@ add_dependencies(build_tests
         aktualizr_test_http_client
         aktualizr_test_socket_gateway
         aktualizr_test_crypto
+        aktualizr_test_timer
         aktualizr_test_utils)
 
 if(BUILD_OSTREE)
@@ -127,7 +132,7 @@ if(BUILD_OSTREE)
 
     add_test(NAME test_ostree_invalid
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
-    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not load installed ostree package")
+    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     if(SOTA_PACKED_CREDENTIALS)
         add_executable(aktualizr_test_uptane_ci ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc uptane_ci_test.cc)
@@ -232,6 +237,7 @@ set(ALL_TEST_SRCS
     rvisotaclient_test.cc
     socketgateway_test.cc
     swm_test.cc
+    timer_test.cc
     tuf_test.cc
     uptane_vector_tests.cc
     uptane_test.cc
