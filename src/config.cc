@@ -93,50 +93,55 @@ void Config::postUpdateValues() {
         std::string("Could not create directory for 'tls.certificates_directory' option because: ") + error.message());
   }
 
-  // TODO: atomic operation
-  if (!isUnpacked() && !provision.provision_path.empty()) {
-    if (boost::filesystem::exists(provision.provision_path)) {
-      struct archive* a = archive_read_new();
-      archive_read_support_filter_all(a);
-      archive_read_support_format_all(a);
-      int r = archive_read_open_filename(a, provision.provision_path.c_str(), 20 * 512);
-      if (r == ARCHIVE_OK) {
-        struct archive_entry* entry;
-        while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-          std::string filename(archive_entry_pathname(entry));
-          if (filename == "autoprov.url" && tls.server.empty()) {
-            int urlfp = open((tls.certificates_directory / filename).string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
-            if (urlfp) {
-              archive_read_data_into_fd(a, urlfp);
-              close(urlfp);
-            }
-          } else if (filename == "autoprov_credentials.p12") {
-            std::string p12_filename = boost::filesystem::unique_path().string();
-            boost::filesystem::path p12_path = tls.certificates_directory / p12_filename;
-            int credfp = open(p12_path.string().c_str(), O_WRONLY | O_CREAT, S_IRUSR);
-            if (credfp) {
-              archive_read_data_into_fd(a, credfp);
-              close(credfp);
-              provision.p12_path = p12_filename;
+  if (tls.server.empty()) {
+    if (!provision.provision_path.empty()) {
+      if (boost::filesystem::exists(provision.provision_path)) {
+        bool found = false;
+        std::stringstream url_stream;
+        struct archive* a = archive_read_new();
+        archive_read_support_filter_all(a);
+        archive_read_support_format_all(a);
+        int r = archive_read_open_filename(a, provision.provision_path.c_str(), 1024);
+        if (r == ARCHIVE_OK) {
+          struct archive_entry* entry;
+          while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+            std::string filename(archive_entry_pathname(entry));
+            if (filename == "autoprov.url") {
+              const char* buff;
+              size_t size;
+              int64_t offset;
+
+              for (;;) {
+                r = archive_read_data_block(a, (const void**)&buff, &size, &offset);
+                if (r == ARCHIVE_EOF) {
+                  break;
+                } else if (r != ARCHIVE_OK) {
+                  LOGGER_LOG(LVL_error, "Error reading provision archive: " << archive_error_string(a));
+                } else if (size > 0 && buff != NULL) {
+                  url_stream.write(buff, size);
+                }
+              }
+              found = true;
             } else {
-              LOGGER_LOG(LVL_error, "Could not create file: " << p12_path);
+              archive_read_data_skip(a);
             }
           }
-        }
-        r = archive_read_free(a);
-        if (r != ARCHIVE_OK) {
-          LOGGER_LOG(LVL_error, "Error closing provision archive file!");
+          r = archive_read_free(a);
+          if (r != ARCHIVE_OK) {
+            LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision.provision_path);
+          }
+          if (found) {
+            tls.server = url_stream.str();
+          } else {
+            LOGGER_LOG(LVL_error, "autoprov.url not found in provision archive: " << provision.provision_path);
+          }
         }
       } else {
-        LOGGER_LOG(LVL_error, "Could not read provision archive file, are you sure it is valid archive?");
+        LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
       }
     } else {
-      LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
+      LOGGER_LOG(LVL_warning, "Provided provision path is empty!");
     }
-  }
-
-  if (tls.server.empty() && boost::filesystem::exists(tls.certificates_directory / "autoprov.url")) {
-    tls.server = Utils::readFile((tls.certificates_directory / "autoprov.url").string());
   }
 
   if (uptane.repo_server.empty()) {
@@ -259,13 +264,12 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", LVL_trace, pt);
   CopyFromConfig(rvi.uuid, "rvi.uuid", LVL_warning, pt);
 
+  CopyFromConfig(tls.certificates_directory, "tls.certificates_directory", LVL_trace, pt);
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
   CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
-  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
   CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
+  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
 
-  CopyFromConfig(tls.certificates_directory, "tls.certificates_directory", LVL_trace, pt);
-  CopyFromConfig(provision.p12_path, "provision.p12_path", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
 

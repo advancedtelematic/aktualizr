@@ -3,12 +3,14 @@
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/make_shared.hpp>
 
-#include "boost/algorithm/hex.hpp"
+#include <stdio.h>
 
+#include "bootstrap.h"
 #include "crypto.h"
 #include "logger.h"
 #include "openssl_compat.h"
@@ -109,23 +111,21 @@ bool Repository::deviceRegister() {
     return false;
   }
 
-  std::string bootstrap_pkey_pem = (config.tls.certificates_directory / "bootstrap_pkey.pem").string();
-  std::string bootstrap_cert_pem = (config.tls.certificates_directory / "bootstrap_cert.pem").string();
-  std::string bootstrap_ca_pem = (config.tls.certificates_directory / "bootstrap_ca.pem").string();
-  FILE *reg_p12 = fopen((config.tls.certificates_directory / config.provision.p12_path).c_str(), "rb");
-  if (!reg_p12) {
-    LOGGER_LOG(LVL_error, "Could not open " << config.tls.certificates_directory / config.provision.p12_path);
+  Bootstrap boot(config.provision.provision_path);
+  std::string p12_str = boot.getP12Str();
+  if (p12_str.empty()) {
     return false;
   }
 
-  if (!Crypto::parseP12(reg_p12, config.provision.p12_password, bootstrap_pkey_pem, bootstrap_cert_pem,
-                        bootstrap_ca_pem)) {
+  FILE *reg_p12 = fmemopen(const_cast<char *>(p12_str.c_str()), p12_str.size(), "rb");
+  if (!Crypto::parseP12(reg_p12, config.provision.p12_password, boot.getPkeyPath(), boot.getCertPath(),
+                        boot.getCaPath())) {
     fclose(reg_p12);
     return false;
   }
   fclose(reg_p12);
 
-  http.setCerts(bootstrap_ca_pem, bootstrap_cert_pem, bootstrap_pkey_pem);
+  http.setCerts(boot.getCaPath(), boot.getCertPath(), boot.getPkeyPath());
 
   Json::Value data;
   data["deviceId"] = config.uptane.device_id;

@@ -44,7 +44,7 @@ storage_dir = "/var/sota"
 timeout = 20
 
 [provision]
-p12_path = "config/cred.p12"
+provision_path = "tests/test_data/credentials.zip"
 p12_password = ""
 
 [tls]

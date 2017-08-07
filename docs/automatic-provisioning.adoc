@@ -26,7 +26,7 @@ There will be a 2 new sections in the sota.toml configuration file:
     client_certificate = "/var/lib/aktualizr/client.pem"
 
     [provision]
-    p12_path = "/usr/lib/aktualizr/bootstrap.p12"
+    provision_path = "/var/sota/sota_provisioning_credentials.zip"
     p12_password = "" ; optional
     expiry_days = 36500 ; optional
     device_id = "device12345" ; optional

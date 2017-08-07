@@ -13,7 +13,8 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             gatewaymanager.cc
             socketgateway.cc
             crypto.cc
-            utils.cc)
+            utils.cc
+            bootstrap.cc)
 # set headers used for clang format
 set(HEADERS
             aktualizr.h
@@ -32,6 +33,7 @@ set(HEADERS
             openssl_compat.h
             ostree.h
             utils.h
+            bootstrap.h
             uptane/tuf.h
             uptane/tufrepository.h
             uptane/uptanerepository.h
