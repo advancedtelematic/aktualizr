@@ -165,7 +165,7 @@ class Config {
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   bool isUnpacked() {
     return (boost::filesystem::exists(tls.certificates_directory / "autoprov.url") &&
-            boost::filesystem::exists(tls.certificates_directory / "autoprov_credentials.p12"));
+            boost::filesystem::exists(provision.p12_path));
   };
 };
 

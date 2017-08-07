@@ -37,9 +37,9 @@ void Repository::updateRoot(Version version) {
   image.updateRoot(version);
 }
 
-void Repository::putManifest() { putManifest(Json::nullValue); }
+bool Repository::putManifest() { return putManifest(Json::nullValue); }
 
-void Repository::putManifest(const Json::Value &custom) {
+bool Repository::putManifest(const Json::Value &custom) {
   Json::Value version_manifest;
   version_manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
   version_manifest["ecu_version_manifest"] = transport.getManifests();
@@ -51,7 +51,8 @@ void Repository::putManifest(const Json::Value &custom) {
   version_manifest["ecu_version_manifest"].append(ecu_version_signed);
   Json::Value tuf_signed =
       Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, version_manifest);
-  http.put(config.uptane.director_server + "/manifest", tuf_signed);
+  HttpResponse reponse = http.put(config.uptane.director_server + "/manifest", tuf_signed);
+  return reponse.isOk();
 }
 
 void Repository::refresh() {

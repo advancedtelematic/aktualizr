@@ -15,8 +15,8 @@ namespace Uptane {
 class Repository {
  public:
   Repository(const Config &config);
-  void putManifest();
-  void putManifest(const Json::Value &);
+  bool putManifest();
+  bool putManifest(const Json::Value &);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
 
   // pair of (Version, targets[])
