@@ -50,7 +50,11 @@ Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
   data::OperationResult result = data::OperationResult::fromOutcome(package.ref_name, outcome);
   Json::Value operation_result;
   operation_result["operation_result"] = result.toJson();
-  return uptane_repo.getVersionManifest(operation_result);
+  Json::Value unsigned_ecu_version =
+      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(operation_result);
+  Json::Value ecu_version_signed =
+      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, unsigned_ecu_version);
+  return ecu_version_signed;
 }
 
 void SotaUptaneClient::reportHWInfo() {
@@ -80,6 +84,10 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        Json::Value unsigned_ecu_version =
+            OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot)
+                .toEcuVersion(Json::nullValue);
+        uptane_repo.refresh(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOGGER_LOG(LVL_info, "got new updates");
