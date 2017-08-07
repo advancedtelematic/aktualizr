@@ -113,12 +113,17 @@ TEST(config, config_extract_credentials) {
   boost::filesystem::remove_all("tests/tmp_data/prov");
   conf.tls.server.clear();
   conf.postUpdateValues();
-  EXPECT_EQ(conf.tls.server, "9c8e58a5-3777-40db-99ad-8e1dae1622fe.tcpgw.prod01.advancedtelematic.com");
+  EXPECT_EQ(conf.tls.server, "https://bd8012b4-cf0f-46ca-9d2c-46a41d534af5.tcpgw.prod01.advancedtelematic.com:443");
 
-  Bootstrap boot(conf.provision.provision_path);
-  std::string p12_str = boot.getP12Str();
-  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(p12_str)),
-            "31DC21BEF3EC17A41438E6183820556790A738A88E8A08FCB59BE6D54064807E");
+  Bootstrap boot(conf.provision.provision_path, "");
+  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getCa())),
+            "FBA3C8FAD16D8B3EC64F7D47CBDD8456A51A6399734A3F6B7E2D6E562072F264");
+  std::cout << "Certificate: " << boot.getCert() << std::endl;
+  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getCert())),
+            "02300CC9797556915D88CFA05644BFF22D8C458367A3636F7921585F828ECB81");
+  std::cout << "Pkey: " << boot.getPkey() << std::endl;
+  EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getPkey())),
+            "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 }
 
 #ifndef __NO_MAIN__

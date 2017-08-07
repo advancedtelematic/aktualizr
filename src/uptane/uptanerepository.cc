@@ -141,29 +141,9 @@ bool Repository::deviceRegister() {
     return true;
   }
 
-  if (!storage.loadBootstrapTlsCreds(&ca, &cert, &pkey)) {
-    Bootstrap boot(config.provision.provision_path);
-    std::string p12_str = boot.getP12Str();
-    if (p12_str.empty()) {
-      return false;
-    }
-    FILE *reg_p12 = fmemopen(const_cast<char *>(p12_str.c_str()), p12_str.size(), "rb");
-
-    if (!reg_p12) {
-      LOGGER_LOG(LVL_error, "Could not open bootstrapped credentials");
-      return false;
-    }
-
-    if (!Crypto::parseP12(reg_p12, config.provision.p12_password, &pkey, &cert, &ca)) {
-      fclose(reg_p12);
-      return false;
-    }
-    fclose(reg_p12);
-    storage.storeBootstrapTlsCreds(ca, cert, pkey);
-  }
-
   // set bootstrap credentials
-  http.setCerts(ca, cert, pkey);
+  Bootstrap boot(config.provision.provision_path, config.provision.p12_password);
+  http.setCerts(boot.getCa(), boot.getCert(), boot.getPkey());
 
   Json::Value data;
   data["deviceId"] = config.uptane.device_id;
