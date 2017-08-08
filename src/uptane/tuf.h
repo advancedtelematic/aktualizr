@@ -157,7 +157,7 @@ class Root {
   /**
    * An empty Root, that either accepts or rejects everything
    */
-  Root(Policy policy = kRejectAll) : policy_(policy) {}
+  Root(Policy policy = kRejectAll) : policy_(policy), version_(0) {}
   /**
    * json should be the contents of the 'signed' portion
    * @param json
