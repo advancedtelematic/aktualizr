@@ -24,10 +24,11 @@ struct Utils {
 /**
  * RAII Temporary file creation
  */
-class TemporaryFile {
+class TemporaryFile : boost::noncopyable {
  public:
   TemporaryFile(const std::string &hint = "");
   ~TemporaryFile();
+  void PutContents(const std::string &contents);
   boost::filesystem::path Path() const;
   std::string PathString() const;
 

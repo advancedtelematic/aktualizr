@@ -18,6 +18,9 @@ std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
 std::string tls_server = "https://tlsserver.com";
 std::string metadata_path = "tests/test_data";
 
+enum ProvisioningResult { ProvisionOK, ProvisionFailure };
+ProvisioningResult provisioningResponse = ProvisionOK;
+
 HttpClient::HttpClient() {}
 void HttpClient::setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) {
   (void)ca;
@@ -66,8 +69,11 @@ HttpResponse HttpClient::post(const std::string &url, const Json::Value &data) {
   (void)url;
 
   Utils::writeFile("tests/test_data_tmp/post.json", data);
-  sync();
-  return HttpResponse(Utils::readFile("tests/certs/cred.p12"), 200, CURLE_OK, "");
+  if (provisioningResponse == ProvisionOK) {
+    return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+  } else {
+    return HttpResponse("", 400, CURLE_OK, "");
+  }
 }
 
 HttpResponse HttpClient::put(const std::string &url, const Json::Value &data) {
@@ -240,7 +246,9 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
   FSStorage storage(conf);
   Uptane::Repository uptane(conf, storage);
 
+  provisioningResponse = ProvisionFailure;
   bool result = uptane.deviceRegister();
+  provisioningResponse = ProvisionOK;
   EXPECT_EQ(result, false);
 }
 

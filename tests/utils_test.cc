@@ -100,6 +100,16 @@ TEST(Utils, TemporaryFile) {
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
 
+TEST(Utils, TemporaryFilePutContents) {
+  TemporaryFile f("ahint");
+  f.PutContents("thecontents");
+  EXPECT_TRUE(boost::filesystem::exists(f.Path()));
+  std::ifstream a(f.Path().c_str());
+  std::string b;
+  a >> b;
+  EXPECT_EQ(b, "thecontents");
+}
+
 TEST(Utils, copyDir) {
   if (boost::filesystem::exists("tests/test_data/test_copy_dir"))
     boost::filesystem::remove_all("tests/test_data/test_copy_dir");

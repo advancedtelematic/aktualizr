@@ -255,6 +255,11 @@ TemporaryFile::TemporaryFile(const std::string &hint)
 
 TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
+void TemporaryFile::PutContents(const std::string &contents) {
+  std::ofstream out(Path().c_str());
+  out << contents;
+}
+
 boost::filesystem::path TemporaryFile::Path() const { return tmp_name_; }
 
 std::string TemporaryFile::PathString() const { return Path().string(); }
