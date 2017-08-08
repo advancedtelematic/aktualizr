@@ -11,6 +11,8 @@
 
 #include "crypto.h"
 
+class SotaUptaneClient;
+
 namespace Uptane {
 
 class Repository {
@@ -43,6 +45,7 @@ class Repository {
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
+  friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();
 };
