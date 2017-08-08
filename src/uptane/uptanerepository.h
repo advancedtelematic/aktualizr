@@ -22,9 +22,8 @@ class Repository {
   Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
-
-  // pair of (Version, targets[])
   std::pair<int, std::vector<Uptane::Target> > getTargets();
+
   bool deviceRegister();
   bool ecuRegister();
   // TODO: only used by tests, rewrite test and delete this method

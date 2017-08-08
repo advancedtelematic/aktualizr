@@ -54,7 +54,7 @@ class TufRepository {
   void setTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
     http_.setCerts(ca, cert, pkey);
   }
-  std::string getTargetPath(const Target &target);
+  std::string getTargetPath(const Target& target);
 
  private:
   std::string name_;

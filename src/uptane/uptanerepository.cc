@@ -113,8 +113,6 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 
   std::vector<Uptane::Target> director_targets = director.getTargets();
   int version = director.targetsVersion();
-  std::vector<Uptane::Target> primary_targets;
-  std::vector<Uptane::Target> secondary_targets;
 
   if (!director_targets.empty()) {
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
@@ -123,7 +121,8 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
     }
     // transport.sendTargets(secondary_targets);
   }
-  return director_targets;
+  return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
+  ;
 }
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {

@@ -86,22 +86,20 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
-        std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
-        if (updates.first.size() || updates.second.size()) {
+        std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
+        if (updates.second.size() && updates.first > last_targets_version) {
           LOGGER_LOG(LVL_info, "got new updates");
-          *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates);
+          *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates.second);
+          last_targets_version = updates.first;  // What if we fail install targets?
         } else {
           LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
-        std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > updates =
-            command->toChild<command::UptaneInstall>()->packages;
-        std::vector<Uptane::Target> primary_updates = findForEcu(updates.first, config.uptane.primary_ecu_serial);
+        std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
+        std::vector<Uptane::Target> primary_updates = findForEcu(updates, config.uptane.primary_ecu_serial);
         Json::Value manifests(Json::arrayValue);
-        if (updates.second.size()) {
-          manifests = uptane_repo.updateSecondaries(updates.second);
-        }
+        manifests = uptane_repo.updateSecondaries(updates);
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           for (std::vector<Uptane::Target>::const_iterator it = primary_updates.begin(); it != primary_updates.end();

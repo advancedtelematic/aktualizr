@@ -405,12 +405,10 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
-  EXPECT_EQ(targets_event->packages.size(), 1u);
-  if (targets_event->packages.size()) {
-    EXPECT_EQ(targets_event->packages[0].filename(),
-              "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
-  }
-  EXPECT_EQ(Utils::readFile("tests/test_data_tmp/firmware.txt"), "This is content");
+  EXPECT_EQ(targets_event->packages.size(), 2u);
+  EXPECT_EQ(targets_event->packages[0].filename(),
+            "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(targets_event->packages[1].filename(), "secondary_firmware.txt");
 }
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
@@ -434,15 +432,13 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   event::Channel events_channel;
   command::Channel commands_channel;
 
-  std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_to_install_pair;
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
   ot_json["custom"]["ecuIdentifier"] = "testecuserial";
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 10;
   packages_to_install.push_back(Uptane::Target("testostree", ot_json));
-  packages_to_install_pair.first = packages_to_install;
-  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install_pair);
+  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   FSStorage storage(conf);
   Uptane::Repository repo(conf, storage);

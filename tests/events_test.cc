@@ -86,11 +86,9 @@ TEST(event, UptaneTargetsUpdated_event_to_json) {
   target_json["pull_uri"] = "test4";
   Uptane::Target package("test_package", target_json);
   std::vector<Uptane::Target> packages;
-  std::pair<std::vector<Uptane::Target>, std::vector<Uptane::Target> > packages_pair;
 
   packages.push_back(package);
-  packages_pair.first = packages;
-  event::UptaneTargetsUpdated event(packages_pair);
+  event::UptaneTargetsUpdated event(packages);
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
