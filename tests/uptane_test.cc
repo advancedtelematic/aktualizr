@@ -221,9 +221,6 @@ TEST(SotaUptaneClientTest, device_registered) {
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
 
   FSStorage storage(conf);
   Uptane::Repository uptane(conf, storage);
@@ -240,8 +237,6 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
 
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
 
   FSStorage storage(conf);
   Uptane::Repository uptane(conf, storage);
@@ -321,9 +316,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
@@ -381,9 +373,6 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(metadata_path + "director/timestamp.json");
   boost::filesystem::remove(metadata_path + "repo/timestamp.json");
 
@@ -423,9 +412,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
   boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
   boost::filesystem::remove(test_manifest);
 
   conf.tls.server = tls_server;
