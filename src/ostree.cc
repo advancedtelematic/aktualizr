@@ -169,8 +169,8 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return install_outcome;
   }
 
-  std::ifstream args_stream("/proc/cmdline");
-  std::string args_content((std::istreambuf_iterator<char>(args_stream)), std::istreambuf_iterator<char>());
+  std::string args_content =
+      std::string(ostree_bootconfig_parser_get(ostree_deployment_get_bootconfig(merge_deployment), "options"));
   std::vector<std::string> args_vector;
   boost::split(args_vector, args_content, boost::is_any_of(" "));
 
