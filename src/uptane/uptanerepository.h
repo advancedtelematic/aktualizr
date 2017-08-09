@@ -15,17 +15,26 @@ class SotaUptaneClient;
 
 namespace Uptane {
 
+enum InitRetCode {
+  INIT_RET_OK,
+  INIT_RET_OCCUPIED,
+  INIT_RET_SERVER_FAILURE,
+  INIT_RET_STORAGE_FAILURE,
+  INIT_RET_SECONDARY_FAILURE,
+  INIT_RET_BAD_P12
+};
+const int MaxInitializationAttempts = 3;
 class Repository {
  public:
   Repository(const Config &config, INvStorage &storage);
   bool putManifest(Json::Value version_manifests = Json::Value(Json::nullValue));
   Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
-  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
 
-  bool deviceRegister();
-  bool ecuRegister();
+  // implemented in uptane/initialize.cc
+  bool initialize();
+  void initReset();
   // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
 
@@ -40,7 +49,10 @@ class Repository {
   INvStorage &storage;
   HttpClient http;
   Json::Value manifests;
-  std::vector<SecondaryConfig> registered_secondaries;
+
+  std::string primary_ecu_serial;
+  std::string primary_public_key;
+  std::string primary_private_key;
 
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
@@ -48,6 +60,17 @@ class Repository {
   friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();
+
+  // implemented in uptane/initialize.cc
+  bool initDeviceId(const UptaneConfig &uptane_config);
+  void resetDeviceId();
+  bool initEcuSerials(UptaneConfig &uptane_config);
+  void resetEcuSerials();
+  bool initEcuKeys();
+  void resetEcuKeys();
+  InitRetCode initTlsCreds(const ProvisionConfig &provision_config);
+  void resetTlsCreds();
+  InitRetCode initEcuRegister();
 };
 }
 

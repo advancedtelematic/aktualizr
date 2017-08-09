@@ -37,19 +37,15 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   EVP_PKEY *key;
   RSA *rsa = NULL;
 
-  FILE *priv_key_file = fopen(private_key.c_str(), "rt");
-  if (!priv_key_file) {
-    LOGGER_LOG(LVL_error, "error opening " << private_key);
-    return std::string();
-  }
-  if ((key = PEM_read_PrivateKey(priv_key_file, NULL, NULL, NULL))) {
+  BIO *bio = BIO_new_mem_buf(const_cast<char *>(private_key.c_str()), (int)private_key.size());
+  if ((key = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL))) {
     rsa = EVP_PKEY_get1_RSA(key);
   }
-  fclose(priv_key_file);
+  BIO_free_all(bio);
   EVP_PKEY_free(key);
 
   if (!rsa) {
-    LOGGER_LOG(LVL_error, "PEM_read_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOGGER_LOG(LVL_error, "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
     return std::string();
   }
   const unsigned int sign_size = RSA_size(rsa);
@@ -77,14 +73,13 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   return retval;
 }
 
-Json::Value Crypto::signTuf(const std::string &private_key_path, const std::string &public_key_path,
-                            const Json::Value &in_data) {
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(private_key_path, Json::FastWriter().write(in_data)));
+Json::Value Crypto::signTuf(const std::string &private_key, const std::string &public_key, const Json::Value &in_data) {
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(private_key, Json::FastWriter().write(in_data)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
-  std::string key_content(Utils::readFile(public_key_path));
+  std::string key_content = public_key;
   boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
   std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
   std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);

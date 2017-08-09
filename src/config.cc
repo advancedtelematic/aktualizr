@@ -144,60 +144,13 @@ void Config::postUpdateValues() {
     }
   }
 
-  if (uptane.repo_server.empty()) {
-    uptane.repo_server = tls.server + "/repo";
-  }
-  if (uptane.director_server.empty()) {
-    uptane.director_server = tls.server + "/director";
-  }
-  if (uptane.ostree_server.empty()) {
-    uptane.ostree_server = tls.server + "/treehub";
-  }
-  std::string ecu_serial_filename = "primary_ecu_serial";
+  if (provision.server.empty()) provision.server = tls.server;
 
-  if (!uptane.primary_ecu_serial.empty()) {
-    Utils::writeFile((tls.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
-  } else {
-    if (boost::filesystem::exists(tls.certificates_directory / ecu_serial_filename)) {
-      uptane.primary_ecu_serial = Utils::readFile((tls.certificates_directory / ecu_serial_filename).string());
-    } else {
-      uptane.primary_ecu_serial = Utils::randomUuid();
-      Utils::writeFile((tls.certificates_directory / ecu_serial_filename).string(), uptane.primary_ecu_serial);
-    }
-  }
+  if (uptane.repo_server.empty()) uptane.repo_server = tls.server + "/repo";
 
-  std::string device_id_filename = "device_id";
-  if (!uptane.device_id.empty()) {
-    Utils::writeFile((tls.certificates_directory / device_id_filename).string(), uptane.device_id);
-  } else {
-    if (boost::filesystem::exists(tls.certificates_directory / device_id_filename)) {
-      uptane.device_id = Utils::readFile((tls.certificates_directory / device_id_filename).string());
-    } else {
-      uptane.device_id = Utils::genPrettyName();
-      Utils::writeFile((tls.certificates_directory / device_id_filename).string(), uptane.device_id);
-    }
-  }
-  if (uptane.primary_ecu_hardware_id.empty()) {
-    char hostname[200];
-    gethostname(hostname, 200);
-    uptane.primary_ecu_hardware_id = hostname;
-  }
+  if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
-  std::vector<Uptane::SecondaryConfig>::iterator it;
-  int index = 0;
-  for (it = uptane.secondaries.begin(); it != uptane.secondaries.end(); ++it) {
-    if (it->ecu_hardware_id.empty()) {
-      it->ecu_hardware_id = Utils::intToString(index++) + "-" + uptane.primary_ecu_hardware_id;
-    }
-    if (it->ecu_serial.empty()) {
-      if (boost::filesystem::exists(tls.certificates_directory / it->ecu_hardware_id)) {
-        it->ecu_serial = Utils::readFile((tls.certificates_directory / it->ecu_hardware_id).string());
-      } else {
-        it->ecu_serial = Utils::intToString(index++) + "-" + uptane.primary_ecu_serial;
-        Utils::writeFile((tls.certificates_directory / it->ecu_hardware_id).string(), it->ecu_serial);
-      }
-    }
-  }
+  if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
 
   uptane.public_key_path = (tls.certificates_directory / uptane.public_key_path).string();
   uptane.private_key_path = (tls.certificates_directory / uptane.private_key_path).string();

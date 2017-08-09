@@ -29,7 +29,8 @@ TEST(crypto, sha512_is_correct) {
 TEST(crypto, sign_verify_rsa) {
   std::string text = "This is text for sign";
   PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
+  std::string private_key = Utils::readFile("tests/test_data/priv.key");
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
 }

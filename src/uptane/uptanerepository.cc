@@ -28,12 +28,20 @@ Repository::Repository(const Config &config_in, INvStorage &storage_in)
       http(),
       manifests(Json::arrayValue),
       transport(&secondaries) {
-  std::vector<Uptane::SecondaryConfig>::iterator it;
-  for (it = config.uptane.secondaries.begin(); it != config.uptane.secondaries.end(); ++it) {
-    Secondary s(*it, this);
-    addSecondary(it->ecu_serial, it->ecu_hardware_id);
-    secondaries.push_back(s);
+  std::vector<std::pair<std::string, std::string> > ecu_serials;
+  if (storage.loadEcuSerials(&ecu_serials)) {
+    primary_ecu_serial = ecu_serials[0].first;
+    std::vector<Uptane::SecondaryConfig>::iterator it;
+    for (it = config.uptane.secondaries.begin(); it != config.uptane.secondaries.end(); ++it) {
+      // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
+      //   It also kind of duplicates what is done in InitEcuSerials()
+      Secondary s(*it, this);
+      secondaries.push_back(s);
+    }
   }
+
+  // The function can return false leaving the keys empty.
+  storage.loadPrimaryKeys(&primary_public_key, &primary_private_key);
 }
 
 void Repository::updateRoot(Version version) {
@@ -43,22 +51,21 @@ void Repository::updateRoot(Version version) {
 
 Json::Value Repository::getVersionManifest(Json::Value custom) {
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom);
-  Json::Value ecu_version_signed =
-      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, unsigned_ecu_version);
+      OstreePackage::getEcu(primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom);
+  Json::Value ecu_version_signed = Crypto::signTuf(primary_private_key, primary_public_key, unsigned_ecu_version);
   return ecu_version_signed;
 }
 
 bool Repository::putManifest(Json::Value version_manifests) {
   Json::Value manifest;
-  manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
+  manifest["primary_ecu_serial"] = primary_ecu_serial;
   if (!version_manifests) {
     manifest["ecu_version_manifest"] = transport.getManifests();
     manifest["ecu_version_manifest"].append(getVersionManifest());
   } else {
     manifest["ecu_version_manifest"] = version_manifests;
   }
-  Json::Value tuf_signed = Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, manifest);
+  Json::Value tuf_signed = Crypto::signTuf(primary_private_key, primary_public_key, manifest);
   HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
   return response.isOk();
 }
@@ -127,124 +134,5 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
   return transport.sendTargets(secondary_targets);
-}
-
-bool Repository::deviceRegister() {
-  std::string pkey;
-  std::string cert;
-  std::string ca;
-
-  if (storage.loadTlsCreds(&ca, &cert, &pkey)) {
-    LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
-    // set provisioned credentials
-    http.setCerts(ca, cert, pkey);
-    director.setTlsCreds(ca, cert, pkey);
-    image.setTlsCreds(ca, cert, pkey);
-    return true;
-  }
-
-  // set bootstrap credentials
-  Bootstrap boot(config.provision.provision_path, config.provision.p12_password);
-  http.setCerts(boot.getCa(), boot.getCert(), boot.getPkey());
-
-  Json::Value data;
-  data["deviceId"] = config.uptane.device_id;
-  data["ttl"] = config.provision.expiry_days;
-  HttpResponse response = http.post(config.tls.server + "/devices", data);
-  if (!response.isOk()) {
-    LOGGER_LOG(LVL_error, "error tls registering device, response: " << response.body);
-    return false;
-  }
-
-  FILE *device_p12 = fmemopen(const_cast<char *>(response.body.c_str()), response.body.size(), "rb");
-  if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
-    return false;
-  }
-  fclose(device_p12);
-  storage.storeTlsCreds(ca, cert, pkey);
-
-  // set provisioned credentials
-  http.setCerts(ca, cert, pkey);
-  director.setTlsCreds(ca, cert, pkey);
-  image.setTlsCreds(ca, cert, pkey);
-
-  // TODO: acknowledgement to the server
-  LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
-  return true;
-}
-
-bool Repository::ecuRegister() {
-  // register primary ECU
-  std::string public_key;
-  std::string private_key;
-  if (!storage.loadEcuKeys(true, config.uptane.primary_ecu_serial, config.uptane.primary_ecu_hardware_id, &public_key,
-                           &private_key)) {
-    if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
-      LOGGER_LOG(LVL_error, "Could not generate rsa keys for primary");
-      return false;
-    }
-    storage.storeEcu(true, config.uptane.primary_ecu_serial, config.uptane.primary_ecu_hardware_id, public_key,
-                     private_key);
-  }
-
-  Json::Value all_ecus;
-  all_ecus["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
-  all_ecus["ecus"] = Json::Value(Json::arrayValue);
-
-  PublicKey primary_pub_key(config.uptane.public_key_path);
-  Json::Value primary_ecu;
-  primary_ecu["hardware_identifier"] = config.uptane.primary_ecu_hardware_id;
-  primary_ecu["ecu_serial"] = config.uptane.primary_ecu_serial;
-  primary_ecu["clientKey"]["keytype"] = "RSA";
-  primary_ecu["clientKey"]["keyval"]["public"] = public_key;
-  all_ecus["ecus"].append(primary_ecu);
-
-  // register secondary ECUs
-  std::vector<SecondaryConfig>::iterator it;
-  for (it = registered_secondaries.begin(); it != registered_secondaries.end(); ++it) {
-    std::string secondary_public_key;
-    std::string secondary_private_key;
-    if (!storage.loadEcuKeys(false, it->ecu_serial, it->ecu_hardware_id, &secondary_public_key,
-                             &secondary_private_key)) {
-      if (!Crypto::generateRSAKeyPair(&secondary_public_key, &secondary_private_key)) {
-        LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << it->ecu_hardware_id << "@"
-                                                                           << it->ecu_serial);
-        return false;
-      }
-      storage.storeEcu(true, it->ecu_serial, it->ecu_hardware_id, secondary_public_key, secondary_private_key);
-    }
-
-    transport.sendPrivateKey(it->ecu_serial, secondary_private_key);
-    Json::Value ecu;
-    ecu["hardware_identifier"] = it->ecu_hardware_id;
-    ecu["ecu_serial"] = it->ecu_serial;
-    ecu["clientKey"]["keytype"] = "RSA";
-    ecu["clientKey"]["keyval"]["public"] = secondary_public_key;
-    all_ecus["ecus"].append(ecu);
-  }
-
-  HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
-  if (response.isOk()) {
-    LOGGER_LOG(LVL_info, "Provisioned successfully on Director");
-  } else {
-    Json::Value resp_code = response.getJson()["code"];
-    // This doesn't work device_already_registered and ecu_already_registered are possible
-    if (resp_code.isString() &&
-        (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
-      LOGGER_LOG(LVL_trace, "ECUs are already registered, proceeding");
-      return true;
-    } else {
-      LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << response.body);
-      return false;
-    }
-  }
-  return true;
-}
-
-void Repository::addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier) {
-  SecondaryConfig c;
-  c.ecu_serial = ecu_serial;
-  c.ecu_hardware_id = hardware_identifier;
-  registered_secondaries.push_back(c);
 }
 }

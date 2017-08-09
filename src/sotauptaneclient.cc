@@ -67,7 +67,7 @@ void SotaUptaneClient::reportInstalledPackages() {
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
-  if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
+  if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
   LOGGER_LOG(LVL_debug, "... provisioned OK");

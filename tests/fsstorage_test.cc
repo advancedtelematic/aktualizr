@@ -7,54 +7,24 @@
 
 const std::string fsstorage_test_dir = "tests/test_fsstorage";
 
-TEST(fsstorage, load_store_ecu) {
+TEST(fsstorage, load_store_primary_keys) {
   Config config;
   config.tls.certificates_directory = fsstorage_test_dir;
   config.uptane.metadata_path = fsstorage_test_dir;
-  config.uptane.public_key_path = (config.tls.certificates_directory / "test_primary.pub").string();
-  config.uptane.private_key_path = (config.tls.certificates_directory / "test_primary.priv").string();
+  config.uptane.public_key_path = "test_primary.pub";
+  config.uptane.private_key_path = "test_primary.priv";
 
   FSStorage storage(config);
-  storage.storeEcu(true, "test_primary_hw", "test_primary_serial", "pr_public", "pr_private");
-  storage.storeEcu(false, "test_secondary_hw", "test_secondary1_serial", "sec1_public", "sec1_private");
-  storage.storeEcu(false, "test_secondary_hw", "test_secondary2_serial", "sec2_public", "sec2_private");
+  storage.storePrimaryKeys("pr_public", "pr_private");
 
   std::string pubkey;
   std::string privkey;
 
-  storage.loadEcuKeys(true, "test_primary_hw", "test_primary_serial", &pubkey, &privkey);
+  EXPECT_TRUE(storage.loadPrimaryKeys(&pubkey, &privkey));
   EXPECT_EQ(pubkey, "pr_public");
   EXPECT_EQ(privkey, "pr_private");
-
-  storage.loadEcuKeys(true, "test_secondary_hw", "test_secondary1_serial", &pubkey, &privkey);
-  EXPECT_EQ(pubkey, "pr_public");
-  EXPECT_EQ(privkey, "pr_private");
-
-  storage.loadEcuKeys(true, "test_secondary_hw", "test_secondary2_serial", &pubkey, &privkey);
-  EXPECT_EQ(pubkey, "pr_public");
-  EXPECT_EQ(privkey, "pr_private");
-
-  boost::filesystem::remove_all(fsstorage_test_dir);
-}
-
-TEST(fsstorage, load_store_bootstrap_tls) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
-  config.uptane.metadata_path = fsstorage_test_dir;
-
-  FSStorage storage(config);
-  storage.storeBootstrapTlsCreds("ca", "cert", "priv");
-
-  std::string ca;
-  std::string cert;
-  std::string priv;
-
-  storage.loadBootstrapTlsCreds(&ca, &cert, &priv);
-
-  EXPECT_EQ(ca, "ca");
-  EXPECT_EQ(cert, "cert");
-  EXPECT_EQ(priv, "priv");
-
+  storage.clearPrimaryKeys();
+  EXPECT_FALSE(storage.loadPrimaryKeys(NULL, NULL));
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
@@ -67,22 +37,24 @@ TEST(fsstorage, load_store_tls) {
   config.tls.ca_file = "test_tls.ca";
 
   FSStorage storage(config);
-  storage.storeBootstrapTlsCreds("ca", "cert", "priv");
-
+  storage.storeTlsCreds("ca", "cert", "priv");
   std::string ca;
   std::string cert;
   std::string priv;
 
-  storage.loadBootstrapTlsCreds(&ca, &cert, &priv);
+
+  EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &priv));
 
   EXPECT_EQ(ca, "ca");
   EXPECT_EQ(cert, "cert");
   EXPECT_EQ(priv, "priv");
+  storage.clearTlsCreds();
+  EXPECT_FALSE(storage.loadTlsCreds(NULL, NULL, NULL));
 
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
-TEST(fsstorage, loadstoremetadata) {
+TEST(fsstorage, load_store_metadata) {
   Config config;
   config.tls.certificates_directory = fsstorage_test_dir;
   config.uptane.metadata_path = fsstorage_test_dir + "/metadata";
@@ -154,9 +126,62 @@ TEST(fsstorage, loadstoremetadata) {
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
+TEST(fsstorage, load_store_deviceid) {
+  Config config;
+  config.tls.certificates_directory = fsstorage_test_dir;
+
+  FSStorage storage(config);
+  storage.storeDeviceId("device_id");
+
+  std::string device_id;
+
+  EXPECT_TRUE(storage.loadDeviceId(&device_id));
+
+  EXPECT_EQ(device_id, "device_id");
+  storage.clearDeviceId();
+  EXPECT_FALSE(storage.loadDeviceId(NULL));
+  boost::filesystem::remove_all(fsstorage_test_dir);
+}
+
+TEST(fsstorage, load_store_ecu_serials) {
+  Config config;
+  config.tls.certificates_directory = fsstorage_test_dir;
+
+  FSStorage storage(config);
+  std::vector<std::pair<std::string, std::string> > serials;
+  serials.push_back(std::pair<std::string, std::string>("primary", "primary_hw"));
+  serials.push_back(std::pair<std::string, std::string>("secondary_1", "secondary_hw"));
+  serials.push_back(std::pair<std::string, std::string>("secondary_2", "secondary_hw"));
+  storage.storeEcuSerials(serials);
+
+  std::vector<std::pair<std::string, std::string> > serials_out;
+
+  EXPECT_TRUE(storage.loadEcuSerials(&serials_out));
+
+  EXPECT_EQ(serials, serials_out);
+  storage.clearEcuSerials();
+  EXPECT_FALSE(storage.loadEcuSerials(NULL));
+  boost::filesystem::remove_all(fsstorage_test_dir);
+}
+
+TEST(fsstorage, load_store_ecu_registered) {
+  Config config;
+  config.tls.certificates_directory = fsstorage_test_dir;
+
+  FSStorage storage(config);
+  storage.storeEcuRegistered();
+
+  EXPECT_TRUE(storage.loadEcuRegistered());
+
+  storage.clearEcuRegistered();
+  EXPECT_FALSE(storage.loadEcuRegistered());
+  boost::filesystem::remove_all(fsstorage_test_dir);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  loggerInit();
   loggerSetSeverity(LVL_trace);
   return RUN_ALL_TESTS();
 }

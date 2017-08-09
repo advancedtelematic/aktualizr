@@ -122,6 +122,7 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/uptane/tuf.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/tufrepository.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/uptanerepository.cc
+                  ${PROJECT_SOURCE_DIR}/src/uptane/initialize.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/secondary.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbusprimary.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbussecondary.cc

@@ -96,7 +96,8 @@ struct TlsConfig {
 };
 
 struct ProvisionConfig {
-  ProvisionConfig() : p12_password(""), expiry_days("36000"), provision_path() {}
+  ProvisionConfig() : server(), p12_password(""), expiry_days("36000"), provision_path() {}
+  std::string server;
   std::string p12_password;
   std::string expiry_days;
   std::string provision_path;

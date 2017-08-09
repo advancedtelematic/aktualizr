@@ -33,8 +33,10 @@ Json::Value Secondary::genAndSendManifest(Json::Value custom) {
   manifest["ecu_serial"] = config.ecu_serial;
   manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
-  Json::Value signed_ecu_version = Crypto::signTuf((config.full_client_dir / config.ecu_private_key).string(),
-                                                   (config.full_client_dir / config.ecu_public_key).string(), manifest);
+
+  std::string public_key = Utils::readFile((config.full_client_dir / config.ecu_public_key).string());
+  std::string private_key = Utils::readFile((config.full_client_dir / config.ecu_private_key).string());
+  Json::Value signed_ecu_version = Crypto::signTuf(private_key, public_key, manifest);
   return signed_ecu_version;
 }
 
@@ -51,8 +53,17 @@ Json::Value Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &tar
   return Json::Value(Json::nullValue);
 }
 
-void Secondary::setPrivateKey(const std::string &pkey) {
-  Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), pkey);
+void Secondary::setKeys(const std::string &public_key, const std::string &private_key) {
+  Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), private_key);
+  Utils::writeFile((config.full_client_dir / config.ecu_public_key).string(), public_key);
+}
+
+bool Secondary::getPublicKey(std::string *key) {
+  if (!boost::filesystem::exists(config.full_client_dir / config.ecu_public_key)) {
+    return false;
+  }
+  *key = Utils::readFile((config.full_client_dir / config.ecu_public_key).string());
+  return true;
 }
 
 data::InstallOutcome Secondary::install(const Uptane::Target &target) {

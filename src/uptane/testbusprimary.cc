@@ -21,17 +21,29 @@ Json::Value TestBusPrimary::sendTargets(const std::vector<Uptane::Target> &targe
   return manifests;
 }
 
-void TestBusPrimary::sendPrivateKey(const std::string &ecu_serial, const std::string &key) {
+void TestBusPrimary::sendKeys(const std::string &ecu_serial, const std::string &public_key,
+                              const std::string &private_key) {
   std::vector<Secondary>::iterator it;
   bool found = false;
   for (it = secondaries_->begin(); it != secondaries_->end(); ++it) {
     if (ecu_serial == it->getEcuSerial()) {
-      it->setPrivateKey(key);
+      it->setKeys(public_key, private_key);
       found = true;
     }
   }
   if (!found) {
     throw std::runtime_error("ecu_serial - " + ecu_serial + " not found");
   }
+}
+
+bool TestBusPrimary::reqPublicKey(const std::string &ecu_serial, std::string *keytype, std::string *key) {
+  std::vector<Secondary>::iterator it;
+  for (it = secondaries_->begin(); it != secondaries_->end(); ++it) {
+    if (ecu_serial == it->getEcuSerial()) {
+      *keytype = "RSA";
+      return it->getPublicKey(key);
+    }
+  }
+  throw std::runtime_error("ecu_serial - " + ecu_serial + " not found");
 }
 }
