@@ -2,6 +2,8 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
+#include <boost/move/unique_ptr.hpp>
+#include <boost/thread/mutex.hpp>
 #include "json/json.h"
 #include "utils.h"
 
@@ -50,6 +52,12 @@ class HttpClient {
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times);
   std::string user_agent;
+
+  static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
+  boost::mutex tls_mutex;
+  boost::movelib::unique_ptr<TemporaryFile> tls_ca_file;
+  boost::movelib::unique_ptr<TemporaryFile> tls_cert_file;
+  boost::movelib::unique_ptr<TemporaryFile> tls_pkey_file;
   static const int RETRY_TIMES = 2;
 };
 #endif

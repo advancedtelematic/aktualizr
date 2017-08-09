@@ -10,8 +10,8 @@
 #include "uptane/exceptions.h"
 #include "utils.h"
 
-SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(config) {}
+SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
+    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {}
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
@@ -24,8 +24,8 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == config.uptane.primary_ecu_serial) {
     return target.filename() == OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).ref_name;
   } else {
-    // TODO: iterate throgh secondaries, compare version when found, throw exception otherwise
-    return false;
+    // TODO: iterate through secondaries, compare version when found, throw exception otherwise
+    return true;
   }
 }
 
@@ -49,10 +49,15 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 // For now just returns vector on size 1 with the update for the primary. Next step is to move secondaries to
 // SotaUptaneClient
 std::vector<Uptane::Target> SotaUptaneClient::getUpdates() {
-  std::vector<Uptane::Target> targets = uptane_repo.getTargets().second;
   std::vector<Uptane::Target> result;
-  for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
-    if (!isInstalled(*it)) result.push_back(*it);
+  std::pair<int, std::vector<Uptane::Target> > versioned_targets = uptane_repo.getTargets();
+  int version = versioned_targets.first;
+  if (version > last_targets_version) {
+    last_targets_version = version;
+    std::vector<Uptane::Target> targets = versioned_targets.second;
+    for (std::vector<Uptane::Target>::iterator it = targets.begin(); it != targets.end(); ++it)
+      if (!isInstalled(*it)) result.push_back(*it);
+  }
   return result;
 }
 
@@ -73,14 +78,9 @@ void SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
 }
 
 void SotaUptaneClient::reportHWInfo() {
-  HttpClient http;
-  http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
-                    (config.tls.certificates_directory / config.tls.ca_file).string(),
-                    (config.tls.certificates_directory / config.tls.pkey_file).string());
-
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
-    http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
+    uptane_repo.http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
   }
 }
 
@@ -101,7 +101,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "... provisioned OK");
   reportHWInfo();
   reportInstalledPackages();
-  uptane_repo.authenticate();
+
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
 
   boost::shared_ptr<command::BaseCommand> command;

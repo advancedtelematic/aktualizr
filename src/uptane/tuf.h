@@ -62,13 +62,15 @@ class TimeStamp {
  public:
   static TimeStamp Now();
   /** An invalid TimeStamp */
-  TimeStamp() {}
+  TimeStamp() { ; }
   explicit TimeStamp(std::string rfc3339);
   bool IsExpiredAt(const TimeStamp &now) const;
   bool IsValid() const;
+  std::string ToString() const { return time_; }
   bool operator<(const TimeStamp &other) const;
   bool operator>(const TimeStamp &other) const;
   friend std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
+  bool operator==(const TimeStamp &rhs) const { return time_ == rhs.time_; }
 
  private:
   std::string time_;
@@ -95,6 +97,8 @@ class Hash {
 
   bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
+  std::string TypeString() const;
+  std::string HashString() const { return hash_; }
   friend std::ostream &operator<<(std::ostream &os, const Hash &h);
 
  private:
@@ -115,14 +119,15 @@ class Target {
   bool MatchWith(const Hash &hash) const;
 
   int64_t length() const { return length_; }
+  Json::Value toJson() const;
 
   bool IsForSecondary(const std::string &ecuIdentifier) const {
     return (length() > 0) && (ecu_identifier() == ecuIdentifier);
   };
 
-  bool operator==(const Target &t2) {
+  bool operator==(const Target &t2) const {
     if (filename_ == t2.filename_ && length_ == t2.length_) {
-      for (std::vector<Hash>::iterator it = hashes_.begin(); it != hashes_.end(); ++it) {
+      for (std::vector<Hash>::const_iterator it = hashes_.begin(); it != hashes_.end(); ++it) {
         if (t2.MatchWith(*it)) {
           return true;
         }
@@ -143,13 +148,16 @@ class Target {
 
 std::ostream &operator<<(std::ostream &os, const Target &t);
 
+/* Metadata objects */
+
+// Implemented in uptane/root.cc
 class Root {
  public:
   enum Policy { kRejectAll, kAcceptAll, kCheck };
   /**
    * An empty Root, that either accepts or rejects everything
    */
-  Root(Policy policy) : policy_(policy) {}
+  Root(Policy policy = kRejectAll) : policy_(policy), version_(0) {}
   /**
    * json should be the contents of the 'signed' portion
    * @param json
@@ -170,17 +178,75 @@ class Root {
    * @return
    */
   Json::Value UnpackSignedObject(TimeStamp now, std::string repository, Role role, const Json::Value &signed_object);
+  int version() const { return version_; }
+  Json::Value toJson() const;
+  bool operator==(const Root &rhs) const {
+    return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
+           keys_for_role_ == rhs.keys_for_role_ && thresholds_for_role_ == rhs.thresholds_for_role_ &&
+           policy_ == rhs.policy_;
+  }
 
  private:
   static const int kMinSignatures = 1;
   static const int kMaxSignatures = 1000;
 
   Policy policy_;
+  int version_;
   TimeStamp expiry_;
   std::map<KeyId, PublicKey> keys_;
   std::set<std::pair<Role, KeyId> > keys_for_role_;
   std::map<Role, int> thresholds_for_role_;
 };
-}
 
+class Targets {
+ public:
+  Targets(const Json::Value &json);
+  Targets();
+  Json::Value toJson() const;
+  int version;
+  TimeStamp expiry;
+
+  std::vector<Uptane::Target> targets;
+  bool operator==(const Targets &rhs) const {
+    return version == rhs.version && expiry == rhs.expiry && targets == rhs.targets;
+  }
+};
+
+class TimestampMeta {
+ public:
+  int version;
+  TimeStamp expiry;
+  // TODO: add METAFILES section
+
+  TimestampMeta(const Json::Value &json);
+  TimestampMeta();
+  Json::Value toJson() const;
+  bool operator==(const TimestampMeta &rhs) const { return version == rhs.version && expiry == rhs.expiry; }
+};
+
+struct TimeMeta {};
+
+class Snapshot {
+ public:
+  int version;
+  TimeStamp expiry;
+  std::map<std::string, int> versions;
+
+  Snapshot(const Json::Value &json);
+  Snapshot();
+  Json::Value toJson() const;
+  bool operator==(const Snapshot &rhs) const {
+    return version == rhs.version && expiry == rhs.expiry && versions == rhs.versions;
+  }
+};
+
+struct MetaPack {
+  Root director_root;
+  Targets director_targets;
+  Root image_root;
+  Targets image_targets;
+  TimestampMeta image_timestamp;
+  Snapshot image_snapshot;
+};
+};
 #endif  // AKTUALIZR_UPTANE_TUF_H_

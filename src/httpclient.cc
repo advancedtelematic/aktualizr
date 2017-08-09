@@ -1,9 +1,20 @@
 #include "httpclient.h"
 
 #include <assert.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/opensslv.h>
+#include <openssl/pem.h>
+#include <openssl/pkcs12.h>
+#include <openssl/rand.h>
+#include <openssl/rsa.h>
+#include <openssl/ssl.h>
 #include <sys/stat.h>
+#include <boost/move/make_unique.hpp>
+#include <boost/move/utility.hpp>
 
 #include "logger.h"
+#include "openssl_compat.h"
 
 /*****************************************************************************/
 /**
@@ -86,10 +97,22 @@ HttpResponse HttpClient::get(const std::string& url) {
 }
 
 void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
+  boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+  boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
+  boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+
+  tmp_ca_file->PutContents(ca);
+  tmp_cert_file->PutContents(cert);
+  tmp_pkey_file->PutContents(pkey);
+
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
-  curl_easy_setopt(curl, CURLOPT_CAINFO, ca.c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
+  curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
+
+  tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
+  tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
+  tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {

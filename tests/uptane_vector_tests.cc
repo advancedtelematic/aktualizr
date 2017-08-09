@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "utils.h"
 
+#include "fsstorage.h"
 #include "uptane/uptanerepository.h"
 
 bool match_error(Json::Value error, Uptane::Exception* e) {
@@ -45,7 +46,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector) {
   boost::filesystem::remove_all(config.uptane.metadata_path / "repo");
 
   try {
-    Uptane::Repository repo(config);
+    FSStorage storage(config);
+    Uptane::Repository repo(config, storage);
     repo.updateRoot(Uptane::Version(1));
     repo.getTargets();
 

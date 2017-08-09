@@ -70,74 +70,42 @@ TEST(crypto, verify_ed25519) {
 }
 
 TEST(crypto, parsep12) {
-  std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";
-  std::string cert_file = "/tmp/aktualizr_cert_test.pem";
-  std::string ca_file = "/tmp/aktualizr_ca_test.pem";
+  std::string pkey;
+  std::string cert;
+  std::string ca;
 
   FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
   if (!p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
     std::cout << "fdgdgdfg\n\n\n";
   }
-  Crypto::parseP12(p12file, "", pkey_file, cert_file, ca_file);
+  Crypto::parseP12(p12file, "", &pkey, &cert, &ca);
   fclose(p12file);
-  EXPECT_EQ(boost::filesystem::exists(pkey_file), true);
-  EXPECT_EQ(boost::filesystem::exists(cert_file), true);
-  EXPECT_EQ(boost::filesystem::exists(ca_file), true);
+  // TODO: expected values
+  EXPECT_EQ(!pkey.empty(), true);
+  EXPECT_EQ(!cert.empty(), true);
+  EXPECT_EQ(!ca.empty(), true);
 }
 
 TEST(crypto, parsep12_FAIL) {
-  std::string pkey_file = "/tmp/aktualizr_pkey_test.pem";
-  std::string cert_file = "/tmp/aktualizr_cert_test.pem";
-  std::string ca_file = "/tmp/aktualizr_ca_test.pem";
+  std::string pkey;
+  std::string cert;
+  std::string ca;
 
   FILE *bad_p12file = fopen("tests/test_data/priv.key", "rb");
   if (!bad_p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/priv.key";
   }
-  bool result = Crypto::parseP12(bad_p12file, "", pkey_file, cert_file, ca_file);
+  bool result = Crypto::parseP12(bad_p12file, "", &pkey, &cert, &ca);
   fclose(bad_p12file);
   EXPECT_EQ(result, false);
-
-  FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
-  if (!p12file) {
-    EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
-  }
-  result = Crypto::parseP12(p12file, "", "", cert_file, ca_file);
-  EXPECT_EQ(result, false);
-  fclose(p12file);
-
-  p12file = fopen("tests/test_data/cred.p12", "rb");
-  result = Crypto::parseP12(p12file, "", pkey_file, "", ca_file);
-  EXPECT_EQ(result, false);
-  fclose(p12file);
-
-  p12file = fopen("tests/test_data/cred.p12", "rb");
-  result = Crypto::parseP12(p12file, "", pkey_file, cert_file, "");
-  EXPECT_EQ(result, false);
-  fclose(p12file);
-
-  p12file = fopen("tests/test_data/data.txt", "rb");
-  result = Crypto::parseP12(p12file, "", pkey_file, cert_file, "");
-  EXPECT_EQ(result, false);
-  fclose(p12file);
 }
 
-TEST(crypto, generateRSAKeyPairIfMissing) {
-  TemporaryFile public_key("pub");
-  TemporaryFile private_key("priv");
+TEST(crypto, generateRSAKeyPair) {
+  std::string public_key;
+  std::string private_key;
   // Generation should succeed
-  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key.PathString()));
-  std::string old_contents = Utils::readFile(public_key.PathString());
-  // Already exists, trivial success
-  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key.PathString()));
-  // Contents don't change
-  EXPECT_EQ(old_contents, Utils::readFile(public_key.PathString()));
-
-  // If one of the files is missing, they are both generated
-  TemporaryFile private_key2("priv");
-  EXPECT_TRUE(Crypto::generateRSAKeyPairIfMissing(public_key.PathString(), private_key2.PathString()));
-  EXPECT_NE(old_contents, Utils::readFile(public_key.PathString()));
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(&public_key, &private_key));
 }
 
 #ifndef __NO_MAIN__

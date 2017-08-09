@@ -4,6 +4,7 @@
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
+#include "fsstorage.h"
 #ifdef WITH_GENIVI
 #include "sotarviclient.h"
 #endif
@@ -68,7 +69,10 @@ int Aktualizr::run() {
 #endif
   } else {
 #ifdef BUILD_OSTREE
-    SotaUptaneClient(config_, &events_channel).runForever(&commands_channel);
+    // TODO: compile unconditionally
+    FSStorage storage(config_);
+    Uptane::Repository repo(config_, storage);
+    SotaUptaneClient(config_, &events_channel, repo).runForever(&commands_channel);
 #else
     LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");
     return EXIT_FAILURE;

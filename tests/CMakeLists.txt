@@ -73,6 +73,9 @@ add_executable(aktualizr_test_utils utils_test.cc)
 target_link_libraries(aktualizr_test_utils aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
 add_test(NAME test_utils COMMAND valgrind --error-exitcode=1 --show-possibly-lost=no --suppressions=${PROJECT_SOURCE_DIR}/tests/aktualizr.supp ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_utils)
 
+add_executable(aktualizr_test_fsstorage fsstorage_test.cc)
+target_link_libraries(aktualizr_test_fsstorage aktualizr_static_lib ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+add_test(NAME test_fsstorage COMMAND aktualizr_test_fsstorage WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_dependencies(build_tests
         aktualizr_test_config
@@ -82,7 +85,8 @@ add_dependencies(build_tests
         aktualizr_test_socket_gateway
         aktualizr_test_crypto
         aktualizr_test_timer
-        aktualizr_test_utils)
+        aktualizr_test_utils
+        aktualizr_test_fsstorage)
 
 if(BUILD_OSTREE)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
@@ -106,6 +110,7 @@ if(BUILD_OSTREE)
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbusprimary.cc
                   ${PROJECT_SOURCE_DIR}/src/uptane/testbussecondary.cc
                   ${PROJECT_SOURCE_DIR}/src/utils.cc
+                  ${PROJECT_SOURCE_DIR}/src/fsstorage.cc
                   fake_ostree.cc)
 
 

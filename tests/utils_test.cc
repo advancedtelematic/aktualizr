@@ -100,6 +100,38 @@ TEST(Utils, TemporaryFile) {
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
 
+TEST(Utils, TemporaryFilePutContents) {
+  TemporaryFile f("ahint");
+  f.PutContents("thecontents");
+  EXPECT_TRUE(boost::filesystem::exists(f.Path()));
+  std::ifstream a(f.Path().c_str());
+  std::string b;
+  a >> b;
+  EXPECT_EQ(b, "thecontents");
+}
+
+TEST(Utils, copyDir) {
+  if (boost::filesystem::exists("tests/test_data/test_copy_dir"))
+    boost::filesystem::remove_all("tests/test_data/test_copy_dir");
+
+  boost::filesystem::create_directories("tests/test_data/test_copy_dir");
+  boost::filesystem::create_directories("tests/test_data/test_copy_dir/from/1/2");
+  Utils::writeFile("tests/test_data/test_copy_dir/from/1/foo", std::string("foo"));
+  Utils::writeFile("tests/test_data/test_copy_dir/from/1/2/bar", std::string("bar"));
+  Utils::writeFile("tests/test_data/test_copy_dir/from/1/2/baz", std::string("baz"));
+
+  Utils::copyDir("tests/test_data/test_copy_dir/from", "tests/test_data/test_copy_dir/to");
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to"));
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to/1"));
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to/1/foo"));
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to/1/2"));
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to/1/2/bar"));
+  EXPECT_TRUE(boost::filesystem::exists("tests/test_data/test_copy_dir/to/1/2/baz"));
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/foo"), "foo");
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/bar"), "bar");
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/baz"), "baz");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

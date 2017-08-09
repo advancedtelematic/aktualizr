@@ -5,20 +5,17 @@
 
 class Bootstrap {
  public:
-  Bootstrap(const std::string& provision_path_in);
-  ~Bootstrap();
+  Bootstrap(const std::string& provision_path, const std::string& provision_password);
 
-  std::string getP12Str() const;
-  std::string getPkeyPath() const;
-  std::string getCertPath() const;
-  std::string getCaPath() const;
+  std::string getCa() const { return ca; }
+  std::string getCert() const { return cert; }
+  std::string getPkey() const { return pkey; }
 
  private:
-  std::string provision_path;
   std::string p12_str;
-  std::string pkey_path;
-  std::string cert_path;
-  std::string ca_path;
+  std::string ca;
+  std::string cert;
+  std::string pkey;
 };
 
 #endif  // AKTUALIZR_BOOTSTRAP_H

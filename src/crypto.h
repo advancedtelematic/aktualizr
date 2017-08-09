@@ -41,6 +41,10 @@ struct PublicKey {
       throw std::runtime_error("unsupported key type: " + t);
     }
   }
+  std::string TypeString() const;
+  bool operator==(const PublicKey &rhs) const {
+    return value == rhs.value && type == rhs.type && (type != RSA || key_length == rhs.key_length);
+  }
   std::string value;
   Type type;
   int key_length;
@@ -82,10 +86,9 @@ class Crypto {
   static Json::Value signTuf(const std::string &private_key_path, const std::string &public_key_path,
                              const Json::Value &in_data);
   static bool VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message);
-  static bool parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,
-                       const std::string &client_pem, const std::string ca_pem);
-  static bool generateRSAKeyPairIfMissing(const std::string &public_key, const std::string &private_key);
-  static bool generateRSAKeyPair(const std::string &public_key, const std::string &private_key);
+  static bool parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
+                       std::string *out_ca);
+  static bool generateRSAKeyPair(std::string *public_key, std::string *private_key);
 
   static bool RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message);
   static bool ED25519Verify(const std::string &public_key, const std::string &signature, const std::string &message);

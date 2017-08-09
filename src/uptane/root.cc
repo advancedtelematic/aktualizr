@@ -50,6 +50,49 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
       keys_for_role_.insert(std::make_pair(role, (*itk).asString()));
     }
   }
+  version_ = json["version"].asInt();
+  expiry_ = TimeStamp(json["expires"].asString());
+}
+
+Json::Value Root::toJson() const {
+  Json::Value res;
+
+  if (policy_ != kCheck) throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
+
+  res["_type"] = "Root";
+  res["consistent_snapshot"] = false;
+  res["expires"] = expiry_.ToString();
+
+  res["keys"] = Json::objectValue;
+  std::map<KeyId, PublicKey>::const_iterator key_it;
+  for (key_it = keys_.begin(); key_it != keys_.end(); key_it++) {
+    res["keys"][key_it->first]["keytype"] = key_it->second.TypeString();
+    res["keys"][key_it->first]["keyval"]["public"] = key_it->second.value;
+  }
+  // assuming that Root object has keys for all targets,
+  //   should be a part of verification process
+  res["roles"]["root"]["keyids"] = Json::arrayValue;
+  res["roles"]["snapshot"]["keyids"] = Json::arrayValue;
+  res["roles"]["targets"]["keyids"] = Json::arrayValue;
+  res["roles"]["timestamp"]["keyids"] = Json::arrayValue;
+
+  std::set<std::pair<Role, KeyId> >::const_iterator role_key_it;
+  for (role_key_it = keys_for_role_.begin(); role_key_it != keys_for_role_.end(); role_key_it++)
+    res["roles"][role_key_it->first.ToString()]["keyids"].append(role_key_it->second);
+
+  std::map<Role, int>::const_iterator th_it = thresholds_for_role_.find(Role::Root());
+  if (th_it != thresholds_for_role_.end()) res["roles"]["root"]["threshold"] = th_it->second;
+
+  th_it = thresholds_for_role_.find(Role::Snapshot());
+  if (th_it != thresholds_for_role_.end()) res["roles"]["snapshot"]["threshold"] = th_it->second;
+
+  th_it = thresholds_for_role_.find(Role::Targets());
+  if (th_it != thresholds_for_role_.end()) res["roles"]["targets"]["threshold"] = th_it->second;
+
+  th_it = thresholds_for_role_.find(Role::Timestamp());
+  if (th_it != thresholds_for_role_.end()) res["roles"]["timestamp"]["threshold"] = th_it->second;
+
+  return res;
 }
 
 Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role role,

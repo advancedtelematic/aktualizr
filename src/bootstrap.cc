@@ -8,15 +8,13 @@
 #include <fstream>
 #include <sstream>
 
+#include "crypto.h"
 #include "logger.h"
 
-Bootstrap::Bootstrap(const std::string& provision_path_in)
-    : provision_path(provision_path_in), p12_str(""), pkey_path(""), cert_path(""), ca_path("") {
+Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provision_password)
+    : p12_str(""), ca(""), cert(""), pkey("") {
   if (!provision_path.empty()) {
     if (boost::filesystem::exists(provision_path)) {
-      boost::filesystem::path provision_directory(provision_path);
-      provision_directory.remove_filename();
-
       bool found = false;
       std::stringstream p12_stream;
       struct archive* a = archive_read_new();
@@ -48,65 +46,34 @@ Bootstrap::Bootstrap(const std::string& provision_path_in)
           }
         }
         r = archive_read_free(a);
-        if (r != ARCHIVE_OK) {
-          LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision_path);
-        }
+        if (r != ARCHIVE_OK) LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision_path);
+
         if (found) {
           p12_str = p12_stream.str();
+          if (p12_str.empty()) throw std::runtime_error("Unable to parse bootstrap credentials");
+          FILE* reg_p12 = fmemopen(const_cast<char*>(p12_str.c_str()), p12_str.size(), "rb");
 
-          std::string pkey_filename = boost::filesystem::unique_path().string();
-          pkey_path = (provision_directory / pkey_filename).string();
+          if (!reg_p12) throw std::runtime_error("Unable to parse bootstrap credentials");
 
-          std::string cert_filename = boost::filesystem::unique_path().string();
-          cert_path = (provision_directory / cert_filename).string();
-
-          std::string ca_filename = boost::filesystem::unique_path().string();
-          ca_path = (provision_directory / ca_filename).string();
+          if (!Crypto::parseP12(reg_p12, provision_password, &pkey, &cert, &ca)) {
+            fclose(reg_p12);
+            throw std::runtime_error("Unable to parse bootstrap credentials");
+          }
+          fclose(reg_p12);
         } else {
           LOGGER_LOG(LVL_error, "autoprov_credentials.p12 not found in provision archive: " << provision_path);
+          throw std::runtime_error("Unable to parse bootstrap credentials");
         }
       } else {
         LOGGER_LOG(LVL_error, "Could not read provision archive file, are you sure it is valid archive?");
+        throw std::runtime_error("Unable to parse bootstrap credentials");
       }
     } else {
       LOGGER_LOG(LVL_error, "Provided provision archive '" << provision_path << "' does not exist!");
+      throw std::runtime_error("Unable to parse bootstrap credentials");
     }
   } else {
     LOGGER_LOG(LVL_error, "Provided provision path is empty!");
+    throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 }
-
-Bootstrap::~Bootstrap() {
-  if (!pkey_path.empty()) {
-    if (boost::filesystem::exists(pkey_path)) {
-      int r = remove(pkey_path.c_str());
-      if (r != 0) {
-        LOGGER_LOG(LVL_error, "Unable to remove provision file: '" << pkey_path);
-      }
-    }
-  }
-  if (!cert_path.empty()) {
-    if (boost::filesystem::exists(cert_path)) {
-      int r = remove(cert_path.c_str());
-      if (r != 0) {
-        LOGGER_LOG(LVL_error, "Unable to remove provision file: '" << cert_path);
-      }
-    }
-  }
-  if (!ca_path.empty()) {
-    if (boost::filesystem::exists(ca_path)) {
-      int r = remove(ca_path.c_str());
-      if (r != 0) {
-        LOGGER_LOG(LVL_error, "Unable to remove provision file: '" << ca_path);
-      }
-    }
-  }
-}
-
-std::string Bootstrap::getP12Str() const { return p12_str; }
-
-std::string Bootstrap::getPkeyPath() const { return pkey_path; }
-
-std::string Bootstrap::getCertPath() const { return cert_path; }
-
-std::string Bootstrap::getCaPath() const { return ca_path; }

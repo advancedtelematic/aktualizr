@@ -10,6 +10,17 @@
 #include "openssl_compat.h"
 #include "utils.h"
 
+std::string PublicKey::TypeString() const {
+  switch (type) {
+    case RSA:
+      return "rsa";
+    case ED25519:
+      return "ed25519";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 std::string Crypto::sha256digest(const std::string &text) {
   unsigned char sha256_hash[crypto_hash_sha256_BYTES];
   crypto_hash_sha256(sha256_hash, (const unsigned char *)text.c_str(), text.size());
@@ -136,8 +147,8 @@ bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &sig
   }
 }
 
-bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::string &pkey_pem,
-                      const std::string &client_pem, const std::string ca_pem) {
+bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
+                      std::string *out_ca) {
 #if AKTUALIZR_OPENSSL_PRE_11
   SSLeay_add_all_algorithms();
 #endif
@@ -157,26 +168,34 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
   }
   PKCS12_free(p12);
 
-  FILE *pkey_pem_file = fopen(pkey_pem.c_str(), "w");
+  char *pkey_buf;
+  size_t pkey_len;
+  FILE *pkey_pem_file = open_memstream(&pkey_buf, &pkey_len);
   if (!pkey_pem_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << pkey_pem << " for writing");
+    LOGGER_LOG(LVL_error, "Could not open pkey buffer for writting");
     EVP_PKEY_free(pkey);
     return false;
   }
   PEM_write_PrivateKey(pkey_pem_file, pkey, NULL, NULL, 0, 0, NULL);
   fclose(pkey_pem_file);
   EVP_PKEY_free(pkey);
+  *out_pkey = std::string(pkey_buf, pkey_len);
+  free(pkey_buf);
 
-  FILE *cert_file = fopen(client_pem.c_str(), "w");
+  char *cert_buf;
+  size_t cert_len;
+  FILE *cert_file = open_memstream(&cert_buf, &cert_len);
   if (!cert_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << client_pem << " for writing");
+    LOGGER_LOG(LVL_error, "Could not open certificate buffer for writting");
     return false;
   }
   PEM_write_X509(cert_file, x509_cert);
 
-  FILE *ca_file = fopen(ca_pem.c_str(), "w");
+  char *ca_buf;
+  size_t ca_len;
+  FILE *ca_file = open_memstream(&ca_buf, &ca_len);
   if (!ca_file) {
-    LOGGER_LOG(LVL_error, "Could not open " << ca_pem << " for writing");
+    LOGGER_LOG(LVL_error, "Could not open ca buffer for writting");
     return false;
   }
   X509 *ca_cert = NULL;
@@ -186,7 +205,13 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
     PEM_write_X509(cert_file, ca_cert);
   }
   fclose(ca_file);
+  *out_ca = std::string(ca_buf, ca_len);
+  free(ca_buf);
+
   fclose(cert_file);
+  *out_cert = std::string(cert_buf, cert_len);
+  free(cert_buf);
+
   sk_X509_pop_free(ca_certs, X509_free);
   X509_free(x509_cert);
 
@@ -194,21 +219,13 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, const std::
 }
 
 /**
- * Generate a RSA keypair if it doesn't exist already
- * @param public_key_path Path to public part of key
- * @param private_key_path Path to private part of key
+ * Generate a RSA keypair
+ * @param public_key Generated public part of key
+ * @param private_key Generated private part of key
  * @return true if the keys are present at the end of this function (either they were created or existed already)
  *         false if key generation failed
  */
-bool Crypto::generateRSAKeyPairIfMissing(const std::string &public_key_path, const std::string &private_key_path) {
-  if (boost::filesystem::exists(public_key_path) && boost::filesystem::exists(private_key_path)) {
-    return true;
-  }
-  // If one or both are missing, generate them both
-  return Crypto::generateRSAKeyPair(public_key_path, private_key_path);
-}
-
-bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string &private_key) {
+bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_key) {
   int bits = 2048;
   int ret = 0;
 
@@ -239,33 +256,47 @@ bool Crypto::generateRSAKeyPair(const std::string &public_key, const std::string
 
   EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
-  BIO *bp_public = BIO_new_file(public_key.c_str(), "w");
-  ret = PEM_write_bio_PUBKEY(bp_public, pkey);
+  char *pubkey_buf;
+  size_t pubkey_len;
+  FILE *pubkey_file = open_memstream(&pubkey_buf, &pubkey_len);
+  if (!pubkey_file) {
+    return false;
+  }
+  ret = PEM_write_PUBKEY(pubkey_file, pkey);
+  fclose(pubkey_file);
   if (ret != 1) {
     RSA_free(r);
 #if AKTUALIZR_OPENSSL_AFTER_11
     BN_free(bne);
 #endif
-    BIO_free_all(bp_public);
+    free(pubkey_buf);
+    return false;
+  }
+  *public_key = std::string(pubkey_buf, pubkey_len);
+  free(pubkey_buf);
+
+  char *privkey_buf;
+  size_t privkey_len;
+  FILE *privkey_file = open_memstream(&privkey_buf, &privkey_len);
+  if (!privkey_file) {
     return false;
   }
 
-  BIO *bp_private = BIO_new_file(private_key.c_str(), "w");
-  ret = PEM_write_bio_RSAPrivateKey(bp_private, r, NULL, NULL, 0, NULL, NULL);
+  ret = PEM_write_RSAPrivateKey(privkey_file, r, NULL, NULL, 0, NULL, NULL);
+  fclose(privkey_file);
   if (ret != 1) {
     RSA_free(r);
 #if AKTUALIZR_OPENSSL_AFTER_11
     BN_free(bne);
 #endif
-    BIO_free_all(bp_public);
-    BIO_free_all(bp_private);
+    free(privkey_buf);
     return false;
   }
+  *private_key = std::string(privkey_buf, privkey_len);
+  free(privkey_buf);
   RSA_free(r);
 #if AKTUALIZR_OPENSSL_AFTER_11
   BN_free(bne);
 #endif
-  BIO_free_all(bp_public);
-  BIO_free_all(bp_private);
   return true;
 }
