@@ -37,6 +37,9 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+/**
+ * \verify{\tst{144}} Check that aktualizr can generate a pet name
+ */
 TEST(Utils, GenPrettyNameSane) {
   std::set<std::string> names;
   for (int i = 0; i < 100; i++) {
