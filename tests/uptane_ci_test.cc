@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <iostream>
+#include "fsstorage.h"
 
 #include <logger.h>
 #include <boost/filesystem.hpp>
@@ -13,7 +14,8 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
   Config config(pt);
-  Uptane::Repository repo(config);
+  FSStorage storage(config);
+  Uptane::Repository repo(config, storage);
 
   EXPECT_TRUE(repo.deviceRegister());
   EXPECT_TRUE(repo.ecuRegister());
