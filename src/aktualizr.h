@@ -3,16 +3,13 @@
 
 #include "config.h"
 
-class Aktualizr {
+class Aktualizr : public boost::noncopyable {
  public:
   Aktualizr(const Config &config);
-  ~Aktualizr();
 
   int run();
 
  private:
-  Aktualizr(Aktualizr const &);
-  void operator=(Aktualizr const &);
   Config config_;
 };
 

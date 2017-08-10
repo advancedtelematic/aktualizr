@@ -1,4 +1,25 @@
 {
+   gobject Static Type initialization
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static
+   ...
+}
+{
+   gobject Static Type initialization
+   Memcheck:Leak
+   ...
+   fun:g_type_register_fundamental
+   ...
+}
+{
+   gobject Static Interface initialization
+   Memcheck:Leak
+   ...
+   fun:g_type_add_interface_static
+   ...
+}
+{
    ignore_externa_libs_Cond
    Memcheck:Cond
    ...

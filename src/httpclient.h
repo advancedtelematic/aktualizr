@@ -24,6 +24,15 @@ struct HttpResponse {
   Json::Value getJson() { return Utils::parseJSON(body); }
 };
 
+/**
+ * Helper class to manage curl_global_init/curl_global_cleanup calls
+ */
+class CurlGlobalInitWrapper {
+ public:
+  CurlGlobalInitWrapper() { curl_global_init(CURL_GLOBAL_DEFAULT); }
+  ~CurlGlobalInitWrapper() { curl_global_cleanup(); }
+};
+
 class HttpClient {
  public:
   HttpClient();
@@ -48,6 +57,7 @@ class HttpClient {
    */
   HttpResponse post(const std::string &url, std::string data);
   HttpResponse put(const std::string &url, std::string data);
+  CurlGlobalInitWrapper manageCurlGlobalInit_;  // Must be first member to ensure curl init/shutdown happens first/last
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times);

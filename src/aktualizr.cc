@@ -20,11 +20,9 @@
 #include "timer.h"
 
 Aktualizr::Aktualizr(const Config &config) : config_(config) {
-  if (sodium_init() == -1) {
+  if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }
-
-  RAND_poll();
 
   LOGGER_LOG(LVL_trace, "Seeding random number generator from /dev/random...");
   Timer timer;
@@ -43,8 +41,6 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
   }
 #endif
 }
-
-Aktualizr::~Aktualizr() { CRYPTO_cleanup_all_ex_data(); }
 
 int Aktualizr::run() {
   command::Channel commands_channel;

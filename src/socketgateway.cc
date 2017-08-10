@@ -5,15 +5,19 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <boost/make_shared.hpp>
 
 #include "logger.h"
+
+using boost::shared_ptr;
+using boost::make_shared;
 
 SocketGateway::SocketGateway(const Config &config_in, command::Channel *commands_channel_in)
     : config(config_in), commands_channel(commands_channel_in) {
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
-  events_server_thread = new boost::thread(boost::bind(&SocketGateway::eventsServer, this));
-  commands_server_thread = new boost::thread(boost::bind(&SocketGateway::commandsServer, this));
+  events_server_thread = make_shared<boost::thread>(boost::bind(&SocketGateway::eventsServer, this));
+  commands_server_thread = make_shared<boost::thread>(boost::bind(&SocketGateway::commandsServer, this));
 }
 
 SocketGateway::~SocketGateway() {
@@ -27,9 +31,9 @@ SocketGateway::~SocketGateway() {
     close(*it);
   }
 
-  for (std::vector<boost::thread *>::iterator it = command_workers.begin(); it != command_workers.end(); ++it) {
+  for (std::vector<shared_ptr<boost::thread> >::iterator it = command_workers.begin(); it != command_workers.end();
+       ++it) {
     (*it)->join();
-    delete (*it);
   }
   commands_server_thread->join();
   events_server_thread->join();
@@ -101,7 +105,7 @@ void SocketGateway::commandsServer() {
     if (newsockfd != -1) {
       command_connections.push_back(newsockfd);
       command_workers.push_back(
-          new boost::thread(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
+          make_shared<boost::thread>(boost::bind(&SocketGateway::commandsWorker, this, newsockfd, commands_channel)));
     } else {
       break;
     }
