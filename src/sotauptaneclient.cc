@@ -61,12 +61,8 @@ void SotaUptaneClient::reportHWInfo() {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  HttpClient http;
-  http.authenticate((config.tls.certificates_directory / config.tls.client_certificate).string(),
-                    (config.tls.certificates_directory / config.tls.ca_file).string(),
-                    (config.tls.certificates_directory / config.tls.pkey_file).string());
-
-  http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
+  uptane_repo.http.put(config.tls.server + "/core/installed",
+                       Ostree::getInstalledPackages(config.ostree.packages_file));
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
