@@ -12,11 +12,13 @@ Json::Value TestBusPrimary::getManifests() {
   return manifests;
 }
 
-void TestBusPrimary::sendTargets(const std::vector<Uptane::Target> &targets) {
+Json::Value TestBusPrimary::sendTargets(const std::vector<Uptane::Target> &targets) {
+  Json::Value manifests(Json::arrayValue);
   std::vector<Secondary>::iterator it;
   for (it = secondaries_->begin(); it != secondaries_->end(); ++it) {
-    (*it).newTargetsCallBack(targets);
+    manifests.append((*it).newTargetsCallBack(targets));
   }
+  return manifests;
 }
 
 void TestBusPrimary::sendPrivateKey(const std::string &ecu_serial, const std::string &key) {

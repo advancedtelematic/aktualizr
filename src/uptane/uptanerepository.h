@@ -18,12 +18,12 @@ namespace Uptane {
 class Repository {
  public:
   Repository(const Config &config, INvStorage &storage);
-  bool putManifest();
-  bool putManifest(const Json::Value &);
+  bool putManifest(Json::Value version_manifests = Json::Value(Json::nullValue));
+  Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
-
-  // pair of (Version, targets[])
+  Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
+
   bool deviceRegister();
   bool ecuRegister();
   // TODO: only used by tests, rewrite test and delete this method

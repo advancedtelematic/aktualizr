@@ -11,7 +11,7 @@ Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *prima
   boost::filesystem::create_directories(config.firmware_path.parent_path());
 }
 
-Json::Value Secondary::genAndSendManifest() {
+Json::Value Secondary::genAndSendManifest(Json::Value custom) {
   Json::Value manifest;
 
   // package manager will generate this part in future
@@ -25,6 +25,9 @@ Json::Value Secondary::genAndSendManifest() {
   installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
   //////////////////
 
+  if (custom != Json::nullValue) {
+    manifest["custom"] = custom;
+  }
   manifest["attacks_detected"] = "";
   manifest["installed_image"] = installed_image;
   manifest["ecu_serial"] = config.ecu_serial;
@@ -35,26 +38,27 @@ Json::Value Secondary::genAndSendManifest() {
   return signed_ecu_version;
 }
 
-void Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
+Json::Value Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &targets) {
   LOGGER_LOG(LVL_trace, "I am " << config.ecu_serial << " and just got a new targets");
-
   std::vector<Uptane::Target>::const_iterator it;
   for (it = targets.begin(); it != targets.end(); ++it) {
     if (it->IsForSecondary(config.ecu_serial)) {
-      install(*it);
-      break;
+      return genAndSendManifest(data::OperationResult::fromOutcome(it->filename(), install(*it)).toJson());
     } else {
       LOGGER_LOG(LVL_trace, "Target " << *it << " isn't for this ECU");
     }
   }
+  return Json::Value(Json::nullValue);
 }
 
 void Secondary::setPrivateKey(const std::string &pkey) {
   Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), pkey);
 }
 
-void Secondary::install(const Uptane::Target &target) {
-  std::string image = transport.getImage(target);
-  Utils::writeFile(config.firmware_path.string(), image);
+data::InstallOutcome Secondary::install(const Uptane::Target &target) {
+  std::string image_path = transport.getImage(target);
+  boost::filesystem::copy_file(image_path, config.firmware_path.string(),
+                               boost::filesystem::copy_option::overwrite_if_exists);
+  return data::InstallOutcome(data::OK, "Installation successful");
 }
 }

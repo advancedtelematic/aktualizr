@@ -17,17 +17,15 @@ class SotaUptaneClient {
 
   void putManifest(SotaUptaneClient::ServiceType service, const std::string &manifest);
   Json::Value sign(const Json::Value &in_data);
-  void OstreeInstall(const OstreePackage &package);
+  Json::Value OstreeInstall(const OstreePackage &package);
   void run(command::Channel *commands_channel);
   void runForever(command::Channel *commands_channel);
 
  private:
   void reportHWInfo();
   void reportInstalledPackages();
-  std::vector<Uptane::Target> getUpdates();
   bool isInstalled(const Uptane::Target &target);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
-  std::vector<Uptane::Target> findOstree(const std::vector<Uptane::Target> &targets);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, std::string ecu_id);
   Config config;
   event::Channel *events_channel;

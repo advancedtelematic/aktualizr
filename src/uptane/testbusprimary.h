@@ -11,7 +11,7 @@ class TestBusPrimary {
  public:
   TestBusPrimary(std::vector<Secondary> *secondaries);
   virtual Json::Value getManifests();
-  virtual void sendTargets(const std::vector<Target> &targets);
+  virtual Json::Value sendTargets(const std::vector<Target> &targets);
   virtual void sendPrivateKey(const std::string &ecu_serial, const std::string &key);
 
  private:
