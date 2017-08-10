@@ -9,7 +9,7 @@
 std::string credentials = "";
 
 TEST(SotaUptaneClientTest, OneCycleUpdate) {
-  system("rm -rf tests/tmp_data");
+  boost::filesystem::remove_all("tests/test_config");
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);

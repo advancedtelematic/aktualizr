@@ -51,4 +51,3 @@ Testing/
 cmake_install.cmake
 CTestTestfile.cmake
 compile_commands.json
-/tests/tmp_data/

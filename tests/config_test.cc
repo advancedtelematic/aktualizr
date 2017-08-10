@@ -107,10 +107,10 @@ TEST(config, config_cmdl_parsing) {
 
 TEST(config, config_extract_credentials) {
   Config conf;
-  conf.tls.certificates_directory = "tests/tmp_data/prov";
+  conf.tls.certificates_directory = "tests/test_config/prov";
   conf.provision.provision_path = "tests/test_data/credentials.zip";
 
-  boost::filesystem::remove_all("tests/tmp_data/prov");
+  boost::filesystem::remove_all("tests/test_config/prov");
   conf.tls.server.clear();
   conf.postUpdateValues();
   EXPECT_EQ(conf.tls.server, "https://bd8012b4-cf0f-46ca-9d2c-46a41d534af5.tcpgw.prod01.advancedtelematic.com:443");
@@ -124,6 +124,8 @@ TEST(config, config_extract_credentials) {
   std::cout << "Pkey: " << boot.getPkey() << std::endl;
   EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getPkey())),
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
+
+  boost::filesystem::remove_all("tests/test_config");
 }
 
 /**
