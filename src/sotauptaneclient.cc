@@ -113,6 +113,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
       } else if (command->variant == "Shutdown") {
         polling_thread.interrupt();
+        polling_thread.join();
         return;
       }
 
