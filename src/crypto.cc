@@ -39,7 +39,7 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
 
   FILE *priv_key_file = fopen(private_key.c_str(), "rt");
   if (!priv_key_file) {
-    LOGGER_LOG(LVL_error, "error opening" << private_key);
+    LOGGER_LOG(LVL_error, "error opening " << private_key);
     return std::string();
   }
   if ((key = PEM_read_PrivateKey(priv_key_file, NULL, NULL, NULL))) {

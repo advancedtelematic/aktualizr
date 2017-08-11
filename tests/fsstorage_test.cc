@@ -5,12 +5,14 @@
 
 #include "logger.h"
 
+const std::string fsstorage_test_dir = "tests/test_fsstorage";
+
 TEST(fsstorage, load_store_ecu) {
   Config config;
-  config.tls.certificates_directory = "tests/test_data/test_fsstorage";
-  config.uptane.metadata_path = "tests/test_data/test_fsstorage";
-  config.uptane.public_key_path = "test_primary.pub";
-  config.uptane.private_key_path = "test_primary.priv";
+  config.tls.certificates_directory = fsstorage_test_dir;
+  config.uptane.metadata_path = fsstorage_test_dir;
+  config.uptane.public_key_path = (config.tls.certificates_directory / "test_primary.pub").string();
+  config.uptane.private_key_path = (config.tls.certificates_directory / "test_primary.priv").string();
 
   FSStorage storage(config);
   storage.storeEcu(true, "test_primary_hw", "test_primary_serial", "pr_public", "pr_private");
@@ -27,16 +29,18 @@ TEST(fsstorage, load_store_ecu) {
   storage.loadEcuKeys(true, "test_secondary_hw", "test_secondary1_serial", &pubkey, &privkey);
   EXPECT_EQ(pubkey, "pr_public");
   EXPECT_EQ(privkey, "pr_private");
-  
+
   storage.loadEcuKeys(true, "test_secondary_hw", "test_secondary2_serial", &pubkey, &privkey);
   EXPECT_EQ(pubkey, "pr_public");
   EXPECT_EQ(privkey, "pr_private");
+
+  boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
 TEST(fsstorage, load_store_bootstrap_tls) {
   Config config;
-  config.tls.certificates_directory = "tests/test_data/test_fsstorage";
-  config.uptane.metadata_path = "tests/test_data/test_fsstorage";
+  config.tls.certificates_directory = fsstorage_test_dir;
+  config.uptane.metadata_path = fsstorage_test_dir;
 
   FSStorage storage(config);
   storage.storeBootstrapTlsCreds("ca", "cert", "priv");
@@ -50,12 +54,14 @@ TEST(fsstorage, load_store_bootstrap_tls) {
   EXPECT_EQ(ca, "ca");
   EXPECT_EQ(cert, "cert");
   EXPECT_EQ(priv, "priv");
+
+  boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
 TEST(fsstorage, load_store_tls) {
   Config config;
-  config.tls.certificates_directory = "tests/test_data/test_fsstorage";
-  config.uptane.metadata_path = "tests/test_data/test_fsstorage";
+  config.tls.certificates_directory = fsstorage_test_dir;
+  config.uptane.metadata_path = fsstorage_test_dir;
   config.tls.pkey_file = "test_tls.pkey";
   config.tls.client_certificate = "test_tls.cert";
   config.tls.ca_file = "test_tls.ca";
@@ -72,12 +78,14 @@ TEST(fsstorage, load_store_tls) {
   EXPECT_EQ(ca, "ca");
   EXPECT_EQ(cert, "cert");
   EXPECT_EQ(priv, "priv");
+
+  boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
 TEST(fsstorage, loadstoremetadata) {
   Config config;
-  config.tls.certificates_directory = "tests/test_data/test_fsstorage";
-  config.uptane.metadata_path = "tests/test_data/test_fsstorage/metadata";
+  config.tls.certificates_directory = fsstorage_test_dir;
+  config.uptane.metadata_path = fsstorage_test_dir + "/metadata";
 
   FSStorage storage(config);
   Uptane::MetaPack stored_meta;
@@ -115,7 +123,7 @@ TEST(fsstorage, loadstoremetadata) {
   targets_json["targets"]["file2"]["length"] = 11;
   stored_meta.director_targets = Uptane::Targets(targets_json);
   stored_meta.image_targets = Uptane::Targets(targets_json);
-  
+
   Json::Value timestamp_json;
   timestamp_json["_type"] = "Timestamp";
   timestamp_json["expires"] = "2038-01-19T03:14:06Z";
@@ -142,6 +150,8 @@ TEST(fsstorage, loadstoremetadata) {
   EXPECT_EQ(stored_meta.image_targets, loaded_meta.image_targets);
   EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
   EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
+
+  boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
 #ifndef __NO_MAIN__
