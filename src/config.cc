@@ -186,11 +186,16 @@ void Config::postUpdateValues() {
   std::vector<Uptane::SecondaryConfig>::iterator it;
   int index = 0;
   for (it = uptane.secondaries.begin(); it != uptane.secondaries.end(); ++it) {
-    if (it->ecu_serial.empty()) {
-      it->ecu_serial = Utils::intToString(index++) + "-" + uptane.primary_ecu_serial;
-    }
     if (it->ecu_hardware_id.empty()) {
-      it->ecu_hardware_id = uptane.primary_ecu_hardware_id;
+      it->ecu_hardware_id = Utils::intToString(index++) + "-" + uptane.primary_ecu_hardware_id;
+    }
+    if (it->ecu_serial.empty()) {
+      if (boost::filesystem::exists(tls.certificates_directory / it->ecu_hardware_id)) {
+        it->ecu_serial = Utils::readFile((tls.certificates_directory / it->ecu_hardware_id).string());
+      } else {
+        it->ecu_serial = Utils::intToString(index++) + "-" + uptane.primary_ecu_serial;
+        Utils::writeFile((tls.certificates_directory / it->ecu_hardware_id).string(), it->ecu_serial);
+      }
     }
   }
 

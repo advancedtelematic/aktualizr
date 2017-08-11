@@ -127,7 +127,7 @@ TEST(config, config_extract_credentials) {
 }
 
 /**
-  * \verify{\tst{155}} Check that aktualizr generates rundom ecu_serial for primary
+  * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for primary
   * and all secondaries.
 */
 TEST(config, test_random_serial) {
@@ -147,6 +147,28 @@ TEST(config, test_random_serial) {
   EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
   EXPECT_NE(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
+}
+
+/**
+  * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
+  * and all secondaries.
+*/
+TEST(config, ecu_persist) {
+  boost::program_options::variables_map cmd;
+  boost::program_options::options_description description("some text");
+  description.add_options()("secondary-config", bpo::value<std::vector<std::string> >()->composing(),
+                            "set config for secondary");
+  const char *argv[] = {"aktualizr", "--secondary-config", "tests/test_data/secondary_serial.json"};
+  boost::program_options::store(boost::program_options::parse_command_line(3, argv, description), cmd);
+
+  boost::filesystem::remove_all("./tests/tmp_data");
+  Config conf1("tests/config_tests.toml", cmd);
+
+  Config conf2("tests/config_tests.toml", cmd);
+  EXPECT_EQ(conf1.uptane.primary_ecu_serial, conf2.uptane.primary_ecu_serial);
+  EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
+  EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
+  EXPECT_EQ(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
 }
 
 #ifndef __NO_MAIN__
