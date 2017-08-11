@@ -10,6 +10,7 @@
 
 namespace bpo = boost::program_options;
 extern bpo::variables_map parse_options(int argc, char *argv[]);
+const std::string config_test_dir = "tests/test_config";
 
 TEST(config, config_initialized_values) {
   Config conf;
@@ -107,10 +108,10 @@ TEST(config, config_cmdl_parsing) {
 
 TEST(config, config_extract_credentials) {
   Config conf;
-  conf.tls.certificates_directory = "tests/test_config/prov";
+  conf.tls.certificates_directory = config_test_dir + "/prov";
   conf.provision.provision_path = "tests/test_data/credentials.zip";
 
-  boost::filesystem::remove_all("tests/test_config/prov");
+  boost::filesystem::remove_all(config_test_dir + "/prov");
   conf.tls.server.clear();
   conf.postUpdateValues();
   EXPECT_EQ(conf.tls.server, "https://bd8012b4-cf0f-46ca-9d2c-46a41d534af5.tcpgw.prod01.advancedtelematic.com:443");
@@ -125,7 +126,7 @@ TEST(config, config_extract_credentials) {
   EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getPkey())),
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 
-  boost::filesystem::remove_all("tests/test_config");
+  boost::filesystem::remove_all(config_test_dir);
 }
 
 /**
@@ -140,15 +141,17 @@ TEST(config, test_random_serial) {
   const char *argv[] = {"aktualizr", "--secondary-config", "tests/test_data/secondary_serial.json"};
   boost::program_options::store(boost::program_options::parse_command_line(3, argv, description), cmd);
 
-  boost::filesystem::remove_all("./tests/tmp_data");
+  boost::filesystem::remove_all(config_test_dir);
   Config conf1("tests/config_tests.toml", cmd);
-  boost::filesystem::remove_all("./tests/tmp_data");
+  boost::filesystem::remove_all(config_test_dir);
   Config conf2("tests/config_tests.toml", cmd);
 
   EXPECT_NE(conf1.uptane.primary_ecu_serial, conf2.uptane.primary_ecu_serial);
   EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
   EXPECT_NE(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
+
+  boost::filesystem::remove_all(config_test_dir);
 }
 
 /**
@@ -163,7 +166,7 @@ TEST(config, ecu_persist) {
   const char *argv[] = {"aktualizr", "--secondary-config", "tests/test_data/secondary_serial.json"};
   boost::program_options::store(boost::program_options::parse_command_line(3, argv, description), cmd);
 
-  boost::filesystem::remove_all("./tests/tmp_data");
+  boost::filesystem::remove_all(config_test_dir);
   Config conf1("tests/config_tests.toml", cmd);
 
   Config conf2("tests/config_tests.toml", cmd);
@@ -171,6 +174,8 @@ TEST(config, ecu_persist) {
   EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
+
+  boost::filesystem::remove_all(config_test_dir);
 }
 
 #ifndef __NO_MAIN__
