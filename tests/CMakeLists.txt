@@ -126,6 +126,9 @@ if(BUILD_OSTREE)
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
+    add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+
+
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc)
     endif(SOTA_PACKED_CREDENTIALS)
@@ -234,7 +237,8 @@ set(ALL_TEST_SRCS
     uptane_test.cc
     uptane_ci_test.cc
     fake_ostree.cc
-    utils_test.cc)
+    utils_test.cc
+    uptane_fake_http_test.cc)
 
 add_custom_target(check-format-tests
     COMMAND ../scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}

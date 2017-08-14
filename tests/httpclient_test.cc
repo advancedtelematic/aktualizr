@@ -4,14 +4,11 @@
 #include <errno.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h> /* See NOTES */
-#include <sys/un.h>
 
 #include "config.h"
 #include "httpclient.h"
 #include "json/json.h"
+#include "test_utils.h"
 #include "types.h"
 #include "utils.h"
 
@@ -61,32 +58,8 @@ TEST(PostTest, put_performed) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2) {
-    int s = socket(AF_INET, SOCK_STREAM, 0);
-    if (s == -1) {
-      std::cout << "socket() failed: " << errno;
-      return -1;
-    }
-    struct sockaddr_in soc_addr;
-    memset(&soc_addr, 0, sizeof(struct sockaddr_in));
-    soc_addr.sin_family = AF_INET;
-    soc_addr.sin_addr.s_addr = INADDR_ANY;
-    soc_addr.sin_port = htons(INADDR_ANY);
-
-    if (bind(s, (struct sockaddr*)&soc_addr, sizeof(soc_addr)) == -1) {
-      std::cout << "bind() failed: " << errno;
-      return -1;
-    }
-
-    struct sockaddr_in sa;
-    unsigned int sa_len = sizeof(sa);
-    if (getsockname(s, (struct sockaddr*)&sa, &sa_len) == -1) {
-      std::cout << "getsockname() failed\n";
-      return -1;
-    }
-
-    std::string port = Utils::intToString(ntohs(sa.sin_port));
+    std::string port = getFreePort();
     std::cout << "port number: " << port << "\n";
-    close(s);
     pid_t pID = fork();
     if (pID == 0) {
       execlp((std::string(argv[1]) + "/fake_http_server.py").c_str(), "fake_http_server.py", port.c_str(), (char*)0);
