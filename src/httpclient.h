@@ -5,24 +5,10 @@
 #include <boost/move/unique_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include "json/json.h"
-#include "utils.h"
 
 #include "config.h"
-
-struct HttpResponse {
-  HttpResponse(const std::string &body_in, unsigned int http_status_code_in, CURLcode curl_code_in,
-               const std::string &error_message_in)
-      : body(body_in),
-        http_status_code(http_status_code_in),
-        curl_code(curl_code_in),
-        error_message(error_message_in) {}
-  std::string body;
-  unsigned int http_status_code;
-  CURLcode curl_code;
-  std::string error_message;
-  bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 205); }
-  Json::Value getJson() { return Utils::parseJSON(body); }
-};
+#include "httpinterface.h"
+#include "utils.h"
 
 /**
  * Helper class to manage curl_global_init/curl_global_cleanup calls
@@ -33,7 +19,7 @@ class CurlGlobalInitWrapper {
   ~CurlGlobalInitWrapper() { curl_global_cleanup(); }
 };
 
-class HttpClient {
+class HttpClient : public HttpInterface {
  public:
   HttpClient();
   HttpClient(const HttpClient &);
@@ -43,20 +29,12 @@ class HttpClient {
   virtual HttpResponse post(const std::string &url, const Json::Value &data);
   virtual HttpResponse put(const std::string &url, const Json::Value &data);
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
-  void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
+  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
+  virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
   unsigned int http_code;
   std::string token; /**< the OAuth2 token stored as string */
 
  private:
-  /**
-   * These are here to catch a common programming error where a Json::Value is
-   * implicitly constructed from a std::string. By having an private overload
-   * that takes string (and with no implementation), this will fail during
-   * compilation.
-   */
-  HttpResponse post(const std::string &url, std::string data);
-  HttpResponse put(const std::string &url, std::string data);
   CurlGlobalInitWrapper manageCurlGlobalInit_;  // Must be first member to ensure curl init/shutdown happens first/last
   CURL *curl;
   curl_slist *headers;

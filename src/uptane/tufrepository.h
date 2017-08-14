@@ -10,7 +10,7 @@
 #include <json/json.h>
 #include "config.h"
 #include "crypto.h"
-#include "httpclient.h"
+#include "httpinterface.h"
 #include "invstorage.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
@@ -28,7 +28,8 @@ struct DownloadMetaStruct {
 
 class TufRepository {
  public:
-  TufRepository(const std::string& name, const std::string& base_url, const Config& config, INvStorage& storage);
+  TufRepository(const std::string& name, const std::string& base_url, const Config& config, INvStorage& storage,
+                HttpInterface& http_client);
   Json::Value verifyRole(Role role, const TimeStamp& now, const Json::Value&, Uptane::Root* root_used = NULL);
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect
@@ -61,7 +62,7 @@ class TufRepository {
   boost::filesystem::path path_;
   Config config_;
   INvStorage& storage_;
-  HttpClient http_;
+  HttpInterface& http_;
   std::string base_url_;
 
   // Metadata

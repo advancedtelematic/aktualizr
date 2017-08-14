@@ -31,6 +31,7 @@ set(HEADERS
             fsstorage.h
             gatewaymanager.h
             httpclient.h
+            httpinterface.h
             invstorage.h
             logger.h
             openssl_compat.h
