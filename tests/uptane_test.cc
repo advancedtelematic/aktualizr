@@ -140,7 +140,7 @@ TEST(uptane, verify_data_bad) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_unknow_type) {
+TEST(uptane, verify_data_unknown_type) {
   Utils::copyDir("tests/test_data", uptane_test_dir);
   Config config;
   config.uptane.metadata_path = uptane_test_dir;
@@ -227,24 +227,89 @@ TEST(uptane, sign) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-/**
- * \verify{\tst{153}} aktualizr can autoprovision with user credentials.
+/*
+ * \verify{\tst{153}} Check that aktualizr creates provisioning files if they
+ * don't exist already.
  */
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf("tests/config_tests_prov.toml");
 
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
+  boost::filesystem::remove_all(uptane_test_dir);
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
 
   FSStorage storage(conf);
-  Uptane::Repository uptane(conf, storage);
+  std::string pkey;
+  std::string cert;
+  std::string ca;
 
-  bool result = uptane.deviceRegister();
-  EXPECT_EQ(result, true);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate), true);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file), true);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file), true);
+  bool result = storage.loadTlsCreds(&ca, &cert, &pkey);
+  EXPECT_FALSE(result);
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  Uptane::Repository uptane(conf, storage);
+  result = uptane.deviceRegister();
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+/*
+ * \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
+ * they DO exist already.
+ */
+TEST(SotaUptaneClientTest, device_register_twice) {
+  Config conf("tests/config_tests_prov.toml");
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  FSStorage storage(conf);
+  std::string pkey1;
+  std::string cert1;
+  std::string ca1;
+
+  bool result = storage.loadTlsCreds(&ca1, &cert1, &pkey1);
+  EXPECT_FALSE(result);
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  Uptane::Repository uptane(conf, storage);
+  result = uptane.deviceRegister();
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  result = storage.loadTlsCreds(&ca1, &cert1, &pkey1);
+  EXPECT_TRUE(result);
+
+  result = uptane.deviceRegister();
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
+  EXPECT_TRUE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
+
+  std::string pkey2;
+  std::string cert2;
+  std::string ca2;
+  result = storage.loadTlsCreds(&ca2, &cert2, &pkey2);
+  EXPECT_TRUE(result);
+
+  EXPECT_EQ(cert1, cert2);
+  EXPECT_EQ(ca1, ca2);
+  EXPECT_EQ(pkey1, pkey2);
+
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
 TEST(SotaUptaneClientTest, device_registered_fail) {
@@ -259,7 +324,9 @@ TEST(SotaUptaneClientTest, device_registered_fail) {
   provisioningResponse = ProvisionFailure;
   bool result = uptane.deviceRegister();
   provisioningResponse = ProvisionOK;
-  EXPECT_EQ(result, false);
+  EXPECT_FALSE(result);
+
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
 TEST(SotaUptaneClientTest, device_registered_putmanifest) {
