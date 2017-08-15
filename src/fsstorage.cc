@@ -96,7 +96,7 @@ bool FSStorage::loadTlsCredsCommon(const boost::filesystem::path& ca_path, const
   if (cert) *cert = Utils::readFile(cert_path.native());
   if (pkey) *pkey = Utils::readFile(pkey_path.native());
 
-  return false;
+  return true;
 }
 
 bool FSStorage::loadBootstrapTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
