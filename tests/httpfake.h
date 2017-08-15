@@ -8,14 +8,12 @@
 const std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
 const std::string tls_server = "https://tlsserver.com";
 const std::string metadata_path = "tests/test_data";
-const std::string uptane_test_dir = "tests/test_uptane";
 
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };
-ProvisioningResult provisioningResponse = ProvisionOK;
 
 class HttpFake : public HttpInterface {
  public:
-  HttpFake() {}
+  HttpFake(const std::string test_dir_in) : provisioningResponse(ProvisionOK), test_dir(test_dir_in) {}
 
   ~HttpFake() { boost::filesystem::remove(metadata_path + "/repo/timestamp.json"); }
 
@@ -65,7 +63,7 @@ class HttpFake : public HttpInterface {
   HttpResponse post(const std::string &url, const Json::Value &data) {
     (void)url;
 
-    Utils::writeFile(uptane_test_dir + "/post.json", data);
+    Utils::writeFile(test_dir + "/post.json", data);
     if (provisioningResponse == ProvisionOK) {
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else {
@@ -84,7 +82,7 @@ class HttpFake : public HttpInterface {
     (void)callback;
     (void)userp;
     std::cout << "URL: " << url << "\n";
-    std::string path = uptane_test_dir + "/" + url.substr(url.rfind("/targets/") + 9);
+    std::string path = test_dir + "/" + url.substr(url.rfind("/targets/") + 9);
     std::cout << "filetoopen: " << path << "\n\n\n";
 
     std::string content = Utils::readFile(path);
@@ -93,6 +91,11 @@ class HttpFake : public HttpInterface {
     callback(const_cast<char *>(content.c_str()), content.size(), 1, userp);
     return HttpResponse(content, 200, CURLE_OK, "");
   }
+
+  ProvisioningResult provisioningResponse;
+
+ private:
+  std::string test_dir;
 };
 
 #endif  // HTTPFAKE_H_

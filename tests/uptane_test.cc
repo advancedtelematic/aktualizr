@@ -15,7 +15,8 @@
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
-Uptane::TimeStamp now("2017-01-01T01:00:00Z");
+const std::string uptane_test_dir = "tests/test_uptane";
+const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(uptane, verify) {
   Utils::copyDir("tests/test_data", uptane_test_dir);
@@ -25,7 +26,7 @@ TEST(uptane, verify) {
   config.uptane.repo_server = tls_server + "/repo";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
   repo.updateRoot(Uptane::Version());
 
@@ -42,7 +43,7 @@ TEST(uptane, verify_data_bad) {
   config.uptane.repo_server = tls_server + "/repo";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json.removeMember("signatures");
@@ -64,7 +65,7 @@ TEST(uptane, verify_data_unknown_type) {
   config.uptane.repo_server = tls_server + "/repo";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json["signatures"][0]["method"] = "badsignature";
@@ -85,7 +86,7 @@ TEST(uptane, verify_data_bad_keyid) {
   config.uptane.repo_server = tls_server + "/repo";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
 
@@ -107,7 +108,7 @@ TEST(uptane, verify_data_bad_threshold) {
   config.uptane.repo_server = tls_server + "/repo";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
@@ -132,7 +133,7 @@ TEST(uptane, sign) {
   config.uptane.public_key_path = "public.key";
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane_repo(config, storage, http);
 
   Json::Value tosign_json;
@@ -184,7 +185,7 @@ TEST(SotaUptaneClientTest, initialize) {
   EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
   EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
 
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(conf, storage, http);
   result = uptane.initialize();
   EXPECT_TRUE(result);
@@ -225,7 +226,7 @@ TEST(SotaUptaneClientTest, initialize_twice) {
   EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file));
   EXPECT_FALSE(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file));
 
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(conf, storage, http);
   result = uptane.initialize();
   EXPECT_TRUE(result);
@@ -289,7 +290,7 @@ TEST(uptane, random_serial) {
 
   FSStorage storage_1(conf_1);
   FSStorage storage_2(conf_2);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
 
   Uptane::Repository uptane_1(conf_1, storage_1, http);
   EXPECT_TRUE(uptane_1.initialize());
@@ -328,7 +329,7 @@ TEST(uptane, pet_name_provided) {
   conf.uptane.public_key_path = "public.key";
 
   FSStorage storage(conf);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(conf, storage, http);
   EXPECT_TRUE(uptane.initialize());
 
@@ -364,7 +365,7 @@ TEST(uptane, pet_name_creation) {
   std::string test_name1, test_name2;
   {
     FSStorage storage(conf);
-    HttpFake http;
+    HttpFake http(uptane_test_dir);
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
 
@@ -381,7 +382,7 @@ TEST(uptane, pet_name_creation) {
     conf.uptane.device_id = "";
 
     FSStorage storage(conf);
-    HttpFake http;
+    HttpFake http(uptane_test_dir);
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
 
@@ -394,7 +395,7 @@ TEST(uptane, pet_name_creation) {
   {
     conf.uptane.device_id = "";
     FSStorage storage(conf);
-    HttpFake http;
+    HttpFake http(uptane_test_dir);
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
 
@@ -410,7 +411,7 @@ TEST(uptane, pet_name_creation) {
     conf.uptane.device_id = test_name2;
 
     FSStorage storage(conf);
-    HttpFake http;
+    HttpFake http(uptane_test_dir);
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
 
@@ -436,12 +437,12 @@ TEST(SotaUptaneClientTest, initialize_fail) {
   conf.uptane.public_key_path = "public.key";
 
   FSStorage storage(conf);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(conf, storage, http);
 
-  provisioningResponse = ProvisionFailure;
+  http.provisioningResponse = ProvisionFailure;
   bool result = uptane.initialize();
-  provisioningResponse = ProvisionOK;
+  http.provisioningResponse = ProvisionOK;
   EXPECT_FALSE(result);
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -468,14 +469,14 @@ TEST(SotaUptaneClientTest, putmanifest) {
   config.uptane.secondaries.push_back(ecu_config);
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
   uptane.initialize();
 
   boost::filesystem::remove(test_manifest);
 
   uptane.putManifest();
-  EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
+  EXPECT_TRUE(boost::filesystem::exists(test_manifest));
   Json::Value json = Utils::parseJSONFile(test_manifest);
 
   EXPECT_EQ(json["signatures"].size(), 1u);
@@ -508,7 +509,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   commands_channel << boost::make_shared<command::Shutdown>();
 
   FSStorage storage(conf);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
@@ -563,7 +564,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
   FSStorage storage(conf);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
@@ -608,12 +609,12 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   FSStorage storage(conf);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
 
-  EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
+  EXPECT_TRUE(boost::filesystem::exists(test_manifest));
 
   Json::Value json;
   Json::Reader reader;
@@ -652,7 +653,7 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   config.uptane.secondaries.push_back(ecu_config);
 
   FSStorage storage(config);
-  HttpFake http;
+  HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
   uptane.initialize();
   Json::Value ecu_data = Utils::parseJSONFile(uptane_test_dir + "/post.json");
