@@ -34,16 +34,6 @@ class HttpInterface {
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) = 0;
   virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) = 0;
-
- private:
-  /**
-   * These are here to catch a common programming error where a Json::Value is
-   * implicitly constructed from a std::string. By having an private overload
-   * that takes string (and with no implementation), this will fail during
-   * compilation.
-   */
-  HttpResponse post(const std::string &url, std::string data);
-  HttpResponse put(const std::string &url, std::string data);
 };
 
 #endif  // HTTPINTERFACE_H_

@@ -95,6 +95,15 @@ class HttpFake : public HttpInterface {
   ProvisioningResult provisioningResponse;
 
  private:
+  /**
+   * These are here to catch a common programming error where a Json::Value is
+   * implicitly constructed from a std::string. By having an private overload
+   * that takes string (and with no implementation), this will fail during
+   * compilation.
+   */
+  HttpResponse post(const std::string &url, const std::string data);
+  HttpResponse put(const std::string &url, const std::string data);
+
   std::string test_dir;
 };
 
