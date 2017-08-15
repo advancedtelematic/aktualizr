@@ -27,22 +27,7 @@ Repository::Repository(const Config &config_in, INvStorage &storage_in)
       storage(storage_in),
       http(),
       manifests(Json::arrayValue),
-      transport(&secondaries) {
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
-  if (storage.loadEcuSerials(&ecu_serials)) {
-    primary_ecu_serial = ecu_serials[0].first;
-    std::vector<Uptane::SecondaryConfig>::iterator it;
-    for (it = config.uptane.secondaries.begin(); it != config.uptane.secondaries.end(); ++it) {
-      // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
-      //   It also kind of duplicates what is done in InitEcuSerials()
-      Secondary s(*it, this);
-      secondaries.push_back(s);
-    }
-  }
-
-  // The function can return false leaving the keys empty.
-  storage.loadPrimaryKeys(&primary_public_key, &primary_private_key);
-}
+      transport(&secondaries) {}
 
 void Repository::updateRoot(Version version) {
   director.updateRoot(version);

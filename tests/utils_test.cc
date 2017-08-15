@@ -37,6 +37,8 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
+
 /**
  * \verify{\tst{144}} Check that aktualizr can generate a pet name
  */

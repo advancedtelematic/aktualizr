@@ -44,9 +44,10 @@ void FSStorage::clearPrimaryKeys() {
   boost::filesystem::remove(config_.tls.certificates_directory / config_.uptane.private_key_path);
 }
 
-void FSStorage::storeTlsCredsCommon(const boost::filesystem::path& ca_path, const boost::filesystem::path& cert_path,
-                                    const boost::filesystem::path& pkey_path, const std::string& ca,
-                                    const std::string& cert, const std::string& pkey) {
+void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
+  boost::filesystem::path ca_path = config_.tls.certificates_directory / config_.tls.ca_file;
+  boost::filesystem::path cert_path = config_.tls.certificates_directory / config_.tls.client_certificate;
+  boost::filesystem::path pkey_path = config_.tls.certificates_directory / config_.tls.pkey_file;
   boost::filesystem::remove(ca_path);
   boost::filesystem::remove(cert_path);
   boost::filesystem::remove(pkey_path);
@@ -57,32 +58,18 @@ void FSStorage::storeTlsCredsCommon(const boost::filesystem::path& ca_path, cons
 
   sync();
 }
-void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
-  boost::filesystem::path ca_path = config_.tls.certificates_directory / config_.tls.ca_file;
-  boost::filesystem::path cert_path = config_.tls.certificates_directory / config_.tls.client_certificate;
-  boost::filesystem::path pkey_path = config_.tls.certificates_directory / config_.tls.pkey_file;
-  storeTlsCredsCommon(ca_path, cert_path, pkey_path, ca, cert, pkey);
-}
-
-bool FSStorage::loadTlsCredsCommon(const boost::filesystem::path& ca_path, const boost::filesystem::path& cert_path,
-                                   const boost::filesystem::path& pkey_path, std::string* ca, std::string* cert,
-                                   std::string* pkey) {
-  if (!boost::filesystem::exists(ca_path) || !boost::filesystem::exists(cert_path) ||
-      !boost::filesystem::exists(pkey_path))
-    return false;
-
-  if (ca) *ca = Utils::readFile(ca_path.string());
-  if (cert) *cert = Utils::readFile(cert_path.string());
-  if (pkey) *pkey = Utils::readFile(pkey_path.string());
-
-  return true;
-}
 
 bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
   boost::filesystem::path ca_path = config_.tls.certificates_directory / config_.tls.ca_file;
   boost::filesystem::path cert_path = config_.tls.certificates_directory / config_.tls.client_certificate;
   boost::filesystem::path pkey_path = config_.tls.certificates_directory / config_.tls.pkey_file;
-  return loadTlsCredsCommon(ca_path, cert_path, pkey_path, ca, cert, pkey);
+  if (!boost::filesystem::exists(ca_path) || !boost::filesystem::exists(cert_path) ||
+      !boost::filesystem::exists(pkey_path))
+    return false;
+  if (ca) *ca = Utils::readFile(ca_path.string());
+  if (cert) *cert = Utils::readFile(cert_path.string());
+  if (pkey) *pkey = Utils::readFile(pkey_path.string());
+  return true;
 }
 
 void FSStorage::clearTlsCreds() {
@@ -195,15 +182,11 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
   if (!boost::filesystem::exists((config_.tls.certificates_directory / "primary_ecu_serial"))) return false;
   serial = Utils::readFile((config_.tls.certificates_directory / "primary_ecu_serial").string());
   // use default hardware ID for backwards compatibility
-  if (!boost::filesystem::exists((config_.tls.certificates_directory / "primary_ecu_hardware_id"))) {
-    char hostname[200];
-    if (gethostname(hostname, 200) < 0) {
-      return false;
-    }
-    hw_id = hostname;
-  } else {
+  if (!boost::filesystem::exists((config_.tls.certificates_directory / "primary_ecu_hardware_id")))
+    hw_id = Utils::getHostname();
+  else
     hw_id = Utils::readFile((config_.tls.certificates_directory / "primary_ecu_hardware_id").string());
-  }
+
   if (serials) serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
 
   // return true for backwards compatibility

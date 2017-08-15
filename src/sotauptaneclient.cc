@@ -55,9 +55,7 @@ Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
 
 void SotaUptaneClient::reportHWInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
-  if (!hw_info.empty()) {
-    uptane_repo.http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
-  }
+  if (!hw_info.empty()) uptane_repo.http.put(config.tls.server + "/core/system_info", hw_info);
 }
 
 void SotaUptaneClient::reportInstalledPackages() {

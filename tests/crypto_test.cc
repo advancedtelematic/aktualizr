@@ -70,6 +70,14 @@ TEST(crypto, verify_ed25519) {
   EXPECT_FALSE(signe_is_ok);
 }
 
+TEST(crypto, bad_keytype) {
+  try {
+    PublicKey pkey("somekey", "nosuchtype");
+    FAIL();
+  } catch (std::runtime_error ex) {
+  }
+}
+
 TEST(crypto, parsep12) {
   std::string pkey;
   std::string cert;
