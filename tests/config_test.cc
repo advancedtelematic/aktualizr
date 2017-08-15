@@ -130,9 +130,9 @@ TEST(config, config_extract_credentials) {
 }
 
 /**
-  * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for primary
-  * and all secondaries.
-*/
+ * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
+ * primary and all secondaries.
+ */
 TEST(config, test_random_serial) {
   boost::program_options::variables_map cmd;
   boost::program_options::options_description description("some text");
@@ -155,9 +155,9 @@ TEST(config, test_random_serial) {
 }
 
 /**
-  * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
-  * and all secondaries.
-*/
+ * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
+ * and all secondaries.
+ */
 TEST(config, ecu_persist) {
   boost::program_options::variables_map cmd;
   boost::program_options::options_description description("some text");
@@ -174,6 +174,77 @@ TEST(config, ecu_persist) {
   EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
   EXPECT_EQ(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
+
+  boost::filesystem::remove_all(config_test_dir);
+}
+
+/**
+ * \verify{\tst{146}} Check that aktualizr does not generate a pet name when
+ * device ID is specified. This is currently provisional and not a finalized
+ * requirement at this time.
+ */
+TEST(config, config_pet_name_provided) {
+  std::string test_name = "test-name-123";
+  std::string device_path = config_test_dir + "/device_id";
+  boost::filesystem::remove(device_path);
+
+  /* Make sure provided device ID is read as expected. */
+  Config conf("tests/config_tests_device_id.toml");
+  EXPECT_EQ(conf.uptane.device_id, test_name);
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  EXPECT_EQ(Utils::readFile(device_path), test_name);
+
+  /* Make sure name is unchanged after re-initializing config. */
+  conf.postUpdateValues();
+  EXPECT_EQ(conf.uptane.device_id, test_name);
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  EXPECT_EQ(Utils::readFile(device_path), test_name);
+
+  boost::filesystem::remove_all(config_test_dir);
+}
+
+/**
+ * \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
+ * is specified.
+ */
+TEST(config, config_pet_name_creation) {
+  std::string device_path = config_test_dir + "/device_id";
+  boost::filesystem::remove(device_path);
+
+  /* Make sure name is created. */
+  Config conf("tests/config_tests.toml");
+  std::string test_name1 = conf.uptane.device_id;
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  std::string test_name2 = Utils::readFile(device_path);
+  EXPECT_EQ(test_name1, test_name2);
+
+  /* Make sure a new name is generated if the config does not specify a name and
+   * there is no device_id file. */
+  conf.uptane.device_id = "";
+  boost::filesystem::remove(device_path);
+  conf.postUpdateValues();
+  std::string test_name3 = conf.uptane.device_id;
+  EXPECT_NE(test_name1, test_name3);
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  std::string test_name4 = Utils::readFile(device_path);
+  EXPECT_EQ(test_name3, test_name4);
+
+  /* If the device_id is cleared in the config, but the file is still present,
+   * re-initializing the config should still read the device_id from file. */
+  conf.uptane.device_id = "";
+  conf.postUpdateValues();
+  EXPECT_EQ(conf.uptane.device_id, test_name3);
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  EXPECT_EQ(Utils::readFile(device_path), test_name3);
+
+  /* If the device_id file is removed, but the field is still present in the
+   * config, re-initializing the config should still read the device_id from
+   * config. */
+  boost::filesystem::remove(device_path);
+  conf.postUpdateValues();
+  EXPECT_EQ(conf.uptane.device_id, test_name3);
+  EXPECT_TRUE(boost::filesystem::exists(device_path));
+  EXPECT_EQ(Utils::readFile(device_path), test_name3);
 
   boost::filesystem::remove_all(config_test_dir);
 }

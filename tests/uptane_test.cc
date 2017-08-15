@@ -227,6 +227,9 @@ TEST(uptane, sign) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
+/**
+ * \verify{\tst{153}} aktualizr can autoprovision with user credentials.
+ */
 TEST(SotaUptaneClientTest, device_registered) {
   Config conf("tests/config_tests_prov.toml");
 
