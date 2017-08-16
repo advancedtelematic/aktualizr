@@ -398,7 +398,6 @@ TEST(uptane, pet_name_provided) {
   Utils::copyDir("tests/test_data", uptane_test_dir);
   std::string test_name = "test-name-123";
   std::string device_path = uptane_test_dir + "/device_id";
-  boost::filesystem::remove(device_path);
 
   /* Make sure provided device ID is read as expected. */
   Config conf("tests/config_tests_device_id.toml");
@@ -431,7 +430,6 @@ TEST(uptane, pet_name_provided) {
 TEST(uptane, pet_name_creation) {
   Utils::copyDir("tests/test_data", uptane_test_dir);
   std::string device_path = uptane_test_dir + "/device_id";
-  boost::filesystem::remove(device_path);
 
   // Make sure name is created.
   Config conf("tests/config_tests.toml");
@@ -511,13 +509,6 @@ TEST(SotaUptaneClientTest, initialize_fail) {
   conf.uptane.private_key_path = "private.key";
   conf.uptane.public_key_path = "public.key";
 
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_ca.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_cert.pem");
-  boost::filesystem::remove(conf.tls.certificates_directory / "bootstrap_pkey.pem");
-
   FSStorage storage(conf);
   Uptane::Repository uptane(conf, storage);
 
@@ -579,12 +570,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   conf.uptane.private_key_path = "private.key";
   conf.uptane.public_key_path = "public.key";
 
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(metadata_path + "/director/timestamp.json");
-  boost::filesystem::remove(metadata_path + "/repo/timestamp.json");
-
   conf.tls.server = tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
@@ -642,12 +627,6 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   ecu_config.ecu_public_key = "sec1.pub";
   conf.uptane.secondaries.push_back(ecu_config);
 
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
-  boost::filesystem::remove(metadata_path + "/director/timestamp.json");
-  boost::filesystem::remove(metadata_path + "/repo/timestamp.json");
-
   conf.tls.server = tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
@@ -684,9 +663,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   conf.tls.certificates_directory = uptane_test_dir;
   conf.uptane.repo_server = tls_server + "/repo";
 
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.client_certificate);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.ca_file);
-  boost::filesystem::remove(conf.tls.certificates_directory / conf.tls.pkey_file);
   boost::filesystem::remove(test_manifest);
 
   conf.tls.server = tls_server;
