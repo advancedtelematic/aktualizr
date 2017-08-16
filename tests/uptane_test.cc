@@ -874,6 +874,34 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
+/**
+  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
+*/
+TEST(SotaUptaneClientTest, test149) {
+  Config config("tests/config_tests_prov.toml");
+  std::string server = "tst149";
+  Utils::copyDir("tests/test_data", uptane_test_dir);
+  config.uptane.metadata_path = "tests";
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.server = server;
+  config.uptane.director_server = server + "/director";
+  config.uptane.repo_server = server + "/repo";
+
+  config.uptane.device_id = "tst149_device_id";
+  config.uptane.primary_ecu_hardware_id = "tst149_hardware_identifier";
+  config.uptane.primary_ecu_serial = "tst149_ecu_serial";
+  config.uptane.polling = false;
+
+  event::Channel events_channel;
+  command::Channel commands_channel;
+  FSStorage storage(config);
+  commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::Shutdown>();
+  Uptane::Repository repo(config, storage);
+  SotaUptaneClient up(config, &events_channel, repo);
+  up.runForever(&commands_channel);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
