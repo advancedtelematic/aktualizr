@@ -230,6 +230,14 @@ Json::Value Utils::getHardwareInfo() {
   }
 }
 
+std::string Utils::getHostname() {
+  char hostname[200];
+  if (gethostname(hostname, 200) < 0) {
+    return "";
+  }
+  return hostname;
+}
+
 std::string Utils::randomUuid() {
   boost::random::random_device urandom;
   boost::uuids::basic_random_generator<boost::random::random_device> uuid_gen(urandom);
@@ -237,7 +245,7 @@ std::string Utils::randomUuid() {
 }
 
 void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to) {
-  if (boost::filesystem::exists(to)) boost::filesystem::remove_all(to);
+  boost::filesystem::remove_all(to);
 
   boost::filesystem::create_directories(to);
   boost::filesystem::directory_iterator it(from);

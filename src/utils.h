@@ -18,6 +18,7 @@ struct Utils {
   static void writeFile(const std::string &filename, const Json::Value &content);
   static void copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to);
   static Json::Value getHardwareInfo();
+  static std::string getHostname();
   static std::string randomUuid();
 };
 

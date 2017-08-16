@@ -55,9 +55,7 @@ Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
 
 void SotaUptaneClient::reportHWInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
-  if (!hw_info.empty()) {
-    uptane_repo.http.put(config.tls.server + "/core/system_info", Utils::getHardwareInfo());
-  }
+  if (!hw_info.empty()) uptane_repo.http.put(config.tls.server + "/core/system_info", hw_info);
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
@@ -67,7 +65,7 @@ void SotaUptaneClient::reportInstalledPackages() {
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
-  if (!uptane_repo.deviceRegister() || !uptane_repo.ecuRegister()) {
+  if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
   LOGGER_LOG(LVL_debug, "... provisioned OK");

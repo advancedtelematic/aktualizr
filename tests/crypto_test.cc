@@ -29,7 +29,8 @@ TEST(crypto, sha512_is_correct) {
 TEST(crypto, sign_verify_rsa) {
   std::string text = "This is text for sign";
   PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
+  std::string private_key = Utils::readFile("tests/test_data/priv.key");
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
@@ -67,6 +68,14 @@ TEST(crypto, verify_ed25519) {
       "33lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
   signe_is_ok = Crypto::VerifySignature(pkey, signature_bad, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_FALSE(signe_is_ok);
+}
+
+TEST(crypto, bad_keytype) {
+  try {
+    PublicKey pkey("somekey", "nosuchtype");
+    FAIL();
+  } catch (std::runtime_error ex) {
+  }
 }
 
 TEST(crypto, parsep12) {

@@ -16,8 +16,9 @@ class Secondary {
   data::InstallOutcome install(const Uptane::Target &target);
   Json::Value genAndSendManifest(Json::Value custom = Json::Value(Json::nullValue));
   Json::Value newTargetsCallBack(const std::vector<Target> &targets);
-  void setPrivateKey(const std::string &pkey);
+  void setKeys(const std::string &public_key, const std::string &private_key);
   std::string getEcuSerial() { return config.ecu_serial; }
+  bool getPublicKey(std::string *key);
 
  private:
   SecondaryConfig config;

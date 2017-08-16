@@ -8,10 +8,8 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             config.cc
             crypto.cc
             events.cc
-            fsstorage.cc
-            commands.cc
-            types.cc
             eventsinterpreter.cc
+            fsstorage.cc
             gatewaymanager.cc
             httpclient.cc
             logger.cc
@@ -23,32 +21,32 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
 # set headers used for clang format
 set(HEADERS
             aktualizr.h
-            logger.h
-            httpclient.h
-            sotauptaneclient.h
-            config.h
+            bootstrap.h
             channel.h
-            events.h
             commands.h
-            invstorage.h
-            fsstorage.h
-            types.h
-            eventsinterpreter.h
-            gatewaymanager.h
-            socketgateway.h
+            config.h
             crypto.h
+            events.h
+            eventsinterpreter.h
+            fsstorage.h
+            gatewaymanager.h
+            httpclient.h
+            invstorage.h
+            logger.h
             openssl_compat.h
             ostree.h
+            socketgateway.h
+            sotauptaneclient.h
             timer.h
+            types.h
             utils.h
-            bootstrap.h
-            uptane/tuf.h
-            uptane/tufrepository.h
-            uptane/uptanerepository.h
-            uptane/secondary.h
+            uptane/exceptions.h
             uptane/testbusprimary.h
             uptane/testbussecondary.h
-            uptane/exceptions.h)
+            uptane/tuf.h
+            uptane/tufrepository.h
+            uptane/secondary.h
+            uptane/uptanerepository.h)
 
 if(BUILD_GENIVI)
     list(APPEND SOURCES dbusgateway/dbusgateway.cc
@@ -61,6 +59,7 @@ endif(BUILD_GENIVI)
 if (BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc
                         sotauptaneclient.cc
+                        uptane/initialize.cc
                         uptane/role.cc
                         uptane/root.cc
                         uptane/tuf.cc
