@@ -1,10 +1,18 @@
 #include "aktualizr.h"
 
+#include "timer.h"
+
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+#include <sodium.h>
+
 #include "channel.h"
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
 #include "fsstorage.h"
+#include "httpclient.h"
+
 #ifdef WITH_GENIVI
 #include "sotarviclient.h"
 #endif
@@ -13,11 +21,6 @@
 #include "ostree.h"
 #include "sotauptaneclient.h"
 #endif
-
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include <sodium.h>
-#include "timer.h"
 
 Aktualizr::Aktualizr(const Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
@@ -67,7 +70,8 @@ int Aktualizr::run() {
 #ifdef BUILD_OSTREE
     // TODO: compile unconditionally
     FSStorage storage(config_);
-    Uptane::Repository repo(config_, storage);
+    HttpClient http;
+    Uptane::Repository repo(config_, storage, http);
     SotaUptaneClient(config_, &events_channel, repo).runForever(&commands_channel);
 #else
     LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");

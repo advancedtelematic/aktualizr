@@ -45,7 +45,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
 
   try {
     FSStorage storage(config);
-    Uptane::Repository repo(config, storage);
+    HttpClient http;
+    Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));
     repo.getTargets();
 

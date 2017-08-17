@@ -10,6 +10,7 @@
 #include "uptane/tufrepository.h"
 
 #include "crypto.h"
+#include "httpinterface.h"
 
 class SotaUptaneClient;
 
@@ -26,7 +27,7 @@ enum InitRetCode {
 const int MaxInitializationAttempts = 3;
 class Repository {
  public:
-  Repository(const Config &config, INvStorage &storage);
+  Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
   bool putManifest(Json::Value version_manifests = Json::Value(Json::nullValue));
   Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
@@ -47,7 +48,7 @@ class Repository {
   TufRepository director;
   TufRepository image;
   INvStorage &storage;
-  HttpClient http;
+  HttpInterface &http;
   Json::Value manifests;
 
   std::string primary_ecu_serial;

@@ -19,7 +19,7 @@
 /*****************************************************************************/
 /**
  * \par Description:
- *    A writeback handler for the curl library. I handles writing response
+ *    A writeback handler for the curl library. It handles writing response
  *    data from curl into a string.
  *    https://curl.haxx.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
  *

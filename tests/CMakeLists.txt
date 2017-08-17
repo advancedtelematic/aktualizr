@@ -108,37 +108,15 @@ add_aktualizr_test(NAME crypto
 if(BUILD_OSTREE)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
-    set(OSTREE_SRC ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
-                  ${PROJECT_SOURCE_DIR}/src/bootstrap.cc
-                  ${PROJECT_SOURCE_DIR}/src/commands.cc
-                  ${PROJECT_SOURCE_DIR}/src/config.cc
-                  ${PROJECT_SOURCE_DIR}/src/events.cc
-                  ${PROJECT_SOURCE_DIR}/src/sotauptaneclient.cc
-                  ${PROJECT_SOURCE_DIR}/src/logger.cc
-                  ${PROJECT_SOURCE_DIR}/src/crypto.cc
-                  ${PROJECT_SOURCE_DIR}/src/types.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/role.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/root.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/tuf.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/tufrepository.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/uptanerepository.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/initialize.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/secondary.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/testbusprimary.cc
-                  ${PROJECT_SOURCE_DIR}/src/uptane/testbussecondary.cc
-                  ${PROJECT_SOURCE_DIR}/src/utils.cc
-                  ${PROJECT_SOURCE_DIR}/src/fsstorage.cc
-                  fake_ostree.cc)
-
-    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc ${OSTREE_SRC}
+    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
-    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc)
-    target_link_libraries(aktualizr_uptane_vector_tests ${TEST_LIBS} crypto ${SODIUM_LIBRARIES})
+    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc fake_ostree.cc)
+    target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
 
     add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
@@ -149,7 +127,7 @@ if(BUILD_OSTREE)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc ${OSTREE_SRC} ${PROJECT_SOURCE_DIR}/src/httpclient.cc )
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc)
     endif(SOTA_PACKED_CREDENTIALS)
 
 endif(BUILD_OSTREE)
