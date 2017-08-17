@@ -461,6 +461,52 @@ TEST(uptane, expires) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
+/**
+ * \verify{\tst{52}} Check that aktualizr fails on bad threshold
+ */
+TEST(uptane, threshold) {
+  Config config;
+  Utils::copyDir("tests/test_data", uptane_test_dir);
+  config.uptane.metadata_path = uptane_test_dir;
+  config.uptane.director_server = tls_server + "/director";
+  config.uptane.repo_server = tls_server + "/repo";
+
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+
+  // Check that we don't fail on good metadata.
+  EXPECT_NO_THROW(
+      repo.verifyRole(Uptane::Role::Targets(), now, Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json")),
+               Uptane::IllegalThreshold);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-32768.json")),
+               Uptane::IllegalThreshold);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-2147483648.json")),
+               Uptane::IllegalThreshold);
+
+  EXPECT_THROW(
+      repo.verifyRole(Uptane::Role::Root(), now,
+                      Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-9223372036854775808.json")),
+      std::runtime_error);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.9.json")),
+               Uptane::IllegalThreshold);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.json")),
+               Uptane::IllegalThreshold);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
 TEST(SotaUptaneClientTest, initialize_fail) {
   Config conf("tests/config_tests_prov.toml");
   Utils::copyDir("tests/test_data", uptane_test_dir);
