@@ -20,11 +20,26 @@ bool Repository::initDeviceId(const UptaneConfig& uptane_config) {
 }
 void Repository::resetDeviceId() { storage.clearDeviceId(); }
 
+void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> >& ecu_serials) {
+  primary_ecu_serial = ecu_serials[0].first;
+  std::vector<Uptane::SecondaryConfig>::iterator conf_it;
+  for (conf_it = config.uptane.secondaries.begin(); conf_it != config.uptane.secondaries.end(); ++conf_it) {
+    // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
+    //   It also kind of duplicates what is done in InitEcuSerials()
+    Secondary s(*conf_it, this);
+    secondaries.push_back(s);
+  }
+}
+
 // Postcondition [(serial, hw_id)] is in the storage
 bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
-  if (storage.loadEcuSerials(NULL)) return true;
-
   std::vector<std::pair<std::string, std::string> > ecu_serials;
+
+  if (storage.loadEcuSerials(&ecu_serials)) {
+    setEcuSerialsMembers(ecu_serials);
+    return true;
+  }
+
   std::string primary_ecu_serial_local = uptane_config.primary_ecu_serial;
   if (primary_ecu_serial_local.empty()) primary_ecu_serial_local = Utils::randomUuid();
 
@@ -49,15 +64,7 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
   }
 
   storage.storeEcuSerials(ecu_serials);
-  primary_ecu_serial = ecu_serials[0].first;
-  std::vector<Uptane::SecondaryConfig>::iterator conf_it;
-  for (conf_it = config.uptane.secondaries.begin(); conf_it != config.uptane.secondaries.end(); ++conf_it) {
-    // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
-    //   It also kind of duplicates what is done in InitEcuSerials()
-    Secondary s(*conf_it, this);
-    secondaries.push_back(s);
-  }
-
+  setEcuSerialsMembers(ecu_serials);
   return true;
 }
 
@@ -67,12 +74,20 @@ void Repository::resetEcuSerials() {
   secondaries.clear();
 }
 
+void Repository::setEcuKeysMembers(const std::string& primary_public, const std::string& primary_private) {
+  primary_public_key = primary_public;
+  primary_private_key = primary_private;
+}
+
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
 bool Repository::initEcuKeys() {
-  if (storage.loadPrimaryKeys(NULL, NULL)) return true;
-
   std::string primary_public;
   std::string primary_private;
+  if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
+    setEcuKeysMembers(primary_public, primary_private);
+    return true;
+  }
+
   if (!Crypto::generateRSAKeyPair(&primary_public, &primary_private)) return false;
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
@@ -94,8 +109,7 @@ bool Repository::initEcuKeys() {
     }
   }
   storage.storePrimaryKeys(primary_public, primary_private);
-  primary_public_key = primary_public;
-  primary_private_key = primary_private;
+  setEcuKeysMembers(primary_public, primary_private);
   return true;
 }
 
@@ -114,6 +128,8 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
     LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
     // set provisioned credentials
     http.setCerts(ca, cert, pkey);
+    director.setTlsCreds(ca, cert, pkey);
+    image.setTlsCreds(ca, cert, pkey);
     return INIT_RET_OK;
   }
   // set bootstrap credentials
@@ -149,6 +165,8 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
 
   // set provisioned credentials
   http.setCerts(ca, cert, pkey);
+  director.setTlsCreds(ca, cert, pkey);
+  image.setTlsCreds(ca, cert, pkey);
 
   // TODO: acknowledgement to the server
   LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
@@ -218,10 +236,6 @@ InitRetCode Repository::initEcuRegister() {
 
 // Postcondition: "ECUs registered" flag set in the storage
 bool Repository::initialize() {
-  if (storage.loadEcuRegistered()) return true;
-
-  // if device has aready been registered, just create new device and reprovision
-  //   it should be changed/fixed when the backend supports registration acknowledgement
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId(config.uptane)) {
       LOGGER_LOG(LVL_error, "Device ID generation failed, abort initialization");
@@ -236,6 +250,7 @@ bool Repository::initialize() {
       return false;
     }
     InitRetCode ret_code = initTlsCreds(config.provision);
+    // if a device with the same ID has already been registered to the server, repeat the whole registration process
     if (ret_code == INIT_RET_OCCUPIED) {
       resetEcuKeys();
       resetEcuSerials();
@@ -248,6 +263,8 @@ bool Repository::initialize() {
     }
 
     ret_code = initEcuRegister();
+    // if am ECU with the same ID has already been registered to the server, repeat the whole registration process
+    //   excluding the device registration
     if (ret_code == INIT_RET_OCCUPIED) {
       // TODO: proper way to process this case after acknowledgement is implemented on the server
       //   is to download the list of registered ECUs and compare it to the list of ECUs present.
@@ -259,7 +276,6 @@ bool Repository::initialize() {
       resetTlsCreds();
       resetEcuKeys();
       resetEcuSerials();
-      resetDeviceId();
       LOGGER_LOG(LVL_info, "ECU serial is already registered, restart");
       continue;
 
