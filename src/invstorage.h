@@ -13,8 +13,10 @@ class INvStorage {
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) = 0;
   virtual bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) = 0;
   virtual void clearTlsCreds() = 0;
+#ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata) = 0;
   virtual bool loadMetadata(Uptane::MetaPack* metadata) = 0;
+#endif  // BUILD_OSTREE
   virtual void storeDeviceId(const std::string& device_id) = 0;
   virtual bool loadDeviceId(std::string* device_id) = 0;
   virtual void clearDeviceId() = 0;

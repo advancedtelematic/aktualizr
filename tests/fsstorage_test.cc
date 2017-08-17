@@ -54,6 +54,7 @@ TEST(fsstorage, load_store_tls) {
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
 
+#ifdef BUILD_OSTREE
 TEST(fsstorage, load_store_metadata) {
   Config config;
   config.tls.certificates_directory = fsstorage_test_dir;
@@ -125,6 +126,7 @@ TEST(fsstorage, load_store_metadata) {
 
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
+#endif  // BUILD_OSTREE
 
 TEST(fsstorage, load_store_deviceid) {
   Config config;
