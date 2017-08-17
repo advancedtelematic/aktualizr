@@ -422,6 +422,45 @@ TEST(uptane, pet_name_creation) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
+/**
+ * \verify{\tst{49}} Check that aktualizr fails on expired methadata
+ */
+TEST(uptane, expires) {
+  Config config;
+  Utils::copyDir("tests/test_data", uptane_test_dir);
+  config.uptane.metadata_path = uptane_test_dir;
+  config.uptane.director_server = tls_server + "/director";
+  config.uptane.repo_server = tls_server + "/repo";
+
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+
+  // Check that we don't fail on good metadata.
+  EXPECT_NO_THROW(
+      repo.verifyRole(Uptane::Role::Targets(), now, Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
+
+  Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json")["signed"]);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json")),
+               Uptane::ExpiredMetadata);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Targets(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/targets_expired.json"), &root),
+               Uptane::ExpiredMetadata);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Timestamp(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/timestamp_expired.json"), &root),
+               Uptane::ExpiredMetadata);
+
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Snapshot(), now,
+                               Utils::parseJSONFile("tests/test_data/bad_metadata/snapshot_expired.json"), &root),
+               Uptane::ExpiredMetadata);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
 TEST(SotaUptaneClientTest, initialize_fail) {
   Config conf("tests/config_tests_prov.toml");
   Utils::copyDir("tests/test_data", uptane_test_dir);
@@ -575,7 +614,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   }
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
-  event::UptaneTargetsUpdated *targets_event = static_cast<event::UptaneTargetsUpdated *>(event.get());
+  event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 2u);
   EXPECT_EQ(targets_event->packages[0].filename(),
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
@@ -668,7 +707,7 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
 }
 
 #ifndef __NO_MAIN__
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerSetSeverity(LVL_trace);
   return RUN_ALL_TESTS();
