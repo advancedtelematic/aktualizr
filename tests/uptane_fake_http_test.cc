@@ -4,43 +4,36 @@
 #include <string>
 
 #include "fsstorage.h"
+#include "httpclient.h"
 #include "logger.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
-void doDeviceRegister(const std::string &device_id, Config &conf, bool expect) {
-  system((std::string("rm -rf ") + conf.tls.certificates_directory.string() + "/*").c_str());
-
-  FSStorage storage(conf);
-  conf.uptane.device_id = device_id;
-  Uptane::Repository *uptane = new Uptane::Repository(conf, storage);
-  bool result = uptane->deviceRegister();
-  delete uptane;
-
-  EXPECT_EQ(result, expect);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.client_certificate), expect);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.ca_file), expect);
-  EXPECT_EQ(boost::filesystem::exists(conf.tls.certificates_directory / conf.tls.pkey_file), expect);
-}
-
-void doEcuRegister(const std::string &ecu_serial, Config &conf, bool expect) {
-  conf.uptane.device_id = "noerrors";
-  conf.uptane.primary_ecu_serial = ecu_serial;
-  FSStorage storage(conf);
-  Uptane::Repository *uptane = new Uptane::Repository(conf, storage);
-  std::string url_backup = conf.tls.server;
-
-  EXPECT_EQ(uptane->deviceRegister(), true);
-  if (ecu_serial == "noconnection") {
-    conf.tls.server = "http://127.0.0.1:1";
-    EXPECT_EQ(uptane->ecuRegister(), false);
-    conf.tls.server = url_backup;
-  } else {
-    EXPECT_EQ(uptane->ecuRegister(), expect);
+bool doInit(const std::string &device_register_state, const std::string &ecu_register_state, Config &conf) {
+  conf.provision.expiry_days = device_register_state;
+  conf.uptane.primary_ecu_serial = ecu_register_state;
+  std::string good_url = conf.provision.server;
+  if (device_register_state == "noconnection") {
+    conf.provision.server = conf.provision.server.substr(conf.provision.server.size() - 2) + "11";
   }
 
+  HttpClient http;
+  FSStorage fs(conf);
+  Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
+  bool result = uptane->initialize();
   delete uptane;
+  if (device_register_state != "noerrors" || conf.uptane.primary_ecu_serial != "noerrors") {
+    conf.provision.expiry_days = "noerrors";
+    conf.uptane.primary_ecu_serial = "noerrors";
+    conf.provision.server = good_url;
+    Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
+    result = uptane->initialize();
+    delete uptane;
+    return result;
+  }
+
+  return result;
 }
 
 /**
@@ -56,36 +49,18 @@ TEST(SotaUptaneClientTest, partial_provision) {
   sleep(3);
 
   Config conf("tests/config_tests_prov.toml");
+  conf.provision.server = "http://127.0.0.1:" + port;
   conf.tls.server = "http://127.0.0.1:" + port;
 
-  doDeviceRegister("drop_request", conf, false);
-  doDeviceRegister("noerrors", conf, true);
-
-  doDeviceRegister("drop_body", conf, false);
-  doDeviceRegister("noerrors", conf, true);
-
-  doDeviceRegister("status_503", conf, false);
-  doDeviceRegister("noerrors", conf, true);
-
-  doDeviceRegister("status_408", conf, false);
-  doDeviceRegister("noerrors", conf, true);
-
-  conf.tls.server = "http://127.0.0.1:1";
-  doDeviceRegister("noerrors", conf, false);
-  conf.tls.server = "http://127.0.0.1:" + port;
-  doDeviceRegister("noerrors", conf, true);
-
-  doEcuRegister("drop_request", conf, false);
-  doEcuRegister("noerrors", conf, true);
-
-  doEcuRegister("status_503", conf, false);
-  doEcuRegister("noerrors", conf, true);
-
-  doEcuRegister("status_503", conf, false);
-  doEcuRegister("noerrors", conf, true);
-
-  doEcuRegister("noconnection", conf, false);
-  doEcuRegister("noerrors", conf, true);
+  EXPECT_TRUE(doInit("drop_request", "noerrors", conf));
+  EXPECT_TRUE(doInit("drop_body", "noerrors", conf));
+  EXPECT_TRUE(doInit("status_503", "noerrors", conf));
+  EXPECT_TRUE(doInit("status_408", "noerrors", conf));
+  EXPECT_TRUE(doInit("noerrors", "drop_request", conf));
+  EXPECT_TRUE(doInit("noerrors", "status_503", conf));
+  EXPECT_TRUE(doInit("noerrors", "status_408", conf));
+  EXPECT_TRUE(doInit("noerrors", "noerrors", conf));
+  EXPECT_TRUE(doInit("noconnection", "noerrors", conf));
 
   kill(pID, SIGTERM);
 }

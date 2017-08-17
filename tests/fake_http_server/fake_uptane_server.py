@@ -22,16 +22,16 @@ class Handler(BaseHTTPRequestHandler):
 			self.end_headers()
 
 	def do_devicesRegister(self, data):
-		if data["deviceId"] == "drop_request":
+		if data["ttl"] == "drop_request":
 			return
-		elif data["deviceId"] == "drop_body":
+		elif data["ttl"] == "drop_body":
 			self.send_response(200)
 			self.end_headers()
 			self.wfile.write("some partial response")
-		elif data["deviceId"].startswith("status_"):
-			self.send_response(int(data["deviceId"][7:]))
+		elif data["ttl"].startswith("status_"):
+			self.send_response(int(data["ttl"][7:]))
 			self.end_headers()
-		elif data["deviceId"] == "noerrors":
+		elif data["ttl"] == "noerrors":
 			self.send_response(200)
 			self.end_headers()
 			f = open('tests/test_data/cred.p12', 'r')

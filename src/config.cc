@@ -151,9 +151,6 @@ void Config::postUpdateValues() {
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
-
-  uptane.public_key_path = (tls.certificates_directory / uptane.public_key_path).string();
-  uptane.private_key_path = (tls.certificates_directory / uptane.private_key_path).string();
 }
 
 void Config::updateFromToml(const std::string& filename) {
