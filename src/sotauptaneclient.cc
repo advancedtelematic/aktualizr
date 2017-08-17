@@ -87,7 +87,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         Json::Value unsigned_ecu_version =
             OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot)
                 .toEcuVersion(Json::nullValue);
-        uptane_repo.refresh(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+        uptane_repo.putManifest(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOGGER_LOG(LVL_info, "got new updates");

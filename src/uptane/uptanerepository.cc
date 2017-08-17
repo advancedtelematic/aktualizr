@@ -93,13 +93,6 @@ bool Repository::getMeta() {
   return true;
 }
 
-void Repository::refresh(const Json::Value &version_manifest) {
-  updateRoot(Version());
-  putManifest(version_manifest);
-  image.fetchAndCheckRole(Role::Snapshot());
-  image.fetchAndCheckRole(Role::Timestamp());
-}
-
 std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   if (!getMeta()) return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
 

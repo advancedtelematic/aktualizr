@@ -30,7 +30,7 @@ class Repository {
   Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
-  //void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
+  // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
 
@@ -39,7 +39,6 @@ class Repository {
   void initReset();
   // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
-  void refresh(const Json::Value &version_manifest);
 
  private:
   struct SecondaryConfig {
