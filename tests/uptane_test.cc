@@ -475,8 +475,11 @@ TEST(SotaUptaneClientTest, putmanifest) {
 
   boost::filesystem::remove(test_manifest);
 
-  uptane.putManifest();
-  EXPECT_TRUE(boost::filesystem::exists(test_manifest));
+  Json::Value unsigned_ecu_version =
+      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
+  uptane.putManifest(uptane.getCurrentVersionManifests(unsigned_ecu_version));
+
+  EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
   Json::Value json = Utils::parseJSONFile(test_manifest);
 
   EXPECT_EQ(json["signatures"].size(), 1u);

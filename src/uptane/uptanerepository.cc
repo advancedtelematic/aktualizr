@@ -15,7 +15,6 @@
 #include "invstorage.h"
 #include "logger.h"
 #include "openssl_compat.h"
-#include "ostree.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -34,23 +33,19 @@ void Repository::updateRoot(Version version) {
   image.updateRoot(version);
 }
 
-Json::Value Repository::getVersionManifest(Json::Value custom) {
-  Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(primary_ecu_serial, config.ostree.sysroot).toEcuVersion(custom);
-  Json::Value ecu_version_signed = Crypto::signTuf(primary_private_key, primary_public_key, unsigned_ecu_version);
-  return ecu_version_signed;
+Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
+  Json::Value ecu_version_signed =
+      Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, primary_version_manifest);
+  Json::Value manifests = transport.getManifests();
+  manifests.append(ecu_version_signed);
+  return manifests;
 }
 
-bool Repository::putManifest(Json::Value version_manifests) {
+bool Repository::putManifest(const Json::Value &version_manifests) {
   Json::Value manifest;
-  manifest["primary_ecu_serial"] = primary_ecu_serial;
-  if (!version_manifests) {
-    manifest["ecu_version_manifest"] = transport.getManifests();
-    manifest["ecu_version_manifest"].append(getVersionManifest());
-  } else {
-    manifest["ecu_version_manifest"] = version_manifests;
-  }
-  Json::Value tuf_signed = Crypto::signTuf(primary_private_key, primary_public_key, manifest);
+  manifest["primary_ecu_serial"] = config.uptane.primary_ecu_serial;
+  manifest["ecu_version_manifest"] = version_manifests;
+  Json::Value tuf_signed = Crypto::signTuf(config.uptane.private_key_path, config.uptane.public_key_path, manifest);
   HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
   return response.isOk();
 }
@@ -68,8 +63,6 @@ bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
 }
 
 bool Repository::getMeta() {
-  putManifest();
-
   Uptane::MetaPack meta;
   meta.director_root = Uptane::Root("director", director.fetchAndCheckRole(Role::Root()));
   meta.image_root = Uptane::Root("repo", image.fetchAndCheckRole(Role::Root()));
@@ -111,10 +104,8 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
       // TODO: support downloading encrypted targets from director
       image.saveTarget(*it);
     }
-    // transport.sendTargets(secondary_targets);
   }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
-  ;
 }
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {

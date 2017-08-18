@@ -28,8 +28,9 @@ const int MaxInitializationAttempts = 3;
 class Repository {
  public:
   Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
-  bool putManifest(Json::Value version_manifests = Json::Value(Json::nullValue));
-  Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
+  bool putManifest(const Json::Value &version_manifests);
+  Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
+  // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
 

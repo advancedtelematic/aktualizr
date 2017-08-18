@@ -3,8 +3,9 @@
 #include <iostream>
 #include "fsstorage.h"
 
-#include <logger.h>
 #include <boost/filesystem.hpp>
+#include "logger.h"
+#include "ostree.h"
 #include "uptane/uptanerepository.h"
 std::string credentials = "";
 
@@ -19,7 +20,10 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
 
   EXPECT_TRUE(repo.deviceRegister());
   EXPECT_TRUE(repo.ecuRegister());
-  EXPECT_TRUE(repo.putManifest());
+  Json::Value unsigned_ecu_version =
+      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
+  repo.refresh(repo.getCurrentVersionManifests(unsigned_ecu_version));
+  repo.refresh(repo.getCurrentVersionManifests(unsigned_ecu_version));
 
   // should not throw any exceptions
   repo.getTargets();
