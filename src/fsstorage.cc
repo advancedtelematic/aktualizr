@@ -78,6 +78,7 @@ void FSStorage::clearTlsCreds() {
   boost::filesystem::remove(config_.tls.certificates_directory / config_.tls.pkey_file);
 }
 
+#ifdef BUILD_OSTREE
 void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   boost::filesystem::path image_path = config_.uptane.metadata_path / "repo";
   boost::filesystem::path director_path = config_.uptane.metadata_path / "director";
@@ -134,6 +135,7 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
 
   return true;
 }
+#endif  // BUILD_OSTREE
 
 void FSStorage::storeDeviceId(const std::string& device_id) {
   Utils::writeFile((config_.tls.certificates_directory / "device_id").string(), device_id);

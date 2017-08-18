@@ -16,8 +16,10 @@ class FSStorage : public INvStorage {
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey);
   virtual bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey);
   virtual void clearTlsCreds();
+#ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata);
   virtual bool loadMetadata(Uptane::MetaPack* metadata);
+#endif  // BUILD_OSTREE
   virtual void storeDeviceId(const std::string& device_id);
   virtual bool loadDeviceId(std::string* device_id);
   virtual void clearDeviceId();
