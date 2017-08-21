@@ -27,7 +27,6 @@ class HttpInterface {
  public:
   HttpInterface(){};
   virtual ~HttpInterface(){};
-  virtual bool authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey) = 0;
   virtual HttpResponse get(const std::string &url) = 0;
   virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;

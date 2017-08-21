@@ -82,12 +82,6 @@ HttpClient::~HttpClient() {
   curl_easy_cleanup(curl);
 }
 
-bool HttpClient::authenticate(const std::string& cert, const std::string& ca_file, const std::string& pkey) {
-  // TODO return false in case of wrong certificates
-  setCerts(ca_file, cert, pkey);
-  return true;
-}
-
 HttpResponse HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);

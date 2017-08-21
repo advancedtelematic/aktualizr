@@ -128,8 +128,6 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
     LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
     // set provisioned credentials
     http.setCerts(ca, cert, pkey);
-    director.setTlsCreds(ca, cert, pkey);
-    image.setTlsCreds(ca, cert, pkey);
     return INIT_RET_OK;
   }
   // set bootstrap credentials
@@ -165,8 +163,6 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
 
   // set provisioned credentials
   http.setCerts(ca, cert, pkey);
-  director.setTlsCreds(ca, cert, pkey);
-  image.setTlsCreds(ca, cert, pkey);
 
   // TODO: acknowledgement to the server
   LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
