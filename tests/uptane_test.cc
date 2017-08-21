@@ -150,9 +150,9 @@ TEST(uptane, sign) {
 }
 
 /*
- * \verify{\tst{153}} Check that aktualizr creates provisioning files if they
- * don't exist already.
- */
+* \verify{\tst{153}} Check that aktualizr creates provisioning files if they
+* don't exist already.
+*/
 TEST(SotaUptaneClientTest, initialize) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.metadata_path = "tests/";
@@ -196,9 +196,9 @@ TEST(SotaUptaneClientTest, initialize) {
 }
 
 /*
- * \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
- * they DO exist already.
- */
+* \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
+* they DO exist already.
+*/
 TEST(SotaUptaneClientTest, initialize_twice) {
   Config conf("tests/config_tests_prov.toml");
   conf.tls.certificates_directory = uptane_test_dir + "/certs";
@@ -252,9 +252,9 @@ TEST(SotaUptaneClientTest, initialize_twice) {
 }
 
 /**
- * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
- * primary and all secondaries.
- */
+* \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
+* primary and all secondaries.
+*/
 TEST(uptane, random_serial) {
   Config conf_1("tests/config_tests_prov.toml");
   conf_1.tls.certificates_directory = uptane_test_dir + "/certs_1";
@@ -306,10 +306,10 @@ TEST(uptane, random_serial) {
 }
 
 /**
- * \verify{\tst{146}} Check that aktualizr does not generate a pet name when
- * device ID is specified. This is currently provisional and not a finalized
- * requirement at this time.
- */
+* \verify{\tst{146}} Check that aktualizr does not generate a pet name when
+* device ID is specified. This is currently provisional and not a finalized
+* requirement at this time.
+*/
 TEST(uptane, pet_name_provided) {
   std::string test_name = "test-name-123";
   std::string device_path = uptane_test_dir + "/device_id";
@@ -340,9 +340,9 @@ TEST(uptane, pet_name_provided) {
 }
 
 /**
- * \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
- * is specified.
- */
+* \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
+* is specified.
+*/
 TEST(uptane, pet_name_creation) {
   std::string device_path = uptane_test_dir + "/device_id";
 
@@ -877,29 +877,29 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
 /**
   * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
 */
-TEST(SotaUptaneClientTest, test149) {
+TEST(SotaUptaneClientTest, provision_on_server) {
   Config config("tests/config_tests_prov.toml");
   std::string server = "tst149";
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = "tests";
   config.tls.certificates_directory = uptane_test_dir;
-  config.tls.server = server;
+  config.provision.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
 
   config.uptane.device_id = "tst149_device_id";
   config.uptane.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.uptane.primary_ecu_serial = "tst149_ecu_serial";
-  config.uptane.polling = false;
 
   event::Channel events_channel;
   command::Channel commands_channel;
   FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
-  Uptane::Repository repo(config, storage);
+  Uptane::Repository repo(config, storage, http);
   SotaUptaneClient up(config, &events_channel, repo);
   up.runForever(&commands_channel);
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
 #ifndef __NO_MAIN__
