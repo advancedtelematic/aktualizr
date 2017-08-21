@@ -97,9 +97,7 @@ endif()
 add_subdirectory("src")
 
 include(CTest)
-if(BUILD_TESTING)
-    add_subdirectory("tests" EXCLUDE_FROM_ALL)
-endif(BUILD_TESTING)
+add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
 add_subdirectory("docs" EXCLUDE_FROM_ALL)
 
