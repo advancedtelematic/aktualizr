@@ -3,7 +3,7 @@
 #include <boost/scoped_array.hpp>
 #include <iostream>
 
-//#include "logger.h"
+#include "logger.h"
 #include "utils.h"
 
 FSStorage::FSStorage(const Config& config) : config_(config) {
@@ -32,7 +32,9 @@ bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_ke
   boost::filesystem::path public_key_path = config_.tls.certificates_directory / config_.uptane.public_key_path;
   boost::filesystem::path private_key_path = config_.tls.certificates_directory / config_.uptane.private_key_path;
 
-  if (!boost::filesystem::exists(public_key_path) || !boost::filesystem::exists(private_key_path)) return false;
+  if (!boost::filesystem::exists(public_key_path) || !boost::filesystem::exists(private_key_path)) {
+    return false;
+  }
 
   if (public_key) *public_key = Utils::readFile(public_key_path.string());
   if (private_key) *private_key = Utils::readFile(private_key_path.string());
@@ -66,9 +68,15 @@ bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pk
   if (!boost::filesystem::exists(ca_path) || !boost::filesystem::exists(cert_path) ||
       !boost::filesystem::exists(pkey_path))
     return false;
-  if (ca) *ca = Utils::readFile(ca_path.string());
-  if (cert) *cert = Utils::readFile(cert_path.string());
-  if (pkey) *pkey = Utils::readFile(pkey_path.string());
+  if (ca) {
+    *ca = Utils::readFile(ca_path.string());
+  }
+  if (cert) {
+    *cert = Utils::readFile(cert_path.string());
+  }
+  if (pkey) {
+    *pkey = Utils::readFile(pkey_path.string());
+  }
   return true;
 }
 
@@ -202,7 +210,6 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
     try {
       hw_id = buf.substr(tab + 1);
     } catch (const std::out_of_range& e) {
-      // LOGGER_LOG(LVL_error, "Malformed secondaries_list");
       if (serials) serials->clear();
       file.close();
       return false;

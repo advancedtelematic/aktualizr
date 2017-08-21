@@ -24,7 +24,6 @@ class HttpClient : public HttpInterface {
   HttpClient();
   HttpClient(const HttpClient &);
   virtual ~HttpClient();
-  virtual bool authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey);
   virtual HttpResponse get(const std::string &url);
   virtual HttpResponse post(const std::string &url, const Json::Value &data);
   virtual HttpResponse put(const std::string &url, const Json::Value &data);

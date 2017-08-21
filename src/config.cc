@@ -87,11 +87,6 @@ Config::Config(const boost::property_tree::ptree& pt) {
 
 void Config::postUpdateValues() {
   boost::system::error_code error;
-  boost::filesystem::create_directories(tls.certificates_directory, error);
-  if (error.value()) {
-    throw std::runtime_error(
-        std::string("Could not create directory for 'tls.certificates_directory' option because: ") + error.message());
-  }
 
   if (tls.server.empty()) {
     if (!provision.provision_path.empty()) {
@@ -151,9 +146,6 @@ void Config::postUpdateValues() {
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
-
-  uptane.public_key_path = (tls.certificates_directory / uptane.public_key_path).string();
-  uptane.private_key_path = (tls.certificates_directory / uptane.private_key_path).string();
 }
 
 void Config::updateFromToml(const std::string& filename) {

@@ -52,9 +52,6 @@ class TufRepository {
   const Uptane::Snapshot& snapshot() { return snapshot_; }
   void setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp = NULL,
                Uptane::Snapshot* snapshot = NULL);
-  void setTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
-    http_.setCerts(ca, cert, pkey);
-  }
   std::string getTargetPath(const Target& target);
 
  private:

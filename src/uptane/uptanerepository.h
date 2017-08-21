@@ -73,6 +73,8 @@ class Repository {
   InitRetCode initTlsCreds(const ProvisionConfig &provision_config);
   void resetTlsCreds();
   InitRetCode initEcuRegister();
+  void setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> > &ecu_serials);
+  void setEcuKeysMembers(const std::string &primary_public, const std::string &primary_private);
 };
 }
 

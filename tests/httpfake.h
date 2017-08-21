@@ -23,14 +23,6 @@ class HttpFake : public HttpInterface {
     (void)pkey;
   }
 
-  bool authenticate(const std::string &cert, const std::string &ca_file, const std::string &pkey) {
-    (void)ca_file;
-    (void)cert;
-    (void)pkey;
-
-    return true;
-  }
-
   HttpResponse get(const std::string &url) {
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
