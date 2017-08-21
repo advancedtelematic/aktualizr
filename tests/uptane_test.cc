@@ -19,7 +19,6 @@ const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(uptane, verify) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   Config config;
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
@@ -36,7 +35,6 @@ TEST(uptane, verify) {
 }
 
 TEST(uptane, verify_data_bad) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   Config config;
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
@@ -58,7 +56,6 @@ TEST(uptane, verify_data_bad) {
 }
 
 TEST(uptane, verify_data_unknown_type) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   Config config;
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
@@ -80,7 +77,6 @@ TEST(uptane, verify_data_unknown_type) {
 
 TEST(uptane, verify_data_bad_keyid) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -102,7 +98,6 @@ TEST(uptane, verify_data_bad_keyid) {
 
 TEST(uptane, verify_data_bad_threshold) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -124,7 +119,9 @@ TEST(uptane, verify_data_bad_threshold) {
 
 TEST(uptane, sign) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/priv.key", uptane_test_dir + "/priv.key");
+  boost::filesystem::copy_file("tests/test_data/public.key", uptane_test_dir + "/public.key");
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
   config.tls.certificates_directory = uptane_test_dir;
@@ -158,7 +155,6 @@ TEST(uptane, sign) {
  */
 TEST(SotaUptaneClientTest, initialize) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   conf.uptane.metadata_path = "tests/";
   conf.uptane.repo_server = tls_server + "/director";
   conf.tls.certificates_directory = uptane_test_dir + "/certs";
@@ -205,7 +201,6 @@ TEST(SotaUptaneClientTest, initialize) {
  */
 TEST(SotaUptaneClientTest, initialize_twice) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   conf.tls.certificates_directory = uptane_test_dir + "/certs";
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.private_key_path = "private.key";
@@ -261,7 +256,6 @@ TEST(SotaUptaneClientTest, initialize_twice) {
  * primary and all secondaries.
  */
 TEST(uptane, random_serial) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   Config conf_1("tests/config_tests_prov.toml");
   conf_1.tls.certificates_directory = uptane_test_dir + "/certs_1";
   boost::filesystem::remove_all(uptane_test_dir + "/certs_1");
@@ -317,7 +311,6 @@ TEST(uptane, random_serial) {
  * requirement at this time.
  */
 TEST(uptane, pet_name_provided) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   std::string test_name = "test-name-123";
   std::string device_path = uptane_test_dir + "/device_id";
 
@@ -351,7 +344,6 @@ TEST(uptane, pet_name_provided) {
  * is specified.
  */
 TEST(uptane, pet_name_creation) {
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   std::string device_path = uptane_test_dir + "/device_id";
 
   // Make sure name is created.
@@ -360,6 +352,8 @@ TEST(uptane, pet_name_creation) {
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.private_key_path = "private.key";
   conf.uptane.public_key_path = "public.key";
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
   conf.provision.provision_path = uptane_test_dir + "/cred.zip";
 
   std::string test_name1, test_name2;
@@ -377,8 +371,9 @@ TEST(uptane, pet_name_creation) {
   // Make sure a new name is generated if the config does not specify a name and
   // there is no device_id file.
   {
-    Utils::copyDir("tests/test_data", uptane_test_dir);
-    boost::filesystem::remove(device_path);
+    boost::filesystem::remove_all(uptane_test_dir);
+    boost::filesystem::create_directory(uptane_test_dir);
+    boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
     conf.uptane.device_id = "";
 
     FSStorage storage(conf);
@@ -407,7 +402,9 @@ TEST(uptane, pet_name_creation) {
   // config, re-initializing the config should still read the device_id from
   // config.
   {
-    Utils::copyDir("tests/test_data", uptane_test_dir);
+    boost::filesystem::remove_all(uptane_test_dir);
+    boost::filesystem::create_directory(uptane_test_dir);
+    boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
     conf.uptane.device_id = test_name2;
 
     FSStorage storage(conf);
@@ -427,7 +424,6 @@ TEST(uptane, pet_name_creation) {
  */
 TEST(uptane, expires) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -466,7 +462,6 @@ TEST(uptane, expires) {
  */
 TEST(uptane, threshold) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -509,7 +504,6 @@ TEST(uptane, threshold) {
 
 TEST(SotaUptaneClientTest, initialize_fail) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   conf.uptane.metadata_path = "tests/";
   conf.uptane.repo_server = tls_server + "/director";
   conf.tls.certificates_directory = uptane_test_dir + "/certs";
@@ -534,10 +528,11 @@ TEST(SotaUptaneClientTest, initialize_fail) {
 
 TEST(SotaUptaneClientTest, putmanifest) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = uptane_test_dir;
   config.uptane.repo_server = tls_server + "/director";
   config.tls.certificates_directory = uptane_test_dir;
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
   config.provision.provision_path = uptane_test_dir + "/cred.zip";
   config.uptane.repo_server = tls_server + "/repo";
   config.uptane.primary_ecu_serial = "testecuserial";
@@ -578,7 +573,8 @@ TEST(SotaUptaneClientTest, putmanifest) {
 
 TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", uptane_test_dir + "/secondary_firmware.txt");
   conf.uptane.metadata_path = uptane_test_dir;
   conf.uptane.director_server = tls_server + "/director";
   conf.tls.certificates_directory = uptane_test_dir;
@@ -624,7 +620,8 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
 
 TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", uptane_test_dir + "/secondary_firmware.txt");
   conf.uptane.metadata_path = uptane_test_dir;
   conf.uptane.director_server = tls_server + "/director";
   conf.tls.certificates_directory = uptane_test_dir;
@@ -640,9 +637,6 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
   ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
-  ecu_config.full_client_dir = uptane_test_dir;
-  ecu_config.ecu_private_key = "sec1.priv";
-  ecu_config.ecu_public_key = "sec1.pub";
   conf.uptane.secondaries.push_back(ecu_config);
 
   conf.tls.server = tls_server;
@@ -674,7 +668,6 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
 
 TEST(SotaUptaneClientTest, RunForeverInstall) {
   Config conf("tests/config_tests_prov.toml");
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.private_key_path = "private.key";
   conf.uptane.public_key_path = "public.key";
@@ -719,10 +712,11 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
 
 TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   Config config;
-  Utils::copyDir("tests/test_data", uptane_test_dir);
   config.uptane.metadata_path = "tests";
   config.uptane.repo_server = tls_server + "/director";
   config.tls.certificates_directory = uptane_test_dir;
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
   config.provision.provision_path = uptane_test_dir + "/cred.zip";
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;

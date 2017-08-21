@@ -2,7 +2,7 @@
 set -e
 mkdir -p build-test
 cd build-test
-cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_TESTING=ON ../src
+cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON ../src
 make check-format
 make -j8
 if [ -n "$BUILD_ONLY" ]; then
