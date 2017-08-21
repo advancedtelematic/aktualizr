@@ -1,22 +1,19 @@
 #include "ostree.h"
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
+                             const std::string &branch_name_in, const std::string &refhash_in,
                              const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {
-  std::size_t pos = ref_name.find_last_of("-");
-  branch_name = ref_name.substr(0, pos);
-  refhash = ref_name.substr(pos + 1, std::string::npos);
-}
+    : ecu_serial(ecu_serial_in),
+      ref_name(ref_name_in),
+      branch_name(branch_name_in),
+      refhash(refhash_in),
+      description(desc_in),
+      pull_uri(treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   (void)cred;
   (void)config;
   return data::InstallOutcome(data::OK, "Good");
-}
-
-OstreePackage OstreePackage::fromJson(const Json::Value &json) {
-  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["description"].asString(),
-                       json["pull_uri"].asString());
 }
 
 Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
@@ -42,7 +39,7 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
 
 OstreePackage OstreePackage::getEcu(const std::string &ecu_serial,
                                     const std::string &ostree_sysroot __attribute__((unused))) {
-  return OstreePackage(ecu_serial, "frgfdg-hash", "dsfsdf", "sfsdfs");
+  return OstreePackage(ecu_serial, "frgfdg-hash", "fr", "hash", "dsfsdf", "sfsdfs");
 }
 
 Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
