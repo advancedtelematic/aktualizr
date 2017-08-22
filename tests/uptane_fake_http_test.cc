@@ -41,11 +41,9 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
 */
 TEST(SotaUptaneClientTest, partial_provision) {
   std::string port = getFreePort();
-  pid_t pID = fork();
-  if (pID == 0) {
-    execlp("tests/fake_http_server/fake_uptane_server.py", "fake_uptane_server.py", port.c_str(), (char *)0);
-    return;
-  }
+
+  TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);
+
   sleep(3);
 
   Config conf("tests/config_tests_prov.toml");
@@ -63,8 +61,6 @@ TEST(SotaUptaneClientTest, partial_provision) {
   EXPECT_TRUE(doInit("noerrors", "noerrors", conf));
   EXPECT_TRUE(doInit("noconnection", "noerrors", conf));
   boost::filesystem::remove_all(conf.tls.certificates_directory);
-
-  kill(pID, SIGTERM);
 }
 
 #ifndef __NO_MAIN__
