@@ -4,6 +4,7 @@
 #include "fsstorage.h"
 
 #include <boost/filesystem.hpp>
+#include "httpclient.h"
 #include "logger.h"
 #include "ostree.h"
 #include "uptane/uptanerepository.h"
@@ -16,14 +17,13 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   pt.put("provision.provision_path", credentials);
   Config config(pt);
   FSStorage storage(config);
-  Uptane::Repository repo(config, storage);
+  HttpClient http;
+  Uptane::Repository repo(config, storage, http);
 
-  EXPECT_TRUE(repo.deviceRegister());
-  EXPECT_TRUE(repo.ecuRegister());
+  EXPECT_TRUE(repo.initialize());
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
-  repo.refresh(repo.getCurrentVersionManifests(unsigned_ecu_version));
-  repo.refresh(repo.getCurrentVersionManifests(unsigned_ecu_version));
+  repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version));
 
   // should not throw any exceptions
   repo.getTargets();
