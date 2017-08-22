@@ -201,8 +201,20 @@ set_tests_properties(test-no-config-check-code
 add_test(NAME test-no-config-check-message
          COMMAND aktualizr -c non-existing-config.toml)
 
+add_test(NAME test-help-with-other-options
+         COMMAND aktualizr --help -c someconfig.toml)
+
+add_test(NAME test-help-with-notexisting-options
+         COMMAND aktualizr --help -somebadoption)
+
 set_tests_properties(test-no-config-check-message
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr: configuration file .* not found. Exiting.")
+
+set_tests_properties(test-help-with-other-options
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
+
+set_tests_properties(test-help-with-notexisting-options
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
