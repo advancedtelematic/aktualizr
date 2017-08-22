@@ -54,6 +54,9 @@ Json::Value Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &tar
 }
 
 void Secondary::setKeys(const std::string &public_key, const std::string &private_key) {
+  if (!boost::filesystem::exists(config.full_client_dir)) {
+    boost::filesystem::create_directories(config.full_client_dir);
+  }
   Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), private_key);
   Utils::writeFile((config.full_client_dir / config.ecu_public_key).string(), public_key);
 }
