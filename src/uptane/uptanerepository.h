@@ -28,6 +28,7 @@ const int MaxInitializationAttempts = 3;
 class Repository {
  public:
   Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
+  Json::Value getPrimaryEcuVersion();
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
   // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);

@@ -15,6 +15,7 @@
 #include "invstorage.h"
 #include "logger.h"
 #include "openssl_compat.h"
+#include "ostree.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -31,6 +32,10 @@ Repository::Repository(const Config &config_in, INvStorage &storage_in, HttpInte
 void Repository::updateRoot(Version version) {
   director.updateRoot(version);
   image.updateRoot(version);
+}
+
+Json::Value Repository::getPrimaryEcuVersion() {
+  return OstreePackage::getEcu(primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
 }
 
 Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
