@@ -33,6 +33,7 @@ class Repository {
   // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
+  std::string getPrimaryEcuSerial() { return primary_ecu_serial; };
 
   // implemented in uptane/initialize.cc
   bool initialize();
