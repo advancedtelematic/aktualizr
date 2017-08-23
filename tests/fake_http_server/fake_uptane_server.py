@@ -57,5 +57,10 @@ class ReUseHTTPServer(HTTPServer):
 
 server_address = ('', int(sys.argv[1]))
 httpd = ReUseHTTPServer(server_address, Handler)
-httpd.serve_forever()
+
+try:
+	httpd.serve_forever()
+except KeyboardInterrupt, k:
+	print("fake_uptane_server.py exiting...")
+	pass
 

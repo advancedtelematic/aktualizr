@@ -9,7 +9,7 @@ if(NOT GMOCK_ROOT )
 endif()
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
 
-# use the same libraries as the normal target but add gtest gmock and gcov
+# use the same libraries as the normal target but add our test utility library, gtest, gmock and gcov
 set (TEST_LIBS
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
@@ -19,6 +19,7 @@ set (TEST_LIBS
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
+    testutilities
     gtest gmock gcov)
 
 if(BUILD_GENIVI)
@@ -59,6 +60,9 @@ function(add_aktualizr_test)
     add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
 
 endfunction(add_aktualizr_test)
+
+
+add_library(testutilities test_utils.cc)
 
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
@@ -249,6 +253,8 @@ set(ALL_TEST_SRCS
     uptane_test.cc
     uptane_ci_test.cc
     fake_ostree.cc
+    test_utils.h
+    test_utils.cc
     utils_test.cc
     uptane_fake_http_test.cc)
 
