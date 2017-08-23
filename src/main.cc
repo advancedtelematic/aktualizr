@@ -33,6 +33,17 @@
 
 namespace bpo = boost::program_options;
 
+void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+  if (vm.count("help") != 0) {
+    std::cout << description << '\n';
+    exit(EXIT_SUCCESS);
+  }
+  if (vm.count("version") != 0) {
+    std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+    exit(EXIT_SUCCESS);
+  }
+}
+
 bpo::variables_map parse_options(int argc, char *argv[]) {
   bpo::options_description description("CommandLine Options");
   // clang-format off
@@ -58,19 +69,20 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   // clang-format on
 
   bpo::variables_map vm;
+  std::vector<std::string> unregistered_options;
   try {
-    bpo::store(bpo::parse_command_line(argc, argv, description), vm);
+    bpo::basic_parsed_options<char> parsed_options =
+        bpo::command_line_parser(argc, argv).options(description).allow_unregistered().run();
+    bpo::store(parsed_options, vm);
+    check_info_options(description, vm);
     bpo::notify(vm);
+    unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
+    std::cout << "size: " << unregistered_options.size() << "\n";
+    if (vm.count("help") == 0 && !unregistered_options.empty()) {
+      std::cout << description << "\n";
+      exit(EXIT_FAILURE);
+    }
   } catch (const bpo::required_option &ex) {
-    if (vm.count("help") != 0) {
-      std::cout << description << '\n';
-      exit(EXIT_SUCCESS);
-    }
-    if (vm.count("version") != 0) {
-      std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
-      exit(EXIT_SUCCESS);
-    }
-
     if (ex.get_option_name() == "--config") {
       std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
                                            "file using toml format. See the example configuration file "
@@ -83,6 +95,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       exit(EXIT_SUCCESS);
     }
   } catch (const bpo::error &ex) {
+    check_info_options(description, vm);
+
     // log boost error
     LOGGER_LOG(LVL_warning, "boost command line option error: " << ex.what());
 
