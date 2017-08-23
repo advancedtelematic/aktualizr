@@ -49,6 +49,7 @@ TEST(SotaUptaneClientTest, partial_provision) {
   sleep(3);
 
   Config conf("tests/config_tests_prov.toml");
+  conf.tls.certificates_directory = "tests/test_uptane_fake_http";
   conf.provision.server = "http://127.0.0.1:" + port;
   conf.tls.server = "http://127.0.0.1:" + port;
 
@@ -61,6 +62,7 @@ TEST(SotaUptaneClientTest, partial_provision) {
   EXPECT_TRUE(doInit("noerrors", "status_408", conf));
   EXPECT_TRUE(doInit("noerrors", "noerrors", conf));
   EXPECT_TRUE(doInit("noconnection", "noerrors", conf));
+  boost::filesystem::remove_all(conf.tls.certificates_directory);
 
   kill(pID, SIGTERM);
 }
