@@ -53,8 +53,17 @@ class HttpFake : public HttpInterface {
   }
 
   HttpResponse post(const std::string &url, const Json::Value &data) {
-    (void)url;
-
+    if (url.find("tst149") == 0) {
+      if (url == "tst149/devices") {
+        EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
+        return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+      } else if (url == "tst149/director/ecus") {
+        EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
+        EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
+        EXPECT_EQ(data["ecus"][0]["ecu_serial"].asString(), "tst149_ecu_serial");
+        return HttpResponse("{}", 200, CURLE_OK, "");
+      }
+    }
     Utils::writeFile(test_dir + "/post.json", data);
     if (provisioningResponse == ProvisionOK) {
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
@@ -64,6 +73,23 @@ class HttpFake : public HttpInterface {
   }
 
   HttpResponse put(const std::string &url, const Json::Value &data) {
+    if (url == "tst149/core/installed") {
+      EXPECT_EQ(data[0]["name"].asString(), "vim");
+      EXPECT_EQ(data[0]["version"].asString(), "1.0");
+    } else if (url == "tst149/core/system_info") {
+      Json::Value hwinfo = Utils::getHardwareInfo();
+      EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
+      EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
+      EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
+      EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
+    } else if (url == "tst149/director/manifest") {
+      EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
+                "frgfdg-hash");
+      EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"]
+                    .asString(),
+                "hash");
+    }
+
     std::ofstream director_file(test_manifest.c_str());
     director_file << data;
     director_file.close();
