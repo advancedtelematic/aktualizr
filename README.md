@@ -60,7 +60,6 @@ The following debian packages are used in the project:
  - curl (>= 7.47)
  - libcurl4-openssl-dev (>= 7.47)
  - cmake (>= 3.5.1)
- - google-mock
  - libostree-dev
  - valgrind
  - libjansson-dev
@@ -68,7 +67,7 @@ The following debian packages are used in the project:
  - libarchive-dev
  - libsodium-dev
  - clang (optional)
- - clang-format (optional)
+ - clang-format-3.8 (optional)
  - python3-dev (when building tests)
  - python-virtualenv (when building tests)
  - libdbus-1-dev (when building tests)
