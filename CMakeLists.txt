@@ -77,9 +77,9 @@ endif(BUILD_GENIVI)
 if (CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
-    # problems in gtest. -Wswitch-default would be nice as well, but also causes
-    # problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare -Wno-error=conversion)
+    # problems in gtest. -Wswitch-default and -Wconversion would be nice as
+    # well, but they also cause problems in gtest.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wlogical-op -Wno-sign-compare)
 
     if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR MAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)
@@ -90,7 +90,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     endif()
 
     if (PEDANTIC_WARNINGS)
-        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare)
+        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
     endif (PEDANTIC_WARNINGS)
 endif()
 
