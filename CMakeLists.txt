@@ -95,6 +95,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 add_subdirectory("src")
+add_subdirectory("src/cert_provider")
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
