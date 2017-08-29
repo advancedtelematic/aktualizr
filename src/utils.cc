@@ -1,6 +1,13 @@
 #include "utils.h"
+
 #include <stdio.h>
 #include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/remove_whitespace.hpp>
@@ -10,11 +17,7 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
+
 #include "logger.h"
 
 const char *adverbs[] = {

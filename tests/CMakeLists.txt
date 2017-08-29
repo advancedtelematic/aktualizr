@@ -259,7 +259,7 @@ set(ALL_TEST_SRCS
     uptane_fake_http_test.cc)
 
 add_custom_target(check-format-tests
-    COMMAND ../scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking clang-format on tests"
     VERBATIM)
@@ -271,7 +271,7 @@ if(CLANG_FORMAT)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-format on tests"
         VERBATIM)
-    add_dependencies(qa format-tests)
+    add_dependencies(format format-tests)
 else()
     message(WARNING "clang-format not found, skipping")
 endif()

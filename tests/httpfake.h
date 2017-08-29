@@ -1,6 +1,7 @@
 #ifndef HTTPFAKE_H_
 #define HTTPFAKE_H_
 
+#include <boost/filesystem.hpp>
 #include "json/json.h"
 
 #include "httpinterface.h"

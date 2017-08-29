@@ -7,6 +7,8 @@ class Bootstrap {
  public:
   Bootstrap(const std::string& provision_path, const std::string& provision_password);
 
+  static std::string readServerUrl(const std::string& provision_path);
+
   std::string getCa() const { return ca; }
   std::string getCert() const { return cert; }
   std::string getPkey() const { return pkey; }

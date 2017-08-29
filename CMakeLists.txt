@@ -55,6 +55,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 add_custom_target(qa)
 add_custom_target(check-format)
 
+add_custom_target(format)
+add_dependencies(qa format)
+
 # clang-check and clang-format
 # The .clang-format file requires clang-format-3.8
 find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format)
@@ -77,9 +80,9 @@ endif(BUILD_GENIVI)
 if (CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
-    # problems in gtest. -Wswitch-default would be nice as well, but also causes
-    # problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op -Wno-sign-compare -Wno-error=conversion)
+    # problems in gtest. -Wswitch-default and -Wconversion would be nice as
+    # well, but they also cause problems in gtest.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wlogical-op -Wno-sign-compare)
 
     if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR MAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)
@@ -90,11 +93,12 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     endif()
 
     if (PEDANTIC_WARNINGS)
-        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare)
+        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
     endif (PEDANTIC_WARNINGS)
 endif()
 
 add_subdirectory("src")
+add_subdirectory("src/cert_provider")
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)

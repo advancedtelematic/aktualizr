@@ -1,13 +1,12 @@
 #include "config.h"
 
-#include <archive.h>
-#include <archive_entry.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <sstream>
 
+#include "bootstrap.h"
 #include "logger.h"
 #include "utils.h"
 
@@ -91,46 +90,7 @@ void Config::postUpdateValues() {
   if (tls.server.empty()) {
     if (!provision.provision_path.empty()) {
       if (boost::filesystem::exists(provision.provision_path)) {
-        bool found = false;
-        std::stringstream url_stream;
-        struct archive* a = archive_read_new();
-        archive_read_support_filter_all(a);
-        archive_read_support_format_all(a);
-        int r = archive_read_open_filename(a, provision.provision_path.c_str(), 1024);
-        if (r == ARCHIVE_OK) {
-          struct archive_entry* entry;
-          while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-            std::string filename(archive_entry_pathname(entry));
-            if (filename == "autoprov.url") {
-              const char* buff;
-              size_t size;
-              int64_t offset;
-
-              for (;;) {
-                r = archive_read_data_block(a, (const void**)&buff, &size, &offset);
-                if (r == ARCHIVE_EOF) {
-                  break;
-                } else if (r != ARCHIVE_OK) {
-                  LOGGER_LOG(LVL_error, "Error reading provision archive: " << archive_error_string(a));
-                } else if (size > 0 && buff != NULL) {
-                  url_stream.write(buff, size);
-                }
-              }
-              found = true;
-            } else {
-              archive_read_data_skip(a);
-            }
-          }
-          r = archive_read_free(a);
-          if (r != ARCHIVE_OK) {
-            LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision.provision_path);
-          }
-          if (found) {
-            tls.server = url_stream.str();
-          } else {
-            LOGGER_LOG(LVL_error, "autoprov.url not found in provision archive: " << provision.provision_path);
-          }
-        }
+        tls.server = Bootstrap::readServerUrl(provision.provision_path);
       } else {
         LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
       }
