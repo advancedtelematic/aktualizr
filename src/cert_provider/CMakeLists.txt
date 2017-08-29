@@ -24,7 +24,7 @@ if(CLANG_FORMAT)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-format on src/cert_provider"
         VERBATIM)
-    add_dependencies(qa format-cp)
+    add_dependencies(format format-cp)
 else()
     message(WARNING "clang-format not found, skipping")
 endif()

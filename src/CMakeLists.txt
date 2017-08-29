@@ -94,7 +94,7 @@ endif(BUILD_GENIVI)
 
 ################ QA RULES
 add_custom_target(check-format-src
-    COMMAND ../scripts/check-formatting.sh ${CLANG_FORMAT} main.cc ${SOURCES} ${HEADERS}
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} main.cc ${SOURCES} ${HEADERS}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Checking clang-format on src"
     VERBATIM)
@@ -106,7 +106,7 @@ if(CLANG_FORMAT)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running clang-format on src"
         VERBATIM)
-    add_dependencies(qa format-src)
+    add_dependencies(format format-src)
 else()
     message(WARNING "clang-format not found, skipping")
 endif()
