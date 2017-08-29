@@ -21,8 +21,9 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 }
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
-  if (target.ecu_identifier() == uptane_repo.primary_ecu_serial) {
-    return target.filename() == OstreePackage::getEcu(uptane_repo.primary_ecu_serial, config.ostree.sysroot).ref_name;
+  if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
+    return target.filename() ==
+           OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).ref_name;
   } else {
     // TODO: iterate through secondaries, compare version when found, throw exception otherwise
     return true;
@@ -55,7 +56,7 @@ Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
   Json::Value operation_result;
   operation_result["operation_result"] = result.toJson();
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(uptane_repo.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(operation_result);
+      OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(operation_result);
   Json::Value ecu_version_signed =
       Crypto::signTuf(uptane_repo.primary_private_key, uptane_repo.primary_public_key, unsigned_ecu_version);
   return ecu_version_signed;
@@ -89,7 +90,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     try {
       if (command->variant == "GetUpdateRequests") {
         Json::Value unsigned_ecu_version =
-            OstreePackage::getEcu(uptane_repo.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
+            OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot)
+                .toEcuVersion(Json::nullValue);
         uptane_repo.putManifest(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
@@ -102,7 +104,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         }
       } else if (command->variant == "UptaneInstall") {
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
-        std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.primary_ecu_serial);
+        std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.getPrimaryEcuSerial());
         Json::Value manifests(Json::arrayValue);
         manifests = uptane_repo.updateSecondaries(updates);
         if (primary_updates.size()) {

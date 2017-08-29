@@ -15,7 +15,6 @@ class SotaUptaneClient {
 
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
 
-  void putManifest(SotaUptaneClient::ServiceType service, const std::string &manifest);
   Json::Value sign(const Json::Value &in_data);
   Json::Value OstreeInstall(const OstreePackage &package);
   void run(command::Channel *commands_channel);
