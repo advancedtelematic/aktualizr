@@ -6,7 +6,7 @@
 
 #include "httpinterface.h"
 
-const std::string test_manifest = "/tmp/test_aktualizr_manifest.txt";
+const std::string test_manifest = "/test_aktualizr_manifest.txt";
 const std::string tls_server = "https://tlsserver.com";
 const std::string metadata_path = "tests/test_data";
 
@@ -91,7 +91,7 @@ class HttpFake : public HttpInterface {
                 "hash");
     }
 
-    std::ofstream director_file(test_manifest.c_str());
+    std::ofstream director_file((test_dir + test_manifest).c_str());
     director_file << data;
     director_file.close();
     return HttpResponse(url, 200, CURLE_OK, "");

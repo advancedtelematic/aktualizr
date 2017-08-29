@@ -279,7 +279,7 @@ TEST(uptane, random_serial) {
   ecu_config.ecu_hardware_id = "";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = "/tmp/firmware.txt";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
   conf_1.uptane.secondaries.push_back(ecu_config);
   conf_2.uptane.secondaries.push_back(ecu_config);
 
@@ -546,7 +546,7 @@ TEST(SotaUptaneClientTest, putmanifest) {
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = "/tmp/firmware.txt";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
   config.uptane.secondaries.push_back(ecu_config);
 
   FSStorage storage(config);
@@ -554,20 +554,19 @@ TEST(SotaUptaneClientTest, putmanifest) {
   Uptane::Repository uptane(config, storage, http);
   uptane.initialize();
 
-  boost::filesystem::remove(test_manifest);
-
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
   uptane.putManifest(uptane.getCurrentVersionManifests(unsigned_ecu_version));
 
-  EXPECT_EQ(boost::filesystem::exists(test_manifest), true);
-  Json::Value json = Utils::parseJSONFile(test_manifest);
+  EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + test_manifest));
+  Json::Value json = Utils::parseJSONFile(uptane_test_dir + test_manifest);
 
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["ecu_serial"], "secondary_ecu_serial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"], "/tmp/firmware.txt");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"],
+            uptane_test_dir + "/firmware.txt");
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -676,8 +675,6 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   conf.tls.certificates_directory = uptane_test_dir;
   conf.uptane.repo_server = tls_server + "/repo";
 
-  boost::filesystem::remove(test_manifest);
-
   conf.tls.server = tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
@@ -696,11 +693,11 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
 
-  EXPECT_TRUE(boost::filesystem::exists(test_manifest));
+  EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + test_manifest));
 
   Json::Value json;
   Json::Reader reader;
-  std::ifstream ks(test_manifest.c_str());
+  std::ifstream ks((uptane_test_dir + test_manifest).c_str());
   std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
 
   reader.parse(mnfst_str, json);
@@ -732,7 +729,7 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = "/tmp/firmware.txt";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
   config.uptane.secondaries.push_back(ecu_config);
 
   FSStorage storage(config);
@@ -769,7 +766,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   ecu_config1.ecu_hardware_id = "secondary_hardware1";
   ecu_config1.ecu_private_key = "sec1.priv";
   ecu_config1.ecu_public_key = "sec1.pub";
-  ecu_config1.firmware_path = "/tmp/firmware1.txt";
+  ecu_config1.firmware_path = uptane_test_dir + "/firmware1.txt";
   config.uptane.secondaries.push_back(ecu_config1);
 
   ecu_config2.full_client_dir = uptane_test_dir;
@@ -777,7 +774,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   ecu_config2.ecu_hardware_id = "secondary_hardware2";
   ecu_config2.ecu_private_key = "sec2.priv";
   ecu_config2.ecu_public_key = "sec2.pub";
-  ecu_config2.firmware_path = "/tmp/firmware2.txt";
+  ecu_config2.firmware_path = uptane_test_dir + "/firmware2.txt";
   config.uptane.secondaries.push_back(ecu_config2);
 }
 
