@@ -15,6 +15,11 @@
 
 namespace bpo = boost::program_options;
 
+const std::string dev_file = "device_id";
+const std::string pkey_file = "pkey.pem";
+const std::string cert_file = "client.pem";
+const std::string ca_file = "root.crt";
+
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
@@ -34,7 +39,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current cert_provider version")
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("target,t", bpo::value<std::string>(), "target device")
-      ("port,p", bpo::value<int>(), "target port");
+      ("port,p", bpo::value<int>(), "target port")
+      ("directory,d", bpo::value<std::string>(), "local directory to write credentials to");
   // clang-format on
 
   bpo::variables_map vm;
@@ -73,11 +79,6 @@ int main(int argc, char *argv[]) {
   loggerInit();
   loggerSetSeverity(static_cast<LoggerLevels>(2));
 
-  boost::filesystem::remove("device_id");
-  boost::filesystem::remove("root.crt");
-  boost::filesystem::remove("client.pem");
-  boost::filesystem::remove("pkey.pem");
-
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
   std::string credentials_path = commandline_map["credentials"].as<std::string>();
@@ -89,6 +90,15 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
+  std::string directory = "";
+  if (commandline_map.count("directory") != 0) {
+    directory = commandline_map["directory"].as<std::string>();
+  }
+
+  TemporaryFile tmp_dev_file(dev_file);
+  TemporaryFile tmp_pkey_file(pkey_file);
+  TemporaryFile tmp_cert_file(cert_file);
+  TemporaryFile tmp_ca_file(ca_file);
 
   std::string device_id = Utils::genPrettyName();
   std::cout << "Random device ID is " << device_id << "\n";
@@ -124,25 +134,43 @@ int main(int argc, char *argv[]) {
   }
   fclose(device_p12);
 
-  Utils::writeFile("device_id", device_id);
-  Utils::writeFile("root.crt", ca);
-  Utils::writeFile("client.pem", cert);
-  Utils::writeFile("pkey.pem", pkey);
-  sync();
+  tmp_dev_file.PutContents(device_id);
+  tmp_pkey_file.PutContents(pkey);
+  tmp_cert_file.PutContents(cert);
+  tmp_ca_file.PutContents(ca);
+
+  if (!directory.empty()) {
+    std::cout << "Writing client certificate and keys to " << directory << " ...\n";
+    if (boost::filesystem::exists(directory)) {
+      boost::filesystem::remove(directory + "/" + dev_file);
+      boost::filesystem::remove(directory + "/" + pkey_file);
+      boost::filesystem::remove(directory + "/" + cert_file);
+      boost::filesystem::remove(directory + "/" + ca_file);
+    } else {
+      boost::filesystem::create_directory(directory);
+    }
+    boost::filesystem::copy_file(tmp_dev_file.PathString(), directory + "/" + dev_file);
+    boost::filesystem::copy_file(tmp_pkey_file.PathString(), directory + "/" + pkey_file);
+    boost::filesystem::copy_file(tmp_cert_file.PathString(), directory + "/" + cert_file);
+    boost::filesystem::copy_file(tmp_ca_file.PathString(), directory + "/" + ca_file);
+    std::cout << "...success\n";
+  }
 
   if (!target.empty()) {
     std::cout << "Copying client certificate and keys to " << target << ":/var/sota/";
     if (port) {
       std::cout << " on port " << port;
     }
-    std::cout << "\n";
-    std::ostringstream scp_stream;
-    scp_stream << "scp";
+    std::cout << " ...\n";
+    std::ostringstream scp_prefix;
+    scp_prefix << "scp ";
     if (port) {
-      scp_stream << " -P " << port;
+      scp_prefix << "-P " << port << " ";
     }
-    scp_stream << " device_id root.crt client.pem pkey.pem " << target << ":/var/sota/";
-    system(scp_stream.str().c_str());
+    system((scp_prefix.str() + tmp_dev_file.PathString() + " " + target + ":/var/sota/" + dev_file).c_str());
+    system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":/var/sota/" + pkey_file).c_str());
+    system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":/var/sota/" + cert_file).c_str());
+    system((scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":/var/sota/" + ca_file).c_str());
     std::cout << "...success\n";
   }
 
