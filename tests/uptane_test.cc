@@ -4,6 +4,7 @@
 
 #include <logger.h>
 #include <boost/algorithm/hex.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 #include <string>
 

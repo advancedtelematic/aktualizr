@@ -1,7 +1,9 @@
 #include "fsstorage.h"
 
-#include <boost/scoped_array.hpp>
 #include <iostream>
+
+#include <boost/filesystem.hpp>
+#include <boost/scoped_array.hpp>
 
 #include "logger.h"
 #include "utils.h"

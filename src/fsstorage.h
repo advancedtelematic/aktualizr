@@ -1,8 +1,6 @@
 #ifndef FSSTORAGE_H_
 #define FSSTORAGE_H_
 
-#include <boost/filesystem.hpp>
-
 #include "config.h"
 #include "invstorage.h"
 

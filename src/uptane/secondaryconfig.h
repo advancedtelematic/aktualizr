@@ -1,5 +1,8 @@
 #ifndef UPTANE_SECONDARYCONFIG_H_
 #define UPTANE_SECONDARYCONFIG_H_
+
+#include <boost/filesystem.hpp>
+
 namespace Uptane{
 struct SecondaryConfig{
     std::string ecu_serial;
