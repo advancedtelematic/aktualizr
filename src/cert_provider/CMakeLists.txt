@@ -1,9 +1,9 @@
 set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
 # set the name of the executable
-add_executable(cert_provider main.cc)
+add_executable(aktualizr_cert_provider main.cc)
 
-target_link_libraries(cert_provider aktualizr_static_lib
+target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
         ${Boost_LIBRARIES}
         ${CURL_LIBRARIES}
         ${OPENSSL_LIBRARIES}
@@ -40,4 +40,5 @@ else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
 
+install(TARGETS aktualizr_cert_provider RUNTIME DESTINATION bin)
 
