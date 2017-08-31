@@ -188,7 +188,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(uptane.polling, "uptane.polling", LVL_trace, pt);
   CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", LVL_trace, pt);
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
-  CopyFromConfig(uptane.disable_keyid_validation, "uptane.disable_keyid_validation", LVL_debug, pt);
   CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
@@ -220,9 +219,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
-  }
-  if (cmd.count("disable-keyid-validation") != 0) {
-    uptane.disable_keyid_validation = true;
   }
   if (cmd.count("primary-ecu-serial") != 0) {
     uptane.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
