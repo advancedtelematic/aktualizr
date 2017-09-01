@@ -65,7 +65,7 @@ class Repository {
   bool getMeta();
 
   // implemented in uptane/initialize.cc
-  bool initDeviceId(const UptaneConfig &uptane_config);
+  bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);
   void resetDeviceId();
   bool initEcuSerials(UptaneConfig &uptane_config);
   void resetEcuSerials();

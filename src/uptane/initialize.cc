@@ -1,3 +1,5 @@
+#include <openssl/x509.h>
+#include <boost/scoped_array.hpp>
 #include <string>
 
 #include "bootstrap.h"
@@ -6,14 +8,46 @@
 namespace Uptane {
 
 // Postcondition: device_id is in the storage
-bool Repository::initDeviceId(const UptaneConfig& uptane_config) {
+bool Repository::initDeviceId(const ProvisionConfig& provision_config, const UptaneConfig& uptane_config) {
   // if device_id is already stored, just return
   std::string device_id;
   if (storage.loadDeviceId(&device_id)) return true;
 
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = uptane_config.device_id;
-  if (device_id.empty()) device_id = Utils::genPrettyName();
+  if (device_id.empty()) {
+    if (provision_config.mode == kAutomatic) {
+      device_id = Utils::genPrettyName();
+    } else if (provision_config.mode == kImplicit) {
+      std::string cert;
+      if (!storage.loadTlsCreds(NULL, &cert, NULL)) {
+        LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+        return false;
+      }
+      BIO* bio = BIO_new_mem_buf(const_cast<char*>(cert.c_str()), (int)cert.size());
+      X509* x = PEM_read_bio_X509(bio, NULL, 0, NULL);
+      BIO_free_all(bio);
+      std::cout << "Parsing certificate: " << cert << std::endl;
+      if (!x) {
+        LOGGER_LOG(LVL_error, "Failure during certificate parsing: " << ERR_error_string(ERR_get_error(), NULL));
+        return false;
+      }
+      int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, NULL, 0);
+      if (len < 0) {
+        LOGGER_LOG(LVL_error, "Couldn't extract CN from the certificate");
+        X509_free(x);
+        return false;
+      }
+      boost::scoped_array<char> buf(new char[len]);
+      X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, buf.get(), len);
+      device_id = std::string(buf.get());
+      X509_free(x);
+      std::cout << "Implicit provisioning: set device_id to " << device_id << std::endl;
+    } else {
+      LOGGER_LOG(LVL_error, "Unknown provisioning method");
+      return false;
+    }
+  }
 
   storage.storeDeviceId(device_id);
   return true;
@@ -240,7 +274,7 @@ InitRetCode Repository::initEcuRegister() {
 // Postcondition: "ECUs registered" flag set in the storage
 bool Repository::initialize() {
   for (int i = 0; i < MaxInitializationAttempts; i++) {
-    if (!initDeviceId(config.uptane)) {
+    if (!initDeviceId(config.provision, config.uptane)) {
       LOGGER_LOG(LVL_error, "Device ID generation failed, abort initialization");
       return false;
     }
