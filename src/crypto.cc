@@ -167,7 +167,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t pkey_len;
   FILE *pkey_pem_file = open_memstream(&pkey_buf, &pkey_len);
   if (!pkey_pem_file) {
-    LOGGER_LOG(LVL_error, "Could not open pkey buffer for writting");
+    LOGGER_LOG(LVL_error, "Could not open pkey buffer for writing");
     EVP_PKEY_free(pkey);
     return false;
   }
@@ -181,7 +181,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t cert_len;
   FILE *cert_file = open_memstream(&cert_buf, &cert_len);
   if (!cert_file) {
-    LOGGER_LOG(LVL_error, "Could not open certificate buffer for writting");
+    LOGGER_LOG(LVL_error, "Could not open certificate buffer for writing");
     return false;
   }
   PEM_write_X509(cert_file, x509_cert);
@@ -190,7 +190,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t ca_len;
   FILE *ca_file = open_memstream(&ca_buf, &ca_len);
   if (!ca_file) {
-    LOGGER_LOG(LVL_error, "Could not open ca buffer for writting");
+    LOGGER_LOG(LVL_error, "Could not open ca buffer for writing");
     return false;
   }
   X509 *ca_cert = NULL;
