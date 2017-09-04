@@ -40,5 +40,3 @@ else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
 
-install(TARGETS aktualizr_cert_provider RUNTIME DESTINATION bin)
-
