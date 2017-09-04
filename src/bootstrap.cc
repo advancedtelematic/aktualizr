@@ -73,7 +73,7 @@ Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provi
       throw std::runtime_error("Unable to parse bootstrap credentials");
     }
   } else {
-    LOGGER_LOG(LVL_error, "Provided provision path is empty!");
+    LOGGER_LOG(LVL_error, "Provision path is empty!");
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 }

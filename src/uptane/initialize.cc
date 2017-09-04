@@ -129,6 +129,8 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
     // set provisioned credentials
     http.setCerts(ca, cert, pkey);
     return INIT_RET_OK;
+  } else if (provision_config.mode == kImplicit) {
+    throw std::runtime_error("Implicit provisioning credentials not found.");
   }
   // set bootstrap credentials
   Bootstrap boot(provision_config.provision_path, provision_config.p12_password);
@@ -168,7 +170,12 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
   LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
   return INIT_RET_OK;
 }
-void Repository::resetTlsCreds() { storage.clearTlsCreds(); }
+
+void Repository::resetTlsCreds() {
+  if (config.provision.mode != kImplicit) {
+    storage.clearTlsCreds();
+  }
+}
 
 // Postcondition: "ECUs registered" flag set in the storage
 InitRetCode Repository::initEcuRegister() {

@@ -16,7 +16,7 @@
 
 #include "uptane/secondaryconfig.h"
 
-enum PackageManager { PMOFF = 0, PMOSTREE };
+enum ProvisionMode { kAutomatic = 0, kImplicit };
 
 #ifdef WITH_GENIVI
 // DbusConfig depends on DBusBusType with is defined in libdbus
@@ -96,11 +96,12 @@ struct TlsConfig {
 };
 
 struct ProvisionConfig {
-  ProvisionConfig() : server(), p12_password(""), expiry_days("36000"), provision_path() {}
+  ProvisionConfig() : server(""), p12_password(""), expiry_days("36000"), provision_path(""), mode(kAutomatic) {}
   std::string server;
   std::string p12_password;
   std::string expiry_days;
   std::string provision_path;
+  ProvisionMode mode;
 };
 
 struct UptaneConfig {

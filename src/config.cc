@@ -87,6 +87,10 @@ Config::Config(const boost::property_tree::ptree& pt) {
 void Config::postUpdateValues() {
   boost::system::error_code error;
 
+  if (provision.provision_path.empty()) {
+    provision.mode = kImplicit;
+  }
+
   if (tls.server.empty()) {
     if (!provision.provision_path.empty()) {
       if (boost::filesystem::exists(provision.provision_path)) {
@@ -94,8 +98,6 @@ void Config::postUpdateValues() {
       } else {
         LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
       }
-    } else {
-      LOGGER_LOG(LVL_warning, "Provided provision path is empty!");
     }
   }
 
