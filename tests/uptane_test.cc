@@ -904,16 +904,10 @@ TEST(SotaUptaneClientTest, provision_on_server) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, implicit_mode) {
-  Config config;
-  EXPECT_EQ(config.provision.mode, kImplicit);
-}
-
-TEST(SotaUptaneClientTest, automatic_mode) {
-  Config config("tests/config_tests_prov.toml");
-  EXPECT_EQ(config.provision.mode, kAutomatic);
-}
-
+/**
+ * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr
+ * halts if credentials are not available.
+ */
 TEST(SotaUptaneClientTest, implicit_failure) {
   Config config;
   FSStorage storage(config);
@@ -922,6 +916,59 @@ TEST(SotaUptaneClientTest, implicit_failure) {
   EXPECT_THROW(uptane.initialize(), std::runtime_error);
 }
 
+/**
+ * \verify{\tst{187}} Verfiy that aktualizr halts when provided incomplete
+ * implicit provisioning credentials.
+ */
+TEST(SotaUptaneClientTest, implicit_incomplete) {
+  Config config;
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.ca_file = "ca.pem";
+  config.tls.client_certificate = "client.pem";
+  config.tls.pkey_file = "pkey.pem";
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::Repository uptane(config, storage, http);
+
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
+  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+/**
+ * \verify{\tst{186}} Verify that aktualizr can implicitly provision with
+ * provided credentials.
+ */
 TEST(SotaUptaneClientTest, implicit_provision) {
   Config config;
   config.tls.certificates_directory = uptane_test_dir;

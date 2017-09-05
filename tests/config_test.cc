@@ -153,6 +153,20 @@ TEST(config, ecu_persist) {
   boost::filesystem::remove_all(config_test_dir);
 }
 
+/**
+ * \verify{\tst{184}} Verify that aktualizr can start in implicit provisioning
+ * mode.
+ */
+TEST(SotaUptaneClientTest, implicit_mode) {
+  Config config;
+  EXPECT_EQ(config.provision.mode, kImplicit);
+}
+
+TEST(SotaUptaneClientTest, automatic_mode) {
+  Config config("tests/config_tests_prov.toml");
+  EXPECT_EQ(config.provision.mode, kAutomatic);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
