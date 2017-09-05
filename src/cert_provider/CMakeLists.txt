@@ -9,6 +9,7 @@ target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         ${SODIUM_LIBRARIES}
+        ${LIBP11_LIBRARIES}
         ${LibArchive_LIBRARIES} gcov)
 
 add_custom_target(check-format-cp

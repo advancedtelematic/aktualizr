@@ -2,12 +2,14 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
+#include <openssl/engine.h>
 #include <boost/move/unique_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include "json/json.h"
 
 #include "config.h"
 #include "httpinterface.h"
+#include "logger.h"
 #include "utils.h"
 
 /**
@@ -30,6 +32,8 @@ class HttpClient : public HttpInterface {
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
   virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
+  virtual bool setPkcs11(const std::string &module, const std::string &pass, const std::string &certname,
+                         const std::string &keyname, const std::string &ca);
   unsigned int http_code;
   std::string token; /**< the OAuth2 token stored as string */
 
@@ -54,6 +58,8 @@ class HttpClient : public HttpInterface {
   boost::movelib::unique_ptr<TemporaryFile> tls_ca_file;
   boost::movelib::unique_ptr<TemporaryFile> tls_cert_file;
   boost::movelib::unique_ptr<TemporaryFile> tls_pkey_file;
+  ENGINE *ssl_engine;
+  bool is_pkcs11;
   static const int RETRY_TIMES = 2;
 };
 #endif

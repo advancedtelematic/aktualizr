@@ -13,6 +13,7 @@ class INvStorage {
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) = 0;
   virtual bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) = 0;
   virtual void clearTlsCreds() = 0;
+  virtual bool loadTlsCa(std::string* ca) = 0;  // TODO: may be deleted when new requirements on pkcs11 arrive
 #ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata) = 0;
   virtual bool loadMetadata(Uptane::MetaPack* metadata) = 0;

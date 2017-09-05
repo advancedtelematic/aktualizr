@@ -181,6 +181,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
   CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
   CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
+  CopyFromConfig(tls.pkcs11_module, "tls.pkcs11_module", LVL_warning, pt);
+  CopyFromConfig(tls.pkcs11_pass, "tls.pkcs11_pass", LVL_warning, pt);
+  CopyFromConfig(tls.pkcs11_certid, "tls.pkcs11_certid", LVL_warning, pt);
+  CopyFromConfig(tls.pkcs11_keyid, "tls.pkcs11_keyid", LVL_warning, pt);
 
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);

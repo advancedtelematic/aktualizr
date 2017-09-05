@@ -1,6 +1,8 @@
 #include "httpclient.h"
 
 #include <assert.h>
+#include <libp11.h>
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
@@ -15,6 +17,8 @@
 
 #include "logger.h"
 #include "openssl_compat.h"
+
+#define kPkcs11Path "/usr/lib/engines/libpkcs11.so"
 
 /*****************************************************************************/
 /**
@@ -54,6 +58,7 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   headers = curl_slist_append(headers, "Accept: */*");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
+  is_pkcs11 = false;
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) {
@@ -80,6 +85,8 @@ HttpClient::HttpClient(const HttpClient& curl_in) {
 HttpClient::~HttpClient() {
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
+  if (ssl_engine) ENGINE_finish(ssl_engine);
+  ENGINE_cleanup();
 }
 
 HttpResponse HttpClient::get(const std::string& url) {
@@ -106,6 +113,88 @@ void HttpClient::setCerts(const std::string& ca, const std::string& cert, const 
   tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
   tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
   tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
+
+  is_pkcs11 = false;
+}
+
+bool HttpClient::setPkcs11(const std::string& module, const std::string& pass, const std::string& certname,
+                           const std::string& keyname, const std::string& ca) {
+  ENGINE_load_builtin_engines();
+#if AKTUALIZR_OPENSSL_AFTER_11
+  OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_OPENSSL, NULL);
+#else
+// TODO: how to initialize SSL engine in 1.0.2?
+#endif
+  // TODO: support reinitialization
+  ssl_engine = ENGINE_by_id("dynamic");
+  if (!ssl_engine) {
+    LOGGER_LOG(LVL_error, "SSL pkcs11 engine initialization failed");
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "SO_PATH", kPkcs11Path, 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "SO_PATH " << kPkcs11Path);
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "ID", "pkcs11", 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "ID "
+                              << "pksc11");
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "LIST_ADD", "1", 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "LIST_ADD "
+                              << "1");
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "LOAD", NULL, 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "LOAD "
+                              << "NULL");
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "MODULE_PATH", module.c_str(), 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "MODULE_PATH " << module);
+    return false;
+  }
+
+  if (!ENGINE_ctrl_cmd_string(ssl_engine, "PIN", pass.c_str(), 0)) {
+    LOGGER_LOG(LVL_error, "Engine command failed: "
+                              << "PIN " << pass);
+    return false;
+  }
+
+  if (!ENGINE_init(ssl_engine)) {
+    LOGGER_LOG(LVL_error, "Engine initialization failed");
+    return false;
+  }
+
+  curl_easy_setopt(curl, CURLOPT_SSLCERT, certname.c_str());
+  curl_easy_setopt(curl, CURLOPT_SSLKEY, keyname.c_str());
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+  curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+  curl_easy_setopt(curl, CURLOPT_SSLENGINE, "pkcs11");
+  curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
+  curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
+  curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
+
+  // Root CA is not stored in the pkcs11 device
+  boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+  tmp_ca_file->PutContents(ca);
+  curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
+  tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
+
+  is_pkcs11 = true;
+  return true;
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
@@ -119,6 +208,13 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
 
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   CURL* curl_put = curl_easy_duphandle(curl);
+
+  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
+  if (is_pkcs11) {
+    curl_easy_setopt(curl_put, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
+    curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
+  }
 
   curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
   std::string data_str = Json::FastWriter().write(data);
@@ -138,7 +234,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
   HttpResponse response(response_str, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
     std::ostringstream error_message;
-    error_message << "curl error " << response.http_status_code << ": " << response.error_message;
+    error_message << "curl error " << response.curl_code << ": " << response.error_message;
     LOGGER_LOG(LVL_error, error_message.str());
     if (retry_times) {
       sleep(1);
@@ -151,6 +247,14 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
 
 HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp) {
   CURL* curl_download = curl_easy_duphandle(curl);
+
+  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
+  if (is_pkcs11) {
+    curl_easy_setopt(curl_download, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
+    curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
+  }
+
   curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);

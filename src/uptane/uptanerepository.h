@@ -2,6 +2,7 @@
 #define UPTANE_REPOSITORY_H_
 
 #include <json/json.h>
+#include <libp11.h>
 #include <vector>
 #include "config.h"
 #include "invstorage.h"
@@ -11,6 +12,47 @@
 
 #include "crypto.h"
 #include "httpinterface.h"
+#include "logger.h"
+
+class P11ContextWrapper {
+ public:
+  P11ContextWrapper(const std::string &module) {
+    // never returns NULL
+    ctx = PKCS11_CTX_new();
+    if (PKCS11_CTX_load(ctx, module.c_str())) {
+      PKCS11_CTX_free(ctx);
+      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module);
+      throw std::runtime_error("PKCS11 error");
+    }
+  }
+  ~P11ContextWrapper() {
+    PKCS11_CTX_unload(ctx);
+    PKCS11_CTX_free(ctx);
+  }
+  PKCS11_CTX *get() { return ctx; }
+
+ private:
+  PKCS11_CTX *ctx;
+};
+
+class P11SlotsWrapper {
+ public:
+  P11SlotsWrapper(PKCS11_CTX *ctx_in) {
+    ctx = ctx_in;
+    if (PKCS11_enumerate_slots(ctx, &slots, &nslots)) {
+      LOGGER_LOG(LVL_error, "Couldn't enumerate slots");
+      throw std::runtime_error("PKCS11 error");
+    }
+  }
+  ~P11SlotsWrapper() { PKCS11_release_all_slots(ctx, slots, nslots); }
+  PKCS11_SLOT *get_slots() { return slots; }
+  unsigned int get_nslots() { return nslots; }
+
+ private:
+  PKCS11_CTX *ctx;
+  PKCS11_SLOT *slots;
+  unsigned int nslots;
+};
 
 class SotaUptaneClient;
 
@@ -22,7 +64,8 @@ enum InitRetCode {
   INIT_RET_SERVER_FAILURE,
   INIT_RET_STORAGE_FAILURE,
   INIT_RET_SECONDARY_FAILURE,
-  INIT_RET_BAD_P12
+  INIT_RET_BAD_P12,
+  INIT_RET_PKCS11_FAILURE
 };
 const int MaxInitializationAttempts = 3;
 class Repository {
@@ -40,6 +83,8 @@ class Repository {
   void initReset();
   // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
+  const std::string &getPkcs11Keyname() const { return pkcs11_keyname; }
+  const std::string &getPkcs11Certname() const { return pkcs11_certname; }
 
  private:
   struct SecondaryConfig {
@@ -57,6 +102,8 @@ class Repository {
   std::string primary_public_key;
   std::string primary_private_key;
 
+  std::string pkcs11_keyname;
+  std::string pkcs11_certname;
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
@@ -71,7 +118,7 @@ class Repository {
   void resetEcuSerials();
   bool initEcuKeys();
   void resetEcuKeys();
-  InitRetCode initTlsCreds(const ProvisionConfig &provision_config);
+  InitRetCode initTlsCreds(const ProvisionConfig &provision_config, const TlsConfig &tls_config);
   void resetTlsCreds();
   InitRetCode initEcuRegister();
   void setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> > &ecu_serials);

@@ -29,6 +29,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(LibArchive REQUIRED)
+find_package(LibP11 REQUIRED)
 pkg_search_module(SODIUM libsodium REQUIRED)
 
 if(BUILD_OSTREE)

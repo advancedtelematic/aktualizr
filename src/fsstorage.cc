@@ -88,6 +88,16 @@ void FSStorage::clearTlsCreds() {
   boost::filesystem::remove(config_.tls.certificates_directory / config_.tls.pkey_file);
 }
 
+bool FSStorage::loadTlsCa(std::string* ca) {
+  boost::filesystem::path ca_path = config_.tls.certificates_directory / config_.tls.ca_file;
+  if (!boost::filesystem::exists(ca_path)) return false;
+
+  if (ca) {
+    *ca = Utils::readFile(ca_path.string());
+  }
+  return true;
+}
+
 #ifdef BUILD_OSTREE
 void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   boost::filesystem::path image_path = config_.uptane.metadata_path / "repo";

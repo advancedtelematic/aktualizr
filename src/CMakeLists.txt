@@ -86,6 +86,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${SODIUM_LIBRARIES}
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
+        ${LIBP11_LIBRARIES}
         ${LibArchive_LIBRARIES} gcov)
 
 if(BUILD_GENIVI)

@@ -48,6 +48,14 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
     LOGGER_LOG(LVL_error, "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
     return std::string();
   }
+
+// TODO: RSA with PKCS11
+#if AKTUALIZR_OPENSSL_PRE_11
+  RSA_set_method(rsa, RSA_PKCS1_SSLeay());
+#else
+  RSA_set_method(rsa, RSA_PKCS1_OpenSSL());
+#endif
+
   const unsigned int sign_size = RSA_size(rsa);
   boost::scoped_array<unsigned char> EM(new unsigned char[sign_size]);
   boost::scoped_array<unsigned char> pSignature(new unsigned char[sign_size]);
@@ -101,6 +109,13 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
     return false;
   }
   BIO_free_all(bio);
+
+// TODO: RSA with PKCS11
+#if AKTUALIZR_OPENSSL_PRE_11
+  RSA_set_method(rsa, RSA_PKCS1_SSLeay());
+#else
+  RSA_set_method(rsa, RSA_PKCS1_OpenSSL());
+#endif
 
   const unsigned int size = RSA_size(rsa);
   boost::scoped_array<unsigned char> pDecrypted(new unsigned char[size]);

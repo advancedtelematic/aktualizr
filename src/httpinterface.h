@@ -33,6 +33,8 @@ class HttpInterface {
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) = 0;
   virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) = 0;
+  virtual bool setPkcs11(const std::string &module, const std::string &pass, const std::string &certname,
+                         const std::string &keyname, const std::string &ca) = 0;
 };
 
 #endif  // HTTPINTERFACE_H_
