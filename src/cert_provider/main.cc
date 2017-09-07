@@ -15,7 +15,6 @@
 
 namespace bpo = boost::program_options;
 
-const std::string dev_file = "device_id";
 const std::string pkey_file = "pkey.pem";
 const std::string cert_file = "client.pem";
 const std::string ca_file = "root.crt";
@@ -95,7 +94,6 @@ int main(int argc, char *argv[]) {
     directory = commandline_map["directory"].as<std::string>();
   }
 
-  TemporaryFile tmp_dev_file(dev_file);
   TemporaryFile tmp_pkey_file(pkey_file);
   TemporaryFile tmp_cert_file(cert_file);
   TemporaryFile tmp_ca_file(ca_file);
@@ -134,7 +132,6 @@ int main(int argc, char *argv[]) {
   }
   fclose(device_p12);
 
-  tmp_dev_file.PutContents(device_id);
   tmp_pkey_file.PutContents(pkey);
   tmp_cert_file.PutContents(cert);
   tmp_ca_file.PutContents(ca);
@@ -142,14 +139,12 @@ int main(int argc, char *argv[]) {
   if (!directory.empty()) {
     std::cout << "Writing client certificate and keys to " << directory << " ...\n";
     if (boost::filesystem::exists(directory)) {
-      boost::filesystem::remove(directory + "/" + dev_file);
       boost::filesystem::remove(directory + "/" + pkey_file);
       boost::filesystem::remove(directory + "/" + cert_file);
       boost::filesystem::remove(directory + "/" + ca_file);
     } else {
       boost::filesystem::create_directory(directory);
     }
-    boost::filesystem::copy_file(tmp_dev_file.PathString(), directory + "/" + dev_file);
     boost::filesystem::copy_file(tmp_pkey_file.PathString(), directory + "/" + pkey_file);
     boost::filesystem::copy_file(tmp_cert_file.PathString(), directory + "/" + cert_file);
     boost::filesystem::copy_file(tmp_ca_file.PathString(), directory + "/" + ca_file);
@@ -167,7 +162,6 @@ int main(int argc, char *argv[]) {
     if (port) {
       scp_prefix << "-P " << port << " ";
     }
-    system((scp_prefix.str() + tmp_dev_file.PathString() + " " + target + ":/var/sota/" + dev_file).c_str());
     system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":/var/sota/" + pkey_file).c_str());
     system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":/var/sota/" + cert_file).c_str());
     system((scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":/var/sota/" + ca_file).c_str());
