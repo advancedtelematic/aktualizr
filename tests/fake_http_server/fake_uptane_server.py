@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import socket
 import json
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -11,8 +11,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 	def do_POST(self):
-		length = int(self.headers.getheader('content-length'))
-		data = json.loads(self.rfile.read(length))
+		length = int(self.headers.get('content-length'))
+		data = json.loads(self.rfile.read(length).decode('utf-8'))
 		if self.path == "/devices":
 			return self.do_devicesRegister(data)
 		elif self.path == "/director/ecus":
@@ -34,7 +34,7 @@ class Handler(BaseHTTPRequestHandler):
 		elif data["ttl"] == "noerrors":
 			self.send_response(200)
 			self.end_headers()
-			f = open('tests/test_data/cred.p12', 'r')
+			f = open('tests/test_data/cred.p12', 'rb')
 			self.wfile.write(f.read())
 
 	def do_ecuRegister(self, data):
@@ -60,7 +60,7 @@ httpd = ReUseHTTPServer(server_address, Handler)
 
 try:
 	httpd.serve_forever()
-except KeyboardInterrupt, k:
+except KeyboardInterrupt as k:
 	print("fake_uptane_server.py exiting...")
 	pass
 
