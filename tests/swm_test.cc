@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2) {
     fake_path = argv[1];
-    std::string cmd = "python " + fake_path + "swm.py &";
+    std::string cmd = fake_path + "swm.py &";
     EXPECT_EQ(0, system(cmd.c_str()));
     sleep(2);
   }
