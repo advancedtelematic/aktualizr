@@ -63,9 +63,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
-      ("disable-keyid-validation", "Disable keyid validation on client side" )
       ("poll-once", "Check for updates only once and exit")
-      ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "set config for secondary");
+      ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "set config for secondary")
+      ("disable-keyid-validation", "deprecated");
   // clang-format on
 
   bpo::variables_map vm;
@@ -77,7 +77,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     check_info_options(description, vm);
     bpo::notify(vm);
     unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
-    std::cout << "size: " << unregistered_options.size() << "\n";
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
       std::cout << description << "\n";
       exit(EXIT_FAILURE);

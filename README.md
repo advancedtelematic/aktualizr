@@ -159,34 +159,34 @@ docker run --rm -it advancedtelematic/aktualizr
 
 By default OpenEmbedded builds fixed versions of software from a VCS using bitbake recipes. When developing Aktualizr itself it is useful to have a quicker edit-compile-run cycle and access to a debugger.  The following steps will use OpenEmbedded to create a cross-compilation environment, then build inside that.
 
-1. Add the following to local.conf
+1. Add the following to local.conf:
 ~~~
 TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
 ~~~
 
-2. Build the SDK. This will create a self-extracting installer that can be copied to your development machine:
-
+2. Build the SDK:
 ~~~
 # bitbake -c populate_sdk core-image-minimal
 ~~~
 
-3. Install the SDK
-
+3. That will create a self-extracting installer that can be copied to your development machine. Install it by executing this script (or a similarly-named one, depending on your environment):
 ~~~
-# . tmp/deploy/sdk/oecore-x86_64-core2-64-toolchain-nodistro.0.sh
+# ./tmp/deploy/sdk/poky-sota-glibc-x86_64-core-image-minimal-core2-64-toolchain-2.2.2.sh
 ~~~
 
-4. Update the environment to point to the cross compilers, and create a cmake build directory for this cross-compile
-
+4. Execute this script (or something similar, depending on where you installed it) to update the environment to point to the cross compilers:
 ~~~
-# . /home/phil/sdk/environment-setup-core2-64-poky-linux
+# . /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
 # which cmake
-/home/phil/sdk/sysroots/x86_64-oesdk-linux/usr/bin/cmake
+/opt/poky-sota/2.2.2/sysroots/x86_64-pokysdk-linux/usr/bin/cmake
+~~~
 
+5. Create a cmake build directory for this cross-compile:
+~~~
 # mkdir build-cross
 # cd bulid-cross
 # cmake ..
-# make
+# make aktualizr
 ~~~
 
 The built 'aktualizr' executable can be copied to the remote system and run.
@@ -194,8 +194,12 @@ The built 'aktualizr' executable can be copied to the remote system and run.
 Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu script in meta-updater-qemu-x86 does this), then:
 
 ~~~
-On the target
+On the target:
 # gdbserver 0.0.0.0:2159 ./aktualizr --config /etc/sota.toml --loglevel 0
+
+On the host:
+# gdb aktualizr
+(gdb) target remote localhost:2159
 ~~~
 
 In CLion the remote debugger is configured as follows:
