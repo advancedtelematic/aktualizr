@@ -41,18 +41,28 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
   return result;
 }
 
-OstreePackage SotaUptaneClient::uptaneToOstree(const Uptane::Target &target) {
-  return OstreePackage(target.ecu_identifier(), target.filename(), "", config.uptane.ostree_server);
-}
+data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &target) {
+  std::size_t pos = target.filename().find_last_of("-");
+  if (pos == std::string::npos) return data::InstallOutcome(data::INSTALL_FAILED, "Invalid refname");
 
-Json::Value SotaUptaneClient::OstreeInstall(const OstreePackage &package) {
-  data::PackageManagerCredentials cred;
+  std::string branch_name = target.filename().substr(0, pos);
+  std::string refhash = target.filename().substr(pos + 1, std::string::npos);
+  if (branch_name.empty() || refhash.empty()) return data::InstallOutcome(data::INSTALL_FAILED, "Invalid refname");
+
+  OstreePackage package(target.ecu_identifier(), target.filename(), branch_name, refhash, "",
+                        config.uptane.ostree_server);
   // TODO: use storage
+  data::PackageManagerCredentials cred;
   cred.ca_file = (config.tls.certificates_directory / config.tls.ca_file).string();
   cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
   cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
-  data::InstallOutcome outcome = package.install(cred, config.ostree);
-  data::OperationResult result = data::OperationResult::fromOutcome(package.ref_name, outcome);
+  return package.install(cred, config.ostree);
+}
+
+Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
+  data::InstallOutcome outcome = OstreeInstall(target);
+
+  data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), outcome);
   Json::Value operation_result;
   operation_result["operation_result"] = result.toJson();
   Json::Value unsigned_ecu_version =
@@ -113,7 +123,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
                ++it) {
             // treat empty format as OSTree for backwards compatibility
             if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
-              Json::Value p_manifest = OstreeInstall(uptaneToOstree(*it));
+              Json::Value p_manifest = OstreeInstallAndManifest(*it);
               manifests.append(p_manifest);
               break;
             }

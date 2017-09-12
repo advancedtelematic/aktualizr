@@ -18,8 +18,8 @@ struct Ostree {
 
 class OstreePackage {
  public:
-  OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in, const std::string &desc_in,
-                const std::string &treehub_in);
+  OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in, const std::string &branch_name_in,
+                const std::string &refhash_in, const std::string &desc_in, const std::string &treehub_in);
   std::string ecu_serial;
   std::string ref_name;
   std::string branch_name;
@@ -30,7 +30,6 @@ class OstreePackage {
 
   Json::Value toEcuVersion(const Json::Value &custom) const;
   static OstreePackage getEcu(const std::string &ecu_serial, const std::string &ostree_sysroot);
-  static OstreePackage fromJson(const Json::Value &json);
 };
 
 struct OstreeBranch {

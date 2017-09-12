@@ -16,7 +16,7 @@ class SotaUptaneClient {
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
 
   Json::Value sign(const Json::Value &in_data);
-  Json::Value OstreeInstall(const OstreePackage &package);
+  Json::Value OstreeInstallAndManifest(const Uptane::Target &package);
   void run(command::Channel *commands_channel);
   void runForever(command::Channel *commands_channel);
 
@@ -24,6 +24,7 @@ class SotaUptaneClient {
   void reportHWInfo();
   void reportInstalledPackages();
   bool isInstalled(const Uptane::Target &target);
+  data::InstallOutcome OstreeInstall(const Uptane::Target &package);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, std::string ecu_id);
   Config config;

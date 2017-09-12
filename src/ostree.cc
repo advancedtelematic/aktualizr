@@ -89,13 +89,14 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
 #include "ostree-1/ostree.h"
 
 OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
+                             const std::string &branch_name_in, const std::string &refhash_in,
                              const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in), ref_name(ref_name_in), description(desc_in), pull_uri(treehub_in) {
-  std::size_t pos = ref_name.find_last_of("-");
-  branch_name = ref_name.substr(0, pos);
-  refhash = ref_name.substr(pos + 1, std::string::npos);
-  if (branch_name.empty() || refhash.empty()) throw std::runtime_error("malformed OSTree target name: " + ref_name);
-}
+    : ecu_serial(ecu_serial_in),
+      ref_name(ref_name_in),
+      branch_name(branch_name_in),
+      refhash(refhash_in),
+      description(desc_in),
+      pull_uri(treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   const char remote[] = "aktualizr-remote";
@@ -130,15 +131,6 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   g_variant_builder_add(&builder, "{s@v}", "override-commit-ids",
                         g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
 
-  if (cred.access_token.size()) {
-    GVariantBuilder hdr_builder;
-    std::string av("Bearer ");
-    av += cred.access_token;
-    g_variant_builder_init(&hdr_builder, G_VARIANT_TYPE("a(ss)"));
-    g_variant_builder_add(&hdr_builder, "(ss)", "Authorization", av.c_str());
-    g_variant_builder_add(&builder, "{s@v}", "http-headers",
-                          g_variant_new_variant(g_variant_builder_end(&hdr_builder)));
-  }
   options = g_variant_ref_sink(g_variant_builder_end(&builder));
 
   if (!ostree_repo_pull_with_options(repo, remote, options, NULL, cancellable, &error)) {
@@ -210,14 +202,12 @@ OstreeBranch OstreeBranch::getCurrent(const std::string &ecu_serial, const std::
   GKeyFile *origin = ostree_deployment_get_origin(staged_deployment.get());
   const char *ref = ostree_deployment_get_csum(staged_deployment.get());
   char *origin_refspec = g_key_file_get_string(origin, "origin", "refspec", NULL);
-  OstreePackage package(ecu_serial, std::string(origin_refspec) + "-" + ref, origin_refspec, "");
+
+  // TODO: get rid of refname, it's uptane responsibility
+  std::string refname = std::string(origin_refspec) + "-" + ref;
+  OstreePackage package(ecu_serial, refname, std::string(origin_refspec), ref, origin_refspec, "");
   g_free(origin_refspec);
   return OstreeBranch(true, ostree_deployment_get_osname(staged_deployment.get()), package);
-}
-
-OstreePackage OstreePackage::fromJson(const Json::Value &json) {
-  return OstreePackage(json["ecu_serial"].asString(), json["ref_name"].asString(), json["description"].asString(),
-                       json["pull_uri"].asString());
 }
 
 Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
