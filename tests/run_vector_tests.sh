@@ -2,7 +2,7 @@
 set -e
 
 if [ ! -f venv/bin/activate ]; then
-  virtualenv -p python3 venv
+  python3 -m venv venv
 fi
 
 . venv/bin/activate
