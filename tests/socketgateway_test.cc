@@ -69,7 +69,7 @@ TEST(CommandsTest, recieved) {
   command::Channel chan;
 
   SocketGateway gateway(conf, &chan);
-  std::string cmd =  fake_path + "commands.py &";
+  std::string cmd = fake_path + "commands.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   boost::shared_ptr<command::BaseCommand> command;
