@@ -15,6 +15,7 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
+  pt.put("tls.certificates_directory", "tests/test_OneCycleUpdate");
   Config config(pt);
   FSStorage storage(config);
   HttpClient http;
@@ -22,23 +23,24 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
 
   EXPECT_TRUE(repo.initialize());
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
+      OstreePackage::getEcu(repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(Json::nullValue);
   repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version));
 
   // should not throw any exceptions
   repo.getTargets();
+  boost::filesystem::remove_all(config.tls.certificates_directory);
 }
 
 TEST(SotaUptaneClientTest, check_keys) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
+  pt.put("tls.certificates_directory", "tests/test_check_keys");
   Config config(pt);
   boost::filesystem::remove_all(config.tls.certificates_directory);
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = "tests/test_uptane";
-  ecu_config.ecu_serial = "secondary_ecu_serial";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
@@ -73,6 +75,7 @@ TEST(SotaUptaneClientTest, check_keys) {
   EXPECT_TRUE(sec_public.size() > 0);
   EXPECT_TRUE(sec_private.size() > 0);
   EXPECT_NE(sec_public, sec_private);
+  boost::filesystem::remove_all(config.tls.certificates_directory);
 }
 
 #ifndef __NO_MAIN__

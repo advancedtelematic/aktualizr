@@ -289,7 +289,7 @@ bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_ke
   }
   *private_key = std::string(privkey_buf, privkey_len);
   free(privkey_buf);
-  RSA_free(r);
+  EVP_PKEY_free(pkey);
 #if AKTUALIZR_OPENSSL_AFTER_11
   BN_free(bne);
 #endif
