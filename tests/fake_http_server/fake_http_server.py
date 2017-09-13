@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import socket
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 last_fails = False
 
@@ -15,28 +15,28 @@ class Handler(BaseHTTPRequestHandler):
 		elif self.path == '/download/file':
 			self.send_response(200)
 			self.end_headers()
-			self.wfile.write('content')
+			self.wfile.write(b'content')
 		elif self.path == '/auth_call':
 			self.send_response(200)
 			self.end_headers()
 			if 'Authorization' in self.headers:
 				auth_list = self.headers['Authorization'].split(' ')
 				if auth_list[0] == 'Bearer' and auth_list[1] == 'token':
-					self.wfile.write('{"status": "good"}')
-			self.wfile.write('{}')
+					self.wfile.write(b'{"status": "good"}')
+			self.wfile.write(b'{}')
 		else:
 			if not last_fails:
 				self.send_response(503)
 				self.end_headers()
 				last_fails = True
-				self.wfile.write("Internal server error")
+				self.wfile.write(b"Internal server error")
 				return
 			else:
 				last_fails = False
 
 			self.send_response(200)
 			self.end_headers()
-			self.wfile.write('{"path": "%s"}'%self.path)
+			self.wfile.write(b'{"path": "%b"}'%bytes(self.path, "utf8"))
 
 	def do_POST(self):
 		global last_fails
@@ -44,7 +44,7 @@ class Handler(BaseHTTPRequestHandler):
 			self.send_response(503)
 			self.end_headers()
 			last_fails = True
-			self.wfile.write("Internal server error")
+			self.wfile.write(b"Internal server error")
 			return
 		else:
 			last_fails = False
@@ -52,15 +52,15 @@ class Handler(BaseHTTPRequestHandler):
 			self.send_response(200)
 			self.end_headers()
 			if 'Authorization' in self.headers:
-				self.wfile.write("{\"access_token\": \"token\"}")
+				self.wfile.write(b"{\"access_token\": \"token\"}")
 			else:
-				self.wfile.write('')
+				self.wfile.write(b'')
 
 		else:
 			self.send_response(200)
 			self.end_headers()
-			length = int(self.headers.getheader('content-length'))
-			result = '{"data": %s, "path": "%s"}'%(self.rfile.read(length), self.path)
+			length = int(self.headers.get('content-length'))
+			result = b'{"data": %b, "path": "%b"}'%(self.rfile.read(length), bytes(self.path, "utf8"))
 			self.wfile.write(result)
 
 	def do_PUT(self):

@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import dbus.service
 import dbus.glib
-import gobject
+from gi.repository import GObject
 import dbus
 import sys
 import os
@@ -11,7 +11,7 @@ try:
     os.remove(temp_file)
 except:
     pass
-loop = gobject.MainLoop()
+loop = GObject.MainLoop()
 bus = dbus.SessionBus()
 
 
@@ -19,11 +19,11 @@ def catchall_handler(*args, **kwargs):
 
     if kwargs['dbus_interface'] == "org.genivi.SotaClient":
         fl = open(temp_file, "w")
-        print
-        print
-        print kwargs['member']
-        print
-        print
+        print()
+        print()
+        print(kwargs['member'])
+        print()
+        print()
         if kwargs['member'] == "DownloadComplete":
             dc = args[0]
             if dc[0] == "testupdateid" and dc[1] == "/tmp/img.test" and dc[2] == "signature":

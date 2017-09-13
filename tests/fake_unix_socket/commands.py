@@ -1,10 +1,12 @@
-import socket 
+#!/usr/bin/python3
+
+import socket
 import time
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 sock.connect("/tmp/sota-commands.socket")
-sock.sendall('{"fields":[')
+sock.sendall(b'{"fields":[')
 time.sleep(0.2)
-sock.sendall('],"varia')
+sock.sendall(b'],"varia')
 time.sleep(0.2)
-sock.sendall('nt":"Shutdown"}')
+sock.sendall(b'nt":"Shutdown"}')
 sock.close()

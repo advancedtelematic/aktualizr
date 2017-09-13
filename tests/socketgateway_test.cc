@@ -48,7 +48,7 @@ TEST(EventsTest, not_broadcasted) {
   command::Channel chan;
 
   SocketGateway gateway(conf, &chan);
-  std::string cmd = "python " + fake_path + "events.py &";
+  std::string cmd = fake_path + "events.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
@@ -69,7 +69,7 @@ TEST(CommandsTest, recieved) {
   command::Channel chan;
 
   SocketGateway gateway(conf, &chan);
-  std::string cmd = "python " + fake_path + "commands.py &";
+  std::string cmd = fake_path + "commands.py &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   boost::shared_ptr<command::BaseCommand> command;
