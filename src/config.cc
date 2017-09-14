@@ -110,9 +110,7 @@ void Config::postUpdateValues() {
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
 
   if (!p11.module.empty()) {
-    LOGGER_LOG(LVL_warning,
-               "Hardware key storage has been configured, uptane.public_key_path and uptane.private_key_path will not "
-               "be used");
+    LOGGER_LOG(LVL_warning, "Hardware key storage has been configured, uptane.public_key_path will not be used");
   }
 }
 

@@ -16,7 +16,8 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             socketgateway.cc
             timer.cc
             types.cc
-            utils.cc)
+            utils.cc
+            p11.cc)
 
 # set headers used for clang format
 set(HEADERS
@@ -41,6 +42,7 @@ set(HEADERS
             timer.h
             types.h
             utils.h
+            p11.h
             uptane/exceptions.h
             uptane/testbusprimary.h
             uptane/testbussecondary.h
@@ -84,6 +86,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         ${SODIUM_LIBRARIES}
+        ${LIBP11_LIBRARIES}
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
         ${LibArchive_LIBRARIES} gcov)

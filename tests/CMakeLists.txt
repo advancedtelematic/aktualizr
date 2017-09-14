@@ -18,6 +18,7 @@ set (TEST_LIBS
     ${SODIUM_LIBRARIES}
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
+    ${LIBP11_LIBRARIES}
     ${LibArchive_LIBRARIES}
     testutilities
     gtest gmock gcov)

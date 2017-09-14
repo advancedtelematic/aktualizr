@@ -139,7 +139,7 @@ struct OstreeConfig {
 };
 
 struct P11Config {
-  P11Config() : module("/usr/lib/softhsm/libsofthsm2.so"), pin("1234"), slot(0) {}
+  P11Config() : module(""), pin("1234"), slot(0) {}
   std::string module;
   std::string pin;
   unsigned int slot;
