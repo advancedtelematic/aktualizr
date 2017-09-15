@@ -42,6 +42,7 @@ bool P11::readPublicKey(std::string *public_key) {
   if (nkeys < 1) {
     return false;
   }
+  LOGGER_LOG(LVL_info, "HSM contains: " << nkeys << " keys");
   EVP_PKEY *evp_key = PKCS11_get_public_key(key);
   BIO *mem = BIO_new(BIO_s_mem());
   PEM_write_bio_PUBKEY(mem, evp_key);
