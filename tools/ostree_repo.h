@@ -11,7 +11,7 @@
 
 class OSTreeRepo : private boost::noncopyable {
  public:
-  OSTreeRepo(std::string root_path) : root_(root_path) {}
+  explicit OSTreeRepo(std::string root_path) : root_(root_path) {}
 
   bool LooksValid() const;
   OSTreeObject::ptr GetObject(const OSTreeHash hash) const;
