@@ -23,6 +23,15 @@ class HttpFake : public HttpInterface {
     (void)cert;
     (void)pkey;
   }
+  virtual bool setPkcs11(const std::string &module, const std::string &pass, const std::string &certname,
+                         const std::string &keyname, const std::string &ca) {
+    (void)module;
+    (void)pass;
+    (void)certname;
+    (void)keyname;
+    (void)ca;
+    return true;
+  };
 
   HttpResponse get(const std::string &url) {
     std::cout << "URL:" << url << "\n";

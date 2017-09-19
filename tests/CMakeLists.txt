@@ -19,6 +19,7 @@ set (TEST_LIBS
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
+    ${LIBP11_LIBRARIES}
     testutilities
     gtest gmock gcov)
 
