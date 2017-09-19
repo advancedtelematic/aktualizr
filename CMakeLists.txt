@@ -30,6 +30,8 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(LibArchive REQUIRED)
 pkg_search_module(SODIUM libsodium REQUIRED)
+pkg_search_module(LIBP11 libp11 REQUIRED)
+
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
