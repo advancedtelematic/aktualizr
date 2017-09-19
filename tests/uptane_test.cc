@@ -911,11 +911,18 @@ TEST(SotaUptaneClientTest, provision_on_server) {
 TEST(SotaUptaneClientTest, implicit_failure) {
   Config config;
   config.uptane.device_id = "device_id";
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.ca_file = "ca.pem";
+  config.tls.client_certificate = "client.pem";
+  config.tls.pkey_file = "pkey.pem";
+  config.uptane.device_id = "device_id";
   config.postUpdateValues();
+
   FSStorage storage(config);
   HttpFake http(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 }
 
 /**
@@ -936,35 +943,35 @@ TEST(SotaUptaneClientTest, implicit_incomplete) {
 
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
 }

@@ -87,7 +87,11 @@ struct TlsConfig {
         server(""),
         ca_file("ca.pem"),
         pkey_file("pkey.pem"),
-        client_certificate("client.pem") {}
+        client_certificate("client.pem"),
+        pkcs11_module(""),
+        pkcs11_pass(""),
+        pkcs11_certid(""),
+        pkcs11_keyid("") {}
   boost::filesystem::path certificates_directory;
   std::string server;
   std::string ca_file;
