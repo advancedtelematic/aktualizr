@@ -18,7 +18,11 @@
 #include "logger.h"
 #include "openssl_compat.h"
 
+#ifdef TEST_PKCS11_ENGINE_PATH
+#define kPkcs11Path TEST_PKCS11_ENGINE_PATH
+#else
 #define kPkcs11Path "/usr/lib/engines/libpkcs11.so"
+#endif
 
 /*****************************************************************************/
 /**

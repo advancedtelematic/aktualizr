@@ -998,6 +998,30 @@ TEST(SotaUptaneClientTest, implicit_provision) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
+TEST(SotaUptaneClientTest, pkcs11_provision) {
+#ifdef TEST_PKCS11_MODULE_PATH
+  Config config;
+  config.tls.certificates_directory = uptane_test_dir;
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
+  config.tls.ca_file = "ca.pem";
+  config.tls.pkcs11_module = TEST_PKCS11_MODULE_PATH;
+  config.tls.pkcs11_pass = "1234";
+  config.tls.pkcs11_certid = "01";
+  config.tls.pkcs11_keyid = "02";
+  config.uptane.device_id = "cc34f7f3-481d-443b-bceb-e838a36a2d1f";
+  config.postUpdateValues();
+
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::Repository uptane(config, storage, http);
+  EXPECT_TRUE(uptane.initialize());
+  boost::filesystem::remove_all(uptane_test_dir);
+#else
+  LOGGER_LOG(LVL_trace, "pkcs11_provision test skipped. Define TEST_PKCS11_MODULE_PATH to run it.")
+#endif
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

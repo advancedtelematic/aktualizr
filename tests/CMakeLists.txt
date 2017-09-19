@@ -74,6 +74,11 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
+# Setup PKCS11
+if(TEST_PKCS11_MODULE_PATH)
+    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+endif(TEST_PKCS11_MODULE_PATH)
+
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
