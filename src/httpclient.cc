@@ -58,7 +58,7 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   headers = curl_slist_append(headers, "Accept: */*");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
-  is_pkcs11 = false;
+  ssl_engine = NULL;
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) {
@@ -80,13 +80,16 @@ HttpClient::HttpClient(const HttpClient& curl_in) {
     headers = tmp;
     inlist = inlist->next;
   }
+  ssl_engine = NULL;
 }
 
 HttpClient::~HttpClient() {
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
-  if (ssl_engine) ENGINE_finish(ssl_engine);
-  ENGINE_cleanup();
+  if (ssl_engine) {
+    ENGINE_finish(ssl_engine);
+    ENGINE_cleanup();
+  }
 }
 
 HttpResponse HttpClient::get(const std::string& url) {
@@ -114,7 +117,11 @@ void HttpClient::setCerts(const std::string& ca, const std::string& cert, const 
   tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
   tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
 
-  is_pkcs11 = false;
+  if (ssl_engine) {
+    ENGINE_finish(ssl_engine);
+    ENGINE_cleanup();
+    ssl_engine = NULL;
+  }
 }
 
 bool HttpClient::setPkcs11(const std::string& module, const std::string& pass, const std::string& certname,
@@ -123,9 +130,13 @@ bool HttpClient::setPkcs11(const std::string& module, const std::string& pass, c
 #if AKTUALIZR_OPENSSL_AFTER_11
   OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_OPENSSL, NULL);
 #else
-// TODO: how to initialize SSL engine in 1.0.2?
+// TODO: do we need to do something for OpenSSL 1.0.2?
 #endif
-  // TODO: support reinitialization
+  if (ssl_engine) {
+    ENGINE_finish(ssl_engine);
+    ENGINE_cleanup();
+    ssl_engine = NULL;
+  }
   ssl_engine = ENGINE_by_id("dynamic");
   if (!ssl_engine) {
     LOGGER_LOG(LVL_error, "SSL pkcs11 engine initialization failed");
@@ -193,7 +204,6 @@ bool HttpClient::setPkcs11(const std::string& module, const std::string& pass, c
   curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
   tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
 
-  is_pkcs11 = true;
   return true;
 }
 
@@ -210,7 +220,7 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   CURL* curl_put = curl_easy_duphandle(curl);
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
-  if (is_pkcs11) {
+  if (ssl_engine) {
     curl_easy_setopt(curl_put, CURLOPT_SSLENGINE, "pkcs11");
     curl_easy_setopt(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
     curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
@@ -249,7 +259,7 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   CURL* curl_download = curl_easy_duphandle(curl);
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
-  if (is_pkcs11) {
+  if (ssl_engine) {
     curl_easy_setopt(curl_download, CURLOPT_SSLENGINE, "pkcs11");
     curl_easy_setopt(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
     curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");

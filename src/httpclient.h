@@ -59,7 +59,6 @@ class HttpClient : public HttpInterface {
   boost::movelib::unique_ptr<TemporaryFile> tls_cert_file;
   boost::movelib::unique_ptr<TemporaryFile> tls_pkey_file;
   ENGINE *ssl_engine;
-  bool is_pkcs11;
   static const int RETRY_TIMES = 2;
 };
 #endif
