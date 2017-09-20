@@ -69,7 +69,7 @@ The following debian packages are used in the project:
  - clang (optional)
  - clang-format-3.8 (optional)
  - python3-dev (when building tests)
- - python-virtualenv (when building tests)
+ - python3-venv (when building tests)
  - libdbus-1-dev (when building tests)
  - lcov (when building for code coverage)
 
