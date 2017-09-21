@@ -109,6 +109,7 @@ endif()
 
 add_subdirectory("src")
 add_subdirectory("src/cert_provider")
+add_subdirectory("src/implicit_writer")
 if(BUILD_SOTA_TOOLS)
     add_subdirectory("src/sota_tools")
 endif(BUILD_SOTA_TOOLS)

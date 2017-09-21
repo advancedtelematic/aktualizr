@@ -20,6 +20,9 @@
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
 
+// Keep the order of config options the same as in writeToFile() and
+// updateFromPropertyTree() in config.cc.
+
 #ifdef WITH_GENIVI
 // DbusConfig depends on DBusBusType with is defined in libdbus
 // We don't want to take that dependency unless it is required
@@ -163,6 +166,7 @@ class Config {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
+  void writeToFile(const std::string& filename);
 
   // config data structures
   DbusConfig dbus;
@@ -177,11 +181,16 @@ class Config {
 
  private:
   static std::string stripQuotes(const std::string& value);
+  static std::string addQuotes(const std::string& value);
   template <typename T>
   static T StripQuotesFromStrings(const T& value);
   template <typename T>
   static void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
                              const boost::property_tree::ptree& pt);
+  template <typename T>
+  static T addQuotesToStrings(const T& value);
+  template <typename T>
+  static void writeOption(std::ofstream& sink, const T& data, const std::string& option_name);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

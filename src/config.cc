@@ -26,6 +26,9 @@ std::string Config::stripQuotes(const std::string& value) {
   return res;
 }
 
+// Add leading and trailing quotes
+std::string Config::addQuotes(const std::string& value) { return "\"" + value + "\""; }
+
 /*
  The following uses a small amount of template hackery to provide a nice
  interface to load the sota.toml config file. StripQuotesFromStrings is
@@ -58,6 +61,21 @@ void Config::CopyFromConfig(T& dest, const std::string& option_name, LoggerLevel
   } else {
     LOGGER_LOG(warning_level, option_name << " not in config file. Using default:" << dest);
   }
+}
+
+template <>
+std::string Config::addQuotesToStrings<std::string>(const std::string& value) {
+  return addQuotes(value);
+}
+
+template <typename T>
+T Config::addQuotesToStrings(const T& value) {
+  return value;
+}
+
+template <typename T>
+void Config::writeOption(std::ofstream& sink, const T& data, const std::string& option_name) {
+  sink << option_name << " = " << addQuotesToStrings(data) << "\n";
 }
 
 // End template tricks
@@ -120,7 +138,7 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-// Keep this order the same as in config.h
+// Keep this order the same as in config.h and writeToFile().
 
 #ifdef WITH_GENIVI
   CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
@@ -281,4 +299,98 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       uptane.secondaries.push_back(ecu_config);
     }
   }
+}
+
+// This writes out every configuration option, including those set with default
+// and blank values. This may be useful to replicating an exact configuration
+// environment. However, if we were to want to simplify the output file, we
+// could skip blank strings or compare values against a freshly built instance
+// to detect and skip default values.
+void Config::writeToFile(const std::string& filename) {
+  // Keep this order the same as in config.h and updateFromPropertyTree().
+
+  std::ofstream sink(filename, std::ofstream::out);
+  sink << std::boolalpha;
+
+#ifdef WITH_GENIVI
+  sink << "[dbus]\n";
+  writeOption(sink, dbus.software_manager, "software_manager");
+  writeOption(sink, dbus.software_manager_path, "software_manager_path");
+  writeOption(sink, dbus.path, "path");
+  writeOption(sink, dbus.interface, "interface");
+  writeOption(sink, dbus.timeout, "timeout");
+  if (dbus.bus == DBUS_BUS_SYSTEM) {
+    writeOption(sink, std::string("system"), "bus");
+  } else if (dbus.bus == DBUS_BUS_SESSION) {
+    writeOption(sink, std::string("session"), "bus");
+  }
+  sink << "\n";
+#endif
+
+  sink << "[gateway]\n";
+  writeOption(sink, gateway.http, "http");
+  writeOption(sink, gateway.rvi, "rvi");
+  writeOption(sink, gateway.socket, "socket");
+  writeOption(sink, gateway.dbus, "dbus");
+  sink << "\n";
+
+  sink << "[network]\n";
+  writeOption(sink, network.socket_commands_path, "socket_commands_path");
+  writeOption(sink, network.socket_events_path, "socket_events_path");
+  std::string socket_events = "";
+  for (std::vector<std::string>::iterator it = network.socket_events.begin(); it != network.socket_events.end(); ++it) {
+    socket_events += *it;
+    if (it != --network.socket_events.end()) {
+      socket_events += ", ";
+    }
+  }
+  writeOption(sink, socket_events, "socket_events");
+  sink << "\n";
+
+  sink << "[rvi]\n";
+  writeOption(sink, rvi.node_host, "node_host");
+  writeOption(sink, rvi.node_port, "node_port");
+  writeOption(sink, rvi.device_key, "device_key");
+  writeOption(sink, rvi.device_cert, "device_cert");
+  writeOption(sink, rvi.ca_cert, "ca_cert");
+  writeOption(sink, rvi.cert_dir, "cert_dir");
+  writeOption(sink, rvi.cred_dir, "cred_dir");
+  writeOption(sink, rvi.packages_dir, "packages_dir");
+  writeOption(sink, rvi.uuid, "uuid");
+  sink << "\n";
+
+  sink << "[tls]\n";
+  writeOption(sink, tls.certificates_directory, "certificates_directory");
+  writeOption(sink, tls.server, "server");
+  writeOption(sink, tls.ca_file, "ca_file");
+  writeOption(sink, tls.pkey_file, "pkey_file");
+  writeOption(sink, tls.client_certificate, "client_certificate");
+  sink << "\n";
+
+  sink << "[provision]\n";
+  writeOption(sink, provision.p12_password, "p12_password");
+  writeOption(sink, provision.provision_path, "provision_path");
+  sink << "\n";
+
+  sink << "[uptane]\n";
+  writeOption(sink, uptane.polling, "polling");
+  writeOption(sink, uptane.polling_sec, "polling_sec");
+  writeOption(sink, uptane.device_id, "device_id");
+  writeOption(sink, uptane.primary_ecu_serial, "primary_ecu_serial");
+  writeOption(sink, uptane.primary_ecu_hardware_id, "primary_ecu_hardware_id");
+  writeOption(sink, uptane.ostree_server, "ostree_server");
+  writeOption(sink, uptane.director_server, "director_server");
+  writeOption(sink, uptane.repo_server, "repo_server");
+  writeOption(sink, uptane.metadata_path, "metadata_path");
+  writeOption(sink, uptane.private_key_path, "private_key_path");
+  writeOption(sink, uptane.public_key_path, "public_key_path");
+  // TODO: Handle vector<UptaneSecondaryConfig>:
+  // writeOption(sink, uptane.secondaries, "secondaries");
+  sink << "\n";
+
+  sink << "[ostree]\n";
+  writeOption(sink, ostree.os, "os");
+  writeOption(sink, ostree.sysroot, "sysroot");
+  writeOption(sink, ostree.packages_file, "packages_file");
+  sink << "\n";
 }
