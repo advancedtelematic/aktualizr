@@ -45,7 +45,7 @@ void check_info_options(const bpo::options_description &description, const bpo::
 }
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
-  bpo::options_description description("CommandLine Options");
+  bpo::options_description description("aktualizr command line options");
   // clang-format off
   description.add_options()
       ("help,h", "help screen")

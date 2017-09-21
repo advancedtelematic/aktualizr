@@ -25,17 +25,17 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current cert_provider version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr_cert_provider version is: " << AKTUALIZR_VERSION << "\n";
     exit(EXIT_SUCCESS);
   }
 }
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
-  bpo::options_description description("CommandLine Options");
+  bpo::options_description description("aktualizr_cert_provider command line options");
   // clang-format off
   description.add_options()
       ("help,h", "help screen")
-      ("version,v", "Current cert_provider version")
+      ("version,v", "Current aktualizr_cert_provider version")
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("target,t", bpo::value<std::string>(), "target device")
       ("port,p", bpo::value<int>(), "target port")

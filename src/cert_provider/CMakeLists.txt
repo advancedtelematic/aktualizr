@@ -34,7 +34,7 @@ if(CLANG_CHECK)
     add_custom_target(check-cp
         COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} main.cc
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-check"
+        COMMENT "Running clang-check on src/cert_provider"
         VERBATIM)
     add_dependencies(qa check-cp)
 else()

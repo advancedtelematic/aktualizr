@@ -123,7 +123,7 @@ if(CLANG_CHECK)
     add_custom_target(check-src
         COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} main.cc ${SOURCES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-check"
+        COMMENT "Running clang-check on src"
         VERBATIM)
     add_dependencies(qa check-src)
 else()

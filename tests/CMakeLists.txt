@@ -226,10 +226,10 @@ set_tests_properties(test-no-config-check-message
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr: configuration file .* not found. Exiting.")
 
 set_tests_properties(test-help-with-other-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
 set_tests_properties(test-help-with-notexisting-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
