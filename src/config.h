@@ -14,6 +14,7 @@
 #include <dbus/dbus.h>
 #endif
 
+#include "logger.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
@@ -166,8 +167,8 @@ class Config {
   // config data structures
   DbusConfig dbus;
   GatewayConfig gateway;
-  RviConfig rvi;
   NetworkConfig network;
+  RviConfig rvi;
   P11Config p11;
   TlsConfig tls;
   ProvisionConfig provision;
@@ -175,6 +176,12 @@ class Config {
   OstreeConfig ostree;
 
  private:
+  static std::string stripQuotes(const std::string& value);
+  template <typename T>
+  static T StripQuotesFromStrings(const T& value);
+  template <typename T>
+  static void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+                             const boost::property_tree::ptree& pt);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

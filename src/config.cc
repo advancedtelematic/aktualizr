@@ -7,7 +7,6 @@
 #include <sstream>
 
 #include "bootstrap.h"
-#include "logger.h"
 #include "utils.h"
 
 /**
@@ -21,7 +20,7 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
 }
 
 // Strip leading and trailing quotes
-std::string strip_quotes(const std::string value) {
+std::string Config::stripQuotes(const std::string& value) {
   std::string res = value;
   res.erase(std::remove(res.begin(), res.end(), '\"'), res.end());
   return res;
@@ -40,22 +39,19 @@ std::string strip_quotes(const std::string value) {
 
  Note that default values are defined by Config's default constructor.
  */
-template <typename T>
-T StripQuotesFromStrings(const T& value);
-
 template <>
-std::string StripQuotesFromStrings<std::string>(const std::string& value) {
-  return strip_quotes(value);
+std::string Config::StripQuotesFromStrings<std::string>(const std::string& value) {
+  return stripQuotes(value);
 }
 
 template <typename T>
-T StripQuotesFromStrings(const T& value) {
+T Config::StripQuotesFromStrings(const T& value) {
   return value;
 }
 
 template <typename T>
-void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
-                    const boost::property_tree::ptree& pt) {
+void Config::CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+                            const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());
@@ -85,8 +81,6 @@ Config::Config(const boost::property_tree::ptree& pt) {
 }
 
 void Config::postUpdateValues() {
-  boost::system::error_code error;
-
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;
   }
@@ -136,7 +130,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(dbus.timeout, "dbus.timeout", LVL_trace, pt);
   boost::optional<std::string> dbus_type = pt.get_optional<std::string>("dbus.bus");
   if (dbus_type.is_initialized()) {
-    std::string bus = strip_quotes(dbus_type.get());
+    std::string bus = stripQuotes(dbus_type.get());
     if (bus == "system") {
       dbus.bus = DBUS_BUS_SYSTEM;
     } else if (bus == "session") {
@@ -159,7 +153,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
-    std::string e = strip_quotes(events_string.get());
+    std::string e = stripQuotes(events_string.get());
     network.socket_events.empty();
     boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
   } else {
@@ -209,16 +203,15 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
+  // provision.mode is set in postUpdateValues.
 
   CopyFromConfig(uptane.polling, "uptane.polling", LVL_trace, pt);
   CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", LVL_trace, pt);
-  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
-
   CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", LVL_warning, pt);
-
+  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
   CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
 
