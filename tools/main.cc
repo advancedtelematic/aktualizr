@@ -11,9 +11,10 @@
 #include "accumulator.h"
 #include "authenticate.h"
 #include "logging.h"
+#include "ostree_dir_repo.h"
+#include "ostree_http_repo.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
-#include "ostree_repo.h"
 #include "request_pool.h"
 #include "treehub_server.h"
 
@@ -76,6 +77,7 @@ int main(int argc, char **argv) {
 
   string repo_path;
   string ref;
+  string pull_cred;
   TreehubServer push_target;
   int maxCurlRequests;
 
@@ -91,8 +93,9 @@ int main(int argc, char **argv) {
     ("help", "produce a help message")
     ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
-    ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
+    ("repo,C", po::value<string>(&repo_path), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
+    ("fetch-credentials,f", po::value<string>(&pull_cred), "path to credentials to fetch from")
     ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
@@ -117,6 +120,11 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  if (!vm.count("repo") && !vm.count("fetch-credentials")) {
+    LOG_INFO << "You should specify repo or fetch-credentials";
+    return EXIT_FAILURE;
+  }
+
   // Configure logging
   if (verbosity == 0) {
     // 'verbose' trumps 'quiet'
@@ -135,15 +143,22 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
-  OSTreeRepo repo(repo_path);
+  TreehubServer pull_server;
+  OSTreeRepo *repo;
+  if (!pull_cred.empty()) {
+    authenticate(cacerts, pull_cred, pull_server);
+    repo = new OSTreeHttpRepo(pull_server);
+  } else {
+    repo = new OSTreeDirRepo(repo_path);
+  }
 
-  if (!repo.LooksValid()) {
+  if (!repo->LooksValid()) {
     LOG_FATAL << "The OSTree repo dir " << repo_path
               << " does not appear to contain a valid OSTree repository";
     return EXIT_FAILURE;
   }
 
-  OSTreeRef ostree_ref(repo, ref);
+  OSTreeRef ostree_ref(repo->GetRef(ref));
 
   if (!ostree_ref.IsValid()) {
     LOG_FATAL << "Ref " << ref << " was not found in repository " << repo_path;
@@ -167,7 +182,7 @@ int main(int argc, char **argv) {
   OSTreeHash root_hash = ostree_ref.GetHash();
   OSTreeObject::ptr root_object;
   try {
-    root_object = repo.GetObject(root_hash);
+    root_object = repo->GetObject(root_hash);
   } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "Commit pointed to by " << ref
               << " was not found in repository " << repo_path;

@@ -6,7 +6,8 @@ set (GARAGE_PUSH_SRCS
   oauth2.cc
   ostree_hash.cc
   ostree_ref.cc
-  ostree_repo.cc
+  ostree_dir_repo.cc
+  ostree_http_repo.cc
   ostree_object.cc
   request_pool.cc
   treehub_server.cc
@@ -34,6 +35,7 @@ set(ALL_HEADERS
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
+  ostree_dir_repo.h
   request_pool.h
   treehub_server.h
 )

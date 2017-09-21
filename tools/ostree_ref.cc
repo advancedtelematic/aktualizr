@@ -14,8 +14,43 @@ using std::stringstream;
 using std::ifstream;
 
 OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string ref_name)
-    : file_path_(repo.root() + "/refs/heads/" + ref_name),
-      ref_name_(ref_name) {}
+    : ref_name_(ref_name) {
+  if (boost::filesystem::is_regular_file(repo.root() + "/refs/heads/" +
+                                         ref_name)) {
+    std::ifstream f(repo.root() + "/refs/heads/" + ref_name,
+                    std::ios::in | std::ios::binary);
+
+    std::istream_iterator<char> start(f);
+    std::istream_iterator<char> end;
+    string res(start, end);
+
+    // Strip trailing \n
+    while (!res.empty() && res[res.size() - 1] == '\n') {
+      res.resize(res.size() - 1);
+    }
+    ref_content_ = res;
+    is_valid = true;
+  } else {
+    is_valid = false;
+  }
+}
+
+OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string ref_name)
+    : ref_name_(ref_name) {
+  CURL *curl_handle = curl_easy_init();
+  serve_repo.InjectIntoCurl(Url(), curl_handle);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
+                   &OSTreeRef::curl_handle_write);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, true);
+  CURLcode rc = curl_easy_perform(curl_handle);
+  if (rc != CURLE_OK) {
+    is_valid = false;
+  }
+  curl_easy_cleanup(curl_handle);
+  ref_content_ = http_response_.str();
+}
 
 void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
   assert(IsValid());
@@ -28,36 +63,18 @@ void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
                    this);  // Used by ostree_ref_from_curl
 
   curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-  string content = RefContent();
-  curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, content.size());
-  curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, content.c_str());
+  curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, ref_content_.size());
+  curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, ref_content_.c_str());
   curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
 }
 
-bool OSTreeRef::IsValid() const {
-  return boost::filesystem::is_regular_file(file_path_);
-}
+bool OSTreeRef::IsValid() const { return is_valid; }
 
 string OSTreeRef::Url() const { return "refs/heads/" + ref_name_; }
 
-string OSTreeRef::RefContent() const {
-  std::ifstream f(file_path_.native().c_str(), std::ios::in | std::ios::binary);
-
-  std::istream_iterator<char> start(f);
-  std::istream_iterator<char> end;
-  string res(start, end);
-
-  // Strip trailing \n
-  while (!res.empty() && res[res.size() - 1] == '\n') {
-    res.resize(res.size() - 1);
-  }
-
-  return res;
-}
-
 OSTreeHash OSTreeRef::GetHash() const {
   uint8_t sha256[32];
-  std::istringstream refstr(RefContent());
+  std::istringstream refstr(ref_content_);
 
   // sha256 is always 256 bits == 32 bytes long
   for (int i = 0; i < 32; i++) {
