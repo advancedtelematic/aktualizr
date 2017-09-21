@@ -2,6 +2,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "config.h"
 #include "crypto.h"
 #include "secondary.h"
 
@@ -36,7 +37,8 @@ Json::Value Secondary::genAndSendManifest(Json::Value custom) {
 
   std::string public_key = Utils::readFile((config.full_client_dir / config.ecu_public_key).string());
   std::string private_key = Utils::readFile((config.full_client_dir / config.ecu_private_key).string());
-  Json::Value signed_ecu_version = Crypto::signTuf(private_key, public_key, manifest);
+  // TODO: support PKCS11 for secondaries. Maybe.
+  Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, Crypto::getKeyId(public_key), manifest);
   return signed_ecu_version;
 }
 

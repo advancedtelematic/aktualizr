@@ -13,6 +13,7 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
             gatewaymanager.cc
             httpclient.cc
             logger.cc
+            p11engine.cc
             socketgateway.cc
             timer.cc
             types.cc
@@ -36,6 +37,7 @@ set(HEADERS
             logger.h
             openssl_compat.h
             ostree.h
+            p11engine.h
             socketgateway.h
             sotauptaneclient.h
             timer.h
@@ -71,6 +73,9 @@ if (BUILD_OSTREE)
                         uptane/testbussecondary.cc)
 endif(BUILD_OSTREE)
 
+if(TEST_PKCS11_MODULE_PATH)
+    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+endif(TEST_PKCS11_MODULE_PATH)
 
 # set the name of the executable
 add_executable(aktualizr main.cc)

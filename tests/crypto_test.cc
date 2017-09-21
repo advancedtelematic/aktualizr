@@ -26,24 +26,44 @@ TEST(crypto, sha512_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
-TEST(crypto, sign_verify_rsa) {
+TEST(crypto, sign_verify_rsa_file) {
   std::string text = "This is text for sign";
   PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(private_key, text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
 
+TEST(crypto, sign_verify_rsa_p11) {
+#ifdef TEST_PKCS11_MODULE_PATH
+  P11Config config;
+  config.module = TEST_PKCS11_MODULE_PATH;
+  config.pass = "1234";
+
+  P11Engine p11(config);
+  std::string text = "This is text for sign";
+  std::string key_content;
+  EXPECT_TRUE(p11.readPublicKey("03", &key_content));
+  PublicKey pkey(key_content, "rsa");
+  std::string private_key = p11.getUriPrefix() + "03";
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(&p11, private_key, text));
+  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
+  EXPECT_TRUE(signe_is_ok);
+#else
+  LOGGER_LOG(LVL_trace, "sign_verify_rsa_p11 test skipped. Define TEST_PKCS11_MODULE_PATH to run it.")
+#endif
+}
+
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("this is bad key path", text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "this is bad key path", text));
   EXPECT_TRUE(signature.empty());
 }
 
 TEST(crypto, verify_bad_key_no_crash) {
   std::string text = "This is text for sign";
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "tests/test_data/priv.key", text));
   bool signe_is_ok = Crypto::RSAPSSVerify("this is bad key", signature, text);
   EXPECT_EQ(signe_is_ok, false);
 }

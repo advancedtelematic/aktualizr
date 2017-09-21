@@ -10,6 +10,7 @@
 #include "bootstrap.h"
 #include "crypto.h"
 #include "httpclient.h"
+#include "httpclient.h"
 #include "logger.h"
 #include "utils.h"
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
   std::string serverUrl = Bootstrap::readServerUrl(credentials_path);
 
   std::cout << "Provisioning against server...\n";
-  http.setCerts(boot.getCa(), boot.getCert(), boot.getPkey());
+  http.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
   HttpResponse response = http.post(serverUrl + "/devices", data);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];

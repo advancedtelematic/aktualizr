@@ -15,6 +15,7 @@
 #include "httpclient.h"
 #include "logger.h"
 #include "ostree.h"
+#include "p11engine.h"
 #include "utils.h"
 
 #include "fsstorage.h"
@@ -49,7 +50,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   try {
     FSStorage storage(config);
     HttpClient http;
-    Uptane::Repository repo(config, storage, http);
+    P11Engine p11(config.p11);
+    Uptane::Repository repo(config, storage, http, p11);
     repo.updateRoot(Uptane::Version(1));
     Json::Value unsigned_ecu_version =
         OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);

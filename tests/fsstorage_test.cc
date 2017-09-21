@@ -34,9 +34,9 @@ TEST(fsstorage, load_store_tls) {
   Config config;
   config.tls.certificates_directory = fsstorage_test_dir;
   config.uptane.metadata_path = fsstorage_test_dir;
-  config.tls.pkey_file = "test_tls.pkey";
-  config.tls.client_certificate = "test_tls.cert";
-  config.tls.ca_file = "test_tls.ca";
+  config.tls.pkey_path = "test_tls.pkey";
+  config.tls.cert_path = "test_tls.cert";
+  config.tls.ca_path = "test_tls.ca";
 
   FSStorage storage(config);
   storage.storeTlsCreds("ca", "cert", "priv");

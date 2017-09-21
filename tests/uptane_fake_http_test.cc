@@ -6,6 +6,7 @@
 #include "fsstorage.h"
 #include "httpclient.h"
 #include "logger.h"
+#include "p11engine.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -20,14 +21,15 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
 
   HttpClient http;
   FSStorage fs(conf);
-  Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
+  P11Engine p11(conf.p11);
+  Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http, p11);
   bool result = uptane->initialize();
   delete uptane;
   if (device_register_state != "noerrors" || conf.uptane.primary_ecu_serial != "noerrors") {
     conf.provision.expiry_days = "noerrors";
     conf.uptane.primary_ecu_serial = "noerrors";
     conf.provision.server = good_url;
-    Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
+    Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http, p11);
     result = uptane->initialize();
     delete uptane;
     return result;

@@ -1,11 +1,7 @@
 #! /bin/bash
 set -e
 
-mkdir -p /var/lib/softhsm/tokens
-softhsm2-util --init-token --slot 0 --label "Virtual token" --pin 1234 --so-pin 1234
-softhsm2-util --import ./src/tests/test_data/implicit/pkey.pem --label "pkey" --id 02 --slot 0 --pin 1234
-openssl x509 -outform der -in ./src/tests/test_data/implicit/client.pem -out ./src/tests/test_data/implicit/client.der
-pkcs11-tool --module=/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so --id 1 --write-object ./src/tests/test_data/implicit/client.der --type cert --login --pin 1234
+./src/scripts/setup_hsm.sh
 
 mkdir -p build-coverage
 cd build-coverage

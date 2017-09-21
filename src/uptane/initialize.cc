@@ -8,7 +8,8 @@
 namespace Uptane {
 
 // Postcondition: device_id is in the storage
-bool Repository::initDeviceId(const ProvisionConfig& provision_config, const UptaneConfig& uptane_config) {
+bool Repository::initDeviceId(const ProvisionConfig& provision_config, const UptaneConfig& uptane_config,
+                              const TlsConfig& tls_config) {
   // if device_id is already stored, just return
   std::string device_id;
   if (storage.loadDeviceId(&device_id)) return true;
@@ -18,7 +19,8 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
   if (device_id.empty()) {
     if (provision_config.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
-    } else if (provision_config.mode == kImplicit) {
+    } else if (provision_config.mode == kImplicit &&
+               tls_config.cert_source == kFile) {  // TODO: support reading the certificate from PKCS#11
       std::string cert;
       if (!storage.loadTlsCreds(NULL, &cert, NULL)) {
         LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
@@ -106,19 +108,40 @@ void Repository::resetEcuSerials() {
   secondaries.clear();
 }
 
-void Repository::setEcuKeysMembers(const std::string& primary_public, const std::string& primary_private) {
+void Repository::setEcuKeysMembers(const std::string& primary_public, const std::string& primary_private,
+                                   const std::string& primary_public_id, CryptoSource source) {
   primary_public_key = primary_public;
   primary_private_key = primary_private;
+  primary_public_key_id = primary_public_id;
+  key_source = source;
 }
 
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
-bool Repository::initEcuKeys() {
+bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
   std::string primary_public;
   std::string primary_private;
-  if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
-    setEcuKeysMembers(primary_public, primary_private);
+  std::string primary_public_id;
+
+  if (uptane_config.key_source == kPkcs11) {
+    primary_public = p11.getUriPrefix() + uptane_config.public_key_path;
+    primary_private = p11.getUriPrefix() + uptane_config.private_key_path;
+    std::string public_key_content;
+    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content)) {
+      LOGGER_LOG(LVL_error, "Public key with id " << uptane_config.private_key_path << " was not found");
+      return false;
+    }
+    primary_public_id = Crypto::getKeyId(public_key_content);
+
+    setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
     return true;
   }
+  if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
+    primary_public_id = Crypto::getKeyId(primary_public);
+    setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
+    return true;
+  }
+
+  // from here down key_source is kFile
 
   if (!Crypto::generateRSAKeyPair(&primary_public, &primary_private)) return false;
 
@@ -140,8 +163,9 @@ bool Repository::initEcuKeys() {
       transport.sendKeys(it->first, secondary_public, secondary_private);
     }
   }
+  primary_public_id = Crypto::getKeyId(primary_public);
   storage.storePrimaryKeys(primary_public, primary_private);
-  setEcuKeysMembers(primary_public, primary_private);
+  setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
   return true;
 }
 
@@ -149,104 +173,97 @@ void Repository::resetEcuKeys() {
   storage.clearPrimaryKeys();
   primary_public_key = "";
   primary_private_key = "";
+  primary_public_key_id = "";
+}
+
+bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
+  std::string pkey;
+  std::string cert;
+  std::string ca;
+
+  bool res = true;
+
+  if (tls_config.pkey_source == kFile) {
+    res = res && storage.loadTlsPkey(&pkey);
+    pkcs11_tls_keyname = "";
+  } else {  // kPkcs11
+    pkey = p11.getUriPrefix() + tls_config.pkey_path;
+    pkcs11_tls_keyname = pkey;
+  }
+
+  if (tls_config.cert_source == kFile) {
+    res = res && storage.loadTlsCert(&cert);
+    pkcs11_tls_certname = "";
+  } else {  // kPkcs11
+    cert = p11.getUriPrefix() + tls_config.cert_path;
+    pkcs11_tls_certname = cert;
+  }
+
+  if (tls_config.ca_source == kFile) {
+    res = res && storage.loadTlsCa(&ca);
+  } else {  // kPkcs11
+    ca = p11.getUriPrefix() + tls_config.ca_path;
+  }
+
+  if (res) http.setCerts(ca, tls_config.ca_source, cert, tls_config.cert_source, pkey, tls_config.pkey_source);
+
+  return res;
 }
 
 // Postcondition: TLS credentials are in the storage
 InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, const TlsConfig& tls_config) {
-  if (tls_config.pkcs11_module.empty()) {
-    // first authentication method: with TLS credentials stored on disk
-    std::string pkey;
-    std::string cert;
-    std::string ca;
-    if (storage.loadTlsCreds(&ca, &cert, &pkey)) {
-      LOGGER_LOG(LVL_trace, "Device already registered, proceeding");
-      // set provisioned credentials
-      http.setCerts(ca, cert, pkey);
-      return INIT_RET_OK;
-    } else if (provision_config.mode == kImplicit) {
-      LOGGER_LOG(LVL_error, "Implicit provisioning credentials not found.");
-      return INIT_RET_STORAGE_FAILURE;
-    }
-    // set bootstrap credentials
-    Bootstrap boot(provision_config.provision_path, provision_config.p12_password);
-    http.setCerts(boot.getCa(), boot.getCert(), boot.getPkey());
+  if (loadSetTlsCreds(tls_config)) return INIT_RET_OK;
 
-    Json::Value data;
-    std::string device_id;
-    if (!storage.loadDeviceId(&device_id)) {
-      LOGGER_LOG(LVL_error, "device_id unknown during autoprovisioning process");
-      return INIT_RET_STORAGE_FAILURE;
-    }
-    data["deviceId"] = device_id;
-    data["ttl"] = provision_config.expiry_days;
-    HttpResponse response = http.post(provision_config.server + "/devices", data);
-    if (!response.isOk()) {
-      Json::Value resp_code = response.getJson()["code"];
-      if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
-        LOGGER_LOG(LVL_error, "Device id" << device_id << "is occupied");
-        return INIT_RET_OCCUPIED;
-      } else {
-        LOGGER_LOG(LVL_error, "Autoprovisioning failed, response: " << response.body);
-        return INIT_RET_SERVER_FAILURE;
-      }
-    }
-
-    // DEBUG: write copy of device.p12 device
-    Utils::writeFile("/var/sota/copy.p12", response.body);
-    FILE* device_p12 = fmemopen(const_cast<char*>(response.body.c_str()), response.body.size(), "rb");
-    if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
-      return INIT_RET_BAD_P12;
-    }
-    fclose(device_p12);
-    storage.storeTlsCreds(ca, cert, pkey);
-
-    // set provisioned credentials
-    http.setCerts(ca, cert, pkey);
-
-    // TODO: acknowledgement to the server
-    LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
-    return INIT_RET_OK;
-  } else {
-    // second authentication method: with PKCS#11 device
-    std::string ca;
-    // to be discussed, CA may also be stored in PKCS#11 device
-    if (!storage.loadTlsCa(&ca)) {
-      LOGGER_LOG(LVL_error, "Root CA not found.");
-      return INIT_RET_STORAGE_FAILURE;
-    }
-
-    try {
-      P11ContextWrapper ctx(tls_config.pkcs11_module);
-      P11SlotsWrapper slots(ctx.get());
-      PKCS11_SLOT* slot = PKCS11_find_token(ctx.get(), slots.get_slots(), slots.get_nslots());
-      if (!slot || !slot->token) {
-        LOGGER_LOG(LVL_error, "Couldn't find pkcs11 token");
-        return INIT_RET_PKCS11_FAILURE;
-      }
-      // DEBUG
-      LOGGER_LOG(LVL_debug, "Slot manufacturer......: " << slot->manufacturer);
-      LOGGER_LOG(LVL_debug, "Slot description.......: " << slot->description);
-      LOGGER_LOG(LVL_debug, "Slot token label.......: " << slot->token->label);
-      LOGGER_LOG(LVL_debug, "Slot token manufacturer: " << slot->token->manufacturer);
-      LOGGER_LOG(LVL_debug, "Slot token model.......: " << slot->token->model);
-      LOGGER_LOG(LVL_debug, "Slot token serialnr....: " << slot->token->serialnr);
-      // END DEBUG
-      pkcs11_certname = std::string("pkcs11:serial=") + slot->token->serialnr + ";id=%" + tls_config.pkcs11_certid +
-                        ";pin-value=" + tls_config.pkcs11_pass;
-      pkcs11_keyname = std::string("pkcs11:serial=") + slot->token->serialnr + ";id=%" + tls_config.pkcs11_keyid +
-                       ";pin-value=" + tls_config.pkcs11_pass;
-      // TODO: Will we store root CA in the token as well?
-    } catch (const std::runtime_error& e) {
-      LOGGER_LOG(LVL_error, "libp11 fault: " << e.what());
-      return INIT_RET_PKCS11_FAILURE;
-    }
-
-    if (!http.setPkcs11(tls_config.pkcs11_module, tls_config.pkcs11_pass, pkcs11_certname, pkcs11_keyname, ca)) {
-      LOGGER_LOG(LVL_error, "Failed to initiaize libp11.");
-      return INIT_RET_PKCS11_FAILURE;
-    }
-    return INIT_RET_OK;
+  if (provision_config.mode != kAutomatic) {
+    LOGGER_LOG(LVL_error, "Credentials not found");
+    return INIT_RET_STORAGE_FAILURE;
   }
+
+  // Autoprovision is needed and possible => autoprovision
+
+  // set bootstrap credentials
+  Bootstrap boot(provision_config.provision_path, provision_config.p12_password);
+  http.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
+
+  Json::Value data;
+  std::string device_id;
+  if (!storage.loadDeviceId(&device_id)) {
+    LOGGER_LOG(LVL_error, "device_id unknown during autoprovisioning process");
+    return INIT_RET_STORAGE_FAILURE;
+  }
+  data["deviceId"] = device_id;
+  data["ttl"] = provision_config.expiry_days;
+  HttpResponse response = http.post(provision_config.server + "/devices", data);
+  if (!response.isOk()) {
+    Json::Value resp_code = response.getJson()["code"];
+    if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
+      LOGGER_LOG(LVL_error, "Device id" << device_id << "is occupied");
+      return INIT_RET_OCCUPIED;
+    } else {
+      LOGGER_LOG(LVL_error, "Autoprovisioning failed, response: " << response.body);
+      return INIT_RET_SERVER_FAILURE;
+    }
+  }
+
+  std::string pkey;
+  std::string cert;
+  std::string ca;
+  FILE* device_p12 = fmemopen(const_cast<char*>(response.body.c_str()), response.body.size(), "rb");
+  if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
+    LOGGER_LOG(LVL_error, "Received a malformed P12 package from the server");
+    return INIT_RET_BAD_P12;
+  }
+  fclose(device_p12);
+  storage.storeTlsCreds(ca, cert, pkey);
+
+  // set provisioned credentials
+  if (!loadSetTlsCreds(tls_config)) {
+    LOGGER_LOG(LVL_info, "Failed to set provisioned credentials");
+    return INIT_RET_STORAGE_FAILURE;
+  }
+
+  LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
+  return INIT_RET_OK;
 }
 
 void Repository::resetTlsCreds() {
@@ -256,13 +273,20 @@ void Repository::resetTlsCreds() {
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-InitRetCode Repository::initEcuRegister() {
+InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
   if (storage.loadEcuRegistered()) return INIT_RET_OK;
 
   std::string primary_public;
-  if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
-    LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
-    return INIT_RET_STORAGE_FAILURE;
+  if (uptane_config.key_source == kFile) {
+    if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
+      LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
+      return INIT_RET_STORAGE_FAILURE;
+    }
+  } else {  // kPkcs11
+    if (!p11.readPublicKey(uptane_config.public_key_path, &primary_public)) {
+      LOGGER_LOG(LVL_error, "Unable to read primary public key from the PKCS#11 device");
+      return INIT_RET_STORAGE_FAILURE;
+    }
   }
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
@@ -318,7 +342,7 @@ InitRetCode Repository::initEcuRegister() {
 // Postcondition: "ECUs registered" flag set in the storage
 bool Repository::initialize() {
   for (int i = 0; i < MaxInitializationAttempts; i++) {
-    if (!initDeviceId(config.provision, config.uptane)) {
+    if (!initDeviceId(config.provision, config.uptane, config.tls)) {
       LOGGER_LOG(LVL_error, "Device ID generation failed, abort initialization");
       return false;
     }
@@ -326,7 +350,7 @@ bool Repository::initialize() {
       LOGGER_LOG(LVL_error, "ECU serial generation failed, abort initialization");
       return false;
     }
-    if (!initEcuKeys()) {
+    if (!initEcuKeys(config.uptane)) {
       LOGGER_LOG(LVL_error, "ECU key generation failed, abort initialization");
       return false;
     }
@@ -343,7 +367,7 @@ bool Repository::initialize() {
       return false;
     }
 
-    ret_code = initEcuRegister();
+    ret_code = initEcuRegister(config.uptane);
     // if am ECU with the same ID has already been registered to the server, repeat the whole registration process
     //   excluding the device registration
     if (ret_code == INIT_RET_OCCUPIED) {

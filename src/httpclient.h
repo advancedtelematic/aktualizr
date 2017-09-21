@@ -2,7 +2,6 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
-#include <openssl/engine.h>
 #include <boost/move/unique_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include "json/json.h"
@@ -31,9 +30,8 @@ class HttpClient : public HttpInterface {
   virtual HttpResponse put(const std::string &url, const Json::Value &data);
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
-  virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey);
-  virtual bool setPkcs11(const std::string &module, const std::string &pass, const std::string &certname,
-                         const std::string &keyname, const std::string &ca);
+  virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
+                        CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source);
   unsigned int http_code;
   std::string token; /**< the OAuth2 token stored as string */
 
@@ -54,11 +52,11 @@ class HttpClient : public HttpInterface {
   std::string user_agent;
 
   static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
-  boost::mutex tls_mutex;
   boost::movelib::unique_ptr<TemporaryFile> tls_ca_file;
   boost::movelib::unique_ptr<TemporaryFile> tls_cert_file;
   boost::movelib::unique_ptr<TemporaryFile> tls_pkey_file;
-  ENGINE *ssl_engine;
   static const int RETRY_TIMES = 2;
+  bool pkcs11_key;
+  bool pkcs11_cert;
 };
 #endif

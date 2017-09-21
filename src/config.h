@@ -17,6 +17,7 @@
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
+enum CryptoSource { kFile = 0, kPkcs11 };
 
 #ifdef WITH_GENIVI
 // DbusConfig depends on DBusBusType with is defined in libdbus
@@ -81,26 +82,30 @@ struct RviConfig {
   std::string uuid;
 };
 
+struct P11Config {
+  P11Config() : module(""), pass("") {}
+  std::string module;
+  std::string pass;
+};
+
 struct TlsConfig {
   TlsConfig()
       : certificates_directory("/tmp/aktualizr"),
         server(""),
-        ca_file("ca.pem"),
-        pkey_file("pkey.pem"),
-        client_certificate("client.pem"),
-        pkcs11_module(""),
-        pkcs11_pass(""),
-        pkcs11_certid(""),
-        pkcs11_keyid("") {}
+        ca_source(kFile),
+        ca_path("ca.pem"),
+        pkey_source(kFile),
+        pkey_path("pkey.pem"),
+        cert_source(kFile),
+        cert_path("client.pem") {}
   boost::filesystem::path certificates_directory;
   std::string server;
-  std::string ca_file;
-  std::string pkey_file;
-  std::string client_certificate;
-  std::string pkcs11_module;
-  std::string pkcs11_pass;
-  std::string pkcs11_certid;
-  std::string pkcs11_keyid;
+  CryptoSource ca_source;
+  std::string ca_path;
+  CryptoSource pkey_source;
+  std::string pkey_path;
+  CryptoSource cert_source;
+  std::string cert_path;
 };
 
 struct ProvisionConfig {
@@ -123,6 +128,7 @@ struct UptaneConfig {
         director_server(""),
         repo_server(""),
         metadata_path(""),
+        key_source(kFile),
         private_key_path("ecukey.pem"),
         public_key_path("ecukey.pub") {}
   bool polling;
@@ -134,6 +140,7 @@ struct UptaneConfig {
   std::string director_server;
   std::string repo_server;
   boost::filesystem::path metadata_path;
+  CryptoSource key_source;
   std::string private_key_path;
   std::string public_key_path;
   std::vector<Uptane::SecondaryConfig> secondaries;
@@ -161,6 +168,7 @@ class Config {
   GatewayConfig gateway;
   RviConfig rvi;
   NetworkConfig network;
+  P11Config p11;
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;

@@ -33,28 +33,42 @@ std::string Crypto::sha512digest(const std::string &text) {
   return std::string((char *)sha512_hash, crypto_hash_sha512_BYTES);
 }
 
-std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string &message) {
+std::string Crypto::RSAPSSSign(P11Engine *engine, const std::string &private_key, const std::string &message) {
   EVP_PKEY *key;
   RSA *rsa = NULL;
+  if (engine) {
+    key = ENGINE_load_private_key(engine->getEngine(), private_key.c_str(), NULL, NULL);
 
-  BIO *bio = BIO_new_mem_buf(const_cast<char *>(private_key.c_str()), (int)private_key.size());
-  if ((key = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL))) {
+    if (!key) {
+      LOGGER_LOG(LVL_error, "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      return std::string();
+    }
+
     rsa = EVP_PKEY_get1_RSA(key);
-  }
-  BIO_free_all(bio);
-  EVP_PKEY_free(key);
+    EVP_PKEY_free(key);
+    if (!rsa) {
+      LOGGER_LOG(LVL_error, "EVP_PKEY_get1_RSA failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      return std::string();
+    }
+  } else {
+    BIO *bio = BIO_new_mem_buf(const_cast<char *>(private_key.c_str()), (int)private_key.size());
+    if ((key = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL))) {
+      rsa = EVP_PKEY_get1_RSA(key);
+    }
+    BIO_free_all(bio);
+    EVP_PKEY_free(key);
 
-  if (!rsa) {
-    LOGGER_LOG(LVL_error, "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
-    return std::string();
-  }
+    if (!rsa) {
+      LOGGER_LOG(LVL_error, "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      return std::string();
+    }
 
-// TODO: RSA with PKCS11
 #if AKTUALIZR_OPENSSL_PRE_11
-  RSA_set_method(rsa, RSA_PKCS1_SSLeay());
+    RSA_set_method(rsa, RSA_PKCS1_SSLeay());
 #else
-  RSA_set_method(rsa, RSA_PKCS1_OpenSSL());
+    RSA_set_method(rsa, RSA_PKCS1_OpenSSL());
 #endif
+  }
 
   const unsigned int sign_size = RSA_size(rsa);
   boost::scoped_array<unsigned char> EM(new unsigned char[sign_size]);
@@ -81,18 +95,24 @@ std::string Crypto::RSAPSSSign(const std::string &private_key, const std::string
   return retval;
 }
 
-Json::Value Crypto::signTuf(const std::string &private_key, const std::string &public_key, const Json::Value &in_data) {
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(private_key, Json::FastWriter().write(in_data)));
+std::string Crypto::getKeyId(const std::string &key) {
+  std::string key_content = key;
+
+  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
+  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
+  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
+  return keyid;
+}
+
+Json::Value Crypto::signTuf(P11Engine *p11_engine, const std::string &private_key, const std::string &public_key_id,
+                            const Json::Value &in_data) {
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(p11_engine, private_key, Json::FastWriter().write(in_data)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
-  std::string key_content = public_key;
-  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
-  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
-  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
   Json::Value out_data;
-  signature["keyid"] = keyid;
+  signature["keyid"] = public_key_id;
   out_data["signed"] = in_data;
   out_data["signatures"] = Json::Value(Json::arrayValue);
   out_data["signatures"].append(signature);
@@ -101,7 +121,6 @@ Json::Value Crypto::signTuf(const std::string &private_key, const std::string &p
 
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
   RSA *rsa = NULL;
-
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());
   if (!PEM_read_bio_RSA_PUBKEY(bio, &rsa, NULL, NULL)) {
     LOGGER_LOG(LVL_error, "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL));

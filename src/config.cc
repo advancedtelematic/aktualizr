@@ -176,15 +176,36 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", LVL_trace, pt);
   CopyFromConfig(rvi.uuid, "rvi.uuid", LVL_warning, pt);
 
+  CopyFromConfig(p11.module, "p11.module", LVL_trace, pt);
+  CopyFromConfig(p11.pass, "p11.pass", LVL_trace, pt);
+
   CopyFromConfig(tls.certificates_directory, "tls.certificates_directory", LVL_trace, pt);
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
-  CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
-  CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
-  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
-  CopyFromConfig(tls.pkcs11_module, "tls.pkcs11_module", LVL_warning, pt);
-  CopyFromConfig(tls.pkcs11_pass, "tls.pkcs11_pass", LVL_warning, pt);
-  CopyFromConfig(tls.pkcs11_certid, "tls.pkcs11_certid", LVL_warning, pt);
-  CopyFromConfig(tls.pkcs11_keyid, "tls.pkcs11_keyid", LVL_warning, pt);
+
+  std::string tls_source = "file";
+  CopyFromConfig(tls_source, "tls.ca_source", LVL_warning, pt);
+  if (tls_source == "pkcs11")
+    tls.ca_source = kPkcs11;
+  else
+    tls.ca_source = kFile;
+
+  tls_source = "file";
+  CopyFromConfig(tls_source, "tls.cert_source", LVL_warning, pt);
+  if (tls_source == "pkcs11")
+    tls.cert_source = kPkcs11;
+  else
+    tls.cert_source = kFile;
+
+  tls_source = "file";
+  CopyFromConfig(tls_source, "tls.pkey_source", LVL_warning, pt);
+  if (tls_source == "pkcs11")
+    tls.pkey_source = kPkcs11;
+  else
+    tls.pkey_source = kFile;
+
+  CopyFromConfig(tls.ca_path, "tls.ca_path", LVL_warning, pt);
+  CopyFromConfig(tls.pkey_path, "tls.pkey_path", LVL_warning, pt);
+  CopyFromConfig(tls.cert_path, "tls.cert_path", LVL_warning, pt);
 
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
@@ -200,6 +221,14 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
   CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
+
+  std::string key_source = "file";
+  CopyFromConfig(key_source, "uptane.key_source", LVL_warning, pt);
+  if (key_source == "pkcs11")
+    uptane.key_source = kPkcs11;
+  else
+    uptane.key_source = kFile;
+
   CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
   CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);
 
