@@ -1,5 +1,3 @@
-set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
 # set the name of the executable
 add_executable(aktualizr_cert_provider main.cc)
 
@@ -41,3 +39,6 @@ else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
 
+install(TARGETS aktualizr_cert_provider RUNTIME DESTINATION bin)
+
+# vim: set tabstop=4 shiftwidth=4 expandtab:

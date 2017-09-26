@@ -121,8 +121,6 @@ add_aktualizr_test(NAME crypto
                    PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
 if(BUILD_OSTREE)
-    set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 

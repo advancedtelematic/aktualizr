@@ -1,11 +1,8 @@
-set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoniwp/jsoniwp.iwp PROPERTIES COMPILE_FLAGS -w)
-
 # set the name of the executable
 add_executable(aktualizr_implicit_writer main.cc)
 
 target_link_libraries(aktualizr_implicit_writer aktualizr_static_lib
         ${Boost_LIBRARIES}
-        ${CURL_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         ${sodium_LIBRARY_RELEASE}
@@ -40,3 +37,6 @@ else()
     message(WARNING "clang-check not found, skipping")
 endif(CLANG_CHECK)
 
+install(TARGETS aktualizr_implicit_writer RUNTIME DESTINATION bin)
+
+# vim: set tabstop=4 shiftwidth=4 expandtab:

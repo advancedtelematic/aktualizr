@@ -309,7 +309,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 void Config::writeToFile(const std::string& filename) {
   // Keep this order the same as in config.h and updateFromPropertyTree().
 
-  std::ofstream sink(filename, std::ofstream::out);
+  std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
 #ifdef WITH_GENIVI
