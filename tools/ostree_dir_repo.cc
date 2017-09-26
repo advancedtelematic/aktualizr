@@ -7,14 +7,14 @@
 #include <string>
 
 #include "logging.h"
+#include "ostree_dir_repo.h"
 #include "ostree_hash.h"
-#include "ostree_repo.h"
 
 using std::string;
 namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
 
-bool OSTreeRepo::LooksValid() const {
+bool OSTreeDirRepo::LooksValid() const {
   fs::path objects_dir(root_ + "/objects");
   fs::path refs_dir(root_ + "/refs");
   fs::path config_file(root_ + "/config");
@@ -41,11 +41,15 @@ bool OSTreeRepo::LooksValid() const {
   }
 }
 
-OSTreeObject::ptr OSTreeRepo::GetObject(const uint8_t sha256[32]) const {
+OSTreeRef OSTreeDirRepo::GetRef(const std::string &refname) const {
+  return OSTreeRef(*this, refname);
+}
+
+OSTreeObject::ptr OSTreeDirRepo::GetObject(const uint8_t sha256[32]) const {
   return GetObject(OSTreeHash(sha256));
 }
 
-OSTreeObject::ptr OSTreeRepo::GetObject(const OSTreeHash hash) const {
+OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash) const {
   otable::const_iterator it;
   it = ObjectTable.find(hash);
   if (it != ObjectTable.end()) {

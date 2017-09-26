@@ -10,9 +10,10 @@
 #include "ostree_repo.h"
 #include "treehub_server.h"
 
-class OSTreeRef : private boost::noncopyable {
+class OSTreeRef {
  public:
   OSTreeRef(const OSTreeRepo& root, const std::string ref_name);
+  OSTreeRef(const TreehubServer& serve_repo, const std::string ref_name);
 
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 
@@ -22,10 +23,10 @@ class OSTreeRef : private boost::noncopyable {
 
  private:
   std::string Url() const;
-  std::string RefContent() const;
+  bool is_valid;
 
-  const boost::filesystem::path file_path_;  // Full path to the object
-  const std::string ref_name_;               // OSTree name of the object
+  std::string ref_content_;
+  const std::string ref_name_;  // OSTree name of the object
   std::stringstream http_response_;
 
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb,

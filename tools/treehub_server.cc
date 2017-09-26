@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <iostream>
 
 #include "treehub_server.h"
 
