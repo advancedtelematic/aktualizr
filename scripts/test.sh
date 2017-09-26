@@ -8,7 +8,7 @@ fi
 
 mkdir -p build-test
 cd build-test
-cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DTEST_PKCS11_ENGINE_PATH="/usr/lib/engines/engine_pkcs11.so" -DTEST_PKCS11_MODULE_PATH="/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"  ../src
+cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_P11=ON -DTEST_PKCS11_ENGINE_PATH="/usr/lib/engines/engine_pkcs11.so" -DTEST_PKCS11_MODULE_PATH="/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so"  ../src
 make check-format
 make -j8
 if [ -n "$BUILD_ONLY" ]; then

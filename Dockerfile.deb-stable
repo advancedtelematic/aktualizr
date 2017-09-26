@@ -11,5 +11,3 @@ RUN apt-get update && apt-get -y install liblzma-dev bison e2fslibs-dev libgpgme
 RUN apt-get update && apt-get -y install ostree libostree-dev libarchive-dev libsodium-dev libp11-dev softhsm2 opensc libengine-pkcs11-openssl
 WORKDIR aktualizr
 ADD . src
-
-# vim: set nofixendofline:

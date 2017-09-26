@@ -33,11 +33,11 @@ std::string Crypto::sha512digest(const std::string &text) {
   return std::string((char *)sha512_hash, crypto_hash_sha512_BYTES);
 }
 
-std::string Crypto::RSAPSSSign(P11Engine *engine, const std::string &private_key, const std::string &message) {
+std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &message) {
   EVP_PKEY *key;
   RSA *rsa = NULL;
   if (engine) {
-    key = ENGINE_load_private_key(engine->getEngine(), private_key.c_str(), NULL, NULL);
+    key = ENGINE_load_private_key(engine, private_key.c_str(), NULL, NULL);
 
     if (!key) {
       LOGGER_LOG(LVL_error, "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), NULL));
@@ -104,9 +104,9 @@ std::string Crypto::getKeyId(const std::string &key) {
   return keyid;
 }
 
-Json::Value Crypto::signTuf(P11Engine *p11_engine, const std::string &private_key, const std::string &public_key_id,
+Json::Value Crypto::signTuf(ENGINE *engine, const std::string &private_key, const std::string &public_key_id,
                             const Json::Value &in_data) {
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(p11_engine, private_key, Json::FastWriter().write(in_data)));
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(engine, private_key, Json::FastWriter().write(in_data)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;

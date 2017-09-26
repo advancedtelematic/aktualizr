@@ -1,6 +1,7 @@
 #ifndef CRYPTO_H_
 #define CRYPTO_H_
 
+#include <openssl/engine.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
@@ -16,7 +17,6 @@
 #include <string>
 
 #include "config.h"
-#include "p11engine.h"
 #include "utils.h"
 
 struct PublicKey {
@@ -84,8 +84,8 @@ class Crypto {
  public:
   static std::string sha256digest(const std::string &text);
   static std::string sha512digest(const std::string &text);
-  static std::string RSAPSSSign(P11Engine *engine, const std::string &private_key, const std::string &digest);
-  static Json::Value signTuf(P11Engine *engine, const std::string &private_key, const std::string &public_key,
+  static std::string RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &digest);
+  static Json::Value signTuf(ENGINE *engine, const std::string &private_key, const std::string &public_key,
                              const Json::Value &in_data);
   static bool VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message);
   static bool parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,

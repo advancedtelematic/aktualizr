@@ -13,7 +13,10 @@
 #include "crypto.h"
 #include "httpinterface.h"
 #include "logger.h"
+
+#ifdef BUILD_P11
 #include "p11engine.h"
+#endif
 
 class SotaUptaneClient;
 
@@ -31,7 +34,7 @@ enum InitRetCode {
 const int MaxInitializationAttempts = 3;
 class Repository {
  public:
-  Repository(const Config &config, INvStorage &storage, HttpInterface &http_client, P11Engine &p11_engine);
+  Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
   // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
@@ -55,7 +58,9 @@ class Repository {
   TufRepository image;
   INvStorage &storage;
   HttpInterface &http;
-  P11Engine &p11;
+#ifdef BUILD_P11
+  P11Engine p11;
+#endif
   Json::Value manifests;
 
   std::string primary_ecu_serial;

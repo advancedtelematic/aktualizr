@@ -10,6 +10,13 @@
 #include "crypto.h"
 #include "utils.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#ifndef TEST_PKCS11_MODULE_PATH
+#define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
+#endif
+#endif
+
 TEST(crypto, sha256_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result = "7DF106BB55506D91E48AF727CD423B169926BA99DF4BAD53AF4D80E717A1AC9F";
@@ -35,8 +42,8 @@ TEST(crypto, sign_verify_rsa_file) {
   EXPECT_TRUE(signe_is_ok);
 }
 
+#ifdef BUILD_P11
 TEST(crypto, sign_verify_rsa_p11) {
-#ifdef TEST_PKCS11_MODULE_PATH
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
   config.pass = "1234";
@@ -47,13 +54,11 @@ TEST(crypto, sign_verify_rsa_p11) {
   EXPECT_TRUE(p11.readPublicKey("03", &key_content));
   PublicKey pkey(key_content, "rsa");
   std::string private_key = p11.getUriPrefix() + "03";
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(&p11, private_key, text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11.getEngine(), private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
-#else
-  LOGGER_LOG(LVL_trace, "sign_verify_rsa_p11 test skipped. Define TEST_PKCS11_MODULE_PATH to run it.")
-#endif
 }
+#endif
 
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";

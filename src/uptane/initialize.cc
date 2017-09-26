@@ -122,6 +122,7 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
   std::string primary_private;
   std::string primary_public_id;
 
+#ifdef BUILD_P11
   if (uptane_config.key_source == kPkcs11) {
     primary_public = p11.getUriPrefix() + uptane_config.public_key_path;
     primary_private = p11.getUriPrefix() + uptane_config.private_key_path;
@@ -135,6 +136,9 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
     setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
     return true;
   }
+#else
+  (void)uptane_config;
+#endif
   if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
     primary_public_id = Crypto::getKeyId(primary_public);
     setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
@@ -183,6 +187,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
 
   bool res = true;
 
+#ifdef BUILD_P11
   if (tls_config.pkey_source == kFile) {
     res = res && storage.loadTlsPkey(&pkey);
     pkcs11_tls_keyname = "";
@@ -204,6 +209,9 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
   } else {  // kPkcs11
     ca = p11.getUriPrefix() + tls_config.ca_path;
   }
+#else
+  res = storage.loadTlsCreds(&ca, &cert, &pkey);
+#endif
 
   if (res) http.setCerts(ca, tls_config.ca_source, cert, tls_config.cert_source, pkey, tls_config.pkey_source);
 
@@ -277,6 +285,8 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
   if (storage.loadEcuRegistered()) return INIT_RET_OK;
 
   std::string primary_public;
+
+#ifdef BUILD_P11
   if (uptane_config.key_source == kFile) {
     if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
       LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
@@ -288,6 +298,13 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
       return INIT_RET_STORAGE_FAILURE;
     }
   }
+#else
+  (void)uptane_config;
+  if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
+    LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
+    return INIT_RET_STORAGE_FAILURE;
+  }
+#endif
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
   // InitEcuSerials should have been called by this point
