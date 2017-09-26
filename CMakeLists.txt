@@ -29,7 +29,7 @@ find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
-pkg_search_module(SODIUM libsodium REQUIRED)
+find_package(sodium REQUIRED)
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)

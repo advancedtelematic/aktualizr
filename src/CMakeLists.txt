@@ -90,7 +90,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${CURL_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${SODIUM_LIBRARIES}
+        ${sodium_LIBRARY_RELEASE}
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}

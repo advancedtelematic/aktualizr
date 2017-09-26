@@ -8,7 +8,7 @@ target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
         ${CURL_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${SODIUM_LIBRARIES}
+        ${sodium_LIBRARY_RELEASE}
         ${LIBP11_LIBRARIES}
         ${LibArchive_LIBRARIES} gcov)
 
