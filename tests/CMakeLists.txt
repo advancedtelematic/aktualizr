@@ -18,6 +18,7 @@ set (TEST_LIBS
     ${SODIUM_LIBRARIES}
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
+    ${LIBP11_LIBRARIES}
     ${LibArchive_LIBRARIES}
     testutilities
     gtest gmock gcov)
@@ -108,6 +109,13 @@ add_aktualizr_test(NAME fsstorage SOURCES fsstorage_test.cc PROJECT_WORKING_DIRE
 add_aktualizr_test(NAME crypto
                    SOURCES crypto_test.cc
                    PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+
+
+add_executable(aktualizr_test_hsm hsm_test.cc)
+target_link_libraries(aktualizr_test_hsm aktualizr_static_lib ${TEST_LIBS})
+add_test(NAME test_hsm COMMAND ${PROJECT_SOURCE_DIR}/tests/run_hsm_test.sh ${PROJECT_BINARY_DIR}/tests/aktualizr_test_hsm WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_dependencies(build_tests aktualizr_test_hsm)
+
 
 if(BUILD_OSTREE)
     set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
@@ -256,7 +264,8 @@ set(ALL_TEST_SRCS
     test_utils.h
     test_utils.cc
     utils_test.cc
-    uptane_fake_http_test.cc)
+    uptane_fake_http_test.cc
+    hsm_test.cc)
 
 add_custom_target(check-format-tests
     COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}

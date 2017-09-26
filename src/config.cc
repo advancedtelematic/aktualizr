@@ -108,6 +108,10 @@ void Config::postUpdateValues() {
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
+
+  if (!p11.module.empty()) {
+    LOGGER_LOG(LVL_warning, "Hardware key storage has been configured, uptane.public_key_path will not be used");
+  }
 }
 
 void Config::updateFromToml(const std::string& filename) {
@@ -202,6 +206,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
   CopyFromConfig(ostree.packages_file, "ostree.packages_file", LVL_warning, pt);
+
+  CopyFromConfig(p11.module, "p11.module", LVL_warning, pt);
+  CopyFromConfig(p11.pin, "p11.pin", LVL_warning, pt);
+  CopyFromConfig(p11.slot, "p11.slot", LVL_warning, pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {

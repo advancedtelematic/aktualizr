@@ -138,6 +138,13 @@ struct OstreeConfig {
   std::string packages_file;
 };
 
+struct P11Config {
+  P11Config() : module(""), pin("1234"), slot(0) {}
+  std::string module;
+  std::string pin;
+  unsigned int slot;
+};
+
 class Config {
  public:
   Config();
@@ -157,6 +164,7 @@ class Config {
   ProvisionConfig provision;
   UptaneConfig uptane;
   OstreeConfig ostree;
+  P11Config p11;
 
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);

@@ -6,6 +6,7 @@
 #include <boost/scoped_array.hpp>
 
 #include "logger.h"
+#include "p11.h"
 #include "utils.h"
 
 FSStorage::FSStorage(const Config& config) : config_(config) {
@@ -31,15 +32,30 @@ void FSStorage::storePrimaryKeys(const std::string& public_key, const std::strin
 }
 
 bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
+  if (!public_key && !private_key) return false;
+
   boost::filesystem::path public_key_path = config_.tls.certificates_directory / config_.uptane.public_key_path;
   boost::filesystem::path private_key_path = config_.tls.certificates_directory / config_.uptane.private_key_path;
 
-  if (!boost::filesystem::exists(public_key_path) || !boost::filesystem::exists(private_key_path)) {
-    return false;
+  if (public_key) {
+    if (!config_.p11.module.empty()) {
+      P11 p11(config_.p11);
+      if (!p11.readPublicKey(public_key)) {
+        return false;
+      }
+    } else {
+      if (!boost::filesystem::exists(public_key_path)) {
+        return false;
+      }
+      *public_key = Utils::readFile(public_key_path.string());
+    }
   }
-
-  if (public_key) *public_key = Utils::readFile(public_key_path.string());
-  if (private_key) *private_key = Utils::readFile(private_key_path.string());
+  if (private_key) {
+    if (!boost::filesystem::exists(private_key_path)) {
+      return false;
+    }
+    *private_key = Utils::readFile(private_key_path.string());
+  }
   return true;
 }
 
