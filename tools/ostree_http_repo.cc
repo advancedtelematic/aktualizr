@@ -37,7 +37,6 @@ bool OSTreeHttpRepo::LooksValid() const {
   } else {
     return false;
   }
-  return true;
 }
 
 OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const {

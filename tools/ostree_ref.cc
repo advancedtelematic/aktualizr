@@ -36,7 +36,7 @@ OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string ref_name)
 }
 
 OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string ref_name)
-    : ref_name_(ref_name) {
+    : is_valid(true), ref_name_(ref_name) {
   CURL *curl_handle = curl_easy_init();
   serve_repo.InjectIntoCurl(Url(), curl_handle);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,

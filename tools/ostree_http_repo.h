@@ -15,8 +15,9 @@
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
-  explicit OSTreeHttpRepo(const TreehubServer &server) : server_(server), root_(std::string("/tmp/")+boost::filesystem::unique_path().string())
+  explicit OSTreeHttpRepo(const TreehubServer &server) : server_(server), root_(boost::filesystem::temp_directory_path()/boost::filesystem::unique_path())
  { boost::filesystem::create_directories(root_); }
+ ~OSTreeHttpRepo(){ boost::filesystem::remove_all(root_); }
 
   bool LooksValid() const;
   OSTreeObject::ptr GetObject(const OSTreeHash hash) const;

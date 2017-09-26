@@ -4,7 +4,9 @@
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+#include <boost/shared_ptr.hpp>
 #include <iomanip>
 #include <iostream>
 
@@ -121,7 +123,13 @@ int main(int argc, char **argv) {
   }
 
   if (!vm.count("repo") && !vm.count("fetch-credentials")) {
-    LOG_INFO << "You should specify repo or fetch-credentials";
+    LOG_INFO << "You should specify --repo or --fetch-credentials";
+    return EXIT_FAILURE;
+  }
+
+  if (vm.count("repo") && vm.count("fetch-credentials")) {
+    LOG_INFO
+        << "You cannot specify --repo and --fetch-credentials options together";
     return EXIT_FAILURE;
   }
 
@@ -144,12 +152,12 @@ int main(int argc, char **argv) {
   }
 
   TreehubServer pull_server;
-  OSTreeRepo *repo;
+  boost::shared_ptr<OSTreeRepo> repo;
   if (!pull_cred.empty()) {
     authenticate(cacerts, pull_cred, pull_server);
-    repo = new OSTreeHttpRepo(pull_server);
+    repo = boost::make_shared<OSTreeHttpRepo>(pull_server);
   } else {
-    repo = new OSTreeDirRepo(repo_path);
+    repo = boost::make_shared<OSTreeDirRepo>(repo_path);
   }
 
   if (!repo->LooksValid()) {
