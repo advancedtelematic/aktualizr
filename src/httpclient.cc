@@ -1,7 +1,6 @@
 #include "httpclient.h"
 
 #include <assert.h>
-#include <libp11.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -14,6 +13,10 @@
 #include <sys/stat.h>
 #include <boost/move/make_unique.hpp>
 #include <boost/move/utility.hpp>
+
+#ifdef BUILD_P11
+#include <libp11.h>
+#endif
 
 #include "logger.h"
 #include "openssl_compat.h"

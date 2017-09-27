@@ -2,7 +2,6 @@
 #define UPTANE_REPOSITORY_H_
 
 #include <json/json.h>
-#include <libp11.h>
 #include <vector>
 #include "config.h"
 #include "invstorage.h"
