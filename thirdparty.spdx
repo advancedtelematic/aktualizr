@@ -67,6 +67,167 @@ PackageCopyrightText: <text>Copyright (c) 2016, Jaguar Land Rover.</text>
 FilesAnalyzed: false
 
 
+PackageName: boost-system
+SPDXID: SPDXRef-boost-system
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>© Copyright Beman Dawes</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-filesystem
+SPDXID: SPDXRef-boost-filesystem
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>© Copyright Beman Dawes</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-thread
+SPDXID: SPDXRef-boost-thread
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2007 -11 Anthony Williams
+Copyright © 2011 -16 Vicente J. Botet Escriba</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-program_options
+SPDXID: SPDXRef-boost-program_options
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2002-2004 Vladimir Prus</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-log
+SPDXID: SPDXRef-boost-log
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2007-2016 Andrey Semashev</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-regex
+SPDXID: SPDXRef-boost-regex
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 1998-2013 John Maddock</text>
+FilesAnalyzed: false
+
+PackageName: boost-chrono
+SPDXID: SPDXRef-boost-chrono
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2008 Howard Hinnant
+Copyright © 2006, 2008 Beman Dawes
+Copyright © 2009-2013 Vicente J. Botet Escriba</text>
+FilesAnalyzed: false
+
+
+PackageName: boost-date_time
+SPDXID: SPDXRef-boost-date_time
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2001-2005 CrystalClear Software, Inc</text>
+FilesAnalyzed: false
+
+
+
+PackageName: boost-random
+SPDXID: SPDXRef-boost-random
+PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
+PackageHomePage: http://www.boost.org/
+PackageLicenseConcluded: BSL-1.0
+PackageLicenseDeclared: BSL-1.0
+PackageLicenseInfoFromFiles: BSL-1.0
+PackageCopyrightText: <text>Copyright © 2000-2005 Jens Maurer
+Copyright © 2009, 2010 Steven Watanabe</text>
+FilesAnalyzed: false
+
+
+PackageName: libcurl
+SPDXID: SPDXRef-libcurl
+PackageDownloadLocation: https://github.com/curl/curl/archive/master.zip
+PackageHomePage: https://curl.haxx.se
+PackageLicenseConcluded: LicenseRef-curl
+PackageLicenseDeclared: LicenseRef-curl
+PackageLicenseInfoFromFiles: LicenseRef-curl
+PackageCopyrightText: <text>Copyright (c) 1996 - 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.</text>
+FilesAnalyzed: false
+
+
+PackageName: openssl
+SPDXID: SPDXRef-openssl
+PackageDownloadLocation: https://github.com/openssl/openssl/archive/master.zip
+PackageHomePage: https://www.openssl.org/
+PackageLicenseConcluded: LicenseRef-openssl
+PackageLicenseDeclared: LicenseRef-openssl
+PackageLicenseInfoFromFiles: LicenseRef-openssl
+PackageCopyrightText: <text>Copyright (c) 1998-2016 The OpenSSL Project
+Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+All rights reserved.</text>
+FilesAnalyzed: false
+
+
+PackageName: libarchive
+SPDXID: SPDXRef-libarchive
+PackageDownloadLocation: https://github.com/libarchive/libarchive/zipball/master
+PackageHomePage: https://www.libarchive.org/
+PackageLicenseConcluded: LicenseRef-libarchive
+PackageLicenseDeclared: LicenseRef-libarchive
+PackageLicenseInfoFromFiles: LicenseRef-libarchive
+PackageCopyrightText: <text>The libarchive distribution as a whole is Copyright by Tim Kientzle
+and is subject to the copyright notice reproduced at the bottom of
+this file.</text>
+FilesAnalyzed: false
+
+PackageName: libsodium
+SPDXID: SPDXRef-libsodium
+PackageDownloadLocation: https://download.libsodium.org/libsodium/releases/libsodium-1.0.12.tar.gz
+PackageHomePage: https://download.libsodium.org/doc/
+PackageLicenseConcluded: ISC
+PackageLicenseDeclared: ISC
+PackageLicenseInfoFromFiles: ISC
+PackageCopyrightText: <text>Copyright (c) 2013-2017
+Frank Denis <j at pureftpd dot org></text>
+FilesAnalyzed: false
+
+
+PackageName: ostree
+SPDXID: SPDXRef-ostree
+PackageDownloadLocation: https://github.com/ostreedev/ostree/archive/master.zip
+PackageHomePage: https://ostree.readthedocs.io/en/latest/
+PackageLicenseConcluded: GPL-2.0+
+PackageLicenseDeclared: GPL-2.0+
+PackageLicenseInfoFromFiles: GPL-2.0+
+PackageCopyrightText: <text>Copyright (C) 1991 Free Software Foundation, Inc.</text>
+FilesAnalyzed: false
+
 
 LicenseID: LicenseRef-GoogleLicense
 ExtractedText: <text>Redistribution and use in source and binary forms, with or without
@@ -178,4 +339,204 @@ POSSIBILITY OF SUCH DAMAGE.</text>
 
 
 
+LicenseID: LicenseRef-curl
+ExtractedText: <text>COPYRIGHT AND PERMISSION NOTICE
 
+Copyright (c) 1996 - 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.
+
+All rights reserved.
+
+Permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Except as contained in this notice, the name of a copyright holder shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization of the copyright holder.</text>
+
+
+LicenseID: LicenseRef-openssl
+ExtractedText: <text>
+  LICENSE ISSUES
+  ==============
+
+  The OpenSSL toolkit stays under a double license, i.e. both the conditions of
+  the OpenSSL License and the original SSLeay license apply to the toolkit.
+  See below for the actual license texts.
+
+  OpenSSL License
+  ---------------
+
+/* ====================================================================
+ * Copyright (c) 1998-2017 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    openssl-core@openssl.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com).
+ *
+ */
+
+ Original SSLeay License
+ -----------------------
+
+/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+ * All rights reserved.
+ *
+ * This package is an SSL implementation written
+ * by Eric Young (eay@cryptsoft.com).
+ * The implementation was written so as to conform with Netscapes SSL.
+ *
+ * This library is free for commercial and non-commercial use as long as
+ * the following conditions are aheared to.  The following conditions
+ * apply to all code found in this distribution, be it the RC4, RSA,
+ * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+ * included with this distribution is covered by the same copyright terms
+ * except that the holder is Tim Hudson (tjh@cryptsoft.com).
+ *
+ * Copyright remains Eric Young's, and as such any Copyright notices in
+ * the code are not to be removed.
+ * If this package is used in a product, Eric Young should be given attribution
+ * as the author of the parts of the library used.
+ * This can be in the form of a textual message at program startup or
+ * in documentation (online or textual) provided with the package.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    "This product includes cryptographic software written by
+ *     Eric Young (eay@cryptsoft.com)"
+ *    The word 'cryptographic' can be left out if the rouines from the library
+ *    being used are not cryptographic related :-).
+ * 4. If you include any Windows specific code (or a derivative thereof) from
+ *    the apps directory (application code) you must include an acknowledgement:
+ *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * The licence and distribution terms for any publically available version or
+ * derivative of this code cannot be changed.  i.e. this code cannot simply be
+ * copied and put under another distribution licence
+ * [including the GNU Public Licence.]
+ */
+</text>
+
+LicenseID: LicenseRef-libarchive
+ExtractedText: <text>The libarchive distribution as a whole is Copyright by Tim Kientzle
+and is subject to the copyright notice reproduced at the bottom of
+this file.
+
+Each individual file in this distribution should have a clear
+copyright/licensing statement at the beginning of the file.  If any do
+not, please let me know and I will rectify it.  The following is
+intended to summarize the copyright status of the individual files;
+the actual statements in the files are controlling.
+
+* Except as listed below, all C sources (including .c and .h files)
+  and documentation files are subject to the copyright notice reproduced
+  at the bottom of this file.
+
+* The following source files are also subject in whole or in part to
+  a 3-clause UC Regents copyright; please read the individual source
+  files for details:
+   libarchive/archive_entry.c
+   libarchive/archive_read_support_filter_compress.c
+   libarchive/archive_write_add_filter_compress.c
+   libarchive/mtree.5
+
+* The following source files are in the public domain:
+   libarchive/archive_getdate.c
+
+* The build files---including Makefiles, configure scripts,
+  and auxiliary scripts used as part of the compile process---have
+  widely varying licensing terms.  Please check individual files before
+  distributing them to see if those restrictions apply to you.
+
+I intend for all new source code to use the license below and hope over
+time to replace code with other licenses with new implementations that
+do use the license below.  The varying licensing of the build scripts
+seems to be an unavoidable mess.
+
+
+Copyright (c) 2003-2009 <author(s)>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer
+   in this position and unchanged.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</text>
