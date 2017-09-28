@@ -125,8 +125,7 @@ std::string TufRepository::downloadTarget(Target target) {
 
 void TufRepository::saveTarget(const Target& target) {
   if (target.length() > 0) {
-    std::string content = downloadTarget(target);
-    Utils::writeFile((path_ / "targets" / target.filename()).string(), content);
+    downloadTarget(target);
   }
 }
 
