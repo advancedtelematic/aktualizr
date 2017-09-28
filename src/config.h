@@ -93,19 +93,19 @@ struct TlsConfig {
       : certificates_directory("/tmp/aktualizr"),
         server(""),
         ca_source(kFile),
-        ca_path("ca.pem"),
+        ca_file("ca.pem"),
         pkey_source(kFile),
-        pkey_path("pkey.pem"),
+        pkey_file("pkey.pem"),
         cert_source(kFile),
-        cert_path("client.pem") {}
+        client_certificate("client.pem") {}
   boost::filesystem::path certificates_directory;
   std::string server;
   CryptoSource ca_source;
-  std::string ca_path;
+  std::string ca_file;
   CryptoSource pkey_source;
-  std::string pkey_path;
+  std::string pkey_file;
   CryptoSource cert_source;
-  std::string cert_path;
+  std::string client_certificate;
 };
 
 struct ProvisionConfig {

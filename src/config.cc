@@ -203,9 +203,9 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     tls.pkey_source = kFile;
 
-  CopyFromConfig(tls.ca_path, "tls.ca_path", LVL_warning, pt);
-  CopyFromConfig(tls.pkey_path, "tls.pkey_path", LVL_warning, pt);
-  CopyFromConfig(tls.cert_path, "tls.cert_path", LVL_warning, pt);
+  CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
+  CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
+  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
 
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);

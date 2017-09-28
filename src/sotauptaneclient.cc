@@ -54,24 +54,24 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
 
   data::PackageManagerCredentials cred;
   // TODO: use storage
-  cred.ca_file = (config.tls.certificates_directory / config.tls.ca_path).string();
+  cred.ca_file = (config.tls.certificates_directory / config.tls.ca_file).string();
 #ifdef BUILD_P11
   if (config.tls.pkey_source == kPkcs11)
     cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
   else
     // TODO: use storage
-    cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_path).string();
+    cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
 
   if (config.tls.cert_source == kPkcs11)
     cred.cert_file = uptane_repo.pkcs11_tls_certname;
   else
     // TODO: use storage
-    cred.cert_file = (config.tls.certificates_directory / config.tls.cert_path).string();
+    cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
 #else
   // TODO: use storage
-  cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_path).string();
+  cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
   // TODO: use storage
-  cred.cert_file = (config.tls.certificates_directory / config.tls.cert_path).string();
+  cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
 #endif
   return package.install(cred, config.ostree);
 }

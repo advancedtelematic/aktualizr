@@ -192,7 +192,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage.loadTlsPkey(&pkey);
     pkcs11_tls_keyname = "";
   } else {  // kPkcs11
-    pkey = p11.getUriPrefix() + tls_config.pkey_path;
+    pkey = p11.getUriPrefix() + tls_config.pkey_file;
     pkcs11_tls_keyname = pkey;
   }
 
@@ -200,14 +200,14 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage.loadTlsCert(&cert);
     pkcs11_tls_certname = "";
   } else {  // kPkcs11
-    cert = p11.getUriPrefix() + tls_config.cert_path;
+    cert = p11.getUriPrefix() + tls_config.client_certificate;
     pkcs11_tls_certname = cert;
   }
 
   if (tls_config.ca_source == kFile) {
     res = res && storage.loadTlsCa(&ca);
   } else {  // kPkcs11
-    ca = p11.getUriPrefix() + tls_config.ca_path;
+    ca = p11.getUriPrefix() + tls_config.ca_file;
   }
 #else
   res = storage.loadTlsCreds(&ca, &cert, &pkey);
