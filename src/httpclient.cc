@@ -38,7 +38,8 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
+HttpClient::HttpClient()
+    : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION), pkcs11_key(false), pkcs11_cert(false) {
   curl = curl_easy_init();
   headers = NULL;
   http_code = 0;
@@ -59,13 +60,10 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   headers = curl_slist_append(headers, "Accept: */*");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
-
-  pkcs11_key = pkcs11_cert = false;
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) {
+HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
   curl = curl_easy_duphandle(curl_in.curl);
-  token = curl_in.token;
 
   struct curl_slist* inlist = curl_in.headers;
   headers = NULL;

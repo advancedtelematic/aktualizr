@@ -33,7 +33,6 @@ class HttpClient : public HttpInterface {
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source);
   unsigned int http_code;
-  std::string token; /**< the OAuth2 token stored as string */
 
  private:
   /**
