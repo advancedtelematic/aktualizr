@@ -3,6 +3,7 @@
 
 #include <libp11.h>
 #include <openssl/engine.h>
+#include <openssl/err.h>
 
 #include "config.h"
 #include "logger.h"
@@ -18,7 +19,8 @@ class P11ContextWrapper {
     ctx = PKCS11_CTX_new();
     if (PKCS11_CTX_load(ctx, module.c_str())) {
       PKCS11_CTX_free(ctx);
-      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module);
+      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module << ": "
+                                                           << ERR_error_string(ERR_get_error(), NULL));
       throw std::runtime_error("PKCS11 error");
     }
   }
@@ -44,7 +46,8 @@ class P11SlotsWrapper {
       return;
     }
     if (PKCS11_enumerate_slots(ctx, &slots, &nslots)) {
-      LOGGER_LOG(LVL_error, "Couldn't enumerate slots");
+      LOGGER_LOG(LVL_error, "Couldn't enumerate slots"
+                                << ": " << ERR_error_string(ERR_get_error(), NULL));
       throw std::runtime_error("PKCS11 error");
     }
   }

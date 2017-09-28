@@ -64,7 +64,7 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
     return false;
   }
   if (PKCS11_login(slot, 0, config_.pass.c_str())) {
-    LOGGER_LOG(LVL_error, "Error logging in to the token");
+    LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
     return false;
   }
 
@@ -72,7 +72,8 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   unsigned int nkeys;
   int rc = PKCS11_enumerate_public_keys(slot->token, &keys, &nkeys);
   if (rc < 0) {
-    LOGGER_LOG(LVL_error, "Error enumerating public keys in PKCS11 device: " << rc);
+    LOGGER_LOG(LVL_error,
+               "Error enumerating public keys in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL));
     return false;
   }
 
