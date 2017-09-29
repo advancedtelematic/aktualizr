@@ -140,7 +140,7 @@ if(BUILD_OSTREE)
 
 
     if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc ARGS ${SOTA_PACKED_CREDENTIALS})
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
     endif(SOTA_PACKED_CREDENTIALS)
 
 endif(BUILD_OSTREE)
