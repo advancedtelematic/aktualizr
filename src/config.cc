@@ -219,7 +219,9 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
   CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
 
+  CopyFromConfig(provision.server, "provision.server", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
+  CopyFromConfig(provision.expiry_days, "provision.expiry_days", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
   // provision.mode is set in postUpdateValues.
 
@@ -373,8 +375,11 @@ void Config::writeToFile(const std::string& filename) {
   sink << "\n";
 
   sink << "[provision]\n";
+  writeOption(sink, provision.server, "server");
   writeOption(sink, provision.p12_password, "p12_password");
+  writeOption(sink, provision.expiry_days, "expiry_days");
   writeOption(sink, provision.provision_path, "provision_path");
+  // mode is not set directly, so don't write it out.
   sink << "\n";
 
   sink << "[uptane]\n";

@@ -92,6 +92,11 @@ int main(int argc, char *argv[]) {
   Utils::writeFile(ca_path.string(), boot.getCa());
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
+  config.provision.server = config.tls.server;
+  config.uptane.repo_server = config.tls.server + "/repo";
+  config.uptane.director_server = config.tls.server + "/director";
+  config.uptane.ostree_server = config.tls.server + "/treehub";
+
   std::cout << "Writing config file: " << config_out_path << "\n";
   boost::filesystem::create_directories(boost::filesystem::path(config_out_path).parent_path());
   config.writeToFile(config_out_path);
