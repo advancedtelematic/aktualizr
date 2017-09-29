@@ -30,7 +30,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr_implicit_writer version")
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("config-input,i", bpo::value<std::string>()->required(), "input sota.toml configuration file")
-      ("config-output,o", bpo::value<std::string>()->required(), "output sota.toml configuration file");
+      ("config-output,o", bpo::value<std::string>()->required(), "output sota.toml configuration file")
+      ("prefix,p", bpo::value<std::string>(), "prefix for root CA output path");
   // clang-format on
 
   bpo::variables_map vm;
@@ -75,12 +76,24 @@ int main(int argc, char *argv[]) {
   std::string config_in_path = commandline_map["config-input"].as<std::string>();
   std::string config_out_path = commandline_map["config-output"].as<std::string>();
 
+  std::string prefix = "";
+  if (commandline_map.count("prefix") != 0) {
+    prefix = commandline_map["prefix"].as<std::string>();
+  }
+
+  std::cout << "Reading config file: " << config_in_path << "\n";
   Config config(config_in_path);
 
   Bootstrap boot(credentials_path, "");
-  Utils::writeFile((config.tls.certificates_directory / config.tls.ca_file).string(), boot.getCa());
+  boost::filesystem::path ca_path = prefix;
+  ca_path /= config.tls.certificates_directory / config.tls.ca_file;
+  std::cout << "Writing root CA: " << ca_path << "\n";
+  boost::filesystem::create_directories(ca_path.parent_path());
+  Utils::writeFile(ca_path.string(), boot.getCa());
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
+  std::cout << "Writing config file: " << config_out_path << "\n";
+  boost::filesystem::create_directories(boost::filesystem::path(config_out_path).parent_path());
   config.writeToFile(config_out_path);
 
   return 0;
