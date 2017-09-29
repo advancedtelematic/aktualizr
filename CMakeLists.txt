@@ -27,7 +27,6 @@ find_package(Boost COMPONENTS system filesystem thread program_options log log_s
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
-find_package(PkgConfig REQUIRED)
 find_package(LibArchive REQUIRED)
 pkg_search_module(SODIUM libsodium REQUIRED)
 
