@@ -359,6 +359,11 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, rvi.uuid, "uuid");
   sink << "\n";
 
+  sink << "[p11]\n";
+  writeOption(sink, p11.module, "module");
+  writeOption(sink, p11.pass, "pass");
+  sink << "\n";
+
   sink << "[tls]\n";
   writeOption(sink, tls.certificates_directory, "certificates_directory");
   writeOption(sink, tls.server, "server");
