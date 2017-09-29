@@ -1,8 +1,11 @@
 #! /bin/bash
 set -e
+
+./src/scripts/setup_hsm.sh
+
 mkdir -p build-coverage
 cd build-coverage
-cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_WITH_CODE_COVERAGE=ON ../src
+cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_P11=ON -DBUILD_WITH_CODE_COVERAGE=ON -DTEST_PKCS11_ENGINE_PATH="/usr/lib/engines/engine_pkcs11.so" -DTEST_PKCS11_MODULE_PATH="/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so" ../src
 make -j8
 CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=5 make -j6 coverage
 cd ..

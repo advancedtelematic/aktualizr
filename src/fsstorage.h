@@ -14,6 +14,9 @@ class FSStorage : public INvStorage {
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey);
   virtual bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey);
   virtual void clearTlsCreds();
+  virtual bool loadTlsCa(std::string* ca);
+  virtual bool loadTlsCert(std::string* cert);
+  virtual bool loadTlsPkey(std::string* cert);
 #ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata);
   virtual bool loadMetadata(Uptane::MetaPack* metadata);
@@ -33,6 +36,8 @@ class FSStorage : public INvStorage {
   // descriptors of currently downloaded files
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
+
+  bool loadTlsCommon(std::string* data, const std::string& rel_path);
 };
 
 #endif  // FSSTORAGE_H_

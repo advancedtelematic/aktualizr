@@ -1,5 +1,6 @@
 #! /bin/bash
 set -e
+
 mkdir -p build-test
 cd build-test
 cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON ../src

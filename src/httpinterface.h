@@ -32,7 +32,8 @@ class HttpInterface {
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) = 0;
-  virtual void setCerts(const std::string &ca, const std::string &cert, const std::string &pkey) = 0;
+  virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
+                        CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
 };
 
 #endif  // HTTPINTERFACE_H_

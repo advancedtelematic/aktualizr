@@ -10,6 +10,13 @@
 #include "crypto.h"
 #include "utils.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#ifndef TEST_PKCS11_MODULE_PATH
+#define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
+#endif
+#endif
+
 TEST(crypto, sha256_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result = "7DF106BB55506D91E48AF727CD423B169926BA99DF4BAD53AF4D80E717A1AC9F";
@@ -26,24 +33,77 @@ TEST(crypto, sha512_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
-TEST(crypto, sign_verify_rsa) {
+TEST(crypto, sign_verify_rsa_file) {
   std::string text = "This is text for sign";
   PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(private_key, text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
 
+TEST(uptane, sign_tuf) {
+  Config config;
+
+  Json::Value tosign_json;
+  tosign_json["mykey"] = "value";
+
+  std::string private_key = Utils::readFile("tests/test_data/priv.key");
+
+  std::string public_key = Utils::readFile("tests/test_data/public.key");
+  Json::Value signed_json = Crypto::signTuf(NULL, private_key, Crypto::getKeyId(public_key), tosign_json);
+  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
+            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
+  EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
+}
+
+#ifdef BUILD_P11
+TEST(crypto, sign_verify_rsa_p11) {
+  P11Config config;
+  config.module = TEST_PKCS11_MODULE_PATH;
+  config.pass = "1234";
+
+  P11Engine p11(config);
+  std::string text = "This is text for sign";
+  std::string key_content;
+  EXPECT_TRUE(p11.readPublicKey("03", &key_content));
+  PublicKey pkey(key_content, "rsa");
+  std::string private_key = p11.getUriPrefix() + "03";
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11.getEngine(), private_key, text));
+  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
+  EXPECT_TRUE(signe_is_ok);
+}
+
+TEST(uptane, sign_tuf_pkcs11) {
+  Json::Value tosign_json;
+  tosign_json["mykey"] = "value";
+
+  P11Config p11_conf;
+  p11_conf.module = TEST_PKCS11_MODULE_PATH;
+  p11_conf.pass = "1234";
+  P11Engine p11(p11_conf);
+
+  std::string public_key;
+  EXPECT_TRUE(p11.readPublicKey("03", &public_key));
+  Json::Value signed_json = Crypto::signTuf(p11.getEngine(), "03", Crypto::getKeyId(public_key), tosign_json);
+  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
+            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
+  EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
+}
+
+#endif
+
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("this is bad key path", text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "this is bad key path", text));
   EXPECT_TRUE(signature.empty());
 }
 
 TEST(crypto, verify_bad_key_no_crash) {
   std::string text = "This is text for sign";
-  std::string signature = Utils::toBase64(Crypto::RSAPSSSign("tests/test_data/priv.key", text));
+  std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "tests/test_data/priv.key", text));
   bool signe_is_ok = Crypto::RSAPSSVerify("this is bad key", signature, text);
   EXPECT_EQ(signe_is_ok, false);
 }

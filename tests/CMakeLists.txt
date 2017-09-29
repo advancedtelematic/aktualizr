@@ -19,6 +19,7 @@ set (TEST_LIBS
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
+    ${LIBP11_LIBRARIES}
     testutilities
     gtest gmock gcov)
 
@@ -72,6 +73,11 @@ if(BUILD_WITH_CODE_COVERAGE)
     target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
+
+# Setup PKCS11
+if(TEST_PKCS11_MODULE_PATH)
+    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+endif(TEST_PKCS11_MODULE_PATH)
 
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)

@@ -11,6 +11,11 @@
 
 #include "crypto.h"
 #include "httpinterface.h"
+#include "logger.h"
+
+#ifdef BUILD_P11
+#include "p11engine.h"
+#endif
 
 class SotaUptaneClient;
 
@@ -22,7 +27,8 @@ enum InitRetCode {
   INIT_RET_SERVER_FAILURE,
   INIT_RET_STORAGE_FAILURE,
   INIT_RET_SECONDARY_FAILURE,
-  INIT_RET_BAD_P12
+  INIT_RET_BAD_P12,
+  INIT_RET_PKCS11_FAILURE
 };
 const int MaxInitializationAttempts = 3;
 class Repository {
@@ -51,12 +57,20 @@ class Repository {
   TufRepository image;
   INvStorage &storage;
   HttpInterface &http;
+#ifdef BUILD_P11
+  P11Engine p11;
+#endif
   Json::Value manifests;
 
   std::string primary_ecu_serial;
+
+  CryptoSource key_source;
   std::string primary_public_key;
   std::string primary_private_key;
+  std::string primary_public_key_id;
 
+  std::string pkcs11_tls_keyname;
+  std::string pkcs11_tls_certname;
   std::vector<Secondary> secondaries;
   TestBusPrimary transport;
   friend class TestBusSecondary;
@@ -65,17 +79,20 @@ class Repository {
   bool getMeta();
 
   // implemented in uptane/initialize.cc
-  bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);
+  bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config,
+                    const TlsConfig &tls_config);
   void resetDeviceId();
   bool initEcuSerials(UptaneConfig &uptane_config);
   void resetEcuSerials();
-  bool initEcuKeys();
+  bool initEcuKeys(const UptaneConfig &uptane_config);
   void resetEcuKeys();
-  InitRetCode initTlsCreds(const ProvisionConfig &provision_config);
+  InitRetCode initTlsCreds(const ProvisionConfig &provision_config, const TlsConfig &tls_config);
   void resetTlsCreds();
-  InitRetCode initEcuRegister();
+  InitRetCode initEcuRegister(const UptaneConfig &uptane_config);
+  bool loadSetTlsCreds(const TlsConfig &tls_config);
   void setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> > &ecu_serials);
-  void setEcuKeysMembers(const std::string &primary_public, const std::string &primary_private);
+  void setEcuKeysMembers(const std::string &primary_public, const std::string &primary_private,
+                         const std::string &primary_public_id, CryptoSource source);
 };
 }
 

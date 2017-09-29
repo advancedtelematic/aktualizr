@@ -1,6 +1,7 @@
 #include "httpclient.h"
 
 #include <assert.h>
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
@@ -12,6 +13,10 @@
 #include <sys/stat.h>
 #include <boost/move/make_unique.hpp>
 #include <boost/move/utility.hpp>
+
+#ifdef BUILD_P11
+#include <libp11.h>
+#endif
 
 #include "logger.h"
 #include "openssl_compat.h"
@@ -33,7 +38,8 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   return size * nmemb;
 }
 
-HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
+HttpClient::HttpClient()
+    : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION), pkcs11_key(false), pkcs11_cert(false) {
   curl = curl_easy_init();
   headers = NULL;
   http_code = 0;
@@ -56,9 +62,8 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
 }
 
-HttpClient::HttpClient(const HttpClient& curl_in) {
+HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
   curl = curl_easy_duphandle(curl_in.curl);
-  token = curl_in.token;
 
   struct curl_slist* inlist = curl_in.headers;
   headers = NULL;
@@ -89,23 +94,46 @@ HttpResponse HttpClient::get(const std::string& url) {
   return perform(curl, RETRY_TIMES);
 }
 
-void HttpClient::setCerts(const std::string& ca, const std::string& cert, const std::string& pkey) {
-  boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
-  boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
-  boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
+                          CryptoSource cert_source, const std::string& pkey, CryptoSource pkey_source) {
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+  curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
-  tmp_ca_file->PutContents(ca);
-  tmp_cert_file->PutContents(cert);
-  tmp_pkey_file->PutContents(pkey);
+  if (ca_source == kPkcs11) {
+    throw std::runtime_error("Accessing CA certificate on PKCS11 devices isn't currently supported");
+  } else {  // ca_source =kFile
+    boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+    tmp_ca_file->PutContents(ca);
+    curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
+    tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
+  }
 
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
-  curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
-  curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
+  if (cert_source == kPkcs11) {
+    curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
+  } else {  // cert_source =kFile
+    boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
+    tmp_cert_file->PutContents(cert);
+    curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+    tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
+  }
+  pkcs11_cert = (cert_source == kPkcs11);
 
-  tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
-  tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
-  tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
+  if (pkey_source == kPkcs11) {
+    curl_easy_setopt(curl, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
+  } else {  // pkey_source =kFile
+    boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+    tmp_pkey_file->PutContents(pkey);
+    curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
+    curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
+    tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
+  }
+  pkcs11_key = (pkey_source == kPkcs11);
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
@@ -119,6 +147,14 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
 
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   CURL* curl_put = curl_easy_duphandle(curl);
+
+  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
+  if (pkcs11_key) {
+    curl_easy_setopt(curl_put, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
+  }
+
+  if (pkcs11_cert) curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
 
   curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
   std::string data_str = Json::FastWriter().write(data);
@@ -138,7 +174,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
   HttpResponse response(response_str, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
     std::ostringstream error_message;
-    error_message << "curl error " << response.http_status_code << ": " << response.error_message;
+    error_message << "curl error " << response.curl_code << ": " << response.error_message;
     LOGGER_LOG(LVL_error, error_message.str());
     if (retry_times) {
       sleep(1);
@@ -151,6 +187,15 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
 
 HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp) {
   CURL* curl_download = curl_easy_duphandle(curl);
+
+  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
+  if (pkcs11_key) {
+    curl_easy_setopt(curl_download, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
+  }
+
+  if (pkcs11_cert) curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
+
   curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);

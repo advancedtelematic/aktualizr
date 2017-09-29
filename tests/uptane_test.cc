@@ -16,6 +16,13 @@
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#ifndef TEST_PKCS11_MODULE_PATH
+#define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
+#endif
+#endif
+
 const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
@@ -114,38 +121,6 @@ TEST(uptane, verify_data_bad_threshold) {
   } catch (Uptane::IllegalThreshold ex) {
   } catch (Uptane::UnmetThreshold ex) {
   }
-
-  boost::filesystem::remove_all(uptane_test_dir);
-}
-
-TEST(uptane, sign) {
-  Config config;
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/priv.key", uptane_test_dir + "/priv.key");
-  boost::filesystem::copy_file("tests/test_data/public.key", uptane_test_dir + "/public.key");
-  config.uptane.metadata_path = uptane_test_dir;
-  config.uptane.director_server = tls_server + "/director";
-  config.tls.certificates_directory = uptane_test_dir;
-  config.uptane.repo_server = tls_server + "/repo";
-  config.uptane.private_key_path = "priv.key";
-  config.uptane.public_key_path = "public.key";
-
-  FSStorage storage(config);
-  HttpFake http(uptane_test_dir);
-  Uptane::Repository uptane_repo(config, storage, http);
-
-  Json::Value tosign_json;
-  tosign_json["mykey"] = "value";
-
-  std::string private_key =
-      Utils::readFile((config.tls.certificates_directory / config.uptane.private_key_path).string());
-  std::string public_key =
-      Utils::readFile((config.tls.certificates_directory / config.uptane.public_key_path).string());
-  Json::Value signed_json = Crypto::signTuf(private_key, public_key, tosign_json);
-  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
-  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
-            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
-  EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -911,11 +886,18 @@ TEST(SotaUptaneClientTest, provision_on_server) {
 TEST(SotaUptaneClientTest, implicit_failure) {
   Config config;
   config.uptane.device_id = "device_id";
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.ca_file = "ca.pem";
+  config.tls.client_certificate = "client.pem";
+  config.tls.pkey_file = "pkey.pem";
+  config.uptane.device_id = "device_id";
   config.postUpdateValues();
+
   FSStorage storage(config);
   HttpFake http(uptane_test_dir);
+  boost::filesystem::create_directory(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 }
 
 /**
@@ -936,35 +918,35 @@ TEST(SotaUptaneClientTest, implicit_incomplete) {
 
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_THROW(uptane.initialize(), std::runtime_error);
+  EXPECT_FALSE(uptane.initialize());
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -990,6 +972,30 @@ TEST(SotaUptaneClientTest, implicit_provision) {
   EXPECT_TRUE(uptane.initialize());
   boost::filesystem::remove_all(uptane_test_dir);
 }
+
+#ifdef TEST_PKCS11_MODULE_PATH
+TEST(SotaUptaneClientTest, pkcs11_provision) {
+  Config config;
+  config.tls.certificates_directory = uptane_test_dir;
+  boost::filesystem::create_directory(uptane_test_dir);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
+  config.tls.ca_file = "ca.pem";
+  config.p11.module = TEST_PKCS11_MODULE_PATH;
+  config.p11.pass = "1234";
+  config.tls.client_certificate = "01";
+  config.tls.cert_source = kPkcs11;
+  config.tls.pkey_file = "02";
+  config.tls.pkey_source = kPkcs11;
+  config.uptane.device_id = "cc34f7f3-481d-443b-bceb-e838a36a2d1f";
+  config.postUpdateValues();
+
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::Repository uptane(config, storage, http);
+  EXPECT_TRUE(uptane.initialize());
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+#endif
 
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {

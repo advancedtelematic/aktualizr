@@ -57,7 +57,7 @@ if(BUILD_GENIVI)
                         dbusgateway/swlm.h)
 endif(BUILD_GENIVI)
 
-if (BUILD_OSTREE)
+if(BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc
                         sotauptaneclient.cc
                         uptane/initialize.cc
@@ -71,7 +71,14 @@ if (BUILD_OSTREE)
                         uptane/testbussecondary.cc)
 endif(BUILD_OSTREE)
 
+if(BUILD_P11)
+    list(APPEND SOURCES p11engine.cc)
+    list(APPEND HEADERS p11engine.h)
 
+    if(TEST_PKCS11_MODULE_PATH)
+        add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+    endif(TEST_PKCS11_MODULE_PATH)
+endif(BUILD_P11)
 # set the name of the executable
 add_executable(aktualizr main.cc)
 add_library(aktualizr_static_lib STATIC ${SOURCES})
@@ -86,6 +93,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${SODIUM_LIBRARIES}
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
+        ${LIBP11_LIBRARIES}
         ${LibArchive_LIBRARIES} gcov)
 
 if(BUILD_GENIVI)

@@ -41,6 +41,11 @@ if(BUILD_GENIVI)
     add_definitions(-DWITH_GENIVI)
 endif(BUILD_GENIVI)
 
+if(BUILD_P11)
+    find_package(LibP11 REQUIRED)
+    add_definitions(-DBUILD_P11)
+endif(BUILD_P11)
+
 # set symbols used when compiling
 add_definitions(-DBOOST_LOG_DYN_LINK)
 

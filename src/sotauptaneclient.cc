@@ -51,11 +51,28 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
 
   OstreePackage package(target.ecu_identifier(), target.filename(), branch_name, refhash, "",
                         config.uptane.ostree_server);
-  // TODO: use storage
+
   data::PackageManagerCredentials cred;
+  // TODO: use storage
   cred.ca_file = (config.tls.certificates_directory / config.tls.ca_file).string();
+#ifdef BUILD_P11
+  if (config.tls.pkey_source == kPkcs11)
+    cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
+  else
+    // TODO: use storage
+    cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
+
+  if (config.tls.cert_source == kPkcs11)
+    cred.cert_file = uptane_repo.pkcs11_tls_certname;
+  else
+    // TODO: use storage
+    cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
+#else
+  // TODO: use storage
   cred.pkey_file = (config.tls.certificates_directory / config.tls.pkey_file).string();
+  // TODO: use storage
   cred.cert_file = (config.tls.certificates_directory / config.tls.client_certificate).string();
+#endif
   return package.install(cred, config.ostree);
 }
 
@@ -67,8 +84,14 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   operation_result["operation_result"] = result.toJson();
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(operation_result);
-  Json::Value ecu_version_signed =
-      Crypto::signTuf(uptane_repo.primary_private_key, uptane_repo.primary_public_key, unsigned_ecu_version);
+
+  ENGINE *crypto_engine = NULL;
+#ifdef BUILD_P11
+  if ((uptane_repo.key_source == kPkcs11)) crypto_engine = uptane_repo.p11.getEngine();
+#endif
+
+  Json::Value ecu_version_signed = Crypto::signTuf(crypto_engine, uptane_repo.primary_private_key,
+                                                   uptane_repo.primary_public_key_id, unsigned_ecu_version);
   return ecu_version_signed;
 }
 
