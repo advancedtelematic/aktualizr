@@ -92,24 +92,29 @@ struct P11Config {
   std::string pass;
 };
 
-struct TlsConfig {
+class TlsConfig {
+ public:
   TlsConfig()
       : certificates_directory("/tmp/aktualizr"),
         server(""),
         ca_source(kFile),
-        ca_file("ca.pem"),
+        ca_file_("ca.pem"),
         pkey_source(kFile),
-        pkey_file("pkey.pem"),
+        pkey_file_("pkey.pem"),
         cert_source(kFile),
-        client_certificate("client.pem") {}
+        client_certificate_("client.pem") {}
+  std::string ca_file() const;
+  std::string pkey_file() const;
+  std::string client_certificate() const;
+
   boost::filesystem::path certificates_directory;
   std::string server;
   CryptoSource ca_source;
-  std::string ca_file;
+  std::string ca_file_;
   CryptoSource pkey_source;
-  std::string pkey_file;
+  std::string pkey_file_;
   CryptoSource cert_source;
-  std::string client_certificate;
+  std::string client_certificate_;
 };
 
 struct ProvisionConfig {

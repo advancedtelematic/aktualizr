@@ -9,6 +9,33 @@
 #include "bootstrap.h"
 #include "utils.h"
 
+std::string TlsConfig::ca_file() const {
+  boost::filesystem::path ca_path(ca_file_);
+  if (ca_path.is_absolute() || ca_source == kPkcs11) {
+    return ca_file_;
+  } else {
+    return (certificates_directory / ca_path).string();
+  }
+}
+
+std::string TlsConfig::pkey_file() const {
+  boost::filesystem::path pkey_path(pkey_file_);
+  if (pkey_path.is_absolute() || cert_source == kPkcs11) {
+    return pkey_file_;
+  } else {
+    return (certificates_directory / pkey_path).string();
+  }
+}
+
+std::string TlsConfig::client_certificate() const {
+  boost::filesystem::path cert_path(client_certificate_);
+  if (cert_path.is_absolute() || pkey_source == kPkcs11) {
+    return client_certificate_;
+  } else {
+    return (certificates_directory / cert_path).string();
+  }
+}
+
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
@@ -215,9 +242,9 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     tls.pkey_source = kFile;
 
-  CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
-  CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
-  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
+  CopyFromConfig(tls.ca_file_, "tls.ca_file", LVL_warning, pt);
+  CopyFromConfig(tls.pkey_file_, "tls.pkey_file", LVL_warning, pt);
+  CopyFromConfig(tls.client_certificate_, "tls.client_certificate", LVL_warning, pt);
 
   CopyFromConfig(provision.server, "provision.server", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
@@ -369,9 +396,9 @@ void Config::writeToFile(const std::string& filename) {
   sink << "[tls]\n";
   writeOption(sink, tls.certificates_directory, "certificates_directory");
   writeOption(sink, tls.server, "server");
-  writeOption(sink, tls.ca_file, "ca_file");
-  writeOption(sink, tls.pkey_file, "pkey_file");
-  writeOption(sink, tls.client_certificate, "client_certificate");
+  writeOption(sink, tls.ca_file(), "ca_file");
+  writeOption(sink, tls.pkey_file(), "pkey_file");
+  writeOption(sink, tls.client_certificate(), "client_certificate");
   sink << "\n";
 
   sink << "[provision]\n";

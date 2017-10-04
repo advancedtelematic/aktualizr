@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
   Config config(config_in_path);
 
   Bootstrap boot(credentials_path, "");
-  boost::filesystem::path ca_path = prefix;
-  ca_path /= config.tls.certificates_directory / config.tls.ca_file;
+  boost::filesystem::path ca_path(prefix);
+  ca_path /= config.tls.ca_file();
   std::cout << "Writing root CA: " << ca_path << "\n";
   boost::filesystem::create_directories(ca_path.parent_path());
   Utils::writeFile(ca_path.string(), boot.getCa());
