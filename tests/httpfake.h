@@ -89,7 +89,7 @@ class HttpFake : public HttpInterface {
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url == "tst149/director/manifest") {
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
-                "frgfdg-hash");
+                "unknown-hash");
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"]
                     .asString(),
                 "hash");

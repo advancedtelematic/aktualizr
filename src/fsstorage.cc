@@ -266,3 +266,13 @@ void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(config_.tls.certificates_directory / "primary_hardware_id");
   boost::filesystem::remove(config_.tls.certificates_directory / "secondaries_list");
 }
+
+void FSStorage::storeInstalledVersions(const std::string& content) {
+  Utils::writeFile((config_.tls.certificates_directory / "installed_versions").string(), content);
+}
+
+bool FSStorage::loadInstalledVersions(std::string* content) {
+  if (!boost::filesystem::exists(config_.tls.certificates_directory / "installed_versions")) return false;
+  *content = Utils::readFile((config_.tls.certificates_directory / "installed_versions").string());
+  return true;
+}

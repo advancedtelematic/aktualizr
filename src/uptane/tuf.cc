@@ -91,6 +91,8 @@ std::string Hash::TypeString() const {
   }
 }
 
+Hash::Type Hash::type() const { return type_; }
+
 std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   os << "Hash: " << h.hash_;
   return os;
@@ -130,6 +132,16 @@ Json::Value Uptane::Target::toJson() const {
 
 bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
+}
+
+std::string Target::sha256Hash() const {
+  std::vector<Uptane::Hash>::const_iterator it;
+  for (it = hashes_.begin(); it != hashes_.end(); it++) {
+    if (it->type() == Hash::Type::kSha256) {
+      return it->HashString();
+    }
+  }
+  return std::string();
 }
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {

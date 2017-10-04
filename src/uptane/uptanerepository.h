@@ -40,6 +40,9 @@ class Repository {
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
+  std::string getInstalledRefName() const;
+  void saveInstalledVersion(const Target &target);
+  std::string findInstalledVersion(const std::string &hash);
 
   // implemented in uptane/initialize.cc
   bool initialize();

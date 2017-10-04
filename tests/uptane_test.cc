@@ -534,7 +534,7 @@ TEST(SotaUptaneClientTest, put_manifest) {
   EXPECT_TRUE(uptane.initialize());
 
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
+      OstreePackage("branch-hash", "hash", "").toEcuVersion(config.uptane.primary_ecu_serial, Json::nullValue);
   uptane.putManifest(uptane.getCurrentVersionManifests(unsigned_ecu_version));
 
   EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + test_manifest));
@@ -663,7 +663,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   ot_json["custom"]["ecuIdentifier"] = "testecuserial";
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 10;
-  packages_to_install.push_back(Uptane::Target("testostree", ot_json));
+  packages_to_install.push_back(Uptane::Target("testostree-hash", ot_json));
   commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   FSStorage storage(conf);

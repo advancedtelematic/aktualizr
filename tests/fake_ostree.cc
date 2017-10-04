@@ -1,14 +1,8 @@
 #include "ostree.h"
 
-OstreePackage::OstreePackage(const std::string &ecu_serial_in, const std::string &ref_name_in,
-                             const std::string &branch_name_in, const std::string &refhash_in,
-                             const std::string &desc_in, const std::string &treehub_in)
-    : ecu_serial(ecu_serial_in),
-      ref_name(ref_name_in),
-      branch_name(branch_name_in),
-      refhash(refhash_in),
-      description(desc_in),
-      pull_uri(treehub_in) {}
+OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &refhash_in,
+                             const std::string &treehub_in)
+    : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   (void)cred;
@@ -16,7 +10,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Good");
 }
 
-Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
+Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const {
   Json::Value installed_image;
   installed_image["filepath"] = ref_name;
   installed_image["fileinfo"]["length"] = 0;
@@ -37,11 +31,6 @@ Json::Value OstreePackage::toEcuVersion(const Json::Value &custom) const {
   return value;
 }
 
-OstreePackage OstreePackage::getEcu(const std::string &ecu_serial,
-                                    const std::string &ostree_sysroot __attribute__((unused))) {
-  return OstreePackage(ecu_serial, "frgfdg-hash", "fr", "hash", "dsfsdf", "sfsdfs");
-}
-
 Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
   (void)file_path;
   Json::Value packages(Json::arrayValue);
@@ -51,4 +40,9 @@ Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
   packages.append(package);
 
   return packages;
+}
+
+std::string OstreePackage::getCurrent(const std::string &ostree_sysroot) {
+  (void)ostree_sysroot;
+  return "hash";
 }

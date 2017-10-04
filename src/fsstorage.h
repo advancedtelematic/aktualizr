@@ -30,6 +30,8 @@ class FSStorage : public INvStorage {
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();
+  virtual void storeInstalledVersions(const std::string& content);
+  virtual bool loadInstalledVersions(std::string* content);
 
  private:
   Config config_;
