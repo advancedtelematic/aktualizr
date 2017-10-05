@@ -7,6 +7,7 @@ option(PEDANTIC_WARNINGS "Compile with pedantic warnings" OFF)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
 option(BUILD_GENIVI "Set to ON to compile with SWM and RVI gateway support" OFF)
 option(BUILD_OSTREE "Set to ON to compile with ostree and Uptane support" OFF)
+option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -44,6 +45,11 @@ if(BUILD_P11)
     find_package(LibP11 REQUIRED)
     add_definitions(-DBUILD_P11)
 endif(BUILD_P11)
+
+if(BUILD_SOTA_TOOLS)
+    find_package(GLIB2 REQUIRED)
+    find_program(STRACE NAMES strace)
+endif(BUILD_SOTA_TOOLS)
 
 # set symbols used when compiling
 add_definitions(-DBOOST_LOG_DYN_LINK)
@@ -103,6 +109,9 @@ endif()
 
 add_subdirectory("src")
 add_subdirectory("src/cert_provider")
+if(BUILD_SOTA_TOOLS)
+    add_subdirectory("src/sota_tools")
+endif(BUILD_SOTA_TOOLS)
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)

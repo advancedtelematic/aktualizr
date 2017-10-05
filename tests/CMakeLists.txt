@@ -28,6 +28,11 @@ if(BUILD_GENIVI)
 endif(BUILD_GENIVI)
 
 add_custom_target(build_tests DEPENDS aktualizr)
+
+if(BUILD_SOTA_TOOLS)
+    add_dependencies(build_tests garage_push_auth_test garage-push)
+endif(BUILD_SOTA_TOOLS)
+
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
 add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_uptane_vectors DEPENDS build_tests)
 
@@ -241,6 +246,75 @@ add_test(NAME test_build_release
 
 add_dependencies(qa check-full)
 
+if(BUILD_SOTA_TOOLS)
+    # sota-tools tests
+
+    # The tests can optionally test authentication against Auth+. To do this they
+    # require a client id & secret. Specify credentials here to enable these tests
+    set(OAUTH2_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
+    set(OAUTH2_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
+
+    add_executable(garage_push_auth_test sota_tools/auth_test.cc)
+    target_link_libraries(garage_push_auth_test garage_push_static_lib ${TEST_LIBS})
+    target_include_directories(garage_push_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
+    add_test(NAME auth_test COMMAND garage_push_auth_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Check the --help option works
+    add_test(NAME option-help
+        COMMAND garage-push --help)
+
+    # Invalid arguments result in a failure
+    add_test(NAME bad-option
+        COMMAND sota_tools/test-bad-option $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Detect that the thing we passed in to --repo is not a repository
+    add_test(NAME invalid-repo
+        COMMAND sota_tools/test-invalid-repo $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Detect a --repo that isn't in 'archive-z2' mode
+    add_test(NAME bare-mode-repo
+        COMMAND sota_tools/test-bare-mode-repo $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Detect that the ref we passed in to --ref is not present
+    add_test(NAME missing-ref
+        COMMAND sota_tools/test-missing-ref $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME dry-run
+        COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME cacert-not-found
+        COMMAND sota_tools/test-cacert-not-found $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME server-500
+        COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    if (OAUTH2_TEST_CLIENT_ID)
+        add_test(NAME auth-plus-happy-case
+            COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+        add_test(NAME auth-plus-failure
+            COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+        add_test(NAME verbose-logging
+            COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+        if(STRACE)
+            add_test(NAME cacert-used
+                COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
+              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        endif(STRACE)
+    endif(OAUTH2_TEST_CLIENT_ID)
+endif(BUILD_SOTA_TOOLS)
 
 set(ALL_TEST_SRCS
     commands_test.cc
@@ -263,6 +337,10 @@ set(ALL_TEST_SRCS
     test_utils.cc
     utils_test.cc
     uptane_fake_http_test.cc)
+
+if(BUILD_SOTA_TOOLS)
+list(APPEND ALL_TEST_SRCS sota_tools/auth_test.cc)
+endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check-format-tests
     COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}

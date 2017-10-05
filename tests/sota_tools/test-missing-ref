@@ -1,0 +1,2 @@
+TARGET="Ref badref was not found in repository sota_tools/repo"
+$1 --ref badref --repo sota_tools/repo | grep -q "$TARGET"

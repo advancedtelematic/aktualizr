@@ -1,2 +1,0 @@
-TARGET="OSTree repo is not in archive-z2 format"
-$1 --ref master --repo t/bare-repo | grep -q "$TARGET"

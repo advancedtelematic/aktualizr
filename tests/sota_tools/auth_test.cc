@@ -6,42 +6,42 @@
 #include "treehub_server.h"
 
 TEST(authenticate, good_zip) {
-  std::string filepath = "tools/t/auth_test_good.zip";
+  std::string filepath = "sota_tools/auth_test_good.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, bad_zip) {
-  std::string filepath = "tools/t/auth_test_bad.zip";
+  std::string filepath = "sota_tools/auth_test_bad.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
 }
 
 TEST(authenticate, no_json_zip) {
-  std::string filepath = "tools/t/auth_test_no_json.zip";
+  std::string filepath = "sota_tools/auth_test_no_json.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
 }
 
 TEST(authenticate, good_json) {
-  std::string filepath = "tools/t/auth_test_good.json";
+  std::string filepath = "sota_tools/auth_test_good.json";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, bad_json) {
-  std::string filepath = "tools/t/auth_test_bad.json";
+  std::string filepath = "sota_tools/auth_test_bad.json";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
 }
 
 TEST(authenticate, invalid_file) {
-  std::string filepath = "tools/t/auth_test.cc";
+  std::string filepath = "sota_tools/auth_test.cc";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
