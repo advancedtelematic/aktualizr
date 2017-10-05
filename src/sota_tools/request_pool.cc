@@ -4,10 +4,7 @@
 #include "logging.h"
 
 RequestPool::RequestPool(const TreehubServer& server, int max_requests)
-    : max_requests_(max_requests),
-      running_requests_(0),
-      server_(server),
-      stopped_(false) {
+    : max_requests_(max_requests), running_requests_(0), server_(server), stopped_(false) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_ = curl_multi_init();
 }
@@ -38,8 +35,7 @@ void RequestPool::AddUpload(OSTreeObject::ptr request) {
 }
 
 void RequestPool::LoopLaunch() {
-  while (running_requests_ < max_requests_ &&
-         (!query_queue_.empty() || !upload_queue_.empty())) {
+  while (running_requests_ < max_requests_ && (!query_queue_.empty() || !upload_queue_.empty())) {
     OSTreeObject::ptr cur;
 
     // Queries first, uploads second
@@ -80,8 +76,7 @@ void RequestPool::LoopListen() {
   }
 
   if (maxfd != -1) {
-    select(maxfd + 1, &fdread, &fdwrite, &fdexcept,
-           timeoutms == -1 ? NULL : &timeout);
+    select(maxfd + 1, &fdread, &fdwrite, &fdexcept, timeoutms == -1 ? NULL : &timeout);
   } else {
     LOG_DEBUG << "Waiting 100ms for curl";
     // If maxfd == -1, then wait 100ms. See:

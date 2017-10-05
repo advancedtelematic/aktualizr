@@ -15,14 +15,12 @@ using boost::optional;
 using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
 
-const string kBaseUrl =
-    "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
+const string kBaseUrl = "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
 
-int authenticate(const string &cacerts, string filepath,
-                 TreehubServer &treehub) {
+int authenticate(const string &cacerts, string filepath, TreehubServer &treehub) {
   AuthMethod method = AUTH_NONE;
   string auth_method;
   string auth_user;
@@ -71,13 +69,11 @@ int authenticate(const string &cacerts, string filepath,
     }
     r = archive_read_free(a);
     if (r != ARCHIVE_OK) {
-      std::cerr << "Error closing zipped credentials file: " << filepath
-                << std::endl;
+      std::cerr << "Error closing zipped credentials file: " << filepath << std::endl;
       return EXIT_FAILURE;
     }
     if (!found) {
-      std::cerr << "treehub.json not found in zippled credentials file: "
-                << filepath << std::endl;
+      std::cerr << "treehub.json not found in zippled credentials file: " << filepath << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -108,8 +104,7 @@ int authenticate(const string &cacerts, string filepath,
 
   } catch (json_parser_error e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << "Unable to read " << filepath << " as archive or json file."
-              << std::endl;
+    std::cerr << "Unable to read " << filepath << " as archive or json file." << std::endl;
     return EXIT_FAILURE;
   }
 

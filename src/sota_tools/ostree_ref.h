@@ -29,8 +29,7 @@ class OSTreeRef {
   const std::string ref_name_;  // OSTree name of the object
   std::stringstream http_response_;
 
-  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb,
-                                  void* userp);
+  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 };
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

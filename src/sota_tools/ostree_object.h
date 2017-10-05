@@ -37,13 +37,11 @@ class OSTreeObject : private boost::noncopyable {
 
   void CurlDone(CURLM* curl_multi_handle);
 
-  void MakeTestRequest(const TreehubServer& push_target,
-                       CURLM* curl_multi_handle);
+  void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
   void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
-  void AddParent(OSTreeObject* parent,
-                 std::list<OSTreeObject::ptr>::iterator parent_it);
+  void AddParent(OSTreeObject* parent, std::list<OSTreeObject::ptr>::iterator parent_it);
   bool children_ready() { return children_.empty(); }
   void PopulateChildren();
   void QueryChildren(RequestPool& pool);
@@ -58,8 +56,7 @@ class OSTreeObject : private boost::noncopyable {
   void AppendChild(OSTreeObject::ptr child);
   std::string Url() const;
 
-  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb,
-                                  void* userp);
+  static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
   friend void intrusive_ptr_add_ref(OSTreeObject*);
   friend void intrusive_ptr_release(OSTreeObject*);

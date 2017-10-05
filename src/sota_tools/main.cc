@@ -38,8 +38,7 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
           h->QueryChildren(p);
         }
       } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Local OSTree repo does not contain object "
-                  << error.missing_object();
+        LOG_ERROR << "Local OSTree repo does not contain object " << error.missing_object();
         p.Abort();
         errors++;
       }
@@ -107,8 +106,7 @@ int main(int argc, char **argv) {
   po::variables_map vm;
 
   try {
-    po::store(po::parse_command_line(argc, (const char *const *)argv, desc),
-              vm);
+    po::store(po::parse_command_line(argc, (const char *const *)argv, desc), vm);
 
     if (vm.count("help")) {
       LOG_INFO << desc;
@@ -128,8 +126,7 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("repo") && vm.count("fetch-credentials")) {
-    LOG_INFO
-        << "You cannot specify --repo and --fetch-credentials options together";
+    LOG_INFO << "You cannot specify --repo and --fetch-credentials options together";
     return EXIT_FAILURE;
   }
 
@@ -161,8 +158,7 @@ int main(int argc, char **argv) {
   }
 
   if (!repo->LooksValid()) {
-    LOG_FATAL << "The OSTree repo dir " << repo_path
-              << " does not appear to contain a valid OSTree repository";
+    LOG_FATAL << "The OSTree repo dir " << repo_path << " does not appear to contain a valid OSTree repository";
     return EXIT_FAILURE;
   }
 
@@ -192,8 +188,7 @@ int main(int argc, char **argv) {
   try {
     root_object = repo->GetObject(root_hash);
   } catch (const OSTreeObjectMissing &error) {
-    LOG_FATAL << "Commit pointed to by " << ref
-              << " was not found in repository " << repo_path;
+    LOG_FATAL << "Commit pointed to by " << ref << " was not found in repository " << repo_path;
     return EXIT_FAILURE;
   }
 
@@ -224,8 +219,7 @@ int main(int argc, char **argv) {
 
   do {
     request_pool.Loop();
-  } while (root_object->is_on_server() != OBJECT_PRESENT &&
-           !request_pool.is_stopped());
+  } while (root_object->is_on_server() != OBJECT_PRESENT && !request_pool.is_stopped());
 
   LOG_INFO << "Uploaded " << uploaded << " objects";
   LOG_INFO << "Already present " << present_already << " objects";
@@ -243,8 +237,7 @@ int main(int argc, char **argv) {
     long rescode;
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
-      LOG_ERROR << "Error pushing root ref, got " << rescode
-                << " HTTP response";
+      LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
       errors++;
     }
     curl_easy_cleanup(easy_handle);

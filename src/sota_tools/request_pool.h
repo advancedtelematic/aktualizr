@@ -18,10 +18,7 @@ class RequestPool {
     query_queue_.clear();
     upload_queue_.clear();
   };
-  bool is_idle() {
-    return query_queue_.empty() && upload_queue_.empty() &&
-           running_requests_ == 0;
-  }
+  bool is_idle() { return query_queue_.empty() && upload_queue_.empty() && running_requests_ == 0; }
   bool is_stopped() { return stopped_; }
   void Loop();  // one iteration of request-listen loop, launches up to
                 // max_requests_ requests, then listens for the result
