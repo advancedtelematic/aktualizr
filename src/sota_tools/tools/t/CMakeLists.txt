@@ -2,11 +2,11 @@
 add_definitions (-Wno-switch-default)
 
 if(NOT GTEST_ROOT )
-    set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
+    set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/../../third_party/googletest/googletest)
 endif()
 
 if(NOT GMOCK_ROOT )
-    set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
+    set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/../../third_party/googletest/googlemock)
 endif()
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
 
