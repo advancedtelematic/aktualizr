@@ -1,0 +1,10 @@
+{
+    "basic_auth": {
+        "server": "",
+        "username": "",
+        "password": ""
+    },
+    "ostree": {
+        "server": ""
+    }
+}

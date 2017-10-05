@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # build folder
 build/
 /build-*
@@ -51,3 +52,5 @@ Testing/
 cmake_install.cmake
 CTestTestfile.cmake
 compile_commands.json
+
+__pycache__/

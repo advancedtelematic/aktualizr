@@ -1,0 +1,2 @@
+TARGET="cacert path nope.pem does not exist"
+$1 --ref master --cacert nope.pem --repo t/repo --credentials t/sota_tools_basic_auth.json -n | grep -q "$TARGET"
