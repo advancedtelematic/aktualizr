@@ -1,0 +1,10 @@
+{
+  "oauth2": {
+    "server": "badbadbad",
+    "client_id": "badbadbad",
+    "client_secret": "badbadbad"
+  },
+  "ostree": {
+    "server": "badbadbad"
+  }
+}

@@ -1,0 +1,2 @@
+TARGET="Ref badref was not found in repository t/repo"
+$1 --ref badref --repo t/repo | grep -q "$TARGET"

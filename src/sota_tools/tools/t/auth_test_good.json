@@ -1,0 +1,10 @@
+{
+  "oauth2": {
+    "server": "https://auth-plus.atsgarage.com",
+    "client_id": "045dd735-061e-4b45-8352-1c517b0225a0",
+    "client_secret": "6QrLTSOmnZ"
+  },
+  "ostree": {
+    "server": "https://treehub.atsgarage.com/api/v3"
+  }
+}
