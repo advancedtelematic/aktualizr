@@ -12,4 +12,4 @@ cat > $CREDS_FILE <<EOF
   }
 }
 EOF
-$1 --ref master --repo t/repo --credentials $CREDS_FILE -nv 2>&1 | grep -q "Content-Type"
+$1 --ref master --repo sota_tools/repo --credentials $CREDS_FILE -n

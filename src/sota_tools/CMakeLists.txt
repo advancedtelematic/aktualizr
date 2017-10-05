@@ -1,98 +1,76 @@
-cmake_minimum_required(VERSION 2.8.8)
-project(sota-client)
 
-# When building inside Yocto, provide the option to disable -Werror, otherwise
-# new compiler warnings will break the build.  Don't set to OFF in development!
-option(WARNING_AS_ERROR "Treat warnings as errors" ON)
+set (GARAGE_PUSH_SRCS
+  authenticate.cc
+  logging.cc
+  main.cc
+  oauth2.cc
+  ostree_hash.cc
+  ostree_ref.cc
+  ostree_dir_repo.cc
+  ostree_http_repo.cc
+  ostree_object.cc
+  request_pool.cc
+  treehub_server.cc
+)
 
-# The tests can optionally test authentication against Auth+. To do this they
-# require a client id & secret. Specify credentials here to enable these tests
-set(OAUTH2_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
-set(OAUTH2_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
+add_executable(garage-push main.cc)
+add_library(garage_push_static_lib STATIC ${GARAGE_PUSH_SRCS})
+target_link_libraries(garage-push garage_push_static_lib
+  ${CURL_LIBRARIES}
+  ${GLIB2_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${LibArchive_LIBRARIES})
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake-modules")
+set (ALL_SOTA_TOOLS_SRCS
+  ${GARAGE_PUSH_SRCS})
 
-# clang-check and clang-format
-find_program(CLANG_FORMAT NAMES clang-format clang-format-3.7 clang-format-3.6)
-find_program(CLANG_CHECK NAMES clang-check clang-check-3.7 clang-check-3.6 clang-check-3.5 clang-check-3.4)
+# For clang-format
+set(ALL_SOTA_TOOLS_HEADERS
+  accumulator.h
+  authenticate.h
+  logging.h
+  oauth2.h
+  ostree_hash.h
+  ostree_object.h
+  ostree_ref.h
+  ostree_repo.h
+  ostree_dir_repo.h
+  request_pool.h
+  treehub_server.h
+)
 
-# pandoc (optional) for test rendering of README.adoc
-find_program(PANDOC NAMES pandoc)
+# Export compile_commands.json for clang-check
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Boost
-find_package(Boost REQUIRED program_options filesystem system thread log log_setup)
-include_directories(${Boost_INCLUDE_DIRS})
-add_definitions(-DBOOST_LOG_DYN_LINK=1)
-
-# Curl
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIRS})
-
-# Glib
-find_package(GLIB2 REQUIRED)
-include_directories(${GLIB2_INCLUDE_DIRS})
-
-find_package(Threads REQUIRED)
-# strace
-find_program(STRACE NAMES strace)
-
-find_package(LibArchive REQUIRED)
-include_directories(${LibArchive_INCLUDE_DIRS})
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-
-if (CMAKE_COMPILER_IS_GNUCXX)
-        add_definitions(-fstack-protector-all)
-        # Enable maximum of Warnings :
-        add_definitions(-Wall -Wextra -Wswitch-default -Wswitch -Winit-self -Wformat-security -Wfloat-equal -Wcast-qual -Wconversion -Wlogical-op)
-        if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
-            add_definitions (-Wfloat-conversion)
-            add_definitions (-Wshadow)
-        endif ()
-
-	if(WARNING_AS_ERROR)
-            add_definitions (-Werror)
-	endif()
-endif()
-
-if( ${CMAKE_VERSION} LESS 3.1 )
-    add_compile_options(-std=c++11)
+if(CLANG_FORMAT)
+add_custom_target(format-sota-tools
+    COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_SOTA_TOOLS_SRCS} ${ALL_SOTA_TOOLS_HEADERS}
+    WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running clang-formaton src/sota_tools"
+    VERBATIM)
+add_dependencies(format format-sota-tools)
 else()
-    set (CMAKE_CXX_STANDARD 11)
+    message(WARNING "clang-format not found, skipping")
 endif()
 
-# QA virtual target
-add_custom_target(qa)
-
-enable_testing()
-
-# Cause garage push to be in build rather than build/tools
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-add_subdirectory(tools)
-
-# Generate config.h from config.h.in
-#configure_file(config.h.in config.h)
-#include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-
-message("Build type is ${CMAKE_BUILD_TYPE}")
-
-# Generate ctags
-set_source_files_properties(tags PROPERTIES GENERATED true)
-add_custom_target(tags
-    COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q tools
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
-
-if(PANDOC)
-    # Test render README.adoc
-    add_custom_command(
-        OUTPUT README.html
-        COMMAND ${PANDOC} -o README.html --self-contained -t html5 ${CMAKE_SOURCE_DIR}/README.adoc
-        DEPENDS README.adoc
+if(CLANG_CHECK)
+    add_custom_target(check-tools
+        COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${ALL_SRCS}
+        WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running clang-check"
         VERBATIM)
-    add_custom_target(readme DEPENDS README.html)
-    add_dependencies(qa readme)
-endif() # PANDOC
+    add_dependencies(qa check-tools)
+else()
+    message(WARNING "clang-check not found, skipping")
+endif(CLANG_CHECK)
 
-# vim: set tabstop=4 shiftwidth=4 expandtab:
+target_compile_options(garage_push_static_lib PUBLIC -std=c++11)
+
+
+target_include_directories(garage_push_static_lib INTERFACE ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
+
+
+install(TARGETS garage-push DESTINATION /usr/bin)
+
+# vim: set tabstop=2 shiftwidth=2 expandtab:

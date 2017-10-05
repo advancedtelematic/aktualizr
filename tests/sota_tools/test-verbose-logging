@@ -12,5 +12,4 @@ cat > $CREDS_FILE <<EOF
   }
 }
 EOF
-$4 $1 --ref master --repo t/repo --credentials $CREDS_FILE --cacert t/testcerts.crt -n 2>&1 | grep -q ca-certificates
-test $? -eq 1
+$1 --ref master --repo sota_tools/repo --credentials $CREDS_FILE -nv 2>&1 | grep -q "Content-Type"

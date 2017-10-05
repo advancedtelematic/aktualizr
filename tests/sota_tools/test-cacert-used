@@ -3,8 +3,8 @@ trap "rm -f $CREDS_FILE" EXIT
 cat > $CREDS_FILE <<EOF
 {
   "oauth2": {
-    "client_id":"c169e6d6-d2de-4c56-ac8c-8b7671097e0c",
-    "client_secret":"badsecret",
+    "client_id":"$2",
+    "client_secret":"$3",
     "server":"https://auth-plus.gw.prod01.advancedtelematic.com"
   },
   "ostree":{
@@ -12,5 +12,5 @@ cat > $CREDS_FILE <<EOF
   }
 }
 EOF
-$1 --ref master --repo t/repo --credentials $CREDS_FILE -n
+$4 $1 --ref master --repo sota_tools/repo --credentials $CREDS_FILE --cacert sota_tools/testcerts.crt -n 2>&1 | grep -q ca-certificates
 test $? -eq 1
