@@ -15,8 +15,7 @@ using std::stringstream;
 /**
  * Handle CURL write callbacks by appending to a stringstream
  */
-size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb,
-                                 void *userp) {
+size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb, void *userp) {
   stringstream *body = (stringstream *)userp;
   body->write((const char *)buffer, size * nmemb);
   return size * nmemb;
@@ -35,12 +34,10 @@ AuthenticationResult OAuth2::Authenticate() {
   curl_easy_setopt(curl_handle, CURLOPT_USERNAME, client_id_.c_str());
   curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, client_secret_.c_str());
   curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-  curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS,
-                   "grant_type=client_credentials");
+  curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, "grant_type=client_credentials");
 
   stringstream body;
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
-                   &curl_handle_write_sstream);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &curl_handle_write_sstream);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &body);
 
   curl_easy_perform(curl_handle);

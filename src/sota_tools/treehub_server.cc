@@ -24,8 +24,7 @@ void TreehubServer::SetToken(const string& token) {
 
 // Note that this method creates a reference from curl_handle to this.  Keep
 // this TreehubServer object alive until the curl request has been completed
-void TreehubServer::InjectIntoCurl(const string& url_suffix,
-                                   CURL* curl_handle) const {
+void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle) const {
   curl_easy_setopt(curl_handle, CURLOPT_URL, (root_url_ + url_suffix).c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);

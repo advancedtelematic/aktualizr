@@ -27,8 +27,7 @@ bool OSTreeHttpRepo::LooksValid() const {
         return true;
       }
     } catch (const pt::ini_parser_error &error) {
-      LOG_WARNING << "Couldn't parse OSTree config file: "
-                  << (root_ / "config").string();
+      LOG_WARNING << "Couldn't parse OSTree config file: " << (root_ / "config").string();
       return false;
     } catch (const pt::ptree_error &error) {
       LOG_WARNING << "Could not find core.mode in OSTree config file";
@@ -39,23 +38,17 @@ bool OSTreeHttpRepo::LooksValid() const {
   }
 }
 
-OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const {
-  return OSTreeRef(server_, refname);
-}
+OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTreeRef(server_, refname); }
 
-OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const {
-  return GetObject(OSTreeHash(sha256));
-}
+OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   CURL *easy_handle = curl_easy_init();
   curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
   server_.InjectIntoCurl(path.string(), easy_handle);
-  curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION,
-                   &OSTreeHttpRepo::curl_handle_write);
+  curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
-  int fp = open((root_ / path).string().c_str(), O_WRONLY | O_CREAT,
-                S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  int fp = open((root_ / path).string().c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
   curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
   CURLcode err = curl_easy_perform(easy_handle);
@@ -88,8 +81,7 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
   throw OSTreeObjectMissing(hash);
 }
 
-size_t OSTreeHttpRepo::curl_handle_write(void *buffer, size_t size,
-                                         size_t nmemb, void *userp) {
+size_t OSTreeHttpRepo::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
   write(*(int *)userp, buffer, nmemb * size);
   return size * nmemb;
 }

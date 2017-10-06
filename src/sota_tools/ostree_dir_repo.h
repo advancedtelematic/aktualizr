@@ -24,8 +24,7 @@ class OSTreeDirRepo : public OSTreeRepo {
 
  private:
   typedef std::map<OSTreeHash, OSTreeObject::ptr> otable;
-  mutable otable
-      ObjectTable;  // Makes sure that the same commit object is not added twice
+  mutable otable ObjectTable;  // Makes sure that the same commit object is not added twice
   const std::string root_;
 };
 

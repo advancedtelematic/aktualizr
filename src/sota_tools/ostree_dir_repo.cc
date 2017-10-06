@@ -18,8 +18,7 @@ bool OSTreeDirRepo::LooksValid() const {
   fs::path objects_dir(root_ + "/objects");
   fs::path refs_dir(root_ + "/refs");
   fs::path config_file(root_ + "/config");
-  if (fs::is_directory(objects_dir) && fs::is_directory(refs_dir) &&
-      fs::is_regular(config_file)) {
+  if (fs::is_directory(objects_dir) && fs::is_directory(refs_dir) && fs::is_regular(config_file)) {
     pt::ptree config;
     try {
       pt::read_ini(config_file.string(), config);
@@ -41,13 +40,9 @@ bool OSTreeDirRepo::LooksValid() const {
   }
 }
 
-OSTreeRef OSTreeDirRepo::GetRef(const std::string &refname) const {
-  return OSTreeRef(*this, refname);
-}
+OSTreeRef OSTreeDirRepo::GetRef(const std::string &refname) const { return OSTreeRef(*this, refname); }
 
-OSTreeObject::ptr OSTreeDirRepo::GetObject(const uint8_t sha256[32]) const {
-  return GetObject(OSTreeHash(sha256));
-}
+OSTreeObject::ptr OSTreeDirRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash) const {
   otable::const_iterator it;

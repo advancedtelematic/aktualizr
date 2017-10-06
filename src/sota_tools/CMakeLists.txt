@@ -43,6 +43,13 @@ set(ALL_SOTA_TOOLS_HEADERS
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_custom_target(check-format-sota-tools
+    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_SOTA_TOOLS_SRCS} ${ALL_SOTA_TOOLS_HEADERS}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Checking clang-format on src/sota-tools"
+    VERBATIM)
+add_dependencies(check-format check-format-sota-tools)
+
 if(CLANG_FORMAT)
 add_custom_target(format-sota-tools
     COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_SOTA_TOOLS_SRCS} ${ALL_SOTA_TOOLS_HEADERS}

@@ -57,8 +57,7 @@ class accumulator_type : public boost::program_options::value_semantic {
   /// Every appearance of the option simply increments the value
   //
   /// There should never be any tokens.
-  virtual void parse(boost::any& value_store, const std::vector<std::string>&,
-                     bool /*utf8*/) const {
+  virtual void parse(boost::any& value_store, const std::vector<std::string>&, bool /*utf8*/) const {
     if (value_store.empty()) value_store = T();
     boost::any_cast<T&>(value_store) += _interval;
   }

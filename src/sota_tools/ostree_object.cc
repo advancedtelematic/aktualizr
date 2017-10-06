@@ -10,8 +10,7 @@
 
 using std::string;
 
-OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
-                           const std::string object_name)
+OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string object_name)
     : file_path_(repo.root() + "/objects/" + object_name),
       object_name_(object_name),
       repo_(repo),
@@ -23,8 +22,7 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo,
   assert(boost::filesystem::is_regular_file(file_path_));
 }
 
-void OSTreeObject::AddParent(OSTreeObject *parent,
-                             std::list<OSTreeObject::ptr>::iterator parent_it) {
+void OSTreeObject::AddParent(OSTreeObject *parent, std::list<OSTreeObject::ptr>::iterator parent_it) {
   parentref par;
 
   par.first = parent;
@@ -32,8 +30,7 @@ void OSTreeObject::AddParent(OSTreeObject *parent,
   parents_.push_back(par);
 }
 
-void OSTreeObject::ChildNotify(
-    std::list<OSTreeObject::ptr>::iterator child_it) {
+void OSTreeObject::ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it) {
   assert((*child_it)->is_on_server() == OBJECT_PRESENT);
   children_.erase(child_it);
 }
@@ -77,13 +74,10 @@ void OSTreeObject::PopulateChildren() {
   GError *gerror = NULL;
   GMappedFile *mfile = g_mapped_file_new(file_path_.c_str(), FALSE, &gerror);
 
-  if (!mfile)
-    throw new std::runtime_error("Failed to map metadata file " +
-                                 file_path_.native());
+  if (!mfile) throw new std::runtime_error("Failed to map metadata file " + file_path_.native());
 
   GVariant *contents =
-      g_variant_new_from_data(content_type, g_mapped_file_get_contents(mfile),
-                              g_mapped_file_get_length(mfile), TRUE,
+      g_variant_new_from_data(content_type, g_mapped_file_get_contents(mfile), g_mapped_file_get_length(mfile), TRUE,
                               (GDestroyNotify)g_mapped_file_unref, mfile);
   g_variant_ref_sink(contents);
 
@@ -92,16 +86,14 @@ void OSTreeObject::PopulateChildren() {
     g_variant_get_child(contents, 6, "@ay", &content_csum_variant);
 
     gsize n_elts;
-    const uint8_t *csum = static_cast<const uint8_t *>(
-        g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
+    const uint8_t *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
     AppendChild(repo_.GetObject(csum));
 
     GVariant *meta_csum_variant = NULL;
 
     g_variant_get_child(contents, 7, "@ay", &meta_csum_variant);
-    csum = static_cast<const uint8_t *>(
-        g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
+    csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
     AppendChild(repo_.GetObject(csum));
 
@@ -123,8 +115,7 @@ void OSTreeObject::PopulateChildren() {
 
       g_variant_get_child(files_variant, i, "(&s@ay)", &fname, &csum_variant);
       gsize n_elts;
-      const uint8_t *csum = static_cast<const uint8_t *>(
-          g_variant_get_fixed_array(csum_variant, &n_elts, 1));
+      const uint8_t *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(csum_variant, &n_elts, 1));
       assert(n_elts == 32);
       AppendChild(repo_.GetObject(csum));
 
@@ -135,16 +126,13 @@ void OSTreeObject::PopulateChildren() {
       GVariant *content_csum_variant = NULL;
       GVariant *meta_csum_variant = NULL;
       const char *fname = NULL;
-      g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname,
-                          &content_csum_variant, &meta_csum_variant);
+      g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname, &content_csum_variant, &meta_csum_variant);
       gsize n_elts;
-      const uint8_t *csum = static_cast<const uint8_t *>(
-          g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
+      const uint8_t *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
       AppendChild(repo_.GetObject(csum));
 
-      csum = static_cast<const uint8_t *>(
-          g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
+      csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
       AppendChild(repo_.GetObject(csum));
 
@@ -166,8 +154,7 @@ void OSTreeObject::QueryChildren(RequestPool &pool) {
 
 string OSTreeObject::Url() const { return "objects/" + object_name_; }
 
-void OSTreeObject::MakeTestRequest(const TreehubServer &push_target,
-                                   CURLM *curl_multi_handle) {
+void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl_multi_handle) {
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
@@ -176,11 +163,9 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target,
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1);  // HEAD
 
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION,
-                   &OSTreeObject::curl_handle_write);
+  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE,
-                   this);  // Used by ostree_object_from_curl
+  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
   CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err) {
     LOG_ERROR << "err:" << curl_multi_strerror(err);
@@ -188,8 +173,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target,
   refcount_++;  // Because curl now has a reference to us
 }
 
-void OSTreeObject::Upload(const TreehubServer &push_target,
-                          CURLM *curl_multi_handle) {
+void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle) {
   LOG_INFO << "Uploading " << object_name_;
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
@@ -197,22 +181,19 @@ void OSTreeObject::Upload(const TreehubServer &push_target,
   current_operation_ = OSTREE_OBJECT_UPLOADING;
   // TODO error checking
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION,
-                   &OSTreeObject::curl_handle_write);
+  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
 
   assert(form_post_ == NULL);
   struct curl_httppost *last_item = NULL;
-  curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file",
-               CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
+  curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
   curl_easy_setopt(curl_handle_, CURLOPT_POST, 1);
   CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
   if (e) {
     LOG_ERROR << "curl_easy_setopt error: " << curl_easy_strerror(e);
   }
 
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE,
-                   this);  // Used by ostree_object_from_curl
+  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
 
   CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err) {
@@ -255,8 +236,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle) {
   curl_handle_ = 0;
 }
 
-size_t OSTreeObject::curl_handle_write(void *buffer, size_t size, size_t nmemb,
-                                       void *userp) {
+size_t OSTreeObject::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
   OSTreeObject *that = (OSTreeObject *)userp;
   that->http_response_.write((const char *)buffer, size * nmemb);
   return size * nmemb;
