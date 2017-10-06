@@ -77,11 +77,18 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
 }
 
 Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
-  data::InstallOutcome outcome = OstreeInstall(target);
-
-  data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), outcome);
   Json::Value operation_result;
-  operation_result["operation_result"] = result.toJson();
+  if (isInstalled(target)) {
+    data::InstallOutcome outcome(data::UpdateResultCode::ALREADY_PROCESSED, "Package already installed");
+    operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
+  } else if ((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) {
+    data::InstallOutcome outcome(data::UpdateResultCode::VALIDATION_FAILED,
+                                 "Cannot install a non-OSTree package on an OSTree system");
+    operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
+  } else {
+    data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
+    operation_result["operation_result"] = result.toJson();
+  }
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(operation_result);
 
@@ -144,12 +151,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           for (std::vector<Uptane::Target>::const_iterator it = primary_updates.begin(); it != primary_updates.end();
                ++it) {
-            // treat empty format as OSTree for backwards compatibility
-            if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
-              Json::Value p_manifest = OstreeInstallAndManifest(*it);
-              manifests.append(p_manifest);
-              break;
-            }
+            Json::Value p_manifest = OstreeInstallAndManifest(*it);
+            manifests.append(p_manifest);
+            break;
           }
           // TODO: other updates for primary
         }
