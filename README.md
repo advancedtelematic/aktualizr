@@ -184,18 +184,18 @@ TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
 5. Create a cmake build directory for this cross-compile:
 ~~~
 # mkdir build-cross
-# cd bulid-cross
-# cmake ..
+# cd build-cross
+# cmake .. <options>
 # make aktualizr
 ~~~
 
-The built 'aktualizr' executable can be copied to the remote system and run.
+The compiled 'aktualizr' executable can be copied to the remote system and run.
 
-Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu script in meta-updater-qemu-x86 does this), then:
+Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu-ota script in meta-updater does this), then:
 
 ~~~
 On the target:
-# gdbserver 0.0.0.0:2159 ./aktualizr --config /etc/sota.toml --loglevel 0
+# gdbserver 0.0.0.0:2159 ./aktualizr --config /usr/lib/sota/sota.toml --loglevel 0
 
 On the host:
 # gdb aktualizr
@@ -210,7 +210,7 @@ It is also possible to run it inside valgrind:
 
 ~~~
 On the target
-# valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /etc/sota.toml
+# valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /usr/lib/sota/sota.toml
 # vgdb --port=2159
 ...now connect the debugger as usual
 ~~~

@@ -7,8 +7,34 @@
 #include <sstream>
 
 #include "bootstrap.h"
-#include "logger.h"
 #include "utils.h"
+
+std::string TlsConfig::ca_file() const {
+  boost::filesystem::path ca_path(ca_file_);
+  if (ca_path.is_absolute() || ca_source == kPkcs11) {
+    return ca_file_;
+  } else {
+    return (certificates_directory / ca_path).string();
+  }
+}
+
+std::string TlsConfig::pkey_file() const {
+  boost::filesystem::path pkey_path(pkey_file_);
+  if (pkey_path.is_absolute() || cert_source == kPkcs11) {
+    return pkey_file_;
+  } else {
+    return (certificates_directory / pkey_path).string();
+  }
+}
+
+std::string TlsConfig::client_certificate() const {
+  boost::filesystem::path cert_path(client_certificate_);
+  if (cert_path.is_absolute() || pkey_source == kPkcs11) {
+    return client_certificate_;
+  } else {
+    return (certificates_directory / cert_path).string();
+  }
+}
 
 /**
  * \par Description:
@@ -21,11 +47,14 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
 }
 
 // Strip leading and trailing quotes
-std::string strip_quotes(const std::string value) {
+std::string Config::stripQuotes(const std::string& value) {
   std::string res = value;
   res.erase(std::remove(res.begin(), res.end(), '\"'), res.end());
   return res;
 }
+
+// Add leading and trailing quotes
+std::string Config::addQuotes(const std::string& value) { return "\"" + value + "\""; }
 
 /*
  The following uses a small amount of template hackery to provide a nice
@@ -40,28 +69,40 @@ std::string strip_quotes(const std::string value) {
 
  Note that default values are defined by Config's default constructor.
  */
-template <typename T>
-T StripQuotesFromStrings(const T& value);
-
 template <>
-std::string StripQuotesFromStrings<std::string>(const std::string& value) {
-  return strip_quotes(value);
+std::string Config::StripQuotesFromStrings<std::string>(const std::string& value) {
+  return stripQuotes(value);
 }
 
 template <typename T>
-T StripQuotesFromStrings(const T& value) {
+T Config::StripQuotesFromStrings(const T& value) {
   return value;
 }
 
 template <typename T>
-void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
-                    const boost::property_tree::ptree& pt) {
+void Config::CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+                            const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());
   } else {
     LOGGER_LOG(warning_level, option_name << " not in config file. Using default:" << dest);
   }
+}
+
+template <>
+std::string Config::addQuotesToStrings<std::string>(const std::string& value) {
+  return addQuotes(value);
+}
+
+template <typename T>
+T Config::addQuotesToStrings(const T& value) {
+  return value;
+}
+
+template <typename T>
+void Config::writeOption(std::ofstream& sink, const T& data, const std::string& option_name) {
+  sink << option_name << " = " << addQuotesToStrings(data) << "\n";
 }
 
 // End template tricks
@@ -85,8 +126,6 @@ Config::Config(const boost::property_tree::ptree& pt) {
 }
 
 void Config::postUpdateValues() {
-  boost::system::error_code error;
-
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;
   }
@@ -126,7 +165,7 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-// Keep this order the same as in config.h
+// Keep this order the same as in config.h and writeToFile().
 
 #ifdef WITH_GENIVI
   CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
@@ -136,7 +175,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(dbus.timeout, "dbus.timeout", LVL_trace, pt);
   boost::optional<std::string> dbus_type = pt.get_optional<std::string>("dbus.bus");
   if (dbus_type.is_initialized()) {
-    std::string bus = strip_quotes(dbus_type.get());
+    std::string bus = stripQuotes(dbus_type.get());
     if (bus == "system") {
       dbus.bus = DBUS_BUS_SYSTEM;
     } else if (bus == "session") {
@@ -159,7 +198,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
-    std::string e = strip_quotes(events_string.get());
+    std::string e = stripQuotes(events_string.get());
     network.socket_events.empty();
     boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
   } else {
@@ -203,22 +242,23 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     tls.pkey_source = kFile;
 
-  CopyFromConfig(tls.ca_file, "tls.ca_file", LVL_warning, pt);
-  CopyFromConfig(tls.pkey_file, "tls.pkey_file", LVL_warning, pt);
-  CopyFromConfig(tls.client_certificate, "tls.client_certificate", LVL_warning, pt);
+  CopyFromConfig(tls.ca_file_, "tls.ca_file", LVL_warning, pt);
+  CopyFromConfig(tls.pkey_file_, "tls.pkey_file", LVL_warning, pt);
+  CopyFromConfig(tls.client_certificate_, "tls.client_certificate", LVL_warning, pt);
 
+  CopyFromConfig(provision.server, "provision.server", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
+  CopyFromConfig(provision.expiry_days, "provision.expiry_days", LVL_warning, pt);
   CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
+  // provision.mode is set in postUpdateValues.
 
   CopyFromConfig(uptane.polling, "uptane.polling", LVL_trace, pt);
   CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", LVL_trace, pt);
-  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
   CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
-
   CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", LVL_warning, pt);
-
+  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
   CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
 
@@ -288,4 +328,106 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       uptane.secondaries.push_back(ecu_config);
     }
   }
+}
+
+// This writes out every configuration option, including those set with default
+// and blank values. This may be useful to replicating an exact configuration
+// environment. However, if we were to want to simplify the output file, we
+// could skip blank strings or compare values against a freshly built instance
+// to detect and skip default values.
+void Config::writeToFile(const std::string& filename) {
+  // Keep this order the same as in config.h and updateFromPropertyTree().
+
+  std::ofstream sink(filename.c_str(), std::ofstream::out);
+  sink << std::boolalpha;
+
+#ifdef WITH_GENIVI
+  sink << "[dbus]\n";
+  writeOption(sink, dbus.software_manager, "software_manager");
+  writeOption(sink, dbus.software_manager_path, "software_manager_path");
+  writeOption(sink, dbus.path, "path");
+  writeOption(sink, dbus.interface, "interface");
+  writeOption(sink, dbus.timeout, "timeout");
+  if (dbus.bus == DBUS_BUS_SYSTEM) {
+    writeOption(sink, std::string("system"), "bus");
+  } else if (dbus.bus == DBUS_BUS_SESSION) {
+    writeOption(sink, std::string("session"), "bus");
+  }
+  sink << "\n";
+#endif
+
+  sink << "[gateway]\n";
+  writeOption(sink, gateway.http, "http");
+  writeOption(sink, gateway.rvi, "rvi");
+  writeOption(sink, gateway.socket, "socket");
+  writeOption(sink, gateway.dbus, "dbus");
+  sink << "\n";
+
+  sink << "[network]\n";
+  writeOption(sink, network.socket_commands_path, "socket_commands_path");
+  writeOption(sink, network.socket_events_path, "socket_events_path");
+  std::string socket_events = "";
+  for (std::vector<std::string>::iterator it = network.socket_events.begin(); it != network.socket_events.end(); ++it) {
+    socket_events += *it;
+    if (it != --network.socket_events.end()) {
+      socket_events += ", ";
+    }
+  }
+  writeOption(sink, socket_events, "socket_events");
+  sink << "\n";
+
+  sink << "[rvi]\n";
+  writeOption(sink, rvi.node_host, "node_host");
+  writeOption(sink, rvi.node_port, "node_port");
+  writeOption(sink, rvi.device_key, "device_key");
+  writeOption(sink, rvi.device_cert, "device_cert");
+  writeOption(sink, rvi.ca_cert, "ca_cert");
+  writeOption(sink, rvi.cert_dir, "cert_dir");
+  writeOption(sink, rvi.cred_dir, "cred_dir");
+  writeOption(sink, rvi.packages_dir, "packages_dir");
+  writeOption(sink, rvi.uuid, "uuid");
+  sink << "\n";
+
+  sink << "[p11]\n";
+  writeOption(sink, p11.module, "module");
+  writeOption(sink, p11.pass, "pass");
+  sink << "\n";
+
+  sink << "[tls]\n";
+  writeOption(sink, tls.certificates_directory, "certificates_directory");
+  writeOption(sink, tls.server, "server");
+  writeOption(sink, tls.ca_file(), "ca_file");
+  writeOption(sink, tls.pkey_file(), "pkey_file");
+  writeOption(sink, tls.client_certificate(), "client_certificate");
+  sink << "\n";
+
+  sink << "[provision]\n";
+  writeOption(sink, provision.server, "server");
+  writeOption(sink, provision.p12_password, "p12_password");
+  writeOption(sink, provision.expiry_days, "expiry_days");
+  writeOption(sink, provision.provision_path, "provision_path");
+  // mode is not set directly, so don't write it out.
+  sink << "\n";
+
+  sink << "[uptane]\n";
+  writeOption(sink, uptane.polling, "polling");
+  writeOption(sink, uptane.polling_sec, "polling_sec");
+  writeOption(sink, uptane.device_id, "device_id");
+  writeOption(sink, uptane.primary_ecu_serial, "primary_ecu_serial");
+  writeOption(sink, uptane.primary_ecu_hardware_id, "primary_ecu_hardware_id");
+  writeOption(sink, uptane.ostree_server, "ostree_server");
+  writeOption(sink, uptane.director_server, "director_server");
+  writeOption(sink, uptane.repo_server, "repo_server");
+  writeOption(sink, uptane.metadata_path, "metadata_path");
+  writeOption(sink, uptane.private_key_path, "private_key_path");
+  writeOption(sink, uptane.public_key_path, "public_key_path");
+  // TODO: Handle vector<UptaneSecondaryConfig>:
+  // writeOption(sink, uptane.secondaries, "secondaries");
+  sink << "\n";
+
+  sink << "[ostree]\n";
+  writeOption(sink, ostree.os, "os");
+  writeOption(sink, ostree.sysroot, "sysroot");
+  writeOption(sink, ostree.packages_file, "packages_file");
+  sink << "\n";
 }

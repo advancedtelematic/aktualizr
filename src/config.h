@@ -14,10 +14,14 @@
 #include <dbus/dbus.h>
 #endif
 
+#include "logger.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
+
+// Keep the order of config options the same as in writeToFile() and
+// updateFromPropertyTree() in config.cc.
 
 #ifdef WITH_GENIVI
 // DbusConfig depends on DBusBusType with is defined in libdbus
@@ -88,24 +92,29 @@ struct P11Config {
   std::string pass;
 };
 
-struct TlsConfig {
+class TlsConfig {
+ public:
   TlsConfig()
       : certificates_directory("/tmp/aktualizr"),
         server(""),
         ca_source(kFile),
-        ca_file("ca.pem"),
+        ca_file_("ca.pem"),
         pkey_source(kFile),
-        pkey_file("pkey.pem"),
+        pkey_file_("pkey.pem"),
         cert_source(kFile),
-        client_certificate("client.pem") {}
+        client_certificate_("client.pem") {}
+  std::string ca_file() const;
+  std::string pkey_file() const;
+  std::string client_certificate() const;
+
   boost::filesystem::path certificates_directory;
   std::string server;
   CryptoSource ca_source;
-  std::string ca_file;
+  std::string ca_file_;
   CryptoSource pkey_source;
-  std::string pkey_file;
+  std::string pkey_file_;
   CryptoSource cert_source;
-  std::string client_certificate;
+  std::string client_certificate_;
 };
 
 struct ProvisionConfig {
@@ -162,12 +171,13 @@ class Config {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
+  void writeToFile(const std::string& filename);
 
   // config data structures
   DbusConfig dbus;
   GatewayConfig gateway;
-  RviConfig rvi;
   NetworkConfig network;
+  RviConfig rvi;
   P11Config p11;
   TlsConfig tls;
   ProvisionConfig provision;
@@ -175,6 +185,17 @@ class Config {
   OstreeConfig ostree;
 
  private:
+  static std::string stripQuotes(const std::string& value);
+  static std::string addQuotes(const std::string& value);
+  template <typename T>
+  static T StripQuotesFromStrings(const T& value);
+  template <typename T>
+  static void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+                             const boost::property_tree::ptree& pt);
+  template <typename T>
+  static T addQuotesToStrings(const T& value);
+  template <typename T>
+  static void writeOption(std::ofstream& sink, const T& data, const std::string& option_name);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

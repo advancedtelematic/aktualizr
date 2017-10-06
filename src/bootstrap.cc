@@ -12,7 +12,7 @@
 #include "logger.h"
 
 Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provision_password)
-    : p12_str(""), ca(""), cert(""), pkey("") {
+    : ca(""), cert(""), pkey("") {
   if (!provision_path.empty()) {
     if (boost::filesystem::exists(provision_path)) {
       bool found = false;
@@ -49,7 +49,7 @@ Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provi
         if (r != ARCHIVE_OK) LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision_path);
 
         if (found) {
-          p12_str = p12_stream.str();
+          std::string p12_str = p12_stream.str();
           if (p12_str.empty()) throw std::runtime_error("Unable to parse bootstrap credentials");
           FILE* reg_p12 = fmemopen(const_cast<char*>(p12_str.c_str()), p12_str.size(), "rb");
 

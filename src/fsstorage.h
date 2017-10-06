@@ -37,7 +37,7 @@ class FSStorage : public INvStorage {
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
 
-  bool loadTlsCommon(std::string* data, const std::string& rel_path);
+  bool loadTlsCommon(std::string* data, const std::string& path_in);
 };
 
 #endif  // FSSTORAGE_H_

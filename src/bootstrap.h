@@ -14,7 +14,6 @@ class Bootstrap {
   std::string getPkey() const { return pkey; }
 
  private:
-  std::string p12_str;
   std::string ca;
   std::string cert;
   std::string pkey;

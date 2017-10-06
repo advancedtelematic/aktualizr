@@ -25,20 +25,21 @@ void check_info_options(const bpo::options_description &description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current cert_provider version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr_cert_provider version is: " << AKTUALIZR_VERSION << "\n";
     exit(EXIT_SUCCESS);
   }
 }
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
-  bpo::options_description description("CommandLine Options");
+  bpo::options_description description("aktualizr_cert_provider command line options");
   // clang-format off
   description.add_options()
       ("help,h", "help screen")
-      ("version,v", "Current cert_provider version")
+      ("version,v", "Current aktualizr_cert_provider version")
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("target,t", bpo::value<std::string>(), "target device")
       ("port,p", bpo::value<int>(), "target port")
+      ("root-ca,r", "provide root CA")
       ("directory,d", bpo::value<std::string>(), "local directory to write credentials to");
   // clang-format on
 
@@ -89,6 +90,7 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
+  bool provide_ca = commandline_map.count("root-ca") != 0;
   std::string directory = "";
   if (commandline_map.count("directory") != 0) {
     directory = commandline_map["directory"].as<std::string>();
@@ -134,20 +136,26 @@ int main(int argc, char *argv[]) {
 
   tmp_pkey_file.PutContents(pkey);
   tmp_cert_file.PutContents(cert);
-  tmp_ca_file.PutContents(ca);
+  if (provide_ca) {
+    tmp_ca_file.PutContents(ca);
+  }
 
   if (!directory.empty()) {
     std::cout << "Writing client certificate and keys to " << directory << " ...\n";
     if (boost::filesystem::exists(directory)) {
       boost::filesystem::remove(directory + "/" + pkey_file);
       boost::filesystem::remove(directory + "/" + cert_file);
-      boost::filesystem::remove(directory + "/" + ca_file);
+      if (provide_ca) {
+        boost::filesystem::remove(directory + "/" + ca_file);
+      }
     } else {
       boost::filesystem::create_directory(directory);
     }
     boost::filesystem::copy_file(tmp_pkey_file.PathString(), directory + "/" + pkey_file);
     boost::filesystem::copy_file(tmp_cert_file.PathString(), directory + "/" + cert_file);
-    boost::filesystem::copy_file(tmp_ca_file.PathString(), directory + "/" + ca_file);
+    if (provide_ca) {
+      boost::filesystem::copy_file(tmp_ca_file.PathString(), directory + "/" + ca_file);
+    }
     std::cout << "...success\n";
   }
 
@@ -164,7 +172,9 @@ int main(int argc, char *argv[]) {
     }
     system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":/var/sota/" + pkey_file).c_str());
     system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":/var/sota/" + cert_file).c_str());
-    system((scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":/var/sota/" + ca_file).c_str());
+    if (provide_ca) {
+      system((scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":/var/sota/" + ca_file).c_str());
+    }
     std::cout << "...success\n";
   }
 

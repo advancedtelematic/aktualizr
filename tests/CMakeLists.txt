@@ -15,7 +15,7 @@ set (TEST_LIBS
     ${CURL_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${SODIUM_LIBRARIES}
+    ${sodium_LIBRARY_RELEASE}
     ${LIBOSTREE_LIBRARIES}
     ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
@@ -121,8 +121,6 @@ add_aktualizr_test(NAME crypto
                    PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
 if(BUILD_OSTREE)
-    set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
@@ -226,10 +224,10 @@ set_tests_properties(test-no-config-check-message
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr: configuration file .* not found. Exiting.")
 
 set_tests_properties(test-help-with-other-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
 set_tests_properties(test-help-with-notexisting-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "CommandLine Options")
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
