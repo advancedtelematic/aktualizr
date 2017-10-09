@@ -25,8 +25,8 @@ SPDXID: SPDXRef-googletest
 PackageVersion: 1.8.0
 PackageDownloadLocation: https://github.com/google/googletest/archive/release-1.8.0.zip
 PackageHomePage: https://github.com/google/googletest
-PackageLicenseConcluded: LicenseRef-GoogleLicense
-PackageLicenseDeclared: LicenseRef-GoogleLicense
+PackageLicenseConcluded: BSD-3-Clause
+PackageLicenseDeclared: BSD-3-Clause
 PackageLicenseInfoFromFiles: LicenseRef-GoogleLicense
 PackageCopyrightText: <text>Copyright 2008, Google Inc.
 All rights reserved.</text>
@@ -37,8 +37,8 @@ SPDXID: SPDXRef-jsoncpp
 PackageVersion: 0.6.0
 PackageDownloadLocation: https://github.com/open-source-parsers/jsoncpp/archive/1.6.0.zip
 PackageHomePage: https://github.com/open-source-parsers/jsoncpp
-PackageLicenseConcluded: LicenseRef-jsoncpp
-PackageLicenseDeclared: LicenseRef-jsoncpp
+PackageLicenseConcluded: MIT
+PackageLicenseDeclared: MIT
 PackageLicenseInfoFromFiles: LicenseRef-jsoncpp
 PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur</text>
 FilesAnalyzed: false
@@ -48,8 +48,8 @@ SPDXID: SPDXRef-picojson
 PackageVersion: 1.3.0
 PackageDownloadLocation: https://github.com/kazuho/picojson/archive/v1.3.0.zip
 PackageHomePage: https://github.com/kazuho/picojson
-PackageLicenseConcluded: LicenseRef-picojson
-PackageLicenseDeclared: LicenseRef-picojson
+PackageLicenseConcluded: BSD-2-Clause
+PackageLicenseDeclared: BSD-2-Clause
 PackageLicenseInfoFromFiles: LicenseRef-picojson
 PackageCopyrightText: <text>Copyright 2009-2010 Cybozu Labs, Inc.
 Copyright 2011-2014 Kazuho Oku</text>
@@ -174,8 +174,8 @@ PackageName: libcurl
 SPDXID: SPDXRef-libcurl
 PackageDownloadLocation: https://github.com/curl/curl/archive/master.zip
 PackageHomePage: https://curl.haxx.se
-PackageLicenseConcluded: LicenseRef-curl
-PackageLicenseDeclared: LicenseRef-curl
+PackageLicenseConcluded: MIT
+PackageLicenseDeclared: MIT
 PackageLicenseInfoFromFiles: LicenseRef-curl
 PackageCopyrightText: <text>Copyright (c) 1996 - 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.</text>
 FilesAnalyzed: false
@@ -198,8 +198,8 @@ PackageName: libarchive
 SPDXID: SPDXRef-libarchive
 PackageDownloadLocation: https://github.com/libarchive/libarchive/zipball/master
 PackageHomePage: https://www.libarchive.org/
-PackageLicenseConcluded: LicenseRef-libarchive
-PackageLicenseDeclared: LicenseRef-libarchive
+PackageLicenseConcluded: (BSD-2-Clause AND BSD-3-Clause)
+PackageLicenseDeclared: (BSD-2-Clause AND BSD-3-Clause)
 PackageLicenseInfoFromFiles: LicenseRef-libarchive
 PackageCopyrightText: <text>The libarchive distribution as a whole is Copyright by Tim Kientzle
 and is subject to the copyright notice reproduced at the bottom of
