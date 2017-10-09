@@ -328,9 +328,16 @@ if(BUILD_SOTA_TOOLS)
               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
-
     aktualizr_source_file_checks(sota_tools/auth_test.cc)
 endif(BUILD_SOTA_TOOLS)
+
+
+add_test(NAME garage-deploy-option-help
+    COMMAND garage-deploy --help)
+
+add_test(NAME garage-deploy-nonexistent-option
+    COMMAND garage-deploy --test )
+set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
 
 aktualizr_source_file_checks(test_utils.h test_utils.cc)

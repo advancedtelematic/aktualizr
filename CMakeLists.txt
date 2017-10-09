@@ -179,6 +179,8 @@ if(BUILD_SOTA_TOOLS)
     add_subdirectory("src/sota_tools")
 endif(BUILD_SOTA_TOOLS)
 
+add_subdirectory("src/garage_deploy")
+
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
