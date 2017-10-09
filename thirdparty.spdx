@@ -222,10 +222,54 @@ PackageName: ostree
 SPDXID: SPDXRef-ostree
 PackageDownloadLocation: https://github.com/ostreedev/ostree/archive/master.zip
 PackageHomePage: https://ostree.readthedocs.io/en/latest/
-PackageLicenseConcluded: GPL-2.0+
-PackageLicenseDeclared: GPL-2.0+
-PackageLicenseInfoFromFiles: GPL-2.0+
-PackageCopyrightText: <text>Copyright (C) 1991 Free Software Foundation, Inc.</text>
+PackageLicenseConcluded: LGPL-2.0+
+PackageLicenseDeclared: LGPL-2.0+
+PackageLicenseInfoFromFiles: LGPL-2.0+
+PackageCopyrightText: <text>
+Copyright (C) Colin Walters <walters@verbum.org>
+Copyright (C) 1992-2015 Free Software Foundation, Inc.
+Copyright (C) 1999-2003 Ximian, Inc.
+Copyright (C) 2002-2017 Red Hat, Inc.
+Copyright (C) 2010-2011 Lennart Poettering
+Copyright (C) 2011-2017 Colin Walters <walters@verbum.org>
+Copyright (C) 2003-2005 Colin Percival
+Copyright (C) 2008 Google Inc.  All rights reserved.
+Copyright (C) 2012-2015 Matthew Endsley
+Copyright (C) 2010,2011,2012,2013 Behdad Esfahbod
+Copyright (C) 2011 Avery Pennarun. All rights reserved.
+Copyright (C) 2014 Anne LoVerso <anne.loverso@students.olin.edu>
+Copyright (C) 2014 Anne LoVerso <anne.loverso@students.olin.edu>
+Copyright (C) 2013-2016 Collabora Ltd.
+Copyright (C) 2015 Canonical Limited
+Copyright (C) 2015 Matthew Barnes <mbarnes@redhat.com>
+Copyright (C) 2016 Kinvolk GmbH
+Copyright (C) 2016 Zbigniew Jędrzejewski-Szmek
+Copyright (C) 2017 Endless Mobile, Inc.
+Copyright (C) 1994 X Consortium
+Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
+Copyright (C) 2002, 2003, 2004, 2014 g10 Code GmbH
+Copyright (C) 2006, 2008 Junio C Hamano
+Copyright (C) 2012-2014 Daniel J. Bernstein <djb@cr.yp.to>
+Copyright (C) 2012-2016 Jean-Philippe Aumasson
+Copyright (C) 2013 Javier Martinez <javier.martinez@collabora.co.uk>
+Copyright (C) 2013 Jeremy Whiting <jeremy.whiting@collabora.com>
+Copyright (C) 2013 Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Copyright (C) 2013 Stef Walter <stefw@redhat.com>
+Copyright (C) 2014 Alexander Larsson <alexl@redhat.com>
+Copyright (C) 2014 Owen Taylor <otaylor@redhat.com>
+Copyright (C) 2015 Dan Nicholson <nicholson@endlessm.com>
+Copyright (C) 2015 Giuseppe Scrivano <gscrivan@redhat.com>
+Copyright (C) 2016 Alexander Larsson <alexl@redhat.com>
+Copyright (C) 2016 Endless Mobile, Inc.
+Copyright (C) 2016 Sjoerd Simons <sjoerd@luon.net>
+Copyright (C) 2017 Dan Nicholson <nicholson@endlessm.com>
+Copyright (C) 2017 Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+Copyright (C) 2004 Scott James Remnant <scott@netsplit.com>.
+Copyright (C) 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+Copyright (C) 2006-2008 Diego Pettenò <flameeyes@gmail.com>
+Copyright (C) 2006-2008 xine project
+Copyright (C) 2012 Lucas De Marchi <lucas.de.marchi@gmail.com>
+Copyright (C) Free Software Foundation, Inc.</text>
 FilesAnalyzed: false
 
 
