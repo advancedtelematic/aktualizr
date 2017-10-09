@@ -8,6 +8,7 @@
 #include <boost/uuid/uuid.hpp>             // uuid class
 #include <boost/uuid/uuid_generators.hpp>  // generators
 #include <boost/uuid/uuid_io.hpp>
+#include <iostream>
 #include <string>
 
 #ifdef WITH_GENIVI
@@ -20,6 +21,7 @@
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
 
+std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
 // updateFromPropertyTree() in config.cc.
 
