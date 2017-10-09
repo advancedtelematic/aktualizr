@@ -79,11 +79,10 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
 Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
   Json::Value operation_result;
   if (isInstalled(target)) {
-    data::InstallOutcome outcome(data::UpdateResultCode::ALREADY_PROCESSED, "Package already installed");
+    data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
   } else if ((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) {
-    data::InstallOutcome outcome(data::UpdateResultCode::VALIDATION_FAILED,
-                                 "Cannot install a non-OSTree package on an OSTree system");
+    data::InstallOutcome outcome(data::VALIDATION_FAILED, "Cannot install a non-OSTree package on an OSTree system");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
   } else {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
