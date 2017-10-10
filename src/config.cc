@@ -9,6 +9,23 @@
 #include "bootstrap.h"
 #include "utils.h"
 
+std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
+  std::string cs_str;
+  switch (cs) {
+    case kFile:
+      cs_str = "file";
+      break;
+    case kPkcs11:
+      cs_str = "pkcs11";
+      break;
+    default:
+      cs_str = "unknown";
+      break;
+  }
+  os << '"' << cs_str << '"';
+  return os;
+}
+
 std::string TlsConfig::ca_file() const {
   boost::filesystem::path ca_path(ca_file_);
   if (ca_path.is_absolute() || ca_source == kPkcs11) {
@@ -397,8 +414,11 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, tls.certificates_directory, "certificates_directory");
   writeOption(sink, tls.server, "server");
   writeOption(sink, tls.ca_file(), "ca_file");
+  writeOption(sink, tls.ca_source, "ca_source");
   writeOption(sink, tls.pkey_file(), "pkey_file");
+  writeOption(sink, tls.pkey_source, "pkey_source");
   writeOption(sink, tls.client_certificate(), "client_certificate");
+  writeOption(sink, tls.cert_source, "cert_source");
   sink << "\n";
 
   sink << "[provision]\n";
@@ -421,6 +441,7 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, uptane.metadata_path, "metadata_path");
   writeOption(sink, uptane.private_key_path, "private_key_path");
   writeOption(sink, uptane.public_key_path, "public_key_path");
+  writeOption(sink, uptane.key_source, "key_source");
   // TODO: Handle vector<UptaneSecondaryConfig>:
   // writeOption(sink, uptane.secondaries, "secondaries");
   sink << "\n";
