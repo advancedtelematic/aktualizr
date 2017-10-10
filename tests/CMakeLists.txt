@@ -330,12 +330,11 @@ if(BUILD_SOTA_TOOLS)
     endif(OAUTH2_TEST_CLIENT_ID)
 
 add_test(NAME garage-deploy-option-help
-    COMMAND garage-deploy --help WORKING_DIRECTORY)
+    COMMAND garage-deploy --help)
 
 add_test(NAME garage-deploy-nonexistent-option
-    COMMAND garage-deploy --test WORKING_DIRECTORY)
+    COMMAND garage-deploy --test )
 set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
-
 
 
 set(ALL_TEST_SRCS
