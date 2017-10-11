@@ -24,7 +24,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 
 # find all required libraries
 find_package(PkgConfig REQUIRED)
-find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono date_time random REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono random REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
