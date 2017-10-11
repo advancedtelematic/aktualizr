@@ -8,14 +8,16 @@
 #include "logger.h"
 #include "ostree.h"
 #include "uptane/uptanerepository.h"
+
+const std::string test_dir = "tests/test_ci_uptane";
 std::string credentials = "";
 
 TEST(SotaUptaneClientTest, OneCycleUpdate) {
-  boost::filesystem::remove_all("tests/test_config");
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
-  pt.put("tls.certificates_directory", "tests/test_OneCycleUpdate");
+  pt.put("tls.certificates_directory", test_dir);
+  pt.put("uptane.metadata_path", test_dir);
   Config config(pt);
   FSStorage storage(config);
   HttpClient http;
@@ -24,23 +26,23 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   EXPECT_TRUE(repo.initialize());
   Json::Value unsigned_ecu_version =
       OstreePackage::getEcu(repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(Json::nullValue);
-  repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version));
+  EXPECT_TRUE(repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version)));
 
   // should not throw any exceptions
   repo.getTargets();
-  boost::filesystem::remove_all(config.tls.certificates_directory);
+  boost::filesystem::remove_all(test_dir);
 }
 
 TEST(SotaUptaneClientTest, check_keys) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
-  pt.put("tls.certificates_directory", "tests/test_check_keys");
+  pt.put("tls.certificates_directory", test_dir);
   Config config(pt);
   boost::filesystem::remove_all(config.tls.certificates_directory);
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.full_client_dir = "tests/test_uptane";
+  ecu_config.full_client_dir = test_dir;
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
@@ -75,7 +77,7 @@ TEST(SotaUptaneClientTest, check_keys) {
   EXPECT_TRUE(sec_public.size() > 0);
   EXPECT_TRUE(sec_private.size() > 0);
   EXPECT_NE(sec_public, sec_private);
-  boost::filesystem::remove_all(config.tls.certificates_directory);
+  boost::filesystem::remove_all(test_dir);
 }
 
 #ifndef __NO_MAIN__
