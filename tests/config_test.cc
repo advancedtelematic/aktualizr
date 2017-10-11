@@ -157,14 +157,38 @@ TEST(config, ecu_persist) {
  * \verify{\tst{184}} Verify that aktualizr can start in implicit provisioning
  * mode.
  */
-TEST(SotaUptaneClientTest, implicit_mode) {
+TEST(config, implicit_mode) {
   Config config;
   EXPECT_EQ(config.provision.mode, kImplicit);
 }
 
-TEST(SotaUptaneClientTest, automatic_mode) {
+TEST(config, automatic_mode) {
   Config config("tests/config_tests_prov.toml");
   EXPECT_EQ(config.provision.mode, kAutomatic);
+}
+
+TEST(config, consistent_toml_empty) {
+  boost::filesystem::create_directory(config_test_dir);
+  Config config1;
+  config1.writeToFile(config_test_dir + "/output1.toml");
+  Config config2(config_test_dir + "/output1.toml");
+  config2.writeToFile(config_test_dir + "/output2.toml");
+  std::string conf_str1 = Utils::readFile(config_test_dir + "/output1.toml");
+  std::string conf_str2 = Utils::readFile(config_test_dir + "/output2.toml");
+  EXPECT_EQ(conf_str1, conf_str2);
+  boost::filesystem::remove_all(config_test_dir);
+}
+
+TEST(config, consistent_toml_nonempty) {
+  boost::filesystem::create_directory(config_test_dir);
+  Config config1("tests/config_tests_prov.toml");
+  config1.writeToFile(config_test_dir + "/output1.toml");
+  Config config2(config_test_dir + "/output1.toml");
+  config2.writeToFile(config_test_dir + "/output2.toml");
+  std::string conf_str1 = Utils::readFile(config_test_dir + "/output1.toml");
+  std::string conf_str2 = Utils::readFile(config_test_dir + "/output2.toml");
+  EXPECT_EQ(conf_str1, conf_str2);
+  boost::filesystem::remove_all(config_test_dir);
 }
 
 #ifndef __NO_MAIN__

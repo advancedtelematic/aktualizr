@@ -413,11 +413,11 @@ void Config::writeToFile(const std::string& filename) {
   sink << "[tls]\n";
   writeOption(sink, tls.certificates_directory, "certificates_directory");
   writeOption(sink, tls.server, "server");
-  writeOption(sink, tls.ca_file(), "ca_file");
+  writeOption(sink, tls.ca_file_, "ca_file");
   writeOption(sink, tls.ca_source, "ca_source");
-  writeOption(sink, tls.pkey_file(), "pkey_file");
+  writeOption(sink, tls.pkey_file_, "pkey_file");
   writeOption(sink, tls.pkey_source, "pkey_source");
-  writeOption(sink, tls.client_certificate(), "client_certificate");
+  writeOption(sink, tls.client_certificate_, "client_certificate");
   writeOption(sink, tls.cert_source, "cert_source");
   sink << "\n";
 
