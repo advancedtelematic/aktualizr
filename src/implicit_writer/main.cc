@@ -102,7 +102,10 @@ int main(int argc, char *argv[]) {
   config.uptane.ostree_server = config.tls.server + "/treehub";
 
   std::cout << "Writing config file: " << config_out_path << "\n";
-  boost::filesystem::create_directories(boost::filesystem::path(config_out_path).parent_path());
+  boost::filesystem::path parent_dir = boost::filesystem::path(config_out_path).parent_path();
+  if (!parent_dir.empty()) {
+    boost::filesystem::create_directories(parent_dir);
+  }
   config.writeToFile(config_out_path);
 
   return 0;
