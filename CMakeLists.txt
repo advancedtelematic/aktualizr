@@ -84,7 +84,6 @@ if(CLANG_FORMAT)
             add_custom_target(${TARGETNAME}
                 COMMAND ${CLANG_FORMAT} -i -style=file ${FILE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                COMMENT "Running clang-format on ${FILE}"
                 VERBATIM)
             add_dependencies(format ${TARGETNAME})
 
@@ -94,7 +93,6 @@ if(CLANG_FORMAT)
             add_custom_target(${TARGETNAME_CI}
                 COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${FILE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                COMMENT "Checking clang-format on ${FILE}"
                 VERBATIM)
             add_dependencies(check-format ${TARGETNAME_CI})
         endforeach()
@@ -117,7 +115,6 @@ if(CLANG_CHECK)
                 add_custom_target(${TARGETNAME}
                     COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${FILE}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    COMMENT "Running clang-check on ${FILE}"
                     VERBATIM)
                 # clang-check needs the binary to be built so it knows the compile flags
                 add_dependencies(${TARGETNAME} build_tests)

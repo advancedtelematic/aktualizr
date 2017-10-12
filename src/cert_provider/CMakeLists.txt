@@ -12,6 +12,8 @@ target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
 
 aktualizr_source_file_checks(main.cc)
 
+add_dependencies(build_tests aktualizr_cert_provider)
+
 install(TARGETS aktualizr_cert_provider RUNTIME DESTINATION bin)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

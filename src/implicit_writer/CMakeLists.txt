@@ -10,6 +10,9 @@ target_link_libraries(aktualizr_implicit_writer aktualizr_static_lib
 
 aktualizr_source_file_checks(main.cc)
 
+# The tests run aktualizr_implicit_writer
+add_dependencies(build_tests aktualizr_implicit_writer)
+
 install(TARGETS aktualizr_implicit_writer RUNTIME DESTINATION bin)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
