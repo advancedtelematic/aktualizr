@@ -68,10 +68,73 @@ add_custom_target(check-format)
 add_custom_target(format)
 add_dependencies(qa format)
 
+# All binaries are built as prerequisites to this target
+add_custom_target(build_tests)
+
 # clang-check and clang-format
 # The .clang-format file requires clang-format-3.8
 find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format)
 find_program(CLANG_CHECK NAMES clang-check-3.8 clang-check)
+
+if(CLANG_FORMAT)
+    function(aktualizr_clang_format)
+        file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+        foreach(FILE ${ARGN})
+            string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_format-${SUBDIR}-${FILE}")
+            add_custom_target(${TARGETNAME}
+                COMMAND ${CLANG_FORMAT} -i -style=file ${FILE}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                COMMENT "Running clang-format on ${FILE}"
+                VERBATIM)
+            add_dependencies(format ${TARGETNAME})
+
+            # The check for CI that fails if stuff changes
+            string(REPLACE "/" "_" TARGETNAME_CI "aktualizr_ci_clang_format-${SUBDIR}-${FILE}")
+
+            add_custom_target(${TARGETNAME_CI}
+                COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${FILE}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                COMMENT "Checking clang-format on ${FILE}"
+                VERBATIM)
+            add_dependencies(check-format ${TARGETNAME_CI})
+        endforeach()
+    endfunction()
+else()
+    message(WARNING "clang-format not found, skipping")
+    function(aktualizr_clang_format)
+    endfunction()
+endif()
+
+
+if(CLANG_CHECK)
+    add_custom_target(clang-check)
+    add_dependencies(qa clang-check)
+    function(aktualizr_clang_check)
+        file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+        foreach(FILE ${ARGN})
+            if(NOT ${FILE} MATCHES "\\.h")
+                string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_check-${SUBDIR}-${FILE}")
+                add_custom_target(${TARGETNAME}
+                    COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${FILE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    COMMENT "Running clang-check on ${FILE}"
+                    VERBATIM)
+                # clang-check needs the binary to be built so it knows the compile flags
+                add_dependencies(${TARGETNAME} build_tests)
+                add_dependencies(clang-check ${TARGETNAME})
+            endif()
+        endforeach()
+    endfunction()
+else()
+    message(WARNING "clang-check not found, skipping")
+    function(aktualizr_clang_check)
+    endfunction()
+endif()
+
+function(aktualizr_source_file_checks)
+    aktualizr_clang_check(${ARGN})
+    aktualizr_clang_format(${ARGN})
+endfunction()
 
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src)

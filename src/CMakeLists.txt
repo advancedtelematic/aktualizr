@@ -1,8 +1,7 @@
 set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
 # set source files excluding main
-set(SOURCES ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
-            aktualizr.cc
+set(SOURCES aktualizr.cc
             bootstrap.cc
             commands.cc
             config.cc
@@ -81,7 +80,7 @@ if(BUILD_P11)
 endif(BUILD_P11)
 # set the name of the executable
 add_executable(aktualizr main.cc)
-add_library(aktualizr_static_lib STATIC ${SOURCES})
+add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
 
 target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
 
@@ -101,34 +100,7 @@ if(BUILD_GENIVI)
 endif(BUILD_GENIVI)
 
 ################ QA RULES
-add_custom_target(check-format-src
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} main.cc ${SOURCES} ${HEADERS}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Checking clang-format on src"
-    VERBATIM)
-add_dependencies(check-format check-format-src)
-
-if(CLANG_FORMAT)
-    add_custom_target(format-src
-        COMMAND ${CLANG_FORMAT} -i -style=file main.cc ${SOURCES} ${HEADERS}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-format on src"
-        VERBATIM)
-    add_dependencies(format format-src)
-else()
-    message(WARNING "clang-format not found, skipping")
-endif()
-
-if(CLANG_CHECK)
-    add_custom_target(check-src
-        COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} main.cc ${SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-check on src"
-        VERBATIM)
-    add_dependencies(qa check-src)
-else()
-    message(WARNING "clang-check not found, skipping")
-endif(CLANG_CHECK)
+aktualizr_source_file_checks(main.cc ${SOURCES} ${HEADERS})
 
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

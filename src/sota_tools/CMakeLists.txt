@@ -22,9 +22,6 @@ target_link_libraries(garage-push garage_push_static_lib
   ${CMAKE_THREAD_LIBS_INIT}
   ${LibArchive_LIBRARIES})
 
-set (ALL_SOTA_TOOLS_SRCS
-  ${GARAGE_PUSH_SRCS})
-
 # For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
   accumulator.h
@@ -43,40 +40,11 @@ set(ALL_SOTA_TOOLS_HEADERS
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_custom_target(check-format-sota-tools
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_SOTA_TOOLS_SRCS} ${ALL_SOTA_TOOLS_HEADERS}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Checking clang-format on src/sota-tools"
-    VERBATIM)
-add_dependencies(check-format check-format-sota-tools)
-
-if(CLANG_FORMAT)
-add_custom_target(format-sota-tools
-    COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_SOTA_TOOLS_SRCS} ${ALL_SOTA_TOOLS_HEADERS}
-    WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running clang-formaton src/sota_tools"
-    VERBATIM)
-add_dependencies(format format-sota-tools)
-else()
-    message(WARNING "clang-format not found, skipping")
-endif()
-
-if(CLANG_CHECK)
-    add_custom_target(check-tools
-        COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${ALL_SRCS}
-        WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-check"
-        VERBATIM)
-    add_dependencies(qa check-tools)
-else()
-    message(WARNING "clang-check not found, skipping")
-endif(CLANG_CHECK)
+aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${ALL_SOTA_TOOLS_HEADERS})
 
 target_compile_options(garage_push_static_lib PUBLIC -std=c++11)
 
-
 target_include_directories(garage_push_static_lib INTERFACE ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
-
 
 install(TARGETS garage-push DESTINATION /usr/bin)
 

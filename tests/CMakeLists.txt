@@ -27,7 +27,7 @@ if(BUILD_GENIVI)
     list(APPEND TEST_LIBS rvi)
 endif(BUILD_GENIVI)
 
-add_custom_target(build_tests DEPENDS aktualizr)
+add_dependencies(build_tests aktualizr)
 
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage_push_auth_test garage-push)
@@ -64,7 +64,7 @@ function(add_aktualizr_test)
                      ${WD})
         endif()
     add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
-
+    aktualizr_source_file_checks(${AKTUALIZR_TEST_SOURCES})
 endfunction(add_aktualizr_test)
 
 
@@ -158,13 +158,15 @@ if(BUILD_GENIVI)
              COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
+    aktualizr_source_file_checks(dbusgateway_test.cc)
+
     add_executable(aktualizr_test_swm swm_test.cc)
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_swm
              COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_swm)
-
+        aktualizr_source_file_checks(swm_test.cc)
 endif(BUILD_GENIVI)
 
 
@@ -326,50 +328,11 @@ if(BUILD_SOTA_TOOLS)
               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
+
+    aktualizr_source_file_checks(sota_tools/auth_test.cc)
 endif(BUILD_SOTA_TOOLS)
 
-set(ALL_TEST_SRCS
-    commands_test.cc
-    config_test.cc
-    crypto_test.cc
-    dbusgateway_test.cc
-    events_test.cc
-    httpclient_test.cc
-    ostree_test.cc
-    rvisotaclient_test.cc
-    socketgateway_test.cc
-    swm_test.cc
-    timer_test.cc
-    tuf_test.cc
-    uptane_vector_tests.cc
-    uptane_test.cc
-    uptane_ci_test.cc
-    fake_ostree.cc
-    test_utils.h
-    test_utils.cc
-    utils_test.cc
-    uptane_fake_http_test.cc)
 
-if(BUILD_SOTA_TOOLS)
-    list(APPEND ALL_TEST_SRCS sota_tools/auth_test.cc)
-endif(BUILD_SOTA_TOOLS)
-
-add_custom_target(check-format-tests
-    COMMAND ${PROJECT_SOURCE_DIR}/scripts/check-formatting.sh ${CLANG_FORMAT} ${ALL_TEST_SRCS}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Checking clang-format on tests"
-    VERBATIM)
-add_dependencies(check-format check-format-tests)
-
-if(CLANG_FORMAT)
-    add_custom_target(format-tests
-        COMMAND ${CLANG_FORMAT} -i -style=file ${ALL_TEST_SRCS}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running clang-format on tests"
-        VERBATIM)
-    add_dependencies(format format-tests)
-else()
-    message(WARNING "clang-format not found, skipping")
-endif()
+aktualizr_source_file_checks(test_utils.h test_utils.cc)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
