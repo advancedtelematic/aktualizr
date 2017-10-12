@@ -21,10 +21,6 @@ build/
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
 *.lai
 *.la
@@ -35,7 +31,6 @@ build/
 *.exe
 *.out
 *.app
-hello
 /.project
 
 # Vim swap files
