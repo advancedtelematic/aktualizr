@@ -73,7 +73,7 @@ add_library(testutilities test_utils.cc)
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
-    setup_target_for_coverage(coverage ctest coverage)
+    setup_target_for_coverage(coverage ${CMAKE_CTEST_COMMAND} coverage)
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage --coverage )
     target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
@@ -351,7 +351,7 @@ set(ALL_TEST_SRCS
     uptane_fake_http_test.cc)
 
 if(BUILD_SOTA_TOOLS)
-list(APPEND ALL_TEST_SRCS sota_tools/auth_test.cc)
+    list(APPEND ALL_TEST_SRCS sota_tools/auth_test.cc)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check-format-tests
