@@ -137,6 +137,15 @@ TEST(Utils, copyDir) {
   EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/baz"), "baz");
 }
 
+TEST(Utils, hex2bin) {
+  unsigned char bin[3];
+
+  Utils::hex2bin("01aeb4", bin);
+  EXPECT_EQ(bin[0], 0x01);
+  EXPECT_EQ(bin[1], 0xae);
+  EXPECT_EQ(bin[2], 0xb4);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

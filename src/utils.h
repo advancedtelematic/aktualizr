@@ -9,6 +9,7 @@
 struct Utils {
   static std::string fromBase64(std::string);
   static std::string toBase64(const std::string &);
+  static void hex2bin(const std::string hexstring, unsigned char *binout);
   static Json::Value parseJSON(const std::string &json_str);
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
   static std::string intToString(unsigned int val);

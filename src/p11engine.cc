@@ -1,6 +1,9 @@
 #include "p11engine.h"
 
 #include <openssl/pem.h>
+#include <boost/scoped_array.hpp>
+
+#include "utils.h"
 
 #ifdef TEST_PKCS11_ENGINE_PATH
 #define kPkcs11Path TEST_PKCS11_ENGINE_PATH
@@ -54,19 +57,25 @@ P11Engine::~P11Engine() {
   }
 }
 
+PKCS11_SLOT* P11Engine::findTokenSlot() {
+  PKCS11_SLOT* slot = PKCS11_find_token(ctx_.get(), slots_.get_slots(), slots_.get_nslots());
+  if (!slot || !slot->token) {
+    LOGGER_LOG(LVL_error, "Couldn't find a token");
+    return NULL;
+  }
+  if (PKCS11_login(slot, 0, config_.pass.c_str())) {
+    LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
+    return NULL;
+  }
+  return slot;
+}
+
 bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   if (config_.module.empty()) return false;
   if (id.length() % 2) return false;  // id is a hex string
 
-  PKCS11_SLOT* slot = PKCS11_find_token(ctx_.get(), slots_.get_slots(), slots_.get_nslots());
-  if (!slot || !slot->token) {
-    LOGGER_LOG(LVL_error, "Couldn't find a token");
-    return false;
-  }
-  if (PKCS11_login(slot, 0, config_.pass.c_str())) {
-    LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
-    return false;
-  }
+  PKCS11_SLOT* slot = findTokenSlot();
+  if (!slot) return false;
 
   PKCS11_KEY* keys;
   unsigned int nkeys;
@@ -78,19 +87,15 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   }
 
   PKCS11_KEY* key = NULL;
-  unsigned char id_hex[100];
-  for (int i = 0; i < id.length(); i += 2) {
-    char hex_byte[3];
-    hex_byte[0] = id[i];
-    hex_byte[1] = id[i + 1];
-    hex_byte[2] = 0;
-    id_hex[i / 2] = strtol(hex_byte, NULL, 16);
-  }
+  {
+    boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
+    Utils::hex2bin(id, id_hex.get());
 
-  for (int i = 0; i < nkeys; i++) {
-    if ((keys[i].id_len == id.length() / 2) && !memcmp(keys[i].id, id_hex, id.length() / 2)) {
-      key = &keys[i];
-      break;
+    for (int i = 0; i < nkeys; i++) {
+      if ((keys[i].id_len == id.length() / 2) && !memcmp(keys[i].id, id_hex.get(), id.length() / 2)) {
+        key = &keys[i];
+        break;
+      }
     }
   }
   if (key == NULL) {
@@ -104,6 +109,49 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   char* pem_key = NULL;
   int length = BIO_get_mem_data(mem, &pem_key);
   key_out->assign(pem_key, length);
+
+  BIO_free_all(mem);
+  return true;
+}
+
+bool P11Engine::readCert(const std::string& id, std::string* cert_out) {
+  if (config_.module.empty()) return false;
+  if (id.length() % 2) return false;  // id is a hex string
+
+  PKCS11_SLOT* slot = findTokenSlot();
+  if (!slot) return false;
+
+  PKCS11_CERT* certs;
+  unsigned int ncerts;
+  int rc = PKCS11_enumerate_certs(slot->token, &certs, &ncerts);
+  if (rc < 0) {
+    LOGGER_LOG(LVL_error,
+               "Error enumerating certificates in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL));
+    return false;
+  }
+
+  PKCS11_CERT* cert = NULL;
+  {
+    boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
+    Utils::hex2bin(id, id_hex.get());
+
+    for (int i = 0; i < ncerts; i++) {
+      if ((certs[i].id_len == id.length() / 2) && !memcmp(certs[i].id, id_hex.get(), id.length() / 2)) {
+        cert = &certs[i];
+        break;
+      }
+    }
+  }
+  if (cert == NULL) {
+    LOGGER_LOG(LVL_error, "Requested certificate was not found");
+    return false;
+  }
+  BIO* mem = BIO_new(BIO_s_mem());
+  PEM_write_bio_X509(mem, cert->x509);
+
+  char* pem_key = NULL;
+  int length = BIO_get_mem_data(mem, &pem_key);
+  cert_out->assign(pem_key, length);
 
   BIO_free_all(mem);
   return true;

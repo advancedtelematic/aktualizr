@@ -75,7 +75,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   EXPECT_TRUE(signe_is_ok);
 }
 
-TEST(uptane, sign_tuf_pkcs11) {
+TEST(crypto, sign_tuf_pkcs11) {
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
 
@@ -93,6 +93,21 @@ TEST(uptane, sign_tuf_pkcs11) {
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 
+TEST(crypto, certificate_pkcs11) {
+  P11Config p11_conf;
+  p11_conf.module = TEST_PKCS11_MODULE_PATH;
+  p11_conf.pass = "1234";
+  P11Engine p11(p11_conf);
+
+  std::string cert;
+  bool res = p11.readCert("01", &cert);
+  EXPECT_TRUE(res);
+  if (!res) return;
+
+  std::string device_name;
+  EXPECT_TRUE(Crypto::extractSubjectCN(cert, &device_name));
+  EXPECT_EQ(device_name, "cc34f7f3-481d-443b-bceb-e838a36a2d1f");
+}
 #endif
 
 TEST(crypto, sign_bad_key_no_crash) {

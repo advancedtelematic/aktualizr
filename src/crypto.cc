@@ -247,6 +247,24 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   return true;
 }
 
+bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
+  BIO *bio = BIO_new_mem_buf(const_cast<char *>(cert.c_str()), (int)cert.size());
+  X509 *x = PEM_read_bio_X509(bio, NULL, 0, NULL);
+  BIO_free_all(bio);
+  if (!x) return false;
+
+  int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, NULL, 0);
+  if (len < 0) {
+    X509_free(x);
+    return false;
+  }
+  boost::scoped_array<char> buf(new char[len + 1]);
+  X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, buf.get(), len + 1);
+  *cn = std::string(buf.get());
+  X509_free(x);
+  return true;
+}
+
 /**
  * Generate a RSA keypair
  * @param public_key Generated public part of key
