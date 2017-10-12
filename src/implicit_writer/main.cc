@@ -31,7 +31,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("config-input,i", bpo::value<std::string>()->required(), "input sota.toml configuration file")
       ("config-output,o", bpo::value<std::string>()->required(), "output sota.toml configuration file")
-      ("prefix,p", bpo::value<std::string>(), "prefix for root CA output path");
+      ("prefix,p", bpo::value<std::string>(), "prefix for root CA output path")
+      ("no-root-ca", "don't overwrite root CA path");
   // clang-format on
 
   bpo::variables_map vm;
@@ -75,6 +76,7 @@ int main(int argc, char *argv[]) {
   std::string credentials_path = commandline_map["credentials"].as<std::string>();
   std::string config_in_path = commandline_map["config-input"].as<std::string>();
   std::string config_out_path = commandline_map["config-output"].as<std::string>();
+  bool no_root = (commandline_map.count("no-root-ca") != 0);
 
   std::string prefix = "";
   if (commandline_map.count("prefix") != 0) {
@@ -87,9 +89,11 @@ int main(int argc, char *argv[]) {
   Bootstrap boot(credentials_path, "");
   boost::filesystem::path ca_path(prefix);
   ca_path /= config.tls.ca_file();
-  std::cout << "Writing root CA: " << ca_path << "\n";
-  boost::filesystem::create_directories(ca_path.parent_path());
-  Utils::writeFile(ca_path.string(), boot.getCa());
+  if (!no_root) {
+    std::cout << "Writing root CA: " << ca_path << "\n";
+    boost::filesystem::create_directories(ca_path.parent_path());
+    Utils::writeFile(ca_path.string(), boot.getCa());
+  }
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
   config.provision.server = config.tls.server;
