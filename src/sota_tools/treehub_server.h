@@ -8,6 +8,8 @@ class TreehubServer {
  public:
   TreehubServer();
   void SetToken(const std::string &authentication_token);
+  void SetCerts(const std::string &root_cert, const std::string &client_cert, const std::string &client_key);
+
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle) const;
 
   void ca_certs(const std::string &cacerts) { ca_certs_ = cacerts; }
@@ -21,7 +23,11 @@ class TreehubServer {
   std::string root_url_;
   std::string username_;
   std::string password_;
+  std::string root_cert_;
+  std::string client_cert_;
+  std::string client_key_;
   bool using_oauth2_;
+  bool using_certs_;
   struct curl_slist auth_header_;
   // Don't modify auth_header_contents_ without updating the pointer in
   // auth_header_

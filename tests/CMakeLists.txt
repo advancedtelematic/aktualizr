@@ -268,7 +268,7 @@ if(BUILD_SOTA_TOOLS)
 
     add_executable(garage_push_auth_test sota_tools/auth_test.cc)
     target_link_libraries(garage_push_auth_test garage_push_static_lib ${TEST_LIBS})
-    target_include_directories(garage_push_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
+    target_include_directories(garage_push_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
     add_test(NAME auth_test COMMAND garage_push_auth_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Check the --help option works
@@ -319,7 +319,6 @@ if(BUILD_SOTA_TOOLS)
         add_test(NAME verbose-logging
             COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
         if(STRACE)
             add_test(NAME cacert-used
                 COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
