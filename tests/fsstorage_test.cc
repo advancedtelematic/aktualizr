@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
 
 #include "logger.h"
 
@@ -43,7 +43,6 @@ TEST(fsstorage, load_store_tls) {
   std::string ca;
   std::string cert;
   std::string priv;
-
 
   EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &priv));
 
@@ -190,4 +189,3 @@ int main(int argc, char **argv) {
   return RUN_ALL_TESTS();
 }
 #endif
-
