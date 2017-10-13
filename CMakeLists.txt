@@ -133,6 +133,9 @@ function(aktualizr_source_file_checks)
     aktualizr_clang_format(${ARGN})
 endfunction()
 
+# Export compile_commands.json for clang-check
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)

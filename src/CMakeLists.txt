@@ -102,9 +102,6 @@ endif(BUILD_GENIVI)
 ################ QA RULES
 aktualizr_source_file_checks(main.cc ${SOURCES} ${HEADERS})
 
-# Export compile_commands.json for clang-check
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 ################## INSTALL RULES
 #configure_file(distribution/sota.service.cmake distribution/sota.service)
 #install(FILES distribution/sota.service DESTINATION /etc/systemd/system  COMPONENT init)
