@@ -19,7 +19,6 @@ aktualizr_source_file_checks(${GARAGE_DEPLOY_SRCS})
 
 install(TARGETS garage-deploy DESTINATION bin COMPONENT garage_deploy)
 
-
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "garage-deploy utility")
@@ -32,7 +31,5 @@ else(GARAGE_DEPLOY_VERSION)
     set(CPACK_PACKAGE_VERSION "1.0")
 endif(GARAGE_DEPLOY_VERSION)
 include(CPack)
-
-add_dependencies(qa package)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
