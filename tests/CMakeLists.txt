@@ -329,6 +329,36 @@ if(BUILD_SOTA_TOOLS)
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
 
+add_test(NAME garage-deploy-option-help
+    COMMAND garage-deploy --help)
+
+add_test(NAME garage-deploy-nonexistent-option
+    COMMAND garage-deploy --test )
+set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
+
+
+set(ALL_TEST_SRCS
+    commands_test.cc
+    config_test.cc
+    crypto_test.cc
+    dbusgateway_test.cc
+    events_test.cc
+    httpclient_test.cc
+    ostree_test.cc
+    rvisotaclient_test.cc
+    socketgateway_test.cc
+    swm_test.cc
+    timer_test.cc
+    tuf_test.cc
+    uptane_vector_tests.cc
+    uptane_test.cc
+    uptane_ci_test.cc
+    fake_ostree.cc
+    test_utils.h
+    test_utils.cc
+    utils_test.cc
+    uptane_fake_http_test.cc)
+
     aktualizr_source_file_checks(sota_tools/auth_test.cc)
 endif(BUILD_SOTA_TOOLS)
 
