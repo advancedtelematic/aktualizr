@@ -138,7 +138,7 @@ std::string Target::sha256Hash() const {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
     if (it->type() == Hash::Type::kSha256) {
-      return it->HashString();
+      return boost::algorithm::to_lower_copy(it->HashString());
     }
   }
   return std::string();

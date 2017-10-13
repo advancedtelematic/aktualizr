@@ -40,6 +40,7 @@ class Repository {
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
+  std::string getPrimaryHardwareId() const { return primary_hardware_id_; };
   std::string getInstalledRefName() const;
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
@@ -66,6 +67,7 @@ class Repository {
   Json::Value manifests;
 
   std::string primary_ecu_serial;
+  std::string primary_hardware_id_;
 
   CryptoSource key_source;
   std::string primary_public_key;

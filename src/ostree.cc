@@ -90,12 +90,12 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
 
 OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &refhash_in,
                              const std::string &treehub_in)
-    : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {
-}
+    : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config,
+                                            const std::string &refspec) const {
   const char remote[] = "aktualizr-remote";
-  const char *const refs[] = {"aktualizr"};
+  const char *const refs[] = {refspec.c_str()};
   const char *const commit_ids[] = {refhash.c_str()};
   const char *opt_osname = NULL;
   OstreeRepo *repo = NULL;
@@ -115,8 +115,6 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
-  std::cout << "Adding remote: " << remote << " pull_uri:"  << pull_uri << "\n";
-  std::cout << "certfile: " << cred.cert_file << "\n";
   if (!Ostree::addRemote(repo, remote, pull_uri, cred)) {
     return data::InstallOutcome(data::INSTALL_FAILED, "Error of adding remote");
   }

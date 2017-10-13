@@ -41,7 +41,8 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 }
 
 data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &target) {
-  OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()), config.uptane.ostree_server);
+  OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
+                        config.uptane.ostree_server);
 
   data::PackageManagerCredentials cred;
   // TODO: use storage
@@ -64,7 +65,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
   // TODO: use storage
   cred.cert_file = boost::filesystem::absolute(config.tls.client_certificate()).string();
 #endif
-  return package.install(cred, config.ostree);
+  return package.install(cred, config.ostree, uptane_repo.getPrimaryHardwareId());
 }
 
 Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
@@ -78,15 +79,10 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   } else {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
     operation_result["operation_result"] = result.toJson();
+    if (result.result_code == data::UpdateResultCode::OK) {
+      uptane_repo.saveInstalledVersion(target);
+    }
   }
-
-  data::InstallOutcome outcome = OstreeInstall(target);
-  data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), outcome);
-  if (result.result_code == data::UpdateResultCode::OK) {
-    uptane_repo.saveInstalledVersion(target);
-  }
-
-  operation_result["operation_result"] = result.toJson();
   Json::Value unsigned_ecu_version =
       OstreePackage(target.filename(), target.sha256Hash(), "").toEcuVersion(target.ecu_identifier(), operation_result);
 
