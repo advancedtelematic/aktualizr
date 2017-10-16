@@ -16,6 +16,7 @@ endif(GARAGE_DEPLOY_VERSION)
 
 aktualizr_source_file_checks(${GARAGE_DEPLOY_SRCS})
 
+add_dependencies(build_tests garage-deploy)
 
 install(TARGETS garage-deploy DESTINATION bin COMPONENT garage_deploy)
 
