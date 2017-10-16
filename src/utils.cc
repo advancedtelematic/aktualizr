@@ -156,6 +156,16 @@ std::string Utils::toBase64(const std::string &tob64) {
   return b64sig;
 }
 
+void Utils::hex2bin(const std::string hexstring, unsigned char *binout) {
+  for (int i = 0; i < hexstring.length(); i += 2) {
+    char hex_byte[3];
+    hex_byte[0] = hexstring[i];
+    hex_byte[1] = hexstring[i + 1];
+    hex_byte[2] = 0;
+    binout[i / 2] = strtol(hex_byte, NULL, 16);
+  }
+}
+
 Json::Value Utils::parseJSON(const std::string &json_str) {
   Json::Reader reader;
   Json::Value json_value;

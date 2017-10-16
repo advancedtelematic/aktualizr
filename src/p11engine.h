@@ -70,6 +70,7 @@ class P11Engine {
   ENGINE *getEngine() { return ssl_engine_; }
   std::string getUriPrefix() const { return uri_prefix_; }
   bool readPublicKey(const std::string &id, std::string *key);
+  bool readCert(const std::string &id, std::string *cert_out);
 
  private:
   const P11Config &config_;
@@ -77,6 +78,8 @@ class P11Engine {
   ENGINE *ssl_engine_;
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
+
+  PKCS11_SLOT *findTokenSlot();
 };
 
 #endif

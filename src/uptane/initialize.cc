@@ -19,30 +19,28 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
   if (device_id.empty()) {
     if (provision_config.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
-    } else if (provision_config.mode == kImplicit &&
-               tls_config.cert_source == kFile) {  // TODO: support reading the certificate from PKCS#11
+    } else if (provision_config.mode == kImplicit) {
       std::string cert;
-      if (!storage.loadTlsCreds(NULL, &cert, NULL)) {
-        LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+      if (tls_config.cert_source == kFile) {
+        if (!storage.loadTlsCreds(NULL, &cert, NULL)) {
+          LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+          return false;
+        }
+      } else {  // kPkcs11
+#ifdef BUILD_P11
+        if (!p11.readCert(tls_config.client_certificate(), &cert)) {
+          LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+          return false;
+        }
+#else
+        LOGGER_LOG(LVL_error, "Aktualizr was built without PKCS#11 support, can't extract device_id");
         return false;
+#endif
       }
-      BIO* bio = BIO_new_mem_buf(const_cast<char*>(cert.c_str()), (int)cert.size());
-      X509* x = PEM_read_bio_X509(bio, NULL, 0, NULL);
-      BIO_free_all(bio);
-      if (!x) {
-        LOGGER_LOG(LVL_error, "Failure during certificate parsing: " << ERR_error_string(ERR_get_error(), NULL));
-        return false;
-      }
-      int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, NULL, 0);
-      if (len < 0) {
+      if (!Crypto::extractSubjectCN(cert, &device_id)) {
         LOGGER_LOG(LVL_error, "Couldn't extract CN from the certificate");
-        X509_free(x);
         return false;
       }
-      boost::scoped_array<char> buf(new char[len + 1]);
-      X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, buf.get(), len + 1);
-      device_id = std::string(buf.get());
-      X509_free(x);
     } else {
       LOGGER_LOG(LVL_error, "Unknown provisioning method");
       return false;

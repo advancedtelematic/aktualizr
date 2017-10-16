@@ -90,6 +90,7 @@ class Crypto {
   static bool VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message);
   static bool parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
                        std::string *out_ca);
+  static bool extractSubjectCN(const std::string &cert, std::string *cn);
   static bool generateRSAKeyPair(std::string *public_key, std::string *private_key);
 
   static bool RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message);

@@ -1002,7 +1002,6 @@ TEST(SotaUptaneClientTest, pkcs11_provision) {
   config.tls.cert_source = kPkcs11;
   config.tls.pkey_file_ = "02";
   config.tls.pkey_source = kPkcs11;
-  config.uptane.device_id = "cc34f7f3-481d-443b-bceb-e838a36a2d1f";
   config.postUpdateValues();
 
   FSStorage storage(config);
