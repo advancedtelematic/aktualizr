@@ -116,8 +116,7 @@ TEST(Utils, TemporaryFilePutContents) {
 }
 
 TEST(Utils, copyDir) {
-  if (boost::filesystem::exists("tests/test_data/test_copy_dir"))
-    boost::filesystem::remove_all("tests/test_data/test_copy_dir");
+  boost::filesystem::remove_all("tests/test_data/test_copy_dir");
 
   boost::filesystem::create_directories("tests/test_data/test_copy_dir");
   boost::filesystem::create_directories("tests/test_data/test_copy_dir/from/1/2");
@@ -135,6 +134,8 @@ TEST(Utils, copyDir) {
   EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/foo"), "foo");
   EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/bar"), "bar");
   EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/baz"), "baz");
+
+  boost::filesystem::remove_all("tests/test_data/test_copy_dir");
 }
 
 TEST(Utils, hex2bin) {
