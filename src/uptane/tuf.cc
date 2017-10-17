@@ -1,13 +1,15 @@
-#include <logger.h>
-#include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
+#include "uptane/tuf.h"
+
 #include <ctime>
 #include <ostream>
 #include <sstream>
 
+#include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
+
 #include "crypto.h"
 #include "exceptions.h"
-#include "uptane/tuf.h"
+#include "logger.h"
 
 using Uptane::Hash;
 using Uptane::Target;

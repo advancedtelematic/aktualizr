@@ -1,10 +1,12 @@
+#include <string>
+
 #include <openssl/x509.h>
 #include <boost/scoped_array.hpp>
-#include <string>
 
 #include "bootstrap.h"
 #include "logger.h"
 #include "uptane/uptanerepository.h"
+
 namespace Uptane {
 
 // Postcondition: device_id is in the storage

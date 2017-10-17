@@ -1,17 +1,18 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
+#include <string>
 
-#include <logger.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
-#include <string>
 
 #include "crypto.h"
 #include "fsstorage.h"
 #include "httpclient.h"
 #include "httpfake.h"
+#include "logger.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"

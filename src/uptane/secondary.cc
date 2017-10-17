@@ -1,9 +1,8 @@
-#include <logger.h>
 #include <boost/algorithm/hex.hpp>
-#include <boost/filesystem.hpp>
 
 #include "config.h"
 #include "crypto.h"
+#include "logger.h"
 #include "secondary.h"
 
 namespace Uptane {

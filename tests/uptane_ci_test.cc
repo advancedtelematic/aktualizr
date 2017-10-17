@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
-#include "fsstorage.h"
 
 #include <boost/filesystem.hpp>
+
+#include "fsstorage.h"
 #include "httpclient.h"
 #include "logger.h"
 #include "ostree.h"

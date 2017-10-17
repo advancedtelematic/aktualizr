@@ -1,6 +1,8 @@
 #ifndef UPTANE_SECONDARYCONFIG_H_
 #define UPTANE_SECONDARYCONFIG_H_
 
+#include <string>
+
 #include <boost/filesystem.hpp>
 
 namespace Uptane{
