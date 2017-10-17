@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
   boost::shared_ptr<OSTreeRepo> repo;
   if (!pull_cred.empty()) {
     authenticate(cacerts, pull_cred, pull_server);
-    repo = boost::make_shared<OSTreeHttpRepo>(pull_server);
+    repo = boost::make_shared<OSTreeHttpRepo>(&pull_server);
   } else {
     repo = boost::make_shared<OSTreeDirRepo>(repo_path);
   }

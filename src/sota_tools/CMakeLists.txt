@@ -11,21 +11,18 @@ set (GARAGE_PUSH_SRCS
   ostree_object.cc
   request_pool.cc
   treehub_server.cc
-  ${PROJECT_SOURCE_DIR}/src/utils.cc
-  ${PROJECT_SOURCE_DIR}/src/logger.cc
-  ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
 )
-set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 
 
 add_executable(garage-push main.cc)
 add_library(garage_push_static_lib STATIC ${GARAGE_PUSH_SRCS})
-target_link_libraries(garage-push garage_push_static_lib
+target_link_libraries(garage-push garage_push_static_lib aktualizr_static_lib
   ${CURL_LIBRARIES}
   ${GLIB2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${LibArchive_LIBRARIES})
+  ${LibArchive_LIBRARIES}
+  gcov)
 
 set (ALL_SOTA_TOOLS_SRCS
   ${GARAGE_PUSH_SRCS})

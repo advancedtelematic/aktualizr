@@ -3,6 +3,7 @@
 
 #include <curl/curl.h>
 #include <string>
+#include "utils.h"
 
 class TreehubServer {
  public:
@@ -24,8 +25,9 @@ class TreehubServer {
   std::string username_;
   std::string password_;
   std::string root_cert_;
-  std::string client_cert_;
-  std::string client_key_;
+  TemporaryFile root_cert_path_;
+  TemporaryFile client_cert_path_;
+  TemporaryFile client_key_path_;
   bool using_oauth2_;
   bool using_certs_;
   struct curl_slist auth_header_;

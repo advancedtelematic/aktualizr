@@ -31,7 +31,7 @@ std::stringstream readArchiveFile(archive *a) {
     if (r == ARCHIVE_EOF) {
       break;
     } else if (r != ARCHIVE_OK) {
-      std::cerr << archive_error_string(a) << std::endl;
+      throw std::runtime_error(archive_error_string(a));
       break;
     } else if (size > 0 && buff != nullptr) {
       result.write(buff, size);
@@ -86,6 +86,9 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     if (r != ARCHIVE_OK) {
       std::cerr << "Error closing zipped credentials file: " << filepath << std::endl;
       return EXIT_FAILURE;
+    } else if (!found) {
+      std::cerr << "treehub.json not found in zipped credentials file: " << filepath << std::endl;
+      return EXIT_FAILURE;
     }
   }
 
@@ -107,6 +110,18 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
       method = AUTH_BASIC;
       auth_user = ba_pt->get<string>("user", "");
       auth_password = ba_pt->get<string>("password", kPassword);
+    } else if (pt.get<bool>("certificate_auth", false)) {
+      if (client_cert.size() && client_key.size() && root_cert.size()) {
+        method = CERT;
+      } else {
+        std::cerr << "treehub.json requires certificate authentication, but credential archive, didn't include all or "
+                     "some certificate files"
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
+    } else {
+      std::cerr << "Unknown authentication method " << std::endl;
+      return EXIT_FAILURE;
     }
     ostree_server = pt.get<string>("ostree.server", kBaseUrl);
 
@@ -114,10 +129,6 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     std::cerr << e.what() << std::endl;
     std::cerr << "Unable to read " << filepath << " as archive or json file." << std::endl;
     return EXIT_FAILURE;
-  }
-
-  if (method == AUTH_NONE && client_cert.size() && client_key.size()) {
-    method = CERT;
   }
 
   switch (method) {
