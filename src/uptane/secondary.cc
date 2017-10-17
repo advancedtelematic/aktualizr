@@ -37,8 +37,8 @@ Json::Value Secondary::genAndSendManifest(Json::Value custom) {
   manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
-  std::string public_key = Utils::readFile((config.full_client_dir / config.ecu_public_key).string());
-  std::string private_key = Utils::readFile((config.full_client_dir / config.ecu_private_key).string());
+  std::string public_key = Utils::readFile(config.ecu_public_key());
+  std::string private_key = Utils::readFile(config.ecu_private_key());
   // TODO: support PKCS11 for secondaries. Maybe.
   Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, Crypto::getKeyId(public_key), manifest);
   return signed_ecu_version;
@@ -58,18 +58,24 @@ Json::Value Secondary::newTargetsCallBack(const std::vector<Uptane::Target> &tar
 }
 
 void Secondary::setKeys(const std::string &public_key, const std::string &private_key) {
-  if (!boost::filesystem::exists(config.full_client_dir)) {
-    boost::filesystem::create_directories(config.full_client_dir);
+  boost::filesystem::path private_parent_dir = boost::filesystem::path(config.ecu_private_key()).parent_path();
+  if (!private_parent_dir.empty()) {
+    boost::filesystem::create_directories(private_parent_dir);
   }
-  Utils::writeFile((config.full_client_dir / config.ecu_private_key).string(), private_key);
-  Utils::writeFile((config.full_client_dir / config.ecu_public_key).string(), public_key);
+  boost::filesystem::path public_parent_dir = boost::filesystem::path(config.ecu_public_key()).parent_path();
+  if (!public_parent_dir.empty()) {
+    boost::filesystem::create_directories(public_parent_dir);
+  }
+
+  Utils::writeFile(config.ecu_private_key(), private_key);
+  Utils::writeFile(config.ecu_public_key(), public_key);
 }
 
 bool Secondary::getPublicKey(std::string *key) {
-  if (!boost::filesystem::exists(config.full_client_dir / config.ecu_public_key)) {
+  if (!boost::filesystem::exists(config.ecu_public_key())) {
     return false;
   }
-  *key = Utils::readFile((config.full_client_dir / config.ecu_public_key).string());
+  *key = Utils::readFile(config.ecu_public_key());
   return true;
 }
 
