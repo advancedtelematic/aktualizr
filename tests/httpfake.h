@@ -18,7 +18,8 @@ class HttpFake : public HttpInterface {
 
   ~HttpFake() { boost::filesystem::remove(metadata_path + "/repo/timestamp.json"); }
 
-  virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) {
+  virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
+                        CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) {
     (void)ca;
     (void)ca_source;
     (void)cert;
