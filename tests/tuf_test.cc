@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
-#include <json/json.h>
-#include <logger.h>
-#include <uptane/exceptions.h>
 
+#include <json/json.h>
+
+#include "logger.h"
+#include "uptane/exceptions.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 

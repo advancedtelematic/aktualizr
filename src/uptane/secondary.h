@@ -1,11 +1,13 @@
 #ifndef UPTANE_SECONDARY_H_
 #define UPTANE_SECONDARY_H_
 
-#include <boost/filesystem.hpp>
 #include <string>
+#include "types.h"
 
 #include <json/json.h>
-#include "types.h"
+#include <boost/filesystem.hpp>
+
+#include "uptane/secondaryconfig.h"
 #include "uptane/testbussecondary.h"
 #include "uptane/tufrepository.h"
 

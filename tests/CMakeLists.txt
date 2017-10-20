@@ -36,6 +36,12 @@ endif(BUILD_SOTA_TOOLS)
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
 add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_uptane_vectors DEPENDS build_tests)
 
+# List of source files to run clang-format and clang-check on. Automatically
+# appended to by add_aktualizr_test, but anything that doesn't use that must be
+# manually added to this list.
+set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h)
+
+
 include(CMakeParseArguments)
 
 function(add_aktualizr_test)
@@ -64,7 +70,7 @@ function(add_aktualizr_test)
                      ${WD})
         endif()
     add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
-    aktualizr_source_file_checks(${AKTUALIZR_TEST_SOURCES})
+    set(TEST_SOURCES ${TEST_SOURCES} ${AKTUALIZR_TEST_SOURCES} PARENT_SCOPE)
 endfunction(add_aktualizr_test)
 
 
@@ -150,6 +156,8 @@ endif(BUILD_OSTREE)
 
 
 if(BUILD_GENIVI)
+    aktualizr_source_file_checks(dbusgateway_test.cc swm_test.cc)
+
     add_aktualizr_test(NAME rvi_client SOURCES rvisotaclient_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
@@ -158,15 +166,12 @@ if(BUILD_GENIVI)
              COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-    aktualizr_source_file_checks(dbusgateway_test.cc)
-
     add_executable(aktualizr_test_swm swm_test.cc)
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_swm
              COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_swm)
-        aktualizr_source_file_checks(swm_test.cc)
 endif(BUILD_GENIVI)
 
 
@@ -262,6 +267,7 @@ add_test(NAME implicit-writer-test
 
 if(BUILD_SOTA_TOOLS)
     # sota-tools tests
+    aktualizr_source_file_checks(sota_tools/auth_test.cc)
 
     # The tests can optionally test authentication against Auth+. To do this they
     # require a client id & secret. Specify credentials here to enable these tests
@@ -327,7 +333,6 @@ if(BUILD_SOTA_TOOLS)
               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
-    aktualizr_source_file_checks(sota_tools/auth_test.cc)
 endif(BUILD_SOTA_TOOLS)
 
 
@@ -339,6 +344,7 @@ add_test(NAME garage-deploy-nonexistent-option
 set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
 
-aktualizr_source_file_checks(test_utils.h test_utils.cc)
+list(REMOVE_DUPLICATES TEST_SOURCES)
+aktualizr_source_file_checks(${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

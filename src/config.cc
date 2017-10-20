@@ -2,9 +2,10 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <sstream>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <sstream>
 
 #include "bootstrap.h"
 #include "utils.h"
@@ -288,6 +289,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
   CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);
+  // uptane.secondaries currently can only be set via command line.
 
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
@@ -339,8 +341,8 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       ecu_config.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
       ecu_config.ecu_serial = config_json["ecu_serial"].asString();
       ecu_config.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-      ecu_config.ecu_private_key = config_json["ecu_private_key"].asString();
-      ecu_config.ecu_public_key = config_json["ecu_public_key"].asString();
+      ecu_config.ecu_private_key_ = config_json["ecu_private_key"].asString();
+      ecu_config.ecu_public_key_ = config_json["ecu_public_key"].asString();
       ecu_config.firmware_path = config_json["firmware_path"].asString();
       uptane.secondaries.push_back(ecu_config);
     }

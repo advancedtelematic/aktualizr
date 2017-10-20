@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
-#include "fsstorage.h"
 
 #include <boost/filesystem.hpp>
+
+#include "fsstorage.h"
 #include "httpclient.h"
 #include "logger.h"
 #include "ostree.h"
@@ -44,8 +46,8 @@ TEST(SotaUptaneClientTest, check_keys) {
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = test_dir;
   ecu_config.ecu_hardware_id = "secondary_hardware";
-  ecu_config.ecu_private_key = "sec.priv";
-  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.ecu_private_key_ = "sec.priv";
+  ecu_config.ecu_public_key_ = "sec.pub";
   ecu_config.firmware_path = "/tmp/firmware.txt";
   config.uptane.secondaries.push_back(ecu_config);
 
@@ -70,10 +72,10 @@ TEST(SotaUptaneClientTest, check_keys) {
 
   // There is no available public function to fetch the secondaries' public and
   // private keys, so just do it manually here.
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config.full_client_dir / ecu_config.ecu_public_key));
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config.full_client_dir / ecu_config.ecu_private_key));
-  std::string sec_public = Utils::readFile((ecu_config.full_client_dir / ecu_config.ecu_public_key).string());
-  std::string sec_private = Utils::readFile((ecu_config.full_client_dir / ecu_config.ecu_private_key).string());
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config.ecu_public_key()));
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config.ecu_private_key()));
+  std::string sec_public = Utils::readFile(ecu_config.ecu_public_key());
+  std::string sec_private = Utils::readFile(ecu_config.ecu_private_key());
   EXPECT_TRUE(sec_public.size() > 0);
   EXPECT_TRUE(sec_private.size() > 0);
   EXPECT_NE(sec_public, sec_private);

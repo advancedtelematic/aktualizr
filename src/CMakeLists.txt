@@ -46,6 +46,7 @@ set(HEADERS
             uptane/tuf.h
             uptane/tufrepository.h
             uptane/secondary.h
+            uptane/secondaryconfig.h
             uptane/uptanerepository.h)
 
 if(BUILD_GENIVI)
@@ -66,6 +67,7 @@ if(BUILD_OSTREE)
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc
                         uptane/secondary.cc
+                        uptane/secondaryconfig.cc
                         uptane/testbusprimary.cc
                         uptane/testbussecondary.cc)
 endif(BUILD_OSTREE)
