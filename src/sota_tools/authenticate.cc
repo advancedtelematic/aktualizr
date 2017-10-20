@@ -18,7 +18,27 @@ using boost::property_tree::json_parser::json_parser_error;
 const string kBaseUrl = "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 
-enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2 };
+enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
+
+std::stringstream readArchiveFile(archive *a) {
+  int r;
+  const char *buff = nullptr;
+  std::stringstream result;
+  size_t size;
+  int64_t offset;
+  for (;;) {
+    r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
+    if (r == ARCHIVE_EOF) {
+      break;
+    } else if (r != ARCHIVE_OK) {
+      throw std::runtime_error(archive_error_string(a));
+      break;
+    } else if (size > 0 && buff != nullptr) {
+      result.write(buff, size);
+    }
+  }
+  return result;
+}
 
 int authenticate(const string &cacerts, string filepath, TreehubServer &treehub) {
   AuthMethod method = AUTH_NONE;
@@ -30,6 +50,9 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
   string client_id;
   string client_secret;
   std::stringstream json_stream;
+  std::string client_cert;
+  std::string client_key;
+  std::string root_cert;
   bool found = false;
 
   struct archive *a;
@@ -47,22 +70,14 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
       filename = archive_entry_pathname(entry);
       if (!strcmp(filename, "treehub.json")) {
-        const char *buff;
-        size_t size;
-        int64_t offset;
-
-        for (;;) {
-          r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
-          if (r == ARCHIVE_EOF) {
-            break;
-          } else if (r != ARCHIVE_OK) {
-            std::cerr << archive_error_string(a) << std::endl;
-            return EXIT_FAILURE;
-          } else if (size > 0 && buff != nullptr) {
-            json_stream.write(buff, size);
-          }
-        }
+        json_stream = readArchiveFile(a);
         found = true;
+      } else if (strcmp(filename, "client.crt") == 0) {
+        client_cert = readArchiveFile(a).str();
+      } else if (strcmp(filename, "client.key") == 0) {
+        client_key = readArchiveFile(a).str();
+      } else if (strcmp(filename, "root.crt") == 0) {
+        root_cert = readArchiveFile(a).str();
       } else {
         archive_read_data_skip(a);
       }
@@ -71,9 +86,8 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     if (r != ARCHIVE_OK) {
       std::cerr << "Error closing zipped credentials file: " << filepath << std::endl;
       return EXIT_FAILURE;
-    }
-    if (!found) {
-      std::cerr << "treehub.json not found in zippled credentials file: " << filepath << std::endl;
+    } else if (!found) {
+      std::cerr << "treehub.json not found in zipped credentials file: " << filepath << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -96,10 +110,19 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
       method = AUTH_BASIC;
       auth_user = ba_pt->get<string>("user", "");
       auth_password = ba_pt->get<string>("password", kPassword);
+    } else if (pt.get<bool>("certificate_auth", false)) {
+      if (client_cert.size() && client_key.size() && root_cert.size()) {
+        method = CERT;
+      } else {
+        std::cerr << "treehub.json requires certificate authentication, but credential archive, didn't include all or "
+                     "some certificate files"
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
     } else {
       std::cerr << "Unknown authentication method " << std::endl;
+      return EXIT_FAILURE;
     }
-
     ostree_server = pt.get<string>("ostree.server", kBaseUrl);
 
   } catch (json_parser_error e) {
@@ -129,6 +152,10 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
       } else {
         LOG_INFO << "Skipping Authentication";
       }
+      break;
+    }
+    case CERT: {
+      treehub.SetCerts(root_cert, client_cert, client_key);
       break;
     }
 

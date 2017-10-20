@@ -15,7 +15,7 @@
 
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
-  explicit OSTreeHttpRepo(const TreehubServer &server) : server_(server), root_(boost::filesystem::temp_directory_path()/boost::filesystem::unique_path())
+  explicit OSTreeHttpRepo(const TreehubServer *server) : server_(server), root_(boost::filesystem::temp_directory_path()/boost::filesystem::unique_path())
  { boost::filesystem::create_directories(root_); }
  ~OSTreeHttpRepo(){ boost::filesystem::remove_all(root_); }
 
@@ -33,7 +33,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   typedef std::map<OSTreeHash, OSTreeObject::ptr> otable;
   mutable otable
       ObjectTable;  // Makes sure that the same commit object is not added twice
-  const TreehubServer server_;
+  const TreehubServer *server_;
   const boost::filesystem::path root_;
 };
 

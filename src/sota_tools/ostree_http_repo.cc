@@ -38,14 +38,14 @@ bool OSTreeHttpRepo::LooksValid() const {
   }
 }
 
-OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTreeRef(server_, refname); }
+OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTreeRef(*server_, refname); }
 
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   CURL *easy_handle = curl_easy_init();
   curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  server_.InjectIntoCurl(path.string(), easy_handle);
+  server_->InjectIntoCurl(path.string(), easy_handle);
   curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
   int fp = open((root_ / path).string().c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);

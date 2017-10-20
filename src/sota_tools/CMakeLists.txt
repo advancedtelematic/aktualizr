@@ -13,14 +13,16 @@ set (GARAGE_PUSH_SRCS
   treehub_server.cc
 )
 
+
 add_executable(garage-push main.cc)
 add_library(garage_push_static_lib STATIC ${GARAGE_PUSH_SRCS})
-target_link_libraries(garage-push garage_push_static_lib
+target_link_libraries(garage-push garage_push_static_lib aktualizr_static_lib
   ${CURL_LIBRARIES}
   ${GLIB2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${LibArchive_LIBRARIES})
+  ${LibArchive_LIBRARIES}
+  gcov)
 
 # For clang-format
 set(ALL_SOTA_TOOLS_HEADERS

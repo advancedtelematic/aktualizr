@@ -2,10 +2,11 @@
 #include <iostream>
 
 #include "treehub_server.h"
+#include "utils.h"
 
 using std::string;
 
-TreehubServer::TreehubServer() : using_oauth2_(false) {
+TreehubServer::TreehubServer() : using_oauth2_(false), using_certs_(false) {
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
   auth_header_.next = &force_header_;
   force_header_contents_ = "x-ats-ostree-force: true";
@@ -22,6 +23,14 @@ void TreehubServer::SetToken(const string& token) {
   using_oauth2_ = true;
 }
 
+void TreehubServer::SetCerts(const std::string& root_cert, const std::string& client_cert,
+                             const std::string& client_key) {
+  using_certs_ = true;
+  root_cert_ = root_cert;
+  client_cert_path_.PutContents(client_cert);
+  client_key_path_.PutContents(client_key);
+}
+
 // Note that this method creates a reference from curl_handle to this.  Keep
 // this TreehubServer object alive until the curl request has been completed
 void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle) const {
@@ -35,8 +44,24 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle) 
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
 
-  if (ca_certs_ != "") {
-    curl_easy_setopt(curl_handle, CURLOPT_CAINFO, ca_certs_.c_str());
+  std::string all_root_certs;
+  if (using_certs_) {
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+
+    curl_easy_setopt(curl_handle, CURLOPT_SSLCERT, client_cert_path_.PathString().c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_SSLKEY, client_key_path_.PathString().c_str());
+    if (!root_cert_.empty()) {
+      all_root_certs = root_cert_;
+    }
+  }
+  if (!ca_certs_.empty()) {
+    all_root_certs += Utils::readFile(ca_certs_);
+  }
+  if (!all_root_certs.empty()) {
+    Utils::writeFile(root_cert_path_.PathString(), all_root_certs);
+    curl_easy_setopt(curl_handle, CURLOPT_CAINFO, root_cert_path_.PathString().c_str());
     curl_easy_setopt(curl_handle, CURLOPT_CAPATH, NULL);
   }
 }
