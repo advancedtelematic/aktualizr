@@ -10,10 +10,11 @@ set (SOTA_TOOLS_LIB_SRC
   ostree_object.cc
   request_pool.cc
   treehub_server.cc
+  deploy.cc
 )
 
 add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
-
+set(Boost_USE_STATIC_LIBS ON)
 
 ##### garage-push targets
 
@@ -38,10 +39,6 @@ if(BUILD_WITH_CODE_COVERAGE)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 
-target_compile_options(sota_tools_static_lib PUBLIC -std=c++11)
-
-target_include_directories(sota_tools_static_lib PUBLIC ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
-
 install(TARGETS garage-push DESTINATION /usr/bin)
 
 
@@ -51,17 +48,26 @@ set (GARAGE_DEPLOY_SRCS
   garage_deploy.cc
 )
 
-set(Boost_USE_STATIC_LIBS   ON)
-find_package(Boost COMPONENTS program_options)
 
 add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
-target_link_libraries(garage-deploy ${Boost_LIBRARIES})
+target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib
+  ${CURL_LIBRARIES}
+  ${GLIB2_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${LibArchive_LIBRARIES}
+  gcov)
 
 if(GARAGE_DEPLOY_VERSION)
     add_definitions(-DGARAGE_DEPLOY_VERSION="${GARAGE_DEPLOY_VERSION}")
 else(GARAGE_DEPLOY_VERSION)
     add_definitions(-DGARAGE_DEPLOY_VERSION="dev")
 endif(GARAGE_DEPLOY_VERSION)
+
+
+target_compile_options(garage-deploy PUBLIC -std=c++11 -lboost_log_setup)
+
+target_include_directories(garage-deploy INTERFACE ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 
 aktualizr_source_file_checks(${GARAGE_DEPLOY_SRCS})
 
