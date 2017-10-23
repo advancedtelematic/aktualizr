@@ -23,8 +23,9 @@ endif(AKTUALIZR_VERSION)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 
 # find all required libraries
+set(Boost_USE_STATIC_LIBS ON)
 find_package(PkgConfig REQUIRED)
-find_package(Boost COMPONENTS system filesystem thread program_options log log_setup regex chrono random REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread program_options log_setup log regex chrono random REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
@@ -52,7 +53,7 @@ if(BUILD_SOTA_TOOLS)
 endif(BUILD_SOTA_TOOLS)
 
 # set symbols used when compiling
-add_definitions(-DBOOST_LOG_DYN_LINK)
+#add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Debug")

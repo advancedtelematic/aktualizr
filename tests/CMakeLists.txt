@@ -33,8 +33,10 @@ endif(BUILD_GENIVI)
 
 add_dependencies(build_tests aktualizr)
 
+add_custom_target(garage-push-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage_push_auth_test garage-push)
+    add_dependencies(build_tests garage_push_auth_test garage-push garage-push-deb)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
@@ -323,6 +325,14 @@ if(BUILD_SOTA_TOOLS)
     add_test(NAME server-500
         COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+#    add_test(NAME garage-deploy-debian-deb
+#            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/docker_deb_test.sh src/sota_tools/Dockerfile.debian.stable debain_stable
+#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+#    add_test(NAME garage-deploy-ubuntu-deb
+#            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/docker_deb_test.sh src/sota_tools/Dockerfile.ubuntu.stable ubuntu_stable
+#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
     if (OAUTH2_TEST_CLIENT_ID)
         add_test(NAME auth-plus-happy-case

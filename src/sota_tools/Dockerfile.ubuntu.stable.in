@@ -1,0 +1,11 @@
+FROM ubuntu:zesty
+LABEL Description="Garage-deploy deb package testing dockerfile"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update
+
+COPY aktualizr-1.0-Linux-garage_deploy.deb .
+RUN apt-get install -y libarchive13 libcurl3 libglib2.0-0 libostree-1-1 libsodium18 opensc libengine-pkcs11-openssl
+
+ENTRYPOINT dpkg -i aktualizr-1.0-Linux-garage_deploy.deb && garage-deploy --version

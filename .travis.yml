@@ -4,6 +4,7 @@ language: cpp
 branches:
   only:
     - master
+
 env:
   - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
   - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
@@ -16,3 +17,4 @@ script:
   - docker build --cache-from advancedtelematic/aktualizr:$CACHE -t advancedtelematic/aktualizr -f ${DOCKERFILE} .
   - ci_env=`bash <(curl -s https://codecov.io/env)`
   - docker run $ci_env --rm $DARGS -it advancedtelematic/aktualizr ${SCRIPT}
+

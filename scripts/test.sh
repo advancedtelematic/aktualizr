@@ -9,5 +9,6 @@ make -j8
 if [ -n "$BUILD_ONLY" ]; then
   echo "Skipping test run because of BUILD_ONLY environment variable"
 else
-  CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=5 make -j6 check-full package
+  #systemctl start docker
+  CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=5 make -j6 check-full
 fi
