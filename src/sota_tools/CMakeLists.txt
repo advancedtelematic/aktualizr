@@ -46,8 +46,8 @@ aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${ALL_SOTA_TOOLS_HEADERS})
 
 target_compile_options(garage_push_static_lib PUBLIC -std=c++11)
 
-target_include_directories(garage_push_static_lib INTERFACE ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
+target_include_directories(garage_push_static_lib PUBLIC ${GLIB2_INCLUDE_DIRS})
 
-install(TARGETS garage-push DESTINATION /usr/bin)
+install(TARGETS garage-push RUNTIME DESTINATION bin)
 
 # vim: set tabstop=2 shiftwidth=2 expandtab:
