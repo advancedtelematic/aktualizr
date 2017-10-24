@@ -39,6 +39,25 @@ TEST(Root, RootJsonNoRoles) {
   EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
 }
 
+/**
+ * Check that a root.json that uses "method": "rsassa-pss-sha256" validates correctly
+ * See PRO-2999
+ */
+TEST(Root, RootJsonRsassaPssSha256) {
+  Uptane::Root root1(Uptane::Root::kAcceptAll);
+  Json::Value initial_root = Utils::parseJSONFile("tests/tuf/rsassa-pss-sha256/root.json");
+  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
+  try {
+    Uptane::Root root("director", i);
+    root.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
+    EXPECT_TRUE(1);
+  } catch (Uptane::InvalidMetadata& err) {
+    EXPECT_STREQ("", err.what());
+    FAIL();
+  }
+}
+
 TEST(TimeStamp, Parsing) {
   Uptane::TimeStamp t_old("2038-01-19T02:00:00Z");
   Uptane::TimeStamp t_new("2038-01-19T03:14:06Z");
@@ -64,7 +83,7 @@ TEST(TimeStamp, Now) {
 }
 
 #ifndef __NO_MAIN__
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerSetSeverity(LVL_trace);
   return RUN_ALL_TESTS();
