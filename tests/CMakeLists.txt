@@ -35,7 +35,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage_push_auth_test garage-push garage-push-deb)
+    add_dependencies(build_tests garage_push_auth_test garage-push garage-deploy-deb)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)

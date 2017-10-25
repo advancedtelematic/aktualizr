@@ -84,7 +84,7 @@ install(FILES ${garage_sign_bin_files} DESTINATION /usr/bin COMPONENT garage_sig
 install(FILES ${garage_sign_lib_files} DESTINATION /usr/lib COMPONENT garage_sign)
 
 
-add_custom_target(garage-push-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
+add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
