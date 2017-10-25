@@ -33,7 +33,6 @@ endif(BUILD_GENIVI)
 
 add_dependencies(build_tests aktualizr)
 
-add_custom_target(garage-push-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage_push_auth_test garage-push garage-push-deb)
