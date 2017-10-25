@@ -76,7 +76,8 @@ configure_file(Dockerfile.ubuntu.stable.in Dockerfile.ubuntu.stable)
 
 install(TARGETS garage-deploy DESTINATION bin COMPONENT garage_deploy)
 add_custom_target(download_garage_sign COMMAND wget https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.1.0-175-g9618465.tgz -q -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
-COMMAND tar -xf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz)
+COMMAND tar -xf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
+COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_lib_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib/*)
 
@@ -94,7 +95,7 @@ set(CPACK_COMPONENTS_ALL garage_deploy garage_sign)
 set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 set(CPACK_PACKAGE_FILE_NAME garage_deploy)
 set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libostree-1-1, libsodium18 openjdk-8-jre")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libostree-1-1, libsodium18, openjdk-8-jre")
 
 
 if(GARAGE_DEPLOY_VERSION)
