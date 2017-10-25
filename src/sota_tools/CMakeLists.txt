@@ -41,7 +41,7 @@ if(BUILD_WITH_CODE_COVERAGE)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 
-install(TARGETS garage-push DESTINATION /usr/bin)
+install(TARGETS garage-push RUNTIME DESTINATION bin)
 
 
 ##### garage-deploy targets
@@ -70,19 +70,16 @@ aktualizr_source_file_checks(${GARAGE_DEPLOY_SRCS})
 
 add_dependencies(build_tests garage-deploy)
 
-configure_file(Dockerfile.debian.stable.in Dockerfile.debian.stable)
-configure_file(Dockerfile.ubuntu.stable.in Dockerfile.ubuntu.stable)
 
-
-install(TARGETS garage-deploy DESTINATION bin COMPONENT garage_deploy)
-add_custom_target(download_garage_sign COMMAND wget https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.1.0-175-g9618465.tgz -q -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
-COMMAND tar -xf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
+install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
+add_custom_target(download_garage_sign COMMAND wget https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.1.0-175-g9618465.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
+COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz -C ${CMAKE_CURRENT_BINARY_DIR}
 COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_lib_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib/*)
 
-install(FILES ${garage_sign_bin_files} DESTINATION /usr/bin COMPONENT garage_sign)
-install(FILES ${garage_sign_lib_files} DESTINATION /usr/lib COMPONENT garage_sign)
+install(PROGRAMS ${garage_sign_bin_files} DESTINATION /usr/bin COMPONENT garage_deploy)
+install(FILES ${garage_sign_lib_files} DESTINATION /usr/lib COMPONENT garage_deploy)
 
 
 add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
@@ -91,7 +88,7 @@ set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "garage-deploy utility")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL garage_deploy garage_sign)
+set(CPACK_COMPONENTS_ALL garage_deploy)
 set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 set(CPACK_PACKAGE_FILE_NAME garage_deploy)
 set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)

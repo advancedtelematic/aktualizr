@@ -325,14 +325,6 @@ if(BUILD_SOTA_TOOLS)
         COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
 
-#    add_test(NAME garage-deploy-debian-deb
-#            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/docker_deb_test.sh src/sota_tools/Dockerfile.debian.stable debain_stable
-#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-#    add_test(NAME garage-deploy-ubuntu-deb
-#            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/docker_deb_test.sh src/sota_tools/Dockerfile.ubuntu.stable ubuntu_stable
-#            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
     if (OAUTH2_TEST_CLIENT_ID)
         add_test(NAME auth-plus-happy-case
             COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}

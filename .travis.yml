@@ -4,11 +4,10 @@ language: cpp
 branches:
   only:
     - master
-
 env:
   - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
   - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
-  - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
+  - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"
   - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
 services:
   - docker
@@ -16,5 +15,6 @@ script:
   - docker pull advancedtelematic/aktualizr:$CACHE
   - docker build --cache-from advancedtelematic/aktualizr:$CACHE -t advancedtelematic/aktualizr -f ${DOCKERFILE} .
   - ci_env=`bash <(curl -s https://codecov.io/env)`
-  - docker run $ci_env --rm $DARGS -it advancedtelematic/aktualizr ${SCRIPT}
+  - docker run -v /persistant:/persistant $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr ${SCRIPT}
+  - ./scripts/test_deb_in_docker.sh ${DOCKERFILE}
 

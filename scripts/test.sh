@@ -7,8 +7,11 @@ cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON ../src
 make check-format
 make -j8
 if [ -n "$BUILD_ONLY" ]; then
+  if [ -n "$BUILD_DEB" ]; then
+    make garage-deploy-deb
+    cp garage_deploy.deb /persistant/
+  fi
   echo "Skipping test run because of BUILD_ONLY environment variable"
 else
-  #systemctl start docker
   CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=5 make -j6 check-full
 fi
