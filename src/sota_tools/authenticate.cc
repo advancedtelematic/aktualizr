@@ -119,9 +119,6 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
                   << std::endl;
         return EXIT_FAILURE;
       }
-    } else {
-      std::cerr << "Unknown authentication method " << std::endl;
-      return EXIT_FAILURE;
     }
     ostree_server = pt.get<string>("ostree.server", kBaseUrl);
 
@@ -158,6 +155,8 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
       treehub.SetCerts(root_cert, client_cert, client_key);
       break;
     }
+    case AUTH_NONE:
+      break;
 
     default: {
       LOG_FATAL << "Unexpected authentication method value " << method;
