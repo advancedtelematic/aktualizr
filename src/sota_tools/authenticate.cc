@@ -156,6 +156,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
       break;
     }
     case AUTH_NONE:
+      treehub.ca_certs(cacerts);  // Setup ca certificate because curl by default check ca certs
       break;
 
     default: {
