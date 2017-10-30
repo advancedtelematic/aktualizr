@@ -56,6 +56,7 @@ void Repository::resetDeviceId() { storage.clearDeviceId(); }
 
 void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> >& ecu_serials) {
   primary_ecu_serial = ecu_serials[0].first;
+  primary_hardware_id_ = ecu_serials[0].second;
   std::vector<Uptane::SecondaryConfig>::iterator conf_it;
   for (conf_it = config.uptane.secondaries.begin(); conf_it != config.uptane.secondaries.end(); ++conf_it) {
     // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository

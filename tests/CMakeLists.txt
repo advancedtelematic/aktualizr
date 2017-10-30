@@ -130,7 +130,7 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc ${PROJECT_SOURCE_DIR}/src/ostree.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 

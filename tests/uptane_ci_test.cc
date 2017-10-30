@@ -26,8 +26,12 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   Uptane::Repository repo(config, storage, http);
 
   EXPECT_TRUE(repo.initialize());
+
+  std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
+  std::string refname(std::string("unknown-") + hash);
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(Json::nullValue);
+      OstreePackage(refname, hash, "").toEcuVersion(repo.getPrimaryEcuSerial(), Json::nullValue);
+
   EXPECT_TRUE(repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version)));
 
   // should not throw any exceptions

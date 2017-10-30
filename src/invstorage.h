@@ -29,6 +29,9 @@ class INvStorage {
   virtual void storeEcuRegistered() = 0;
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
+  virtual void storeInstalledVersions(const std::string& content) = 0;
+  virtual bool loadInstalledVersions(std::string* content) = 0;
+
   // Incremental file API
   // virtual bool filePreallocate(bool from_director, const std::string &filename, size_t size) = 0;
   // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;

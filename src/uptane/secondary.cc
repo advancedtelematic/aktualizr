@@ -12,15 +12,8 @@ Secondary::Secondary(const SecondaryConfig &config_in, Uptane::Repository *prima
 }
 
 Json::Value Secondary::genAndSendManifest(Json::Value custom) {
-  Json::Value manifest;
-
   // package manager will generate this part in future
   Json::Value installed_image;
-  if (boost::filesystem::exists(config.firmware_path)) {
-    installed_image["filepath"] = boost::filesystem::canonical(config.firmware_path).filename().string();
-  } else {
-    installed_image["filepath"] = config.firmware_path.string();
-  }
   std::string content =
       Utils::readFile(config.firmware_path.string());  // FIXME this is bad idea to read all image to memory, we need to
                                                        // implement progressive hash function
@@ -28,8 +21,17 @@ Json::Value Secondary::genAndSendManifest(Json::Value custom) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
   installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
   //////////////////
+
+  Json::Value manifest;
   if (custom != Json::nullValue) {
     manifest["custom"]["operation_result"] = custom;
+    installed_image["filepath"] = custom["id"];
+  } else {
+    if (boost::filesystem::exists(config.full_client_dir / "image_filename")) {
+      installed_image["filepath"] = Utils::readFile((config.full_client_dir / "image_filename").string());
+    } else {
+      installed_image["filepath"] = config.firmware_path.string();
+    }
   }
   manifest["attacks_detected"] = "";
   manifest["installed_image"] = installed_image;
@@ -81,8 +83,9 @@ bool Secondary::getPublicKey(std::string *key) {
 
 data::InstallOutcome Secondary::install(const Uptane::Target &target) {
   std::string image_path = transport.getImage(target);
-  boost::filesystem::remove(config.firmware_path);
-  boost::filesystem::create_symlink(boost::filesystem::absolute(image_path), config.firmware_path);
+  boost::filesystem::copy_file(boost::filesystem::absolute(image_path), config.firmware_path,
+                               boost::filesystem::copy_option::overwrite_if_exists);
+  Utils::writeFile((config.full_client_dir / "image_filename").string(), target.filename());
   return data::InstallOutcome(data::OK, "Installation successful");
 }
 }

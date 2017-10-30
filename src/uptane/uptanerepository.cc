@@ -124,4 +124,19 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
   return transport.sendTargets(secondary_targets);
 }
+
+void Repository::saveInstalledVersion(const Target &target) {
+  std::string versions_str;
+  storage.loadInstalledVersions(&versions_str);
+  Json::Value versions = Utils::parseJSON(versions_str);
+  versions[boost::algorithm::to_lower_copy(target.sha256Hash())] = target.filename();
+  storage.storeInstalledVersions(Json::FastWriter().write(versions));
+}
+
+std::string Repository::findInstalledVersion(const std::string &hash) {
+  std::string versions_str;
+  storage.loadInstalledVersions(&versions_str);
+  Json::Value versions = Utils::parseJSON(versions_str);
+  return versions[boost::algorithm::to_lower_copy(hash)].asString();
+}
 }

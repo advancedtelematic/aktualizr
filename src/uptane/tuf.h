@@ -98,6 +98,7 @@ class Hash {
   bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
   std::string TypeString() const;
+  Type type() const;
   std::string HashString() const { return hash_; }
   friend std::ostream &operator<<(std::ostream &os, const Hash &h);
 
@@ -115,6 +116,7 @@ class Target {
   std::string ecu_identifier() const { return ecu_identifier_; }
   std::string filename() const { return filename_; }
   std::string format() const { return type_; }
+  std::string sha256Hash() const;
 
   bool MatchWith(const Hash &hash) const;
 

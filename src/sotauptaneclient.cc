@@ -22,8 +22,7 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.filename() ==
-           OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).ref_name;
+    return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
   } else {
     // TODO: iterate through secondaries, compare version when found, throw exception otherwise
     return true;
@@ -42,38 +41,31 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 }
 
 data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &target) {
-  std::size_t pos = target.filename().find_last_of("-");
-  if (pos == std::string::npos) return data::InstallOutcome(data::INSTALL_FAILED, "Invalid refname");
-
-  std::string branch_name = target.filename().substr(0, pos);
-  std::string refhash = target.filename().substr(pos + 1, std::string::npos);
-  if (branch_name.empty() || refhash.empty()) return data::InstallOutcome(data::INSTALL_FAILED, "Invalid refname");
-
-  OstreePackage package(target.ecu_identifier(), target.filename(), branch_name, refhash, "",
+  OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
                         config.uptane.ostree_server);
 
   data::PackageManagerCredentials cred;
   // TODO: use storage
-  cred.ca_file = config.tls.ca_file();
+  cred.ca_file = boost::filesystem::absolute(config.tls.ca_file()).string();
 #ifdef BUILD_P11
   if (config.tls.pkey_source == kPkcs11)
     cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
   else
     // TODO: use storage
-    cred.pkey_file = config.tls.pkey_file();
+    cred.pkey_file = boost::filesystem::absolute(config.tls.pkey_file()).string();
 
   if (config.tls.cert_source == kPkcs11)
-    cred.cert_file = uptane_repo.pkcs11_tls_certname;
+    cred.cert_file = boost::filesystem::absolute(uptane_repo.pkcs11_tls_certname).string();
   else
     // TODO: use storage
-    cred.cert_file = config.tls.client_certificate();
+    cred.cert_file = boost::filesystem::absolute(config.tls.client_certificate()).string();
 #else
   // TODO: use storage
-  cred.pkey_file = config.tls.pkey_file();
+  cred.pkey_file = boost::filesystem::absolute(config.tls.pkey_file()).string();
   // TODO: use storage
-  cred.cert_file = config.tls.client_certificate();
+  cred.cert_file = boost::filesystem::absolute(config.tls.client_certificate()).string();
 #endif
-  return package.install(cred, config.ostree);
+  return package.install(cred, config.ostree, uptane_repo.getPrimaryHardwareId());
 }
 
 Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
@@ -87,9 +79,12 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   } else {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
     operation_result["operation_result"] = result.toJson();
+    if (result.result_code == data::UpdateResultCode::OK) {
+      uptane_repo.saveInstalledVersion(target);
+    }
   }
   Json::Value unsigned_ecu_version =
-      OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot).toEcuVersion(operation_result);
+      OstreePackage(target.filename(), target.sha256Hash(), "").toEcuVersion(target.ecu_identifier(), operation_result);
 
   ENGINE *crypto_engine = NULL;
 #ifdef BUILD_P11
@@ -128,9 +123,13 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
+        std::string refname = uptane_repo.findInstalledVersion(hash);
+        if (refname.empty()) {
+          (refname += "unknown-") += hash;
+        }
         Json::Value unsigned_ecu_version =
-            OstreePackage::getEcu(uptane_repo.getPrimaryEcuSerial(), config.ostree.sysroot)
-                .toEcuVersion(Json::nullValue);
+            OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
         uptane_repo.putManifest(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {

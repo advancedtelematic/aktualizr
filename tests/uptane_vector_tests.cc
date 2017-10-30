@@ -51,8 +51,6 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));
-    Json::Value unsigned_ecu_version =
-        OstreePackage::getEcu(config.uptane.primary_ecu_serial, config.ostree.sysroot).toEcuVersion(Json::nullValue);
     repo.getTargets();
 
   } catch (Uptane::Exception e) {
