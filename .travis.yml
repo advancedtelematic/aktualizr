@@ -15,6 +15,6 @@ script:
   - docker pull advancedtelematic/aktualizr:$CACHE
   - docker build --cache-from advancedtelematic/aktualizr:$CACHE -t advancedtelematic/aktualizr -f ${DOCKERFILE} .
   - ci_env=`bash <(curl -s https://codecov.io/env)`
-  - docker run -v /persistant:/persistant $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr ${SCRIPT}
+  - docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr ${SCRIPT}
   - ./scripts/test_deb_in_docker.sh ${DOCKERFILE}
 

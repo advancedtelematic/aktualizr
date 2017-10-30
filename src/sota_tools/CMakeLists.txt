@@ -27,7 +27,7 @@ add_executable(garage-push ${GARAGE_PUSH_SRCS})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 target_compile_options(sota_tools_static_lib PUBLIC -std=c++11)
 
-target_include_directories(sota_tools_static_lib INTERFACE ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
+target_include_directories(sota_tools_static_lib PUBLIC ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 
 target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib
   ${CURL_LIBRARIES}
@@ -78,8 +78,8 @@ COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_lib_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib/*)
 
-install(PROGRAMS ${garage_sign_bin_files} DESTINATION /usr/bin COMPONENT garage_deploy)
-install(FILES ${garage_sign_lib_files} DESTINATION /usr/lib COMPONENT garage_deploy)
+install(PROGRAMS ${garage_sign_bin_files} RUNTIME DESTINATION bin COMPONENT garage_deploy)
+install(FILES ${garage_sign_lib_files} RUNTIME DESTINATION lib COMPONENT garage_deploy)
 
 
 add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
@@ -101,7 +101,7 @@ else(GARAGE_DEPLOY_VERSION)
     set(CPACK_PACKAGE_VERSION "1.0")
 endif(GARAGE_DEPLOY_VERSION)
 include(CPack)
-add_dependencies(qa package)
+add_dependencies(qa garage-deploy-deb)
 
 
 ##### clang-format

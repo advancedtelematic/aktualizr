@@ -9,7 +9,7 @@ make -j8
 if [ -n "$BUILD_ONLY" ]; then
   if [ -n "$BUILD_DEB" ]; then
     make garage-deploy-deb
-    cp garage_deploy.deb /persistant/
+    cp garage_deploy.deb /persistent/
   fi
   echo "Skipping test run because of BUILD_ONLY environment variable"
 else
