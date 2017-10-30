@@ -97,7 +97,11 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
-        ${LibArchive_LIBRARIES} gcov)
+        ${LibArchive_LIBRARIES})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(aktualizr gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 if(BUILD_GENIVI)
     target_link_libraries(aktualizr rvi)

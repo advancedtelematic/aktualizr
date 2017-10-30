@@ -6,7 +6,11 @@ target_link_libraries(aktualizr_implicit_writer aktualizr_static_lib
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         ${sodium_LIBRARY_RELEASE}
-        ${LibArchive_LIBRARIES} gcov)
+        ${LibArchive_LIBRARIES})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(aktualizr_implicit_writer gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 aktualizr_source_file_checks(main.cc)
 

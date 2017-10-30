@@ -21,8 +21,11 @@ target_link_libraries(garage-push garage_push_static_lib aktualizr_static_lib
   ${GLIB2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${LibArchive_LIBRARIES}
-  gcov)
+  ${LibArchive_LIBRARIES})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(garage-push gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 # For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
