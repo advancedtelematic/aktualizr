@@ -21,7 +21,11 @@ set (TEST_LIBS
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     testutilities
-    gtest gmock gcov)
+    gtest gmock)
+
+if(BUILD_WITH_CODE_COVERAGE)
+    list(APPEND TEST_LIBS gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 if(BUILD_GENIVI)
     list(APPEND TEST_LIBS rvi)
