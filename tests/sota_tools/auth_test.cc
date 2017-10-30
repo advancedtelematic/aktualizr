@@ -28,6 +28,19 @@ TEST(authenticate, good_cert_zip) {
   EXPECT_EQ(CURLE_OK, rc);
 }
 
+TEST(authenticate, good_cert_noauth_zip) {
+  std::string filepath = "sota_tools/auth_test_noauth_good.zip";
+  TreehubServer treehub;
+  int r = authenticate("fake_http_server/client.crt", filepath, treehub);
+  EXPECT_EQ(0, r);
+  CURL *curl_handle = curl_easy_init();
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
+  treehub.InjectIntoCurl("test.txt", curl_handle);
+  CURLcode rc = curl_easy_perform(curl_handle);
+
+  EXPECT_EQ(CURLE_OK, rc);
+}
+
 TEST(authenticate, bad_cert_zip) {
   std::string filepath = "sota_tools/auth_test_cert_bad.zip";
   TreehubServer treehub;
@@ -80,7 +93,8 @@ TEST(authenticate, invalid_file) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   TestHelperProcess server_process("fake_http_server/ssl_server.py", "");
-  sleep(2);
+  TestHelperProcess server_noauth_process("fake_http_server/ssl_noauth_server.py", "");
+  sleep(4);
   return RUN_ALL_TESTS();
 }
 #endif
