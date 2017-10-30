@@ -80,8 +80,8 @@ add_library(testutilities test_utils.cc)
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
     setup_target_for_coverage(coverage ${CMAKE_CTEST_COMMAND} coverage)
-    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage --coverage )
-    target_compile_options(aktualizr_static_lib PUBLIC  -fprofile-arcs -ftest-coverage)
+    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
+    target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
@@ -268,6 +268,11 @@ add_test(NAME implicit-writer-test
 if(BUILD_SOTA_TOOLS)
     # sota-tools tests
     aktualizr_source_file_checks(sota_tools/auth_test.cc)
+
+    # Setup coverage for garage_push_static_lib
+    if(BUILD_WITH_CODE_COVERAGE)
+        target_compile_options(garage_push_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
+    endif(BUILD_WITH_CODE_COVERAGE)
 
     # The tests can optionally test authentication against Auth+. To do this they
     # require a client id & secret. Specify credentials here to enable these tests
