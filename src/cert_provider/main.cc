@@ -175,12 +175,33 @@ int main(int argc, char *argv[]) {
       ssh_prefix << "-p " << port << " ";
       scp_prefix << "-P " << port << " ";
     }
-    system((ssh_prefix.str() + target + " mkdir -p " + directory).c_str());
-    system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":" + directory + "/" + pkey_file).c_str());
-    system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":" + directory + "/" + cert_file).c_str());
-    if (provide_ca) {
-      system((scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":" + directory + "/" + ca_file).c_str());
+
+    int ret = system((ssh_prefix.str() + target + " mkdir -p " + directory).c_str());
+    if (ret != 0) {
+      std::cout << "Error connecting to target device: " << ret << "\n";
+      return -1;
     }
+
+    ret = system(
+        (scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":" + directory + "/" + pkey_file).c_str());
+    if (ret != 0) {
+      std::cout << "Error copying files to target device: " << ret << "\n";
+    }
+
+    ret = system(
+        (scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":" + directory + "/" + cert_file).c_str());
+    if (ret != 0) {
+      std::cout << "Error copying files to target device: " << ret << "\n";
+    }
+
+    if (provide_ca) {
+      ret = system(
+          (scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":" + directory + "/" + ca_file).c_str());
+      if (ret != 0) {
+        std::cout << "Error copying files to target device: " << ret << "\n";
+      }
+    }
+
     std::cout << "...success\n";
   }
 
