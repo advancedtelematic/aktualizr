@@ -78,8 +78,8 @@ COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_lib_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib/*)
 
-install(PROGRAMS ${garage_sign_bin_files} RUNTIME DESTINATION bin COMPONENT garage_deploy)
-install(FILES ${garage_sign_lib_files} RUNTIME DESTINATION lib COMPONENT garage_deploy)
+install(PROGRAMS ${garage_sign_bin_files} DESTINATION bin COMPONENT garage_deploy)
+install(FILES ${garage_sign_lib_files} DESTINATION lib COMPONENT garage_deploy)
 
 
 add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
