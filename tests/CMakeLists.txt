@@ -274,9 +274,9 @@ if(BUILD_SOTA_TOOLS)
     # sota-tools tests
     aktualizr_source_file_checks(sota_tools/auth_test.cc)
 
-    # Setup coverage for garage_push_static_lib
+    # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
-        target_compile_options(garage_push_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
+        target_compile_options(sota_tools_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     endif(BUILD_WITH_CODE_COVERAGE)
 
     # The tests can optionally test authentication against Auth+. To do this they

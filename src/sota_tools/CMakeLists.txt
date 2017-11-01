@@ -30,16 +30,15 @@ target_compile_options(sota_tools_static_lib PUBLIC -std=c++11)
 target_include_directories(sota_tools_static_lib PUBLIC ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 
 target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib
-  ${CURL_LIBRARIES}
-  ${GLIB2_LIBRARIES}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
+  ${CURL_LIBRARIES}
+  ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(garage-push gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
-
 
 install(TARGETS garage-push RUNTIME DESTINATION bin)
 
@@ -54,10 +53,14 @@ add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
 target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${LibArchive_LIBRARIES}
-  ${LIBOSTREE_LIBRARIES}
   ${CURL_LIBRARIES}
-  gcov)
+  ${GLIB2_LIBRARIES}
+  ${LibArchive_LIBRARIES}
+  ${LIBOSTREE_LIBRARIES})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(garage-deploy gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 if(GARAGE_DEPLOY_VERSION)
     add_definitions(-DGARAGE_DEPLOY_VERSION="${GARAGE_DEPLOY_VERSION}")
