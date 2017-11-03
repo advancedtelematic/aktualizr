@@ -23,7 +23,6 @@ RUN apt-get update && apt-get -y install \
   git \
   lcov \
   libarchive-dev \
-  libboost-date-time-dev \
   libboost-dev \
   libboost-log-dev \
   libboost-program-options-dev \

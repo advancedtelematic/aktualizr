@@ -21,7 +21,6 @@ RUN apt-get update && apt-get -y install \
   g++ \
   gcc \
   git \
-  google-mock \
   lcov \
   libarchive-dev \
   libboost-dev \
@@ -32,7 +31,7 @@ RUN apt-get update && apt-get -y install \
   libboost-system-dev \
   libboost-test-dev \
   libboost-thread-dev \
-  libcurl4-gnutls-dev \
+  libcurl4-openssl-dev \
   libdbus-1-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
@@ -45,7 +44,7 @@ RUN apt-get update && apt-get -y install \
   libostree-dev \
   libp11-dev \
   libsodium-dev \
-  libssl-dev \
+  libssl1.0-dev \
   libtool \
   make \
   opensc \
