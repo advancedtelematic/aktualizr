@@ -75,7 +75,7 @@ add_dependencies(build_tests garage-deploy)
 
 
 install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
-add_custom_target(download_garage_sign COMMAND wget https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-6-g6af6ecd.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
+add_custom_target(download_garage_sign COMMAND wget --no-check-certificate https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-6-g6af6ecd.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
 COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz -C ${CMAKE_CURRENT_BINARY_DIR}
 COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
@@ -85,7 +85,7 @@ install(PROGRAMS ${garage_sign_bin_files} DESTINATION bin COMPONENT garage_deplo
 install(FILES ${garage_sign_lib_files} DESTINATION lib COMPONENT garage_deploy)
 
 
-add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign)
+add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign DEPENDS garage-deploy)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
@@ -94,7 +94,7 @@ set(CPACK_DEB_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_ALL garage_deploy)
 set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 set(CPACK_PACKAGE_FILE_NAME garage_deploy)
-set (CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libostree-1-1, libsodium18, openjdk-8-jre")
 
 
