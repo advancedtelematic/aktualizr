@@ -3,7 +3,7 @@ LABEL Description="Aktualizr testing dockerfile for Ubuntu Xenial with p11"
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get -y install debian-archive-keyring software-properties-common apt-transport-https
+RUN apt-get update && apt-get -y install debian-archive-keyring
 RUN echo "deb http://httpredir.debian.org/debian jessie-backports main contrib non-free" > /etc/apt/sources.list.d/jessie-backports.list
 
 # It is important to run these in the same RUN command, because otherwise
