@@ -33,8 +33,9 @@ endif(BUILD_GENIVI)
 
 add_dependencies(build_tests aktualizr)
 
+
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage_push_auth_test garage-push)
+    add_dependencies(build_tests garage_push_auth_test garage-push garage-deploy-deb)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
@@ -273,9 +274,9 @@ if(BUILD_SOTA_TOOLS)
     # sota-tools tests
     aktualizr_source_file_checks(sota_tools/auth_test.cc)
 
-    # Setup coverage for garage_push_static_lib
+    # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
-        target_compile_options(garage_push_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
+        target_compile_options(sota_tools_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     endif(BUILD_WITH_CODE_COVERAGE)
 
     # The tests can optionally test authentication against Auth+. To do this they
@@ -284,7 +285,7 @@ if(BUILD_SOTA_TOOLS)
     set(OAUTH2_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
 
     add_executable(garage_push_auth_test sota_tools/auth_test.cc)
-    target_link_libraries(garage_push_auth_test garage_push_static_lib aktualizr_static_lib ${TEST_LIBS})
+    target_link_libraries(garage_push_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
     target_include_directories(garage_push_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
     add_test(NAME auth_test COMMAND garage_push_auth_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
