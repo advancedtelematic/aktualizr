@@ -1,5 +1,5 @@
 FROM debian:stable-20170620
-LABEL Description="Aktualizr testing dockerfile"
+LABEL Description="Aktualizr testing dockerfile for Debian Stable with p11"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -7,7 +7,54 @@ RUN echo "deb http://ftp.de.debian.org/debian stable main" > /etc/apt/sources.li
 RUN echo "deb http://ftp.de.debian.org/debian stable-updates main" >> /etc/apt/sources.list
 RUN echo "deb http://security.debian.org stable/updates main" >> /etc/apt/sources.list
 
-RUN apt-get update && apt-get -y install wget dpkg-dev liblzma-dev bison e2fslibs-dev libgpgme11-dev libglib2.0-dev gcc g++ make cmake git psmisc dbus libdbus-1-dev libjansson-dev libgtest-dev google-mock libssl-dev autoconf automake pkg-config libtool libexpat1-dev libboost-program-options-dev libboost-test-dev libboost-random-dev libboost-regex-dev libboost-dev libboost-system-dev libboost-thread-dev libboost-log-dev libjsoncpp-dev curl libcurl4-openssl-dev lcov clang clang-format-3.8
-RUN apt-get update && apt-get -y install ostree libostree-dev libarchive-dev libsodium-dev libp11-dev softhsm2 opensc libengine-pkcs11-openssl
+# It is important to run these in the same RUN command, because otherwise
+# Docker layer caching breaks us
+RUN apt-get update && apt-get -y install \
+  autoconf \
+  automake \
+  bison \
+  clang \
+  clang-format-3.8 \
+  cmake \
+  curl \
+  dbus \
+  dpkg-dev \
+  e2fslibs-dev \
+  g++ \
+  gcc \
+  git \
+  lcov \
+  libarchive-dev \
+  libboost-dev \
+  libboost-log-dev \
+  libboost-program-options-dev \
+  libboost-random-dev \
+  libboost-regex-dev \
+  libboost-system-dev \
+  libboost-test-dev \
+  libboost-thread-dev \
+  libcurl4-openssl-dev \
+  libdbus-1-dev \
+  libengine-pkcs11-openssl \
+  libexpat1-dev \
+  libglib2.0-dev \
+  libgpgme11-dev \
+  libgtest-dev \
+  libjansson-dev \
+  libjsoncpp-dev \
+  liblzma-dev \
+  libostree-dev \
+  libp11-dev \
+  libsodium-dev \
+  libssl1.0-dev \
+  libtool \
+  make \
+  opensc \
+  ostree \
+  pkg-config \
+  psmisc \
+  softhsm2 \
+  wget
+
 WORKDIR aktualizr
 ADD . src
