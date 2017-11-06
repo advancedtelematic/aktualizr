@@ -79,7 +79,7 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   } else {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
     operation_result["operation_result"] = result.toJson();
-    if (result.result_code == data::UpdateResultCode::OK) {
+    if (result.result_code == data::OK) {
       uptane_repo.saveInstalledVersion(target);
     }
   }

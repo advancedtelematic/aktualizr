@@ -137,7 +137,7 @@ bool Target::MatchWith(const Hash &hash) const {
 std::string Target::sha256Hash() const {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
-    if (it->type() == Hash::Type::kSha256) {
+    if (it->type() == Hash::kSha256) {
       return boost::algorithm::to_lower_copy(it->HashString());
     }
   }

@@ -1,5 +1,7 @@
 #include <archive.h>
 #include <archive_entry.h>
+#include <boost/move/unique_ptr.hpp>
+#include <boost/move/make_unique.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -20,10 +22,10 @@ const string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
 
-std::stringstream readArchiveFile(archive *a) {
+boost::movelib::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
   int r;
   const char *buff = nullptr;
-  std::stringstream result;
+  boost::movelib::unique_ptr<std::stringstream> result = boost::movelib::make_unique<std::stringstream>();
   size_t size;
   int64_t offset;
   for (;;) {
@@ -34,7 +36,7 @@ std::stringstream readArchiveFile(archive *a) {
       throw std::runtime_error(archive_error_string(a));
       break;
     } else if (size > 0 && buff != nullptr) {
-      result.write(buff, size);
+      result->write(buff, size);
     }
   }
   return result;
@@ -49,7 +51,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
   string ostree_server;
   string client_id;
   string client_secret;
-  std::stringstream json_stream;
+  boost::movelib::unique_ptr<std::stringstream> json_stream;
   std::string client_cert;
   std::string client_key;
   std::string root_cert;
@@ -73,11 +75,11 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
         json_stream = readArchiveFile(a);
         found = true;
       } else if (strcmp(filename, "client.crt") == 0) {
-        client_cert = readArchiveFile(a).str();
+        client_cert = readArchiveFile(a)->str();
       } else if (strcmp(filename, "client.key") == 0) {
-        client_key = readArchiveFile(a).str();
+        client_key = readArchiveFile(a)->str();
       } else if (strcmp(filename, "root.crt") == 0) {
-        root_cert = readArchiveFile(a).str();
+        root_cert = readArchiveFile(a)->str();
       } else {
         archive_read_data_skip(a);
       }
@@ -96,7 +98,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     ptree pt;
 
     if (found) {
-      read_json(json_stream, pt);
+      read_json(*json_stream, pt);
     } else {
       read_json(filepath, pt);
     }

@@ -4,7 +4,10 @@ set -e
 mkdir -p build-test
 cd build-test
 cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON ../src
-make check-format
+if [ -z $NO_FORMAT_CHECK ]; then
+  make check-format
+fi
+
 make -j8
 if [ -n "$BUILD_ONLY" ]; then
   if [ -n "$BUILD_DEB" ]; then
