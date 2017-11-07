@@ -1,7 +1,7 @@
 #include <archive.h>
 #include <archive_entry.h>
-#include <boost/move/unique_ptr.hpp>
 #include <boost/move/make_unique.hpp>
+#include <boost/move/unique_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
