@@ -1,6 +1,7 @@
 #include "p11engine.h"
 
 #include <openssl/pem.h>
+#include <openssl/evp.h>
 #include <boost/scoped_array.hpp>
 
 #include "utils.h"
@@ -128,7 +129,7 @@ bool P11Engine::generateRSAKeyPair(const std::string& id) {
   boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
   Utils::hex2bin(id, id_hex.get());
 
-  if (PKCS11_generate_key(slot->token, 0, 2048, NULL, id_hex.get(), (id.length() / 2))) {
+  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (id.length() / 2))) {
     LOGGER_LOG(LVL_error, "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL));
 
     return false;
