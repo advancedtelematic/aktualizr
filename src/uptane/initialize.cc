@@ -128,27 +128,24 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
     primary_public = p11.getUriPrefix() + uptane_config.public_key_path;
     primary_private = p11.getUriPrefix() + uptane_config.private_key_path;
     std::string public_key_content;
-    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content)) {
-      LOGGER_LOG(LVL_error, "Public key with id " << uptane_config.private_key_path << " was not found");
-      return false;
+    if (p11.readPublicKey(uptane_config.public_key_path, &public_key_content)) {
+      primary_public_id = Crypto::getKeyId(public_key_content);
+      setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
+      return true;
     }
-    primary_public_id = Crypto::getKeyId(public_key_content);
-
-    setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
-    return true;
+    if (!p11.generateRSAKeyPair(uptane_config.private_key_path)) return false;
   }
-#else
-  (void)uptane_config;
 #endif
-  if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
-    primary_public_id = Crypto::getKeyId(primary_public);
-    setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
-    return true;
+  if (uptane_config.key_source == kFile) {
+    if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
+      primary_public_id = Crypto::getKeyId(primary_public);
+      setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
+      return true;
+    }
+    if (!Crypto::generateRSAKeyPair(&primary_public, &primary_private)) return false;
   }
 
   // from here down key_source is kFile
-
-  if (!Crypto::generateRSAKeyPair(&primary_public, &primary_private)) return false;
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
   // InitEcuSerials should have been called by this point
