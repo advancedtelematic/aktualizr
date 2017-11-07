@@ -13,7 +13,7 @@ using std::string;
 using std::stringstream;
 using std::ifstream;
 
-OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string ref_name) : ref_name_(ref_name) {
+OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string &ref_name) : ref_name_(ref_name) {
   if (boost::filesystem::is_regular_file(repo.root() + "/refs/heads/" + ref_name)) {
     std::ifstream f(repo.root() + "/refs/heads/" + ref_name, std::ios::in | std::ios::binary);
 
@@ -32,7 +32,7 @@ OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string ref_name) : ref_name_(
   }
 }
 
-OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string ref_name) : is_valid(true), ref_name_(ref_name) {
+OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string &ref_name) : is_valid(true), ref_name_(ref_name) {
   CURL *curl_handle = curl_easy_init();
   serve_repo.InjectIntoCurl(Url(), curl_handle);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);

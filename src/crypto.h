@@ -19,6 +19,11 @@
 #include "config.h"
 #include "utils.h"
 
+// some older versions of openssl have BIO_new_mem_buf defined with fisrt parameter of type (void*)
+//   which is not true and breaks our build
+#undef BIO_new_mem_buf
+BIO *BIO_new_mem_buf(const void *, int);
+
 struct PublicKey {
   enum Type { RSA = 0, ED25519 };
   PublicKey() {}

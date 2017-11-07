@@ -12,8 +12,9 @@
 
 class OSTreeRef {
  public:
-  OSTreeRef(const OSTreeRepo& root, const std::string ref_name);
-  OSTreeRef(const TreehubServer& serve_repo, const std::string ref_name);
+  OSTreeRef(const OSTreeRepo& root, const std::string& ref_name);
+  OSTreeRef(const TreehubServer& serve_repo, const std::string& ref_name);
+  OSTreeRef(OSTreeRef&& rhs) : ref_content_(rhs.ref_content_), ref_name_(rhs.ref_name_) {}
 
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 
