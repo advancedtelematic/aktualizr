@@ -75,6 +75,18 @@ TEST(crypto, sign_verify_rsa_p11) {
   EXPECT_TRUE(signe_is_ok);
 }
 
+TEST(crypto, generate_rsa_keypair_p11) {
+  P11Config config;
+  config.module = TEST_PKCS11_MODULE_PATH;
+  config.pass = "1234";
+
+  P11Engine p11(config);
+  std::string key_content;
+  EXPECT_FALSE(p11.readPublicKey("05", &key_content));
+  EXPECT_TRUE(p11.generateRSAKeyPair("05"));
+  EXPECT_TRUE(p11.readPublicKey("05", &key_content));
+}
+
 TEST(crypto, sign_tuf_pkcs11) {
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
