@@ -55,7 +55,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
     cred.pkey_file = boost::filesystem::absolute(config.tls.pkey_file()).string();
 
   if (config.tls.cert_source == kPkcs11)
-    cred.cert_file = boost::filesystem::absolute(uptane_repo.pkcs11_tls_certname).string();
+    cred.cert_file = uptane_repo.pkcs11_tls_certname;
   else
     // TODO: use storage
     cred.cert_file = boost::filesystem::absolute(config.tls.client_certificate()).string();
