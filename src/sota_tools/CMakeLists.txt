@@ -75,7 +75,7 @@ add_dependencies(build_tests garage-deploy)
 
 
 install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
-add_custom_target(download_garage_sign COMMAND wget --no-check-certificate https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-6-g6af6ecd.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
+add_custom_target(download_garage_sign COMMAND wget --no-check-certificate https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-29-gf6f095a.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
 COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz -C ${CMAKE_CURRENT_BINARY_DIR}
 COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
 FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)

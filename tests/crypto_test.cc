@@ -42,7 +42,7 @@ TEST(crypto, sign_verify_rsa_file) {
   EXPECT_TRUE(signe_is_ok);
 }
 
-TEST(uptane, sign_tuf) {
+TEST(crypto, sign_tuf) {
   Config config;
 
   Json::Value tosign_json;
