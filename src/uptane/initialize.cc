@@ -134,8 +134,7 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
       if (!p11.generateRSAKeyPair(uptane_config.private_key_path)) return false;
 
     // realy read the key
-    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content))
-      return false;
+    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content)) return false;
 
     primary_public_id = Crypto::getKeyId(public_key_content);
     setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
