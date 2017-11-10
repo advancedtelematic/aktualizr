@@ -1,6 +1,7 @@
 #include "p11engine.h"
 
 #include <openssl/pem.h>
+#include <openssl/evp.h>
 #include <boost/scoped_array.hpp>
 
 #include "utils.h"
@@ -63,9 +64,17 @@ PKCS11_SLOT* P11Engine::findTokenSlot() {
     LOGGER_LOG(LVL_error, "Couldn't find a token");
     return NULL;
   }
-  if (PKCS11_login(slot, 0, config_.pass.c_str())) {
-    LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
-    return NULL;
+  int rv;
+  PKCS11_is_logged_in(slot, 1, &rv);
+  if (rv == 0) {
+    if (PKCS11_open_session(slot, 1)) {
+      LOGGER_LOG(LVL_error, "Error creating rw session in to the slot: " << ERR_error_string(ERR_get_error(), NULL));
+    }
+
+    if (PKCS11_login(slot, 0, config_.pass.c_str())) {
+      LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
+      return NULL;
+    }
   }
   return slot;
 }
@@ -85,7 +94,6 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
                "Error enumerating public keys in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL));
     return false;
   }
-
   PKCS11_KEY* key = NULL;
   {
     boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
@@ -111,6 +119,22 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   key_out->assign(pem_key, length);
 
   BIO_free_all(mem);
+  return true;
+}
+
+bool P11Engine::generateRSAKeyPair(const std::string& id) {
+  PKCS11_SLOT* slot = findTokenSlot();
+  if (!slot) return false;
+
+  boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
+  Utils::hex2bin(id, id_hex.get());
+
+  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (id.length() / 2))) {
+    LOGGER_LOG(LVL_error, "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL));
+
+    return false;
+  }
+
   return true;
 }
 

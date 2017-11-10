@@ -71,6 +71,7 @@ class P11Engine {
   std::string getUriPrefix() const { return uri_prefix_; }
   bool readPublicKey(const std::string &id, std::string *key);
   bool readCert(const std::string &id, std::string *cert_out);
+  bool generateRSAKeyPair(const std::string &id);
 
  private:
   const P11Config &config_;

@@ -42,7 +42,6 @@ RUN apt-get update && apt-get -y install \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \
-  libp11-dev \
   libsodium-dev \
   libssl-dev \
   libtool \
@@ -56,9 +55,10 @@ RUN apt-get update && apt-get -y install \
   python3-gi \
   python3-openssl \
   python3-venv \
-  softhsm2 \
   valgrind \
   wget
 
+RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
+RUN apt-get update && apt-get install -y softhsm2 libp11-dev libp11-2
 WORKDIR aktualizr
 ADD . src
