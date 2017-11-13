@@ -174,3 +174,25 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
 
   return EXIT_SUCCESS;
 }
+
+void sign_repo(const std::string &credentials) {
+  if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
+    std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
+    if (system((init_cmd + credentials).c_str()) != 0) {
+      throw std::runtime_error("Could not initilaize tuf repo for sign");
+    }
+  }
+  if (system("garage-sign targets  pull --repo aktualizr") != 0) {
+    throw std::runtime_error("Could not pull targets");
+  }
+
+  LOG_INFO << "Signing...\n";
+  if (system("garage-sign targets  sign --key-name targets --repo aktualizr") != 0) {
+    throw std::runtime_error("Could not sign targets");
+  }
+  if (system("garage-sign targets  push --repo aktualizr") != 0) {
+    throw std::runtime_error("Could not push signed repo");
+  }
+
+  LOG_INFO << "Success";
+}
