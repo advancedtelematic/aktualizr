@@ -129,7 +129,6 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   }
   BIO_free_all(bio);
 
-// TODO: RSA with PKCS11
 #if AKTUALIZR_OPENSSL_PRE_11
   RSA_set_method(rsa, RSA_PKCS1_SSLeay());
 #else
