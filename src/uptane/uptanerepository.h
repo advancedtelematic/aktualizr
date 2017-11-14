@@ -90,7 +90,7 @@ class Repository {
   bool initEcuSerials(UptaneConfig &uptane_config);
   void resetEcuSerials();
   bool initPrimaryEcuKeys(const UptaneConfig &uptane_config);
-  bool initSeondaryEcuKeys();
+  bool initSecondaryEcuKeys();
 
   void resetEcuKeys();
   InitRetCode initTlsCreds(const ProvisionConfig &provision_config, const TlsConfig &tls_config);

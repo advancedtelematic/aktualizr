@@ -158,7 +158,7 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
   return true;
 }
 
-bool Repository::initSeondaryEcuKeys() {
+bool Repository::initSecondaryEcuKeys() {
   // from here down key_source is kFile; TODO: enable secondaries for pkcs#11
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
@@ -380,7 +380,7 @@ bool Repository::initialize() {
       LOGGER_LOG(LVL_error, "ECU serial generation failed, abort initialization");
       return false;
     }
-    if (!initSeondaryEcuKeys()) {
+    if (!initSecondaryEcuKeys()) {
       LOGGER_LOG(LVL_error, "ECU serial for secondaries generation failed, abort initialization");
       return false;
     }
