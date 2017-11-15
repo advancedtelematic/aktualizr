@@ -55,6 +55,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
   std::string client_cert;
   std::string client_key;
   std::string root_cert;
+  std::string repo_url;
   bool found = false;
 
   struct archive *a;
@@ -80,6 +81,8 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
         client_key = readArchiveFile(a)->str();
       } else if (strcmp(filename, "root.crt") == 0) {
         root_cert = readArchiveFile(a)->str();
+      } else if (strcmp(filename, "repo.url") == 0) {
+        repo_url = readArchiveFile(a)->str();
       } else {
         archive_read_data_skip(a);
       }
@@ -167,6 +170,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
     }
   }
   treehub.root_url(ostree_server);
+  if (!repo_url.empty()) treehub.repo_url(repo_url);
 
   return EXIT_SUCCESS;
 }
