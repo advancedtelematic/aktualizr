@@ -43,7 +43,7 @@ AuthenticationResult OAuth2::Authenticate() {
   curl_easy_perform(curl_handle);
 
   AuthenticationResult res;
-  int rescode;
+  long rescode;
   curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &rescode);
   if (rescode == 200) {
     ptree pt;
