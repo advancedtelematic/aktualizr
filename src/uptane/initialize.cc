@@ -76,7 +76,9 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
   }
 
   std::string primary_ecu_serial_local = uptane_config.primary_ecu_serial;
-  if (primary_ecu_serial_local.empty()) primary_ecu_serial_local = Utils::randomUuid();
+  if (primary_ecu_serial_local.empty()) {
+    primary_ecu_serial_local = primary_public_key_id;
+  }
 
   std::string primary_ecu_hardware_id = uptane_config.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) primary_ecu_hardware_id = Utils::getHostname();
@@ -118,7 +120,7 @@ void Repository::setEcuKeysMembers(const std::string& primary_public, const std:
 }
 
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
-bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
+bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
   std::string primary_public;
   std::string primary_private;
   std::string primary_public_id;
@@ -150,6 +152,13 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
     if (!Crypto::generateRSAKeyPair(&primary_public, &primary_private)) return false;
   }
 
+  primary_public_id = Crypto::getKeyId(primary_public);
+  storage.storePrimaryKeys(primary_public, primary_private);
+  setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
+  return true;
+}
+
+bool Repository::initSecondaryEcuKeys() {
   // from here down key_source is kFile; TODO: enable secondaries for pkcs#11
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
@@ -170,10 +179,6 @@ bool Repository::initEcuKeys(const UptaneConfig& uptane_config) {
       transport.sendKeys(it->first, secondary_public, secondary_private);
     }
   }
-
-  primary_public_id = Crypto::getKeyId(primary_public);
-  storage.storePrimaryKeys(primary_public, primary_private);
-  setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
   return true;
 }
 
@@ -367,14 +372,19 @@ bool Repository::initialize() {
       LOGGER_LOG(LVL_error, "Device ID generation failed, abort initialization");
       return false;
     }
+    if (!initPrimaryEcuKeys(config.uptane)) {
+      LOGGER_LOG(LVL_error, "ECU key generation failed, abort initialization");
+      return false;
+    }
     if (!initEcuSerials(config.uptane)) {
       LOGGER_LOG(LVL_error, "ECU serial generation failed, abort initialization");
       return false;
     }
-    if (!initEcuKeys(config.uptane)) {
-      LOGGER_LOG(LVL_error, "ECU key generation failed, abort initialization");
+    if (!initSecondaryEcuKeys()) {
+      LOGGER_LOG(LVL_error, "ECU serial for secondaries generation failed, abort initialization");
       return false;
     }
+
     InitRetCode ret_code = initTlsCreds(config.provision, config.tls);
     // if a device with the same ID has already been registered to the server, repeat the whole registration process
     if (ret_code == INIT_RET_OCCUPIED) {
