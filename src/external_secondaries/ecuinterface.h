@@ -3,7 +3,7 @@
 class ECUInterface {
  public:
   enum InstallStatus {
-    InstallationSuccessfull = 0,
+    InstallationSuccessful = 0,
     FirmawareIsInvalid,
     InstallFailureNotModified,
     InstallFailureModified
