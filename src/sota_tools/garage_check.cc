@@ -24,6 +24,18 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
   return size * nmemb;
 }
 
+class CurlEasyWrapper {
+ public:
+  CurlEasyWrapper() { handler = curl_easy_init(); }
+  ~CurlEasyWrapper() {
+    if (handler) curl_easy_cleanup(handler);
+  }
+  CURL *get() { return handler; }
+
+ private:
+  CURL *handler;
+};
+
 int main(int argc, char **argv) {
   logger_init();
 
@@ -98,25 +110,24 @@ int main(int argc, char **argv) {
   }
 
   // check if the ref is present on treehub
-  CURL *curl_handle = curl_easy_init();
-  if (!curl_handle) {
+  CurlEasyWrapper curl;
+  if (!curl.get()) {
     LOG_FATAL << "Error initializing curl";
     return EXIT_FAILURE;
   }
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1);  // HEAD
+  curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curl_easy_setopt(curl.get(), CURLOPT_NOBODY, 1L);  // HEAD
 
-  treehub.InjectIntoCurl("objects/" + ref.substr(0, 2) + "/" + ref.substr(2) + ".commit", curl_handle);
+  treehub.InjectIntoCurl("objects/" + ref.substr(0, 2) + "/" + ref.substr(2) + ".commit", curl.get());
 
-  CURLcode result = curl_easy_perform(curl_handle);
-  curl_easy_cleanup(curl_handle);
+  CURLcode result = curl_easy_perform(curl.get());
   if (result != CURLE_OK) {
     LOG_FATAL << "Error connecting to treehub: " << result << ": " << curl_easy_strerror(result);
     return EXIT_FAILURE;
   }
 
   long http_code;
-  curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
+  curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code == 404) {
     LOG_FATAL << "OSTree commit " << ref << " is missing in treehub";
     return EXIT_FAILURE;
@@ -127,30 +138,25 @@ int main(int argc, char **argv) {
   LOG_INFO << "OSTree commit " << ref << " is found on treehub";
 
   // check if the ref is present in targets.json
-  curl_handle = curl_easy_init();
-  if (!curl_handle) {
-    LOG_FATAL << "Error initializing curl";
-    return EXIT_FAILURE;
-  }
-
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl_handle, CURLOPT_HTTPGET, 1L);
-  treehub.InjectIntoCurl("targets.json", curl_handle, true);
+  curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curl_easy_setopt(curl.get(), CURLOPT_HTTPGET, 1L);
+  curl_easy_setopt(curl.get(), CURLOPT_NOBODY, 0L);
+  treehub.InjectIntoCurl("targets.json", curl.get(), true);
 
   std::string targets_str;
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeString);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&targets_str);
-  result = curl_easy_perform(curl_handle);
-  curl_easy_cleanup(curl_handle);
+  curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeString);
+  curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, (void *)&targets_str);
+  result = curl_easy_perform(curl.get());
 
   if (result != CURLE_OK) {
     LOG_FATAL << "Error connecting to TUF repo: " << result << ": " << curl_easy_strerror(result);
     return EXIT_FAILURE;
   }
 
-  curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
+  curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code != 200) {
     LOG_FATAL << "Error " << http_code << " getting targets.json from TUF repo: " << targets_str;
+    return EXIT_FAILURE;
   }
 
   Json::Value targets_json = Utils::parseJSON(targets_str);
