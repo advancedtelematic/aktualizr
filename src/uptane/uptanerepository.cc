@@ -45,7 +45,7 @@ Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_ve
 #endif
   Json::Value ecu_version_signed =
       Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key_id, primary_version_manifest);
-  //Json::Value manifests = transport.getManifests();
+  // Json::Value manifests = transport.getManifests();
   manifests.append(ecu_version_signed);
   return manifests;
 }
@@ -64,19 +64,18 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
   return response.isOk();
 }
 
- // array of individual ECU version manifests
+// array of individual ECU version manifests
 Json::Value Repository::getCurrentVersionManifest(const Json::Value &primary_version_manifest) {
-	Json::Value result = Json::arrayValue;
+  Json::Value result = Json::arrayValue;
 
-	Json::Value ecu_version_signed = Crypto::signTuf(primary_private_key, primary_public_key, primary_version_manifest);
-	result.append(ecu_version_signed);
+  Json::Value ecu_version_signed = Crypto::signTuf(primary_private_key, primary_public_key, primary_version_manifest);
+  result.append(ecu_version_signed);
 
-	std::vector<SecondaryConfig>::iterator it;
-	for(it = config.uptane.secondaries.begin(), it != config.uptane.secondaries.end(); it++)
-		result.append(it->transport->getManifest(it->ecu_serial));
-	return result;
+  std::vector<SecondaryConfig>::iterator it;
+  for (it = config.uptane.secondaries.begin(), it != config.uptane.secondaries.end(); it++)
+    result.append(it->transport->getManifest(it->ecu_serial));
+  return result;
 }
-
 
 // Check for consistency, signatures are already checked
 bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
@@ -138,27 +137,25 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
   // TODO: may be quite resource consuming, consider storing map ecu_serial -> SecondaryConfig as a member instead
-  std::map<std::string, Uptane::Target&> targets_by_serial;
+  std::map<std::string, Uptane::Target &> targets_by_serial;
   std::vector<Uptane::Target>::iterator t_it;
-  for(t_it = targets.begin(), t_it != targets.end(); t_it++)
-	  targets_by_serial[t_it->ecu_identifier()] = *t_it;
+  for (t_it = targets.begin(), t_it != targets.end(); t_it++) targets_by_serial[t_it->ecu_identifier()] = *t_it;
   std::vector<SecondaryConfig>::iterator sec_it;
-  for(sec_it = config.uptane.secondaries.begin(), sec_it != config.uptane.secondaries.end(); sec_it++) {
-	 if(targets_by_serial.find(sec_it->ecu_serial) != targets_by_serial.end) {
-		 // TODO: when metadata verification is separated from image loading (see comments in sotauptaneclient.cc) it should be rewritten
-		 Uptane::Metapack meta;
-		 if(!storage.loadMeta(&meta)) {
-			 throw std::runtime_error("No valid metadata, but trying to upload firmware");
-		 }
-		 TimeMeta time_meta;
-		 Json::Value resp;
-		 if(it->partial_verifying) {
-			 resp = it->transport->sendMetaPartial(time_meta, meta.director_root, meta.director_targets);
-		 } else {
-		 }
-
-
-	 }
+  for (sec_it = config.uptane.secondaries.begin(), sec_it != config.uptane.secondaries.end(); sec_it++) {
+    if (targets_by_serial.find(sec_it->ecu_serial) != targets_by_serial.end) {
+      // TODO: when metadata verification is separated from image loading (see comments in sotauptaneclient.cc) it
+      // should be rewritten
+      Uptane::Metapack meta;
+      if (!storage.loadMeta(&meta)) {
+        throw std::runtime_error("No valid metadata, but trying to upload firmware");
+      }
+      TimeMeta time_meta;
+      Json::Value resp;
+      if (it->partial_verifying) {
+        resp = it->transport->sendMetaPartial(time_meta, meta.director_root, meta.director_targets);
+      } else {
+      }
+    }
   }
   return transport.sendTargets(secondary_targets);
 }

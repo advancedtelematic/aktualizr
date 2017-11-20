@@ -61,8 +61,9 @@ void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, s
   for (conf_it = config.uptane.secondaries.begin(); conf_it != config.uptane.secondaries.end(); ++conf_it) {
     // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
     //   It also kind of duplicates what is done in InitEcuSerials()
-    Secondary s(*conf_it, this);
-    secondaries.push_back(s);
+    // Move to a factory function.
+    // SecondaryInterface* s(*conf_it, this);
+    // secondaries.push_back(s);
   }
 }
 
@@ -170,13 +171,14 @@ bool Repository::initSecondaryEcuKeys() {
   for (it = ecu_serials.begin() + 1; it != ecu_serials.end(); it++) {
     std::string secondary_public;
     std::string secondary_keytype;
-    if (!transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
+    // TODO: Fix by calling SecondaryInterface
+    if (true) {  //! transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
       std::string secondary_private;
       if (!Crypto::generateRSAKeyPair(&secondary_public, &secondary_private)) {
         LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << it->second << "@" << it->first);
         return false;
       }
-      transport.sendKeys(it->first, secondary_public, secondary_private);
+      // transport.sendKeys(it->first, secondary_public, secondary_private);
     }
   }
   return true;
@@ -335,10 +337,11 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
   for (it = ecu_serials.begin() + 1; it != ecu_serials.end(); it++) {
     std::string secondary_public;
     std::string secondary_keytype;
-    if (!transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
-      LOGGER_LOG(LVL_error, "Unable to read public key from secondary " << it->first);
-      return INIT_RET_SECONDARY_FAILURE;
-    }
+    // TODO: fix with SecondaryInterface
+    // if (!transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
+    // LOGGER_LOG(LVL_error, "Unable to read public key from secondary " << it->first);
+    // return INIT_RET_SECONDARY_FAILURE;
+    //}
     Json::Value ecu;
     ecu["hardware_identifier"] = it->second;
     ecu["ecu_serial"] = it->first;
