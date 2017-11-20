@@ -22,7 +22,9 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
+    // TODO: fix with hash array
+    // return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
+    return true;
   } else {
     // TODO: iterate through secondaries, compare version when found, throw exception otherwise
     return true;
@@ -42,8 +44,10 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 
 data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &target) {
   try {
-    OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
-                          config.uptane.ostree_server);
+    // TODO: fix with hash array
+    // OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
+    // config.uptane.ostree_server);
+    OstreePackage package(target.filename(), "", config.uptane.ostree_server);
 
     data::PackageManagerCredentials cred;
     // All three files should live until package.install terminates
@@ -111,7 +115,9 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
     }
   }
   Json::Value unsigned_ecu_version =
-      OstreePackage(target.filename(), target.sha256Hash(), "").toEcuVersion(target.ecu_identifier(), operation_result);
+      OstreePackage(target.filename(), "", "").toEcuVersion(target.ecu_identifier(), operation_result);
+  // TODO: fix with hash array
+  // OstreePackage(target.filename(), target.sha256Hash(), "").toEcuVersion(target.ecu_identifier(), operation_result);
 
   ENGINE *crypto_engine = NULL;
 #ifdef BUILD_P11

@@ -67,7 +67,6 @@ class TufRepository {
   Uptane::Targets targets_;
   Uptane::TimestampMeta timestamp_;
   Uptane::Snapshot snapshot_;
-  friend class TestBusSecondary;
 };
 }
 

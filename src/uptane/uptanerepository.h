@@ -5,8 +5,7 @@
 #include <vector>
 #include "config.h"
 #include "invstorage.h"
-#include "uptane/secondary.h"
-#include "uptane/testbusprimary.h"
+#include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 
 #include "crypto.h"
@@ -37,7 +36,7 @@ class Repository {
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
   // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
-  //Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
+  // Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
@@ -74,9 +73,7 @@ class Repository {
 
   std::string pkcs11_tls_keyname;
   std::string pkcs11_tls_certname;
-  std::vector<Secondary> secondaries;
-  //TestBusPrimary transport;
-  //friend class TestBusSecondary;
+  std::vector<SecondaryInterface> secondaries;
   friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();

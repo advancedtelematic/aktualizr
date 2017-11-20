@@ -43,13 +43,14 @@ set(HEADERS
             types.h
             utils.h
             uptane/exceptions.h
-            uptane/testbusprimary.h
-            uptane/testbussecondary.h
+            uptane/legacysecondary.h
+            uptane/secondaryconfig.h
+            uptane/secondaryinterface.h
+            uptane/secondarymanager.h
             uptane/tuf.h
             uptane/tufrepository.h
-            uptane/secondary.h
-            uptane/secondaryconfig.h
-            uptane/uptanerepository.h)
+            uptane/uptanerepository.h
+            uptane/virtualsecondary.h)
 
 if(BUILD_GENIVI)
     list(APPEND SOURCES dbusgateway/dbusgateway.cc
@@ -62,15 +63,15 @@ endif(BUILD_GENIVI)
 if(BUILD_OSTREE)
     list(APPEND SOURCES sotauptaneclient.cc
                         uptane/initialize.cc
+                        uptane/legacysecondary.cc
                         uptane/role.cc
                         uptane/root.cc
+                        uptane/secondaryconfig.cc
+                        uptane/secondarymanager.cc
                         uptane/tuf.cc
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc
-                        uptane/secondary.cc
-                        uptane/secondaryconfig.cc
-                        uptane/testbusprimary.cc
-                        uptane/testbussecondary.cc)
+                        uptane/virtualsecondary.cc)
 endif(BUILD_OSTREE)
 
 if(BUILD_P11)
