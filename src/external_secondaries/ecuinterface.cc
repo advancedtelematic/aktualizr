@@ -51,11 +51,6 @@ int main(int argc, char **argv) {
               << "install-software command requires --hardware-identifier, --ecu-identifier and --firmware options\n";
           return EXIT_FAILURE;
         }
-        if (hardware_identifier != "msp430") {
-          std::cerr << "Cannot install firmware unless the hardware identifiers match. Expecting msp430, got "
-                    << hardware_identifier << "\n";
-          return EXIT_FAILURE;
-        }
         return ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
       } else {
         std::cout << "unknown command: " << command[0] << "\n";

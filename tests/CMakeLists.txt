@@ -110,6 +110,7 @@ add_aktualizr_test(NAME http_client
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_http_server/
                    PROJECT_WORKING_DIRECTORY)
 
+
 if(NOT BUILD_WITH_CODE_COVERAGE)
     # Code coverage disables valgrind, and this test is only checking that
     # valgrind finds memory leaks

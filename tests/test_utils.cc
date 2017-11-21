@@ -5,6 +5,7 @@
 #include "test_utils.h"
 #include <signal.h>
 #include <sys/prctl.h>
+#include <sstream>
 
 std::string getFreePort() {
   int s = socket(AF_INET, SOCK_STREAM, 0);
@@ -29,7 +30,9 @@ std::string getFreePort() {
     throw std::runtime_error("getsockname failed");
   }
   close(s);
-  return Utils::intToString(ntohs(sa.sin_port));
+  std::ostringstream ss;
+  ss << ntohs(sa.sin_port);
+  return ss.str();
 }
 
 TestHelperProcess::TestHelperProcess(const std::string &argv0, const std::string &argv1) {
