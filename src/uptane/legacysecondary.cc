@@ -7,70 +7,34 @@
 #include "logger.h"
 
 namespace Uptane {
-LegacySecondary::LegacySecondary(const LegacySecondaryConfig &sconfig_in, Uptane::Repository *primary)
-    : sconfig(sconfig_in), transport(primary), wait_image(false) {
+LegacySecondary::LegacySecondary(const LegacySecondaryConfig &sconfig_in) {
   boost::filesystem::create_directories(sconfig.firmware_path.parent_path());
 }
 
-bool writeImage(const uint8_t *blob, size_t size) {
-  if (!wait_for_target) return false;
+bool LegacySecondary::storeFirmware(const std::string& target_name, const std::string& content) {
+  // reading target hash back is not currently supported, so primary needs to save the firmware file locally
+  Utils::writeFile(sconfig.target_name_path.string(), expected_target_name);
+  Utils::writeFile(sconfig.firmware_path.string(), content);
 
-  wait_for_target = false;
-  if (size > expected_targets_length) {
-    detected_attack = "overflow";
-    return true;
-  }
-  std::string content = std::string(blob, size);
-  std::vector<Hash>::const_iterator it;
-  for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
-    if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content) != it->HashString()))) {
-        detected_attack = "wrong_hash";
-        return true;
-      }
-    } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(content) != it->HashString()))) {
-        detected_attack = "wrong_hash";
-        return true;
-      }
-    }
-  }
-  detected_attack = "";
-  Utils::writeFile(sconfig.target_name_path.string(), content);
+  std::string output
+  int rs = Utils::shell(sconfig.flasher.string() + " --hardware-identifier " + sconfig.ecu_hardware_id + " --ecu-identifier " + sconfig.ecu_serial + " --firmware " + sconfig.firmware_path.string(), &output);
+
+  if(rs != 0)
+    LOGGER_LOG(LVL_error, "Legacy external flasher failed: " << output);
+  return (rs == 0);
+}
+
+bool LegacySecondary::getFirmwareInfo(std::string* targetname, size_t &target_len, std::string* sha256hash) {
+  // reading target hash back is not currently supported, just use the saved file
+  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path))
+    return false;
+
+  *targetname = Utils::readFile(sconfig.target_name_path.string());
+
+  std::string content = Utils::readFile(sconfig.firmware_path.string());
+  *sha256hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
+  *target_len = content.size();
+
   return true;
-}
-
-Json::Value LegacySecondary::genAndSendManifest(Json::Value custom) {
-  Json::Value manifest;
-
-  // package manager will generate this part in future
-  Json::Value installed_image;
-  installed_image["filepath"] = Utils::readFile(sconfig.target_name_path.string());
-  std::string content = Utils::readFile(
-      sconfig.firmware_path.string());  // FIXME this is bad idea to read all image to memory, we need to
-                                        // implement progressive hash function
-  installed_image["fileinfo"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
-  installed_image["fileinfo"]["length"] = static_cast<Json::Int64>(content.size());
-  //////////////////
-
-  if (custom != Json::nullValue) {
-    manifest["custom"] = custom;
-  }
-  manifest["attacks_detected"] = detected_attack;
-  manifest["installed_image"] = installed_image;
-  manifest["ecu_serial"] = sconfig.ecu_serial;
-  manifest["previous_timeserver_time"] = Utils::readFile(sconfig.previous_time_path.string());
-  manifest["timeserver_time"] = Utils::readFile(sconfig.time_path.string());
-
-  std::string public_key = Utils::readFile((sconfig.full_client_dir / sconfig.ecu_public_key).string());
-  std::string private_key = Utils::readFile((sconfig.full_client_dir / sconfig.ecu_private_key).string());
-  Json::Value signed_ecu_version = Crypto::signTuf(private_key, public_key, manifest);
-  return signed_ecu_version;
-}
-
-void LegacySecondary::setKeys(const std::string &public_key, const std::string &private_key) {
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key).string(), private_key);
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key).string(), public_key);
 }
 }

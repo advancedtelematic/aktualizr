@@ -27,9 +27,11 @@ class SecondaryConfig {
   std::string ecu_public_key;
 
   boost::filesystem::path full_client_dir;     // kVirtual, kLegacy
-  boost::filesystem::path firmware_path;       // kVirtual
-  boost::filesystem::path metadata_path;           // kVirtual
-  boost::filesystem::path target_name_path;    // kVirtual
+  boost::filesystem::path firmware_path;       // kVirtual, kLegacy
+  boost::filesystem::path metadata_path;       // kVirtual, kLegacy
+  boost::filesystem::path target_name_path;    // kVirtual, kLegacy
+
+  boost::filesystem::path flasher;     // kLegacy
 };
 }
 
