@@ -13,14 +13,6 @@ Json::Value SecondaryManager::getManifest(const std::string& ecu_serial) {
     return secondaries_[ecu_serial].genAndSendManifest();
 }
 
-Json::Value SecondaryManager::sendMetaPartial(const Root& root_meta,
-                                              const Targets& targets_meta) {
-  if (secondaries_.find(ecu_serial) == secondaries.end())
-    throw std::runtime_error("ecu_serial - " + ecu_serial + " not found");
-  else
-    return secondaries_[ecu_serial].verifyMeta(root_meta, targets_meta);
-}
-
 Json::Value SecondaryManager::sendMetaFull(const std::string& ecu_serial,
                                            const struct MetaPack* meta_pack) {
   throw std::runtime_error("SecondaryManager only supports partial verification");
