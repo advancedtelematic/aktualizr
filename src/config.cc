@@ -291,7 +291,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
   CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);
-  // uptane.secondaries currently can only be set via command line.
+  // uptane.secondary_configs currently can only be set via command line.
 
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
@@ -333,20 +333,40 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     uptane.ostree_server = cmd["ostree-server"].as<std::string>();
   }
 
-  // temporary
   if (cmd.count("secondary-config") != 0) {
-    std::vector<std::string> configs = cmd["secondary-config"].as<std::vector<std::string> >();
+    std::vector<std::string> sconfigs = cmd["secondary-config"].as<std::vector<std::string> >();
     std::vector<std::string>::iterator it;
-    for (it = configs.begin(); it != configs.end(); ++it) {
+    for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
       Json::Value config_json = Utils::parseJSONFile(*it);
-      Uptane::SecondaryConfig ecu_config;
-      ecu_config.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-      ecu_config.ecu_serial = config_json["ecu_serial"].asString();
-      ecu_config.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-      ecu_config.ecu_private_key_ = config_json["ecu_private_key"].asString();
-      ecu_config.ecu_public_key_ = config_json["ecu_public_key"].asString();
-      ecu_config.firmware_path = config_json["firmware_path"].asString();
-      uptane.secondaries.push_back(ecu_config);
+      Uptane::SecondaryConfig sconfig;
+
+      std::string stype = config_json["secondary_type"].asString();
+      if (stype == "virtual") {
+        sconfig.secondary_type = kVirtual;
+      }
+      else if(stype == "legacy") {
+        sconfig.secondary_type = kLegacy;
+      }
+      else if(stype == "uptane") {
+        sconfig.secondary_type = kUptane;
+      }
+      else {
+        LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
+        continue;
+      }
+      sconfig.ecu_serial = config_json["ecu_serial"].asString();
+      sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
+      sconfig.partial_verifying = config_json["partial_verifying"].asBool();
+      sconfig.ecu_private_key_ = config_json["ecu_private_key"].asString();
+      sconfig.ecu_public_key_ = config_json["ecu_public_key"].asString();
+
+      sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
+      sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
+      sconfig.time_path = boost::filesystem::path(config_json["time_path"].asString());
+      sconfig.previous_time_path = boost::filesystem::path(config_json["previous_time_path"].asString());
+      sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+
+      uptane.secondary_configs.push_back(sconfig);
     }
   }
 }
@@ -446,8 +466,8 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, uptane.private_key_path, "private_key_path");
   writeOption(sink, uptane.public_key_path, "public_key_path");
   writeOption(sink, uptane.key_source, "key_source");
-  // TODO: Handle vector<UptaneSecondaryConfig>:
-  // writeOption(sink, uptane.secondaries, "secondaries");
+  // uptane.secondary_configs currently can only be set via command line and is
+  // not read from or written to the primary config file.
   sink << "\n";
 
   sink << "[ostree]\n";
