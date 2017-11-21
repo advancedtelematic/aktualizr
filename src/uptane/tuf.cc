@@ -134,15 +134,16 @@ bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
 
-std::string Target::sha256Hash() const {
-  std::vector<Uptane::Hash>::const_iterator it;
-  for (it = hashes_.begin(); it != hashes_.end(); it++) {
-    if (it->type() == Hash::kSha256) {
-      return boost::algorithm::to_lower_copy(it->HashString());
-    }
-  }
-  return std::string();
-}
+// TODO: fix?
+// std::string Target::sha256Hash() const {
+// std::vector<Uptane::Hash>::const_iterator it;
+// for (it = hashes_.begin(); it != hashes_.end(); it++) {
+// if (it->type() == Hash::kSha256) {
+// return boost::algorithm::to_lower_copy(it->HashString());
+//}
+//}
+// return std::string();
+//}
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length();
