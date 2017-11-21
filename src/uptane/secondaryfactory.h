@@ -5,14 +5,14 @@
 #include <boost/shared_ptr.hpp>
 
 #include "logger.h"
-#include "uptane/econdaryinterface.h"
 #include "uptane/secondaryconfig.h"
+#include "uptane/secondaryinterface.h"
 
 namespace Uptane {
 
 class SecondaryFactory {
  public:
-  boost::shared_ptr<SecondaryInterface> makeSecondary(const SecondaryConfig& sconfig) {
+  static boost::shared_ptr<SecondaryInterface> makeSecondary(const SecondaryConfig& sconfig) {
     switch (sconfig.SecondaryType) {
       case kVirtual:
         return boost::make_shared<VirtualSecondary>(sconfig);

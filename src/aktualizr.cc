@@ -72,7 +72,8 @@ int Aktualizr::run() {
     FSStorage storage(config_);
     HttpClient http;
     Uptane::Repository repo(config_, storage, http);
-    SotaUptaneClient(config_, &events_channel, repo).runForever(&commands_channel);
+    SotaUptaneClient uptane_client(config_, &events_channel, repo);
+    uptane_client.runForever(&commands_channel);
 #else
     LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");
     return EXIT_FAILURE;
