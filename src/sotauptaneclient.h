@@ -1,10 +1,15 @@
 #include <map>
+#include <string>
+#include <vector>
+
+#include <boost/shared_ptr.hpp>
 
 #include "commands.h"
 #include "config.h"
 #include "events.h"
 #include "httpclient.h"
 #include "ostree.h"
+#include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 #include "uptane/uptanerepository.h"
 
@@ -31,6 +36,6 @@ class SotaUptaneClient {
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
 
-  std::vector<Json::Value> ecu_versions;
+  std::map<std::string, std::vector<boost::shared_ptr<SecondaryInterface> > > secondaries;
   int last_targets_version;
 };

@@ -1,17 +1,31 @@
 #include "sotauptaneclient.h"
 
 #include <unistd.h>
+
 #include <boost/make_shared.hpp>
+#include "json/json.h"
 
 #include "crypto.h"
 #include "httpclient.h"
-#include "json/json.h"
 #include "logger.h"
 #include "uptane/exceptions.h"
+#include "uptane/secondaryconfig.h"
+#include "uptane/secondaryfactory.h"
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {}
+    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
+  std::vector<Uptane::SecondaryConfig>::iterator it;
+  for (it = secondary_configs.begin(); it != secondary_configs.end(); ++it) {
+    std::map<std::string, std::vector<boost::shared_ptr<SecondaryInterface> > >::const_iterator map_it =
+        secondaries.find(it->ecu_serial);
+    if (map_it != secondaries.end()) {
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << it->ecu_serial);
+      continue;
+    }
+    secondaries[it->ecu_serial] = SecondaryFactory::makeSecondary(*it);
+  }
+}
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
