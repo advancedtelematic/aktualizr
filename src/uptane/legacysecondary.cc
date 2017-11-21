@@ -12,32 +12,6 @@ LegacySecondary::LegacySecondary(const LegacySecondaryConfig &sconfig_in, Uptane
   boost::filesystem::create_directories(sconfig.firmware_path.parent_path());
 }
 
-Json::Value verifyMeta(const TimeMeta &time_meta, const Root &root_meta, const Targets &targets_meta) {
-  Json::Value result;
-  // No verification is currently performed
-  result["valid"] = true;
-
-  Utils::writeFile(sconfig.previous_time_path.string(), Utils::readFile(sconfig.time_path.string()));
-  Utils::writeFile(sconfig.time_path.string(), new_time);
-
-  result["wait_for_target"] = false;
-  wait_for_target = false;
-
-  std::vector<Uptane::Target>::const_iterator it;
-  for (it = targets_meta.targets.begin(); it != targets_meta.targets.end(); ++it) {
-    if (it->IsForLegacySecondary(sconfig.ecu_serial)) {
-      result["wait_for_target"] = true;
-      wait_for_target = true;
-      expected_target_name = it->filename();
-      expected_target_hashes = it->hashes();
-      expected_target_length = it->length();
-      break;
-    }
-  }
-
-  return result;
-}
-
 bool writeImage(const uint8_t *blob, size_t size) {
   if (!wait_for_target) return false;
 

@@ -18,7 +18,6 @@ class LegacySecondary : public SecondaryInterface {
   LegacySecondary(const SecondaryConfig &sconfig_in, Uptane::Repository *primary) : SecondaryInterface(sconfig_in);
 
   void setKeys(const std::string &public_key, const std::string &private_key);
-  Json::Value verifyMeta(const TimeMeta &time_meta, const Root &root_meta, const Targets &targets_meta);
   bool writeImage(const uint8_t *blob, size_t size);
   Json::Value genAndSendManifest(Json::Value custom = Json::Value(Json::nullValue));
 
