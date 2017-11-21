@@ -143,7 +143,7 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   return ecu_version_signed;
 }
 
-void SotaUptaneClient::reportHWInfo() {
+void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) uptane_repo.http.put(config.tls.server + "/core/system_info", hw_info);
 }
@@ -159,7 +159,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
   LOGGER_LOG(LVL_debug, "... provisioned OK");
-  reportHWInfo();
+  reportHwInfo();
   reportInstalledPackages();
 
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
