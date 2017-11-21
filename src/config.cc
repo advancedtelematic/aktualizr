@@ -343,14 +343,11 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       std::string stype = config_json["secondary_type"].asString();
       if (stype == "virtual") {
         sconfig.secondary_type = kVirtual;
-      }
-      else if(stype == "legacy") {
+      } else if (stype == "legacy") {
         sconfig.secondary_type = kLegacy;
-      }
-      else if(stype == "uptane") {
+      } else if (stype == "uptane") {
         sconfig.secondary_type = kUptane;
-      }
-      else {
+      } else {
         LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
         continue;
       }
