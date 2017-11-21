@@ -17,8 +17,8 @@ class SecondaryManager {
  public:
   SecondaryManager(std::vector<SecondaryInterface*>& secondaries);
   virtual Json::Value getManifest(const std::string& ecu_serial);
-  virtual Json::Value sendMetaPartial(const TimeMeta& time_meta, const Root& root_meta, const Targets& targets_meta);
-  virtual Json::Value sendMetaFull(const TimeMeta& time_meta, const struct MetaPack& meta_pack);
+  virtual Json::Value sendMetaPartial(const Root& root_meta, const Targets& targets_meta);
+  virtual Json::Value sendMetaFull(const struct MetaPack& meta_pack);
   virtual bool sendFirmware(const uint8_t* blob, size_t size);
   virtual void getPublicKey(const std::string& ecu_serial, std::string* keytype, std::string* key);
   virtual void setKeys(const std::string& ecu_serial, const std::string& keytype, const std::string& public_key,

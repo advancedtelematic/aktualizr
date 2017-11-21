@@ -23,13 +23,12 @@ class SecondaryConfig {
   std::string ecu_serial;
   std::string ecu_hardware_id;
   bool partial_verifying;
-  std::string ecu_private_key_;
-  std::string ecu_public_key_;
+  std::string ecu_private_key;
+  std::string ecu_public_key;
 
   boost::filesystem::path full_client_dir;     // kVirtual, kLegacy
   boost::filesystem::path firmware_path;       // kVirtual
-  boost::filesystem::path time_path;           // kVirtual
-  boost::filesystem::path previous_time_path;  // kVirtual
+  boost::filesystem::path metadata_path;           // kVirtual
   boost::filesystem::path target_name_path;    // kVirtual
 };
 }
