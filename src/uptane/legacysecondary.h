@@ -1,33 +1,21 @@
-#ifndef UPTANE_LEGACYSECONDARY_H_
-#define UPTANE_LEGACYSECONDARY_H_
+#ifndef UPTANE_VIRTUALSECONDARY_H_
+#define UPTANE_VIRTUALSECONDARY_H_
 
 #include <string>
-#include <vector>
-
-#include <boost/filesystem.hpp>
-#include "json/json.h"
 
 #include "types.h"
-#include "uptane/secondaryconfig.h"
-#include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
+#include "uptane/managedsecondary.h"
 
 namespace Uptane {
-class LegacySecondary : public SecondaryInterface {
+class LegacySecondary : public ManagedSecondary {
  public:
-  LegacySecondary(const SecondaryConfig &sconfig_in, Uptane::Repository *primary) : SecondaryInterface(sconfig_in);
+   LegacySecondary(const SecondaryConfig &sconfig_in) : ManagedSecondary(sconfig_in);
 
-  void setKeys(const std::string &public_key, const std::string &private_key);
-  bool writeImage(const uint8_t *blob, size_t size);
-  Json::Value genAndSendManifest(Json::Value custom = Json::Value(Json::nullValue));
 
  private:
-  std::string detected_attack;
-  bool wait_for_target;
-  std::string expected_target_name;
-  std::vector<Hash> expected_target_hashes;
-  int64_t expected_target_length;
+  virtual bool storeFirmware(const std::string& target_name, const std::string& content);
+  virtual bool getFirmwareInfo(std::string* targetname, size_t &target_len, std::string* sha256hash);
 };
 }
 
-#endif  // UPTANE_LEGACYSECONDARY_H_
+#endif  // UPTANE_VIRTUALSECONDARY_H_

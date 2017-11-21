@@ -362,6 +362,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       sconfig.time_path = boost::filesystem::path(config_json["time_path"].asString());
       sconfig.previous_time_path = boost::filesystem::path(config_json["previous_time_path"].asString());
       sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+      sconfig.flasher = boost::filesystem::path(config_json["flasher"].asString());
 
       uptane.secondary_configs.push_back(sconfig);
     }

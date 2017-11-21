@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include <boost/archive/iterators/base64_from_binary.hpp>
@@ -268,6 +269,27 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
     else
       boost::filesystem::copy_file(it->path(), to / it->path().filename());
   }
+}
+
+void Utils::shell(const std::string& command, std::string* output) {
+  char buffer[128];
+  std::string result = "";
+  FILE* pipe = popen(cmd, "r");
+  if (!pipe) {
+    *output = "popen() failed!";
+    return -1;
+  }
+  try {
+    while (!feof(pipe)) {
+      if (fgets(buffer, 128, pipe) != NULL)
+        result += buffer;
+    }
+  } catch (std::exception e) {
+      *output = "Exception: " + e.what();
+      pclose(pipe);
+      return -1;
+  }
+  return pclose(pipe);
 }
 
 TemporaryFile::TemporaryFile(const std::string &hint)
