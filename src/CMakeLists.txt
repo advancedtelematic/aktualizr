@@ -45,6 +45,7 @@ set(HEADERS
             uptane/exceptions.h
             uptane/legacysecondary.h
             uptane/secondaryconfig.h
+            uptane/secondaryfactory.h
             uptane/secondaryinterface.h
             uptane/secondarymanager.h
             uptane/tuf.h
