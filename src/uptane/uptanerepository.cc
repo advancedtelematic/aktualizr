@@ -149,10 +149,9 @@ Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &sec
       if (!storage.loadMeta(&meta)) {
         throw std::runtime_error("No valid metadata, but trying to upload firmware");
       }
-      TimeMeta time_meta;
       Json::Value resp;
       if (it->partial_verifying) {
-        resp = it->transport->sendMetaPartial(time_meta, meta.director_root, meta.director_targets);
+        resp = it->transport->sendMetaPartial(meta.director_root, meta.director_targets);
       } else {
       }
     }

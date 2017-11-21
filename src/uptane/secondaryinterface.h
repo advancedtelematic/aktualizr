@@ -23,12 +23,12 @@ class SecondaryInterface {
   virtual ~SecondaryInterface() {}
   virtual std::string getSerial() { return sconfig.ecu_serial; }
   virtual std::string getHwId() { return sconfig.ecu_hardware_id; }
-  virtual std::string getPublicKey() { return sconfig.ecu_public_key(); }
+  virtual std::string getPublicKey() = 0;
 
   virtual Json::Value getManifest() = 0;
-  virtual Json::Value putMetadata(const TimeMeta& time_meta, const MetaPack& meta_pack) = 0;
-  virtual int getRootVersion(const bool director) = 0;
-  virtual void putRoot(Uptane::Root) = 0;
+  virtual bool putMetadata(const MetaPack& meta_pack) = 0;
+  virtual int getRootVersion(bool director) = 0;
+  virtual bool putRoot(Uptane::Root root, bool director) = 0;
 
   virtual bool sendFirmware(const uint8_t* blob, size_t size) = 0;
 

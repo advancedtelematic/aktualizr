@@ -71,6 +71,8 @@ void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, s
 bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
   std::vector<std::pair<std::string, std::string> > ecu_serials;
 
+  // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
+  //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
   if (storage.loadEcuSerials(&ecu_serials)) {
     setEcuSerialsMembers(ecu_serials);
     return true;
@@ -87,19 +89,10 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
 
   std::vector<Uptane::SecondaryConfig>::iterator it;
-  int index = 0;
-  for (it = uptane_config.secondaries.begin(); it != uptane_config.secondaries.end(); ++it) {
-    std::string secondary_ecu_serial = it->ecu_serial;
-    if (secondary_ecu_serial.empty())
-      secondary_ecu_serial = Utils::intToString(index++) + "-" + primary_ecu_serial_local;
-    std::string secondary_ecu_hardware_id = it->ecu_hardware_id;
-    if (secondary_ecu_hardware_id.empty()) {
-      secondary_ecu_hardware_id = primary_ecu_hardware_id;
-    }
-    ecu_serials.push_back(std::pair<std::string, std::string>(secondary_ecu_serial, secondary_ecu_hardware_id));
-    it->ecu_serial = secondary_ecu_serial;
-    it->ecu_hardware_id = secondary_ecu_hardware_id;
-  }
+  // We assume that all the serials and hardware IDs are known at this point
+  //   secondary ECU discovery (if supported) should be done before that and uptane_config.secondaries should be updated accordingly
+  for (it = uptane_config.secondaries.begin(); it != uptane_config.secondaries.end(); ++it)
+    ecu_serials.push_back(std::pair<std::string, std::string>(it->ecu_serial, it->ecu_hardware_id));
 
   storage.storeEcuSerials(ecu_serials);
   setEcuSerialsMembers(ecu_serials);
@@ -156,31 +149,6 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
   primary_public_id = Crypto::getKeyId(primary_public);
   storage.storePrimaryKeys(primary_public, primary_private);
   setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
-  return true;
-}
-
-bool Repository::initSecondaryEcuKeys() {
-  // from here down key_source is kFile; TODO: enable secondaries for pkcs#11
-
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
-  // InitEcuSerials should have been called by this point
-  if (!storage.loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) return false;
-
-  std::vector<std::pair<std::string, std::string> >::const_iterator it;
-  // skip first element, that is primary serial
-  for (it = ecu_serials.begin() + 1; it != ecu_serials.end(); it++) {
-    std::string secondary_public;
-    std::string secondary_keytype;
-    // TODO: Fix by calling SecondaryInterface
-    if (true) {  //! transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
-      std::string secondary_private;
-      if (!Crypto::generateRSAKeyPair(&secondary_public, &secondary_private)) {
-        LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << it->second << "@" << it->first);
-        return false;
-      }
-      // transport.sendKeys(it->first, secondary_public, secondary_private);
-    }
-  }
   return true;
 }
 
@@ -381,10 +349,6 @@ bool Repository::initialize() {
     }
     if (!initEcuSerials(config.uptane)) {
       LOGGER_LOG(LVL_error, "ECU serial generation failed, abort initialization");
-      return false;
-    }
-    if (!initSecondaryEcuKeys()) {
-      LOGGER_LOG(LVL_error, "ECU serial for secondaries generation failed, abort initialization");
       return false;
     }
 
