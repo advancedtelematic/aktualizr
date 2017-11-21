@@ -42,6 +42,25 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 install(TARGETS garage-push RUNTIME DESTINATION bin)
 
+##### garage-check targets
+set (GARAGE_CHECK_SRCS
+  garage_check.cc
+)
+
+add_executable(garage-check ${GARAGE_CHECK_SRCS})
+
+target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${CURL_LIBRARIES}
+  ${GLIB2_LIBRARIES}
+  ${LibArchive_LIBRARIES})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(garage-check gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
+
+install(TARGETS garage-check RUNTIME DESTINATION bin)
 
 ##### garage-deploy targets
 
@@ -109,7 +128,7 @@ add_dependencies(qa garage-deploy-deb)
 
 ##### clang-format
 
-aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${ALL_SOTA_TOOLS_HEADERS} ${SOTA_TOOLS_LIB_SRC})
+aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${ALL_SOTA_TOOLS_HEADERS} ${SOTA_TOOLS_LIB_SRC})
 # For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
   accumulator.h

@@ -33,8 +33,9 @@ void TreehubServer::SetCerts(const std::string& root_cert, const std::string& cl
 
 // Note that this method creates a reference from curl_handle to this.  Keep
 // this TreehubServer object alive until the curl request has been completed
-void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle) const {
-  curl_easy_setopt(curl_handle, CURLOPT_URL, (root_url_ + url_suffix).c_str());
+void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, bool tufrepo) const {
+  std::string url = (tufrepo ? repo_url_ : root_url_);
+  curl_easy_setopt(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
   if (!using_oauth2_) {  // If we don't have a OAuth2 token fallback to legacy
@@ -75,4 +76,12 @@ void TreehubServer::root_url(const std::string& _root_url) {
     root_url_.append("/");
   }
 }
+
+void TreehubServer::repo_url(const std::string& _repo_url) {
+  repo_url_ = _repo_url;
+  if (repo_url_.size() > 0 && repo_url_[repo_url_.size() - 1] != '/') {
+    repo_url_.append("/");
+  }
+}
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:
