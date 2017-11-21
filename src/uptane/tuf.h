@@ -113,6 +113,7 @@ class Target {
  public:
   Target(const std::string &name, const Json::Value &content);
 
+  // TODO: ECU HW ID
   std::string ecu_identifier() const { return ecu_identifier_; }
   std::string filename() const { return filename_; }
   std::string format() const { return type_; }
@@ -225,8 +226,6 @@ class TimestampMeta {
   Json::Value toJson() const;
   bool operator==(const TimestampMeta &rhs) const { return version == rhs.version && expiry == rhs.expiry; }
 };
-
-struct TimeMeta {};
 
 class Snapshot {
  public:
