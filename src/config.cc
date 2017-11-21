@@ -340,12 +340,30 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     for (it = configs.begin(); it != configs.end(); ++it) {
       Json::Value config_json = Utils::parseJSONFile(*it);
       Uptane::SecondaryConfig ecu_config;
+      {
+        std::string type = config_json["type"].asString();
+        if (type == "virtual")
+          ecu_config.secondary_type = kVirtual;
+        else if (type == "legacy")
+          ecu_config.secondary_type = kLegacy;
+        else // type == "uptane"
+          ecu_config.secondary_type = kUptane;
+      }
+
+      {
+        std::string partial = config_json["partial"].asString();
+        ecu_config.partial_verifying = (partial == "yes");
+      }
+
       ecu_config.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
       ecu_config.ecu_serial = config_json["ecu_serial"].asString();
       ecu_config.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
       ecu_config.ecu_private_key_ = config_json["ecu_private_key"].asString();
       ecu_config.ecu_public_key_ = config_json["ecu_public_key"].asString();
       ecu_config.firmware_path = config_json["firmware_path"].asString();
+      ecu_config.time_path = config_json["time_path"].asString();
+      ecu_config.previous_time_path = config_json["previous_time_path"].asString();
+      ecu_config.target_name_path = config_json["target_name_path"].asString();
       uptane.secondaries.push_back(ecu_config);
     }
   }
