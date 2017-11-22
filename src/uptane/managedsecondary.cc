@@ -30,7 +30,7 @@ bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
   storeMetadata(current_meta);
 
   expected_target_name = "";
-  expected_target_hashes = {};
+  expected_target_hashes.clear();
   expected_target_length = 0;
 
   bool target_found = false;
