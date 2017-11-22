@@ -249,17 +249,6 @@ TEST(uptane, random_serial) {
   conf_2.uptane.private_key_path = "private.key";
   conf_2.uptane.public_key_path = "public.key";
 
-  // add secondaries
-  Uptane::SecondaryConfig ecu_config;
-  ecu_config.full_client_dir = uptane_test_dir;
-  ecu_config.ecu_serial = "";
-  ecu_config.ecu_hardware_id = "";
-  ecu_config.ecu_private_key = "sec.priv";
-  ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
-  conf_1.uptane.secondary_configs.push_back(ecu_config);
-  conf_2.uptane.secondary_configs.push_back(ecu_config);
-
   FSStorage storage_1(conf_1);
   FSStorage storage_2(conf_2);
   HttpFake http(uptane_test_dir);
@@ -275,10 +264,9 @@ TEST(uptane, random_serial) {
 
   EXPECT_TRUE(storage_1.loadEcuSerials(&ecu_serials_1));
   EXPECT_TRUE(storage_2.loadEcuSerials(&ecu_serials_2));
-  EXPECT_EQ(ecu_serials_1.size(), 2);
-  EXPECT_EQ(ecu_serials_2.size(), 2);
+  EXPECT_EQ(ecu_serials_1.size(), 1);
+  EXPECT_EQ(ecu_serials_2.size(), 1);
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_2[0].first);
-  EXPECT_NE(ecu_serials_1[1].first, ecu_serials_2[1].first);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
