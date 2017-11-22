@@ -1,5 +1,5 @@
-#ifndef UPTANE_VIRTUALSECONDARY_H_
-#define UPTANE_VIRTUALSECONDARY_H_
+#ifndef UPTANE_LEGACYSECONDARY_H_
+#define UPTANE_LEGACYSECONDARY_H_
 
 #include <string>
 
@@ -18,4 +18,4 @@ class LegacySecondary : public ManagedSecondary {
 };
 }
 
-#endif  // UPTANE_VIRTUALSECONDARY_H_
+#endif  // UPTANE_LEGACYSECONDARY_H_
