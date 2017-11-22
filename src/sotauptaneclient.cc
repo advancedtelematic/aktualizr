@@ -16,14 +16,14 @@
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
     : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
   std::vector<Uptane::SecondaryConfig>::iterator it;
-  for (it = secondary_configs.begin(); it != secondary_configs.end(); ++it) {
-    std::map<std::string, std::vector<boost::shared_ptr<SecondaryInterface> > >::const_iterator map_it =
+  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(it->ecu_serial);
     if (map_it != secondaries.end()) {
       LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << it->ecu_serial);
       continue;
     }
-    secondaries[it->ecu_serial] = SecondaryFactory::makeSecondary(*it);
+    secondaries[it->ecu_serial] = Uptane::SecondaryFactory::makeSecondary(*it);
   }
 }
 
@@ -38,13 +38,21 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
   } else {
-    // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-    return true;
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+        secondaries.find(target.ecu_identifier());
+    if (map_it != secondaries.end()) {
+      // compare version
+      return true;
+    } else {
+      // TODO: iterate through secondaries, compare version when found, throw exception otherwise
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << map_it->second->getSerial());
+      return false;
+    }
   }
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
-                                                         std::string ecu_id) {
+                                                         const std::string &ecu_id) {
   std::vector<Uptane::Target> result;
   for (std::vector<Uptane::Target>::const_iterator it = targets.begin(); it != targets.end(); ++it) {
     if (it->ecu_identifier() == ecu_id) {
@@ -58,7 +66,6 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
   try {
     OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
                           config.uptane.ostree_server);
-    OstreePackage package(target.filename(), "", config.uptane.ostree_server);
 
     data::PackageManagerCredentials cred;
     // All three files should live until package.install terminates
@@ -197,6 +204,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           std::vector<Uptane::Target>::const_iterator it;
           for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
             // treat empty format as OSTree for backwards compatibility
+            // TODO: isInstalled gets called twice here, since
+            // OstreeInstallAndManifest calls it too.
             if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
               Json::Value p_manifest = OstreeInstallAndManifest(*it);
               manifests.append(p_manifest);

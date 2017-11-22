@@ -14,16 +14,17 @@
 
 namespace Uptane {
 
-// Managed secondary is an abstraction over virtual and legacy secondaries. Both of them have all the UPTANE-related functionality implemented in aktualizr itself, so there's some shared code.
+// Managed secondary is an abstraction over virtual and legacy secondaries. Both of them have all the UPTANE-related
+// functionality implemented in aktualizr itself, so there's some shared code.
 
 class ManagedSecondary : public SecondaryInterface {
  public:
-  ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in);
+  ManagedSecondary(const SecondaryConfig& sconfig_in);
 
   virtual std::string getPublicKey() { return public_key; }
   virtual bool putMetadata(const MetaPack& meta_pack);
-  virtual int getRootVersion(bool director);
-  virtual bool putRoot(Uptane::Root root, bool director);
+  virtual int getRootVersion(const bool director);
+  virtual bool putRoot(Uptane::Root root, const bool director);
 
   virtual bool sendFirmware(const uint8_t* blob, size_t size);
   virtual Json::Value getManifest();
@@ -40,13 +41,19 @@ class ManagedSecondary : public SecondaryInterface {
   MetaPack current_meta;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
-  // TODO: bool getFirmwareInfo(std::string* targetname, size_t &target_len, std::vector<Uptane::Hash>* hashes) = 0;
-  virtual bool getFirmwareInfo(std::string* targetname, size_t &target_len, std::string* sha256hash) = 0;
+  // TODO: bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::vector<Uptane::Hash>* hashes) {};
+  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
+    (void)target_name;
+    (void)target_len;
+    (void)sha256hash;
+    return true;
+  };
 
-  void storeKeys(const std::string &public_key, const std::string &private_key);
-  bool loadKeys(std::string *public_key, std::string *private_key);
+  void storeKeys(const std::string& public_key, const std::string& private_key);
+  bool loadKeys(std::string* public_key, std::string* private_key);
 
-  void storeMetadata(const MetaPack& meta_pack);
+  // TODO: implement
+  void storeMetadata(const MetaPack& meta_pack) { (void)meta_pack; }
   bool loadMetadata(MetaPack* meta_pack);
 };
 }

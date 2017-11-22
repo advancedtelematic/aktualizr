@@ -19,7 +19,7 @@ namespace Uptane {
 
 class SecondaryInterface {
  public:
-  SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in);
+  SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in) {}
   virtual ~SecondaryInterface() {}
   virtual std::string getSerial() { return sconfig.ecu_serial; }
   virtual std::string getHwId() { return sconfig.ecu_hardware_id; }
@@ -32,7 +32,7 @@ class SecondaryInterface {
 
   virtual bool sendFirmware(const uint8_t* blob, size_t size) = 0;
 
- private:
+ protected:
   SecondaryConfig sconfig;
 };
 }

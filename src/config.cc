@@ -342,11 +342,11 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
       std::string stype = config_json["secondary_type"].asString();
       if (stype == "virtual") {
-        sconfig.secondary_type = kVirtual;
+        sconfig.secondary_type = Uptane::kVirtual;
       } else if (stype == "legacy") {
-        sconfig.secondary_type = kLegacy;
+        sconfig.secondary_type = Uptane::kLegacy;
       } else if (stype == "uptane") {
-        sconfig.secondary_type = kUptane;
+        sconfig.secondary_type = Uptane::kUptane;
       } else {
         LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
         continue;
@@ -354,13 +354,11 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       sconfig.ecu_serial = config_json["ecu_serial"].asString();
       sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
       sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-      sconfig.ecu_private_key_ = config_json["ecu_private_key"].asString();
-      sconfig.ecu_public_key_ = config_json["ecu_public_key"].asString();
+      sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
+      sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
 
       sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
       sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-      sconfig.time_path = boost::filesystem::path(config_json["time_path"].asString());
-      sconfig.previous_time_path = boost::filesystem::path(config_json["previous_time_path"].asString());
       sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
       sconfig.flasher = boost::filesystem::path(config_json["flasher"].asString());
 

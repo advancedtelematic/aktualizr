@@ -58,7 +58,7 @@ void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, s
   primary_ecu_serial = ecu_serials[0].first;
   primary_hardware_id_ = ecu_serials[0].second;
   std::vector<Uptane::SecondaryConfig>::iterator conf_it;
-  for (conf_it = config.uptane.secondaries.begin(); conf_it != config.uptane.secondaries.end(); ++conf_it) {
+  for (conf_it = config.uptane.secondary_configs.begin(); conf_it != config.uptane.secondary_configs.end(); ++conf_it) {
     // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
     //   It also kind of duplicates what is done in InitEcuSerials()
     // Move to a factory function.
@@ -90,8 +90,10 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
 
   std::vector<Uptane::SecondaryConfig>::iterator it;
   // We assume that all the serials and hardware IDs are known at this point
-  //   secondary ECU discovery (if supported) should be done before that and uptane_config.secondaries should be updated accordingly
-  for (it = uptane_config.secondaries.begin(); it != uptane_config.secondaries.end(); ++it)
+  //   secondary ECU discovery (if supported) should be done before that and uptane_config.secondary_configs should be
+  //   updated
+  //   accordingly
+  for (it = uptane_config.secondary_configs.begin(); it != uptane_config.secondary_configs.end(); ++it)
     ecu_serials.push_back(std::pair<std::string, std::string>(it->ecu_serial, it->ecu_hardware_id));
 
   storage.storeEcuSerials(ecu_serials);
