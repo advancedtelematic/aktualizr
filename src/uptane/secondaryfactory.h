@@ -24,10 +24,10 @@ class SecondaryFactory {
         break;
       case kUptane:
         LOGGER_LOG(LVL_error, "Uptane secondaries are not currently supported.");
-        return NULL;
+        return boost::shared_ptr<VirtualSecondary>();  // NULL-equivalent
       default:
         LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << sconfig.secondary_type);
-        return NULL;
+        return boost::shared_ptr<VirtualSecondary>();  // NULL-equivalent
     }
   }
 };

@@ -44,7 +44,7 @@ class ManagedSecondary : public SecondaryInterface {
   // TODO: bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::vector<Uptane::Hash>* hashes) {};
   virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
     (void)target_name;
-    (void)target_len;
+    target_len = 0;
     (void)sha256hash;
     return true;
   };
