@@ -6,7 +6,7 @@
 
 class INvStorage {
  public:
-  virtual ~INvStorage() { ; }
+  virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key) = 0;
   virtual void clearPrimaryKeys() = 0;
