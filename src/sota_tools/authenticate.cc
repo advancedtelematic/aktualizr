@@ -81,7 +81,7 @@ int authenticate(const string &cacerts, string filepath, TreehubServer &treehub)
         client_key = readArchiveFile(a)->str();
       } else if (strcmp(filename, "root.crt") == 0) {
         root_cert = readArchiveFile(a)->str();
-      } else if (strcmp(filename, "repo.url") == 0) {
+      } else if (strcmp(filename, "tufrepo.url") == 0) {
         repo_url = readArchiveFile(a)->str();
       } else {
         archive_read_data_skip(a);
