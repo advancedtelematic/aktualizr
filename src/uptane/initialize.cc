@@ -104,7 +104,6 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
 void Repository::resetEcuSerials() {
   storage.clearEcuSerials();
   primary_ecu_serial = "";
-  secondaries.clear();
 }
 
 void Repository::setEcuKeysMembers(const std::string& primary_public, const std::string& primary_private,

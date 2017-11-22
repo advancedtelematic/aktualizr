@@ -73,7 +73,6 @@ class Repository {
 
   std::string pkcs11_tls_keyname;
   std::string pkcs11_tls_certname;
-  std::vector<SecondaryInterface> secondaries;
   friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();
