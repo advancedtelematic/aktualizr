@@ -44,10 +44,10 @@ set(HEADERS
             utils.h
             uptane/exceptions.h
             uptane/legacysecondary.h
+            uptane/managedsecondary.h
             uptane/secondaryconfig.h
             uptane/secondaryfactory.h
             uptane/secondaryinterface.h
-            uptane/secondarymanager.h
             uptane/tuf.h
             uptane/tufrepository.h
             uptane/uptanerepository.h
@@ -65,10 +65,9 @@ if(BUILD_OSTREE)
     list(APPEND SOURCES sotauptaneclient.cc
                         uptane/initialize.cc
                         uptane/legacysecondary.cc
+                        uptane/managedsecondary.cc
                         uptane/role.cc
                         uptane/root.cc
-                        uptane/secondaryconfig.cc
-                        uptane/secondarymanager.cc
                         uptane/tuf.cc
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc

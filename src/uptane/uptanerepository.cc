@@ -28,26 +28,13 @@ Repository::Repository(const Config &config_in, INvStorage &storage_in, HttpInte
 #ifdef BUILD_P11
       p11(config.p11),
 #endif
-      manifests(Json::arrayValue),
-      transport(&secondaries) {
+      manifests(Json::arrayValue) {
+  // transport(&secondaries) {
 }
 
 void Repository::updateRoot(Version version) {
   director.updateRoot(version);
   image.updateRoot(version);
-}
-
-// TODO: FIX
-Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
-  ENGINE *crypto_engine = NULL;
-#ifdef BUILD_P11
-  if (key_source == kPkcs11) crypto_engine = p11.getEngine();
-#endif
-  Json::Value ecu_version_signed =
-      Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key_id, primary_version_manifest);
-  // Json::Value manifests = transport.getManifests();
-  manifests.append(ecu_version_signed);
-  return manifests;
 }
 
 bool Repository::putManifest(const Json::Value &version_manifests) {
@@ -65,15 +52,20 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
 }
 
 // array of individual ECU version manifests
-Json::Value Repository::getCurrentVersionManifest(const Json::Value &primary_version_manifest) {
+Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
   Json::Value result = Json::arrayValue;
+  ENGINE *crypto_engine = NULL;
+#ifdef BUILD_P11
+  if (key_source == kPkcs11) crypto_engine = p11.getEngine();
+#endif
 
-  Json::Value ecu_version_signed = Crypto::signTuf(primary_private_key, primary_public_key, primary_version_manifest);
+  Json::Value ecu_version_signed =
+      Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key, primary_version_manifest);
   result.append(ecu_version_signed);
 
   std::vector<SecondaryConfig>::iterator it;
-  for (it = config.uptane.secondaries.begin(), it != config.uptane.secondaries.end(); it++)
-    result.append(it->transport->getManifest(it->ecu_serial));
+  // for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); it++)
+  // result.append(it->transport->getManifest(it->ecu_serial));
   return result;
 }
 
@@ -137,26 +129,29 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 
 Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
   // TODO: may be quite resource consuming, consider storing map ecu_serial -> SecondaryConfig as a member instead
-  std::map<std::string, Uptane::Target &> targets_by_serial;
-  std::vector<Uptane::Target>::iterator t_it;
-  for (t_it = targets.begin(), t_it != targets.end(); t_it++) targets_by_serial[t_it->ecu_identifier()] = *t_it;
-  std::vector<SecondaryConfig>::iterator sec_it;
-  for (sec_it = config.uptane.secondaries.begin(), sec_it != config.uptane.secondaries.end(); sec_it++) {
-    if (targets_by_serial.find(sec_it->ecu_serial) != targets_by_serial.end) {
+  // map from ecu_serial -> SecondaryInterface now exists in sotauptaneclient.
+  std::map<std::string, const Uptane::Target *> targets_by_serial;
+  std::vector<Uptane::Target>::const_iterator t_it;
+  for (t_it = secondary_targets.begin(); t_it != secondary_targets.end(); t_it++) {
+    targets_by_serial[t_it->ecu_identifier()] = &*t_it;
+  }
+  std::vector<SecondaryConfig>::const_iterator sec_it;
+  for (sec_it = config.uptane.secondary_configs.begin(); sec_it != config.uptane.secondary_configs.end(); sec_it++) {
+    if (targets_by_serial.find(sec_it->ecu_serial) != targets_by_serial.end()) {
       // TODO: when metadata verification is separated from image loading (see comments in sotauptaneclient.cc) it
       // should be rewritten
-      Uptane::Metapack meta;
-      if (!storage.loadMeta(&meta)) {
+      Uptane::MetaPack meta;
+      if (!storage.loadMetadata(&meta)) {
         throw std::runtime_error("No valid metadata, but trying to upload firmware");
       }
       Json::Value resp;
-      if (it->partial_verifying) {
-        resp = it->transport->sendMetaPartial(meta.director_root, meta.director_targets);
-      } else {
-      }
+      // if (it->partial_verifying) {
+      // resp = it->transport->sendMetaPartial(meta.director_root, meta.director_targets);
+      //} else {
+      //}
     }
   }
-  return transport.sendTargets(secondary_targets);
+  return Json::Value();  // transport.sendTargets(secondary_targets);
 }
 
 void Repository::saveInstalledVersion(const Target &target) {

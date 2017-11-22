@@ -21,7 +21,7 @@ struct Utils {
   static Json::Value getHardwareInfo();
   static std::string getHostname();
   static std::string randomUuid();
-  static shell(const std::string& command, std::string* output);
+  static int shell(const std::string &command, std::string *output);
 };
 
 /**

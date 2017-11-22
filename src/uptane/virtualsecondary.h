@@ -9,12 +9,11 @@
 namespace Uptane {
 class VirtualSecondary : public ManagedSecondary {
  public:
-  VirtualSecondary(const SecondaryConfig &sconfig_in) : ManagedSecondary(sconfig_in);
-
+  VirtualSecondary(const SecondaryConfig& sconfig_in);
 
  private:
   virtual bool storeFirmware(const std::string& target_name, const std::string& content);
-  virtual bool getFirmwareInfo(std::string* targetname, size_t &target_len, std::string* sha256hash);
+  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash);
 };
 }
 

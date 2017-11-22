@@ -16,9 +16,6 @@ enum SecondaryType {
 
 class SecondaryConfig {
  public:
-  std::string ecu_private_key() const;  // kVirtual, kLegacy
-  std::string ecu_public_key() const;   // kVirtual, kLegacy
-
   SecondaryType secondary_type;
   std::string ecu_serial;
   std::string ecu_hardware_id;
@@ -26,12 +23,12 @@ class SecondaryConfig {
   std::string ecu_private_key;
   std::string ecu_public_key;
 
-  boost::filesystem::path full_client_dir;     // kVirtual, kLegacy
-  boost::filesystem::path firmware_path;       // kVirtual, kLegacy
-  boost::filesystem::path metadata_path;       // kVirtual, kLegacy
-  boost::filesystem::path target_name_path;    // kVirtual, kLegacy
+  boost::filesystem::path full_client_dir;   // kVirtual, kLegacy
+  boost::filesystem::path firmware_path;     // kVirtual, kLegacy
+  boost::filesystem::path metadata_path;     // kVirtual, kLegacy
+  boost::filesystem::path target_name_path;  // kVirtual, kLegacy
 
-  boost::filesystem::path flasher;     // kLegacy
+  boost::filesystem::path flasher;  // kLegacy
 };
 }
 
