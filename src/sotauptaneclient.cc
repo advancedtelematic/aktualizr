@@ -156,6 +156,26 @@ void SotaUptaneClient::reportInstalledPackages() {
                        Ostree::getInstalledPackages(config.ostree.packages_file));
 }
 
+Json::Value SotaUptaneClient::AssembleManifest() {
+  Json::Value result = Json::arrayValue;
+  std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
+  std::string refname = uptane_repo.findInstalledVersion(hash);
+  if (refname.empty()) {
+    (refname += "unknown-") += hash;
+  }
+  Json::Value unsigned_ecu_version =
+    OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
+
+  result.append(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  for (it = secondaries.begin(); it != secondaries.end(); it++) {
+    Json::Value secmanifest = it->second->getManifest();
+    if(secmanifest != Json::nullValue)
+      result.append(secmanifest);
+  }
+  return result;
+}
+
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
   if (!uptane_repo.initialize()) {
@@ -173,14 +193,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
-        std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
-        std::string refname = uptane_repo.findInstalledVersion(hash);
-        if (refname.empty()) {
-          (refname += "unknown-") += hash;
-        }
-        Json::Value unsigned_ecu_version =
-            OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
-        uptane_repo.putManifest(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+        uptane_repo.putManifest(AssembleManifest());
         // Steps 1, 3, 4 (only non-OSTree) of UPTANE 8.1, step 2 (time) is not implemented yet
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {

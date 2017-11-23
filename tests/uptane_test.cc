@@ -500,6 +500,8 @@ TEST(SotaUptaneClientTest, put_manifest) {
   config.tls.certificates_directory = uptane_test_dir;
   boost::filesystem::create_directory(uptane_test_dir);
   boost::filesystem::copy_file("tests/test_data/cred.zip", uptane_test_dir + "/cred.zip");
+  boost::filesystem::copy_file("tests/test_data/firmware.txt", uptane_test_dir + "/firmware.txt");
+  boost::filesystem::copy_file("tests/test_data/firmware_name.txt", uptane_test_dir + "/firmware_name.txt");
   config.provision.provision_path = uptane_test_dir + "/cred.zip";
   config.provision.mode = kAutomatic;
   config.uptane.repo_server = tls_server + "/repo";
@@ -508,12 +510,16 @@ TEST(SotaUptaneClientTest, put_manifest) {
   config.uptane.public_key_path = "public.key";
 
   Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = uptane_test_dir;
   ecu_config.ecu_serial = "secondary_ecu_serial";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
   ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
 
   FSStorage storage(config);
@@ -523,7 +529,11 @@ TEST(SotaUptaneClientTest, put_manifest) {
 
   Json::Value unsigned_ecu_version =
       OstreePackage("branch-hash", "hash", "").toEcuVersion(config.uptane.primary_ecu_serial, Json::nullValue);
-  uptane.putManifest(uptane.getCurrentVersionManifests(unsigned_ecu_version));
+  
+  event::Channel events_channel;
+  SotaUptaneClient sota_client(config, &events_channel, uptane);
+
+  uptane.putManifest(sota_client.AssembleManifest());
 
   EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + test_manifest));
   Json::Value json = Utils::parseJSONFile(uptane_test_dir + test_manifest);
@@ -531,9 +541,9 @@ TEST(SotaUptaneClientTest, put_manifest) {
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["ecu_serial"], "secondary_ecu_serial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"],
-            uptane_test_dir + "/firmware.txt");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["ecu_serial"], "secondary_ecu_serial");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"],
+            "test-package");
 
   boost::filesystem::remove_all(uptane_test_dir);
 }

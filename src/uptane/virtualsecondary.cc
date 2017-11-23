@@ -4,7 +4,6 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
-#include "logger.h"
 
 namespace Uptane {
 VirtualSecondary::VirtualSecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {
@@ -18,8 +17,9 @@ bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::
 }
 
 bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
-  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path))
+  if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
     return false;
+  }
 
   *target_name = Utils::readFile(sconfig.target_name_path.string());
 

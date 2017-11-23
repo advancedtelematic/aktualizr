@@ -51,9 +51,7 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
   return response.isOk();
 }
 
-// array of individual ECU version manifests
 Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
-  Json::Value result = Json::arrayValue;
   ENGINE *crypto_engine = NULL;
 #ifdef BUILD_P11
   if (key_source == kPkcs11) crypto_engine = p11.getEngine();
@@ -61,12 +59,7 @@ Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_ve
 
   Json::Value ecu_version_signed =
       Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key, primary_version_manifest);
-  result.append(ecu_version_signed);
-
-  std::vector<SecondaryConfig>::iterator it;
-  // for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); it++)
-  // result.append(it->transport->getManifest(it->ecu_serial));
-  return result;
+  return ecu_version_signed;
 }
 
 // Check for consistency, signatures are already checked
