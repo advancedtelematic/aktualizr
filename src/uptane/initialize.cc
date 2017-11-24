@@ -58,13 +58,6 @@ void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, s
   primary_ecu_serial = ecu_serials[0].first;
   primary_hardware_id_ = ecu_serials[0].second;
   std::vector<Uptane::SecondaryConfig>::iterator conf_it;
-  for (conf_it = config.uptane.secondary_configs.begin(); conf_it != config.uptane.secondary_configs.end(); ++conf_it) {
-    // TODO: creating secondaries should be a responsibility of SotaUptaneClient, not Repository
-    //   It also kind of duplicates what is done in InitEcuSerials()
-    // Move to a factory function.
-    // SecondaryInterface* s(*conf_it, this);
-    // secondaries.push_back(s);
-  }
 }
 
 // Postcondition [(serial, hw_id)] is in the storage
@@ -88,13 +81,9 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
 
-  std::vector<Uptane::SecondaryConfig>::iterator it;
-  // We assume that all the serials and hardware IDs are known at this point
-  //   secondary ECU discovery (if supported) should be done before that and uptane_config.secondary_configs should be
-  //   updated
-  //   accordingly
-  for (it = uptane_config.secondary_configs.begin(); it != uptane_config.secondary_configs.end(); ++it)
-    ecu_serials.push_back(std::pair<std::string, std::string>(it->ecu_serial, it->ecu_hardware_id));
+  std::map<std::string, std::pair<std::string, std::string> >::iterator it;
+  for (it = secondary_info.begin(); it != secondary_info.end(); ++it)
+    ecu_serials.push_back(std::pair<std::string, std::string>(it->first, it->second.first));
 
   storage.storeEcuSerials(ecu_serials);
   setEcuSerialsMembers(ecu_serials);
@@ -302,20 +291,13 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  std::vector<std::pair<std::string, std::string> >::const_iterator it;
-  for (it = ecu_serials.begin() + 1; it != ecu_serials.end(); it++) {
-    std::string secondary_public;
-    std::string secondary_keytype;
-    // TODO: fix with SecondaryInterface
-    // if (!transport.reqPublicKey(it->first, &secondary_keytype, &secondary_public)) {
-    // LOGGER_LOG(LVL_error, "Unable to read public key from secondary " << it->first);
-    // return INIT_RET_SECONDARY_FAILURE;
-    //}
+  std::map<std::string, std::pair<std::string, std::string> >::const_iterator it;
+  for (it = secondary_info.begin(); it != secondary_info.end(); it++) {
     Json::Value ecu;
-    ecu["hardware_identifier"] = it->second;
+    ecu["hardware_identifier"] = it->second.first;
     ecu["ecu_serial"] = it->first;
-    ecu["clientKey"]["keytype"] = secondary_keytype;
-    ecu["clientKey"]["keyval"]["public"] = secondary_public;
+    ecu["clientKey"]["keytype"] = "RSA";  // TODO: add getKeyType() to SecondaryInterface
+    ecu["clientKey"]["keyval"]["public"] = it->second.second;
     all_ecus["ecus"].append(ecu);
   }
 

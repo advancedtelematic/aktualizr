@@ -529,7 +529,7 @@ TEST(SotaUptaneClientTest, put_manifest) {
 
   Json::Value unsigned_ecu_version =
       OstreePackage("branch-hash", "hash", "").toEcuVersion(config.uptane.primary_ecu_serial, Json::nullValue);
-  
+
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane);
 
@@ -542,8 +542,7 @@ TEST(SotaUptaneClientTest, put_manifest) {
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
   EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["ecu_serial"], "secondary_ecu_serial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"],
-            "test-package");
+  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"], "test-package");
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -608,12 +607,16 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   conf.uptane.public_key_path = "public.key";
 
   Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = uptane_test_dir;
   ecu_config.ecu_serial = "secondary_ecu_serial";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
   ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
   conf.uptane.secondary_configs.push_back(ecu_config);
 
   conf.tls.server = tls_server;
@@ -702,17 +705,23 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   config.uptane.public_key_path = "public.key";
 
   Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = uptane_test_dir;
   ecu_config.ecu_serial = "secondary_ecu_serial";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
   ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
 
   FSStorage storage(config);
   HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
+  event::Channel events_channel;
+  SotaUptaneClient sota_client(config, &events_channel, uptane);
   EXPECT_TRUE(uptane.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(uptane_test_dir + "/post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -740,20 +749,28 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.uptane.private_key_path = "private.key";
   config.uptane.public_key_path = "public.key";
 
+  ecu_config1.secondary_type = Uptane::kVirtual;
+  ecu_config1.partial_verifying = false;
   ecu_config1.full_client_dir = uptane_test_dir;
   ecu_config1.ecu_serial = "secondary_ecu_serial1";
   ecu_config1.ecu_hardware_id = "secondary_hardware1";
   ecu_config1.ecu_private_key = "sec1.priv";
   ecu_config1.ecu_public_key = "sec1.pub";
   ecu_config1.firmware_path = uptane_test_dir + "/firmware1.txt";
+  ecu_config1.target_name_path = uptane_test_dir + "/firmware1_name.txt";
+  ecu_config1.metadata_path = uptane_test_dir + "/secondary1_metadata";
   config.uptane.secondary_configs.push_back(ecu_config1);
 
+  ecu_config2.secondary_type = Uptane::kVirtual;
+  ecu_config2.partial_verifying = false;
   ecu_config2.full_client_dir = uptane_test_dir;
   ecu_config2.ecu_serial = "secondary_ecu_serial2";
   ecu_config2.ecu_hardware_id = "secondary_hardware2";
   ecu_config2.ecu_private_key = "sec2.priv";
   ecu_config2.ecu_public_key = "sec2.pub";
   ecu_config2.firmware_path = uptane_test_dir + "/firmware2.txt";
+  ecu_config2.target_name_path = uptane_test_dir + "/firmware2_name.txt";
+  ecu_config2.metadata_path = uptane_test_dir + "/secondary2_metadata";
   config.uptane.secondary_configs.push_back(ecu_config2);
 }
 
@@ -778,18 +795,18 @@ void checkKeyTests(FSStorage& storage, Uptane::SecondaryConfig& ecu_config1, Upt
 
   // There is no available public function to fetch the secondaries' public and
   // private keys, so just do it manually here.
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.ecu_public_key));
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.ecu_private_key));
-  std::string sec1_public = Utils::readFile(ecu_config1.ecu_public_key);
-  std::string sec1_private = Utils::readFile(ecu_config1.ecu_private_key);
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.full_client_dir / ecu_config1.ecu_public_key));
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.full_client_dir / ecu_config1.ecu_private_key));
+  std::string sec1_public = Utils::readFile((ecu_config1.full_client_dir / ecu_config1.ecu_public_key).string());
+  std::string sec1_private = Utils::readFile((ecu_config1.full_client_dir / ecu_config1.ecu_private_key).string());
   EXPECT_TRUE(sec1_public.size() > 0);
   EXPECT_TRUE(sec1_private.size() > 0);
   EXPECT_NE(sec1_public, sec1_private);
 
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.ecu_public_key));
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.ecu_private_key));
-  std::string sec2_public = Utils::readFile(ecu_config2.ecu_public_key);
-  std::string sec2_private = Utils::readFile(ecu_config2.ecu_private_key);
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.full_client_dir / ecu_config2.ecu_public_key));
+  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.full_client_dir / ecu_config2.ecu_private_key));
+  std::string sec2_public = Utils::readFile((ecu_config2.full_client_dir / ecu_config2.ecu_public_key).string());
+  std::string sec2_private = Utils::readFile((ecu_config2.full_client_dir / ecu_config2.ecu_private_key).string());
   EXPECT_TRUE(sec2_public.size() > 0);
   EXPECT_TRUE(sec2_private.size() > 0);
   EXPECT_NE(sec2_public, sec2_private);
@@ -811,6 +828,8 @@ TEST(SotaUptaneClientTest, CheckAllKeys) {
   FSStorage storage(config);
   HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
+  event::Channel events_channel;
+  SotaUptaneClient sota_client(config, &events_channel, uptane);
   EXPECT_TRUE(uptane.initialize());
   checkKeyTests(storage, ecu_config1, ecu_config2);
 
@@ -827,27 +846,48 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
   Uptane::SecondaryConfig ecu_config2;
   initKeyTests(config, ecu_config1, ecu_config2);
 
-  FSStorage storage(config);
-  HttpFake http(uptane_test_dir);
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.initialize());
-  checkKeyTests(storage, ecu_config1, ecu_config2);
+  {
+    FSStorage storage(config);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(config, storage, http);
+    event::Channel events_channel;
+    SotaUptaneClient sota_client(config, &events_channel, uptane);
 
-  // Remove TLS keys but keep ECU keys and try to initialize.
-  storage.clearTlsCreds();
-  EXPECT_TRUE(uptane.initialize());
-  checkKeyTests(storage, ecu_config1, ecu_config2);
+    EXPECT_TRUE(uptane.initialize());
+    checkKeyTests(storage, ecu_config1, ecu_config2);
+
+    // Remove TLS keys but keep ECU keys and try to initialize.
+    storage.clearTlsCreds();
+  }
+  {
+    FSStorage storage(config);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(config, storage, http);
+    event::Channel events_channel;
+    SotaUptaneClient sota_client(config, &events_channel, uptane);
+
+    EXPECT_TRUE(uptane.initialize());
+    checkKeyTests(storage, ecu_config1, ecu_config2);
+  }
 
   // Remove ECU keys but keep TLS keys and try to initialize.
   boost::filesystem::remove(config.tls.certificates_directory / config.uptane.public_key_path);
   boost::filesystem::remove(config.tls.certificates_directory / config.uptane.private_key_path);
-  boost::filesystem::remove(ecu_config1.ecu_public_key);
-  boost::filesystem::remove(ecu_config1.ecu_private_key);
-  boost::filesystem::remove(ecu_config2.ecu_public_key);
-  boost::filesystem::remove(ecu_config2.ecu_private_key);
-  EXPECT_TRUE(uptane.initialize());
-  checkKeyTests(storage, ecu_config1, ecu_config2);
+  boost::filesystem::remove(ecu_config1.full_client_dir / ecu_config1.ecu_public_key);
+  boost::filesystem::remove(ecu_config1.full_client_dir / ecu_config1.ecu_private_key);
+  boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_public_key);
+  boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
 
+  {
+    FSStorage storage(config);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(config, storage, http);
+    event::Channel events_channel;
+    SotaUptaneClient sota_client(config, &events_channel, uptane);
+
+    EXPECT_TRUE(uptane.initialize());
+    checkKeyTests(storage, ecu_config1, ecu_config2);
+  }
   boost::filesystem::remove_all(uptane_test_dir);
 }
 

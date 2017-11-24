@@ -35,8 +35,10 @@ class Repository {
   Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
-  // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
-  // Json::Value getVersionManifest(Json::Value custom = Json::Value(Json::nullValue));
+  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
+                    const std::string &public_key) {
+    secondary_info[ecu_serial] = std::make_pair(hardware_identifier, public_key);
+  }
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
@@ -73,6 +75,10 @@ class Repository {
 
   std::string pkcs11_tls_keyname;
   std::string pkcs11_tls_certname;
+
+  // ECU serial => (ECU hardware ID, ECU public_key)
+  std::map<std::string, std::pair<std::string, std::string> > secondary_info;
+
   friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();

@@ -24,6 +24,8 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       continue;
     }
     secondaries[it->ecu_serial] = Uptane::SecondaryFactory::makeSecondary(*it);
+    uptane_repo.addSecondary(it->ecu_serial, secondaries[it->ecu_serial]->getHwId(),
+                             secondaries[it->ecu_serial]->getPublicKey());
   }
 }
 
@@ -163,20 +165,20 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     (refname += "unknown-") += hash;
   }
   Json::Value unsigned_ecu_version =
-    OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
+      OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
 
   result.append(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
-    if(secmanifest != Json::nullValue)
-      result.append(secmanifest);
+    if (secmanifest != Json::nullValue) result.append(secmanifest);
   }
   return result;
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
+
   if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
