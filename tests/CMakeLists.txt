@@ -353,7 +353,7 @@ add_test(NAME garage-deploy-nonexistent-option
     COMMAND garage-deploy --test )
 set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
-
+add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-noarguments PROPERTIES PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
