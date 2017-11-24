@@ -12,6 +12,8 @@ target_link_libraries(aktualizr-info aktualizr_static_lib
   ${LibArchive_LIBRARIES}
   gcov)
 
+install(TARGETS aktualizr-info RUNTIME DESTINATION bin)
+
 aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
