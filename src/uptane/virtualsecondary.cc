@@ -18,7 +18,10 @@ bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::
 
 bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
   if (!boost::filesystem::exists(sconfig.target_name_path) || !boost::filesystem::exists(sconfig.firmware_path)) {
-    return false;
+    *target_name = std::string("noimage");
+    target_len = 0;
+    *sha256hash = std::string("");
+    return true;
   }
 
   *target_name = Utils::readFile(sconfig.target_name_path.string());
