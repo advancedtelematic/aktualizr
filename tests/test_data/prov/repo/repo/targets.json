@@ -1,0 +1,48 @@
+
+{
+	"_type" : "Targets",
+	"expires" : "2017-11-05T14:50:27Z",
+	"targets" : 
+	{
+		"5f42ed8a85eb1e52decf4dce259408551f49deeee09915232d5c6009dab12266-5f42ed8a85eb1e52decf4dce259408551f49deeee09915232d5c6009dab12266_1.0" : 
+		{
+			"custom" : 
+			{
+				"ecuIdentifier" : "",
+				"targetFormat" : ""
+			},
+			"hashes" : 
+			{
+				"sha256" : "BC7171AB9F219BE71029F1D3D104F7EE11F6E418055A8122FE3BDCB547769AE8"
+			},
+			"length" : 3017
+		},
+		"master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0" : 
+		{
+			"custom" : 
+			{
+				"ecuIdentifier" : "",
+				"targetFormat" : "OSTREE"
+			},
+			"hashes" : 
+			{
+				"sha256" : "863DE625F305413DC3BE306AFAB7C3F39D8713045CFFF812B3AF83F9722851F0"
+			},
+			"length" : 0
+		},
+		"testpack_1.0" : 
+		{
+			"custom" : 
+			{
+				"ecuIdentifier" : "",
+				"targetFormat" : ""
+			},
+			"hashes" : 
+			{
+				"sha256" : "BC7171AB9F219BE71029F1D3D104F7EE11F6E418055A8122FE3BDCB547769AE8"
+			},
+			"length" : 3017
+		}
+	},
+	"version" : 4
+}

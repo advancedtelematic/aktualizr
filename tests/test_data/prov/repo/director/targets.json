@@ -1,0 +1,22 @@
+
+{
+	"_type" : "Targets",
+	"expires" : "2017-11-17T23:58:40Z",
+	"targets" : 
+	{
+		"master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0" : 
+		{
+			"custom" : 
+			{
+				"ecuIdentifier" : "cd51a49a-25d9-438e-93fa-c0dde6bfcec9",
+				"targetFormat" : ""
+			},
+			"hashes" : 
+			{
+				"sha256" : "863DE625F305413DC3BE306AFAB7C3F39D8713045CFFF812B3AF83F9722851F0"
+			},
+			"length" : 0
+		}
+	},
+	"version" : 33
+}

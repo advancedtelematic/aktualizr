@@ -43,22 +43,22 @@ int main(int argc, char **argv) {
     }
 
     if (vm.count("images-root")) {
-      std::cout << "image root.json content: " << std::endl;
+      std::cout << "image root.json content:" << std::endl;
       std::cout << pack.image_root.toJson();
     }
 
     if (vm.count("images-target")) {
-      std::cout << "image targets.json content: " << std::endl;
+      std::cout << "image targets.json content:" << std::endl;
       std::cout << pack.image_targets.toJson();
     }
 
     if (vm.count("director-root")) {
-      std::cout << "director root.json content: " << std::endl;
+      std::cout << "director root.json content:" << std::endl;
       std::cout << pack.director_root.toJson();
     }
 
     if (vm.count("director-target")) {
-      std::cout << "director targets.json content: " << std::endl;
+      std::cout << "director targets.json content:" << std::endl;
       std::cout << pack.director_targets.toJson();
     }
 
