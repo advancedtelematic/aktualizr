@@ -12,22 +12,8 @@ FSStorage::FSStorage(const Config& config) : config_(config) {
   boost::filesystem::create_directories(config_.tls.certificates_directory);
   boost::filesystem::create_directories(config_.uptane.metadata_path / "repo");
   boost::filesystem::create_directories(config_.uptane.metadata_path / "director");
-
-  // migrate from old aktualizr behavior if we already provisioned
-  boost::filesystem::path public_key_path = config_.tls.certificates_directory / config_.uptane.public_key_path;
-  boost::filesystem::path private_key_path = config_.tls.certificates_directory / config_.uptane.private_key_path;
-  boost::filesystem::path ca_path(config_.tls.ca_file());
-  boost::filesystem::path cert_path(config_.tls.client_certificate());
-  boost::filesystem::path pkey_path(config_.tls.pkey_file());
-  boost::filesystem::path device_id = config_.tls.certificates_directory / "device_id";
-  boost::filesystem::path primary_ecu_serial = config_.tls.certificates_directory / "primary_ecu_serial";
-  if (boost::filesystem::exists(public_key_path) && boost::filesystem::exists(private_key_path) &&
-      boost::filesystem::exists(ca_path) && boost::filesystem::exists(cert_path) &&
-      boost::filesystem::exists(pkey_path) && boost::filesystem::exists(device_id) &&
-      boost::filesystem::exists(primary_ecu_serial)) {
-    Utils::writeFile((config_.tls.certificates_directory / "is_registered").string(), std::string("1"));
-  }
 }
+
 FSStorage::~FSStorage() {
   // TODO: clear director_files, image_files
 }
