@@ -182,6 +182,9 @@ if(BUILD_SOTA_TOOLS)
     add_subdirectory("src/sota_tools")
 endif(BUILD_SOTA_TOOLS)
 
+if(BUILD_OSTREE)
+    add_subdirectory("src/aktualizr_info")
+endif(BUILD_OSTREE)
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)

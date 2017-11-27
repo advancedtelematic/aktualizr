@@ -1,0 +1,17 @@
+[core]
+polling = true
+polling_sec = 10
+[ostree]
+os = "myos"
+
+[tls]
+certificates_directory = "test_data/prov/certs"
+
+[uptane]
+metadata_path = "test_data/prov/repo"
+disable_keyid_validation = true
+primary_ecu_hardware_id = "master"
+key_source = "pkcs11"
+public_key_path="01"
+private_key_path = "01"
+

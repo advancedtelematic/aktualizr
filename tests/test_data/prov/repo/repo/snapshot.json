@@ -1,0 +1,17 @@
+
+{
+	"_type" : "Snapshot",
+	"expires" : "2017-11-05T14:50:27Z",
+	"meta" : 
+	{
+		"root.json" : 
+		{
+			"version" : 1
+		},
+		"targets.json" : 
+		{
+			"version" : 4
+		}
+	},
+	"version" : 4
+}
