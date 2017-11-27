@@ -41,13 +41,7 @@ class ManagedSecondary : public SecondaryInterface {
   MetaPack current_meta;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
-  // TODO: bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::vector<Uptane::Hash>* hashes) {};
-  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
-    (void)target_name;
-    target_len = 0;
-    (void)sha256hash;
-    return true;
-  };
+  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) = 0;
 
   void storeKeys(const std::string& public_key, const std::string& private_key);
   bool loadKeys(std::string* public_key, std::string* private_key);
