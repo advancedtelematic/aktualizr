@@ -1,7 +1,7 @@
-#include <boost/regex.hpp>
+#include <regex>
+#include <gtest/gtest.h>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
-#include <gtest/gtest.h>
 
 namespace bpo = boost::program_options;
 
@@ -11,7 +11,7 @@ std::string target;
 std::string exec(const std::string &cmd) {
   std::array<char, 128> buffer;
   std::string result;
-  boost::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
+  std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
   if (!pipe) throw std::runtime_error("popen() failed!");
   while (!feof(pipe.get())) {
     if (fgets(buffer.data(), 128, pipe.get()) != nullptr) result += buffer.data();
@@ -35,12 +35,12 @@ TEST(ECUInterface, check_loglevel) {
 }
 
 bool isECUListValid(const std::string &output){
-  boost::smatch ecu_match;
-  boost::regex ecu_regex("\\w+(?: \\w+)?\\n?");
+  std::smatch ecu_match;
+  std::regex ecu_regex("\\w+(?: \\w+)?\\n?");
 
   unsigned int matched_symbols = 0;
   std::string::const_iterator search_start(output.cbegin());
-  while(boost::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
+  while(std::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
     matched_symbols += ecu_match.length();
     search_start += ecu_match.position() + ecu_match.length();
   }
@@ -59,11 +59,11 @@ TEST(ECUInterface, check_list_ecus_loglevel) {
 
 TEST(ECUInterface, install_good) {
 
-  boost::smatch ecu_match;
-  boost::regex ecu_regex("(\\w+) ?(\\w+)?\\n?");
+  std::smatch ecu_match;
+  std::regex ecu_regex("(\\w+) ?(\\w+)?\\n?");
   std::string output = exec(target + " list-ecus");
 
-  EXPECT_TRUE(boost::regex_search(output, ecu_match, ecu_regex));
+  EXPECT_TRUE(std::regex_search(output, ecu_match, ecu_regex));
   std::string cmd = target + " install-software  --firmware "+ firmware +" --hardware-identifier " + ecu_match[1].str();
 
   if (ecu_match.size() == 3){
