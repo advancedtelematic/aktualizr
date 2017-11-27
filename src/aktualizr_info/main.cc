@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     }
 
   } catch (const po::error &o) {
-    std::cout << o.what();
+    std::cout << o.what() << std::endl;
     std::cout << desc;
     return EXIT_FAILURE;
   }
