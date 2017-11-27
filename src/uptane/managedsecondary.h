@@ -32,6 +32,7 @@ class ManagedSecondary : public SecondaryInterface {
  private:
   std::string public_key;
   std::string private_key;
+  std::string public_key_id;
 
   std::string detected_attack;
   std::string expected_target_name;

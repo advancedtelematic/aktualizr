@@ -8,7 +8,6 @@
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
-  // transport(primary), wait_image(false) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
   // TODO: FIX
@@ -21,6 +20,7 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
     }
     storeKeys(public_key, private_key);
   }
+  public_key_id = Crypto::getKeyId(public_key);
 }
 
 bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
@@ -128,7 +128,7 @@ Json::Value ManagedSecondary::getManifest() {
   manifest["installed_image"] = installed_image;
   manifest["ecu_serial"] = sconfig.ecu_serial;
 
-  Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, public_key, manifest);
+  Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, public_key_id, manifest);
   return signed_ecu_version;
 }
 

@@ -29,7 +29,6 @@ Repository::Repository(const Config &config_in, INvStorage &storage_in, HttpInte
       p11(config.p11),
 #endif
       manifests(Json::arrayValue) {
-  // transport(&secondaries) {
 }
 
 void Repository::updateRoot(Version version) {
@@ -58,7 +57,7 @@ Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_ve
 #endif
 
   Json::Value ecu_version_signed =
-      Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key, primary_version_manifest);
+      Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key_id, primary_version_manifest);
   return ecu_version_signed;
 }
 

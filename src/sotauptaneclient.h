@@ -33,6 +33,7 @@ class SotaUptaneClient {
   Config config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
+  // ecu_serial -> secondary*
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
   int last_targets_version;
 };

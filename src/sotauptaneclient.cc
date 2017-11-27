@@ -194,13 +194,15 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        // Uptane step 1 (build the vehicle version manifest):
         uptane_repo.putManifest(AssembleManifest());
-        // Steps 1, 3, 4 (only non-OSTree) of UPTANE 8.1, step 2 (time) is not implemented yet
+        // Uptane step 2 (download time) is not implemented yet.
+        // Uptane steps 3 and 4 (download metadata and then images):
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOGGER_LOG(LVL_info, "got new updates");
           *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates.second);
-          last_targets_version = updates.first;  // What if we fail install targets?
+          last_targets_version = updates.first;  // TODO: What if we fail install targets?
         } else {
           LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
@@ -213,6 +215,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         //   4 - download all the images and verify them against the metadata (for OSTree - pull without deploying)
         //   6 - send metadata to all the ECUs
         //   7 - send images to ECUs (deploy for OSTree)
+        // Uptane step 5 (send time to all ECUs) is not implemented yet.
         manifests = uptane_repo.updateSecondaries(updates);
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
@@ -229,7 +232,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           }
           // TODO: other updates for primary
         }
-        // TODO: this step seems to be not required by UPTANE
+        // TODO: this step seems to be not required by UPTANE; is it worth
+        // keeping?
         uptane_repo.putManifest(manifests);
 
       } else if (command->variant == "Shutdown") {
