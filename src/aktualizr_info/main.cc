@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   po::options_description desc("Allowed options");
   // clang-format off
   desc.add_options()
-    ("config,c", po::value<std::string>()->required(), "toml configuration file")
+    ("config,c", po::value<std::string>()->default_value("/usr/lib/sota/sota.toml"), "toml configuration file")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("director-root",  "Outputs root.json from director repo")
