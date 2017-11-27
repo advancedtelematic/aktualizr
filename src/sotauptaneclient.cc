@@ -119,8 +119,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
   }
 }
 
-Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
-  Json::Value operation_result;
+void SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
   if (isInstalled(target)) {
     data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
@@ -134,17 +133,6 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
       uptane_repo.saveInstalledVersion(target);
     }
   }
-  Json::Value unsigned_ecu_version =
-      OstreePackage(target.filename(), target.sha256Hash(), "").toEcuVersion(target.ecu_identifier(), operation_result);
-
-  ENGINE *crypto_engine = NULL;
-#ifdef BUILD_P11
-  if ((uptane_repo.key_source == kPkcs11)) crypto_engine = uptane_repo.p11.getEngine();
-#endif
-
-  Json::Value ecu_version_signed = Crypto::signTuf(crypto_engine, uptane_repo.primary_private_key,
-                                                   uptane_repo.primary_public_key_id, unsigned_ecu_version);
-  return ecu_version_signed;
 }
 
 void SotaUptaneClient::reportHwInfo() {
@@ -165,7 +153,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     (refname += "unknown-") += hash;
   }
   Json::Value unsigned_ecu_version =
-      OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
+      OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), operation_result);
 
   result.append(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
@@ -208,15 +196,15 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
+        operation_result = Json::nullValue;
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.getPrimaryEcuSerial());
-        Json::Value manifests(Json::arrayValue);
         // TODO: both primary and secondary updates should be split into sequence of stages specified by UPTANE:
         //   4 - download all the images and verify them against the metadata (for OSTree - pull without deploying)
         //   6 - send metadata to all the ECUs
         //   7 - send images to ECUs (deploy for OSTree)
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
-        manifests = uptane_repo.updateSecondaries(updates);
+        updateSecondaries(updates);
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           std::vector<Uptane::Target>::const_iterator it;
@@ -225,8 +213,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
             // TODO: isInstalled gets called twice here, since
             // OstreeInstallAndManifest calls it too.
             if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
-              Json::Value p_manifest = OstreeInstallAndManifest(*it);
-              manifests.append(p_manifest);
+              OstreeInstallAndManifest(*it);
               break;
             }
           }
@@ -234,7 +221,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         }
         // TODO: this step seems to be not required by UPTANE; is it worth
         // keeping?
-        uptane_repo.putManifest(manifests);
+        uptane_repo.putManifest(AssembleManifest());
 
       } else if (command->variant == "Shutdown") {
         polling_thread.interrupt();
@@ -246,6 +233,37 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
       LOGGER_LOG(LVL_error, e.what());
     } catch (const std::exception &ex) {
       LOGGER_LOG(LVL_error, "Unknown exception was thrown: " << ex.what());
+    }
+  }
+}
+
+// TODO: the function can't currently return any errors. The problem of error reporting from secondaries should be
+// solved on a system (backend+frontend) error.
+// TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
+void SotaUptaneClient::updateSecondaries(std::vector<Uptane::Target> targets) {
+  std::vector<Uptane::Target>::const_iterator it;
+
+  Uptane::MetaPack meta;
+  if (!uptane_repo.currentMeta(&meta)) {
+    // couldn't get current metadata package, can't proceed
+    return;
+  }
+  // target images should already have been downloaded to metadata_path/targets/
+  for (it = targets.begin(); it != targets.end(); ++it) {
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
+        secondaries.find(it->ecu_identifier());
+    if (sec != secondaries.end()) {
+      std::string firmware_path = uptane_repo.image.getTargetPath(*it);
+      if (!boost::filesystem::exists(firmware_path)) continue;
+
+      if (!sec->second->putMetadata(meta)) {
+        // connection error while putting metadata, can't upload firmware
+        continue;
+      }
+
+      std::string firmware = Utils::readFile(firmware_path);
+
+      sec->second->sendFirmware((const uint8_t *)firmware.c_str(), firmware.size());
     }
   }
 }

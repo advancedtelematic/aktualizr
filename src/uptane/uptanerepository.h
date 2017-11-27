@@ -39,7 +39,6 @@ class Repository {
                     const std::string &public_key) {
     secondary_info[ecu_serial] = std::make_pair(hardware_identifier, public_key);
   }
-  Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
   std::string getPrimaryHardwareId() const { return primary_hardware_id_; };
@@ -53,6 +52,8 @@ class Repository {
   // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
   // TODO: Receive and update time nonces.
+
+  bool currentMeta(Uptane::MetaPack *meta) { return storage.loadMetadata(meta); }
 
  private:
   Config config;

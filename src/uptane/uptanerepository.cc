@@ -119,33 +119,6 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
 }
 
-Json::Value Repository::updateSecondaries(const std::vector<Uptane::Target> &secondary_targets) {
-  // TODO: may be quite resource consuming, consider storing map ecu_serial -> SecondaryConfig as a member instead
-  // map from ecu_serial -> SecondaryInterface now exists in sotauptaneclient.
-  std::map<std::string, const Uptane::Target *> targets_by_serial;
-  std::vector<Uptane::Target>::const_iterator t_it;
-  for (t_it = secondary_targets.begin(); t_it != secondary_targets.end(); t_it++) {
-    targets_by_serial[t_it->ecu_identifier()] = &*t_it;
-  }
-  std::vector<SecondaryConfig>::const_iterator sec_it;
-  for (sec_it = config.uptane.secondary_configs.begin(); sec_it != config.uptane.secondary_configs.end(); sec_it++) {
-    if (targets_by_serial.find(sec_it->ecu_serial) != targets_by_serial.end()) {
-      // TODO: when metadata verification is separated from image loading (see comments in sotauptaneclient.cc) it
-      // should be rewritten
-      Uptane::MetaPack meta;
-      if (!storage.loadMetadata(&meta)) {
-        throw std::runtime_error("No valid metadata, but trying to upload firmware");
-      }
-      Json::Value resp;
-      // if (it->partial_verifying) {
-      // resp = it->transport->sendMetaPartial(meta.director_root, meta.director_targets);
-      //} else {
-      //}
-    }
-  }
-  return Json::Value();  // transport.sendTargets(secondary_targets);
-}
-
 void Repository::saveInstalledVersion(const Target &target) {
   std::string versions_str;
   storage.loadInstalledVersions(&versions_str);
