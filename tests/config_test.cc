@@ -146,9 +146,9 @@ TEST(config, ecu_persist) {
 
   Config conf2("tests/config_tests.toml", cmd);
   EXPECT_EQ(conf1.uptane.primary_ecu_serial, conf2.uptane.primary_ecu_serial);
-  EXPECT_EQ(conf1.uptane.secondaries.size(), 1);
-  EXPECT_EQ(conf2.uptane.secondaries.size(), 1);
-  EXPECT_EQ(conf1.uptane.secondaries[0].ecu_serial, conf2.uptane.secondaries[0].ecu_serial);
+  EXPECT_EQ(conf1.uptane.secondary_configs.size(), 1);
+  EXPECT_EQ(conf2.uptane.secondary_configs.size(), 1);
+  EXPECT_EQ(conf1.uptane.secondary_configs[0].ecu_serial, conf2.uptane.secondary_configs[0].ecu_serial);
 
   boost::filesystem::remove_all(config_test_dir);
 }

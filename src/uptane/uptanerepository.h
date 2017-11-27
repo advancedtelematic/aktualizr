@@ -5,8 +5,7 @@
 #include <vector>
 #include "config.h"
 #include "invstorage.h"
-#include "uptane/secondary.h"
-#include "uptane/testbusprimary.h"
+#include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 
 #include "crypto.h"
@@ -36,7 +35,10 @@ class Repository {
   Repository(const Config &config, INvStorage &storage, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value getCurrentVersionManifests(const Json::Value &version_manifests);
-  // void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier);
+  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
+                    const std::string &public_key) {
+    secondary_info[ecu_serial] = std::make_pair(hardware_identifier, public_key);
+  }
   Json::Value updateSecondaries(const std::vector<Uptane::Target> &secondary_targets);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
@@ -50,12 +52,9 @@ class Repository {
   void initReset();
   // TODO: only used by tests, rewrite test and delete this method
   void updateRoot(Version version = Version());
+  // TODO: Receive and update time nonces.
 
  private:
-  struct SecondaryConfig {
-    std::string ecu_serial;
-    std::string ecu_hardware_id;
-  };
   Config config;
   TufRepository director;
   TufRepository image;
@@ -76,9 +75,10 @@ class Repository {
 
   std::string pkcs11_tls_keyname;
   std::string pkcs11_tls_certname;
-  std::vector<Secondary> secondaries;
-  TestBusPrimary transport;
-  friend class TestBusSecondary;
+
+  // ECU serial => (ECU hardware ID, ECU public_key)
+  std::map<std::string, std::pair<std::string, std::string> > secondary_info;
+
   friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();

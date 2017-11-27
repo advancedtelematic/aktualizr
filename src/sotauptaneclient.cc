@@ -1,17 +1,33 @@
 #include "sotauptaneclient.h"
 
 #include <unistd.h>
+
 #include <boost/make_shared.hpp>
+#include "json/json.h"
 
 #include "crypto.h"
 #include "httpclient.h"
-#include "json/json.h"
 #include "logger.h"
 #include "uptane/exceptions.h"
+#include "uptane/secondaryconfig.h"
+#include "uptane/secondaryfactory.h"
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {}
+    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
+  std::vector<Uptane::SecondaryConfig>::iterator it;
+  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+        secondaries.find(it->ecu_serial);
+    if (map_it != secondaries.end()) {
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << it->ecu_serial);
+      continue;
+    }
+    secondaries[it->ecu_serial] = Uptane::SecondaryFactory::makeSecondary(*it);
+    uptane_repo.addSecondary(it->ecu_serial, secondaries[it->ecu_serial]->getHwId(),
+                             secondaries[it->ecu_serial]->getPublicKey());
+  }
+}
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
@@ -24,13 +40,21 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
   } else {
-    // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-    return true;
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+        secondaries.find(target.ecu_identifier());
+    if (map_it != secondaries.end()) {
+      // compare version
+      return true;
+    } else {
+      // TODO: iterate through secondaries, compare version when found, throw exception otherwise
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << map_it->second->getSerial());
+      return false;
+    }
   }
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
-                                                         std::string ecu_id) {
+                                                         const std::string &ecu_id) {
   std::vector<Uptane::Target> result;
   for (std::vector<Uptane::Target>::const_iterator it = targets.begin(); it != targets.end(); ++it) {
     if (it->ecu_identifier() == ecu_id) {
@@ -123,7 +147,7 @@ Json::Value SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &tar
   return ecu_version_signed;
 }
 
-void SotaUptaneClient::reportHWInfo() {
+void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) uptane_repo.http.put(config.tls.server + "/core/system_info", hw_info);
 }
@@ -133,13 +157,33 @@ void SotaUptaneClient::reportInstalledPackages() {
                        Ostree::getInstalledPackages(config.ostree.packages_file));
 }
 
+Json::Value SotaUptaneClient::AssembleManifest() {
+  Json::Value result = Json::arrayValue;
+  std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
+  std::string refname = uptane_repo.findInstalledVersion(hash);
+  if (refname.empty()) {
+    (refname += "unknown-") += hash;
+  }
+  Json::Value unsigned_ecu_version =
+      OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
+
+  result.append(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  for (it = secondaries.begin(); it != secondaries.end(); it++) {
+    Json::Value secmanifest = it->second->getManifest();
+    if (secmanifest != Json::nullValue) result.append(secmanifest);
+  }
+  return result;
+}
+
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
+
   if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
   LOGGER_LOG(LVL_debug, "... provisioned OK");
-  reportHWInfo();
+  reportHwInfo();
   reportInstalledPackages();
 
   boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
@@ -150,19 +194,15 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
-        std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
-        std::string refname = uptane_repo.findInstalledVersion(hash);
-        if (refname.empty()) {
-          (refname += "unknown-") += hash;
-        }
-        Json::Value unsigned_ecu_version =
-            OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), Json::nullValue);
-        uptane_repo.putManifest(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+        // Uptane step 1 (build the vehicle version manifest):
+        uptane_repo.putManifest(AssembleManifest());
+        // Uptane step 2 (download time) is not implemented yet.
+        // Uptane steps 3 and 4 (download metadata and then images):
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOGGER_LOG(LVL_info, "got new updates");
           *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates.second);
-          last_targets_version = updates.first;  // What if we fail install targets?
+          last_targets_version = updates.first;  // TODO: What if we fail install targets?
         } else {
           LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
@@ -171,17 +211,29 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.getPrimaryEcuSerial());
         Json::Value manifests(Json::arrayValue);
+        // TODO: both primary and secondary updates should be split into sequence of stages specified by UPTANE:
+        //   4 - download all the images and verify them against the metadata (for OSTree - pull without deploying)
+        //   6 - send metadata to all the ECUs
+        //   7 - send images to ECUs (deploy for OSTree)
+        // Uptane step 5 (send time to all ECUs) is not implemented yet.
         manifests = uptane_repo.updateSecondaries(updates);
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
-          for (std::vector<Uptane::Target>::const_iterator it = primary_updates.begin(); it != primary_updates.end();
-               ++it) {
-            Json::Value p_manifest = OstreeInstallAndManifest(*it);
-            manifests.append(p_manifest);
-            break;
+          std::vector<Uptane::Target>::const_iterator it;
+          for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
+            // treat empty format as OSTree for backwards compatibility
+            // TODO: isInstalled gets called twice here, since
+            // OstreeInstallAndManifest calls it too.
+            if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
+              Json::Value p_manifest = OstreeInstallAndManifest(*it);
+              manifests.append(p_manifest);
+              break;
+            }
           }
           // TODO: other updates for primary
         }
+        // TODO: this step seems to be not required by UPTANE; is it worth
+        // keeping?
         uptane_repo.putManifest(manifests);
 
       } else if (command->variant == "Shutdown") {

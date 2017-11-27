@@ -6,18 +6,29 @@
 #include <boost/filesystem.hpp>
 
 namespace Uptane {
+
+enum SecondaryType {
+  kVirtual,  // Virtual secondary (in-process fake implementation).
+  kLegacy,   // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an
+             // external firmware loader via shell.
+  kUptane,   // UPTANE-compliant secondary (UDS, DoIP, et cetera).
+};
+
 class SecondaryConfig {
  public:
-  std::string ecu_private_key() const;
-  std::string ecu_public_key() const;
-
+  SecondaryType secondary_type;
   std::string ecu_serial;
   std::string ecu_hardware_id;
-  std::string ecu_private_key_;
-  std::string ecu_public_key_;
-  boost::filesystem::path full_client_dir;
   bool partial_verifying;
-  boost::filesystem::path firmware_path;
+  std::string ecu_private_key;
+  std::string ecu_public_key;
+
+  boost::filesystem::path full_client_dir;   // kVirtual, kLegacy
+  boost::filesystem::path firmware_path;     // kVirtual, kLegacy
+  boost::filesystem::path metadata_path;     // kVirtual, kLegacy
+  boost::filesystem::path target_name_path;  // kVirtual, kLegacy
+
+  boost::filesystem::path flasher;  // kLegacy
 };
 }
 

@@ -1,36 +1,39 @@
 #include <map>
+#include <string>
+#include <vector>
+
+#include <boost/shared_ptr.hpp>
 
 #include "commands.h"
 #include "config.h"
 #include "events.h"
 #include "httpclient.h"
 #include "ostree.h"
+#include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 #include "uptane/uptanerepository.h"
 
 class SotaUptaneClient {
  public:
-  enum ServiceType { Director = 0, Repo };
-  std::string getEndPointUrl(SotaUptaneClient::ServiceType, const std::string &endpoint);
-
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
-
-  Json::Value sign(const Json::Value &in_data);
   Json::Value OstreeInstallAndManifest(const Uptane::Target &package);
-  void run(command::Channel *commands_channel);
   void runForever(command::Channel *commands_channel);
 
+  Json::Value AssembleManifest();
+
  private:
-  void reportHWInfo();
-  void reportInstalledPackages();
   bool isInstalled(const Uptane::Target &target);
+  std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
   data::InstallOutcome OstreeInstall(const Uptane::Target &package);
+  void reportHwInfo();
+  void reportInstalledPackages();
+  void run(command::Channel *commands_channel);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
-  std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, std::string ecu_id);
+
   Config config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
-
-  std::vector<Json::Value> ecu_versions;
+  // ecu_serial -> secondary*
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
   int last_targets_version;
 };

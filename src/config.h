@@ -155,7 +155,7 @@ struct UptaneConfig {
   CryptoSource key_source;
   std::string private_key_path;
   std::string public_key_path;
-  std::vector<Uptane::SecondaryConfig> secondaries;
+  std::vector<Uptane::SecondaryConfig> secondary_configs;
 };
 
 struct OstreeConfig {
