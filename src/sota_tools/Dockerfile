@@ -17,7 +17,6 @@ RUN apt-get update -q && apt-get -qy install \
   libboost-log-dev \
   libboost-program-options-dev \
   libboost-random-dev \
-  libboost-regex-dev \
   libboost-system-dev \
   libcurl4-gnutls-dev \
   libglib2.0-dev \

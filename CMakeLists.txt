@@ -25,7 +25,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
 find_package(PkgConfig REQUIRED)
-find_package(Boost 1.57.0 COMPONENTS system filesystem thread program_options log_setup log regex chrono random REQUIRED)
+find_package(Boost 1.57.0 COMPONENTS system filesystem thread program_options log_setup log chrono random REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
@@ -148,12 +148,16 @@ include_directories(${LIBDBUS_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
 
 if(BUILD_GENIVI)
-    set(CMAKE_CXX_STANDARD 11)
     add_subdirectory("third_party/rvi_lib")
+    set_property(TARGET rvi PROPERTY CXX_STANDARD 11)
 endif(BUILD_GENIVI)
 
 # Setup warnings. Do this after rvi_lib is added so that it isn't affected.
 if (CMAKE_COMPILER_IS_GNUCXX)
+    # Still enforce C++98/03 for client-side code.
+    set(CMAKE_CXX_STANDARD 98)
+    # Do not use GNU or other extensions.
+    set(CMAKE_CXX_EXTENSIONS OFF)
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
