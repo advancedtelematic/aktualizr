@@ -15,6 +15,7 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
   // reading target hash back is not currently supported, so primary needs to save the firmware file locally
   Utils::writeFile(sconfig.target_name_path.string(), target_name);
   Utils::writeFile(sconfig.firmware_path.string(), content);
+  sync();
 
   std::string output;
   int rs = Utils::shell(sconfig.flasher.string() + " --hardware-identifier " + sconfig.ecu_hardware_id +

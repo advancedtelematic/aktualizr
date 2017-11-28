@@ -13,6 +13,7 @@ VirtualSecondary::VirtualSecondary(const SecondaryConfig& sconfig_in) : ManagedS
 bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
   Utils::writeFile(sconfig.target_name_path.string(), target_name);
   Utils::writeFile(sconfig.firmware_path.string(), content);
+  sync();
   return true;
 }
 
