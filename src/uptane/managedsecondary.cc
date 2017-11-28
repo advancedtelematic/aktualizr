@@ -126,6 +126,8 @@ Json::Value ManagedSecondary::getManifest() {
   manifest["attacks_detected"] = detected_attack;
   manifest["installed_image"] = installed_image;
   manifest["ecu_serial"] = sconfig.ecu_serial;
+  manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
+  manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
   Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, public_key_id, manifest);
   return signed_ecu_version;
