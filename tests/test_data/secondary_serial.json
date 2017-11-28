@@ -8,5 +8,6 @@
   "ecu_private_key" : "sec.private",
   "ecu_public_key" : "sec.public",
   "firmware_path" : "/tmp/test-virtual-secondary/firmware.bin",
-  "target_name_path" : "/tmp/test-virtual-secondary/target_name"
+  "target_name_path" : "/tmp/test-virtual-secondary/target_name",
+  "metadata_path" : "/tmp/test-virtual-secondary/metadata",
 }
