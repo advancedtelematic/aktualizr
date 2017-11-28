@@ -249,7 +249,7 @@ TEST(uptane, random_serial) {
   conf_2.storage.path = uptane_test_dir + "/certs_2";
   boost::filesystem::remove_all(uptane_test_dir + "/certs_2");
 
-  conf_1.uptane.primary_ecu_serial = "l";
+  conf_1.uptane.primary_ecu_serial = "";
   conf_1.storage.uptane_private_key_path = "private.key";
   conf_1.storage.uptane_public_key_path = "public.key";
 
@@ -257,14 +257,31 @@ TEST(uptane, random_serial) {
   conf_2.storage.uptane_private_key_path = "private.key";
   conf_2.storage.uptane_public_key_path = "public.key";
 
+  // add secondaries
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = uptane_test_dir;
+  ecu_config.ecu_serial = "";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
+  conf_1.uptane.secondary_configs.push_back(ecu_config);
+  conf_2.uptane.secondary_configs.push_back(ecu_config);
+
   FSStorage storage_1(conf_1.storage);
   FSStorage storage_2(conf_2.storage);
   HttpFake http(uptane_test_dir);
 
   Uptane::Repository uptane_1(conf_1, storage_1, http);
+  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1);
   EXPECT_TRUE(uptane_1.initialize());
 
   Uptane::Repository uptane_2(conf_2, storage_2, http);
+  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2);
   EXPECT_TRUE(uptane_2.initialize());
 
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;
@@ -272,9 +289,10 @@ TEST(uptane, random_serial) {
 
   EXPECT_TRUE(storage_1.loadEcuSerials(&ecu_serials_1));
   EXPECT_TRUE(storage_2.loadEcuSerials(&ecu_serials_2));
-  EXPECT_EQ(ecu_serials_1.size(), 1);
-  EXPECT_EQ(ecu_serials_2.size(), 1);
+  EXPECT_EQ(ecu_serials_1.size(), 2);
+  EXPECT_EQ(ecu_serials_2.size(), 2);
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_2[0].first);
+  EXPECT_NE(ecu_serials_1[1].first, ecu_serials_2[1].first);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
