@@ -79,32 +79,31 @@ bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
   return true;
 }
 
-bool ManagedSecondary::sendFirmware(const uint8_t *blob, size_t size) {
+bool ManagedSecondary::sendFirmware(const std::string &data) {
   if (expected_target_name.empty()) return true;
   if (!detected_attack.empty()) return true;
 
-  if (size > expected_target_length) {
+  if (data.size() > expected_target_length) {
     detected_attack = "overflow";
     return true;
   }
-  // TODO: this cast shouldn't be necessary, right?
-  std::string content = std::string((const char *)blob, size);
+
   std::vector<Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) != it->HashString()) {
         detected_attack = "wrong_hash";
         return true;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(content))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) != it->HashString()) {
         detected_attack = "wrong_hash";
         return true;
       }
     }
   }
   detected_attack = "";
-  return storeFirmware(expected_target_name, content);
+  return storeFirmware(expected_target_name, data);
 }
 
 Json::Value ManagedSecondary::getManifest() {

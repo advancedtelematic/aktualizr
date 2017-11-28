@@ -26,7 +26,7 @@ class ManagedSecondary : public SecondaryInterface {
   virtual int getRootVersion(const bool director);
   virtual bool putRoot(Uptane::Root root, const bool director);
 
-  virtual bool sendFirmware(const uint8_t* blob, size_t size);
+  virtual bool sendFirmware(const std::string& data);
   virtual Json::Value getManifest();
 
  private:

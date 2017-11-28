@@ -16,7 +16,7 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
-  Json::Value OstreeInstallAndManifest(const Uptane::Target &package);
+  void OstreeInstallSetResult(const Uptane::Target &package);
   void runForever(command::Channel *commands_channel);
 
   Json::Value AssembleManifest();
@@ -29,6 +29,7 @@ class SotaUptaneClient {
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
+  void updateSecondaries(std::vector<Uptane::Target> targets);
 
   Config config;
   event::Channel *events_channel;
@@ -36,4 +37,5 @@ class SotaUptaneClient {
   // ecu_serial -> secondary*
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
   int last_targets_version;
+  Json::Value operation_result;
 };
