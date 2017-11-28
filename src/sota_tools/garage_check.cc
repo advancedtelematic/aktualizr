@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
   curl_easy_setopt(curl.get(), CURLOPT_HTTPGET, 1L);
   curl_easy_setopt(curl.get(), CURLOPT_NOBODY, 0L);
-  treehub.InjectIntoCurl("targets.json", curl.get(), true);
+  treehub.InjectIntoCurl("/api/v1/user_repo/targets.json", curl.get(), true);
 
   std::string targets_str;
   curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeString);
