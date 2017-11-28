@@ -50,7 +50,7 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
   return response.isOk();
 }
 
-Json::Value Repository::getCurrentVersionManifests(const Json::Value &primary_version_manifest) {
+Json::Value Repository::signVersionManifest(const Json::Value &primary_version_manifest) {
   ENGINE *crypto_engine = NULL;
 #ifdef BUILD_P11
   if (key_source == kPkcs11) crypto_engine = p11.getEngine();

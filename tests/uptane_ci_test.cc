@@ -32,7 +32,7 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   Json::Value unsigned_ecu_version =
       OstreePackage(refname, hash, "").toEcuVersion(repo.getPrimaryEcuSerial(), Json::nullValue);
 
-  EXPECT_TRUE(repo.putManifest(repo.getCurrentVersionManifests(unsigned_ecu_version)));
+  EXPECT_TRUE(repo.putManifest(repo.signVersionManifest(unsigned_ecu_version)));
 
   // should not throw any exceptions
   repo.getTargets();

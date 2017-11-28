@@ -119,7 +119,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
   }
 }
 
-void SotaUptaneClient::OstreeInstallAndManifest(const Uptane::Target &target) {
+void SotaUptaneClient::OstreeInstallSetResult(const Uptane::Target &target) {
   if (isInstalled(target)) {
     data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
@@ -155,7 +155,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value unsigned_ecu_version =
       OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), operation_result);
 
-  result.append(uptane_repo.getCurrentVersionManifests(unsigned_ecu_version));
+  result.append(uptane_repo.signVersionManifest(unsigned_ecu_version));
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
@@ -211,9 +211,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
             // treat empty format as OSTree for backwards compatibility
             // TODO: isInstalled gets called twice here, since
-            // OstreeInstallAndManifest calls it too.
+            // OstreeInstallSetResult calls it too.
             if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
-              OstreeInstallAndManifest(*it);
+              OstreeInstallSetResult(*it);
               break;
             }
           }
@@ -263,7 +263,7 @@ void SotaUptaneClient::updateSecondaries(std::vector<Uptane::Target> targets) {
 
       std::string firmware = Utils::readFile(firmware_path);
 
-      sec->second->sendFirmware((const uint8_t *)firmware.c_str(), firmware.size());
+      sec->second->sendFirmware(firmware);
     }
   }
 }

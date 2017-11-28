@@ -30,7 +30,7 @@ class SecondaryInterface {
   virtual int getRootVersion(bool director) = 0;
   virtual bool putRoot(Uptane::Root root, bool director) = 0;
 
-  virtual bool sendFirmware(const uint8_t* blob, size_t size) = 0;
+  virtual bool sendFirmware(const std::string& data) = 0;
 
  protected:
   SecondaryConfig sconfig;
