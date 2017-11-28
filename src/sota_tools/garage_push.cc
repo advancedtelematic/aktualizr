@@ -100,6 +100,6 @@ int main(int argc, char **argv) {
   if (!pull_cred.empty()) {
     src = pull_cred;
   }
-  return copy_repo(cacerts, src, credentials_path, ref, dry_run);
+  return copy_repo(cacerts, src, credentials_path, ref, "", false, dry_run);
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

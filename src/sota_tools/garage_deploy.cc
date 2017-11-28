@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
   std::string ref;
   std::string fetch_cred;
   std::string push_cred;
+  std::string hardwareids;
   std::string cacerts;
   po::options_description desc("Allowed options");
   // clang-format off
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
     ("ref,r", po::value<std::string>(&ref)->required(), "package name to fetch")
     ("fetch-credentials,f", po::value<std::string>(&fetch_cred)->required(), "path to fetch credentials file")
     ("push-credentials,p", po::value<std::string>(&push_cred)->required(), "path to push credentials file")
+    ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
     ("cacert", po::value<std::string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert");
 
   // clang-format on
@@ -71,7 +73,6 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
-  copy_repo(cacerts, fetch_cred, push_cred, ref);
-  sign_repo(push_cred);
+  copy_repo(cacerts, fetch_cred, push_cred, ref, hardwareids, true);
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

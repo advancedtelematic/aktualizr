@@ -19,6 +19,7 @@ class OSTreeRef {
   void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
 
   OSTreeHash GetHash() const;
+  std::string GetName() const { return ref_name_; };
 
   bool IsValid() const;
 
