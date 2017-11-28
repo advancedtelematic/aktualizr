@@ -91,12 +91,14 @@ bool ManagedSecondary::sendFirmware(const std::string &data) {
   std::vector<Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
+          boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return true;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
+          boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return true;
       }

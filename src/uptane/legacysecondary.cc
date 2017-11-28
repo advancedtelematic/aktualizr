@@ -25,7 +25,6 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
   return (rs == 0);
 }
 
-
 bool LegacySecondary::getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) {
   std::string content;
 
@@ -42,5 +41,4 @@ bool LegacySecondary::getFirmwareInfo(std::string* target_name, size_t& target_l
 
   return true;
 }
-
 }
