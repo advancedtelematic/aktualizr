@@ -21,6 +21,13 @@ class ManagedSecondary : public SecondaryInterface {
  public:
   ManagedSecondary(const SecondaryConfig& sconfig_in);
 
+  virtual std::string getSerial() {
+    if (!sconfig.ecu_serial.empty()) {
+      return sconfig.ecu_serial;
+    } else {
+      return public_key_id;
+    }
+  }
   virtual std::string getPublicKey() { return public_key; }
   virtual bool putMetadata(const MetaPack& meta_pack);
   virtual int getRootVersion(const bool director);

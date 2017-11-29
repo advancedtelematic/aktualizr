@@ -17,15 +17,16 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
     : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
   std::vector<Uptane::SecondaryConfig>::iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
+    boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+    std::string sec_serial = sec->getSerial();
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
-        secondaries.find(it->ecu_serial);
+        secondaries.find(sec_serial);
     if (map_it != secondaries.end()) {
-      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << it->ecu_serial);
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << sec_serial);
       continue;
     }
-    secondaries[it->ecu_serial] = Uptane::SecondaryFactory::makeSecondary(*it);
-    uptane_repo.addSecondary(it->ecu_serial, secondaries[it->ecu_serial]->getHwId(),
-                             secondaries[it->ecu_serial]->getPublicKey());
+    secondaries[sec_serial] = sec;
+    uptane_repo.addSecondary(sec_serial, sec->getHwId(), sec->getPublicKey());
   }
 }
 

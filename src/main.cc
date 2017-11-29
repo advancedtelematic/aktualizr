@@ -65,6 +65,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
       ("poll-once", "Check for updates only once and exit")
       ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "secondary ECU json configuration file")
+      ("legacy-interface", bpo::value<std::string>(), "path to legacy secondary ECU interface program")
       ("disable-keyid-validation", "deprecated");
   // clang-format on
 
