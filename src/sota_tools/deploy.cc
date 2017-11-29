@@ -67,7 +67,7 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
 }
 
 bool copy_repo(const std::string &cacerts, const std::string &src, const std::string &dst, const std::string &ref,
-               bool dryrun) {
+               const std::string &hardwareids, bool sign, bool dryrun) {
   TreehubServer push_server;
   TreehubServer fetch_server;
 
@@ -168,22 +168,31 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
   if (errors) {
     LOG_ERROR << "One or more errors while pushing";
     return EXIT_FAILURE;
-  } else {
-    return EXIT_SUCCESS;
   }
 
+  if (sign) {
+    sign_repo(dst, ostree_ref, hardwareids);
+  }
   return EXIT_SUCCESS;
 }
 
-void sign_repo(const std::string &credentials) {
+void sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids) {
   if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
     std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
     if (system((init_cmd + credentials).c_str()) != 0) {
       throw std::runtime_error("Could not initilaize tuf repo for sign");
     }
   }
+
   if (system("garage-sign targets  pull --repo aktualizr") != 0) {
     throw std::runtime_error("Could not pull targets");
+  }
+
+  std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
+  cmd += " --name " + ref.GetName() + " --version " + ref.GetHash().string() + " --sha256 " + ref.GetHash().string();
+  cmd += " --hardwareids " + hardwareids;
+  if (system(cmd.c_str()) != 0) {
+    throw std::runtime_error("Could not add targets");
   }
 
   LOG_INFO << "Signing...\n";
