@@ -35,7 +35,7 @@ bool LegacySecondary::getFirmwareInfo(std::string* target_name, size_t& target_l
     content = "";
   } else {
     *target_name = Utils::readFile(sconfig.target_name_path.string());
-    std::string content = Utils::readFile(sconfig.firmware_path.string());
+    content = Utils::readFile(sconfig.firmware_path.string());
   }
   *sha256hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(content)));
   target_len = content.size();
