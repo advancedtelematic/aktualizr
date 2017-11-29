@@ -43,7 +43,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
     if (map_it != secondaries.end()) {
-      // compare version
+      // TODO: compare version
       return true;
     } else {
       // TODO: iterate through secondaries, compare version when found, throw exception otherwise
@@ -219,8 +219,8 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           }
           // TODO: other updates for primary
         }
-        // TODO: this step seems to be not required by UPTANE; is it worth
-        // keeping?
+        // Not required for Uptane, but used to send a status code to the
+        // director.
         uptane_repo.putManifest(AssembleManifest());
 
       } else if (command->variant == "Shutdown") {

@@ -1,10 +1,13 @@
 #include "uptane/legacysecondary.h"
 
+#include <sstream>
+
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
 #include "logger.h"
+#include "utils.h"
 
 namespace Uptane {
 LegacySecondary::LegacySecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {
@@ -17,12 +20,20 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
   Utils::writeFile(sconfig.firmware_path.string(), content);
   sync();
 
+  std::stringstream command;
   std::string output;
-  int rs = Utils::shell(sconfig.flasher.string() + " --hardware-identifier " + sconfig.ecu_hardware_id +
-                            " --ecu-identifier " + sconfig.ecu_serial + " --firmware " + sconfig.firmware_path.string(),
-                        &output);
+  command << sconfig.flasher.string() << " install-software --hardware-identifier " << sconfig.ecu_hardware_id
+          << " --ecu-identifier " << sconfig.ecu_serial << " --firmware " << sconfig.firmware_path.string()
+          << " --loglevel " << loggerGetSeverity();
+  int rs = Utils::shell(command.str(), &output);
 
-  if (rs != 0) LOGGER_LOG(LVL_error, "Legacy external flasher failed: " << output);
+  if (rs != 0) {
+    // TODO: Should we do anything with the return value?
+    // 1 - The firmware image is invalid
+    // 2 - Install failure, but the firmware was not modified
+    // 3 - Install failure, and the old firmware was partially overwritten or erased.
+    LOGGER_LOG(LVL_error, "Legacy external flasher install-software command failed: " << output);
+  }
   return (rs == 0);
 }
 
