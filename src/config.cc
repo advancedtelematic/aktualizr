@@ -359,6 +359,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
       sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
       sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
+      sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
       sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
       sconfig.flasher = boost::filesystem::path(config_json["flasher"].asString());
 

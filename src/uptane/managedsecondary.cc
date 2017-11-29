@@ -91,12 +91,14 @@ bool ManagedSecondary::sendFirmware(const std::string &data) {
   std::vector<Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
+          boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return true;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) != it->HashString()) {
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
+          boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
         return true;
       }
@@ -126,6 +128,8 @@ Json::Value ManagedSecondary::getManifest() {
   manifest["attacks_detected"] = detected_attack;
   manifest["installed_image"] = installed_image;
   manifest["ecu_serial"] = sconfig.ecu_serial;
+  manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
+  manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
   Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, public_key_id, manifest);
   return signed_ecu_version;
