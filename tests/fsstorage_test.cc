@@ -10,11 +10,11 @@
 const std::string fsstorage_test_dir = "tests/test_fsstorage";
 
 TEST(fsstorage, load_store_primary_keys) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
-  config.uptane.metadata_path = fsstorage_test_dir;
-  config.uptane.public_key_path = "test_primary.pub";
-  config.uptane.private_key_path = "test_primary.priv";
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
+  config.uptane_metadata_path = fsstorage_test_dir;
+  config.uptane_public_key_path = "test_primary.pub";
+  config.uptane_private_key_path = "test_primary.priv";
 
   FSStorage storage(config);
   storage.storePrimaryKeys("pr_public", "pr_private");
@@ -31,12 +31,12 @@ TEST(fsstorage, load_store_primary_keys) {
 }
 
 TEST(fsstorage, load_store_tls) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
-  config.uptane.metadata_path = fsstorage_test_dir;
-  config.tls.pkey_file_ = "test_tls.pkey";
-  config.tls.client_certificate_ = "test_tls.cert";
-  config.tls.ca_file_ = "test_tls.ca";
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
+  config.uptane_metadata_path = fsstorage_test_dir;
+  config.tls_pkey_path = "test_tls.pkey";
+  config.tls_clientcert_path = "test_tls.cert";
+  config.tls_cacert_path = "test_tls.ca";
 
   FSStorage storage(config);
   storage.storeTlsCreds("ca", "cert", "priv");
@@ -57,9 +57,9 @@ TEST(fsstorage, load_store_tls) {
 
 #ifdef BUILD_OSTREE
 TEST(fsstorage, load_store_metadata) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
-  config.uptane.metadata_path = fsstorage_test_dir + "/metadata";
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
+  config.uptane_metadata_path = "metadata";
 
   FSStorage storage(config);
   Uptane::MetaPack stored_meta;
@@ -130,8 +130,8 @@ TEST(fsstorage, load_store_metadata) {
 #endif  // BUILD_OSTREE
 
 TEST(fsstorage, load_store_deviceid) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
 
   FSStorage storage(config);
   storage.storeDeviceId("device_id");
@@ -147,8 +147,8 @@ TEST(fsstorage, load_store_deviceid) {
 }
 
 TEST(fsstorage, load_store_ecu_serials) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
 
   FSStorage storage(config);
   std::vector<std::pair<std::string, std::string> > serials;
@@ -168,8 +168,8 @@ TEST(fsstorage, load_store_ecu_serials) {
 }
 
 TEST(fsstorage, load_store_ecu_registered) {
-  Config config;
-  config.tls.certificates_directory = fsstorage_test_dir;
+  StorageConfig config;
+  config.path = fsstorage_test_dir;
 
   FSStorage storage(config);
   storage.storeEcuRegistered();

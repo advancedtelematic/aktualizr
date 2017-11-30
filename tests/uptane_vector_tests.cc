@@ -40,14 +40,15 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   Config config;
   config.uptane.director_server = "http://127.0.0.1:" + port + "/" + test_name + "/director";
   config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
-  config.uptane.metadata_path = uptane_vector_test_dir + "/" + port + "/aktualizr_repos";
+  config.storage.path = uptane_vector_test_dir;
+  config.storage.uptane_metadata_path =  port + "/aktualizr_repos";
   config.ostree.os = "myos";
   config.ostree.sysroot = "./sysroot";
-  boost::filesystem::remove_all(config.uptane.metadata_path / "director");
-  boost::filesystem::remove_all(config.uptane.metadata_path / "repo");
+  boost::filesystem::remove_all(config.storage.path / config.storage.uptane_metadata_path / "director");
+  boost::filesystem::remove_all(config.storage.path / config.storage.uptane_metadata_path / "repo");
 
   try {
-    FSStorage storage(config);
+    FSStorage storage(config.storage);
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));

@@ -1,18 +1,19 @@
 [tls]
-certificates_directory = "/var/sota/"
-ca_file = "/var/sota/token/root.crt"
-client_certificate = "01"
 cert_source = "pkcs11"
-pkey_file = "02"
 pkey_source = "pkcs11"
 
 [p11]
 module = "/usr/lib/softhsm/libsofthsm2.so"
 pass = "1234"
+uptane_key_id = "03"
+tls_clientcert_id = "01"
+tls_pkey_id = "02"
 
 [uptane]
-metadata_path = "/var/sota/metadata"
 key_source = "pkcs11"
-private_key_path = "03"
-public_key_path = "03"
 
+[storage]
+type = "filesystem"
+path = "/var/sota/"
+uptane_metadata_path = "metadata"
+tls_cacert_path = "token/root.crt"

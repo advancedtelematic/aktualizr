@@ -21,6 +21,7 @@
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
+enum StorageType { kFileSystem = 0, kSqlite };
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
@@ -90,34 +91,23 @@ struct RviConfig {
 };
 
 struct P11Config {
-  P11Config() : module(""), pass("") {}
+  P11Config() {}
   std::string module;
   std::string pass;
+  std::string uptane_key_id;
+  std::string tls_cacert_id;
+  std::string tls_pkey_id;
+  std::string tls_clientcert_id;
 };
 
 class TlsConfig {
  public:
-  TlsConfig()
-      : certificates_directory("/tmp/aktualizr"),
-        server(""),
-        ca_source(kFile),
-        ca_file_("ca.pem"),
-        pkey_source(kFile),
-        pkey_file_("pkey.pem"),
-        cert_source(kFile),
-        client_certificate_("client.pem") {}
-  std::string ca_file() const;
-  std::string pkey_file() const;
-  std::string client_certificate() const;
+  TlsConfig() : server(""), ca_source(kFile), pkey_source(kFile), cert_source(kFile) {}
 
-  boost::filesystem::path certificates_directory;
   std::string server;
   CryptoSource ca_source;
-  std::string ca_file_;
   CryptoSource pkey_source;
-  std::string pkey_file_;
   CryptoSource cert_source;
-  std::string client_certificate_;
 };
 
 struct ProvisionConfig {
@@ -139,10 +129,7 @@ struct UptaneConfig {
         ostree_server(""),
         director_server(""),
         repo_server(""),
-        metadata_path(""),
-        key_source(kFile),
-        private_key_path("ecukey.pem"),
-        public_key_path("ecukey.pub") {}
+        key_source(kFile) {}
   bool polling;
   unsigned long long polling_sec;
   std::string device_id;
@@ -151,10 +138,7 @@ struct UptaneConfig {
   std::string ostree_server;
   std::string director_server;
   std::string repo_server;
-  boost::filesystem::path metadata_path;
   CryptoSource key_source;
-  std::string private_key_path;
-  std::string public_key_path;
   std::vector<Uptane::SecondaryConfig> secondary_configs;
 };
 
@@ -163,6 +147,28 @@ struct OstreeConfig {
   std::string os;
   std::string sysroot;
   std::string packages_file;
+};
+
+struct StorageConfig {
+  StorageConfig()
+      : type(kFileSystem),
+        path("/var/sota"),
+        uptane_metadata_path("metadata"),
+        uptane_private_key_path("ecukey.pem"),
+        uptane_public_key_path("ecukey.pub"),
+        tls_cacert_path("ca.pem"),
+        tls_pkey_path("pkey.pem"),
+        tls_clientcert_path("client.pem") {}
+  StorageType type;
+  boost::filesystem::path path;
+  int schema_version;
+  // FS storage
+  boost::filesystem::path uptane_metadata_path;
+  boost::filesystem::path uptane_private_key_path;
+  boost::filesystem::path uptane_public_key_path;
+  boost::filesystem::path tls_cacert_path;
+  boost::filesystem::path tls_pkey_path;
+  boost::filesystem::path tls_clientcert_path;
 };
 
 class Config {
@@ -186,6 +192,7 @@ class Config {
   ProvisionConfig provision;
   UptaneConfig uptane;
   OstreeConfig ostree;
+  StorageConfig storage;
 
  private:
   static std::string stripQuotes(const std::string& value);

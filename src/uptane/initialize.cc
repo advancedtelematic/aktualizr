@@ -24,13 +24,13 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
     } else if (provision_config.mode == kImplicit) {
       std::string cert;
       if (tls_config.cert_source == kFile) {
-        if (!storage.loadTlsCreds(NULL, &cert, NULL)) {
+        if (!storage.loadTlsCert(&cert)) {
           LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
           return false;
         }
       } else {  // kPkcs11
 #ifdef BUILD_P11
-        if (!p11.readCert(tls_config.client_certificate(), &cert)) {
+        if (!p11.readTlsCert(&cert)) {
           LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
           return false;
         }
@@ -97,8 +97,11 @@ void Repository::resetEcuSerials() {
 
 void Repository::setEcuKeysMembers(const std::string& primary_public, const std::string& primary_private,
                                    const std::string& primary_public_id, CryptoSource source) {
-  primary_public_key = primary_public;
-  primary_private_key = primary_private;
+  primary_public_key_uri = primary_public;
+  if (source == kPkcs11)
+    primary_private_key_uri = primary_public_key_uri;
+  else
+    primary_private_key_uri = primary_private;
   primary_public_key_id = primary_public_id;
   key_source = source;
 }
@@ -111,16 +114,15 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
 
 #ifdef BUILD_P11
   if (uptane_config.key_source == kPkcs11) {
-    primary_public = p11.getUriPrefix() + uptane_config.public_key_path;
-    primary_private = p11.getUriPrefix() + uptane_config.private_key_path;
+    primary_public = p11.getUptaneKeyId();
     std::string public_key_content;
 
     // dummy read to check if the key is present
-    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content))
-      if (!p11.generateRSAKeyPair(uptane_config.private_key_path)) return false;
+    if (!p11.readUptanePublicKey(&public_key_content))
+      if (!p11.generateUptaneKeyPair()) return false;
 
     // realy read the key
-    if (!p11.readPublicKey(uptane_config.public_key_path, &public_key_content)) return false;
+    if (!p11.readUptanePublicKey(&public_key_content)) return false;
 
     primary_public_id = Crypto::getKeyId(public_key_content);
     setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
@@ -144,8 +146,8 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
 
 void Repository::resetEcuKeys() {
   storage.clearPrimaryKeys();
-  primary_public_key = "";
-  primary_private_key = "";
+  primary_public_key_uri = "";
+  primary_private_key_uri = "";
   primary_public_key_id = "";
 }
 
@@ -161,7 +163,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage.loadTlsPkey(&pkey);
     pkcs11_tls_keyname = "";
   } else {  // kPkcs11
-    pkey = p11.getUriPrefix() + tls_config.pkey_file();
+    pkey = p11.getTlsPkeyId();
     pkcs11_tls_keyname = pkey;
   }
 
@@ -169,14 +171,14 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage.loadTlsCert(&cert);
     pkcs11_tls_certname = "";
   } else {  // kPkcs11
-    cert = p11.getUriPrefix() + tls_config.client_certificate();
+    cert = p11.getTlsCertId();
     pkcs11_tls_certname = cert;
   }
 
   if (tls_config.ca_source == kFile) {
     res = res && storage.loadTlsCa(&ca);
   } else {  // kPkcs11
-    ca = p11.getUriPrefix() + tls_config.ca_file();
+    ca = p11.getTlsCacertId();
   }
 #else
   res = storage.loadTlsCreds(&ca, &cert, &pkey);
@@ -262,7 +264,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
       return INIT_RET_STORAGE_FAILURE;
     }
   } else {  // kPkcs11
-    if (!p11.readPublicKey(uptane_config.public_key_path, &primary_public)) {
+    if (!p11.readUptanePublicKey(&primary_public)) {
       LOGGER_LOG(LVL_error, "Unable to read primary public key from the PKCS#11 device");
       return INIT_RET_STORAGE_FAILURE;
     }

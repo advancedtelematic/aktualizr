@@ -68,10 +68,13 @@ class P11Engine {
   P11Engine(const P11Config &config);
   ~P11Engine();
   ENGINE *getEngine() { return ssl_engine_; }
-  std::string getUriPrefix() const { return uri_prefix_; }
-  bool readPublicKey(const std::string &id, std::string *key);
-  bool readCert(const std::string &id, std::string *cert_out);
-  bool generateRSAKeyPair(const std::string &id);
+  std::string getUptaneKeyId() const { return uri_prefix_ + config_.uptane_key_id; }
+  std::string getTlsCacertId() const { return uri_prefix_ + config_.tls_cacert_id; }
+  std::string getTlsPkeyId() const { return uri_prefix_ + config_.tls_pkey_id; }
+  std::string getTlsCertId() const { return uri_prefix_ + config_.tls_clientcert_id; }
+  bool readUptanePublicKey(std::string *key);
+  bool readTlsCert(std::string *cert_out);
+  bool generateUptaneKeyPair();
 
  private:
   const P11Config &config_;

@@ -27,31 +27,21 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   return os;
 }
 
-std::string TlsConfig::ca_file() const {
-  boost::filesystem::path ca_path(ca_file_);
-  if (ca_path.is_absolute() || ca_source == kPkcs11) {
-    return ca_file_;
-  } else {
-    return (certificates_directory / ca_path).string();
+std::ostream& operator<<(std::ostream& os, StorageType cs) {
+  std::string cs_str;
+  switch (cs) {
+    case kFileSystem:
+      cs_str = "filesystem";
+      break;
+    case kSqlite:
+      cs_str = "sqlite";
+      break;
+    default:
+      cs_str = "unknown";
+      break;
   }
-}
-
-std::string TlsConfig::pkey_file() const {
-  boost::filesystem::path pkey_path(pkey_file_);
-  if (pkey_path.is_absolute() || cert_source == kPkcs11) {
-    return pkey_file_;
-  } else {
-    return (certificates_directory / pkey_path).string();
-  }
-}
-
-std::string TlsConfig::client_certificate() const {
-  boost::filesystem::path cert_path(client_certificate_);
-  if (cert_path.is_absolute() || pkey_source == kPkcs11) {
-    return client_certificate_;
-  } else {
-    return (certificates_directory / cert_path).string();
-  }
+  os << '"' << cs_str << '"';
+  return os;
 }
 
 /**
@@ -165,8 +155,6 @@ void Config::postUpdateValues() {
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
-
-  if (uptane.key_source == kPkcs11) uptane.public_key_path = uptane.private_key_path;
 }
 
 void Config::updateFromToml(const std::string& filename) {
@@ -237,8 +225,11 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(p11.module, "p11.module", LVL_trace, pt);
   CopyFromConfig(p11.pass, "p11.pass", LVL_trace, pt);
+  CopyFromConfig(p11.uptane_key_id, "p11.uptane_key_id", LVL_warning, pt);
+  CopyFromConfig(p11.tls_cacert_id, "p11.tls_cacert_id", LVL_warning, pt);
+  CopyFromConfig(p11.tls_pkey_id, "p11.tls_pkey_id", LVL_warning, pt);
+  CopyFromConfig(p11.tls_clientcert_id, "p11.tls_clientcert_id", LVL_warning, pt);
 
-  CopyFromConfig(tls.certificates_directory, "tls.certificates_directory", LVL_trace, pt);
   CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
 
   std::string tls_source = "file";
@@ -262,10 +253,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     tls.pkey_source = kFile;
 
-  CopyFromConfig(tls.ca_file_, "tls.ca_file", LVL_warning, pt);
-  CopyFromConfig(tls.pkey_file_, "tls.pkey_file", LVL_warning, pt);
-  CopyFromConfig(tls.client_certificate_, "tls.client_certificate", LVL_warning, pt);
-
   CopyFromConfig(provision.server, "provision.server", LVL_warning, pt);
   CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
   CopyFromConfig(provision.expiry_days, "provision.expiry_days", LVL_warning, pt);
@@ -280,7 +267,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", LVL_warning, pt);
   CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
   CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
-  CopyFromConfig(uptane.metadata_path, "uptane.metadata_path", LVL_warning, pt);
 
   std::string key_source = "file";
   CopyFromConfig(key_source, "uptane.key_source", LVL_warning, pt);
@@ -289,13 +275,27 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     uptane.key_source = kFile;
 
-  CopyFromConfig(uptane.private_key_path, "uptane.private_key_path", LVL_warning, pt);
-  CopyFromConfig(uptane.public_key_path, "uptane.public_key_path", LVL_warning, pt);
   // uptane.secondary_configs currently can only be set via command line.
 
   CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
   CopyFromConfig(ostree.packages_file, "ostree.packages_file", LVL_warning, pt);
+
+  std::string storage_type = "filesystem";
+  CopyFromConfig(storage_type, "storage.type", LVL_warning, pt);
+  if (storage_type == "sqlite")
+    storage.type = kSqlite;
+  else
+    storage.type = kFileSystem;
+
+  CopyFromConfig(storage.uptane_metadata_path, "storage.uptane_metadata_path", LVL_warning, pt);
+  CopyFromConfig(storage.uptane_private_key_path, "storage.uptane_private_key_path", LVL_warning, pt);
+  CopyFromConfig(storage.uptane_public_key_path, "storage.uptane_public_key_path", LVL_warning, pt);
+  CopyFromConfig(storage.tls_cacert_path, "storage.tls_cacert_path", LVL_warning, pt);
+  CopyFromConfig(storage.tls_pkey_path, "storage.tls_pkey_path", LVL_warning, pt);
+  CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", LVL_warning, pt);
+  CopyFromConfig(storage.path, "storage.path", LVL_trace, pt);
+  CopyFromConfig(storage.schema_version, "storage.schema_version", LVL_trace, pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -429,16 +429,16 @@ void Config::writeToFile(const std::string& filename) {
   sink << "[p11]\n";
   writeOption(sink, p11.module, "module");
   writeOption(sink, p11.pass, "pass");
+  writeOption(sink, p11.uptane_key_id, "uptane_key_id");
+  writeOption(sink, p11.tls_cacert_id, "tls_ca_id");
+  writeOption(sink, p11.tls_pkey_id, "tls_pkey_id");
+  writeOption(sink, p11.tls_clientcert_id, "tls_clientcert_id");
   sink << "\n";
 
   sink << "[tls]\n";
-  writeOption(sink, tls.certificates_directory, "certificates_directory");
   writeOption(sink, tls.server, "server");
-  writeOption(sink, tls.ca_file_, "ca_file");
   writeOption(sink, tls.ca_source, "ca_source");
-  writeOption(sink, tls.pkey_file_, "pkey_file");
   writeOption(sink, tls.pkey_source, "pkey_source");
-  writeOption(sink, tls.client_certificate_, "client_certificate");
   writeOption(sink, tls.cert_source, "cert_source");
   sink << "\n";
 
@@ -459,9 +459,6 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, uptane.ostree_server, "ostree_server");
   writeOption(sink, uptane.director_server, "director_server");
   writeOption(sink, uptane.repo_server, "repo_server");
-  writeOption(sink, uptane.metadata_path, "metadata_path");
-  writeOption(sink, uptane.private_key_path, "private_key_path");
-  writeOption(sink, uptane.public_key_path, "public_key_path");
   writeOption(sink, uptane.key_source, "key_source");
   // uptane.secondary_configs currently can only be set via command line and is
   // not read from or written to the primary config file.
@@ -471,5 +468,17 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, ostree.os, "os");
   writeOption(sink, ostree.sysroot, "sysroot");
   writeOption(sink, ostree.packages_file, "packages_file");
+  sink << "\n";
+
+  sink << "[storage]\n";
+  writeOption(sink, storage.type, "type");
+  writeOption(sink, storage.path, "path");
+  writeOption(sink, storage.schema_version, "schema_version");
+  writeOption(sink, storage.uptane_metadata_path, "uptane_metadata_path");
+  writeOption(sink, storage.uptane_private_key_path, "uptane_private_key_path");
+  writeOption(sink, storage.uptane_public_key_path, "uptane_public_key_path");
+  writeOption(sink, storage.tls_cacert_path, "tls_ca_path");
+  writeOption(sink, storage.tls_pkey_path, "tls_pkey_path");
+  writeOption(sink, storage.tls_clientcert_path, "tls_clientcert_path");
   sink << "\n";
 }

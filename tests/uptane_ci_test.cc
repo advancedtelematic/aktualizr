@@ -18,7 +18,7 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
-  pt.put("tls.certificates_directory", test_dir);
+  pt.put("storage.path", test_dir);
   pt.put("uptane.metadata_path", test_dir);
   Config config(pt);
   FSStorage storage(config);
@@ -43,9 +43,9 @@ TEST(SotaUptaneClientTest, check_keys) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
-  pt.put("tls.certificates_directory", test_dir);
+  pt.put("storage.path", test_dir);
   Config config(pt);
-  boost::filesystem::remove_all(config.tls.certificates_directory);
+  boost::filesystem::remove_all(config.storage.path);
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.full_client_dir = test_dir;

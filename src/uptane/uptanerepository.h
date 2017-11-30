@@ -70,8 +70,8 @@ class Repository {
   std::string primary_hardware_id_;
 
   CryptoSource key_source;
-  std::string primary_public_key;
-  std::string primary_private_key;
+  std::string primary_public_key_uri;
+  std::string primary_private_key_uri;
   std::string primary_public_key_id;
 
   std::string pkcs11_tls_keyname;

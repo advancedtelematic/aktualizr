@@ -19,7 +19,7 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
   }
 
   HttpClient http;
-  FSStorage fs(conf);
+  FSStorage fs(conf.storage);
   Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
   bool result = uptane->initialize();
   delete uptane;
@@ -47,7 +47,7 @@ TEST(SotaUptaneClientTest, partial_provision) {
   sleep(3);
 
   Config conf("tests/config_tests_prov.toml");
-  conf.tls.certificates_directory = "tests/test_uptane_fake_http";
+  conf.storage.path = "tests/test_uptane_fake_http";
   conf.provision.server = "http://127.0.0.1:" + port;
   conf.tls.server = "http://127.0.0.1:" + port;
 
@@ -60,7 +60,7 @@ TEST(SotaUptaneClientTest, partial_provision) {
   EXPECT_TRUE(doInit("noerrors", "status_408", conf));
   EXPECT_TRUE(doInit("noerrors", "noerrors", conf));
   EXPECT_TRUE(doInit("noconnection", "noerrors", conf));
-  boost::filesystem::remove_all(conf.tls.certificates_directory);
+  boost::filesystem::remove_all(conf.storage.path);
 }
 
 #ifndef __NO_MAIN__

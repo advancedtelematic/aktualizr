@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     }
     Config config(sota_config_path.string());
 
-    FSStorage storage(config);
+    FSStorage storage(config.storage);
     Uptane::MetaPack pack;
 
     bool has_metadata = storage.loadMetadata(&pack);

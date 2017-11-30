@@ -1,12 +1,13 @@
 #ifndef FSSTORAGE_H_
 #define FSSTORAGE_H_
 
+#include <boost/filesystem.hpp>
 #include "config.h"
 #include "invstorage.h"
 
 class FSStorage : public INvStorage {
  public:
-  FSStorage(const Config& config);
+  FSStorage(const StorageConfig& config);
   virtual ~FSStorage();
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key);
@@ -34,12 +35,12 @@ class FSStorage : public INvStorage {
   virtual bool loadInstalledVersions(std::string* content);
 
  private:
-  Config config_;
+  StorageConfig config_;
   // descriptors of currently downloaded files
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
 
-  bool loadTlsCommon(std::string* data, const std::string& path_in);
+  bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);
 };
 
 #endif  // FSSTORAGE_H_

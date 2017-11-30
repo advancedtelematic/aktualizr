@@ -63,13 +63,14 @@ TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
   config.pass = "1234";
+  config.uptane_key_id = "03";
 
   P11Engine p11(config);
   std::string text = "This is text for sign";
   std::string key_content;
-  EXPECT_TRUE(p11.readPublicKey("03", &key_content));
+  EXPECT_TRUE(p11.readUptanePublicKey(&key_content));
   PublicKey pkey(key_content, "rsa");
-  std::string private_key = p11.getUriPrefix() + "03";
+  std::string private_key = p11.getUptaneKeyId();
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11.getEngine(), private_key, text));
   bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
   EXPECT_TRUE(signe_is_ok);
@@ -79,12 +80,13 @@ TEST(crypto, generate_rsa_keypair_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
   config.pass = "1234";
+  config.uptane_key_id = "05";
 
   P11Engine p11(config);
   std::string key_content;
-  EXPECT_FALSE(p11.readPublicKey("05", &key_content));
-  EXPECT_TRUE(p11.generateRSAKeyPair("05"));
-  EXPECT_TRUE(p11.readPublicKey("05", &key_content));
+  EXPECT_FALSE(p11.readUptanePublicKey(&key_content));
+  EXPECT_TRUE(p11.generateUptaneKeyPair());
+  EXPECT_TRUE(p11.readUptanePublicKey(&key_content));
 }
 
 TEST(crypto, sign_tuf_pkcs11) {
@@ -94,11 +96,13 @@ TEST(crypto, sign_tuf_pkcs11) {
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
   p11_conf.pass = "1234";
+  p11_conf.uptane_key_id = "03";
   P11Engine p11(p11_conf);
 
   std::string public_key;
-  EXPECT_TRUE(p11.readPublicKey("03", &public_key));
-  Json::Value signed_json = Crypto::signTuf(p11.getEngine(), "03", Crypto::getKeyId(public_key), tosign_json);
+  EXPECT_TRUE(p11.readUptanePublicKey(&public_key));
+  Json::Value signed_json =
+      Crypto::signTuf(p11.getEngine(), p11.getUptaneKeyId(), Crypto::getKeyId(public_key), tosign_json);
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
@@ -109,10 +113,11 @@ TEST(crypto, certificate_pkcs11) {
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
   p11_conf.pass = "1234";
+  p11_conf.tls_clientcert_id = "01";
   P11Engine p11(p11_conf);
 
   std::string cert;
-  bool res = p11.readCert("01", &cert);
+  bool res = p11.readTlsCert(&cert);
   EXPECT_TRUE(res);
   if (!res) return;
 
