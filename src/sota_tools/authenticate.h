@@ -4,8 +4,9 @@
 #include <string>
 
 #include "treehub_server.h"
+#include "server_credentials.h"
 
-int authenticate(const std::string &cacerts, std::string filepath, TreehubServer &treehub);
+int authenticate(const std::string &cacerts, const ServerCredentials &creds, TreehubServer &treehub);
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
 #endif  // SOTA_CLIENT_TOOLS_AUTHENTICATE_H_

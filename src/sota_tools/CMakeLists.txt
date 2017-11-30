@@ -1,6 +1,7 @@
 
 set (SOTA_TOOLS_LIB_SRC
   authenticate.cc
+  server_credentials.cc
   logging.cc
   oauth2.cc
   ostree_hash.cc

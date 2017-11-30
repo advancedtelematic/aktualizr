@@ -77,7 +77,7 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
       fetch_server.ca_certs(cacerts);
     } else {
       LOG_FATAL << "--cacert path " << cacerts << " does not exist";
-      return EXIT_FAILURE;
+      return false;
     }
   }
 
@@ -85,7 +85,7 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
   if (boost::filesystem::is_regular_file(src)) {
     if (authenticate(cacerts, src, fetch_server) != EXIT_SUCCESS) {
       LOG_FATAL << "Authentication failed";
-      return EXIT_FAILURE;
+      return false;
     }
     src_repo = boost::make_shared<OSTreeHttpRepo>(&fetch_server);
   } else {
@@ -94,18 +94,19 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
 
   if (!src_repo->LooksValid()) {
     LOG_FATAL << "The OSTree src repo does not appear to contain a valid OSTree repository";
-    return EXIT_FAILURE;
+    return false;
   }
 
   OSTreeRef ostree_ref(src_repo->GetRef(ref));
   if (!ostree_ref.IsValid()) {
     LOG_FATAL << "Ref " << ref << " was not found in repository " << src;
-    return EXIT_FAILURE;
+    return false;
   }
 
-  if (authenticate(cacerts, dst, push_server) != EXIT_SUCCESS) {
+  ServerCredentials push_creds(dst);
+  if (authenticate(cacerts, push_creds, push_server) != EXIT_SUCCESS) {
     LOG_FATAL << "Authentication failed";
-    return EXIT_FAILURE;
+    return false;
   }
 
   OSTreeHash root_hash = ostree_ref.GetHash();
@@ -114,12 +115,12 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
     root_object = src_repo->GetObject(root_hash);
   } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "Commit pointed to by " << ref << " was not found in src repository ";
-    return EXIT_FAILURE;
+    return false;
   }
 
   if (dryrun) {
     LOG_INFO << "Dry run. Exiting.";
-    return EXIT_SUCCESS;
+    return true;
   }
 
   RequestPool request_pool(push_server, 30);
@@ -143,65 +144,74 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
 
   LOG_INFO << "Uploaded " << uploaded << " objects";
   LOG_INFO << "Already present " << present_already << " objects";
-  // Push ref
 
-  if (root_object->is_on_server() == OBJECT_PRESENT) {
-    CURL *easy_handle = curl_easy_init();
-    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-    ostree_ref.PushRef(push_server, easy_handle);
-    CURLcode err = curl_easy_perform(easy_handle);
-    if (err) {
-      LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
-      errors++;
+  // Push ref
+  if (!push_creds.CanSignOffline()) {
+    if (root_object->is_on_server() == OBJECT_PRESENT) {
+      CURL *easy_handle = curl_easy_init();
+      curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
+      ostree_ref.PushRef(push_server, easy_handle);
+      CURLcode err = curl_easy_perform(easy_handle);
+      if (err) {
+        LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
+        errors++;
+      }
+      long rescode;
+      curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+      if (rescode != 200) {
+        LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
+        errors++;
+      }
+      curl_easy_cleanup(easy_handle);
+    } else {
+      LOG_ERROR << "Uploading failed";
+      return false;
     }
-    long rescode;
-    curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
-    if (rescode != 200) {
-      LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-      errors++;
-    }
-    curl_easy_cleanup(easy_handle);
-  } else {
-    LOG_ERROR << "Uploading failed";
   }
 
   if (errors) {
     LOG_ERROR << "One or more errors while pushing";
-    return EXIT_FAILURE;
+    return false;
   }
 
-  if (sign) {
-    sign_repo(dst, ostree_ref, hardwareids);
+  if (sign && push_creds.CanSignOffline()) {
+    return sign_repo(dst, ostree_ref, hardwareids);
   }
-  return EXIT_SUCCESS;
+  return true;
 }
 
-void sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids) {
+bool sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids) {
   if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
     std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
     if (system((init_cmd + credentials).c_str()) != 0) {
-      throw std::runtime_error("Could not initilaize tuf repo for sign");
+      LOG_ERROR << "Could not initilaize tuf repo for sign";
+      return false;
     }
   }
 
   if (system("garage-sign targets  pull --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not pull targets");
+    LOG_ERROR << "Could not pull targets";
+    return false;
   }
 
   std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
   cmd += " --name " + ref.GetName() + " --version " + ref.GetHash().string() + " --sha256 " + ref.GetHash().string();
   cmd += " --hardwareids " + hardwareids;
   if (system(cmd.c_str()) != 0) {
-    throw std::runtime_error("Could not add targets");
+    LOG_ERROR << "Could not add targets";
+    return false;
   }
 
   LOG_INFO << "Signing...\n";
   if (system("garage-sign targets  sign --key-name targets --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not sign targets");
+    LOG_ERROR << "Could not sign targets";
+    return false;
   }
   if (system("garage-sign targets  push --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not push signed repo");
+    LOG_ERROR << "Could not push signed repo";
+    return false;
   }
 
   LOG_INFO << "Success";
+  return true;
 }

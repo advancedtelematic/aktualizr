@@ -73,6 +73,6 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
-  copy_repo(cacerts, fetch_cred, push_cred, ref, hardwareids, true);
+  return !copy_repo(cacerts, fetch_cred, push_cred, ref, hardwareids, true);
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:
