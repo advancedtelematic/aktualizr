@@ -147,6 +147,20 @@ TEST(Utils, hex2bin) {
   EXPECT_EQ(bin[2], 0xb4);
 }
 
+TEST(Utils, intToString) {
+  unsigned int a = 456;
+  EXPECT_EQ(Utils::intToString(a), "456");
+}
+
+TEST(Utils, shell) {
+  std::string out;
+  int statuscode = Utils::shell("ls /", &out);
+  EXPECT_EQ(statuscode, 0);
+
+  statuscode = Utils::shell("ls /nonexistentdir123", &out);
+  EXPECT_NE(statuscode, 0);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
