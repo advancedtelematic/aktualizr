@@ -296,6 +296,12 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", LVL_warning, pt);
   CopyFromConfig(storage.path, "storage.path", LVL_trace, pt);
   CopyFromConfig(storage.schema_version, "storage.schema_version", LVL_trace, pt);
+
+  CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", LVL_warning, pt);
+  CopyFromConfig(import.uptane_public_key_path, "import.uptane_public_key_path", LVL_warning, pt);
+  CopyFromConfig(import.tls_cacert_path, "import.tls_cacert_path", LVL_warning, pt);
+  CopyFromConfig(import.tls_pkey_path, "import.tls_pkey_path", LVL_warning, pt);
+  CopyFromConfig(import.tls_clientcert_path, "import.tls_clientcert_path", LVL_warning, pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -477,8 +483,16 @@ void Config::writeToFile(const std::string& filename) {
   writeOption(sink, storage.uptane_metadata_path, "uptane_metadata_path");
   writeOption(sink, storage.uptane_private_key_path, "uptane_private_key_path");
   writeOption(sink, storage.uptane_public_key_path, "uptane_public_key_path");
-  writeOption(sink, storage.tls_cacert_path, "tls_ca_path");
+  writeOption(sink, storage.tls_cacert_path, "tls_cacert_path");
   writeOption(sink, storage.tls_pkey_path, "tls_pkey_path");
   writeOption(sink, storage.tls_clientcert_path, "tls_clientcert_path");
+  sink << "\n";
+
+  sink << "[import]\n";
+  writeOption(sink, import.uptane_private_key_path, "uptane_private_key_path");
+  writeOption(sink, import.uptane_public_key_path, "uptane_public_key_path");
+  writeOption(sink, import.tls_cacert_path, "tls_cacert_path");
+  writeOption(sink, import.tls_pkey_path, "tls_pkey_path");
+  writeOption(sink, import.tls_clientcert_path, "tls_clientcert_path");
   sink << "\n";
 }

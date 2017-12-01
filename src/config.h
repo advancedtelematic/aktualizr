@@ -153,6 +153,7 @@ struct StorageConfig {
   StorageConfig()
       : type(kFileSystem),
         path("/var/sota"),
+        schema_version(0),
         uptane_metadata_path("metadata"),
         uptane_private_key_path("ecukey.pem"),
         uptane_public_key_path("ecukey.pub"),
@@ -164,6 +165,20 @@ struct StorageConfig {
   int schema_version;
   // FS storage
   boost::filesystem::path uptane_metadata_path;
+  boost::filesystem::path uptane_private_key_path;
+  boost::filesystem::path uptane_public_key_path;
+  boost::filesystem::path tls_cacert_path;
+  boost::filesystem::path tls_pkey_path;
+  boost::filesystem::path tls_clientcert_path;
+};
+
+struct ImportConfig {
+  ImportConfig()
+      : uptane_private_key_path(""),
+        uptane_public_key_path(""),
+        tls_cacert_path(""),
+        tls_pkey_path(""),
+        tls_clientcert_path("") {}
   boost::filesystem::path uptane_private_key_path;
   boost::filesystem::path uptane_public_key_path;
   boost::filesystem::path tls_cacert_path;
@@ -193,6 +208,7 @@ class Config {
   UptaneConfig uptane;
   OstreeConfig ostree;
   StorageConfig storage;
+  ImportConfig import;
 
  private:
   static std::string stripQuotes(const std::string& value);

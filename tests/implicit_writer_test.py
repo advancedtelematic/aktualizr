@@ -26,6 +26,7 @@ def main(credentials, config_input, output_dir, working_dir):
     server = ''
     tls = False
     for line in conf_file:
+        print('LINE:' + str(line))
         if re.search(rb'tls_cacert_path', line):
             root_ca_path = line.split(b'=')[1].strip()[1:-1]
         elif re.search(rb'^\[tls\]$', line):

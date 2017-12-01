@@ -41,11 +41,21 @@ int main(int argc, char **argv) {
     bool has_metadata = storage.loadMetadata(&pack);
 
     std::string device_id;
-    storage.loadDeviceId(&device_id);
+    if (!storage.loadDeviceId(&device_id)) {
+      std::cout << "Device ID: " << device_id << std::endl;
+    } else {
+      std::cout << "Couldn't load device ID" << std::endl;
+    }
+    
     std::vector<std::pair<std::string, std::string> > serials;
-    storage.loadEcuSerials(&serials);
-    std::cout << "Device ID: " << device_id << std::endl;
-    std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+    if (!storage.loadEcuSerials(&serials)) {
+      std::cout << "Couldn't load ECU serials" << std::endl;
+    } else if (serials.size() == 0) {
+      std::cout << "Primary serial is not found" << std::endl;
+    } else {
+      std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+    }
+
     std::cout << "Provisioned on server: " << (storage.loadEcuRegistered() ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 

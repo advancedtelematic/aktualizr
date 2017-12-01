@@ -10,9 +10,17 @@ class FSStorage : public INvStorage {
   FSStorage(const StorageConfig& config);
   virtual ~FSStorage();
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
+  virtual void storePrimaryPublic(const std::string& public_key);
+  virtual void storePrimaryPrivate(const std::string& private_key);
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key);
+  virtual bool loadPrimaryPublic(std::string* public_key);
+  virtual bool loadPrimaryPrivate(std::string* private_key);
   virtual void clearPrimaryKeys();
+
   virtual void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey);
+  virtual void storeTlsCa(const std::string& ca);
+  virtual void storeTlsCert(const std::string& cert);
+  virtual void storeTlsPkey(const std::string& pkey);
   virtual bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey);
   virtual void clearTlsCreds();
   virtual bool loadTlsCa(std::string* ca);
