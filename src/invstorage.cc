@@ -37,7 +37,7 @@ void INvStorage::importUpdateSimple(store_data_t store_func, load_data_t load_fu
   }
 }
 
-void INvStorage::importData(ImportConfig import_config) {
+void INvStorage::importData(const ImportConfig& import_config) {
   importSimple(&INvStorage::storePrimaryPublic, &INvStorage::loadPrimaryPublic, import_config.uptane_public_key_path);
   importSimple(&INvStorage::storePrimaryPrivate, &INvStorage::loadPrimaryPrivate,
                import_config.uptane_private_key_path);

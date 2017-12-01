@@ -57,7 +57,7 @@ class INvStorage {
   virtual bool loadInstalledVersions(std::string* content) = 0;
 
   // Not purely virtual
-  virtual void importData(ImportConfig import_config);
+  virtual void importData(const ImportConfig& import_config);
 
   // Incremental file API
   // virtual bool filePreallocate(bool from_director, const std::string &filename, size_t size) = 0;

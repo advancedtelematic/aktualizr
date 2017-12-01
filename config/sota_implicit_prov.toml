@@ -8,3 +8,5 @@ uptane_metadata_path = "metadata"
 uptane_private_key_path = "ecukey.der"
 uptane_public_key_path = "ecukey.pub"
 
+[import]
+tls_cacert_path = "/usr/lib/sota/root.crt"

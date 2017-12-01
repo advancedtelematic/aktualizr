@@ -7,7 +7,7 @@
 
 #include "logger.h"
 
-const std::string fsstorage_test_dir = "tests/test_fsstorage";
+const boost::filesystem::path fsstorage_test_dir = "tests/test_fsstorage";
 
 TEST(fsstorage, load_store_primary_keys) {
   StorageConfig config;
@@ -178,6 +178,78 @@ TEST(fsstorage, load_store_ecu_registered) {
 
   storage.clearEcuRegistered();
   EXPECT_FALSE(storage.loadEcuRegistered());
+  boost::filesystem::remove_all(fsstorage_test_dir);
+}
+
+TEST(fsstorage, import_data) {
+  StorageConfig config;
+  boost::filesystem::create_directories(fsstorage_test_dir / "import");
+  config.path = fsstorage_test_dir;
+
+  FSStorage storage(config);
+
+  ImportConfig import_config;
+  import_config.uptane_private_key_path = fsstorage_test_dir / "import" / "private";
+  import_config.uptane_public_key_path = fsstorage_test_dir / "import" / "public";
+  import_config.tls_cacert_path = fsstorage_test_dir / "import" / "ca";
+  import_config.tls_clientcert_path = fsstorage_test_dir / "import" / "cert";
+  import_config.tls_pkey_path = fsstorage_test_dir / "import" / "pkey";
+
+  Utils::writeFile(import_config.uptane_private_key_path.string(), std::string("uptane_private_1"));
+  Utils::writeFile(import_config.uptane_public_key_path.string(), std::string("uptane_public_1"));
+  Utils::writeFile(import_config.tls_cacert_path.string(), std::string("tls_cacert_1"));
+  Utils::writeFile(import_config.tls_clientcert_path.string(), std::string("tls_cert_1"));
+  Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_1"));
+
+  // Initially the storage is empty
+  EXPECT_FALSE(storage.loadPrimaryPublic(NULL));
+  EXPECT_FALSE(storage.loadPrimaryPrivate(NULL));
+  EXPECT_FALSE(storage.loadTlsCa(NULL));
+  EXPECT_FALSE(storage.loadTlsCert(NULL));
+  EXPECT_FALSE(storage.loadTlsPkey(NULL));
+
+  storage.importData(import_config);
+
+  std::string primary_public;
+  std::string primary_private;
+  std::string tls_ca;
+  std::string tls_cert;
+  std::string tls_pkey;
+
+  // the data has been imported
+  EXPECT_TRUE(storage.loadPrimaryPublic(&primary_public));
+  EXPECT_TRUE(storage.loadPrimaryPrivate(&primary_private));
+  EXPECT_TRUE(storage.loadTlsCa(&tls_ca));
+  EXPECT_TRUE(storage.loadTlsCert(&tls_cert));
+  EXPECT_TRUE(storage.loadTlsPkey(&tls_pkey));
+
+  EXPECT_EQ(primary_private, "uptane_private_1");
+  EXPECT_EQ(primary_public, "uptane_public_1");
+  EXPECT_EQ(tls_ca, "tls_cacert_1");
+  EXPECT_EQ(tls_cert, "tls_cert_1");
+  EXPECT_EQ(tls_pkey, "tls_pkey_1");
+
+  Utils::writeFile(import_config.uptane_private_key_path.string(), std::string("uptane_private_2"));
+  Utils::writeFile(import_config.uptane_public_key_path.string(), std::string("uptane_public_2"));
+  Utils::writeFile(import_config.tls_cacert_path.string(), std::string("tls_cacert_2"));
+  Utils::writeFile(import_config.tls_clientcert_path.string(), std::string("tls_cert_2"));
+  Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_2"));
+
+  storage.importData(import_config);
+
+  EXPECT_TRUE(storage.loadPrimaryPublic(&primary_public));
+  EXPECT_TRUE(storage.loadPrimaryPrivate(&primary_private));
+  EXPECT_TRUE(storage.loadTlsCa(&tls_ca));
+  EXPECT_TRUE(storage.loadTlsCert(&tls_cert));
+  EXPECT_TRUE(storage.loadTlsPkey(&tls_pkey));
+
+  // only root cert is being updated
+  EXPECT_EQ(primary_private, "uptane_private_1");
+  EXPECT_EQ(primary_public, "uptane_public_1");
+  EXPECT_EQ(tls_ca, "tls_cacert_2");
+  EXPECT_EQ(tls_cert, "tls_cert_1");
+  EXPECT_EQ(tls_pkey, "tls_pkey_1");
+
   boost::filesystem::remove_all(fsstorage_test_dir);
 }
 

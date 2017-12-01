@@ -42,11 +42,11 @@ int main(int argc, char **argv) {
 
     std::string device_id;
     if (!storage.loadDeviceId(&device_id)) {
-      std::cout << "Device ID: " << device_id << std::endl;
-    } else {
       std::cout << "Couldn't load device ID" << std::endl;
+    } else {
+      std::cout << "Device ID: " << device_id << std::endl;
     }
-    
+
     std::vector<std::pair<std::string, std::string> > serials;
     if (!storage.loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
