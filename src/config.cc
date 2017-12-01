@@ -394,18 +394,18 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       if (rs != 0) {
         LOGGER_LOG(LVL_error, "Legacy external flasher list-ecus command failed: " << output);
       } else {
-        char buffer[128];
-        while (fgets(buffer, 128, fmemopen(const_cast<char*>(output.c_str()), output.size(), "rb")) != NULL) {
+        std::stringstream ss(output);
+        std::string buffer;
+        while (std::getline(ss, buffer, '\n')) {
           Uptane::SecondaryConfig sconfig;
           sconfig.secondary_type = Uptane::kLegacy;
-          std::string strbuf(buffer);
-          size_t space = strbuf.find(' ');
+          size_t space = buffer.find(' ');
           if (space == std::string::npos) {
-            sconfig.ecu_hardware_id = strbuf;
+            sconfig.ecu_hardware_id = buffer.substr(0, buffer.size() - 1);
             sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
           } else {
-            sconfig.ecu_hardware_id = strbuf.substr(0, space);
-            sconfig.ecu_serial = strbuf.substr(space + 1, strbuf.size());
+            sconfig.ecu_hardware_id = buffer.substr(0, space);
+            sconfig.ecu_serial = buffer.substr(space + 1, buffer.size() - 1);
           }
           sconfig.partial_verifying = false;
           sconfig.ecu_private_key = "sec.private";
