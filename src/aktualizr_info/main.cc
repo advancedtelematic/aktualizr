@@ -37,38 +37,38 @@ int main(int argc, char **argv) {
 
     FSStorage storage(config);
     Uptane::MetaPack pack;
-    if (!storage.loadMetadata(&pack)) {
-      std::cout << "could not load metadata" << std::endl;
-      return EXIT_FAILURE;
-    }
 
-    if (vm.count("images-root")) {
-      std::cout << "image root.json content:" << std::endl;
-      std::cout << pack.image_root.toJson();
-    }
+    bool has_metadata = storage.loadMetadata(&pack);
 
-    if (vm.count("images-target")) {
-      std::cout << "image targets.json content:" << std::endl;
-      std::cout << pack.image_targets.toJson();
-    }
+    std::string device_id;
+    storage.loadDeviceId(&device_id);
+    std::vector<std::pair<std::string, std::string> > serials;
+    storage.loadEcuSerials(&serials);
+    std::cout << "Device ID: " << device_id << std::endl;
+    std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+    std::cout << "Provisioned on server: " << (storage.loadEcuRegistered() ? "yes" : "no") << std::endl;
+    std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
-    if (vm.count("director-root")) {
-      std::cout << "director root.json content:" << std::endl;
-      std::cout << pack.director_root.toJson();
-    }
+    if (has_metadata) {
+      if (vm.count("images-root")) {
+        std::cout << "image root.json content:" << std::endl;
+        std::cout << pack.image_root.toJson();
+      }
 
-    if (vm.count("director-target")) {
-      std::cout << "director targets.json content:" << std::endl;
-      std::cout << pack.director_targets.toJson();
-    }
+      if (vm.count("images-target")) {
+        std::cout << "image targets.json content:" << std::endl;
+        std::cout << pack.image_targets.toJson();
+      }
 
-    if (vm.size() == 1) {
-      std::string device_id;
-      storage.loadDeviceId(&device_id);
-      std::vector<std::pair<std::string, std::string> > serials;
-      storage.loadEcuSerials(&serials);
-      std::cout << "Device ID: " << device_id << std::endl;
-      std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+      if (vm.count("director-root")) {
+        std::cout << "director root.json content:" << std::endl;
+        std::cout << pack.director_root.toJson();
+      }
+
+      if (vm.count("director-target")) {
+        std::cout << "director targets.json content:" << std::endl;
+        std::cout << pack.director_targets.toJson();
+      }
     }
 
   } catch (const po::error &o) {
