@@ -74,11 +74,6 @@ if(BUILD_OSTREE)
                         uptane/virtualsecondary.cc)
 endif(BUILD_OSTREE)
 
-if(BUILD_SQLITE)
-    list(APPEND SOURCES sqlstorage.cc)
-    list(APPEND HEADERS sqlstorage.h)
-endif(BUILD_SQLITE)
-
 if(BUILD_P11)
     list(APPEND SOURCES p11engine.cc)
     list(APPEND HEADERS p11engine.h)
@@ -105,7 +100,6 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
-        ${SQLITE3_LIBRARIES}
         ${LibArchive_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
