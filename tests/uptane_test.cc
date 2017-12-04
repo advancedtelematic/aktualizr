@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -7,6 +8,8 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/polymorphic_pointer_cast.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "crypto.h"
 #include "fsstorage.h"
@@ -15,6 +18,7 @@
 #include "logger.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
+#include "uptane/managedsecondary.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -261,7 +265,7 @@ TEST(uptane, random_serial) {
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
   ecu_config.partial_verifying = false;
-  ecu_config.full_client_dir = uptane_test_dir;
+  ecu_config.full_client_dir = uptane_test_dir + "/sec_1";
   ecu_config.ecu_serial = "";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
@@ -270,6 +274,7 @@ TEST(uptane, random_serial) {
   ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
   ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
   conf_1.uptane.secondary_configs.push_back(ecu_config);
+  ecu_config.full_client_dir = uptane_test_dir + "/sec_2";
   conf_2.uptane.secondary_configs.push_back(ecu_config);
 
   FSStorage storage_1(conf_1.storage);
@@ -807,7 +812,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.uptane.secondary_configs.push_back(ecu_config2);
 }
 
-void checkKeyTests(FSStorage& storage, Uptane::SecondaryConfig& ecu_config1, Uptane::SecondaryConfig& ecu_config2) {
+void checkKeyTests(FSStorage& storage, SotaUptaneClient& sota_client) {
   std::string ca;
   std::string cert;
   std::string pkey;
@@ -826,26 +831,29 @@ void checkKeyTests(FSStorage& storage, Uptane::SecondaryConfig& ecu_config1, Upt
   EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials));
   EXPECT_EQ(ecu_serials.size(), 3);
 
-  // There is no available public function to fetch the secondaries' public and
-  // private keys, so just do it manually here.
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.full_client_dir / ecu_config1.ecu_public_key));
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config1.full_client_dir / ecu_config1.ecu_private_key));
-  std::string sec1_public = Utils::readFile((ecu_config1.full_client_dir / ecu_config1.ecu_public_key).string());
-  std::string sec1_private = Utils::readFile((ecu_config1.full_client_dir / ecu_config1.ecu_private_key).string());
-  EXPECT_TRUE(sec1_public.size() > 0);
-  EXPECT_TRUE(sec1_private.size() > 0);
-  EXPECT_NE(sec1_public, sec1_private);
-
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.full_client_dir / ecu_config2.ecu_public_key));
-  EXPECT_TRUE(boost::filesystem::exists(ecu_config2.full_client_dir / ecu_config2.ecu_private_key));
-  std::string sec2_public = Utils::readFile((ecu_config2.full_client_dir / ecu_config2.ecu_public_key).string());
-  std::string sec2_private = Utils::readFile((ecu_config2.full_client_dir / ecu_config2.ecu_private_key).string());
-  EXPECT_TRUE(sec2_public.size() > 0);
-  EXPECT_TRUE(sec2_private.size() > 0);
-  EXPECT_NE(sec2_public, sec2_private);
-
-  EXPECT_NE(sec1_public, sec2_public);
-  EXPECT_NE(sec1_private, sec2_private);
+  std::vector<std::string> public_keys;
+  std::vector<std::string> private_keys;
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
+    if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
+        it->second->sconfig.secondary_type != Uptane::kLegacy) {
+      continue;
+    }
+    boost::shared_ptr<Uptane::ManagedSecondary> managed =
+        boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
+    std::string public_key;
+    std::string private_key;
+    EXPECT_TRUE(managed->loadKeys(&public_key, &private_key));
+    EXPECT_TRUE(public_key.size() > 0);
+    EXPECT_TRUE(private_key.size() > 0);
+    EXPECT_NE(public_key, private_key);
+    public_keys.push_back(public_key);
+    private_keys.push_back(private_key);
+  }
+  std::sort(public_keys.begin(), public_keys.end());
+  EXPECT_EQ(adjacent_find(public_keys.begin(), public_keys.end()), public_keys.end());
+  std::sort(private_keys.begin(), private_keys.end());
+  EXPECT_EQ(adjacent_find(private_keys.begin(), private_keys.end()), private_keys.end());
 }
 
 /**
@@ -864,7 +872,7 @@ TEST(SotaUptaneClientTest, CheckAllKeys) {
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane);
   EXPECT_TRUE(uptane.initialize());
-  checkKeyTests(storage, ecu_config1, ecu_config2);
+  checkKeyTests(storage, sota_client);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -887,7 +895,7 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
     SotaUptaneClient sota_client(config, &events_channel, uptane);
 
     EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, ecu_config1, ecu_config2);
+    checkKeyTests(storage, sota_client);
 
     // Remove TLS keys but keep ECU keys and try to initialize.
     storage.clearTlsCreds();
@@ -900,7 +908,7 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
     SotaUptaneClient sota_client(config, &events_channel, uptane);
 
     EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, ecu_config1, ecu_config2);
+    checkKeyTests(storage, sota_client);
   }
 
   // Remove ECU keys but keep TLS keys and try to initialize.
@@ -919,7 +927,7 @@ TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
     SotaUptaneClient sota_client(config, &events_channel, uptane);
 
     EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, ecu_config1, ecu_config2);
+    checkKeyTests(storage, sota_client);
   }
   boost::filesystem::remove_all(uptane_test_dir);
 }
