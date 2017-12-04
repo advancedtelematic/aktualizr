@@ -15,6 +15,7 @@
 #include "logger.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
+#include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
@@ -1030,6 +1031,53 @@ TEST(SotaUptaneClientTest, CheckOldProvision) {
   EXPECT_TRUE(uptane.initialize());  // It will fail in case of provisioning because of wrong server url
   boost::filesystem::remove_all(work_dir);
 }*/
+
+TEST(SotaUptaneClientTest, save_version) {
+  Config config;
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.ca_file_ = "ca.pem";
+  config.tls.client_certificate_ = "client.pem";
+  config.tls.pkey_file_ = "pkey.pem";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::Repository uptane(config, storage, http);
+
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
+  target_json["length"] = 0;
+
+  Uptane::Target t("target_name", target_json);
+  uptane.saveInstalledVersion(t);
+  Json::Value result = Utils::parseJSONFile((config.tls.certificates_directory / "installed_versions").string());
+  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
+}
+
+TEST(SotaUptaneClientTest, load_version) {
+  Config config;
+  config.tls.certificates_directory = uptane_test_dir;
+  config.tls.ca_file_ = "ca.pem";
+  config.tls.client_certificate_ = "client.pem";
+  config.tls.pkey_file_ = "pkey.pem";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  FSStorage storage(config);
+  HttpFake http(uptane_test_dir);
+  Uptane::Repository uptane(config, storage, http);
+
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
+  target_json["length"] = 0;
+
+  Uptane::Target t("target_name", target_json);
+  uptane.saveInstalledVersion(t);
+
+  std::string versions_str;
+  storage.loadInstalledVersions(&versions_str);
+  Json::Value result = Utils::parseJSON(versions_str);
+  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
+}
 
 #ifdef BUILD_P11
 TEST(SotaUptaneClientTest, pkcs11_provision) {
