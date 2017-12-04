@@ -69,7 +69,8 @@ int Aktualizr::run() {
   } else {
 #ifdef BUILD_OSTREE
     // TODO: compile unconditionally
-    FSStorage storage(config_);
+    FSStorage storage(config_.storage);
+    storage.importData(config_.import);
     HttpClient http;
     Uptane::Repository repo(config_, storage, http);
     SotaUptaneClient uptane_client(config_, &events_channel, repo);

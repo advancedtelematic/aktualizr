@@ -45,7 +45,7 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
 #ifdef BUILD_P11
   if (key_source == kPkcs11) crypto_engine = p11.getEngine();
 #endif
-  Json::Value tuf_signed = Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key_id, manifest);
+  Json::Value tuf_signed = Crypto::signTuf(crypto_engine, primary_private_key_uri, primary_public_key_id, manifest);
   HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
   return response.isOk();
 }
@@ -57,7 +57,7 @@ Json::Value Repository::signVersionManifest(const Json::Value &primary_version_m
 #endif
 
   Json::Value ecu_version_signed =
-      Crypto::signTuf(crypto_engine, primary_private_key, primary_public_key_id, primary_version_manifest);
+      Crypto::signTuf(crypto_engine, primary_private_key_uri, primary_public_key_id, primary_version_manifest);
   return ecu_version_signed;
 }
 

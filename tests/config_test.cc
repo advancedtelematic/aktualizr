@@ -108,7 +108,7 @@ TEST(config, config_cmdl_parsing) {
 
 TEST(config, config_extract_credentials) {
   Config conf;
-  conf.tls.certificates_directory = config_test_dir + "/prov";
+  conf.storage.path = config_test_dir + "/prov";
   conf.provision.provision_path = "tests/test_data/credentials.zip";
 
   boost::filesystem::remove_all(config_test_dir + "/prov");

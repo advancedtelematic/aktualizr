@@ -1,12 +1,11 @@
-[tls]
-certificates_directory = "sota-prov"
+[storage]
+path = "sota-prov"
 
 [ostree]
 sysroot = "sysroot"
 os = "myos"
 
 [uptane]
-metadata_path = "sota-prov"
 disable_keyid_validation = true
 primary_ecu_hardware_id = "qemux86-64"
 

@@ -79,9 +79,9 @@ PKCS11_SLOT* P11Engine::findTokenSlot() {
   return slot;
 }
 
-bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
+bool P11Engine::readUptanePublicKey(std::string* key_out) {
   if (config_.module.empty()) return false;
-  if (id.length() % 2) return false;  // id is a hex string
+  if (config_.uptane_key_id.length() % 2) return false;  // id is a hex string
 
   PKCS11_SLOT* slot = findTokenSlot();
   if (!slot) return false;
@@ -96,11 +96,12 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   }
   PKCS11_KEY* key = NULL;
   {
-    boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
-    Utils::hex2bin(id, id_hex.get());
+    boost::scoped_array<unsigned char> id_hex(new unsigned char[config_.uptane_key_id.length() / 2]);
+    Utils::hex2bin(config_.uptane_key_id, id_hex.get());
 
     for (int i = 0; i < nkeys; i++) {
-      if ((keys[i].id_len == id.length() / 2) && !memcmp(keys[i].id, id_hex.get(), id.length() / 2)) {
+      if ((keys[i].id_len == config_.uptane_key_id.length() / 2) &&
+          !memcmp(keys[i].id, id_hex.get(), config_.uptane_key_id.length() / 2)) {
         key = &keys[i];
         break;
       }
@@ -122,14 +123,14 @@ bool P11Engine::readPublicKey(const std::string& id, std::string* key_out) {
   return true;
 }
 
-bool P11Engine::generateRSAKeyPair(const std::string& id) {
+bool P11Engine::generateUptaneKeyPair() {
   PKCS11_SLOT* slot = findTokenSlot();
   if (!slot) return false;
 
-  boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
-  Utils::hex2bin(id, id_hex.get());
+  boost::scoped_array<unsigned char> id_hex(new unsigned char[config_.uptane_key_id.length() / 2]);
+  Utils::hex2bin(config_.uptane_key_id, id_hex.get());
 
-  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (id.length() / 2))) {
+  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (config_.uptane_key_id.length() / 2))) {
     LOGGER_LOG(LVL_error, "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL));
 
     return false;
@@ -138,7 +139,9 @@ bool P11Engine::generateRSAKeyPair(const std::string& id) {
   return true;
 }
 
-bool P11Engine::readCert(const std::string& id, std::string* cert_out) {
+bool P11Engine::readTlsCert(std::string* cert_out) {
+  const std::string& id = config_.tls_clientcert_id;
+
   if (config_.module.empty()) return false;
   if (id.length() % 2) return false;  // id is a hex string
 

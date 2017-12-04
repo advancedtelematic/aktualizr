@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
   Bootstrap boot(credentials_path, "");
   boost::filesystem::path ca_path(prefix);
-  ca_path /= config.tls.ca_file();
+  ca_path /= config.import.tls_cacert_path;
   if (!no_root) {
     std::cout << "Writing root CA: " << ca_path << "\n";
     boost::filesystem::create_directories(ca_path.parent_path());

@@ -10,6 +10,7 @@ set(SOURCES aktualizr.cc
             crypto.cc
             events.cc
             eventsinterpreter.cc
+            invstorage.cc
             fsstorage.cc
             gatewaymanager.cc
             httpclient.cc
