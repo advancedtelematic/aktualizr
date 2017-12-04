@@ -1031,7 +1031,7 @@ TEST(SotaUptaneClientTest, CheckOldProvision) {
   boost::filesystem::remove_all(work_dir);
 }*/
 
-#ifdef TEST_PKCS11_MODULE_PATH
+#ifdef BUILD_P11
 TEST(SotaUptaneClientTest, pkcs11_provision) {
   Config config;
   config.tls.certificates_directory = uptane_test_dir;
