@@ -222,19 +222,9 @@ void Utils::writeFile(const std::string &filename, const Json::Value &content) {
 }
 
 Json::Value Utils::getHardwareInfo() {
-  char buffer[128];
   std::string result = "";
-  FILE *pipe = popen("lshw -json", "r");
-  if (!pipe) {
-    LOGGER_LOG(LVL_warning, "Could not execute shell.");
-    return "";
-  }
+  int exit_code = shell("lshw -json", &result);
 
-  while (!feof(pipe)) {
-    if (fgets(buffer, 128, pipe) != NULL) result += buffer;
-  }
-
-  int exit_code = pclose(pipe);
   if (exit_code) {
     LOGGER_LOG(LVL_warning, "Could not execute lshw (is it installed?).");
     return Json::Value();
@@ -273,7 +263,6 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
 
 int Utils::shell(const std::string &command, std::string *output) {
   char buffer[128];
-  std::string result = "";
   FILE *pipe = popen(command.c_str(), "r");
   if (!pipe) {
     *output = "popen() failed!";
@@ -281,7 +270,7 @@ int Utils::shell(const std::string &command, std::string *output) {
   }
   try {
     while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != NULL) result += buffer;
+      if (fgets(buffer, 128, pipe) != NULL) *output += buffer;
     }
   } catch (std::exception e) {
     *output = "Exception: ";
@@ -289,7 +278,8 @@ int Utils::shell(const std::string &command, std::string *output) {
     pclose(pipe);
     return -1;
   }
-  return pclose(pipe);
+  int exitcode = pclose(pipe);
+  return WEXITSTATUS(exitcode);
 }
 
 TemporaryFile::TemporaryFile(const std::string &hint)
