@@ -1,0 +1,66 @@
+= Legacy secondary support
+
+Uptane specification implies that secondary ECUs, i.e. ECUs that don't have direct access to the global network and can only get update from the primary ECUs, should also be able to verify the Uptane metadata and sign its version manifest. This way secondaries are protected not only from compromise of remote server, but from compromise of primary or in-vehicle network as well.
+
+In some cases it might be necessary though to be able to update legacy secondaries with Uptane primary without modifying secondaries' flashing procedure. Such secondaries still take full advantage of Uptane's protection against remote server/global network compromise and can also implement some in-ECU protection in a proprietary way.
+
+In the latter case the primary (i.e. aktualizr) will take care of veryfying metadata and signing version manifests on behalf of secondaries, using external utility for ECU discovery and flashing.
+
+== Flasher command line interface
+
+Command line interface should support three commands.
+
+=== api-version
+
+  $ example-flasher api-version
+
+Should also output 1 for the current version of API. Command always succeeds.
+
+=== list-ecus
+
+  $ example-flasher list-ecus
+
+can return list of connected ECUs in either of two formats:
+
+  <hardware-id[0]> <ecu-serial[0]>
+  <hardware-id[1]> <ecu-serial[1]>
+  ...
+
+Hardware IDs are used by Uptane to check if a firmware image is suitable for the particular device, so make sure that the Hardware ID specified for your image in https://www.atsgarage.com/[ATS Garage] literally matches what's returned by the flasher.
+
+ECU serial identifies your ECU uniquely in the Uptane repository, so they should be unique globally, not just on the vehicle scope.
+
+A simplified format for ECU list is also accepted:
+
+  <hardware-id[0]>
+  <hardware-id[1]>
+  ...
+
+In this case hardware IDs should be unique on the list scope, every entry is treated as a single ECU by Uptane, and a unique serial is generated randomly by the primary for each entry. You might want to flash multiple ECUs of the same kind, in this case maintaining atomicity of the update, i.e. making sure that all the ECUs have either got the new image or if the update fails continue to run the old image, is the responsibility of the flasher.
+
+The command returns failure if the ECUs couldn't be found due to communication error of if the discovered number of ECUs doesn't match the expected one. On subsequent runs the command can only output less ECUs than before, if some ECUs stop responding. ECU hotplugging is not supported.
+
+=== install-software
+
+  $ example-flasher install-software --hardware-identifier <hw-id> [--ecu-identifier ecu-serial] --firmware /path/to/firmware.img
+
+This command delivers the update to the particular ECU. `--ecu-identifier` should be present if the output of `list-ecus` command includes serials. If `list-ecus` uses simplified format, `--ecu-identifier` can be missing and should be ignored if present.
+
+The command should return success if the secondary was flashed and can run the new firmware, failure is returned otherwise.
+
+== Integration with aktualizr
+
+Aktualizr update client has a `--legacy-init /path/to/example-flasher` command line option which will make all the ECUs reported by `list-ecus` command available to the aktualizr and https://www.atsgarage.com/[ATS Garage].
+
+In most cases you will want to build your Uptane-enabled system using https://github.com/advancedtelematic/meta-updater[meta-updater] yocto layer. Please read the documentation listed in the README for the common information about building with meta-updater. Adding support for legacy secondaries requires two more things to do:
+
+  . Create a recipe that will put your flasher to some location in the device's file system. On how to write a recipe, please address to the http://www.yoctoproject.org/docs/current/dev-manual/dev-manual.html#new-recipe-writing-a-new-recipe[Yocto documentation].
+  . In your local.conf set `SOTA_LEGACY_SECONDARY_INTERFACE = "<path>"`, where the path is the path to the flasher as seen from the booted device.
+
+Make sure that you're using meta-updater version that is new enough to support these features. Head of the `pyro` branch supports it at the time of writing.
+
+== Additional requirements for secondaries
+
+As a result of an update secondary should run either the new version of firmware (success case) or the one it was running before the update (failure case). Traditional way to implement this requirement is using a dual-bank memory layout on the secondary.
+
+
