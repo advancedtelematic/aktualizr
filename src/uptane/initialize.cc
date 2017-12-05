@@ -354,19 +354,7 @@ bool Repository::initialize() {
     // if am ECU with the same ID has already been registered to the server, repeat the whole registration process
     //   excluding the device registration
     if (ret_code == INIT_RET_OCCUPIED) {
-      // TODO: proper way to process this case after acknowledgement is implemented on the server
-      //   is to download the list of registered ECUs and compare it to the list of ECUs present.
-      //   If they coincide, that means that the registration has already been done by this device,
-      //   but the registration process has been interrupted between sending the acknowledgement
-      //   and setting the flag in the storage. Otherwise we have a name collision and should re-run
-      //   initialization process.
-      //   Now we will just repeat initialization all the time.
-      resetTlsCreds();
-      resetEcuKeys();
-      resetEcuSerials();
-      LOGGER_LOG(LVL_info, "ECU serial is already registered, restart");
-      continue;
-
+      LOGGER_LOG(LVL_info, "ECU serial is already registered");
     } else if (ret_code != INIT_RET_OK) {
       LOGGER_LOG(LVL_error, "ECU registration failed, abort initialization");
       return false;

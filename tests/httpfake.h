@@ -14,7 +14,8 @@ enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
 class HttpFake : public HttpInterface {
  public:
-  HttpFake(const std::string test_dir_in) : provisioningResponse(ProvisionOK), test_dir(test_dir_in) {}
+  HttpFake(const std::string test_dir_in, bool is_initialized = false)
+      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {}
 
   ~HttpFake() { boost::filesystem::remove(metadata_path + "/repo/timestamp.json"); }
 
@@ -66,7 +67,12 @@ class HttpFake : public HttpInterface {
         EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
         EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
         EXPECT_EQ(data["ecus"][0]["ecu_serial"].asString(), "tst149_ecu_serial");
-        return HttpResponse("{}", 200, CURLE_OK, "");
+        if (!ecu_registered) {
+          ecu_registered = true;
+          return HttpResponse("{}", 200, CURLE_OK, "");
+        } else {
+          return HttpResponse("{\"code\":\"ecu_already_registered\"}", 409, CURLE_OK, "");
+        }
       }
     }
     Utils::writeFile(test_dir + "/post.json", data);
@@ -128,6 +134,7 @@ class HttpFake : public HttpInterface {
   HttpResponse put(const std::string &url, const std::string data);
 
   std::string test_dir;
+  bool ecu_registered;
 };
 
 #endif  // HTTPFAKE_H_

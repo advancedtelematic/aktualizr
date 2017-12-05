@@ -1030,23 +1030,24 @@ TEST(SotaUptaneClientTest, implicit_provision) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-/*
-Test removed until requirements are clarified
-
 TEST(SotaUptaneClientTest, CheckOldProvision) {
   boost::filesystem::path work_dir = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
   boost::filesystem::create_directories(work_dir);
-  system((std::string("cp -rf tests/test_data/oldprovdir/\* ") + work_dir.string()).c_str());
+  system((std::string("cp -rf tests/test_data/oldprovdir/* ") + work_dir.string()).c_str());
   Config config;
-  config.tls.server = "nonexistent_server";
-  config.config.storage = work_dir;
+  config.tls.server = tls_server;
+  config.uptane.director_server = tls_server + "/director";
+  config.uptane.repo_server = tls_server + "/repo";
+  config.storage.path = work_dir;
 
-  HttpClient http;
+  HttpFake http(work_dir.string(), true);
   FSStorage storage(config.storage);
   Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.initialize());  // It will fail in case of provisioning because of wrong server url
+  EXPECT_FALSE(storage.loadEcuRegistered());
+  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(storage.loadEcuRegistered());
   boost::filesystem::remove_all(work_dir);
-}*/
+}
 
 TEST(SotaUptaneClientTest, save_version) {
   Config config;
