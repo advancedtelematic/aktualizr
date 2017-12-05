@@ -1050,13 +1050,13 @@ TEST(SotaUptaneClientTest, CheckOldProvision) {
 
 TEST(SotaUptaneClientTest, save_version) {
   Config config;
-  config.tls.certificates_directory = uptane_test_dir;
-  config.tls.ca_file_ = "ca.pem";
-  config.tls.client_certificate_ = "client.pem";
-  config.tls.pkey_file_ = "pkey.pem";
+  config.storage.path = uptane_test_dir;
+  config.storage.tls_cacert_path = "ca.pem";
+  config.storage.tls_clientcert_path = "client.pem";
+  config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  FSStorage storage(config);
+  FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
 
@@ -1066,19 +1066,19 @@ TEST(SotaUptaneClientTest, save_version) {
 
   Uptane::Target t("target_name", target_json);
   uptane.saveInstalledVersion(t);
-  Json::Value result = Utils::parseJSONFile((config.tls.certificates_directory / "installed_versions").string());
+  Json::Value result = Utils::parseJSONFile((config.storage.path / "installed_versions").string());
   EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
 }
 
 TEST(SotaUptaneClientTest, load_version) {
   Config config;
-  config.tls.certificates_directory = uptane_test_dir;
-  config.tls.ca_file_ = "ca.pem";
-  config.tls.client_certificate_ = "client.pem";
-  config.tls.pkey_file_ = "pkey.pem";
+  config.storage.path = uptane_test_dir;
+  config.storage.tls_cacert_path = "ca.pem";
+  config.storage.tls_clientcert_path = "client.pem";
+  config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  FSStorage storage(config);
+  FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::Repository uptane(config, storage, http);
 
