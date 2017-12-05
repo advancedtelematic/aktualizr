@@ -21,6 +21,13 @@ class ManagedSecondary : public SecondaryInterface {
  public:
   ManagedSecondary(const SecondaryConfig& sconfig_in);
 
+  virtual std::string getSerial() {
+    if (!sconfig.ecu_serial.empty()) {
+      return sconfig.ecu_serial;
+    } else {
+      return public_key_id;
+    }
+  }
   virtual std::string getPublicKey() { return public_key; }
   virtual bool putMetadata(const MetaPack& meta_pack);
   virtual int getRootVersion(const bool director);
@@ -28,6 +35,8 @@ class ManagedSecondary : public SecondaryInterface {
 
   virtual bool sendFirmware(const std::string& data);
   virtual Json::Value getManifest();
+
+  bool loadKeys(std::string* public_key, std::string* private_key);
 
  private:
   std::string public_key;
@@ -45,7 +54,6 @@ class ManagedSecondary : public SecondaryInterface {
   virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) = 0;
 
   void storeKeys(const std::string& public_key, const std::string& private_key);
-  bool loadKeys(std::string* public_key, std::string* private_key);
 
   // TODO: implement
   void storeMetadata(const MetaPack& meta_pack) { (void)meta_pack; }

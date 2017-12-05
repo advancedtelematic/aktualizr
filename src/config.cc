@@ -350,7 +350,8 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       if (stype == "virtual") {
         sconfig.secondary_type = Uptane::kVirtual;
       } else if (stype == "legacy") {
-        sconfig.secondary_type = Uptane::kLegacy;
+        LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
+        continue;
       } else if (stype == "uptane") {
         sconfig.secondary_type = Uptane::kUptane;
       } else {
@@ -367,9 +368,58 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
       sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
       sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
       sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
-      sconfig.flasher = boost::filesystem::path(config_json["flasher"].asString());
+      sconfig.flasher = "";
 
       uptane.secondary_configs.push_back(sconfig);
+    }
+  }
+
+  if (cmd.count("legacy-interface") != 0) {
+    std::string legacy_interface = cmd["legacy-interface"].as<std::string>();
+    std::stringstream command;
+    std::string output;
+    command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
+    int rs = Utils::shell(command.str(), &output);
+    if (rs != 0) {
+      LOGGER_LOG(LVL_error, "Legacy external flasher api-version command failed: " << output);
+    } else if (output != "1") {
+      LOGGER_LOG(LVL_error, "Unexpected legacy external flasher API version: " << output);
+    } else {
+      command.clear();
+      command.str(std::string());
+      output = std::string();
+      command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
+      rs = Utils::shell(command.str(), &output);
+
+      if (rs != 0) {
+        LOGGER_LOG(LVL_error, "Legacy external flasher list-ecus command failed: " << output);
+      } else {
+        std::stringstream ss(output);
+        std::string buffer;
+        while (std::getline(ss, buffer, '\n')) {
+          Uptane::SecondaryConfig sconfig;
+          sconfig.secondary_type = Uptane::kLegacy;
+          size_t space = buffer.find(' ');
+          if (space == std::string::npos) {
+            sconfig.ecu_hardware_id = buffer.substr(0, buffer.size() - 1);
+            sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
+          } else {
+            sconfig.ecu_hardware_id = buffer.substr(0, space);
+            sconfig.ecu_serial = buffer.substr(space + 1, buffer.size() - 1);
+          }
+          sconfig.partial_verifying = false;
+          sconfig.ecu_private_key = "sec.private";
+          sconfig.ecu_public_key = "sec.public";
+
+          sconfig.full_client_dir = storage.path / sconfig.ecu_serial;
+          sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
+          sconfig.metadata_path = sconfig.full_client_dir / "metadata";
+          sconfig.target_name_path = sconfig.full_client_dir / "target_name";
+          sconfig.flasher = legacy_interface;
+
+          uptane.secondary_configs.push_back(sconfig);
+        }
+      }
     }
   }
 }

@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
+#include "utils.h"
 
 namespace Uptane {
 VirtualSecondary::VirtualSecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {

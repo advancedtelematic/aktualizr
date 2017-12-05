@@ -21,6 +21,9 @@ class SotaUptaneClient {
 
   Json::Value AssembleManifest();
 
+  // ecu_serial => secondary*
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
+
  private:
   bool isInstalled(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
@@ -34,8 +37,6 @@ class SotaUptaneClient {
   Config config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
-  // ecu_serial -> secondary*
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
   int last_targets_version;
   Json::Value operation_result;
 };

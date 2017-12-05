@@ -270,7 +270,9 @@ int Utils::shell(const std::string &command, std::string *output) {
   }
   try {
     while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != NULL) *output += buffer;
+      if (fgets(buffer, 128, pipe) != NULL) {
+        *output += buffer;
+      }
     }
   } catch (std::exception e) {
     *output = "Exception: ";

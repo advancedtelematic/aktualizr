@@ -141,11 +141,15 @@ void ManagedSecondary::storeKeys(const std::string &public_key, const std::strin
 }
 
 bool ManagedSecondary::loadKeys(std::string *public_key, std::string *private_key) {
-  if (!boost::filesystem::exists(sconfig.ecu_public_key) || !boost::filesystem::exists(sconfig.ecu_private_key))
-    return false;
+  boost::filesystem::path public_key_path = sconfig.full_client_dir / sconfig.ecu_public_key;
+  boost::filesystem::path private_key_path = sconfig.full_client_dir / sconfig.ecu_private_key;
 
-  *private_key = Utils::readFile(sconfig.ecu_private_key);
-  *public_key = Utils::readFile(sconfig.ecu_public_key);
+  if (!boost::filesystem::exists(public_key_path) || !boost::filesystem::exists(private_key_path)) {
+    return false;
+  }
+
+  *private_key = Utils::readFile(private_key_path.string());
+  *public_key = Utils::readFile(public_key_path.string());
   return true;
 }
 }
