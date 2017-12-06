@@ -43,6 +43,7 @@ RUN apt-get update && apt-get -y install \
   liblzma-dev \
   libostree-dev \
   libsodium-dev \
+  libsqlite3-dev \
   libssl-dev \
   libtool \
   make \

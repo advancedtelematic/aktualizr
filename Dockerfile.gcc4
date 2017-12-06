@@ -44,6 +44,7 @@ RUN apt-get update && apt-get -y install \
   libostree-dev \
   libp11-dev \
   libsodium-dev \
+  libsqlite3-dev \
   libssl-dev \
   libtool \
   make \
