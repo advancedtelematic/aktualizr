@@ -26,7 +26,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   bpo::options_description description("aktualizr_implicit_writer command line options");
   // clang-format off
   description.add_options()
-      ("help,h", "help screen")
+      ("help,h", "print usage")
       ("version,v", "Current aktualizr_implicit_writer version")
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("config-input,i", bpo::value<std::string>()->required(), "input sota.toml configuration file")

@@ -48,15 +48,15 @@ int main(int argc, char **argv) {
   string cacerts;
 
   int verbosity;
-  po::options_description desc("Allowed options");
+  po::options_description desc("garage_push command line options");
   // clang-format off
   desc.add_options()
-    ("help", "produce a help message")
-    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
-    ("quiet,q", "Quiet mode")
+    ("help", "print usage")
+    ("verbose,v",accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
+    ("quiet,q", "quiet mode")
     ("ref,r", po::value<string>(&ref)->required(), "refhash to check")
-    ("credentials,j", po::value<string>(&credentials_path)->required(), "Credentials (json or zip containing json)")
-    ("cacert", po::value<string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert");
+    ("credentials,j", po::value<string>(&credentials_path)->required(), "credentials (json or zip containing json)")
+    ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
   // clang-format on
 
   po::variables_map vm;

@@ -9,9 +9,10 @@
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
-  po::options_description desc("Allowed options");
+  po::options_description desc("aktualizr_info command line options");
   // clang-format off
   desc.add_options()
+    ("help,h", "print usage")
     ("config,c", po::value<std::string>()->default_value("/usr/lib/sota/sota.toml"), "toml configuration file")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
@@ -25,6 +26,10 @@ int main(int argc, char **argv) {
     po::basic_parsed_options<char> parsed_options = po::command_line_parser(argc, argv).options(desc).run();
     po::store(parsed_options, vm);
     po::notify(vm);
+    if (vm.count("help") != 0) {
+      std::cout << desc << '\n';
+      exit(EXIT_SUCCESS);
+    }
 
     std::string sota_config_file = vm["config"].as<std::string>();
     boost::filesystem::path sota_config_path(sota_config_file);

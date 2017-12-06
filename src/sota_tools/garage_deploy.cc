@@ -16,17 +16,17 @@ int main(int argc, char **argv) {
   std::string push_cred;
   std::string hardwareids;
   std::string cacerts;
-  po::options_description desc("Allowed options");
+  po::options_description desc("garage_push command line options");
   // clang-format off
   desc.add_options()
-    ("help", "Produce a help message")
+    ("help", "print usage")
     ("version,v", "Current garage-deploy version")
-    ("verbose,l", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
+    ("verbose,l", accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
     ("ref,r", po::value<std::string>(&ref)->required(), "package name to fetch")
     ("fetch-credentials,f", po::value<std::string>(&fetch_cred)->required(), "path to fetch credentials file")
     ("push-credentials,p", po::value<std::string>(&push_cred)->required(), "path to push credentials file")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
-    ("cacert", po::value<std::string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert");
+    ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
 
   // clang-format on
 

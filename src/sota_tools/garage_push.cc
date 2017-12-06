@@ -25,19 +25,19 @@ int main(int argc, char **argv) {
 
   int verbosity;
   bool dry_run = false;
-  po::options_description desc("Allowed options");
+  po::options_description desc("garage_push command line options");
   // clang-format off
   desc.add_options()
-    ("help", "produce a help message")
+    ("help", "print usage")
     ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
     ("repo,C", po::value<string>(&repo_path), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
     ("fetch-credentials,f", po::value<string>(&pull_cred), "path to credentials to fetch from")
-    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "Credentials (json or zip containing json)")
-    ("cacert", po::value<string>(&cacerts), "Override path to CA root certificates, in the same format as curl --cacert")
-    ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "Maximum number of parallel requests")
-    ("dry-run,n", "Dry Run: Check arguments and authenticate but don't upload");
+    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "credentials (json or zip containing json)")
+    ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("jobs", po::value<int>(&maxCurlRequests)->default_value(30), "maximum number of parallel requests")
+    ("dry-run,n", "check arguments and authenticate but don't upload");
   // clang-format on
 
   po::variables_map vm;
