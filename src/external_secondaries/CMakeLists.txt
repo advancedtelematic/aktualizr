@@ -4,7 +4,7 @@ set(ECU_INTERFACE_HEADERS ecuinterface.h)
 set(MAIN_ECU_INTERFACE_SRC ecuinterface.cc)
 
 add_executable(example-interface ${MAIN_ECU_INTERFACE_SRC} example_interface.cc)
-target_link_libraries(example-interface ${Boost_LIBRARIES})
+target_link_libraries(example-interface aktualizr_static_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable(aktualizr-validate-secondary-interface validate_secondary_interface_test.cc)
 set_property(TARGET aktualizr-validate-secondary-interface PROPERTY CXX_STANDARD 11)

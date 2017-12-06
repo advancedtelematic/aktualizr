@@ -52,12 +52,14 @@ int main(int argc, char **argv) {
         std::cout << ecu.listEcus();
         return EXIT_SUCCESS;
       } else if (command == "install-software") {
-        if (!vm.count("hardware-identifier") || !vm.count("ecu-identifier") || !vm.count("firmware")) {
-          std::cerr
-              << "install-software command requires --hardware-identifier, --ecu-identifier and --firmware options\n";
+        if (!vm.count("hardware-identifier") || !vm.count("firmware")) {
+          std::cerr << "install-software command requires --hardware-identifier, --firmware options, and possibly "
+                       "--ecu-identifier.\n";
           return EXIT_FAILURE;
         }
-        return ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        ECUInterface::InstallStatus result = ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        std::cout << "Installation result: " << result << "\n";
+        return result;
       } else {
         std::cout << "unknown command: " << command[0] << "\n";
         std::cout << desc;
