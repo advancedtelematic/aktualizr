@@ -114,7 +114,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
     cred.pkey_file = tmp_pkey_file.Path().native();
     cred.cert_file = tmp_cert_file.Path().native();
 #endif
-    return package.install(cred, config.ostree, uptane_repo.getPrimaryHardwareId());
+    return package.install(cred, config.ostree);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());
   }

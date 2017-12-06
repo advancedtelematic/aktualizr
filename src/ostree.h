@@ -22,8 +22,7 @@ class OstreePackage {
   std::string ref_name;
   std::string refhash;
   std::string pull_uri;
-  data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config,
-                               const std::string &refspec) const;
+  data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config) const;
 
   Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const;
   static std::string getCurrent(const std::string &ostree_sysroot);

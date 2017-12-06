@@ -92,10 +92,8 @@ OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &
                              const std::string &treehub_in)
     : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config,
-                                            const std::string &refspec) const {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   const char remote[] = "aktualizr-remote";
-  const char *const refs[] = {refspec.c_str()};
   const char *const commit_ids[] = {refhash.c_str()};
   const char *opt_osname = NULL;
   OstreeRepo *repo = NULL;
@@ -122,9 +120,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&builder, "{s@v}", "flags", g_variant_new_variant(g_variant_new_int32(0)));
 
-  g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(refs, 1)));
-  g_variant_builder_add(&builder, "{s@v}", "override-commit-ids",
-                        g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
+  g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(commit_ids, 1)));
 
   options = g_variant_ref_sink(g_variant_builder_end(&builder));
 
@@ -135,7 +131,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     return install_outcome;
   }
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), refs[0]);
+  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), commit_ids[0]);
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOGGER_LOG(LVL_error, error->message);
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);

@@ -4,11 +4,9 @@ OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &
                              const std::string &treehub_in)
     : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config,
-                                            const std::string &refspec) const {
+data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
   (void)cred;
   (void)config;
-  (void)refspec;
   return data::InstallOutcome(data::OK, "Good");
 }
 
