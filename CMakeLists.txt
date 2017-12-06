@@ -25,7 +25,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
 find_package(PkgConfig REQUIRED)
-find_package(Boost 1.57.0 COMPONENTS system filesystem thread program_options log_setup log chrono random REQUIRED)
+find_package(Boost 1.57.0 COMPONENTS filesystem thread program_options log_setup log chrono random system REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
