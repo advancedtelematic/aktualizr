@@ -10,7 +10,13 @@ add_executable(aktualizr-validate-secondary-interface validate_secondary_interfa
 set_property(TARGET aktualizr-validate-secondary-interface PROPERTY CXX_STANDARD 11)
 target_link_libraries(aktualizr-validate-secondary-interface ${Boost_LIBRARIES} gtest)
 
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(example-interface gcov)
+    target_link_libraries(aktualizr-validate-secondary-interface gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
+
 aktualizr_source_file_checks(${MAIN_ECU_INTERFACE_SRC} ${ECU_INTERFACE_HEADERS} example_interface.cc)
 
+install(TARGETS example-interface RUNTIME DESTINATION bin)
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
