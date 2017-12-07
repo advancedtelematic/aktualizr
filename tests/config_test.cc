@@ -138,7 +138,7 @@ TEST(config, ecu_persist) {
   boost::program_options::options_description description("some text");
   description.add_options()("secondary-config", bpo::value<std::vector<std::string> >()->composing(),
                             "set config for secondary");
-  const char *argv[] = {"aktualizr", "--secondary-config", "tests/test_data/secondary_serial.json"};
+  const char *argv[] = {"aktualizr", "--secondary-config", "config/ex/secondary/virtualsec.json"};
   boost::program_options::store(boost::program_options::parse_command_line(3, argv, description), cmd);
 
   boost::filesystem::remove_all(config_test_dir);
@@ -148,7 +148,6 @@ TEST(config, ecu_persist) {
   EXPECT_EQ(conf1.uptane.primary_ecu_serial, conf2.uptane.primary_ecu_serial);
   EXPECT_EQ(conf1.uptane.secondary_configs.size(), 1);
   EXPECT_EQ(conf2.uptane.secondary_configs.size(), 1);
-  EXPECT_EQ(conf1.uptane.secondary_configs[0].ecu_serial, conf2.uptane.secondary_configs[0].ecu_serial);
 
   boost::filesystem::remove_all(config_test_dir);
 }
