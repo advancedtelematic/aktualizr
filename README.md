@@ -63,6 +63,7 @@ The following debian packages are used in the project:
  - libostree-dev
  - valgrind
  - libjansson-dev
+ - libsqlite3-dev
  - libssl-dev
  - libarchive-dev
  - libsodium-dev
