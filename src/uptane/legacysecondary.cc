@@ -10,9 +10,7 @@
 #include "utils.h"
 
 namespace Uptane {
-LegacySecondary::LegacySecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {
-  boost::filesystem::create_directories(sconfig.firmware_path.parent_path());
-}
+LegacySecondary::LegacySecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {}
 
 bool LegacySecondary::storeFirmware(const std::string& target_name, const std::string& content) {
   // reading target hash back is not currently supported, so primary needs to save the firmware file locally

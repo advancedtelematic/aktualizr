@@ -91,7 +91,6 @@ int main(int argc, char *argv[]) {
   ca_path /= config.import.tls_cacert_path;
   if (!no_root) {
     std::cout << "Writing root CA: " << ca_path << "\n";
-    boost::filesystem::create_directories(ca_path.parent_path());
     Utils::writeFile(ca_path.string(), boot.getCa());
   }
 

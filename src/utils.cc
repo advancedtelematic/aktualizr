@@ -13,6 +13,7 @@
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/remove_whitespace.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -207,16 +208,22 @@ std::string Utils::readFile(const std::string &filename) {
   return content;
 }
 
-void Utils::writeFile(const std::string &filename, const std::string &content) {
+void Utils::writeFile(const std::string &filename, const std::string &content, bool create_directories) {
+  if (create_directories) {
+    boost::filesystem::create_directories(boost::filesystem::path(filename).parent_path());
+  }
   std::ofstream file(filename.c_str());
+  if (!file.good()) {
+    throw std::runtime_error(std::string("Error opening file ") + filename);
+  }
   file << content;
   file.close();
 }
 
-void Utils::writeFile(const std::string &filename, const Json::Value &content) {
-  std::ofstream file(filename.c_str());
-  file << content;
-  file.close();
+void Utils::writeFile(const std::string &filename, const Json::Value &content, bool create_directories) {
+  std::stringstream ss;
+  ss << content;
+  Utils::writeFile(filename, ss.str(), create_directories);
 }
 
 Json::Value Utils::getHardwareInfo() {
