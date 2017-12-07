@@ -1,67 +1,87 @@
 #include "fsstorage.h"
+#include "sqlstorage.h"
 
 #include <string>
 
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
+#include <boost/move/make_unique.hpp>
 
 #include "logger.h"
 
-const boost::filesystem::path fsstorage_test_dir = "tests/test_fsstorage";
+const boost::filesystem::path storage_test_dir = "tests/test_storage";
+StorageConfig config;
 
-TEST(fsstorage, load_store_primary_keys) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
-  config.uptane_metadata_path = fsstorage_test_dir;
-  config.uptane_public_key_path = "test_primary.pub";
-  config.uptane_private_key_path = "test_primary.priv";
+boost::movelib::unique_ptr<INvStorage> Storage() {
+  if (config.type == kFileSystem)
+    return boost::movelib::unique_ptr<INvStorage>(new FSStorage(config));
+  else
+    return boost::movelib::unique_ptr<INvStorage>(new SQLStorage(config));
+}
 
-  FSStorage storage(config);
-  storage.storePrimaryKeys("pr_public", "pr_private");
+void InitConfig(StorageType type) {
+  config.type = type;
+  if (type == kFileSystem) {
+    config.path = storage_test_dir;
+    config.uptane_metadata_path = "metadata";
+    config.uptane_public_key_path = "test_primary.pub";
+    config.uptane_private_key_path = "test_primary.priv";
+    config.tls_pkey_path = "test_tls.pkey";
+    config.tls_clientcert_path = "test_tls.cert";
+    config.tls_cacert_path = "test_tls.ca";
+  } else {  // type == kSqlite
+    // FSStorage
+    config.path = storage_test_dir;
+    config.uptane_metadata_path = "metadata";
+    config.uptane_public_key_path = "test_primary.pub";
+    config.uptane_private_key_path = "test_primary.priv";
+    config.tls_pkey_path = "test_tls.pkey";
+    config.tls_clientcert_path = "test_tls.cert";
+    config.tls_cacert_path = "test_tls.ca";
+
+    // SQLStorage
+    config.sqldb_path = storage_test_dir / "test.db";
+    config.schema_version = 0;
+    config.schemas_path = "config/storage";
+  }
+}
+
+TEST(storage, load_store_primary_keys) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  storage->storePrimaryKeys("pr_public", "pr_private");
 
   std::string pubkey;
   std::string privkey;
 
-  EXPECT_TRUE(storage.loadPrimaryKeys(&pubkey, &privkey));
+  EXPECT_TRUE(storage->loadPrimaryKeys(&pubkey, &privkey));
   EXPECT_EQ(pubkey, "pr_public");
   EXPECT_EQ(privkey, "pr_private");
-  storage.clearPrimaryKeys();
-  EXPECT_FALSE(storage.loadPrimaryKeys(NULL, NULL));
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  storage->clearPrimaryKeys();
+  EXPECT_FALSE(storage->loadPrimaryKeys(NULL, NULL));
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
-TEST(fsstorage, load_store_tls) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
-  config.uptane_metadata_path = fsstorage_test_dir;
-  config.tls_pkey_path = "test_tls.pkey";
-  config.tls_clientcert_path = "test_tls.cert";
-  config.tls_cacert_path = "test_tls.ca";
-
-  FSStorage storage(config);
-  storage.storeTlsCreds("ca", "cert", "priv");
+TEST(storage, load_store_tls) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
   std::string cert;
   std::string priv;
 
-  EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &priv));
+  EXPECT_TRUE(storage->loadTlsCreds(&ca, &cert, &priv));
 
   EXPECT_EQ(ca, "ca");
   EXPECT_EQ(cert, "cert");
   EXPECT_EQ(priv, "priv");
-  storage.clearTlsCreds();
-  EXPECT_FALSE(storage.loadTlsCreds(NULL, NULL, NULL));
+  storage->clearTlsCreds();
+  EXPECT_FALSE(storage->loadTlsCreds(NULL, NULL, NULL));
 
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
 #ifdef BUILD_OSTREE
-TEST(fsstorage, load_store_metadata) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
-  config.uptane_metadata_path = "metadata";
-
-  FSStorage storage(config);
+TEST(storage, load_store_metadata) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
   Uptane::MetaPack stored_meta;
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -114,8 +134,8 @@ TEST(fsstorage, load_store_metadata) {
 
   Uptane::MetaPack loaded_meta;
 
-  storage.storeMetadata(stored_meta);
-  bool res = storage.loadMetadata(&loaded_meta);
+  storage->storeMetadata(stored_meta);
+  bool res = storage->loadMetadata(&loaded_meta);
 
   EXPECT_TRUE(res);
   EXPECT_EQ(stored_meta.director_root, loaded_meta.director_root);
@@ -125,75 +145,64 @@ TEST(fsstorage, load_store_metadata) {
   EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
   EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
 
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  boost::filesystem::remove_all(storage_test_dir);
 }
 #endif  // BUILD_OSTREE
 
-TEST(fsstorage, load_store_deviceid) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
-
-  FSStorage storage(config);
-  storage.storeDeviceId("device_id");
+TEST(storage, load_store_deviceid) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  storage->storeDeviceId("device_id");
 
   std::string device_id;
 
-  EXPECT_TRUE(storage.loadDeviceId(&device_id));
+  EXPECT_TRUE(storage->loadDeviceId(&device_id));
 
   EXPECT_EQ(device_id, "device_id");
-  storage.clearDeviceId();
-  EXPECT_FALSE(storage.loadDeviceId(NULL));
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  storage->clearDeviceId();
+  EXPECT_FALSE(storage->loadDeviceId(NULL));
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
-TEST(fsstorage, load_store_ecu_serials) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
-
-  FSStorage storage(config);
+TEST(storage, load_store_ecu_serials) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
   std::vector<std::pair<std::string, std::string> > serials;
   serials.push_back(std::pair<std::string, std::string>("primary", "primary_hw"));
   serials.push_back(std::pair<std::string, std::string>("secondary_1", "secondary_hw"));
   serials.push_back(std::pair<std::string, std::string>("secondary_2", "secondary_hw"));
-  storage.storeEcuSerials(serials);
+  storage->storeEcuSerials(serials);
 
   std::vector<std::pair<std::string, std::string> > serials_out;
 
-  EXPECT_TRUE(storage.loadEcuSerials(&serials_out));
+  EXPECT_TRUE(storage->loadEcuSerials(&serials_out));
 
   EXPECT_EQ(serials, serials_out);
-  storage.clearEcuSerials();
-  EXPECT_FALSE(storage.loadEcuSerials(NULL));
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  storage->clearEcuSerials();
+  EXPECT_FALSE(storage->loadEcuSerials(NULL));
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
-TEST(fsstorage, load_store_ecu_registered) {
-  StorageConfig config;
-  config.path = fsstorage_test_dir;
+TEST(storage, load_store_ecu_registered) {
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  storage->storeEcuRegistered();
 
-  FSStorage storage(config);
-  storage.storeEcuRegistered();
+  EXPECT_TRUE(storage->loadEcuRegistered());
 
-  EXPECT_TRUE(storage.loadEcuRegistered());
-
-  storage.clearEcuRegistered();
-  EXPECT_FALSE(storage.loadEcuRegistered());
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  storage->clearEcuRegistered();
+  EXPECT_FALSE(storage->loadEcuRegistered());
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
-TEST(fsstorage, import_data) {
-  StorageConfig config;
-  boost::filesystem::create_directories(fsstorage_test_dir / "import");
-  config.path = fsstorage_test_dir;
+TEST(storage, import_data) {
+  boost::filesystem::create_directories(storage_test_dir / "import");
 
-  FSStorage storage(config);
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
 
   ImportConfig import_config;
-  import_config.uptane_private_key_path = fsstorage_test_dir / "import" / "private";
-  import_config.uptane_public_key_path = fsstorage_test_dir / "import" / "public";
-  import_config.tls_cacert_path = fsstorage_test_dir / "import" / "ca";
-  import_config.tls_clientcert_path = fsstorage_test_dir / "import" / "cert";
-  import_config.tls_pkey_path = fsstorage_test_dir / "import" / "pkey";
+  import_config.uptane_private_key_path = storage_test_dir / "import" / "private";
+  import_config.uptane_public_key_path = storage_test_dir / "import" / "public";
+  import_config.tls_cacert_path = storage_test_dir / "import" / "ca";
+  import_config.tls_clientcert_path = storage_test_dir / "import" / "cert";
+  import_config.tls_pkey_path = storage_test_dir / "import" / "pkey";
 
   Utils::writeFile(import_config.uptane_private_key_path.string(), std::string("uptane_private_1"));
   Utils::writeFile(import_config.uptane_public_key_path.string(), std::string("uptane_public_1"));
@@ -202,13 +211,13 @@ TEST(fsstorage, import_data) {
   Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_1"));
 
   // Initially the storage is empty
-  EXPECT_FALSE(storage.loadPrimaryPublic(NULL));
-  EXPECT_FALSE(storage.loadPrimaryPrivate(NULL));
-  EXPECT_FALSE(storage.loadTlsCa(NULL));
-  EXPECT_FALSE(storage.loadTlsCert(NULL));
-  EXPECT_FALSE(storage.loadTlsPkey(NULL));
+  EXPECT_FALSE(storage->loadPrimaryPublic(NULL));
+  EXPECT_FALSE(storage->loadPrimaryPrivate(NULL));
+  EXPECT_FALSE(storage->loadTlsCa(NULL));
+  EXPECT_FALSE(storage->loadTlsCert(NULL));
+  EXPECT_FALSE(storage->loadTlsPkey(NULL));
 
-  storage.importData(import_config);
+  storage->importData(import_config);
 
   std::string primary_public;
   std::string primary_private;
@@ -217,11 +226,11 @@ TEST(fsstorage, import_data) {
   std::string tls_pkey;
 
   // the data has been imported
-  EXPECT_TRUE(storage.loadPrimaryPublic(&primary_public));
-  EXPECT_TRUE(storage.loadPrimaryPrivate(&primary_private));
-  EXPECT_TRUE(storage.loadTlsCa(&tls_ca));
-  EXPECT_TRUE(storage.loadTlsCert(&tls_cert));
-  EXPECT_TRUE(storage.loadTlsPkey(&tls_pkey));
+  EXPECT_TRUE(storage->loadPrimaryPublic(&primary_public));
+  EXPECT_TRUE(storage->loadPrimaryPrivate(&primary_private));
+  EXPECT_TRUE(storage->loadTlsCa(&tls_ca));
+  EXPECT_TRUE(storage->loadTlsCert(&tls_cert));
+  EXPECT_TRUE(storage->loadTlsPkey(&tls_pkey));
 
   EXPECT_EQ(primary_private, "uptane_private_1");
   EXPECT_EQ(primary_public, "uptane_public_1");
@@ -235,13 +244,13 @@ TEST(fsstorage, import_data) {
   Utils::writeFile(import_config.tls_clientcert_path.string(), std::string("tls_cert_2"));
   Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_2"));
 
-  storage.importData(import_config);
+  storage->importData(import_config);
 
-  EXPECT_TRUE(storage.loadPrimaryPublic(&primary_public));
-  EXPECT_TRUE(storage.loadPrimaryPrivate(&primary_private));
-  EXPECT_TRUE(storage.loadTlsCa(&tls_ca));
-  EXPECT_TRUE(storage.loadTlsCert(&tls_cert));
-  EXPECT_TRUE(storage.loadTlsPkey(&tls_pkey));
+  EXPECT_TRUE(storage->loadPrimaryPublic(&primary_public));
+  EXPECT_TRUE(storage->loadPrimaryPrivate(&primary_private));
+  EXPECT_TRUE(storage->loadTlsCa(&tls_ca));
+  EXPECT_TRUE(storage->loadTlsCert(&tls_cert));
+  EXPECT_TRUE(storage->loadTlsPkey(&tls_pkey));
 
   // only root cert is being updated
   EXPECT_EQ(primary_private, "uptane_private_1");
@@ -250,7 +259,7 @@ TEST(fsstorage, import_data) {
   EXPECT_EQ(tls_cert, "tls_cert_1");
   EXPECT_EQ(tls_pkey, "tls_pkey_1");
 
-  boost::filesystem::remove_all(fsstorage_test_dir);
+  boost::filesystem::remove_all(storage_test_dir);
 }
 
 #ifndef __NO_MAIN__
@@ -258,6 +267,14 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerInit();
   loggerSetSeverity(LVL_trace);
-  return RUN_ALL_TESTS();
+  std::cout << "Running tests for FSStorage" << std::endl;
+  InitConfig(kFileSystem);
+  int res_fs = RUN_ALL_TESTS();
+
+  std::cout << "Running tests for SQLStorage" << std::endl;
+  InitConfig(kSqlite);
+  int res_sql = RUN_ALL_TESTS();
+
+  return res_fs || res_sql;  // 0 indicates success
 }
 #endif

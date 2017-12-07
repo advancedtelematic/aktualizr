@@ -127,9 +127,9 @@ add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
 add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
-add_aktualizr_test(NAME fsstorage SOURCES fsstorage_test.cc PROJECT_WORKING_DIRECTORY)
-
 add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME crypto
                    SOURCES crypto_test.cc
