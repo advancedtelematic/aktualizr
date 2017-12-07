@@ -8,7 +8,7 @@ class ECUInterface {
     InstallFailureNotModified,
     InstallFailureModified
   };
-  ECUInterface(unsigned int loglevel) : loglevel_(loglevel) {}
+  ECUInterface(const unsigned int loglevel);
   std::string apiVersion();
   std::string listEcus();
   InstallStatus installSoftware(const std::string &hardware_id, const std::string &ecu_id, const std::string &firmware);

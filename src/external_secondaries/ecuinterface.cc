@@ -8,7 +8,8 @@ namespace po = boost::program_options;
 using std::string;
 
 int main(int argc, char **argv) {
-  po::options_description desc("Allowed options");
+  po::options_description desc(
+      "Usage: ecuinterface api-version | list-ecus | install-software [options]\nAllowed options");
 
   string command;
   string hardware_identifier;
@@ -17,16 +18,17 @@ int main(int argc, char **argv) {
 
   // clang-format off
   desc.add_options()
+    ("help,h", "print usage")
     ("loglevel,l", po::value<unsigned int>()->default_value(0),
-         "Set log level 0-4 (trace, debug, warning, info, error)")
+         "set log level 0-4 (trace, debug, warning, info, error)")
     ("hardware-identifier", po::value<string>(&hardware_identifier),
-         "The hardware identifier of the ECU where the update should be installed (e.g. rh850)")
+         "hardware identifier of the ECU where the update should be installed (e.g. rh850)")
     ("ecu-identifier", po::value<string>(&ecu_identifier),
-         "The unique serial number of the ECU where the update should be installed (e.g. ‘abcdef12345’)")
+         "unique serial number of the ECU where the update should be installed (e.g. ‘abcdef12345’)")
     ("firmware", po::value<string>(&firmware_path),
-         "An absolute path to the firmware image to be installed.")
+         "absolute path to the firmware image to be installed.")
     ("command", po::value<string>(&command),
-         "The command to run api-version | list-ecus | install-software");
+         "command to run: api-version | list-ecus | install-software");
   // clang-format on
 
   po::positional_options_description positional_options;
@@ -36,6 +38,10 @@ int main(int argc, char **argv) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(positional_options).run(), vm);
     po::notify(vm);
+    if (vm.count("help") != 0) {
+      std::cout << desc << '\n';
+      exit(EXIT_SUCCESS);
+    }
 
     if (vm.count("command")) {
       ECUInterface ecu(vm["loglevel"].as<unsigned int>());
@@ -46,12 +52,14 @@ int main(int argc, char **argv) {
         std::cout << ecu.listEcus();
         return EXIT_SUCCESS;
       } else if (command == "install-software") {
-        if (!vm.count("hardware-identifier") || !vm.count("ecu-identifier") || !vm.count("firmware")) {
-          std::cerr
-              << "install-software command requires --hardware-identifier, --ecu-identifier and --firmware options\n";
+        if (!vm.count("hardware-identifier") || !vm.count("firmware")) {
+          std::cerr << "install-software command requires --hardware-identifier, --firmware options, and possibly "
+                       "--ecu-identifier.\n";
           return EXIT_FAILURE;
         }
-        return ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        ECUInterface::InstallStatus result = ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        std::cout << "Installation result: " << result << "\n";
+        return result;
       } else {
         std::cout << "unknown command: " << command[0] << "\n";
         std::cout << desc;
@@ -59,7 +67,7 @@ int main(int argc, char **argv) {
 
       return EXIT_SUCCESS;
     } else {
-      std::cout << "You must provide command: \n";
+      std::cout << "You must provide a command.\n";
       std::cout << desc;
       return EXIT_FAILURE;
     }

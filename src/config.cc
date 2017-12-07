@@ -399,14 +399,20 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
         while (std::getline(ss, buffer, '\n')) {
           Uptane::SecondaryConfig sconfig;
           sconfig.secondary_type = Uptane::kLegacy;
-          size_t space = buffer.find(' ');
-          if (space == std::string::npos) {
-            sconfig.ecu_hardware_id = buffer.substr(0, buffer.size() - 1);
+          std::vector<std::string> ecu_info;
+          boost::split(ecu_info, buffer, boost::is_any_of(", \n\r\t"), boost::token_compress_on);
+          if (ecu_info.size() == 0) {
+            // Could print a warning but why bother.
+            continue;
+          } else if (ecu_info.size() == 1) {
+            sconfig.ecu_hardware_id = ecu_info[0];
             sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
-          } else {
-            sconfig.ecu_hardware_id = buffer.substr(0, space);
-            sconfig.ecu_serial = buffer.substr(space + 1, buffer.size() - 1);
+          } else if (ecu_info.size() >= 2) {
+            // For now, silently ignore anything after the second token.
+            sconfig.ecu_hardware_id = ecu_info[0];
+            sconfig.ecu_serial = ecu_info[1];
           }
+
           sconfig.partial_verifying = false;
           sconfig.ecu_private_key = "sec.private";
           sconfig.ecu_public_key = "sec.public";

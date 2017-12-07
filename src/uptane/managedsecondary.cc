@@ -14,7 +14,7 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
   // loadMetadata(meta_pack);
   if (!loadKeys(&public_key, &private_key)) {
     if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
-      LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << sconfig.ecu_serial << "@"
+      LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << getSerial() << "@"
                                                                          << sconfig.ecu_hardware_id);
       throw std::runtime_error("Unable to initialize libsodium");
     }
@@ -38,7 +38,7 @@ bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
   std::vector<Uptane::Target>::const_iterator it;
   for (it = meta_pack.director_targets.targets.begin(); it != meta_pack.director_targets.targets.end(); ++it) {
     // TODO: what about hardware ID? Also missing in Uptane::Target
-    if (it->ecu_identifier() == sconfig.ecu_serial) {
+    if (it->ecu_identifier() == getSerial()) {
       if (target_found) {
         detected_attack = "Duplicate entry for this ECU";
         break;
@@ -127,7 +127,7 @@ Json::Value ManagedSecondary::getManifest() {
 
   manifest["attacks_detected"] = detected_attack;
   manifest["installed_image"] = installed_image;
-  manifest["ecu_serial"] = sconfig.ecu_serial;
+  manifest["ecu_serial"] = getSerial();
   manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
