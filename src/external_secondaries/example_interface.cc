@@ -5,14 +5,15 @@
 #include "ecuinterface.h"
 #include "utils.h"
 
+const std::string filename = "/tmp/example_serial";
 std::string serial;
 
 ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
-  if (boost::filesystem::exists("./example_serial")) {
-    serial = Utils::readFile("./example_serial");
+  if (boost::filesystem::exists(filename)) {
+    serial = Utils::readFile(filename);
   } else {
     serial = Utils::randomUuid();
-    Utils::writeFile("./example_serial", serial);
+    Utils::writeFile(filename, serial);
   }
 }
 
