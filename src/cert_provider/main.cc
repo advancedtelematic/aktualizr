@@ -8,16 +8,13 @@
 #include "json/json.h"
 
 #include "bootstrap.h"
+#include "config.h"
 #include "crypto.h"
 #include "httpclient.h"
 #include "logger.h"
 #include "utils.h"
 
 namespace bpo = boost::program_options;
-
-const std::string pkey_file = "pkey.pem";
-const std::string cert_file = "client.pem";
-const std::string ca_file = "root.crt";
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
@@ -41,7 +38,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("port,p", bpo::value<int>(), "target port")
       ("directory,d", bpo::value<std::string>()->default_value("/var/sota/token"), "directory on target to write credentials to")
       ("root-ca,r", "provide root CA")
-      ("local,l", bpo::value<std::string>(), "local directory to write credentials to");
+      ("local,l", bpo::value<std::string>(), "local directory to write credentials to")
+      ("config,g", bpo::value<std::string>(), "sota.toml configuration file from which to get file names");
   // clang-format on
 
   bpo::variables_map vm;
@@ -96,6 +94,22 @@ int main(int argc, char *argv[]) {
   std::string local_dir = "";
   if (commandline_map.count("local") != 0) {
     local_dir = commandline_map["local"].as<std::string>();
+  }
+  std::string config_path = "";
+  if (commandline_map.count("config") != 0) {
+    config_path = commandline_map["config"].as<std::string>();
+  }
+
+  std::string pkey_file = "pkey.pem";
+  std::string cert_file = "client.pem";
+  std::string ca_file = "root.crt";
+  if (!config_path.empty()) {
+    Config config(config_path);
+    pkey_file = config.storage.tls_pkey_path.string();
+    cert_file = config.storage.tls_clientcert_path.string();
+    if (provide_ca) {
+      ca_file = config.storage.tls_cacert_path.string();
+    }
   }
 
   TemporaryFile tmp_pkey_file(pkey_file);
