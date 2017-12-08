@@ -424,6 +424,7 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
 
   std::stringstream ss(output);
   std::string buffer;
+  unsigned int index = 0;
   while (std::getline(ss, buffer, '\n')) {
     Uptane::SecondaryConfig sconfig;
     sconfig.secondary_type = Uptane::kLegacy;
@@ -448,7 +449,7 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
     sconfig.ecu_private_key = "sec.private";
     sconfig.ecu_public_key = "sec.public";
 
-    sconfig.full_client_dir = storage.path / sconfig.ecu_serial;
+    sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + Utils::intToString(++index));
     sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
     sconfig.metadata_path = sconfig.full_client_dir / "metadata";
     sconfig.target_name_path = sconfig.full_client_dir / "target_name";
@@ -459,7 +460,7 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
 }
 
 // This writes out every configuration option, including those set with default
-// and blank values. This may be useful to replicating an exact configuration
+// and blank values. This may be useful for replicating an exact configuration
 // environment. However, if we were to want to simplify the output file, we
 // could skip blank strings or compare values against a freshly built instance
 // to detect and skip default values.
