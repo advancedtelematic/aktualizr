@@ -98,23 +98,26 @@ add_dependencies(build_tests garage-deploy)
 
 
 install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
-add_custom_target(download_garage_sign COMMAND wget --no-check-certificate https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-29-gf6f095a.tgz -O ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz
-COMMAND tar -xzf ${CMAKE_CURRENT_BINARY_DIR}/garage-sign.tgz -C ${CMAKE_CURRENT_BINARY_DIR}
-COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
-FILE(GLOB garage_sign_bin_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/*)
-FILE(GLOB garage_sign_lib_files ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib/*)
 
-install(PROGRAMS ${garage_sign_bin_files} DESTINATION bin COMPONENT garage_deploy)
-install(FILES ${garage_sign_lib_files} DESTINATION lib COMPONENT garage_deploy)
+include(ExternalProject)
+ExternalProject_Add(garage-sign DEPENDS garage-deploy URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-52-g83fbfe6.tgz
+URL_HASH SHA256=ea877fd3b73037d66c94b7d3f97eeb0bb970eac7fb902616d61be837595a439e
+CONFIGURE_COMMAND echo "Skipping configure"
+BUILD_COMMAND echo "Skipping build"
+INSTALL_COMMAND echo "Skipping install")
 
+ExternalProject_Get_Property(garage-sign SOURCE_DIR)
 
-add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS download_garage_sign DEPENDS garage-deploy)
+install(PROGRAMS ${SOURCE_DIR}/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
+install(DIRECTORY ${SOURCE_DIR}/lib DESTINATION . COMPONENT garage_deploy)
+
+add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS garage-deploy garage-sign)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "garage-deploy utility")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL garage_deploy)
+set(CPACK_COMPONENTS_ALL garage_deploy garage-sign)
 set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 set(CPACK_PACKAGE_FILE_NAME garage_deploy)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)

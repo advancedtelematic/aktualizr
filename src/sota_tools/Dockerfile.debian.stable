@@ -10,4 +10,4 @@ RUN apt-get update
 
 RUN apt-get install -y libarchive13 libcurl3 libglib2.0-0 libostree-1-1 libsodium18 opensc libengine-pkcs11-openssl openjdk-8-jre
 
-ENTRYPOINT dpkg -i /persistent/garage_deploy.deb && garage-deploy --version
+ENTRYPOINT dpkg -i /persistent/garage_deploy.deb && garage-deploy --version && garage-sign --help
