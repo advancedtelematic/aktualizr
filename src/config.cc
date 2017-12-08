@@ -401,7 +401,7 @@ bool Config::checkLegacyVersion(const std::string& legacy_interface) {
   if (rs != 0) {
     LOGGER_LOG(LVL_error, "Legacy external flasher api-version command failed: " << output);
   } else {
-    boost::trim_if(output, boost::is_any_of(", \n\r\t"));
+    boost::trim_if(output, boost::is_any_of(" \n\r\t"));
     if (output != "1") {
       LOGGER_LOG(LVL_error, "Unexpected legacy external flasher API version: " << output);
     } else {
@@ -429,7 +429,7 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
     Uptane::SecondaryConfig sconfig;
     sconfig.secondary_type = Uptane::kLegacy;
     std::vector<std::string> ecu_info;
-    boost::split(ecu_info, buffer, boost::is_any_of(", \n\r\t"), boost::token_compress_on);
+    boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
     if (ecu_info.size() == 0) {
       // Could print a warning but why bother.
       continue;
