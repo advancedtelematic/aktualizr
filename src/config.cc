@@ -6,6 +6,8 @@
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem.hpp>
 
 #include "bootstrap.h"
 #include "utils.h"
@@ -341,97 +343,124 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
   if (cmd.count("secondary-config") != 0) {
     std::vector<std::string> sconfigs = cmd["secondary-config"].as<std::vector<std::string> >();
-    std::vector<std::string>::iterator it;
-    for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
-      Json::Value config_json = Utils::parseJSONFile(*it);
-      Uptane::SecondaryConfig sconfig;
-
-      std::string stype = config_json["secondary_type"].asString();
-      if (stype == "virtual") {
-        sconfig.secondary_type = Uptane::kVirtual;
-      } else if (stype == "legacy") {
-        LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
-        continue;
-      } else if (stype == "uptane") {
-        sconfig.secondary_type = Uptane::kUptane;
-      } else {
-        LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
-        continue;
-      }
-      sconfig.ecu_serial = config_json["ecu_serial"].asString();
-      sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-      sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-      sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
-      sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
-
-      sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-      sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-      sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
-      sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
-      sconfig.flasher = "";
-
-      uptane.secondary_configs.push_back(sconfig);
-    }
+    readSecondaryConfigs(sconfigs);
   }
 
   if (cmd.count("legacy-interface") != 0) {
     std::string legacy_interface = cmd["legacy-interface"].as<std::string>();
-    std::stringstream command;
-    std::string output;
-    command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
-    int rs = Utils::shell(command.str(), &output);
-    if (rs != 0) {
-      LOGGER_LOG(LVL_error, "Legacy external flasher api-version command failed: " << output);
-    } else if (output != "1") {
-      LOGGER_LOG(LVL_error, "Unexpected legacy external flasher API version: " << output);
-    } else {
-      command.clear();
-      command.str(std::string());
-      output = std::string();
-      command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
-      rs = Utils::shell(command.str(), &output);
-
-      if (rs != 0) {
-        LOGGER_LOG(LVL_error, "Legacy external flasher list-ecus command failed: " << output);
-      } else {
-        std::stringstream ss(output);
-        std::string buffer;
-        while (std::getline(ss, buffer, '\n')) {
-          Uptane::SecondaryConfig sconfig;
-          sconfig.secondary_type = Uptane::kLegacy;
-          std::vector<std::string> ecu_info;
-          boost::split(ecu_info, buffer, boost::is_any_of(", \n\r\t"), boost::token_compress_on);
-          if (ecu_info.size() == 0) {
-            // Could print a warning but why bother.
-            continue;
-          } else if (ecu_info.size() == 1) {
-            sconfig.ecu_hardware_id = ecu_info[0];
-            sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
-          } else if (ecu_info.size() >= 2) {
-            // For now, silently ignore anything after the second token.
-            sconfig.ecu_hardware_id = ecu_info[0];
-            sconfig.ecu_serial = ecu_info[1];
-          }
-
-          sconfig.partial_verifying = false;
-          sconfig.ecu_private_key = "sec.private";
-          sconfig.ecu_public_key = "sec.public";
-
-          sconfig.full_client_dir = storage.path / sconfig.ecu_serial;
-          sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
-          sconfig.metadata_path = sconfig.full_client_dir / "metadata";
-          sconfig.target_name_path = sconfig.full_client_dir / "target_name";
-          sconfig.flasher = legacy_interface;
-
-          uptane.secondary_configs.push_back(sconfig);
-        }
-      }
+    if (checkLegacyVersion(legacy_interface)) {
+      initLegacySecondaries(legacy_interface);
     }
   }
 }
 
+void Config::readSecondaryConfigs(const std::vector<std::string>& sconfigs) {
+  std::vector<std::string>::const_iterator it;
+  for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
+    Json::Value config_json = Utils::parseJSONFile(*it);
+    Uptane::SecondaryConfig sconfig;
+
+    std::string stype = config_json["secondary_type"].asString();
+    if (stype == "virtual") {
+      sconfig.secondary_type = Uptane::kVirtual;
+    } else if (stype == "legacy") {
+      LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
+      continue;
+    } else if (stype == "uptane") {
+      sconfig.secondary_type = Uptane::kUptane;
+    } else {
+      LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
+      continue;
+    }
+    sconfig.ecu_serial = config_json["ecu_serial"].asString();
+    sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
+    sconfig.partial_verifying = config_json["partial_verifying"].asBool();
+    sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
+    sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
+
+    sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
+    sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
+    sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
+    sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+    sconfig.flasher = "";
+
+    uptane.secondary_configs.push_back(sconfig);
+  }
+}
+
+bool Config::checkLegacyVersion(const std::string& legacy_interface) {
+  bool ret = false;
+  if (!boost::filesystem::exists(legacy_interface)) {
+    LOGGER_LOG(LVL_error, "Legacy external flasher not found: " << legacy_interface);
+    return ret;
+  }
+  std::stringstream command;
+  std::string output;
+  command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
+  int rs = Utils::shell(command.str(), &output);
+  if (rs != 0) {
+    LOGGER_LOG(LVL_error, "Legacy external flasher api-version command failed: " << output);
+  } else {
+    boost::trim_if(output, boost::is_any_of(" \n\r\t"));
+    if (output != "1") {
+      LOGGER_LOG(LVL_error, "Unexpected legacy external flasher API version: " << output);
+    } else {
+      ret = true;
+    }
+  }
+  return ret;
+}
+
+void Config::initLegacySecondaries(const std::string& legacy_interface) {
+  std::stringstream command;
+  std::string output;
+  output = std::string();
+  command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
+  int rs = Utils::shell(command.str(), &output);
+  if (rs != 0) {
+    LOGGER_LOG(LVL_error, "Legacy external flasher list-ecus command failed: " << output);
+    return;
+  }
+
+  std::stringstream ss(output);
+  std::string buffer;
+  unsigned int index = 0;
+  while (std::getline(ss, buffer, '\n')) {
+    Uptane::SecondaryConfig sconfig;
+    sconfig.secondary_type = Uptane::kLegacy;
+    std::vector<std::string> ecu_info;
+    boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
+    if (ecu_info.size() == 0) {
+      // Could print a warning but why bother.
+      continue;
+    } else if (ecu_info.size() == 1) {
+      sconfig.ecu_hardware_id = ecu_info[0];
+      sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
+      LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id);
+    } else if (ecu_info.size() >= 2) {
+      // For now, silently ignore anything after the second token.
+      sconfig.ecu_hardware_id = ecu_info[0];
+      sconfig.ecu_serial = ecu_info[1];
+      LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id << " and serial "
+                                                                     << sconfig.ecu_serial);
+    }
+
+    sconfig.partial_verifying = false;
+    sconfig.ecu_private_key = "sec.private";
+    sconfig.ecu_public_key = "sec.public";
+
+    sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + Utils::intToString(++index));
+    sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
+    sconfig.metadata_path = sconfig.full_client_dir / "metadata";
+    sconfig.target_name_path = sconfig.full_client_dir / "target_name";
+    sconfig.flasher = legacy_interface;
+
+    uptane.secondary_configs.push_back(sconfig);
+  }
+}
+
 // This writes out every configuration option, including those set with default
-// and blank values. This may be useful to replicating an exact configuration
+// and blank values. This may be useful for replicating an exact configuration
 // environment. However, if we were to want to simplify the output file, we
 // could skip blank strings or compare values against a freshly built instance
 // to detect and skip default values.

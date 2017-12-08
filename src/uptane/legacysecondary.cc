@@ -21,8 +21,8 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
   std::stringstream command;
   std::string output;
   command << sconfig.flasher.string() << " install-software --hardware-identifier " << sconfig.ecu_hardware_id
-          << " --ecu-identifier " << sconfig.ecu_serial << " --firmware " << sconfig.firmware_path.string()
-          << " --loglevel " << loggerGetSeverity();
+          << " --ecu-identifier " << getSerial() << " --firmware " << sconfig.firmware_path.string() << " --loglevel "
+          << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
 
   if (rs != 0) {
