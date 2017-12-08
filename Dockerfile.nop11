@@ -1,5 +1,5 @@
 FROM ubuntu:xenial
-LABEL Description="Aktualizr testing dockerfile for Ubuntu Xenial with p11"
+LABEL Description="Aktualizr testing dockerfile for Ubuntu Xenial without p11"
 
 ENV DEBIAN_FRONTEND noninteractive
 

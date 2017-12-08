@@ -59,6 +59,10 @@ RUN apt-get update && apt-get -y install \
   wget
 
 RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
-RUN apt-get update && apt-get install -y softhsm2 libp11-dev libp11-2
+RUN apt-get update && apt-get -y install \
+  libp11-2 \
+  libp11-dev \
+  softhsm2
+
 WORKDIR aktualizr
 ADD . src
