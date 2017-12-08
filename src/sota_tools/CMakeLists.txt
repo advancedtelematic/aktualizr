@@ -111,7 +111,7 @@ ExternalProject_Get_Property(garage-sign SOURCE_DIR)
 install(PROGRAMS ${SOURCE_DIR}/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
 install(DIRECTORY ${SOURCE_DIR}/lib DESTINATION . COMPONENT garage_deploy)
 
-add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS garage-deploy)
+add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS garage-deploy garage-sign)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
