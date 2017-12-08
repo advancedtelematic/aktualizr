@@ -8,7 +8,6 @@
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
-  boost::filesystem::create_directories(config_.path);
   boost::filesystem::create_directories(config_.path / config_.uptane_metadata_path / "repo");
   boost::filesystem::create_directories(config_.path / config_.uptane_metadata_path / "director");
 }

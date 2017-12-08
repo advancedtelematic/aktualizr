@@ -39,7 +39,6 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
       http_(http_client),
       base_url_(base_url),
       root_(Root::kRejectAll) {
-  boost::filesystem::create_directories(path_);
   boost::filesystem::create_directories(path_ / "targets");
 
   Uptane::MetaPack meta;

@@ -118,8 +118,6 @@ TEST(Utils, TemporaryFilePutContents) {
 TEST(Utils, copyDir) {
   boost::filesystem::remove_all("tests/test_data/test_copy_dir");
 
-  boost::filesystem::create_directories("tests/test_data/test_copy_dir");
-  boost::filesystem::create_directories("tests/test_data/test_copy_dir/from/1/2");
   Utils::writeFile("tests/test_data/test_copy_dir/from/1/foo", std::string("foo"));
   Utils::writeFile("tests/test_data/test_copy_dir/from/1/2/bar", std::string("bar"));
   Utils::writeFile("tests/test_data/test_copy_dir/from/1/2/baz", std::string("baz"));
@@ -136,6 +134,68 @@ TEST(Utils, copyDir) {
   EXPECT_EQ(Utils::readFile("tests/test_data/test_copy_dir/to/1/2/baz"), "baz");
 
   boost::filesystem::remove_all("tests/test_data/test_copy_dir");
+}
+
+TEST(Utils, writeFileWithoutDirAutoCreation) {
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+
+  boost::filesystem::create_directories("tests/test_data/test_write_file_dir/1/2");
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/foo", std::string("foo"), false);
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/2/bar", std::string("bar"), false);
+
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/foo"), "foo");
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/2/bar"), "bar");
+
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+}
+
+TEST(Utils, writeFileWithDirAutoCreation) {
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/foo", std::string("foo"), true);
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/2/bar", std::string("bar"), true);
+
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/foo"), "foo");
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/2/bar"), "bar");
+
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+}
+
+TEST(Utils, writeFileWithDirAutoCreationDefault) {
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/foo", std::string("foo"));
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/2/bar", std::string("bar"));
+
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/foo"), "foo");
+  EXPECT_EQ(Utils::readFile("tests/test_data/test_write_file_dir/1/2/bar"), "bar");
+
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+}
+
+TEST(Utils, writeFileWithoutDirAutoCreationException) {
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+
+  try {
+    Utils::writeFile("tests/test_data/test_write_file_dir/1/foo", std::string("foo"), false);
+  } catch (...) {
+    boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+    return;
+  }
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+}
+
+TEST(Utils, writeFileJson) {
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
+
+  Json::Value val;
+  val["key"] = "val";
+
+  Utils::writeFile("tests/test_data/test_write_file_dir/1/foo", val);
+  Json::Value result_json = Utils::parseJSONFile("tests/test_data/test_write_file_dir/1/foo");
+  EXPECT_EQ(result_json["key"].asString(), val["key"].asString());
+
+  boost::filesystem::remove_all("tests/test_data/test_write_file_dir");
 }
 
 TEST(Utils, hex2bin) {
