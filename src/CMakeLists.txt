@@ -12,6 +12,7 @@ set(SOURCES aktualizr.cc
             eventsinterpreter.cc
             invstorage.cc
             fsstorage.cc
+            sqlstorage.cc
             gatewaymanager.cc
             httpclient.cc
             logger.cc
@@ -31,6 +32,7 @@ set(HEADERS
             events.h
             eventsinterpreter.h
             fsstorage.h
+            sqlstorage.h
             gatewaymanager.h
             httpclient.h
             httpinterface.h
@@ -101,6 +103,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBOSTREE_LIBRARIES}
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
+        ${SQLITE3_LIBRARIES}
         ${LibArchive_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)

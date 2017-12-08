@@ -154,15 +154,18 @@ struct StorageConfig {
   StorageConfig()
       : type(kFileSystem),
         path("/var/sota"),
+        sqldb_path("/var/sota/storage.db"),
         schema_version(0),
         uptane_metadata_path("metadata"),
         uptane_private_key_path("ecukey.pem"),
         uptane_public_key_path("ecukey.pub"),
         tls_cacert_path("ca.pem"),
         tls_pkey_path("pkey.pem"),
-        tls_clientcert_path("client.pem") {}
+        tls_clientcert_path("client.pem"),
+        schemas_path("/usr/lib/sota/schemas") {}
   StorageType type;
   boost::filesystem::path path;
+  boost::filesystem::path sqldb_path;  // TODO: merge with path once SQLStorage class is complete
   int schema_version;
   // FS storage
   boost::filesystem::path uptane_metadata_path;
@@ -171,6 +174,9 @@ struct StorageConfig {
   boost::filesystem::path tls_cacert_path;
   boost::filesystem::path tls_pkey_path;
   boost::filesystem::path tls_clientcert_path;
+
+  // SQLite storage
+  boost::filesystem::path schemas_path;
 };
 
 struct ImportConfig {
