@@ -7,6 +7,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem.hpp>
 
 #include "bootstrap.h"
 #include "utils.h"
@@ -342,37 +343,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
   if (cmd.count("secondary-config") != 0) {
     std::vector<std::string> sconfigs = cmd["secondary-config"].as<std::vector<std::string> >();
-    std::vector<std::string>::iterator it;
-    for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
-      Json::Value config_json = Utils::parseJSONFile(*it);
-      Uptane::SecondaryConfig sconfig;
-
-      std::string stype = config_json["secondary_type"].asString();
-      if (stype == "virtual") {
-        sconfig.secondary_type = Uptane::kVirtual;
-      } else if (stype == "legacy") {
-        LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
-        continue;
-      } else if (stype == "uptane") {
-        sconfig.secondary_type = Uptane::kUptane;
-      } else {
-        LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
-        continue;
-      }
-      sconfig.ecu_serial = config_json["ecu_serial"].asString();
-      sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-      sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-      sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
-      sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
-
-      sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-      sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-      sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
-      sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
-      sconfig.flasher = "";
-
-      uptane.secondary_configs.push_back(sconfig);
-    }
+    readSecondaryConfigs(sconfigs);
   }
 
   if (cmd.count("legacy-interface") != 0) {
@@ -383,8 +354,46 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
 }
 
+void Config::readSecondaryConfigs(const std::vector<std::string>& sconfigs) {
+  std::vector<std::string>::const_iterator it;
+  for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
+    Json::Value config_json = Utils::parseJSONFile(*it);
+    Uptane::SecondaryConfig sconfig;
+
+    std::string stype = config_json["secondary_type"].asString();
+    if (stype == "virtual") {
+      sconfig.secondary_type = Uptane::kVirtual;
+    } else if (stype == "legacy") {
+      LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
+      continue;
+    } else if (stype == "uptane") {
+      sconfig.secondary_type = Uptane::kUptane;
+    } else {
+      LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
+      continue;
+    }
+    sconfig.ecu_serial = config_json["ecu_serial"].asString();
+    sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
+    sconfig.partial_verifying = config_json["partial_verifying"].asBool();
+    sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
+    sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
+
+    sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
+    sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
+    sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
+    sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+    sconfig.flasher = "";
+
+    uptane.secondary_configs.push_back(sconfig);
+  }
+}
+
 bool Config::checkLegacyVersion(const std::string& legacy_interface) {
   bool ret = false;
+  if (!boost::filesystem::exists(legacy_interface)) {
+    LOGGER_LOG(LVL_error, "Legacy external flasher not found: " << legacy_interface);
+    return ret;
+  }
   std::stringstream command;
   std::string output;
   command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();

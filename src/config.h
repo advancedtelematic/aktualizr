@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -225,6 +226,7 @@ class Config {
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
+  void readSecondaryConfigs(const std::vector<std::string>& sconfigs);
   bool checkLegacyVersion(const std::string& legacy_interface);
   void initLegacySecondaries(const std::string& legacy_interface);
 };
