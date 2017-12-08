@@ -225,6 +225,8 @@ class Config {
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const std::string& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
+  bool checkLegacyVersion(const std::string& legacy_interface);
+  void initLegacySecondaries(const std::string& legacy_interface);
 };
 
 #endif  // CONFIG_H_
