@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         return EXIT_SUCCESS;
       } else if (command == "install-software") {
         if (!vm.count("hardware-identifier") || !vm.count("firmware")) {
-          std::cerr << "install-software command requires --hardware-identifier, --firmware options, and possibly "
+          std::cerr << "install-software command requires --hardware-identifier, --firmware, and possibly "
                        "--ecu-identifier.\n";
           return EXIT_FAILURE;
         }

@@ -19,7 +19,7 @@ ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
 
 std::string ECUInterface::apiVersion() {
   if (loglevel_ == 4) {
-    std::cerr << "Displaying api version\n";
+    std::cerr << "Displaying api version:\n";
   }
   return "1";
 }
