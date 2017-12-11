@@ -27,9 +27,9 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
 
   if (rs != 0) {
     // TODO: Should we do anything with the return value?
-    // 1 - The firmware image is invalid
-    // 2 - Install failure, but the firmware was not modified
-    // 3 - Install failure, and the old firmware was partially overwritten or erased.
+    // 1 - The firmware image is invalid.
+    // 2 - Installation failure. The previous firmware was not modified.
+    // 3 - Installation failure. The previous firmware was partially overwritten or erased.
     LOGGER_LOG(LVL_error, "Legacy external flasher install-software command failed: " << output);
   }
   return (rs == 0);
