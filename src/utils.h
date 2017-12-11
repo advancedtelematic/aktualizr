@@ -39,4 +39,16 @@ class TemporaryFile : boost::noncopyable {
   boost::filesystem::path tmp_name_;
 };
 
+class TemporaryDirectory : boost::noncopyable {
+ public:
+  TemporaryDirectory(const std::string &hint = "");
+  ~TemporaryDirectory();
+  boost::filesystem::path Path() const;
+  std::string PathString() const;
+  boost::filesystem::path operator/(const boost::filesystem::path &subdir) const;
+
+ private:
+  boost::filesystem::path tmp_name_;
+};
+
 #endif  // UTILS_H_

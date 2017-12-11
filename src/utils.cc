@@ -302,3 +302,18 @@ void TemporaryFile::PutContents(const std::string &contents) {
 boost::filesystem::path TemporaryFile::Path() const { return tmp_name_; }
 
 std::string TemporaryFile::PathString() const { return Path().string(); }
+
+TemporaryDirectory::TemporaryDirectory(const std::string &hint)
+    : tmp_name_(boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {
+  boost::filesystem::create_directories(tmp_name_);
+}
+
+TemporaryDirectory::~TemporaryDirectory() { boost::filesystem::remove_all(tmp_name_); }
+
+boost::filesystem::path TemporaryDirectory::Path() const { return tmp_name_; }
+
+boost::filesystem::path TemporaryDirectory::operator/(const boost::filesystem::path &subdir) const {
+  return (tmp_name_ / subdir);
+}
+
+std::string TemporaryDirectory::PathString() const { return Path().string(); }

@@ -167,27 +167,25 @@ TEST(config, automatic_mode) {
 }
 
 TEST(config, consistent_toml_empty) {
-  boost::filesystem::create_directory(config_test_dir);
+  TemporaryDirectory temp_dir;
   Config config1;
-  config1.writeToFile(config_test_dir + "/output1.toml");
-  Config config2(config_test_dir + "/output1.toml");
-  config2.writeToFile(config_test_dir + "/output2.toml");
-  std::string conf_str1 = Utils::readFile(config_test_dir + "/output1.toml");
-  std::string conf_str2 = Utils::readFile(config_test_dir + "/output2.toml");
+  config1.writeToFile((temp_dir / "output1.toml").string());
+  Config config2((temp_dir / "output1.toml").string());
+  config2.writeToFile((temp_dir / "output2.toml").string());
+  std::string conf_str1 = Utils::readFile((temp_dir / "output1.toml").string());
+  std::string conf_str2 = Utils::readFile((temp_dir / "output2.toml").string());
   EXPECT_EQ(conf_str1, conf_str2);
-  boost::filesystem::remove_all(config_test_dir);
 }
 
 TEST(config, consistent_toml_nonempty) {
-  boost::filesystem::create_directory(config_test_dir);
+  TemporaryDirectory temp_dir;
   Config config1("tests/config_tests_prov.toml");
-  config1.writeToFile(config_test_dir + "/output1.toml");
-  Config config2(config_test_dir + "/output1.toml");
-  config2.writeToFile(config_test_dir + "/output2.toml");
-  std::string conf_str1 = Utils::readFile(config_test_dir + "/output1.toml");
-  std::string conf_str2 = Utils::readFile(config_test_dir + "/output2.toml");
+  config1.writeToFile((temp_dir / "output1.toml").string());
+  Config config2((temp_dir / "output1.toml").string());
+  config2.writeToFile((temp_dir / "output2.toml").string());
+  std::string conf_str1 = Utils::readFile((temp_dir / "output1.toml").string());
+  std::string conf_str2 = Utils::readFile((temp_dir / "output2.toml").string());
   EXPECT_EQ(conf_str1, conf_str2);
-  boost::filesystem::remove_all(config_test_dir);
 }
 
 #ifndef __NO_MAIN__
