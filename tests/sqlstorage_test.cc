@@ -6,15 +6,15 @@
 
 const boost::filesystem::path sqlstorage_test_dir = "tests/test_sqlstorage";
 
-TEST(sqlstorage, migrate0) {
+TEST(sqlstorage, migrate) {
   StorageConfig config;
   config.path = sqlstorage_test_dir;
-  config.schema_version = 0;
-  config.sqldb_path = "config/test.db";
+  config.sqldb_path = "tests/test_sqlstorage/test.db";
   config.schemas_path = "config/storage";
 
-  boost::filesystem::remove_all(config.sqldb_path);
   SQLStorage storage(config);
+  boost::filesystem::remove_all(config.sqldb_path);
+
   EXPECT_FALSE(storage.dbCheck());
   EXPECT_TRUE(storage.dbMigrate());
   EXPECT_TRUE(storage.dbCheck());

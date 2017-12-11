@@ -10,6 +10,8 @@
 #include "config.h"
 #include "invstorage.h"
 
+const int kSqlSchemaVersion = 1;
+
 enum SQLReqId {
   kSqlGetVersion,
   kSqlGetSchema,
@@ -82,6 +84,7 @@ class SQLStorage : public INvStorage {
   std::string getTableSchemaFromDb(const std::string& tablename);
 
   static int callback(void* instance_, int numcolumns, char** values, char** columns);
+  int getVersion();  // non-negative integer on success or -1 on error
 
   bool loadTlsCommon(std::string* data,
                      const boost::filesystem::path& path_in);  // TODO: delete after implementation is ready

@@ -41,7 +41,6 @@ void InitConfig(StorageType type) {
 
     // SQLStorage
     config.sqldb_path = storage_test_dir / "test.db";
-    config.schema_version = 0;
     config.schemas_path = "config/storage";
   }
 }

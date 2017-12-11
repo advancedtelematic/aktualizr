@@ -155,7 +155,6 @@ struct StorageConfig {
       : type(kFileSystem),
         path("/var/sota"),
         sqldb_path("/var/sota/storage.db"),
-        schema_version(0),
         uptane_metadata_path("metadata"),
         uptane_private_key_path("ecukey.pem"),
         uptane_public_key_path("ecukey.pub"),
@@ -166,7 +165,6 @@ struct StorageConfig {
   StorageType type;
   boost::filesystem::path path;
   boost::filesystem::path sqldb_path;  // TODO: merge with path once SQLStorage class is complete
-  int schema_version;
   // FS storage
   boost::filesystem::path uptane_metadata_path;
   boost::filesystem::path uptane_private_key_path;
