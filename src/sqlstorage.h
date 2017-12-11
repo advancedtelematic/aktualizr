@@ -12,10 +12,7 @@
 
 const int kSqlSchemaVersion = 1;
 
-enum SQLReqId {
-  kSqlGetVersion,
-  kSqlGetSchema,
-};
+enum SQLReqId { kSqlGetSimple };
 
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
@@ -71,6 +68,7 @@ class SQLStorage : public INvStorage {
 
   bool dbMigrate();
   bool dbCheck();
+  bool dbInit();
 
  private:
   StorageConfig config_;

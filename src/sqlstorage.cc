@@ -20,6 +20,8 @@ SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
     // Continue to run anyway, it can't be worse
   } else if (!dbCheck()) {
     LOGGER_LOG(LVL_error, "SQLite database doesn't match its schema");
+  } else if (!dbInit()) {
+    LOGGER_LOG(LVL_error, "Couldn't initialize database");
   }
 }
 
@@ -208,17 +210,56 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
 #endif  // BUILD_OSTREE
 
 void SQLStorage::storeDeviceId(const std::string& device_id) {
-  Utils::writeFile((config_.path / "device_id").string(), device_id);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  std::string req = "UPDATE OR REPLACE device_info SET device_id = '";
+  req += device_id + "';";
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set device ID: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 }
 
 bool SQLStorage::loadDeviceId(std::string* device_id) {
-  if (!boost::filesystem::exists((config_.path / "device_id").string())) return false;
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (device_id) *device_id = Utils::readFile((config_.path / "device_id").string());
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return "";
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT device_id FROM device_info LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get device ID: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (device_id) *device_id = req_response["result"];
+
   return true;
 }
 
-void SQLStorage::clearDeviceId() { boost::filesystem::remove(config_.path / "device_id"); }
+void SQLStorage::clearDeviceId() {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "UPDATE OR REPLACE device_info SET device_id = NULL;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't clear device ID: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+}
 
 void SQLStorage::storeEcuRegistered() { Utils::writeFile((config_.path / "is_registered").string(), std::string("1")); }
 
@@ -293,7 +334,7 @@ bool SQLStorage::loadInstalledVersions(std::string* content) {
 }
 
 bool SQLStorage::tableSchemasEqual(const std::string& left, const std::string& right) {
-  boost::char_separator<char> sep(" \t\r\n", "(),;");
+  boost::char_separator<char> sep(" \"\t\r\n", "(),;");
   sql_tokenizer tokl(left, sep);
   sql_tokenizer tokr(right, sep);
 
@@ -314,7 +355,7 @@ boost::movelib::unique_ptr<std::map<std::string, std::string> > SQLStorage::pars
   std::vector<std::string> tokens;
 
   enum { STATE_INIT, STATE_CREATE, STATE_TABLE, STATE_NAME };
-  boost::char_separator<char> sep(" \t\r\n", "(),;");
+  boost::char_separator<char> sep(" \"\t\r\n", "(),;");
   sql_tokenizer tok(schema, sep);
   int parsing_state = STATE_INIT;
 
@@ -367,7 +408,7 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
     return "";
   }
 
-  request = kSqlGetSchema;
+  request = kSqlGetSimple;
   req_response.clear();
   std::string req =
       std::string("SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name='") + tablename + "' LIMIT 1;";
@@ -376,7 +417,7 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
     return "";
   }
 
-  return req_response["schema"] + ";";
+  return req_response["result"] + ";";
 }
 
 bool SQLStorage::dbMigrate() {
@@ -422,6 +463,35 @@ bool SQLStorage::dbCheck() {
   return true;
 }
 
+bool SQLStorage::dbInit() {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (sqlite3_exec(db.get(), "BEGIN TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't begin transaction: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM device_info;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get number of rows in device_info: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (boost::lexical_cast<int>(req_response["result"]) < 1) {
+    if (sqlite3_exec(db.get(), "INSERT INTO device_info DEFAULT VALUES;", NULL, NULL, NULL) != SQLITE_OK) {
+      LOGGER_LOG(LVL_error, "Can't set default values to device_info: " << sqlite3_errmsg(db.get()));
+      return false;
+    }
+  }
+
+  if (sqlite3_exec(db.get(), "COMMIT TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't commit transaction: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+  return true;
+}
+
 int SQLStorage::getVersion() {
   SQLite3Guard db(config_.sqldb_path.string().c_str());
 
@@ -430,7 +500,7 @@ int SQLStorage::getVersion() {
     return -1;
   }
 
-  request = kSqlGetVersion;
+  request = kSqlGetSimple;
   req_response.clear();
   std::string req = std::string("SELECT version FROM version LIMIT 1;");
   if (sqlite3_exec(db.get(), req.c_str(), callback, this, NULL) != SQLITE_OK) {
@@ -439,7 +509,7 @@ int SQLStorage::getVersion() {
   }
 
   try {
-    return boost::lexical_cast<int>(req_response["version"]);
+    return boost::lexical_cast<int>(req_response["result"]);
   } catch (const boost::bad_lexical_cast&) {
     return -1;
   }
@@ -449,16 +519,11 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
   SQLStorage* instance = static_cast<SQLStorage*>(instance_);
 
   switch (instance->request) {
-    case kSqlGetSchema: {
+    case kSqlGetSimple: {
       (void)numcolumns;
       (void)columns;
-      instance->req_response["schema"] = values[0];
+      if (values[0]) instance->req_response["result"] = values[0];
       break;
-    }
-    case kSqlGetVersion: {
-      (void)numcolumns;
-      (void)columns;
-      instance->req_response["version"] = values[0];
     }
     default:
       return -1;
