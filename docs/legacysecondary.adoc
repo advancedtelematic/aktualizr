@@ -14,29 +14,24 @@ The command line interface shall support three commands.
 
   $ example-flasher api-version
 
-Should output 1 for the current version of API. Command always succeeds.
+Returns a single line with the version number of the API that the tool supports. At present, there is only one version, so this should always return `1`. This command should always succeed.
 
 === list-ecus
 
   $ example-flasher list-ecus
 
-Can return list of connected ECUs in either of two formats:
+Returns a list of the ECUs that are attached to the system. Each line starts with the hardware identifier, and may optionally include the serial number as the second column. For example:
 
   <hardware-id[0]> <ecu-serial[0]>
   <hardware-id[1]> <ecu-serial[1]>
+  <hardware-id[2]>
   ...
 
 Hardware IDs are used by Uptane to check if a firmware image is suitable for the particular device, so the hardware ID specified for your image in https://www.atsgarage.com/[ATS Garage] should exactly match what is returned by the flasher.
 
-The ECU serial uniquely identifies an ECU in the Uptane repository, so it should be unique globally, not just on the vehicle scope.
+The ECU serial uniquely identifies an ECU in the Uptane repository, so it should be unique globally, not just within the vehicle scope. If a serial is not provided for an entry, a unique serial is generated randomly by the primary for that entry.
 
-A simplified format for the ECU list is also accepted:
-
-  <hardware-id[0]>
-  <hardware-id[1]>
-  ...
-
-In this case, it is recommended that hardware IDs should be unique within the list scope. Each entry is treated as a single ECU by Uptane, and a unique serial is generated randomly by the primary for each entry. If you want to flash multiple ECUs of the same kind and maintain atomicity of the update, it is the responsibility of the flasher to verify that all the ECUs either get the new image or continue to run the old image if the update fails.
+Hardware IDs for ECUs without provided serials should be unique within the scope of the list. Each entry is treated as a single ECU by Uptane. If you want to flash multiple ECUs of the same kind and maintain atomicity of the update, it is the responsibility of the flasher to verify that all the ECUs either get the new image or continue to run the old image if the update fails.
 
 The command shall fail if the ECUs could not be found due to communication error or if the discovered number of ECUs does not match the expected value. On subsequent runs, the command should output the same number of ECUs. If some ECUs stop responding, these can be skipped. ECU hotplugging is not supported.
 
@@ -44,9 +39,38 @@ The command shall fail if the ECUs could not be found due to communication error
 
   $ example-flasher install-software --hardware-identifier <hw-id> [--ecu-identifier ecu-serial] --firmware /path/to/firmware.img
 
-Delivers an update to a particular ECU. `--ecu-identifier` should be present if the output of `list-ecus` command includes serials. If `list-ecus` uses the simplified format, `--ecu-identifier` can be skipped and will be ignored if present.
+Delivers an update to a particular ECU. `--ecu-identifier` should be provided for any ECU that was listed with a serial by the `list-ecus` command. If `list-ecus` did not provide a serial for a given ECU, `--ecu-identifier` may be skipped for that ECU, and the flasher should ignore it if it is provided.
 
-The command should return success if the secondary was flashed and can run the new firmware. Otherwise, it should fail.
+The command's return value should indicate the result of the installation:
+
+[options=header]
+|===================
+| Return value | Meaning
+| 0 | Installation completed successfully.
+| 1 | The firmware image is invalid.
+| 2 | Installation failure. The previous firmware was not modified.
+| 3 | Installation failure. The previous firmware was partially overwritten or erased.
+|===================
+
+=== Additional options
+
+All three commands should support one additional option to control the log level:
+
+  $ example-flasher <command> --log-level N
+
+Valid values for `N` are `0..4`:
+
+[options=header]
+|===================
+| Log level | Meaning
+| 0 | Trace
+| 1 | Debug
+| 2 | Informational
+| 3 | Warning
+| 4 | Error
+|===================
+
+The flasher may ignore this option.
 
 == Integration with aktualizr
 
