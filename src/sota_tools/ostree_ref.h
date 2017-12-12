@@ -16,7 +16,7 @@ class OSTreeRef {
   OSTreeRef(const TreehubServer& serve_repo, const std::string& ref_name);
   OSTreeRef(OSTreeRef&& rhs) : ref_content_(rhs.ref_content_), ref_name_(rhs.ref_name_) {}
 
-  void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle);
+  void PushRef(const TreehubServer& push_target, CURL* curl_easy_handle) const;
 
   OSTreeHash GetHash() const;
   std::string GetName() const { return ref_name_; };

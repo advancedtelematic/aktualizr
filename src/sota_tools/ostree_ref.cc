@@ -47,7 +47,7 @@ OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string &ref_name) : 
   ref_content_ = http_response_.str();
 }
 
-void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) {
+void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) const {
   assert(IsValid());
 
   push_target.InjectIntoCurl(Url(), curl_handle);
