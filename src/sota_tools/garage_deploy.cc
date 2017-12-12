@@ -1,17 +1,21 @@
+#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
 
 #include "accumulator.h"
+#include "authenticate.h"
 #include "deploy.h"
 #include "logging.h"
+#include "ostree_http_repo.h"
 
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
   logger_init();
   int verbosity;
-  std::string ref;
+  std::string ostree_commit;
+  std::string name;
   std::string fetch_cred;
   std::string push_cred;
   std::string hardwareids;
@@ -20,14 +24,15 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help", "print usage")
-    ("version,v", "Current garage-deploy version")
-    ("verbose,l", accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
-    ("ref,r", po::value<std::string>(&ref)->required(), "package name to fetch")
-    ("fetch-credentials,f", po::value<std::string>(&fetch_cred)->required(), "path to fetch credentials file")
-    ("push-credentials,p", po::value<std::string>(&push_cred)->required(), "path to push credentials file")
+    ("version", "Current garage-deploy version")
+    ("verbose,v", accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
+    ("quiet,q", "Quiet mode")
+    ("commit", po::value<std::string>(&ostree_commit)->required(), "OSTree commit to deploy")
+    ("name", po::value<std::string>(&name)->required(), "Name of image")
+    ("fetch-credentials,f", po::value<std::string>(&fetch_cred)->required(), "path to source credentials")
+    ("push-credentials,p", po::value<std::string>(&push_cred)->required(), "path to destination credentials")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
-
   // clang-format on
 
   po::variables_map vm;
@@ -50,8 +55,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (!vm.count("ref") && !vm.count("fetch-credentials") && vm.count("push-credentials")) {
-    LOG_INFO << "You must specify crdentials for source repo, destination repo, and package name";
+  if (!vm.count("commit") && !vm.count("fetch-credentials") && vm.count("push-credentials")) {
+    LOG_INFO << "You must specify credentials for source repo, destination repo, and package name";
     return EXIT_FAILURE;
   }
 
@@ -73,6 +78,38 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
-  return !copy_repo(cacerts, fetch_cred, push_cred, ref, hardwareids, true);
+  ServerCredentials push_credentials(push_cred);
+  ServerCredentials fetch_credentials(fetch_cred);
+
+  TreehubServer fetch_server;
+  if (authenticate(cacerts, fetch_credentials, fetch_server) != EXIT_SUCCESS) {
+    LOG_FATAL << "Authentication failed";
+    return EXIT_FAILURE;
+  }
+  OSTreeRepo::ptr src_repo = boost::make_shared<OSTreeHttpRepo>(&fetch_server);
+
+  try {
+    OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
+    // Since the fetches happen on a single thread in OSTreeHttpRepo, there
+    // isn't really any reason to upload in parallel
+    bool ok = UploadToTreehub(src_repo, push_credentials, commit, cacerts, false, 1);
+
+    if (!ok) {
+      LOG_FATAL << "Upload to treehub failed";
+      return EXIT_FAILURE;
+    }
+    if (push_credentials.CanSignOffline()) {
+      bool ok = OfflineSignRepo(push_credentials.GetPathOnDisk(), name, commit, hardwareids);
+      return !ok;
+
+    } else {
+      LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
+      return EXIT_FAILURE;
+    }
+  } catch (OSTreeCommitParseError &e) {
+    LOG_FATAL << e.what();
+    return EXIT_FAILURE;  // TODO tests
+  }
+  return EXIT_SUCCESS;
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

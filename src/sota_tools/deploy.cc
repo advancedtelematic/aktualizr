@@ -66,55 +66,20 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
   }
 }
 
-bool copy_repo(const std::string &cacerts, const std::string &src, const std::string &dst, const std::string &ref,
-               const std::string &hardwareids, bool sign, bool dryrun) {
+bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &push_credentials,
+                     const OSTreeHash &ostree_commit, const std::string &cacerts, bool dryrun, int max_curl_requests) {
   TreehubServer push_server;
-  TreehubServer fetch_server;
 
-  if (cacerts != "") {
-    if (boost::filesystem::exists(cacerts)) {
-      push_server.ca_certs(cacerts);
-      fetch_server.ca_certs(cacerts);
-    } else {
-      LOG_FATAL << "--cacert path " << cacerts << " does not exist";
-      return false;
-    }
-  }
-
-  boost::shared_ptr<OSTreeRepo> src_repo;
-  if (boost::filesystem::is_regular_file(src)) {
-    if (authenticate(cacerts, src, fetch_server) != EXIT_SUCCESS) {
-      LOG_FATAL << "Authentication failed";
-      return false;
-    }
-    src_repo = boost::make_shared<OSTreeHttpRepo>(&fetch_server);
-  } else {
-    src_repo = boost::make_shared<OSTreeDirRepo>(src);
-  }
-
-  if (!src_repo->LooksValid()) {
-    LOG_FATAL << "The OSTree src repo does not appear to contain a valid OSTree repository";
-    return false;
-  }
-
-  OSTreeRef ostree_ref(src_repo->GetRef(ref));
-  if (!ostree_ref.IsValid()) {
-    LOG_FATAL << "Ref " << ref << " was not found in repository " << src;
-    return false;
-  }
-
-  ServerCredentials push_creds(dst);
-  if (authenticate(cacerts, push_creds, push_server) != EXIT_SUCCESS) {
+  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
     LOG_FATAL << "Authentication failed";
     return false;
   }
 
-  OSTreeHash root_hash = ostree_ref.GetHash();
   OSTreeObject::ptr root_object;
   try {
-    root_object = src_repo->GetObject(root_hash);
+    root_object = src_repo->GetObject(ostree_commit);
   } catch (const OSTreeObjectMissing &error) {
-    LOG_FATAL << "Commit pointed to by " << ref << " was not found in src repository ";
+    LOG_FATAL << "OSTree Commit " << ostree_commit << " was not found in src repository";
     return false;
   }
 
@@ -123,7 +88,7 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
     return true;
   }
 
-  RequestPool request_pool(push_server, 30);
+  RequestPool request_pool(push_server, max_curl_requests);
 
   // Add commit object to the queue
   request_pool.AddQuery(root_object);
@@ -144,46 +109,19 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
 
   LOG_INFO << "Uploaded " << uploaded << " objects";
   LOG_INFO << "Already present " << present_already << " objects";
-
-  // Push ref
-  if (!push_creds.CanSignOffline()) {
-    if (root_object->is_on_server() == OBJECT_PRESENT) {
-      CURL *easy_handle = curl_easy_init();
-      curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-      ostree_ref.PushRef(push_server, easy_handle);
-      CURLcode err = curl_easy_perform(easy_handle);
-      if (err) {
-        LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
-        errors++;
-      }
-      long rescode;
-      curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
-      if (rescode != 200) {
-        LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-        errors++;
-      }
-      curl_easy_cleanup(easy_handle);
-    } else {
-      LOG_ERROR << "Uploading failed";
-      return false;
-    }
-  }
-
   if (errors) {
     LOG_ERROR << "One or more errors while pushing";
     return false;
   }
 
-  if (sign && push_creds.CanSignOffline()) {
-    return sign_repo(dst, ostree_ref, hardwareids);
-  }
-  return true;
+  return root_object->is_on_server() == OBJECT_PRESENT;
 }
 
-bool sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids) {
+bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::string &name, const OSTreeHash &hash,
+                     const std::string &hardwareids) {
   if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
     std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
-    if (system((init_cmd + credentials).c_str()) != 0) {
+    if (system((init_cmd + push_credentials.GetPathOnDisk()).c_str()) != 0) {
       LOG_ERROR << "Could not initilaize tuf repo for sign";
       return false;
     }
@@ -195,7 +133,7 @@ bool sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::
   }
 
   std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
-  cmd += " --name " + ref.GetName() + " --version " + ref.GetHash().string() + " --sha256 " + ref.GetHash().string();
+  cmd += " --name " + name + " --version " + hash.string() + " --sha256 " + hash.string();
   cmd += " --hardwareids " + hardwareids;
   if (system(cmd.c_str()) != 0) {
     LOG_ERROR << "Could not add targets";
@@ -214,4 +152,39 @@ bool sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::
 
   LOG_INFO << "Success";
   return true;
+}
+
+bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref, const std::string &cacerts,
+                 bool dry_run) {
+  if (push_credentials.CanSignOffline()) {
+    // In general, this is the wrong thing.  We should be using offline signing
+    // if private key material is present in credentials.zip
+    LOG_WARNING << "Pushing by refname when credentials.zip can be used to sign-offline.";
+  }
+
+  TreehubServer push_server;
+
+  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
+    LOG_FATAL << "Authentication failed";
+    return false;
+  }
+
+  if (!dry_run) {
+    CURL *easy_handle = curl_easy_init();
+    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
+    ref.PushRef(push_server, easy_handle);
+    CURLcode err = curl_easy_perform(easy_handle);
+    if (err) {
+      LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
+      errors++;
+    }
+    long rescode;
+    curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+    if (rescode != 200) {
+      LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
+      errors++;
+    }
+    curl_easy_cleanup(easy_handle);
+  }
+  return errors == 0;
 }

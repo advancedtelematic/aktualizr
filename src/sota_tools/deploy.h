@@ -3,9 +3,30 @@
 
 #include <string>
 #include "ostree_ref.h"
+#include "server_credentials.h"
 
-bool copy_repo(const std::string &cacerts, const std::string &src, const std::string &dst, const std::string &ref, const std::string &hardwareids, bool sign, bool dryrun=false);
-bool sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids);
+/**
+ * Upload a OSTree repository to Treehub.
+ * This will not push the root reference to /refs/heads/qemux86-64 or update
+ * the Uptane targets using garage-sign.
+ * \param src_repo Maybe either a OSTreeDirRepo (in which case the objects
+ *                 are fetched from disk), or OSTreeHttpRepo (in which case
+ *                 the objects will be pulled over https).
+ */
+bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials& push_credentials,
+                     const OSTreeHash& ostree_commit, const std::string& cacerts, bool dryrun, int max_curl_requests);
 
+/**
+ * Use the garage-sign tool and the images targets.json keys in credentials.zip
+ * to add an entry to images/targets.json
+ */
+bool OfflineSignRepo(const ServerCredentials& push_credentials, const std::string& name, const OSTreeHash& hash,
+                     const std::string& hardwareids);
+
+/**
+ * Update images/targets.json by pushing the OSTree commit hash to /refs/heads/qemux86-64
+ */
+bool PushRootRef(const ServerCredentials& push_credentials, const OSTreeRef& ref, const std::string& cacerts,
+                 bool dry_run);
 
 #endif
