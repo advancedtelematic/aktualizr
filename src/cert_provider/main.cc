@@ -36,9 +36,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
       ("target,t", bpo::value<std::string>(), "target device to scp credentials to (or [user@]host)")
       ("port,p", bpo::value<int>(), "target port")
-      ("directory,d", bpo::value<std::string>()->default_value("/var/sota/token"), "directory on target to write credentials to")
+      ("directory,d", bpo::value<boost::filesystem::path>()->default_value("/var/sota/token"), "directory on target to write credentials to")
       ("root-ca,r", "provide root CA")
-      ("local,l", bpo::value<std::string>(), "local directory to write credentials to")
+      ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
       ("config,g", bpo::value<std::string>(), "sota.toml configuration file from which to get file names");
   // clang-format on
 
@@ -89,32 +89,34 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
-  std::string directory = commandline_map["directory"].as<std::string>();
+  boost::filesystem::path directory = commandline_map["directory"].as<boost::filesystem::path>();
   bool provide_ca = commandline_map.count("root-ca") != 0;
-  std::string local_dir = "";
+  boost::filesystem::path local_dir;
   if (commandline_map.count("local") != 0) {
-    local_dir = commandline_map["local"].as<std::string>();
+    local_dir = commandline_map["local"].as<boost::filesystem::path>();
   }
   std::string config_path = "";
   if (commandline_map.count("config") != 0) {
     config_path = commandline_map["config"].as<std::string>();
   }
 
-  std::string pkey_file = "pkey.pem";
-  std::string cert_file = "client.pem";
-  std::string ca_file = "root.crt";
+  boost::filesystem::path pkey_file = "pkey.pem";
+  boost::filesystem::path cert_file = "client.pem";
+  boost::filesystem::path ca_file = "root.crt";
   if (!config_path.empty()) {
     Config config(config_path);
-    pkey_file = config.storage.tls_pkey_path.string();
-    cert_file = config.storage.tls_clientcert_path.string();
+    // Strip any relative directories. Assume everything belongs in one
+    // directory for now.
+    pkey_file = config.storage.tls_pkey_path.filename();
+    cert_file = config.storage.tls_clientcert_path.filename();
     if (provide_ca) {
-      ca_file = config.storage.tls_cacert_path.string();
+      ca_file = config.storage.tls_cacert_path.filename();
     }
   }
 
-  TemporaryFile tmp_pkey_file(pkey_file);
-  TemporaryFile tmp_cert_file(cert_file);
-  TemporaryFile tmp_ca_file(ca_file);
+  TemporaryFile tmp_pkey_file(pkey_file.string());
+  TemporaryFile tmp_cert_file(cert_file.string());
+  TemporaryFile tmp_ca_file(ca_file.string());
 
   std::string device_id = Utils::genPrettyName();
   std::cout << "Random device ID is " << device_id << "\n";
@@ -159,18 +161,18 @@ int main(int argc, char *argv[]) {
   if (!local_dir.empty()) {
     std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
     if (boost::filesystem::exists(local_dir)) {
-      boost::filesystem::remove(local_dir + "/" + pkey_file);
-      boost::filesystem::remove(local_dir + "/" + cert_file);
+      boost::filesystem::remove(local_dir / pkey_file);
+      boost::filesystem::remove(local_dir / cert_file);
       if (provide_ca) {
-        boost::filesystem::remove(local_dir + "/" + ca_file);
+        boost::filesystem::remove(local_dir / ca_file);
       }
     } else {
       boost::filesystem::create_directory(local_dir);
     }
-    boost::filesystem::copy_file(tmp_pkey_file.PathString(), local_dir + "/" + pkey_file);
-    boost::filesystem::copy_file(tmp_cert_file.PathString(), local_dir + "/" + cert_file);
+    boost::filesystem::copy_file(tmp_pkey_file.PathString(), local_dir / pkey_file);
+    boost::filesystem::copy_file(tmp_cert_file.PathString(), local_dir / cert_file);
     if (provide_ca) {
-      boost::filesystem::copy_file(tmp_ca_file.PathString(), local_dir + "/" + ca_file);
+      boost::filesystem::copy_file(tmp_ca_file.PathString(), local_dir / ca_file);
     }
     std::cout << "...success\n";
   }
@@ -190,27 +192,27 @@ int main(int argc, char *argv[]) {
       scp_prefix << "-P " << port << " ";
     }
 
-    int ret = system((ssh_prefix.str() + target + " mkdir -p " + directory).c_str());
+    int ret = system((ssh_prefix.str() + target + " mkdir -p " + directory.string()).c_str());
     if (ret != 0) {
       std::cout << "Error connecting to target device: " << ret << "\n";
       return -1;
     }
 
-    ret = system(
-        (scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":" + directory + "/" + pkey_file).c_str());
+    ret = system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":" + (directory / pkey_file).string())
+                     .c_str());
     if (ret != 0) {
       std::cout << "Error copying files to target device: " << ret << "\n";
     }
 
-    ret = system(
-        (scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":" + directory + "/" + cert_file).c_str());
+    ret = system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":" + (directory / cert_file).string())
+                     .c_str());
     if (ret != 0) {
       std::cout << "Error copying files to target device: " << ret << "\n";
     }
 
     if (provide_ca) {
       ret = system(
-          (scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":" + directory + "/" + ca_file).c_str());
+          (scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":" + (directory / ca_file).string()).c_str());
       if (ret != 0) {
         std::cout << "Error copying files to target device: " << ret << "\n";
       }
