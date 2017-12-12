@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "treehub_server.h"
 #include "server_credentials.h"
+#include "treehub_server.h"
 
 int authenticate(const std::string &cacerts, const ServerCredentials &creds, TreehubServer &treehub);
 
