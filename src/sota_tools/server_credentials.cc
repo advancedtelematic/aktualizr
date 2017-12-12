@@ -146,7 +146,7 @@ bool ServerCredentials::CanSignOffline() const {
         archive_read_data_skip(a);
       }
     }
-    r = archive_read_free(a);
+    (void)archive_read_free(a);
   }
   return (found_root && found_targets_pub && found_targets_sec && found_tufrepo_url);
 }
