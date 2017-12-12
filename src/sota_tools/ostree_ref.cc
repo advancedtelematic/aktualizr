@@ -65,23 +65,7 @@ bool OSTreeRef::IsValid() const { return is_valid; }
 
 string OSTreeRef::Url() const { return "refs/heads/" + ref_name_; }
 
-OSTreeHash OSTreeRef::GetHash() const {
-  uint8_t sha256[32];
-  std::istringstream refstr(ref_content_);
-
-  // sha256 is always 256 bits == 32 bytes long
-  for (int i = 0; i < 32; i++) {
-    char byte_string[3];
-    byte_string[2] = 0;
-    unsigned long byte_holder;
-
-    refstr.read(byte_string, 2);
-    byte_holder = strtoul(byte_string, NULL, 16);
-
-    sha256[i] = byte_holder & 0xFF;
-  }
-  return OSTreeHash(sha256);
-}
+OSTreeHash OSTreeRef::GetHash() const { return OSTreeHash::Parse(ref_content_); }
 
 size_t OSTreeRef::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
   OSTreeRef *that = (OSTreeRef *)userp;
