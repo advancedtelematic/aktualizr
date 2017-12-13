@@ -28,6 +28,9 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       } else {
         LOG_INFO << "Skipping Authentication";
       }
+      // Set ca certificate path, because curl embeds the path to ca-certs that it was built with
+      // and this breaks under bitbake when sharing sstate cache between machines
+      treehub.ca_certs(cacerts);
       break;
     }
     case CERT: {
