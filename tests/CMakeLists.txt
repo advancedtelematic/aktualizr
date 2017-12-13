@@ -322,6 +322,16 @@ if(BUILD_SOTA_TOOLS)
         COMMAND sota_tools/test-missing-ref $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+    # Handle a missing credentials.zip
+    add_test(NAME missing-credentials
+        COMMAND sota_tools/test-missing-credentials $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Handle passing a random file as credentials.zip
+    add_test(NAME invalid-credentials
+        COMMAND sota_tools/test-invalid-credentials $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
     add_test(NAME dry-run
         COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
