@@ -35,6 +35,12 @@ void TreehubServer::SetCerts(const std::string& root_cert, const std::string& cl
 // this TreehubServer object alive until the curl request has been completed
 void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, bool tufrepo) const {
   std::string url = (tufrepo ? repo_url_ : root_url_);
+
+  if (*url.rbegin() != '/' && *url_suffix.begin() != '/')
+    url += "/";
+  else if (*url.rbegin() == '/' && *url_suffix.begin() == '/')
+    url.erase(url.length() - 1);
+
   curl_easy_setopt(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
