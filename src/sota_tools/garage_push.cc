@@ -88,6 +88,11 @@ int main(int argc, char **argv) {
     dry_run = true;
   }
 
+  if (max_curl_requests < 1) {
+    LOG_FATAL << "--jobs must be greater than 0";
+    return EXIT_FAILURE;
+  }
+
   OSTreeRepo::ptr src_repo = boost::make_shared<OSTreeDirRepo>(repo_path);
 
   if (!src_repo->LooksValid()) {

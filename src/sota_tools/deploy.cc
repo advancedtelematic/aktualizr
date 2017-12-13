@@ -69,7 +69,7 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
 bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &push_credentials,
                      const OSTreeHash &ostree_commit, const std::string &cacerts, bool dryrun, int max_curl_requests) {
   TreehubServer push_server;
-
+  assert(max_curl_requests > 0);
   if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
     LOG_FATAL << "Authentication failed";
     return false;
