@@ -174,7 +174,8 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
   HttpResponse response(response_str, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
     std::ostringstream error_message;
-    error_message << "curl error " << response.curl_code << ": " << response.error_message;
+    error_message << "curl error " << response.curl_code << " (http code " << response.http_status_code
+                  << "): " << response.error_message;
     LOGGER_LOG(LVL_error, error_message.str());
     if (retry_times) {
       sleep(1);
