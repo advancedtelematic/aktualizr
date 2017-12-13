@@ -1,6 +1,7 @@
 
 set (SOTA_TOOLS_LIB_SRC
   authenticate.cc
+  server_credentials.cc
   logging.cc
   oauth2.cc
   ostree_hash.cc
@@ -135,20 +136,25 @@ add_dependencies(qa garage-deploy-deb)
 
 ##### clang-format
 
-aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${ALL_SOTA_TOOLS_HEADERS} ${SOTA_TOOLS_LIB_SRC})
 # For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
   accumulator.h
   authenticate.h
+  deploy.h
   logging.h
   oauth2.h
+  ostree_dir_repo.h
   ostree_hash.h
+  ostree_http_repo.h
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
-  ostree_dir_repo.h
   request_pool.h
+  server_credentials.h
   treehub_server.h
 )
+
+aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${ALL_SOTA_TOOLS_HEADERS} ${SOTA_TOOLS_LIB_SRC})
+
 
 # vim: set tabstop=2 shiftwidth=2 expandtab:

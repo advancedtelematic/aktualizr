@@ -9,6 +9,13 @@
 
 class OSTreeHash {
  public:
+  /**
+   * Parse an OSTree hash from a string. This will normally be a root commit.
+   * @throws OSTreeCommitParseError on invalid input
+   * TODO test cases
+   */
+  static OSTreeHash Parse(const std::string& hash);
+
   explicit OSTreeHash(const uint8_t[32]);
 
   std::string string() const;
@@ -18,6 +25,18 @@ class OSTreeHash {
 
  private:
   uint8_t hash_[32];
+};
+
+class OSTreeCommitParseError : std::exception {
+ public:
+  OSTreeCommitParseError(const std::string bad_hash) : bad_hash_(bad_hash) {}
+
+  virtual const char* what() const noexcept { return "Could not parse OSTree commit"; }
+
+  std::string bad_hash() const { return bad_hash_; }
+
+ private:
+  std::string bad_hash_;
 };
 
 #endif  // SOTA_CLIENT_TOOLS_OSTREE_HASH_H_

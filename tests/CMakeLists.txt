@@ -36,7 +36,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage_push_auth_test garage-push garage-deploy-deb)
+    add_dependencies(build_tests garage-push garage-deploy-deb)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
@@ -51,12 +51,15 @@ set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h)
 include(CMakeParseArguments)
 
 function(add_aktualizr_test)
-    set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND CPP11)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES ARGS)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     add_executable(t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_SOURCES})
     target_link_libraries(t_${AKTUALIZR_TEST_NAME} aktualizr_static_lib ${TEST_LIBS})
+    if (AKTUALIZR_TEST_CPP11)
+        set_property(TARGET t_${AKTUALIZR_TEST_NAME} PROPERTY CXX_STANDARD 11)
+    endif()
     if(AKTUALIZR_TEST_PROJECT_WORKING_DIRECTORY)
         set(WD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     else()
@@ -276,7 +279,14 @@ add_test(NAME implicit-writer-test
 
 if(BUILD_SOTA_TOOLS)
     # sota-tools tests
-    aktualizr_source_file_checks(sota_tools/auth_test.cc)
+    add_aktualizr_test(NAME sota_tools_auth_test
+                       SOURCES sota_tools/auth_test.cc
+                       CPP11 PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
+    target_include_directories(t_sota_tools_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
+
+    add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc CPP11)
+    target_link_libraries(t_ostree_hash sota_tools_static_lib)
 
     # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
@@ -287,11 +297,6 @@ if(BUILD_SOTA_TOOLS)
     # require a client id & secret. Specify credentials here to enable these tests
     set(OAUTH2_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
     set(OAUTH2_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
-
-    add_executable(garage_push_auth_test sota_tools/auth_test.cc)
-    target_link_libraries(garage_push_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
-    target_include_directories(garage_push_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
-    add_test(NAME auth_test COMMAND garage_push_auth_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Check the --help option works
     add_test(NAME option-help
@@ -315,6 +320,16 @@ if(BUILD_SOTA_TOOLS)
     # Detect that the ref we passed in to --ref is not present
     add_test(NAME missing-ref
         COMMAND sota_tools/test-missing-ref $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Handle a missing credentials.zip
+    add_test(NAME missing-credentials
+        COMMAND sota_tools/test-missing-credentials $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Handle passing a random file as credentials.zip
+    add_test(NAME invalid-credentials
+        COMMAND sota_tools/test-invalid-credentials $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME dry-run

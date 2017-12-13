@@ -66,63 +66,29 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
   }
 }
 
-bool copy_repo(const std::string &cacerts, const std::string &src, const std::string &dst, const std::string &ref,
-               const std::string &hardwareids, bool sign, bool dryrun) {
+bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &push_credentials,
+                     const OSTreeHash &ostree_commit, const std::string &cacerts, bool dryrun, int max_curl_requests) {
   TreehubServer push_server;
-  TreehubServer fetch_server;
-
-  if (cacerts != "") {
-    if (boost::filesystem::exists(cacerts)) {
-      push_server.ca_certs(cacerts);
-      fetch_server.ca_certs(cacerts);
-    } else {
-      LOG_FATAL << "--cacert path " << cacerts << " does not exist";
-      return EXIT_FAILURE;
-    }
-  }
-
-  boost::shared_ptr<OSTreeRepo> src_repo;
-  if (boost::filesystem::is_regular_file(src)) {
-    if (authenticate(cacerts, src, fetch_server) != EXIT_SUCCESS) {
-      LOG_FATAL << "Authentication failed";
-      return EXIT_FAILURE;
-    }
-    src_repo = boost::make_shared<OSTreeHttpRepo>(&fetch_server);
-  } else {
-    src_repo = boost::make_shared<OSTreeDirRepo>(src);
-  }
-
-  if (!src_repo->LooksValid()) {
-    LOG_FATAL << "The OSTree src repo does not appear to contain a valid OSTree repository";
-    return EXIT_FAILURE;
-  }
-
-  OSTreeRef ostree_ref(src_repo->GetRef(ref));
-  if (!ostree_ref.IsValid()) {
-    LOG_FATAL << "Ref " << ref << " was not found in repository " << src;
-    return EXIT_FAILURE;
-  }
-
-  if (authenticate(cacerts, dst, push_server) != EXIT_SUCCESS) {
+  assert(max_curl_requests > 0);
+  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
     LOG_FATAL << "Authentication failed";
-    return EXIT_FAILURE;
+    return false;
   }
 
-  OSTreeHash root_hash = ostree_ref.GetHash();
   OSTreeObject::ptr root_object;
   try {
-    root_object = src_repo->GetObject(root_hash);
+    root_object = src_repo->GetObject(ostree_commit);
   } catch (const OSTreeObjectMissing &error) {
-    LOG_FATAL << "Commit pointed to by " << ref << " was not found in src repository ";
-    return EXIT_FAILURE;
+    LOG_FATAL << "OSTree Commit " << ostree_commit << " was not found in src repository";
+    return false;
   }
 
   if (dryrun) {
     LOG_INFO << "Dry run. Exiting.";
-    return EXIT_SUCCESS;
+    return true;
   }
 
-  RequestPool request_pool(push_server, 30);
+  RequestPool request_pool(push_server, max_curl_requests);
 
   // Add commit object to the queue
   request_pool.AddQuery(root_object);
@@ -143,12 +109,70 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
 
   LOG_INFO << "Uploaded " << uploaded << " objects";
   LOG_INFO << "Already present " << present_already << " objects";
-  // Push ref
+  if (errors) {
+    LOG_ERROR << "One or more errors while pushing";
+    return false;
+  }
 
-  if (root_object->is_on_server() == OBJECT_PRESENT) {
+  return root_object->is_on_server() == OBJECT_PRESENT;
+}
+
+bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::string &name, const OSTreeHash &hash,
+                     const std::string &hardwareids) {
+  if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
+    std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
+    if (system((init_cmd + push_credentials.GetPathOnDisk()).c_str()) != 0) {
+      LOG_ERROR << "Could not initilaize tuf repo for sign";
+      return false;
+    }
+  }
+
+  if (system("garage-sign targets  pull --repo aktualizr") != 0) {
+    LOG_ERROR << "Could not pull targets";
+    return false;
+  }
+
+  std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
+  cmd += " --name " + name + " --version " + hash.string() + " --sha256 " + hash.string();
+  cmd += " --hardwareids " + hardwareids;
+  if (system(cmd.c_str()) != 0) {
+    LOG_ERROR << "Could not add targets";
+    return false;
+  }
+
+  LOG_INFO << "Signing...\n";
+  if (system("garage-sign targets  sign --key-name targets --repo aktualizr") != 0) {
+    LOG_ERROR << "Could not sign targets";
+    return false;
+  }
+  if (system("garage-sign targets  push --repo aktualizr") != 0) {
+    LOG_ERROR << "Could not push signed repo";
+    return false;
+  }
+
+  LOG_INFO << "Success";
+  return true;
+}
+
+bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref, const std::string &cacerts,
+                 bool dry_run) {
+  if (push_credentials.CanSignOffline()) {
+    // In general, this is the wrong thing.  We should be using offline signing
+    // if private key material is present in credentials.zip
+    LOG_WARNING << "Pushing by refname when credentials.zip can be used to sign-offline.";
+  }
+
+  TreehubServer push_server;
+
+  if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
+    LOG_FATAL << "Authentication failed";
+    return false;
+  }
+
+  if (!dry_run) {
     CURL *easy_handle = curl_easy_init();
     curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-    ostree_ref.PushRef(push_server, easy_handle);
+    ref.PushRef(push_server, easy_handle);
     CURLcode err = curl_easy_perform(easy_handle);
     if (err) {
       LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
@@ -161,47 +185,6 @@ bool copy_repo(const std::string &cacerts, const std::string &src, const std::st
       errors++;
     }
     curl_easy_cleanup(easy_handle);
-  } else {
-    LOG_ERROR << "Uploading failed";
   }
-
-  if (errors) {
-    LOG_ERROR << "One or more errors while pushing";
-    return EXIT_FAILURE;
-  }
-
-  if (sign) {
-    sign_repo(dst, ostree_ref, hardwareids);
-  }
-  return EXIT_SUCCESS;
-}
-
-void sign_repo(const std::string &credentials, const OSTreeRef &ref, const std::string &hardwareids) {
-  if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
-    std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
-    if (system((init_cmd + credentials).c_str()) != 0) {
-      throw std::runtime_error("Could not initilaize tuf repo for sign");
-    }
-  }
-
-  if (system("garage-sign targets  pull --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not pull targets");
-  }
-
-  std::string cmd("garage-sign targets add --repo aktualizr --format OSTREE --length 0 --url \"https://example.com/\"");
-  cmd += " --name " + ref.GetName() + " --version " + ref.GetHash().string() + " --sha256 " + ref.GetHash().string();
-  cmd += " --hardwareids " + hardwareids;
-  if (system(cmd.c_str()) != 0) {
-    throw std::runtime_error("Could not add targets");
-  }
-
-  LOG_INFO << "Signing...\n";
-  if (system("garage-sign targets  sign --key-name targets --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not sign targets");
-  }
-  if (system("garage-sign targets  push --repo aktualizr") != 0) {
-    throw std::runtime_error("Could not push signed repo");
-  }
-
-  LOG_INFO << "Success";
+  return errors == 0;
 }
