@@ -86,10 +86,10 @@ int main(int argc, char *argv[]) {
   std::cout << "Reading config file: " << config_in_path << "\n";
   Config config(config_in_path);
 
-  Bootstrap boot(credentials_path, "");
-  boost::filesystem::path ca_path(prefix);
-  ca_path /= config.import.tls_cacert_path;
   if (!no_root) {
+    Bootstrap boot(credentials_path, "");
+    boost::filesystem::path ca_path(prefix);
+    ca_path /= config.import.tls_cacert_path;
     std::cout << "Writing root CA: " << ca_path << "\n";
     Utils::writeFile(ca_path.string(), boot.getCa());
   }
