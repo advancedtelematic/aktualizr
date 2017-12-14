@@ -71,7 +71,7 @@ class SQLStorage : public INvStorage {
   bool dbInit();
 
  private:
-  StorageConfig config_;
+  const StorageConfig& config_;
   // request info
   SQLReqId request;
   std::map<std::string, std::string> req_params;

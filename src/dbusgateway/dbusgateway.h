@@ -24,7 +24,7 @@ class DbusGateway : public Gateway {
   boost::thread thread;
   boost::atomic<bool> stop;
   data::OperationResult getOperationResult(DBusMessageIter *);
-  Config config;
+  const Config &config;
   command::Channel *command_channel;
   DBusError err;
   DBusConnection *conn;

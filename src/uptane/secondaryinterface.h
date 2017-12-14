@@ -32,7 +32,7 @@ class SecondaryInterface {
 
   virtual bool sendFirmware(const std::string& data) = 0;
 
-  SecondaryConfig sconfig;
+  const SecondaryConfig& sconfig;
 };
 }
 

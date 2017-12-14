@@ -36,7 +36,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void updateSecondaries(std::vector<Uptane::Target> targets);
 
-  Config config;
+  const Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
   int last_targets_version;

@@ -57,7 +57,7 @@ class TufRepository {
  private:
   std::string name_;
   boost::filesystem::path path_;
-  Config config_;
+  const Config& config_;
   INvStorage& storage_;
   HttpInterface& http_;
   std::string base_url_;

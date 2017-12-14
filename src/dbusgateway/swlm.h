@@ -12,7 +12,7 @@ class SoftwareLoadingManagerProxy {
   void downloadComplete(const std::string &update_image, const std::string &signature);
 
  private:
-  Config config;
+  const Config &config;
   DBusError err;
   DBusConnection *conn;
 };

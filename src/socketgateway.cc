@@ -129,7 +129,7 @@ void SocketGateway::broadcast_event(const boost::shared_ptr<event::BaseEvent> &e
 }
 
 void SocketGateway::processEvent(const boost::shared_ptr<event::BaseEvent> &event) {
-  std::vector<std::string>::iterator find_iter =
+  std::vector<std::string>::const_iterator find_iter =
       std::find(config.network.socket_events.begin(), config.network.socket_events.end(), event->variant);
   if (find_iter != config.network.socket_events.end()) {
     broadcast_event(event);

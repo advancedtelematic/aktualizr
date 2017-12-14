@@ -228,7 +228,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 }
 
 void SotaUptaneClient::initSecondaries() {
-  std::vector<Uptane::SecondaryConfig>::iterator it;
+  std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
     std::string sec_serial = sec->getSerial();

@@ -54,7 +54,7 @@ class Repository {
   bool currentMeta(Uptane::MetaPack *meta) { return storage.loadMetadata(meta); }
 
  private:
-  Config config;
+  const Config &config;
   TufRepository director;
   TufRepository image;
   INvStorage &storage;
