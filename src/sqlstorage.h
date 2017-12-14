@@ -10,10 +10,9 @@
 #include "config.h"
 #include "invstorage.h"
 
-enum SQLReqId {
-  kSqlGetVersion,
-  kSqlGetSchema,
-};
+const int kSqlSchemaVersion = 1;
+
+enum SQLReqId { kSqlGetSimple };
 
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
@@ -69,6 +68,7 @@ class SQLStorage : public INvStorage {
 
   bool dbMigrate();
   bool dbCheck();
+  bool dbInit();
 
  private:
   StorageConfig config_;
@@ -82,6 +82,7 @@ class SQLStorage : public INvStorage {
   std::string getTableSchemaFromDb(const std::string& tablename);
 
   static int callback(void* instance_, int numcolumns, char** values, char** columns);
+  int getVersion();  // non-negative integer on success or -1 on error
 
   bool loadTlsCommon(std::string* data,
                      const boost::filesystem::path& path_in);  // TODO: delete after implementation is ready

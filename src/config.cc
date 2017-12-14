@@ -298,7 +298,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", LVL_warning, pt);
   CopyFromConfig(storage.path, "storage.path", LVL_trace, pt);
   CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", LVL_trace, pt);
-  CopyFromConfig(storage.schema_version, "storage.schema_version", LVL_trace, pt);
   CopyFromConfig(storage.schemas_path, "storage.schemas_path", LVL_trace, pt);
 
   CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", LVL_warning, pt);
@@ -566,7 +565,6 @@ void Config::writeToFile(const std::string& filename) {
   sink << "[storage]\n";
   writeOption(sink, storage.type, "type");
   writeOption(sink, storage.path, "path");
-  writeOption(sink, storage.schema_version, "schema_version");
   writeOption(sink, storage.uptane_metadata_path, "uptane_metadata_path");
   writeOption(sink, storage.uptane_private_key_path, "uptane_private_key_path");
   writeOption(sink, storage.uptane_public_key_path, "uptane_public_key_path");
