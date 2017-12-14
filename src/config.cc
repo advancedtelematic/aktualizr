@@ -425,7 +425,6 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
 
   std::stringstream ss(output);
   std::string buffer;
-  unsigned int index = 0;
   while (std::getline(ss, buffer, '\n')) {
     Uptane::SecondaryConfig sconfig;
     sconfig.secondary_type = Uptane::kLegacy;
@@ -436,12 +435,15 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
       continue;
     } else if (ecu_info.size() == 1) {
       sconfig.ecu_hardware_id = ecu_info[0];
-      sconfig.ecu_serial = "";  // Initialized in ManagedSecondary constructor.
+      // Use getSerial, which will get the public_key_id, initialized in ManagedSecondary constructor.
+      sconfig.ecu_serial = "";
+      sconfig.full_client_dir = storage.path / sconfig.ecu_hardware_id;
       LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id);
     } else if (ecu_info.size() >= 2) {
       // For now, silently ignore anything after the second token.
       sconfig.ecu_hardware_id = ecu_info[0];
       sconfig.ecu_serial = ecu_info[1];
+      sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + sconfig.ecu_serial);
       LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id << " and serial "
                                                                      << sconfig.ecu_serial);
     }
@@ -450,7 +452,6 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
     sconfig.ecu_private_key = "sec.private";
     sconfig.ecu_public_key = "sec.public";
 
-    sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + Utils::intToString(++index));
     sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
     sconfig.metadata_path = sconfig.full_client_dir / "metadata";
     sconfig.target_name_path = sconfig.full_client_dir / "target_name";

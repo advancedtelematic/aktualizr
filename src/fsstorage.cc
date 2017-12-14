@@ -223,9 +223,10 @@ void FSStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::st
     boost::filesystem::remove_all((config_.path / "secondaries_list"));
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
     std::ofstream file((config_.path / "secondaries_list").string().c_str());
-    for (it = serials.begin() + 1; it != serials.end(); it++)
+    for (it = serials.begin() + 1; it != serials.end(); it++) {
       // Assuming that there are no tabs and linebreaks in serials and hardware ids
       file << it->first << "\t" << it->second << "\n";
+    }
     file.close();
   }
 }
@@ -234,15 +235,20 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
   std::string buf;
   std::string serial;
   std::string hw_id;
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_serial"))) return false;
+  if (!boost::filesystem::exists((config_.path / "primary_ecu_serial"))) {
+    return false;
+  }
   serial = Utils::readFile((config_.path / "primary_ecu_serial").string());
   // use default hardware ID for backwards compatibility
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_hardware_id")))
+  if (!boost::filesystem::exists((config_.path / "primary_ecu_hardware_id"))) {
     hw_id = Utils::getHostname();
-  else
+  } else {
     hw_id = Utils::readFile((config_.path / "primary_ecu_hardware_id").string());
+  }
 
-  if (serials) serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+  if (serials) {
+    serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+  }
 
   // return true for backwards compatibility
   if (!boost::filesystem::exists((config_.path / "secondaries_list"))) {
@@ -255,11 +261,15 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
     try {
       hw_id = buf.substr(tab + 1);
     } catch (const std::out_of_range& e) {
-      if (serials) serials->clear();
+      if (serials) {
+        serials->clear();
+      }
       file.close();
       return false;
     }
-    if (serials) serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+    if (serials) {
+      serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+    }
   }
   file.close();
   return true;
@@ -276,7 +286,9 @@ void FSStorage::storeInstalledVersions(const std::string& content) {
 }
 
 bool FSStorage::loadInstalledVersions(std::string* content) {
-  if (!boost::filesystem::exists(config_.path / "installed_versions")) return false;
+  if (!boost::filesystem::exists(config_.path / "installed_versions")) {
+    return false;
+  }
   *content = Utils::readFile((config_.path / "installed_versions").string());
   return true;
 }

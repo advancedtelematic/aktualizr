@@ -32,6 +32,8 @@ class SotaUptaneClient {
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
+  void initSecondaries();
+  void verifySecondaries();
   void updateSecondaries(std::vector<Uptane::Target> targets);
 
   Config config;

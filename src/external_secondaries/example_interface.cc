@@ -5,7 +5,7 @@
 #include "ecuinterface.h"
 #include "utils.h"
 
-const std::string filename = "/tmp/example_serial";
+const std::string filename = "/var/sota/example_serial";
 std::string serial;
 
 ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
