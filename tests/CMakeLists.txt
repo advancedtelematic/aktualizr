@@ -136,11 +136,11 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 
 add_aktualizr_test(NAME crypto
                    SOURCES crypto_test.cc
-                   PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+                   PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
-                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+                       PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY)
@@ -163,7 +163,7 @@ if(BUILD_OSTREE)
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
-    add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY)
 
 
     if(SOTA_PACKED_CREDENTIALS)
