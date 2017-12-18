@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "bootstrap.h"
@@ -13,6 +14,7 @@
 namespace bpo = boost::program_options;
 extern bpo::variables_map parse_options(int argc, char *argv[]);
 const std::string config_test_dir = "tests/test_config";
+boost::filesystem::path build_dir;
 
 TEST(config, config_initialized_values) {
   Config conf;
@@ -95,17 +97,20 @@ TEST(config, config_cmdl_parsing) {
   const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on", "--gateway-socket", "on"};
 
   bpo::options_description description("CommandLine Options");
-  description.add_options()("gateway-http", bpo::value<bool>(), "on/off the http gateway")(
-      "gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")("gateway-socket", bpo::value<bool>(),
-                                                                   "on/off the socket gateway");
+  // clang-format off
+  description.add_options()
+    ("gateway-http", bpo::value<bool>(), "on/off the http gateway")
+    ("gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")
+    ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway");
+  // clang-format on
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
   Config conf("tests/config_tests.toml", vm);
 
-  EXPECT_EQ(conf.gateway.http, false);
-  EXPECT_EQ(conf.gateway.rvi, true);
-  EXPECT_EQ(conf.gateway.socket, true);
+  EXPECT_FALSE(conf.gateway.http);
+  EXPECT_TRUE(conf.gateway.rvi);
+  EXPECT_TRUE(conf.gateway.socket);
 }
 
 TEST(config, config_extract_credentials) {
@@ -131,25 +136,48 @@ TEST(config, config_extract_credentials) {
   boost::filesystem::remove_all(config_test_dir);
 }
 
-/**
- * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
- * and all secondaries.
- */
-TEST(config, ecu_persist) {
-  boost::program_options::variables_map cmd;
-  boost::program_options::options_description description("some text");
-  description.add_options()("secondary-config", bpo::value<std::vector<std::string> >()->composing(),
-                            "set config for secondary");
+TEST(config, secondary_config) {
+  bpo::variables_map cmd;
+  bpo::options_description description("some text");
+  // clang-format off
+  description.add_options()
+    ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "secondary ECU json configuration file");
+  // clang-format on
   const char *argv[] = {"aktualizr", "--secondary-config", "config/ex/secondary/virtualsec.json"};
-  boost::program_options::store(boost::program_options::parse_command_line(3, argv, description), cmd);
+  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
 
   boost::filesystem::remove_all(config_test_dir);
-  Config conf1("tests/config_tests.toml", cmd);
+  Config conf("tests/config_tests.toml", cmd);
+  EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kVirtual);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "test-virtual");
+  // If not provided, serial is not generated until SotaUptaneClient is initialized.
+  EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
 
-  Config conf2("tests/config_tests.toml", cmd);
-  EXPECT_EQ(conf1.uptane.primary_ecu_serial, conf2.uptane.primary_ecu_serial);
-  EXPECT_EQ(conf1.uptane.secondary_configs.size(), 1);
-  EXPECT_EQ(conf2.uptane.secondary_configs.size(), 1);
+  boost::filesystem::remove_all(config_test_dir);
+}
+
+TEST(config, legacy_interface) {
+  bpo::variables_map cmd;
+  bpo::options_description description("some text");
+  // clang-format off
+  description.add_options()
+    ("legacy-interface", bpo::value<std::string>()->composing(), "path to legacy secondary ECU interface program");
+  // clang-format on
+  std::string path = (build_dir / "src/external_secondaries/example-interface").string();
+  const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
+  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+
+  boost::filesystem::remove_all(config_test_dir);
+  Config conf("tests/config_tests.toml", cmd);
+  EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kLegacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
+  EXPECT_FALSE(conf.uptane.secondary_configs[0].ecu_serial.empty());
+  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::kLegacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
+  // If not provided, serial is not generated until SotaUptaneClient is initialized.
+  EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
 
   boost::filesystem::remove_all(config_test_dir);
 }
@@ -193,6 +221,11 @@ TEST(config, consistent_toml_nonempty) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (argc != 2) {
+    return EXIT_FAILURE;
+  }
+  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

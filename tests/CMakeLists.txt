@@ -103,7 +103,7 @@ configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
 
-add_aktualizr_test(NAME config SOURCES config_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME events SOURCES events_test.cc PROJECT_WORKING_DIRECTORY)
 
