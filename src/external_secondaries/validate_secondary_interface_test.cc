@@ -1,7 +1,12 @@
 #include <gtest/gtest.h>
+
+#include <regex>
+#include <sstream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
-#include <regex>
 
 namespace bpo = boost::program_options;
 
@@ -36,7 +41,7 @@ TEST(ECUInterface, check_loglevel) {
 
 bool isECUListValid(const std::string &output) {
   std::smatch ecu_match;
-  std::regex ecu_regex("\\w+(?: \\w+)?\\n?");
+  std::regex ecu_regex(R"([\w-]+(?:\s*[\w-]+)?\s*)");
 
   unsigned int matched_symbols = 0;
   std::string::const_iterator search_start(output.cbegin());
@@ -58,18 +63,32 @@ TEST(ECUInterface, check_list_ecus_loglevel) {
 }
 
 TEST(ECUInterface, install_good) {
-  std::smatch ecu_match;
-  std::regex ecu_regex("(\\w+) ?(\\w+)?\\n?");
   std::string output = exec(target + " list-ecus");
+  std::stringstream ss(output);
+  std::string buffer;
+  int line = 0;
+  while (std::getline(ss, buffer, '\n')) {
+    ++line;
+    std::vector<std::string> ecu_info;
+    boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
+    std::string cmd;
 
-  EXPECT_TRUE(std::regex_search(output, ecu_match, ecu_regex));
-  std::string cmd =
-      target + " install-software  --firmware " + firmware + " --hardware-identifier " + ecu_match[1].str();
+    if (ecu_info.size() == 0) {
+      std::cout << "Line " << line << ": empty line ignored.\n";
+      continue;
+    }
+    if (ecu_info.size() >= 1) {
+      cmd = target + " install-software  --firmware " + firmware + " --hardware-identifier " + ecu_info[0];
+    }
+    if (ecu_info.size() >= 2) {
+      cmd += std::string(" --ecu-identifier ") + ecu_info[1];
+    }
+    if (ecu_info.size() >= 3) {
+      std::cout << "Line " << line << ": further content after second token ignored.\n";
+    }
 
-  if (ecu_match.size() == 3) {
-    cmd += std::string(" --ecu-identifier ") + ecu_match[2].str();
+    EXPECT_EQ(system(cmd.c_str()), 0);
   }
-  EXPECT_EQ(system(cmd.c_str()), 0);
 }
 
 TEST(ECUInterface, install_bad) {

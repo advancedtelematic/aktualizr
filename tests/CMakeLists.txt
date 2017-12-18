@@ -270,7 +270,7 @@ add_test(NAME test_build_release
 add_dependencies(qa check-full)
 
 
-# Check the --help option works
+# implicit_writer tests
 add_test(NAME implicit-writer-help
     COMMAND aktualizr_implicit_writer --help)
 
@@ -281,6 +281,13 @@ else()
 endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
     COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/tests/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
+
+
+# external_secondaries tests
+add_dependencies(build_tests aktualizr-validate-secondary-interface)
+add_dependencies(build_tests example-interface)
+add_test(NAME validate-secondary-interface
+    COMMAND aktualizr-validate-secondary-interface --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
 if(BUILD_SOTA_TOOLS)
@@ -371,6 +378,7 @@ if(BUILD_SOTA_TOOLS)
 endif(BUILD_SOTA_TOOLS)
 
 
+# garage-deploy tests
 add_test(NAME garage-deploy-option-help
     COMMAND garage-deploy --help)
 
@@ -378,6 +386,8 @@ add_test(NAME garage-deploy-nonexistent-option
     COMMAND garage-deploy --test )
 set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
+
+# aktualizr-info tests
 add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -398,6 +408,7 @@ set_tests_properties(aktualizr-info-director-target PROPERTIES PASS_REGULAR_EXPR
 add_test(NAME aktualizr-info-images-target
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-images-target PROPERTIES PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
+
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
 aktualizr_source_file_checks(${TEST_SOURCES})
