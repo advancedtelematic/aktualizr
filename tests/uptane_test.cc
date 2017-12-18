@@ -287,8 +287,82 @@ TEST(uptane, random_serial) {
   EXPECT_TRUE(storage_2.loadEcuSerials(&ecu_serials_2));
   EXPECT_EQ(ecu_serials_1.size(), 2);
   EXPECT_EQ(ecu_serials_2.size(), 2);
+  EXPECT_FALSE(ecu_serials_1[0].first.empty());
+  EXPECT_FALSE(ecu_serials_1[1].first.empty());
+  EXPECT_FALSE(ecu_serials_2[0].first.empty());
+  EXPECT_FALSE(ecu_serials_2[1].first.empty());
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_NE(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+/**
+ * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
+ * and all secondaries.
+ */
+TEST(uptane, reload_serial) {
+  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
+  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = uptane_test_dir + "/sec";
+  ecu_config.ecu_serial = "";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
+
+  // Initialize and store serials.
+  {
+    Config conf("tests/config_tests_prov.toml");
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+    conf.uptane.secondary_configs.push_back(ecu_config);
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_1));
+    EXPECT_EQ(ecu_serials_1.size(), 2);
+    EXPECT_FALSE(ecu_serials_1[0].first.empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.empty());
+  }
+
+  // Initialize new objects and load serials.
+  {
+    Config conf("tests/config_tests_prov.toml");
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+    conf.uptane.secondary_configs.push_back(ecu_config);
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_2));
+    EXPECT_EQ(ecu_serials_2.size(), 2);
+    EXPECT_FALSE(ecu_serials_2[0].first.empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.empty());
+  }
+
+  EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
+  EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
