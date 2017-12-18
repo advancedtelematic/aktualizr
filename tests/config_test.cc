@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
-#include <boost/program_options.hpp>
+
 #include <iostream>
 #include <string>
+
+#include <boost/program_options.hpp>
 
 #include "bootstrap.h"
 #include "config.h"
@@ -29,7 +31,7 @@ TEST(config, config_toml_parsing) {
   Config conf("tests/config_tests.toml");
 
   EXPECT_EQ(conf.rvi.uuid, "bc50fa11-eb93-41c0-b0fa-5ce56affa63e");
-  EXPECT_EQ(conf.rvi.packages_dir, "/tmp/packages_dir");
+  EXPECT_EQ(conf.rvi.packages_dir, "tests/test_config/packages_dir");
 
   EXPECT_EQ(conf.gateway.dbus, true);
   EXPECT_EQ(conf.gateway.http, false);

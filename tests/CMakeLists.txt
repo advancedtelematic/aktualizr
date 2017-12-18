@@ -280,7 +280,7 @@ else()
     set(IMPLICIT_CREDENTIALS ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip)
 endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/tests/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
 
 
 # external_secondaries tests
