@@ -42,3 +42,12 @@ class SotaUptaneClient {
   int last_targets_version;
   Json::Value operation_result;
 };
+
+class SerialCompare {
+ public:
+  SerialCompare(const std::string &target_in) : target(target_in) {}
+  bool operator()(std::pair<std::string, std::string> &in) { return (in.first == target); }
+
+ private:
+  std::string target;
+};

@@ -243,11 +243,6 @@ void SotaUptaneClient::initSecondaries() {
   }
 }
 
-struct SerialCompare {
-  std::string target;
-  bool operator()(std::pair<std::string, std::string> &in) { return (in.first == target); }
-};
-
 // Check stored secondaries list against secondaries known to aktualizr via
 // commandline input and legacy interface.
 void SotaUptaneClient::verifySecondaries() {
@@ -258,9 +253,7 @@ void SotaUptaneClient::verifySecondaries() {
   }
 
   std::vector<bool> found(serials.size(), false);
-  SerialCompare primary_comp;
-
-  primary_comp.target = uptane_repo.getPrimaryEcuSerial();
+  SerialCompare primary_comp(uptane_repo.getPrimaryEcuSerial());
   // Should be a const_iterator but we need C++11 for cbegin.
   std::vector<std::pair<std::string, std::string> >::iterator store_it;
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
@@ -272,8 +265,8 @@ void SotaUptaneClient::verifySecondaries() {
 
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); ++it) {
-    primary_comp.target = it->second->getSerial();
-    store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
+    SerialCompare secondary_comp(it->second->getSerial());
+    store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
     if (store_it == serials.end()) {
       LOGGER_LOG(LVL_error, "Secondary ECU serial " << it->second->getSerial() << " (hardware ID "
                                                     << it->second->getHwId() << ") not found in storage!");
