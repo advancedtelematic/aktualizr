@@ -27,6 +27,9 @@ else
 fi
 
 RES=$?
+
+rm -rf vectors
+
 kill %1
 trap - EXIT
 trap
