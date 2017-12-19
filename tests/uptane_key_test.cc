@@ -105,7 +105,7 @@ void checkKeyTests(FSStorage& storage, SotaUptaneClient& sota_client) {
  * \verify{\tst{159}} Check that all keys are present after successful
  * provisioning.
  */
-TEST(uptane_key, CheckAllKeys) {
+TEST(UptaneKey, CheckAllKeys) {
   Config config;
   Uptane::SecondaryConfig ecu_config1;
   Uptane::SecondaryConfig ecu_config2;
@@ -127,7 +127,7 @@ TEST(uptane_key, CheckAllKeys) {
  * \verify{\tst{160}} Check that aktualizr can recover from a half done device
  * registration.
  */
-TEST(uptane_key, RecoverWithoutKeys) {
+TEST(UptaneKey, RecoverWithoutKeys) {
   Config config;
   Uptane::SecondaryConfig ecu_config1;
   Uptane::SecondaryConfig ecu_config2;

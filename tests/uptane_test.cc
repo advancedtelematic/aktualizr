@@ -32,7 +32,7 @@ const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 boost::filesystem::path build_dir;
 
-TEST(uptane, verify) {
+TEST(Uptane, Verify) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -48,7 +48,7 @@ TEST(uptane, verify) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad) {
+TEST(Uptane, VerifyDataBad) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -69,7 +69,7 @@ TEST(uptane, verify_data_bad) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_unknown_type) {
+TEST(Uptane, VerifyDataUnknownType) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -91,7 +91,7 @@ TEST(uptane, verify_data_unknown_type) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad_keyid) {
+TEST(Uptane, VerifyDataBadKeyId) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -112,7 +112,7 @@ TEST(uptane, verify_data_bad_keyid) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad_threshold) {
+TEST(Uptane, VerifyDataBadThreshold) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -137,7 +137,7 @@ TEST(uptane, verify_data_bad_threshold) {
 * \verify{\tst{153}} Check that aktualizr creates provisioning files if they
 * don't exist already.
 */
-TEST(SotaUptaneClientTest, initialize) {
+TEST(Uptane, Initialize) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.repo_server = tls_server + "/director";
 
@@ -184,7 +184,7 @@ TEST(SotaUptaneClientTest, initialize) {
 * \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
 * they DO exist already.
 */
-TEST(SotaUptaneClientTest, initialize_twice) {
+TEST(Uptane, InitializeTwice) {
   Config conf("tests/config_tests_prov.toml");
   conf.storage.path = uptane_test_dir;
   conf.uptane.primary_ecu_serial = "testecuserial";
@@ -240,7 +240,7 @@ TEST(SotaUptaneClientTest, initialize_twice) {
 * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
 * primary and all secondaries.
 */
-TEST(uptane, random_serial) {
+TEST(Uptane, RandomSerial) {
   Config conf_1("tests/config_tests_prov.toml");
   conf_1.storage.path = uptane_test_dir + "/certs_1";
   boost::filesystem::remove_all(uptane_test_dir + "/certs_1");
@@ -307,7 +307,7 @@ TEST(uptane, random_serial) {
  * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
  * and all secondaries.
  */
-TEST(uptane, reload_serial) {
+TEST(Uptane, ReloadSerial) {
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;
   std::vector<std::pair<std::string, std::string> > ecu_serials_2;
 
@@ -444,7 +444,7 @@ TEST(Uptane, LegacySerial) {
 * device ID is specified. This is currently provisional and not a finalized
 * requirement at this time.
 */
-TEST(uptane, pet_name_provided) {
+TEST(Uptane, PetNameProvided) {
   std::string test_name = "test-name-123";
   std::string device_path = uptane_test_dir + "/device_id";
 
@@ -477,7 +477,7 @@ TEST(uptane, pet_name_provided) {
 * \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
 * is specified.
 */
-TEST(uptane, pet_name_creation) {
+TEST(Uptane, PetNameCreation) {
   std::string device_path = uptane_test_dir + "/device_id";
 
   // Make sure name is created.
@@ -557,7 +557,7 @@ TEST(uptane, pet_name_creation) {
 /**
  * \verify{\tst{49}} Check that aktualizr fails on expired methadata
  */
-TEST(uptane, expires) {
+TEST(Uptane, Expires) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -597,7 +597,7 @@ TEST(uptane, expires) {
 /**
  * \verify{\tst{52}} Check that aktualizr fails on bad threshold
  */
-TEST(uptane, threshold) {
+TEST(Uptane, Threshold) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -641,7 +641,7 @@ TEST(uptane, threshold) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, initialize_fail) {
+TEST(Uptane, InitializeFail) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.repo_server = tls_server + "/director";
   conf.storage.path = uptane_test_dir;
@@ -664,7 +664,7 @@ TEST(SotaUptaneClientTest, initialize_fail) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, put_manifest) {
+TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
@@ -710,7 +710,7 @@ TEST(SotaUptaneClientTest, put_manifest) {
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"], "test-package");
 }
 
-TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
+TEST(Uptane, RunForeverNoUpdates) {
   Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
@@ -754,7 +754,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
-TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
+TEST(Uptane, RunForeverHasUpdates) {
   Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
@@ -804,7 +804,7 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(targets_event->packages[1].filename(), "secondary_firmware.txt");
 }
 
-TEST(SotaUptaneClientTest, RunForeverInstall) {
+TEST(Uptane, RunForeverInstall) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.director_server = tls_server + "/director";
@@ -846,7 +846,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
+TEST(Uptane, UptaneSecondaryAdd) {
   Config config;
   config.uptane.repo_server = tls_server + "/director";
   TemporaryDirectory temp_dir;
@@ -893,7 +893,7 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
 /**
  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
  */
-TEST(SotaUptaneClientTest, provision_on_server) {
+TEST(Uptane, ProvisionOnServer) {
   Config config("tests/config_tests_prov.toml");
   std::string server = "tst149";
   config.provision.server = server;
@@ -918,7 +918,7 @@ TEST(SotaUptaneClientTest, provision_on_server) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, CheckOldProvision) {
+TEST(Uptane, CheckOldProvision) {
   TemporaryDirectory temp_dir;
   system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
   Config config;
@@ -935,7 +935,7 @@ TEST(SotaUptaneClientTest, CheckOldProvision) {
   EXPECT_TRUE(storage.loadEcuRegistered());
 }
 
-TEST(SotaUptaneClientTest, save_version) {
+TEST(Uptane, SaveVersion) {
   Config config;
   config.storage.path = uptane_test_dir;
   config.storage.tls_cacert_path = "ca.pem";
@@ -958,7 +958,7 @@ TEST(SotaUptaneClientTest, save_version) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, load_version) {
+TEST(Uptane, LoadVersion) {
   Config config;
   config.storage.path = uptane_test_dir;
   config.storage.tls_cacert_path = "ca.pem";
@@ -985,7 +985,7 @@ TEST(SotaUptaneClientTest, load_version) {
 }
 
 #ifdef BUILD_P11
-TEST(SotaUptaneClientTest, pkcs11_provision) {
+TEST(Uptane, Pkcs11Provision) {
   Config config;
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");

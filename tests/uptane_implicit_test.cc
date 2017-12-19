@@ -16,7 +16,7 @@ const std::string implicit_test_dir = "tests/test_implicit";
  * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr
  * halts if credentials are not available.
  */
-TEST(uptane_implicit, implicit_failure) {
+TEST(UptaneImplicit, ImplicitFailure) {
   boost::filesystem::remove_all(implicit_test_dir);
   Config config;
   config.uptane.device_id = "device_id";
@@ -39,7 +39,7 @@ TEST(uptane_implicit, implicit_failure) {
  * \verify{\tst{187}} Verfiy that aktualizr halts when provided incomplete
  * implicit provisioning credentials.
  */
-TEST(uptane_implicit, implicit_incomplete) {
+TEST(UptaneImplicit, ImplicitIncomplete) {
   boost::filesystem::remove_all(implicit_test_dir);
   Config config;
   config.storage.path = implicit_test_dir;
@@ -91,7 +91,7 @@ TEST(uptane_implicit, implicit_incomplete) {
  * \verify{\tst{186}} Verify that aktualizr can implicitly provision with
  * provided credentials.
  */
-TEST(uptane_implicit, implicit_provision) {
+TEST(UptaneImplicit, ImplicitProvision) {
   boost::filesystem::remove_all(implicit_test_dir);
   Config config;
   TemporaryDirectory temp_dir;
