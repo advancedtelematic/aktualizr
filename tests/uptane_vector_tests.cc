@@ -1,24 +1,24 @@
+#include <gtest/gtest.h>
+
 #include <stdio.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
-#include <gtest/gtest.h>
-#include <string>
 #include "config.h"
+#include "fsstorage.h"
 #include "httpclient.h"
 #include "logger.h"
 #include "ostree.h"
-#include "utils.h"
-
-#include "fsstorage.h"
 #include "uptane/uptanerepository.h"
+#include "utils.h"
 
 bool match_error(Json::Value error, Uptane::Exception* e) {
   if (error["director"]["update"]["err_msg"].asString() == e->what() ||

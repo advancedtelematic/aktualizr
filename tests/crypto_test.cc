@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include <json/json.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
-#include <string>
-#include "boost/algorithm/hex.hpp"
 
 #include "crypto.h"
 #include "utils.h"

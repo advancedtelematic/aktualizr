@@ -1,10 +1,13 @@
-#include "utils.h"
 #include <gtest/gtest.h>
+
+#include <fstream>
+#include <set>
+
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_smallint.hpp>
-#include <fstream>
-#include <set>
+
+#include "utils.h"
 
 bool CharOk(char c) {
   if (('a' <= c) && (c <= 'z')) {

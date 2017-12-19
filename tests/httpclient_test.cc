@@ -1,13 +1,13 @@
+#include <gtest/gtest.h>
+
+#include <errno.h>
 #include <stdio.h>
 #include <cstdlib>
 
-#include <errno.h>
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "json/json.h"
 
 #include "config.h"
 #include "httpclient.h"
-#include "json/json.h"
 #include "test_utils.h"
 #include "types.h"
 #include "utils.h"

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+
 #include "picojson.h"
 
 #include "commands.h"

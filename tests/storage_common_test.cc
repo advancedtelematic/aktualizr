@@ -1,13 +1,13 @@
-#include "fsstorage.h"
-#include "sqlstorage.h"
+#include <gtest/gtest.h>
 
 #include <string>
 
-#include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/move/make_unique.hpp>
 
+#include "fsstorage.h"
 #include "logger.h"
+#include "sqlstorage.h"
 
 const boost::filesystem::path storage_test_dir = "tests/test_storage";
 StorageConfig config;

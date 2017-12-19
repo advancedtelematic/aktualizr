@@ -1,7 +1,8 @@
-#include "timer.h"
-
 #include <gtest/gtest.h>
+
 #include <sstream>
+
+#include "timer.h"
 
 TEST(Timer, Short) {
   Timer timer;

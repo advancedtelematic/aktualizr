@@ -1,8 +1,8 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "config.h"
 #include "json/json.h"
+
+#include "config.h"
 #include "sotarviclient.h"
 #include "types.h"
 

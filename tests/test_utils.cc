@@ -1,8 +1,5 @@
-//
-// Created by phil on 22.08.17.
-//
-
 #include "test_utils.h"
+
 #include <signal.h>
 #include <sys/prctl.h>
 #include <sstream>

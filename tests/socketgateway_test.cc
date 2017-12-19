@@ -1,10 +1,10 @@
+#include <gtest/gtest.h>
+
 #include <stdio.h>
 #include <cstdlib>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include <boost/make_shared.hpp>
+
 #include "commands.h"
 #include "config.h"
 #include "events.h"

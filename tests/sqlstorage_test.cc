@@ -1,6 +1,6 @@
-#include "sqlstorage.h"
-
 #include <gtest/gtest.h>
+
+#include "sqlstorage.h"
 
 #include "logger.h"
 
