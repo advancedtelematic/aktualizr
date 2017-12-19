@@ -12,7 +12,7 @@
 
 const int kSqlSchemaVersion = 1;
 
-enum SQLReqId { kSqlGetSimple };
+enum SQLReqId { kSqlGetSimple, kSqlGetTable };
 
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
@@ -76,6 +76,7 @@ class SQLStorage : public INvStorage {
   SQLReqId request;
   std::map<std::string, std::string> req_params;
   std::map<std::string, std::string> req_response;
+  std::vector<std::map<std::string, std::string> > req_response_table;
 
   boost::movelib::unique_ptr<std::map<std::string, std::string> > parseSchema(int version);
   bool tableSchemasEqual(const std::string& left, const std::string& right);

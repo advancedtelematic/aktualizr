@@ -230,7 +230,7 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
 
   if (db.get_rc() != SQLITE_OK) {
     LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
-    return "";
+    return false;
   }
 
   request = kSqlGetSimple;
@@ -269,58 +269,74 @@ void SQLStorage::clearEcuRegistered() { boost::filesystem::remove(config_.path /
 
 void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
-    Utils::writeFile((config_.path / "primary_ecu_serial").string(), serials[0].first);
-    Utils::writeFile((config_.path / "primary_ecu_hardware_id").string(), serials[0].second);
+    clearEcuSerials();
+    SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-    boost::filesystem::remove_all((config_.path / "secondaries_list"));
+    if (db.get_rc() != SQLITE_OK) {
+      LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+      return;
+    }
+
+    std::string req = "INSERT INTO ecu_serials VALUES  ('";
+    req += serials[0].first + "', '";
+    req += serials[0].second + "', 1);";
+    if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+      LOGGER_LOG(LVL_error, "Can't set ecu_serial: " << sqlite3_errmsg(db.get()));
+      return;
+    }
+
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
     std::ofstream file((config_.path / "secondaries_list").string().c_str());
-    for (it = serials.begin() + 1; it != serials.end(); it++)
-      // Assuming that there are no tabs and linebreaks in serials and hardware ids
-      file << it->first << "\t" << it->second << "\n";
-    file.close();
+    for (it = serials.begin() + 1; it != serials.end(); it++) {
+      std::string req = "INSERT INTO ecu_serials VALUES  ('";
+      req += it->first + "', '";
+      req += it->second + "', 0);";
+
+      if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+        LOGGER_LOG(LVL_error, "Can't set ecu_serial: " << sqlite3_errmsg(db.get()));
+        return;
+      }
+    }
   }
 }
 
 bool SQLStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) {
-  std::string buf;
-  std::string serial;
-  std::string hw_id;
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_serial"))) return false;
-  serial = Utils::readFile((config_.path / "primary_ecu_serial").string());
-  // use default hardware ID for backwards compatibility
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_hardware_id")))
-    hw_id = Utils::getHostname();
-  else
-    hw_id = Utils::readFile((config_.path / "primary_ecu_hardware_id").string());
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (serials) serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
 
-  // return true for backwards compatibility
-  if (!boost::filesystem::exists((config_.path / "secondaries_list"))) {
-    return true;
+  request = kSqlGetTable;
+  req_response_table.clear();
+  if (sqlite3_exec(db.get(), "SELECT * FROM ecu_serials ORDER BY is_primary DESC;", callback, this, NULL) !=
+      SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get ecu_serials: " << sqlite3_errmsg(db.get()));
+    return false;
   }
-  std::ifstream file((config_.path / "secondaries_list").string().c_str());
-  while (std::getline(file, buf)) {
-    size_t tab = buf.find('\t');
-    serial = buf.substr(0, tab);
-    try {
-      hw_id = buf.substr(tab + 1);
-    } catch (const std::out_of_range& e) {
-      if (serials) serials->clear();
-      file.close();
-      return false;
-    }
-    if (serials) serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
+  if (req_response_table.empty()) return false;
+
+  std::vector<std::map<std::string, std::string> >::iterator it;
+  for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
+    serials->push_back(std::make_pair((*it)["serial"], (*it)["hardware_id"]));
   }
-  file.close();
+
   return true;
 }
 
 void SQLStorage::clearEcuSerials() {
-  boost::filesystem::remove(config_.path / "primary_ecu_serial");
-  boost::filesystem::remove(config_.path / "primary_hardware_id");
-  boost::filesystem::remove(config_.path / "secondaries_list");
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM ecu_serials;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't clear ecu_serials: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 }
 
 void SQLStorage::storeInstalledVersions(const std::string& content) {
@@ -523,6 +539,14 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
       (void)numcolumns;
       (void)columns;
       if (values[0]) instance->req_response["result"] = values[0];
+      break;
+    }
+    case kSqlGetTable: {
+      std::map<std::string, std::string> row;
+      for (int i = 0; i < numcolumns; ++i) {
+        row[columns[i]] = values[i];
+      }
+      instance->req_response_table.push_back(row);
       break;
     }
     default:
