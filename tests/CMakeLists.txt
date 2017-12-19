@@ -139,7 +139,7 @@ add_aktualizr_test(NAME crypto
                    PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
+    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
                        PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc fake_ostree.cc

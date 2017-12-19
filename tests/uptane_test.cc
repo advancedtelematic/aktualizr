@@ -7,6 +7,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "fsstorage.h"
@@ -25,8 +26,11 @@
 #endif
 #endif
 
+namespace bpo = boost::program_options;
+extern bpo::variables_map parse_options(int argc, char* argv[]);
 const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
+boost::filesystem::path build_dir;
 
 TEST(uptane, verify) {
   Config config;
@@ -363,6 +367,74 @@ TEST(uptane, reload_serial) {
   EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
   EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+TEST(Uptane, LegacySerial) {
+  bpo::variables_map cmd;
+  bpo::options_description description("some text");
+  // clang-format off
+  description.add_options()
+    ("legacy-interface", bpo::value<std::string>()->composing(), "path to legacy secondary ECU interface program");
+  // clang-format on
+  std::string path = (build_dir / "src/external_secondaries/example-interface").string();
+  const char* argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
+  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+
+  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
+  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+
+  // Initialize and store serials.
+  {
+    Config conf("tests/config_tests_prov.toml", cmd);
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_1));
+    EXPECT_EQ(ecu_serials_1.size(), 3);
+    EXPECT_FALSE(ecu_serials_1[0].first.empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.empty());
+    EXPECT_FALSE(ecu_serials_1[2].first.empty());
+  }
+
+  // Initialize new objects and load serials.
+  {
+    Config conf("tests/config_tests_prov.toml", cmd);
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_2));
+    EXPECT_EQ(ecu_serials_2.size(), 3);
+    EXPECT_FALSE(ecu_serials_2[0].first.empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.empty());
+    EXPECT_FALSE(ecu_serials_2[2].first.empty());
+  }
+
+  EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
+  EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_EQ(ecu_serials_1[2].first, ecu_serials_2[2].first);
+
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[2].first);
+  EXPECT_NE(ecu_serials_1[1].first, ecu_serials_1[2].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[2].first);
+  EXPECT_NE(ecu_serials_2[1].first, ecu_serials_2[2].first);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -939,6 +1011,11 @@ TEST(SotaUptaneClientTest, pkcs11_provision) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerSetSeverity(LVL_trace);
+
+  if (argc != 2) {
+    return EXIT_FAILURE;
+  }
+  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif
