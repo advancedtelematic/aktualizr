@@ -1011,6 +1011,7 @@ int main(int argc, char** argv) {
   loggerSetSeverity(LVL_trace);
 
   if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";
     return EXIT_FAILURE;
   }
   build_dir = argv[1];

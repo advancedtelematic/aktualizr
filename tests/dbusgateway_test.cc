@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <cstdlib>
 
-#include <boost/make_shared.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -11,7 +12,7 @@
 #include "events.h"
 #include "types.h"
 
-std::string fake_path;
+boost::filesystem::path fake_path;
 
 TEST(CommandsTest, initiateDownload_sent) {
   Config conf;
@@ -19,7 +20,7 @@ TEST(CommandsTest, initiateDownload_sent) {
   command::Channel* chan = new command::Channel();
 
   DbusGateway gateway(conf, chan);
-  std::string cmd = fake_path + "dbus_send.py initiateDownload";
+  std::string cmd = (fake_path / "dbus_send.py").string() + " initiateDownload";
   EXPECT_EQ(0, system(cmd.c_str()));
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
@@ -35,7 +36,7 @@ TEST(CommandsTest, abortDownload_sent) {
   command::Channel* chan = new command::Channel();
 
   DbusGateway gateway(conf, chan);
-  std::string cmd = fake_path + "dbus_send.py abortDownload";
+  std::string cmd = (fake_path / "dbus_send.py").string() + " abortDownload";
   EXPECT_EQ(0, system(cmd.c_str()));
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
@@ -51,7 +52,7 @@ TEST(CommandsTest, SendUpdateReport_sent) {
   command::Channel* chan = new command::Channel();
 
   DbusGateway gateway(conf, chan);
-  std::string cmd = fake_path + "dbus_send.py updateReport";
+  std::string cmd = (fake_path / "dbus_send.py").string() + " updateReport";
   EXPECT_EQ(0, system(cmd.c_str()));
   boost::shared_ptr<command::BaseCommand> command;
   *chan >> command;
@@ -131,7 +132,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2) {
     fake_path = argv[1];
-    std::string cmd = fake_path + "dbus_recieve.py &";
+    std::string cmd = (fake_path / "dbus_recieve.py").string() + " &";
     int res = system(cmd.c_str());
     EXPECT_EQ(res, 0);
     if (res) {

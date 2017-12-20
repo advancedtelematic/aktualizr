@@ -9,10 +9,10 @@
 #include "bootstrap.h"
 #include "config.h"
 #include "crypto.h"
+#include "test_utils.h"
 #include "utils.h"
 
 namespace bpo = boost::program_options;
-const std::string config_test_dir = "tests/test_config";
 boost::filesystem::path build_dir;
 
 TEST(config, config_initialized_values) {
@@ -113,11 +113,10 @@ TEST(config, config_cmdl_parsing) {
 }
 
 TEST(config, config_extract_credentials) {
+  TemporaryDirectory temp_dir;
   Config conf;
-  conf.storage.path = config_test_dir + "/prov";
+  conf.storage.path = temp_dir.Path();
   conf.provision.provision_path = "tests/test_data/credentials.zip";
-
-  boost::filesystem::remove_all(config_test_dir + "/prov");
   conf.tls.server.clear();
   conf.postUpdateValues();
   EXPECT_EQ(conf.tls.server, "https://bd8012b4-cf0f-46ca-9d2c-46a41d534af5.tcpgw.prod01.advancedtelematic.com:443");
@@ -131,11 +130,13 @@ TEST(config, config_extract_credentials) {
   std::cout << "Pkey: " << boot.getPkey() << std::endl;
   EXPECT_EQ(boost::algorithm::hex(Crypto::sha256digest(boot.getPkey())),
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
-
-  boost::filesystem::remove_all(config_test_dir);
 }
 
 TEST(config, secondary_config) {
+  TemporaryDirectory temp_dir;
+  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
+  TestUtils::writePathToConfig("tests/config_tests.toml", conf_path_str, temp_dir.Path());
+
   bpo::variables_map cmd;
   bpo::options_description description("some text");
   // clang-format off
@@ -145,18 +146,19 @@ TEST(config, secondary_config) {
   const char *argv[] = {"aktualizr", "--secondary-config", "config/ex/secondary/virtualsec.json"};
   bpo::store(bpo::parse_command_line(3, argv, description), cmd);
 
-  boost::filesystem::remove_all(config_test_dir);
-  Config conf("tests/config_tests.toml", cmd);
+  Config conf(conf_path_str, cmd);
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
   EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kVirtual);
   EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "test-virtual");
   // If not provided, serial is not generated until SotaUptaneClient is initialized.
   EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
-
-  boost::filesystem::remove_all(config_test_dir);
 }
 
 TEST(config, legacy_interface) {
+  TemporaryDirectory temp_dir;
+  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
+  TestUtils::writePathToConfig("tests/config_tests.toml", conf_path_str, temp_dir.Path());
+
   bpo::variables_map cmd;
   bpo::options_description description("some text");
   // clang-format off
@@ -167,8 +169,7 @@ TEST(config, legacy_interface) {
   const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
   bpo::store(bpo::parse_command_line(3, argv, description), cmd);
 
-  boost::filesystem::remove_all(config_test_dir);
-  Config conf("tests/config_tests.toml", cmd);
+  Config conf(conf_path_str, cmd);
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
   EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kLegacy);
   EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
@@ -177,8 +178,6 @@ TEST(config, legacy_interface) {
   EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
   // If not provided, serial is not generated until SotaUptaneClient is initialized.
   EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
-
-  boost::filesystem::remove_all(config_test_dir);
 }
 
 /**
@@ -222,6 +221,7 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";
     return EXIT_FAILURE;
   }
   build_dir = argv[1];

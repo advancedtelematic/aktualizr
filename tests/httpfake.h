@@ -5,19 +5,22 @@
 #include "json/json.h"
 
 #include "httpinterface.h"
+#include "utils.h"
 
 const std::string test_manifest = "test_aktualizr_manifest.txt";
 const std::string tls_server = "https://tlsserver.com";
-const boost::filesystem::path metadata_path = "tests/test_data";
 
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
 class HttpFake : public HttpInterface {
  public:
   HttpFake(const boost::filesystem::path &test_dir_in, bool is_initialized = false)
-      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {}
+      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {
+    boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
+    boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");
+  }
 
-  ~HttpFake() { boost::filesystem::remove(metadata_path / "repo/timestamp.json"); }
+  ~HttpFake() {}
 
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) {
@@ -32,10 +35,10 @@ class HttpFake : public HttpInterface {
   HttpResponse get(const std::string &url) {
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
-      std::string path = (metadata_path / url.substr(tls_server.size())).string();
+      boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
       std::cout << "filetoopen: " << path << "\n\n\n";
       if (url.find("timestamp.json") != std::string::npos) {
-        std::cout << "CHECK PATH: " << (metadata_path / "timestamp.json").string() << "\n";
+        std::cout << "CHECK PATH: " << (metadata_path.Path() / "timestamp.json").string() << "\n";
         if (boost::filesystem::exists(path)) {
           boost::filesystem::copy_file("tests/test_data/timestamp2.json", path,
                                        boost::filesystem::copy_option::overwrite_if_exists);
@@ -45,7 +48,7 @@ class HttpFake : public HttpInterface {
         }
         return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else if (url.find("targets.json") != std::string::npos) {
-        Json::Value timestamp = Utils::parseJSONFile(metadata_path / "repo/timestamp.json");
+        Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
         if (timestamp["signed"]["version"].asInt64() == 2) {
           return HttpResponse(Utils::readFile("tests/test_data/targets_noupdates.json"), 200, CURLE_OK, "");
         } else {
@@ -134,6 +137,7 @@ class HttpFake : public HttpInterface {
   HttpResponse put(const std::string &url, const std::string data);
 
   boost::filesystem::path test_dir;
+  TemporaryDirectory metadata_path;
   bool ecu_registered;
 };
 

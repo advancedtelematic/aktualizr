@@ -3,13 +3,13 @@
 #include "sqlstorage.h"
 
 #include "logger.h"
-
-const boost::filesystem::path sqlstorage_test_dir = "tests/test_sqlstorage";
+#include "utils.h"
 
 TEST(sqlstorage, migrate) {
+  TemporaryDirectory temp_dir;
   StorageConfig config;
-  config.path = sqlstorage_test_dir;
-  config.sqldb_path = "tests/test_sqlstorage/test.db";
+  config.path = temp_dir.Path();
+  config.sqldb_path = temp_dir.Path() / "test.db";
   config.schemas_path = "config/storage";
 
   SQLStorage storage(config);
