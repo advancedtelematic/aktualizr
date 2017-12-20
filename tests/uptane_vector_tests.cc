@@ -20,8 +20,6 @@
 #include "fsstorage.h"
 #include "uptane/uptanerepository.h"
 
-const std::string uptane_vector_test_dir = "tests/test_uptane_vector";
-
 bool match_error(Json::Value error, Uptane::Exception* e) {
   if (error["director"]["update"]["err_msg"].asString() == e->what() ||
       error["director"]["targets"][e->getName()]["err_msg"].asString() == e->what() ||
@@ -36,16 +34,15 @@ bool match_error(Json::Value error, Uptane::Exception* e) {
 
 bool run_test(const std::string& test_name, const Json::Value& vector, const std::string& port) {
   std::cout << "VECTOR: " << vector;
+  TemporaryDirectory temp_dir;
   HttpClient http_client;
   Config config;
   config.uptane.director_server = "http://127.0.0.1:" + port + "/" + test_name + "/director";
   config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
-  config.storage.path = uptane_vector_test_dir;
-  config.storage.uptane_metadata_path =  port + "/aktualizr_repos";
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = port + "/aktualizr_repos";
   config.ostree.os = "myos";
   config.ostree.sysroot = "./sysroot";
-  boost::filesystem::remove_all(config.storage.path / config.storage.uptane_metadata_path / "director");
-  boost::filesystem::remove_all(config.storage.path / config.storage.uptane_metadata_path / "repo");
 
   try {
     FSStorage storage(config.storage);
