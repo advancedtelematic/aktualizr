@@ -58,7 +58,7 @@ TEST(PostTest, put_performed) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2) {
-    std::string port = getFreePort();
+    std::string port = TestUtils::getFreePort();
     std::cout << "port number: " << port << "\n";
     pid_t pID = fork();
     if (pID == 0) {

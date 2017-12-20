@@ -15,6 +15,7 @@
 #include "logger.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
+#include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -27,7 +28,6 @@
 #endif
 
 namespace bpo = boost::program_options;
-extern bpo::variables_map parse_options(int argc, char* argv[]);
 const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 boost::filesystem::path build_dir;
@@ -372,6 +372,10 @@ TEST(Uptane, ReloadSerial) {
 }
 
 TEST(Uptane, LegacySerial) {
+  TemporaryDirectory temp_dir;
+  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
+  TestUtils::writePathToConfig("tests/config_tests_prov.toml", conf_path_str, temp_dir.Path());
+
   bpo::variables_map cmd;
   bpo::options_description description("some text");
   // clang-format off
@@ -387,14 +391,13 @@ TEST(Uptane, LegacySerial) {
 
   // Initialize and store serials.
   {
-    Config conf("tests/config_tests_prov.toml", cmd);
-    conf.storage.path = uptane_test_dir;
+    Config conf(conf_path_str, cmd);
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
-    HttpFake http(uptane_test_dir);
+    HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane);
     EXPECT_TRUE(uptane.initialize());
@@ -407,14 +410,13 @@ TEST(Uptane, LegacySerial) {
 
   // Initialize new objects and load serials.
   {
-    Config conf("tests/config_tests_prov.toml", cmd);
-    conf.storage.path = uptane_test_dir;
+    Config conf(conf_path_str, cmd);
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
-    HttpFake http(uptane_test_dir);
+    HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane);
     EXPECT_TRUE(uptane.initialize());
@@ -435,8 +437,6 @@ TEST(Uptane, LegacySerial) {
   EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
   EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[2].first);
   EXPECT_NE(ecu_serials_2[1].first, ecu_serials_2[2].first);
-
-  boost::filesystem::remove_all(uptane_test_dir);
 }
 
 /**
@@ -831,11 +831,11 @@ TEST(Uptane, RunForeverInstall) {
   SotaUptaneClient up(conf, &events_channel, repo);
   up.runForever(&commands_channel);
 
-  EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + test_manifest));
+  EXPECT_TRUE(boost::filesystem::exists(uptane_test_dir + "/" + test_manifest));
 
   Json::Value json;
   Json::Reader reader;
-  std::ifstream ks((uptane_test_dir + test_manifest).c_str());
+  std::ifstream ks((uptane_test_dir + "/" + test_manifest).c_str());
   std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
 
   reader.parse(mnfst_str, json);

@@ -2,9 +2,12 @@
 
 #include <signal.h>
 #include <sys/prctl.h>
+#include <fstream>
 #include <sstream>
 
-std::string getFreePort() {
+#include <boost/filesystem.hpp>
+
+std::string TestUtils::getFreePort() {
   int s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == -1) {
     std::cout << "socket() failed: " << errno;
@@ -30,6 +33,16 @@ std::string getFreePort() {
   std::ostringstream ss;
   ss << ntohs(sa.sin_port);
   return ss.str();
+}
+
+void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const boost::filesystem::path &toml_out,
+                                  const boost::filesystem::path &storage_path) {
+  // Append our temp_dir path as storage.path to the config file. This is a hack
+  // but less annoying than the alternatives.
+  boost::filesystem::copy_file(toml_in, toml_out);
+  std::string conf_path_str = toml_out.string();
+  std::ofstream cs(conf_path_str.c_str(), std::ofstream::app);
+  cs << "\n[storage]\npath = " << storage_path.string() << "\n";
 }
 
 TestHelperProcess::TestHelperProcess(const std::string &argv0, const std::string &argv1) {

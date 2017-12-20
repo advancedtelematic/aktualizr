@@ -32,7 +32,7 @@ struct Utils {
  */
 class TemporaryFile : boost::noncopyable {
  public:
-  TemporaryFile(const std::string &hint = "");
+  TemporaryFile(const std::string &hint = "file");
   ~TemporaryFile();
   void PutContents(const std::string &contents);
   boost::filesystem::path Path() const;
@@ -44,7 +44,7 @@ class TemporaryFile : boost::noncopyable {
 
 class TemporaryDirectory : boost::noncopyable {
  public:
-  TemporaryDirectory(const std::string &hint = "");
+  TemporaryDirectory(const std::string &hint = "dir");
   ~TemporaryDirectory();
   boost::filesystem::path Path() const;
   std::string PathString() const;

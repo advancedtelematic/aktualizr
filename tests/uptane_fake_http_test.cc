@@ -42,7 +42,7 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
   * \verify{\tst{158}} Check that aktualizr can complete provisioning after previous network issues
 */
 TEST(SotaUptaneClientTest, partial_provision) {
-  std::string port = getFreePort();
+  std::string port = TestUtils::getFreePort();
 
   TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);
 
