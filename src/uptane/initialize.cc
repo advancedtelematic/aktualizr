@@ -54,20 +54,19 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
 }
 void Repository::resetDeviceId() { storage.clearDeviceId(); }
 
-void Repository::setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> >& ecu_serials) {
-  primary_ecu_serial = ecu_serials[0].first;
-  primary_hardware_id_ = ecu_serials[0].second;
-  std::vector<Uptane::SecondaryConfig>::iterator conf_it;
+void Repository::setEcuSerialMembers(const std::pair<std::string, std::string>& ecu_serials) {
+  primary_ecu_serial = ecu_serials.first;
+  primary_hardware_id_ = ecu_serials.second;
 }
 
 // Postcondition [(serial, hw_id)] is in the storage
-bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
+bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
   std::vector<std::pair<std::string, std::string> > ecu_serials;
 
   // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
   //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
   if (storage.loadEcuSerials(&ecu_serials)) {
-    setEcuSerialsMembers(ecu_serials);
+    setEcuSerialMembers(ecu_serials[0]);
     return true;
   }
 
@@ -83,13 +82,13 @@ bool Repository::initEcuSerials(UptaneConfig& uptane_config) {
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
 
-  std::map<std::string, std::pair<std::string, std::string> >::iterator it;
+  std::map<std::string, std::pair<std::string, std::string> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); ++it) {
     ecu_serials.push_back(std::pair<std::string, std::string>(it->first, it->second.first));
   }
 
   storage.storeEcuSerials(ecu_serials);
-  setEcuSerialsMembers(ecu_serials);
+  setEcuSerialMembers(ecu_serials[0]);
   return true;
 }
 
@@ -281,8 +280,10 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
 #endif
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
-  // InitEcuSerials should have been called by this point
-  if (!storage.loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) return INIT_RET_STORAGE_FAILURE;
+  // initEcuSerials should have been called by this point
+  if (!storage.loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
+    return INIT_RET_STORAGE_FAILURE;
+  }
 
   Json::Value all_ecus;
   all_ecus["primary_ecu_serial"] = ecu_serials[0].first;

@@ -15,19 +15,7 @@
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
     : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
-  std::vector<Uptane::SecondaryConfig>::iterator it;
-  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
-    boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-    std::string sec_serial = sec->getSerial();
-    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
-        secondaries.find(sec_serial);
-    if (map_it != secondaries.end()) {
-      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << sec_serial);
-      continue;
-    }
-    secondaries[sec_serial] = sec;
-    uptane_repo.addSecondary(sec_serial, sec->getHwId(), sec->getPublicKey());
-  }
+  initSecondaries();
 }
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
@@ -171,6 +159,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
+  verifySecondaries();
   LOGGER_LOG(LVL_debug, "... provisioned OK");
   reportHwInfo();
   reportInstalledPackages();
@@ -234,6 +223,66 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
       LOGGER_LOG(LVL_error, e.what());
     } catch (const std::exception &ex) {
       LOGGER_LOG(LVL_error, "Unknown exception was thrown: " << ex.what());
+    }
+  }
+}
+
+void SotaUptaneClient::initSecondaries() {
+  std::vector<Uptane::SecondaryConfig>::const_iterator it;
+  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
+    boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+    std::string sec_serial = sec->getSerial();
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+        secondaries.find(sec_serial);
+    if (map_it != secondaries.end()) {
+      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << sec_serial);
+      continue;
+    }
+    secondaries[sec_serial] = sec;
+    uptane_repo.addSecondary(sec_serial, sec->getHwId(), sec->getPublicKey());
+  }
+}
+
+// Check stored secondaries list against secondaries known to aktualizr via
+// commandline input and legacy interface.
+void SotaUptaneClient::verifySecondaries() {
+  std::vector<std::pair<std::string, std::string> > serials;
+  if (!uptane_repo.storage.loadEcuSerials(&serials) || serials.empty()) {
+    LOGGER_LOG(LVL_error, "No ECU serials found in storage!");
+    return;
+  }
+
+  std::vector<bool> found(serials.size(), false);
+  SerialCompare primary_comp(uptane_repo.getPrimaryEcuSerial());
+  // Should be a const_iterator but we need C++11 for cbegin.
+  std::vector<std::pair<std::string, std::string> >::iterator store_it;
+  store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
+  if (store_it == serials.end()) {
+    LOGGER_LOG(LVL_error, "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!");
+  } else {
+    found[std::distance(serials.begin(), store_it)] = true;
+  }
+
+  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  for (it = secondaries.begin(); it != secondaries.end(); ++it) {
+    SerialCompare secondary_comp(it->second->getSerial());
+    store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
+    if (store_it == serials.end()) {
+      LOGGER_LOG(LVL_error, "Secondary ECU serial " << it->second->getSerial() << " (hardware ID "
+                                                    << it->second->getHwId() << ") not found in storage!");
+    } else if (found[std::distance(serials.begin(), store_it)] == true) {
+      LOGGER_LOG(LVL_error, "Secondary ECU serial " << it->second->getSerial() << " (hardware ID "
+                                                    << it->second->getHwId() << ") has a duplicate entry in storage!");
+    } else {
+      found[std::distance(serials.begin(), store_it)] = true;
+    }
+  }
+
+  std::vector<bool>::iterator found_it;
+  for (found_it = found.begin(); found_it != found.end(); ++found_it) {
+    if (!*found_it) {
+      LOGGER_LOG(LVL_warning, "ECU serial " << serials[std::distance(found.begin(), found_it)].first
+                                            << " in storage was not reported to aktualizr!");
     }
   }
 }

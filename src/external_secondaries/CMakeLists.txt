@@ -15,7 +15,7 @@ if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr-validate-secondary-interface gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-aktualizr_source_file_checks(${MAIN_ECU_INTERFACE_SRC} ${ECU_INTERFACE_HEADERS} example_interface.cc)
+aktualizr_source_file_checks(${MAIN_ECU_INTERFACE_SRC} ${ECU_INTERFACE_HEADERS} example_interface.cc validate_secondary_interface_test.cc)
 
 install(TARGETS example-interface RUNTIME DESTINATION bin)
 

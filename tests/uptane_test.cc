@@ -5,20 +5,16 @@
 #include <iostream>
 #include <string>
 
-#include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/polymorphic_pointer_cast.hpp>
+#include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "crypto.h"
 #include "fsstorage.h"
-#include "httpclient.h"
 #include "httpfake.h"
 #include "logger.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
-#include "uptane/managedsecondary.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -30,16 +26,18 @@
 #endif
 #endif
 
+namespace bpo = boost::program_options;
+extern bpo::variables_map parse_options(int argc, char* argv[]);
 const std::string uptane_test_dir = "tests/test_uptane";
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
+boost::filesystem::path build_dir;
 
-TEST(uptane, verify) {
+TEST(Uptane, Verify) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "/";
   FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
@@ -50,13 +48,12 @@ TEST(uptane, verify) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad) {
+TEST(Uptane, VerifyDataBad) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "/";
   FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
@@ -72,13 +69,12 @@ TEST(uptane, verify_data_bad) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_unknown_type) {
+TEST(Uptane, VerifyDataUnknownType) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "/";
   FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
@@ -91,15 +87,16 @@ TEST(uptane, verify_data_unknown_type) {
     FAIL();
   } catch (Uptane::SecurityException ex) {
   }
+
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad_keyid) {
+TEST(Uptane, VerifyDataBadKeyId) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "/";
   FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
@@ -115,13 +112,12 @@ TEST(uptane, verify_data_bad_keyid) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(uptane, verify_data_bad_threshold) {
+TEST(Uptane, VerifyDataBadThreshold) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "/";
   FSStorage storage(config.storage);
   HttpFake http(uptane_test_dir);
   Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
@@ -141,7 +137,7 @@ TEST(uptane, verify_data_bad_threshold) {
 * \verify{\tst{153}} Check that aktualizr creates provisioning files if they
 * don't exist already.
 */
-TEST(SotaUptaneClientTest, initialize) {
+TEST(Uptane, Initialize) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.repo_server = tls_server + "/director";
 
@@ -188,10 +184,9 @@ TEST(SotaUptaneClientTest, initialize) {
 * \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
 * they DO exist already.
 */
-TEST(SotaUptaneClientTest, initialize_twice) {
+TEST(Uptane, InitializeTwice) {
   Config conf("tests/config_tests_prov.toml");
   conf.storage.path = uptane_test_dir;
-  conf.storage.uptane_metadata_path = "/";
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
@@ -245,7 +240,7 @@ TEST(SotaUptaneClientTest, initialize_twice) {
 * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
 * primary and all secondaries.
 */
-TEST(uptane, random_serial) {
+TEST(Uptane, RandomSerial) {
   Config conf_1("tests/config_tests_prov.toml");
   conf_1.storage.path = uptane_test_dir + "/certs_1";
   boost::filesystem::remove_all(uptane_test_dir + "/certs_1");
@@ -296,8 +291,150 @@ TEST(uptane, random_serial) {
   EXPECT_TRUE(storage_2.loadEcuSerials(&ecu_serials_2));
   EXPECT_EQ(ecu_serials_1.size(), 2);
   EXPECT_EQ(ecu_serials_2.size(), 2);
+  EXPECT_FALSE(ecu_serials_1[0].first.empty());
+  EXPECT_FALSE(ecu_serials_1[1].first.empty());
+  EXPECT_FALSE(ecu_serials_2[0].first.empty());
+  EXPECT_FALSE(ecu_serials_2[1].first.empty());
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_NE(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+/**
+ * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
+ * and all secondaries.
+ */
+TEST(Uptane, ReloadSerial) {
+  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
+  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = uptane_test_dir + "/sec";
+  ecu_config.ecu_serial = "";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = uptane_test_dir + "/firmware.txt";
+  ecu_config.target_name_path = uptane_test_dir + "/firmware_name.txt";
+  ecu_config.metadata_path = uptane_test_dir + "/secondary_metadata";
+
+  // Initialize and store serials.
+  {
+    Config conf("tests/config_tests_prov.toml");
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+    conf.uptane.secondary_configs.push_back(ecu_config);
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_1));
+    EXPECT_EQ(ecu_serials_1.size(), 2);
+    EXPECT_FALSE(ecu_serials_1[0].first.empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.empty());
+  }
+
+  // Initialize new objects and load serials.
+  {
+    Config conf("tests/config_tests_prov.toml");
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+    conf.uptane.secondary_configs.push_back(ecu_config);
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_2));
+    EXPECT_EQ(ecu_serials_2.size(), 2);
+    EXPECT_FALSE(ecu_serials_2[0].first.empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.empty());
+  }
+
+  EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
+  EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+
+  boost::filesystem::remove_all(uptane_test_dir);
+}
+
+TEST(Uptane, LegacySerial) {
+  bpo::variables_map cmd;
+  bpo::options_description description("some text");
+  // clang-format off
+  description.add_options()
+    ("legacy-interface", bpo::value<std::string>()->composing(), "path to legacy secondary ECU interface program");
+  // clang-format on
+  std::string path = (build_dir / "src/external_secondaries/example-interface").string();
+  const char* argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
+  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+
+  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
+  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+
+  // Initialize and store serials.
+  {
+    Config conf("tests/config_tests_prov.toml", cmd);
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_1));
+    EXPECT_EQ(ecu_serials_1.size(), 3);
+    EXPECT_FALSE(ecu_serials_1[0].first.empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.empty());
+    EXPECT_FALSE(ecu_serials_1[2].first.empty());
+  }
+
+  // Initialize new objects and load serials.
+  {
+    Config conf("tests/config_tests_prov.toml", cmd);
+    conf.storage.path = uptane_test_dir;
+    conf.uptane.primary_ecu_serial = "";
+    conf.storage.uptane_private_key_path = "private.key";
+    conf.storage.uptane_public_key_path = "public.key";
+
+    FSStorage storage(conf.storage);
+    HttpFake http(uptane_test_dir);
+    Uptane::Repository uptane(conf, storage, http);
+    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials_2));
+    EXPECT_EQ(ecu_serials_2.size(), 3);
+    EXPECT_FALSE(ecu_serials_2[0].first.empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.empty());
+    EXPECT_FALSE(ecu_serials_2[2].first.empty());
+  }
+
+  EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
+  EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  EXPECT_EQ(ecu_serials_1[2].first, ecu_serials_2[2].first);
+
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
+  EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[2].first);
+  EXPECT_NE(ecu_serials_1[1].first, ecu_serials_1[2].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
+  EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[2].first);
+  EXPECT_NE(ecu_serials_2[1].first, ecu_serials_2[2].first);
 
   boost::filesystem::remove_all(uptane_test_dir);
 }
@@ -307,7 +444,7 @@ TEST(uptane, random_serial) {
 * device ID is specified. This is currently provisional and not a finalized
 * requirement at this time.
 */
-TEST(uptane, pet_name_provided) {
+TEST(Uptane, PetNameProvided) {
   std::string test_name = "test-name-123";
   std::string device_path = uptane_test_dir + "/device_id";
 
@@ -340,7 +477,7 @@ TEST(uptane, pet_name_provided) {
 * \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
 * is specified.
 */
-TEST(uptane, pet_name_creation) {
+TEST(Uptane, PetNameCreation) {
   std::string device_path = uptane_test_dir + "/device_id";
 
   // Make sure name is created.
@@ -420,7 +557,7 @@ TEST(uptane, pet_name_creation) {
 /**
  * \verify{\tst{49}} Check that aktualizr fails on expired methadata
  */
-TEST(uptane, expires) {
+TEST(Uptane, Expires) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -460,7 +597,7 @@ TEST(uptane, expires) {
 /**
  * \verify{\tst{52}} Check that aktualizr fails on bad threshold
  */
-TEST(uptane, threshold) {
+TEST(Uptane, Threshold) {
   Config config;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -504,11 +641,10 @@ TEST(uptane, threshold) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, initialize_fail) {
+TEST(Uptane, InitializeFail) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.repo_server = tls_server + "/director";
   conf.storage.path = uptane_test_dir;
-  conf.storage.uptane_metadata_path = "tests";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 
@@ -528,7 +664,7 @@ TEST(SotaUptaneClientTest, initialize_fail) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, put_manifest) {
+TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
@@ -560,16 +696,10 @@ TEST(SotaUptaneClientTest, put_manifest) {
   FSStorage storage(config.storage);
   HttpFake http(temp_dir.PathString());
   Uptane::Repository uptane(config, storage, http);
+  SotaUptaneClient sota_client(config, NULL, uptane);
   EXPECT_TRUE(uptane.initialize());
 
-  Json::Value unsigned_ecu_version =
-      OstreePackage("branch-hash", "hash", "").toEcuVersion(config.uptane.primary_ecu_serial, Json::nullValue);
-
-  event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane);
-
-  uptane.putManifest(sota_client.AssembleManifest());
-
+  EXPECT_TRUE(uptane.putManifest(sota_client.AssembleManifest()));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / test_manifest).string());
 
@@ -580,7 +710,7 @@ TEST(SotaUptaneClientTest, put_manifest) {
   EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"], "test-package");
 }
 
-TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
+TEST(Uptane, RunForeverNoUpdates) {
   Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
@@ -588,7 +718,6 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   conf.uptane.repo_server = tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_metadata_path = "/";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 
@@ -625,7 +754,7 @@ TEST(SotaUptaneClientTest, RunForeverNoUpdates) {
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
-TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
+TEST(Uptane, RunForeverHasUpdates) {
   Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
@@ -675,13 +804,12 @@ TEST(SotaUptaneClientTest, RunForeverHasUpdates) {
   EXPECT_EQ(targets_event->packages[1].filename(), "secondary_firmware.txt");
 }
 
-TEST(SotaUptaneClientTest, RunForeverInstall) {
+TEST(Uptane, RunForeverInstall) {
   Config conf("tests/config_tests_prov.toml");
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.director_server = tls_server + "/director";
   conf.uptane.repo_server = tls_server + "/repo";
   conf.storage.path = uptane_test_dir;
-  conf.storage.uptane_metadata_path = "/";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 
@@ -718,7 +846,7 @@ TEST(SotaUptaneClientTest, RunForeverInstall) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
+TEST(Uptane, UptaneSecondaryAdd) {
   Config config;
   config.uptane.repo_server = tls_server + "/director";
   TemporaryDirectory temp_dir;
@@ -731,7 +859,6 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   config.uptane.primary_ecu_serial = "testecuserial";
 
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "tests";
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
 
@@ -763,173 +890,10 @@ TEST(SotaUptaneClientTest, UptaneSecondaryAdd) {
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
 }
 
-void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::SecondaryConfig& ecu_config2,
-                  TemporaryDirectory& temp_dir) {
-  config.uptane.repo_server = tls_server + "/director";
-  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
-  config.provision.provision_path = (temp_dir / "cred.zip").string();
-  config.provision.mode = kAutomatic;
-  config.uptane.repo_server = tls_server + "/repo";
-  config.tls.server = tls_server;
-
-  config.uptane.primary_ecu_serial = "testecuserial";
-
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "tests";
-  config.storage.uptane_private_key_path = "private.key";
-  config.storage.uptane_public_key_path = "public.key";
-
-  ecu_config1.secondary_type = Uptane::kVirtual;
-  ecu_config1.partial_verifying = false;
-  ecu_config1.full_client_dir = temp_dir.Path();
-  ecu_config1.ecu_serial = "secondary_ecu_serial1";
-  ecu_config1.ecu_hardware_id = "secondary_hardware1";
-  ecu_config1.ecu_private_key = "sec1.priv";
-  ecu_config1.ecu_public_key = "sec1.pub";
-  ecu_config1.firmware_path = temp_dir / "firmware1.txt";
-  ecu_config1.target_name_path = temp_dir / "firmware1_name.txt";
-  ecu_config1.metadata_path = temp_dir / "secondary1_metadata";
-  config.uptane.secondary_configs.push_back(ecu_config1);
-
-  ecu_config2.secondary_type = Uptane::kVirtual;
-  ecu_config2.partial_verifying = false;
-  ecu_config2.full_client_dir = temp_dir.Path();
-  ecu_config2.ecu_serial = "secondary_ecu_serial2";
-  ecu_config2.ecu_hardware_id = "secondary_hardware2";
-  ecu_config2.ecu_private_key = "sec2.priv";
-  ecu_config2.ecu_public_key = "sec2.pub";
-  ecu_config2.firmware_path = temp_dir / "firmware2.txt";
-  ecu_config2.target_name_path = temp_dir / "firmware2_name.txt";
-  ecu_config2.metadata_path = temp_dir / "secondary2_metadata";
-  config.uptane.secondary_configs.push_back(ecu_config2);
-}
-
-void checkKeyTests(FSStorage& storage, SotaUptaneClient& sota_client) {
-  std::string ca;
-  std::string cert;
-  std::string pkey;
-  EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &pkey));
-  EXPECT_TRUE(ca.size() > 0);
-  EXPECT_TRUE(cert.size() > 0);
-  EXPECT_TRUE(pkey.size() > 0);
-
-  std::string primary_public;
-  std::string primary_private;
-  EXPECT_TRUE(storage.loadPrimaryKeys(&primary_public, &primary_private));
-  EXPECT_TRUE(primary_public.size() > 0);
-  EXPECT_TRUE(primary_private.size() > 0);
-
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
-  EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials));
-  EXPECT_EQ(ecu_serials.size(), 3);
-
-  std::vector<std::string> public_keys;
-  std::vector<std::string> private_keys;
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
-  for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
-    if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
-        it->second->sconfig.secondary_type != Uptane::kLegacy) {
-      continue;
-    }
-    boost::shared_ptr<Uptane::ManagedSecondary> managed =
-        boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
-    std::string public_key;
-    std::string private_key;
-    EXPECT_TRUE(managed->loadKeys(&public_key, &private_key));
-    EXPECT_TRUE(public_key.size() > 0);
-    EXPECT_TRUE(private_key.size() > 0);
-    EXPECT_NE(public_key, private_key);
-    public_keys.push_back(public_key);
-    private_keys.push_back(private_key);
-  }
-  std::sort(public_keys.begin(), public_keys.end());
-  EXPECT_EQ(adjacent_find(public_keys.begin(), public_keys.end()), public_keys.end());
-  std::sort(private_keys.begin(), private_keys.end());
-  EXPECT_EQ(adjacent_find(private_keys.begin(), private_keys.end()), private_keys.end());
-}
-
 /**
- * \verify{\tst{159}} Check that all keys are present after successful
- * provisioning.
+ * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
  */
-TEST(SotaUptaneClientTest, CheckAllKeys) {
-  Config config;
-  Uptane::SecondaryConfig ecu_config1;
-  Uptane::SecondaryConfig ecu_config2;
-  TemporaryDirectory temp_dir;
-  initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
-
-  FSStorage storage(config.storage);
-  HttpFake http(uptane_test_dir);
-  Uptane::Repository uptane(config, storage, http);
-  event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane);
-  EXPECT_TRUE(uptane.initialize());
-  checkKeyTests(storage, sota_client);
-
-  boost::filesystem::remove_all(uptane_test_dir);
-}
-
-/**
- * \verify{\tst{160}} Check that aktualizr can recover from a half done device
- * registration.
- */
-TEST(SotaUptaneClientTest, RecoverWithoutKeys) {
-  Config config;
-  Uptane::SecondaryConfig ecu_config1;
-  Uptane::SecondaryConfig ecu_config2;
-  TemporaryDirectory temp_dir;
-  initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
-
-  {
-    FSStorage storage(config.storage);
-    HttpFake http(uptane_test_dir);
-    Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
-
-    EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, sota_client);
-
-    // Remove TLS keys but keep ECU keys and try to initialize.
-    storage.clearTlsCreds();
-  }
-  {
-    FSStorage storage(config.storage);
-    HttpFake http(uptane_test_dir);
-    Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
-
-    EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, sota_client);
-  }
-
-  // Remove ECU keys but keep TLS keys and try to initialize.
-  boost::filesystem::remove(config.storage.path / config.storage.uptane_public_key_path);
-  boost::filesystem::remove(config.storage.path / config.storage.uptane_private_key_path);
-  boost::filesystem::remove(ecu_config1.full_client_dir / ecu_config1.ecu_public_key);
-  boost::filesystem::remove(ecu_config1.full_client_dir / ecu_config1.ecu_private_key);
-  boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_public_key);
-  boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
-
-  {
-    FSStorage storage(config.storage);
-    HttpFake http(uptane_test_dir);
-    Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
-
-    EXPECT_TRUE(uptane.initialize());
-    checkKeyTests(storage, sota_client);
-  }
-  boost::filesystem::remove_all(uptane_test_dir);
-}
-
-/**
-  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
-*/
-TEST(SotaUptaneClientTest, provision_on_server) {
+TEST(Uptane, ProvisionOnServer) {
   Config config("tests/config_tests_prov.toml");
   std::string server = "tst149";
   config.provision.server = server;
@@ -941,7 +905,6 @@ TEST(SotaUptaneClientTest, provision_on_server) {
   config.uptane.primary_ecu_serial = "tst149_ecu_serial";
 
   config.storage.path = uptane_test_dir;
-  config.storage.uptane_metadata_path = "tests";
 
   event::Channel events_channel;
   command::Channel commands_channel;
@@ -955,120 +918,24 @@ TEST(SotaUptaneClientTest, provision_on_server) {
   boost::filesystem::remove_all(uptane_test_dir);
 }
 
-/**
- * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr
- * halts if credentials are not available.
- */
-TEST(SotaUptaneClientTest, implicit_failure) {
-  Config config;
-  config.uptane.device_id = "device_id";
-
+TEST(Uptane, CheckOldProvision) {
   TemporaryDirectory temp_dir;
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "/";
-  config.storage.tls_cacert_path = "ca.pem";
-  config.storage.tls_clientcert_path = "client.pem";
-  config.storage.tls_pkey_path = "pkey.pem";
-  config.postUpdateValues();
-
-  FSStorage storage(config.storage);
-  HttpFake http(temp_dir.PathString());
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_FALSE(uptane.initialize());
-}
-
-/**
- * \verify{\tst{187}} Verfiy that aktualizr halts when provided incomplete
- * implicit provisioning credentials.
- */
-TEST(SotaUptaneClientTest, implicit_incomplete) {
-  Config config;
-  config.storage.path = uptane_test_dir;
-  config.storage.tls_cacert_path = "ca.pem";
-  config.storage.tls_clientcert_path = "client.pem";
-  config.storage.tls_pkey_path = "pkey.pem";
-  config.uptane.device_id = "device_id";
-  config.postUpdateValues();
-  FSStorage storage(config.storage);
-  HttpFake http(uptane_test_dir);
-  Uptane::Repository uptane(config, storage, http);
-
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", uptane_test_dir + "/ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-  boost::filesystem::create_directory(uptane_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", uptane_test_dir + "/client.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", uptane_test_dir + "/pkey.pem");
-  EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(uptane_test_dir);
-}
-
-/**
- * \verify{\tst{186}} Verify that aktualizr can implicitly provision with
- * provided credentials.
- */
-TEST(SotaUptaneClientTest, implicit_provision) {
-  Config config;
-  TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "client.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "pkey.pem");
-  config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = "ca.pem";
-  config.storage.tls_clientcert_path = "client.pem";
-  config.storage.tls_pkey_path = "pkey.pem";
-
-  FSStorage storage(config.storage);
-  HttpFake http(temp_dir.PathString());
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.initialize());
-}
-
-TEST(SotaUptaneClientTest, CheckOldProvision) {
-  boost::filesystem::path work_dir = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-  boost::filesystem::create_directories(work_dir);
-  system((std::string("cp -rf tests/test_data/oldprovdir/* ") + work_dir.string()).c_str());
+  system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
   Config config;
   config.tls.server = tls_server;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
-  config.storage.path = work_dir;
+  config.storage.path = temp_dir.PathString();
 
-  HttpFake http(work_dir.string(), true);
+  HttpFake http(temp_dir.PathString(), true);
   FSStorage storage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(storage.loadEcuRegistered());
   EXPECT_TRUE(uptane.initialize());
   EXPECT_TRUE(storage.loadEcuRegistered());
-  boost::filesystem::remove_all(work_dir);
 }
 
-TEST(SotaUptaneClientTest, save_version) {
+TEST(Uptane, SaveVersion) {
   Config config;
   config.storage.path = uptane_test_dir;
   config.storage.tls_cacert_path = "ca.pem";
@@ -1088,9 +955,10 @@ TEST(SotaUptaneClientTest, save_version) {
   uptane.saveInstalledVersion(t);
   Json::Value result = Utils::parseJSONFile((config.storage.path / "installed_versions").string());
   EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
-TEST(SotaUptaneClientTest, load_version) {
+TEST(Uptane, LoadVersion) {
   Config config;
   config.storage.path = uptane_test_dir;
   config.storage.tls_cacert_path = "ca.pem";
@@ -1113,10 +981,11 @@ TEST(SotaUptaneClientTest, load_version) {
   storage.loadInstalledVersions(&versions_str);
   Json::Value result = Utils::parseJSON(versions_str);
   EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
+  boost::filesystem::remove_all(uptane_test_dir);
 }
 
 #ifdef BUILD_P11
-TEST(SotaUptaneClientTest, pkcs11_provision) {
+TEST(Uptane, Pkcs11Provision) {
   Config config;
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
@@ -1142,6 +1011,11 @@ TEST(SotaUptaneClientTest, pkcs11_provision) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerSetSeverity(LVL_trace);
+
+  if (argc != 2) {
+    return EXIT_FAILURE;
+  }
+  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

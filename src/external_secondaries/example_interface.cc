@@ -5,10 +5,17 @@
 #include "ecuinterface.h"
 #include "utils.h"
 
-const std::string filename = "/tmp/example_serial";
+std::string filename;
 std::string serial;
 
 ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
+  // Assume /var/sota is available on devices but not on hosts.
+  if (boost::filesystem::exists("/var/sota")) {
+    filename = "/var/sota/example_serial";
+  } else {
+    filename = "/tmp/example_serial";
+  }
+
   if (boost::filesystem::exists(filename)) {
     serial = Utils::readFile(filename);
   } else {

@@ -16,7 +16,7 @@ class EventsInterpreter {
   void run();
 
  private:
-  Config config;
+  const Config &config;
   boost::thread thread;
   event::Channel *events_channel;
   command::Channel *commands_channel;

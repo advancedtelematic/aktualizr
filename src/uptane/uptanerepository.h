@@ -41,8 +41,6 @@ class Repository {
   }
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
-  std::string getPrimaryHardwareId() const { return primary_hardware_id_; };
-  std::string getInstalledRefName() const;
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
 
@@ -56,7 +54,7 @@ class Repository {
   bool currentMeta(Uptane::MetaPack *meta) { return storage.loadMetadata(meta); }
 
  private:
-  Config config;
+  const Config &config;
   TufRepository director;
   TufRepository image;
   INvStorage &storage;
@@ -88,7 +86,7 @@ class Repository {
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config,
                     const TlsConfig &tls_config);
   void resetDeviceId();
-  bool initEcuSerials(UptaneConfig &uptane_config);
+  bool initEcuSerials(const UptaneConfig &uptane_config);
   void resetEcuSerials();
   bool initPrimaryEcuKeys(const UptaneConfig &uptane_config);
   bool initSecondaryEcuKeys();
@@ -98,7 +96,7 @@ class Repository {
   void resetTlsCreds();
   InitRetCode initEcuRegister(const UptaneConfig &uptane_config);
   bool loadSetTlsCreds(const TlsConfig &tls_config);
-  void setEcuSerialsMembers(const std::vector<std::pair<std::string, std::string> > &ecu_serials);
+  void setEcuSerialMembers(const std::pair<std::string, std::string> &ecu_serials);
   void setEcuKeysMembers(const std::string &primary_public, const std::string &primary_private,
                          const std::string &primary_public_id, CryptoSource source);
 };

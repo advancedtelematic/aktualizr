@@ -16,7 +16,7 @@ class SocketGateway : public Gateway, boost::noncopyable {
   virtual void processEvent(const boost::shared_ptr<event::BaseEvent> &event);
 
  private:
-  Config config;
+  const Config &config;
   command::Channel *commands_channel;
   std::vector<int> event_connections;
   std::vector<int> command_connections;

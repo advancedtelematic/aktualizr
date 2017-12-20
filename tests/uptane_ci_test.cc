@@ -18,7 +18,7 @@
 const std::string test_dir = "tests/test_ci_uptane";
 std::string credentials = "";
 
-TEST(SotaUptaneClientTest, OneCycleUpdate) {
+TEST(UptaneCI, OneCycleUpdate) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
@@ -45,7 +45,7 @@ TEST(SotaUptaneClientTest, OneCycleUpdate) {
   boost::filesystem::remove_all(test_dir);
 }
 
-TEST(SotaUptaneClientTest, check_keys) {
+TEST(UptaneCI, CheckKeys) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);

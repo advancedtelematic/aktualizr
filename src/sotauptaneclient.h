@@ -32,11 +32,22 @@ class SotaUptaneClient {
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);
   OstreePackage uptaneToOstree(const Uptane::Target &target);
+  void initSecondaries();
+  void verifySecondaries();
   void updateSecondaries(std::vector<Uptane::Target> targets);
 
-  Config config;
+  const Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
   int last_targets_version;
   Json::Value operation_result;
+};
+
+class SerialCompare {
+ public:
+  SerialCompare(const std::string &target_in) : target(target_in) {}
+  bool operator()(std::pair<std::string, std::string> &in) { return (in.first == target); }
+
+ private:
+  std::string target;
 };

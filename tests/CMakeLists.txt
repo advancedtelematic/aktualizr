@@ -103,7 +103,7 @@ configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
 
-add_aktualizr_test(NAME config SOURCES config_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME events SOURCES events_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -136,11 +136,17 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 
 add_aktualizr_test(NAME crypto
                    SOURCES crypto_test.cc
-                   PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+                   PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc
-                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
+                       PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc fake_ostree.cc
+                       PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc fake_ostree.cc
+                       PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc ${PROJECT_SOURCE_DIR}/src/ostree.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
@@ -157,7 +163,7 @@ if(BUILD_OSTREE)
         COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
-    add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY)
 
 
     if(SOTA_PACKED_CREDENTIALS)
@@ -264,7 +270,7 @@ add_test(NAME test_build_release
 add_dependencies(qa check-full)
 
 
-# Check the --help option works
+# implicit_writer tests
 add_test(NAME implicit-writer-help
     COMMAND aktualizr_implicit_writer --help)
 
@@ -274,7 +280,14 @@ else()
     set(IMPLICIT_CREDENTIALS ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip)
 endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/tests/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
+
+
+# external_secondaries tests
+add_dependencies(build_tests aktualizr-validate-secondary-interface)
+add_dependencies(build_tests example-interface)
+add_test(NAME validate-secondary-interface
+    COMMAND aktualizr-validate-secondary-interface --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
 if(BUILD_SOTA_TOOLS)
@@ -365,6 +378,7 @@ if(BUILD_SOTA_TOOLS)
 endif(BUILD_SOTA_TOOLS)
 
 
+# garage-deploy tests
 add_test(NAME garage-deploy-option-help
     COMMAND garage-deploy --help)
 
@@ -372,6 +386,8 @@ add_test(NAME garage-deploy-nonexistent-option
     COMMAND garage-deploy --test )
 set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
+
+# aktualizr-info tests
 add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -392,6 +408,7 @@ set_tests_properties(aktualizr-info-director-target PROPERTIES PASS_REGULAR_EXPR
 add_test(NAME aktualizr-info-images-target
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-images-target PROPERTIES PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
+
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
 aktualizr_source_file_checks(${TEST_SOURCES})

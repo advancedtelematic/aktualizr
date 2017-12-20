@@ -1,5 +1,10 @@
-#include <regex>
 #include <gtest/gtest.h>
+
+#include <regex>
+#include <sstream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -19,7 +24,7 @@ std::string exec(const std::string &cmd) {
   return result;
 }
 
-bool isVersionGood(const std::string &output){
+bool isVersionGood(const std::string &output) {
   std::string version = "1";
   return (output == version || output == version + "\n");
 }
@@ -34,13 +39,13 @@ TEST(ECUInterface, check_loglevel) {
   EXPECT_TRUE(isVersionGood(exec(cmd)));
 }
 
-bool isECUListValid(const std::string &output){
+bool isECUListValid(const std::string &output) {
   std::smatch ecu_match;
-  std::regex ecu_regex("\\w+(?: \\w+)?\\n?");
+  std::regex ecu_regex(R"([\w-]+(?:\s*[\w-]+)?\s*)");
 
   unsigned int matched_symbols = 0;
   std::string::const_iterator search_start(output.cbegin());
-  while(std::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
+  while (std::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
     matched_symbols += ecu_match.length();
     search_start += ecu_match.position() + ecu_match.length();
   }
@@ -58,30 +63,44 @@ TEST(ECUInterface, check_list_ecus_loglevel) {
 }
 
 TEST(ECUInterface, install_good) {
-
-  std::smatch ecu_match;
-  std::regex ecu_regex("(\\w+) ?(\\w+)?\\n?");
   std::string output = exec(target + " list-ecus");
+  std::stringstream ss(output);
+  std::string buffer;
+  int line = 0;
+  while (std::getline(ss, buffer, '\n')) {
+    ++line;
+    std::vector<std::string> ecu_info;
+    boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
+    std::string cmd;
 
-  EXPECT_TRUE(std::regex_search(output, ecu_match, ecu_regex));
-  std::string cmd = target + " install-software  --firmware "+ firmware +" --hardware-identifier " + ecu_match[1].str();
+    if (ecu_info.size() == 0) {
+      std::cout << "Line " << line << ": empty line ignored.\n";
+      continue;
+    }
+    if (ecu_info.size() >= 1) {
+      cmd = target + " install-software  --firmware " + firmware + " --hardware-identifier " + ecu_info[0];
+    }
+    if (ecu_info.size() >= 2) {
+      cmd += std::string(" --ecu-identifier ") + ecu_info[1];
+    }
+    if (ecu_info.size() >= 3) {
+      std::cout << "Line " << line << ": further content after second token ignored.\n";
+    }
 
-  if (ecu_match.size() == 3){
-    cmd +=  std::string(" --ecu-identifier ") + ecu_match[2].str();
+    EXPECT_EQ(system(cmd.c_str()), 0);
   }
-  EXPECT_EQ(system(cmd.c_str()), 0);
 }
 
 TEST(ECUInterface, install_bad) {
   std::string cmd = target +
-                    " install-software  --firmware somepath --hardware-identifier unexistent"
+                    " install-software --firmware somepath --hardware-identifier unexistent"
                     " --ecu-identifier unexistentserial";
   EXPECT_NE(system(cmd.c_str()), 0);
 }
 
 TEST(ECUInterface, install_bad_good_firmware) {
-  std::string cmd = target +
-                    " install-software  --firmware "+ firmware +" --hardware-identifier unexistent"
+  std::string cmd = target + " install-software --firmware " + firmware +
+                    " --hardware-identifier unexistent"
                     " --ecu-identifier unexistentserial";
   EXPECT_NE(system(cmd.c_str()), 0);
 }
@@ -91,21 +110,22 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   bpo::options_description description("aktualizr-validate-secondary-interface command line options");
   bpo::variables_map vm;
+  // clang-format off
   description.add_options()
     ("target", bpo::value<std::string>(&target)->required(), "target executable")
     ("firmware", bpo::value<std::string>(&firmware)->required(), "firmware to install");
-    bpo::basic_parsed_options<char> parsed_options =
-        bpo::command_line_parser(argc, argv).options(description).run();
-    try{
-      bpo::store(parsed_options, vm);
-      bpo::notify(vm);
-    } catch (const bpo::required_option &ex) {
-      std::cout << ex.what() << std::endl << description;
-      return EXIT_FAILURE;
-    } catch (const bpo::error &ex) {
-      std::cout << ex.what() << std::endl << description;
-      return EXIT_FAILURE;
-    }
+  // clang-format on
+  bpo::basic_parsed_options<char> parsed_options = bpo::command_line_parser(argc, argv).options(description).run();
+  try {
+    bpo::store(parsed_options, vm);
+    bpo::notify(vm);
+  } catch (const bpo::required_option &ex) {
+    std::cout << ex.what() << std::endl << description;
+    return EXIT_FAILURE;
+  } catch (const bpo::error &ex) {
+    std::cout << ex.what() << std::endl << description;
+    return EXIT_FAILURE;
+  }
 
   return RUN_ALL_TESTS();
 }

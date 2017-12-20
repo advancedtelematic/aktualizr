@@ -38,13 +38,13 @@ public:
 private:
     TRviHandle rvi;
     std::map<std::string, std::vector<int> > chunks_map;
-    Config config;
+    const Config &config;
     int connection;
     event::Channel * events_channel;
     Json::Value services;
     bool stop;
     boost::thread thread;
-    
+
 
 };
 

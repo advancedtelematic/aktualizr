@@ -5,12 +5,12 @@
 
 class Aktualizr : public boost::noncopyable {
  public:
-  Aktualizr(const Config &config);
+  Aktualizr(const Config& config);
 
   int run();
 
  private:
-  Config config_;
+  const Config& config_;
 };
 
 #endif  // AKTUALIZR_H_

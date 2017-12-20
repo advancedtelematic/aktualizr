@@ -8,31 +8,30 @@ socket = true
 http_server = "127.0.0.1:8888"
 rvi_edge_server = "127.0.0.1:9080"
 websocket_server = "127.0.0.1:3012"
-socket_commands_path = "/tmp/sota-commands.socket"
-socket_events_path = "/tmp/sota-events.socket"
+socket_commands_path = "tests/test_uptane/sota-commands.socket"
+socket_events_path = "tests/test_uptane/sota-events.socket"
 socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
-
-[rvi]
-uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
-node_host = "rvi.example.com"
-node_port = 9999
-client_config = "my/rvi_conf.json"
-packages_dir = "/tmp/packages_dir"
 
 [provision]
 provision_path = "tests/test_data/cred.zip"
 p12_password = ""
 
+[storage]
+type = "filesystem"
+path = "tests/test_uptane/"
+uptane_metadata_path = "metadata"
+uptane_private_key_path = "ecukey.pem"
+uptane_public_key_path = "ecukey.pub"
+tls_cacert_path = "ca.pem"
+tls_pkey_path = "pkey.pem"
+tls_clientcert_path = "client.pem"
+
 [tls]
-certificates_directory = "tests/test_uptane/"
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
-ca_file = "ca.pem"
-client_certificate = "client.pem"
-pkey_file = "pkey.pem"
+ca_source = "file"
+pkey_source = "file"
+cert_source = "file"
 
 [uptane]
 polling = false
 polling_sec = 91
-metadata_path = "/tmp/aktualizr/metadata"
-private_key_path = "ecukey.pem"
-public_key_path = "ecukey.pub"

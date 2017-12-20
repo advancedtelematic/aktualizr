@@ -10,6 +10,3 @@ metadata_path = "sota-prov"
 disable_keyid_validation = true
 primary_ecu_hardware_id = "qemux86-64"
 
-[provision]
-# provision_path = "/home/phil/phil-ci-n6.zip"
-
