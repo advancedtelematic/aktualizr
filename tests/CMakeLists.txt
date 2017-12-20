@@ -39,8 +39,10 @@ if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push garage-deploy-deb)
 endif(BUILD_SOTA_TOOLS)
 
-add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
-add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} -E test_uptane_vectors DEPENDS build_tests)
+add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
+                  -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
+add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
+                  -E test_uptane_vectors DEPENDS build_tests)
 
 # List of source files to run clang-format and clang-check on. Automatically
 # appended to by add_aktualizr_test, but anything that doesn't use that must be
@@ -71,8 +73,8 @@ function(add_aktualizr_test)
         # under valgrind (these should be fixed)
         if(AKTUALIZR_TEST_NO_VALGRIND OR BUILD_WITH_CODE_COVERAGE)
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                    COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
-                    ${WD})
+                     COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     ${WD})
         else()
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
                      COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
@@ -96,7 +98,8 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 # Setup PKCS11
 if(TEST_PKCS11_MODULE_PATH)
-    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}"
+                    -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
 endif(TEST_PKCS11_MODULE_PATH)
 
 configure_file(run-valgrind.in run-valgrind @ONLY)
@@ -109,8 +112,7 @@ add_aktualizr_test(NAME events SOURCES events_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME commands SOURCES commands_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME http_client
-                   SOURCES httpclient_test.cc
+add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_http_server/
                    PROJECT_WORKING_DIRECTORY)
 
@@ -122,8 +124,7 @@ if(NOT BUILD_WITH_CODE_COVERAGE)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
-add_aktualizr_test(NAME socket_gateway
-                   SOURCES socketgateway_test.cc
+add_aktualizr_test(NAME socket_gateway SOURCES socketgateway_test.cc
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/)
 
 add_aktualizr_test(NAME timer SOURCES timer_test.cc)
@@ -134,9 +135,7 @@ add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc PROJECT_WORKING_DI
 
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME crypto
-                   SOURCES crypto_test.cc
-                   PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
@@ -148,28 +147,33 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc fake_ostree.cc
                        PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc ${PROJECT_SOURCE_DIR}/src/ostree.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+    # This causes src/ostree.cc to be included in {TEST_SOURCES}, which might
+    # not be ideal.
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc ${PROJECT_SOURCE_DIR}/src/ostree.cc
+                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
 
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc fake_ostree.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
+    set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
-    add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
-    add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
+    add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
+             ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
+    add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
+             ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
     add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
     add_test(NAME test_ostree_invalid
-        COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
+             COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     add_aktualizr_test(NAME uptane_http_fake SOURCES uptane_fake_http_test.cc PROJECT_WORKING_DIRECTORY)
 
-
     if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc
+                           PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
     endif(SOTA_PACKED_CREDENTIALS)
-
 endif(BUILD_OSTREE)
 
 
@@ -181,13 +185,15 @@ if(BUILD_GENIVI)
     add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
     target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_dbusgateway
-             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
+             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf --
+             ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     add_executable(aktualizr_test_swm swm_test.cc)
     target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
     add_test(NAME test_swm
-             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf -- ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
+             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf --
+             ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
              WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_swm)
 endif(BUILD_GENIVI)
@@ -198,27 +204,22 @@ endif(BUILD_GENIVI)
 # exits. If the return value is zero, the testcase passes.
 
 # test running the executable with command line option --help
-add_test(NAME feat1_test--help
-         COMMAND aktualizr --help)
+add_test(NAME feat1_test--help COMMAND aktualizr --help)
 # test running the executable with command line option -h
-add_test(NAME feat1_test-h
-         COMMAND aktualizr -h)
+add_test(NAME feat1_test-h COMMAND aktualizr -h)
 # test running the executable with command line option --something
 add_test(NAME feat1_test--something
          COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
 # test running the executable with command line option -sth
 add_test(NAME feat1_test-sth
          COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
-
-# calle the executable without any options
-add_test(NAME test_plain
-         COMMAND aktualizr)
-
+# call the executable without any options
+add_test(NAME test_plain COMMAND aktualizr)
 # check invalid logging level
-
-add_test(NAME test_log_invalid
-         COMMAND aktualizr --loglevel=5)
-
+add_test(NAME test_log_invalid COMMAND aktualizr --loglevel=5)
+# test the return code when running the executable with non-existent configuration file
+add_test(NAME test-no-config-check-code
+         COMMAND aktualizr -c non-existent-config.toml)
 
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass
@@ -226,18 +227,12 @@ set_tests_properties(feat1_test--something
                      feat1_test-sth
                      test_plain
                      test_log_invalid
+                     test-no-config-check-code
                      PROPERTIES WILL_FAIL TRUE)
 
-# test the return code when running the executable with non-existing configuration file
-add_test(NAME test-no-config-check-code
-         COMMAND aktualizr -c non-existing-config.toml)
-
-set_tests_properties(test-no-config-check-code
-                     PROPERTIES WILL_FAIL TRUE)
-
-# test the error message when running the executable with non-existing configuration file
+# test the error message when running the executable with non-existent configuration file
 add_test(NAME test-no-config-check-message
-         COMMAND aktualizr -c non-existing-config.toml)
+         COMMAND aktualizr -c non-existent-config.toml)
 
 add_test(NAME test-help-with-other-options
          COMMAND aktualizr --help -c someconfig.toml)
@@ -256,16 +251,20 @@ set_tests_properties(test-help-with-notexisting-options
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_GENIVI=OFF -DBUILD_OSTREE=OFF")
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_GENIVI=OFF -DBUILD_OSTREE=OFF")
 
 add_test(NAME test_build_all_on
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON")
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON")
 
 add_test(NAME test_build_debug
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh ${PROJECT_SOURCE_DIR} test_build_debug "-DCMAKE_BUILD_TYPE=Debug")
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_debug "-DCMAKE_BUILD_TYPE=Debug")
 
 add_test(NAME test_build_release
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
 
 add_dependencies(qa check-full)
 
@@ -280,23 +279,28 @@ else()
     set(IMPLICIT_CREDENTIALS ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip)
 endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py
+    -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
+    -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
 
 
 # external_secondaries tests
 add_dependencies(build_tests aktualizr-validate-secondary-interface)
 add_dependencies(build_tests example-interface)
 add_test(NAME validate-secondary-interface
-    COMMAND aktualizr-validate-secondary-interface --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
+    COMMAND aktualizr-validate-secondary-interface
+    --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface
+    --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
 if(BUILD_SOTA_TOOLS)
     # sota-tools tests
-    add_aktualizr_test(NAME sota_tools_auth_test
-                       SOURCES sota_tools/auth_test.cc
+    add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
                        CPP11 PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
-    target_include_directories(t_sota_tools_auth_test PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
+    target_include_directories(t_sota_tools_auth_test
+                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools
+                               ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
 
     add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc CPP11)
     target_link_libraries(t_ostree_hash sota_tools_static_lib)
@@ -359,20 +363,24 @@ if(BUILD_SOTA_TOOLS)
 
     if (OAUTH2_TEST_CLIENT_ID)
         add_test(NAME auth-plus-happy-case
-            COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
+            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
         add_test(NAME auth-plus-failure
-            COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push>
+            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
         add_test(NAME verbose-logging
-            COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
+            COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
+            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         if(STRACE)
             add_test(NAME cacert-used
-                COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push> ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
-              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+                COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push>
+                ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
 endif(BUILD_SOTA_TOOLS)
@@ -390,27 +398,33 @@ set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 # aktualizr-info tests
 add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-noarguments PROPERTIES PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
+    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_tests_properties(aktualizr-info-noarguments PROPERTIES
+    PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
 
 add_test(NAME aktualizr-info-images-root
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-images-root PROPERTIES PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
+set_tests_properties(aktualizr-info-images-root PROPERTIES
+    PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-director-root
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-director-root PROPERTIES PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
+set_tests_properties(aktualizr-info-director-root PROPERTIES
+    PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-director-target
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-director-target PROPERTIES PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
+set_tests_properties(aktualizr-info-director-target PROPERTIES
+    PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-images-target
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-images-target PROPERTIES PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
+set_tests_properties(aktualizr-info-images-target PROPERTIES
+    PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
+# message("${TEST_SOURCES}")
 aktualizr_source_file_checks(${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
