@@ -53,8 +53,8 @@ class INvStorage {
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
 
-  virtual void storeInstalledVersions(const std::string& content) = 0;
-  virtual bool loadInstalledVersions(std::string* content) = 0;
+  virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) = 0;
+  virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
 
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
