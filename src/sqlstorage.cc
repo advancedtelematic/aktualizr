@@ -286,7 +286,6 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
     }
 
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
-    std::ofstream file((config_.path / "secondaries_list").string().c_str());
     for (it = serials.begin() + 1; it != serials.end(); it++) {
       std::string req = "INSERT INTO ecu_serials VALUES  ('";
       req += it->first + "', '";
@@ -339,13 +338,55 @@ void SQLStorage::clearEcuSerials() {
   }
 }
 
-void SQLStorage::storeInstalledVersions(const std::string& content) {
-  Utils::writeFile((config_.path / "installed_versions").string(), content);
+void SQLStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
+  if (installed_versions.size() >= 1) {
+    SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+    if (db.get_rc() != SQLITE_OK) {
+      LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+      return;
+    }
+
+    if (sqlite3_exec(db.get(), "DELETE FROM installed_versions;", NULL, NULL, NULL) != SQLITE_OK) {
+      LOGGER_LOG(LVL_error, "Can't clear installed_versions: " << sqlite3_errmsg(db.get()));
+      return;
+    }
+
+    std::map<std::string, std::string>::const_iterator it;
+    for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+      std::string req = "INSERT INTO installed_versions VALUES  ('";
+      req += it->first + "', '";
+      req += it->second + "');";
+
+      if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+        LOGGER_LOG(LVL_error, "Can't set installed_versions: " << sqlite3_errmsg(db.get()));
+        return;
+      }
+    }
+  }
 }
 
-bool SQLStorage::loadInstalledVersions(std::string* content) {
-  if (!boost::filesystem::exists(config_.path / "installed_versions")) return false;
-  *content = Utils::readFile((config_.path / "installed_versions").string());
+bool SQLStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  request = kSqlGetTable;
+  req_response_table.clear();
+  if (sqlite3_exec(db.get(), "SELECT * FROM installed_versions;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get installed_versions: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+  if (req_response_table.empty()) return false;
+
+  std::vector<std::map<std::string, std::string> >::iterator it;
+  for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
+    (*installed_versions)[(*it)["hash"]] = (*it)["name"];
+  }
+
   return true;
 }
 

@@ -977,11 +977,9 @@ TEST(Uptane, LoadVersion) {
   Uptane::Target t("target_name", target_json);
   uptane.saveInstalledVersion(t);
 
-  std::string versions_str;
-  storage.loadInstalledVersions(&versions_str);
-  Json::Value result = Utils::parseJSON(versions_str);
-  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
-  boost::filesystem::remove_all(uptane_test_dir);
+  std::map<std::string, std::string> versions;
+  storage.loadInstalledVersions(&versions);
+  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"], "target_name");
 }
 
 #ifdef BUILD_P11

@@ -281,14 +281,23 @@ void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(config_.path / "secondaries_list");
 }
 
-void FSStorage::storeInstalledVersions(const std::string& content) {
-  Utils::writeFile((config_.path / "installed_versions").string(), content);
+void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
+  Json::Value content;
+  std::map<std::string, std::string>::const_iterator it;
+  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+    content[it->first] = it->second;
+  }
+
+  Utils::writeFile((config_.path / "installed_versions").string(), Json::FastWriter().write(content));
 }
 
-bool FSStorage::loadInstalledVersions(std::string* content) {
-  if (!boost::filesystem::exists(config_.path / "installed_versions")) {
-    return false;
+bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
+  if (!boost::filesystem::exists(config_.path / "installed_versions")) return false;
+  Json::Value content_json = Utils::parseJSONFile((config_.path / "installed_versions").string());
+
+  for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
+    std::cout << it.key();
+    (*installed_versions)[it.key().asString()] = (*it).asString();
   }
-  *content = Utils::readFile((config_.path / "installed_versions").string());
   return true;
 }

@@ -120,17 +120,15 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 }
 
 void Repository::saveInstalledVersion(const Target &target) {
-  std::string versions_str;
-  storage.loadInstalledVersions(&versions_str);
-  Json::Value versions = Utils::parseJSON(versions_str);
+  std::map<std::string, std::string> versions;
+  storage.loadInstalledVersions(&versions);
   versions[boost::algorithm::to_lower_copy(target.sha256Hash())] = target.filename();
-  storage.storeInstalledVersions(Json::FastWriter().write(versions));
+  storage.storeInstalledVersions(versions);
 }
 
 std::string Repository::findInstalledVersion(const std::string &hash) {
-  std::string versions_str;
-  storage.loadInstalledVersions(&versions_str);
-  Json::Value versions = Utils::parseJSON(versions_str);
-  return versions[boost::algorithm::to_lower_copy(hash)].asString();
+  std::map<std::string, std::string> versions;
+  storage.loadInstalledVersions(&versions);
+  return versions[boost::algorithm::to_lower_copy(hash)];
 }
 }
