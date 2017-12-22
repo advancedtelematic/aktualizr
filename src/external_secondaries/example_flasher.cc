@@ -2,13 +2,13 @@
 
 #include <boost/filesystem.hpp>
 
-#include "ecuinterface.h"
+#include "example_flasher.h"
 #include "utils.h"
 
 std::string filename;
 std::string serial;
 
-ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
+ExampleFlasher::ExampleFlasher(const unsigned int loglevel) : loglevel_(loglevel) {
   // Assume /var/sota is available on devices but not on hosts.
   if (boost::filesystem::exists("/var/sota")) {
     filename = "/var/sota/example_serial";
@@ -24,22 +24,22 @@ ECUInterface::ECUInterface(const unsigned int loglevel) : loglevel_(loglevel) {
   }
 }
 
-std::string ECUInterface::apiVersion() {
+std::string ExampleFlasher::apiVersion() {
   if (loglevel_ == 4) {
     std::cerr << "Displaying api version:\n";
   }
   return "1";
 }
 
-std::string ECUInterface::listEcus() {
+std::string ExampleFlasher::listEcus() {
   if (loglevel_ == 4) {
     std::cerr << "Displaying list of ecus:\n";
   }
   return std::string("example1 ") + serial + "\n" + "example2\n";
 }
 
-ECUInterface::InstallStatus ECUInterface::installSoftware(const std::string &hardware_id, const std::string &ecu_id,
-                                                          const std::string &firmware) {
+ExampleFlasher::InstallStatus ExampleFlasher::installSoftware(const std::string &hardware_id, const std::string &ecu_id,
+                                                              const std::string &firmware) {
   if (loglevel_ == 4) {
     std::cerr << "Installing hardware_id: " << hardware_id << ", ecu_id: " << ecu_id << " firmware_path: " << firmware
               << "\n";

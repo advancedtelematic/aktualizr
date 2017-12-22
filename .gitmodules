@@ -1,3 +1,6 @@
 [submodule "tests/tuf-test-vectors"]
 	path = tests/tuf-test-vectors
 	url = https://github.com/advancedtelematic/tuf-test-vectors/
+[submodule "partial/extern/isotp-c"]
+	path = partial/extern/isotp-c
+	url = https://github.com/advancedtelematic/isotp-c.git

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "ecuinterface.h"
+#include "make_ecu.h"
 
 namespace po = boost::program_options;
 using std::string;
@@ -44,12 +44,12 @@ int main(int argc, char **argv) {
     }
 
     if (vm.count("command")) {
-      ECUInterface ecu(vm["loglevel"].as<unsigned int>());
+      ECUInterface *ecu = make_ecu(vm["loglevel"].as<unsigned int>());
       if (command == "api-version") {
-        std::cout << ecu.apiVersion();
+        std::cout << ecu->apiVersion();
         return EXIT_SUCCESS;
       } else if (command == "list-ecus") {
-        std::cout << ecu.listEcus();
+        std::cout << ecu->listEcus();
         return EXIT_SUCCESS;
       } else if (command == "install-software") {
         if (!vm.count("hardware-identifier") || !vm.count("firmware")) {
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
                        "--ecu-identifier.\n";
           return EXIT_FAILURE;
         }
-        ECUInterface::InstallStatus result = ecu.installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        ECUInterface::InstallStatus result = ecu->installSoftware(hardware_identifier, ecu_identifier, firmware_path);
         std::cout << "Installation result: " << result << "\n";
         return result;
       } else {
