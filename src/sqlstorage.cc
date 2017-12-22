@@ -35,17 +35,61 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
 }
 
 void SQLStorage::storePrimaryPublic(const std::string& public_key) {
-  boost::filesystem::path public_key_path = config_.path / config_.uptane_public_key_path;
-  boost::filesystem::remove(public_key_path);
-  Utils::writeFile(public_key_path.string(), public_key);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM primary_keys;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get count of public key table: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+  std::string req;
+  if (boost::lexical_cast<int>(req_response["result"])) {
+    req = "UPDATE OR REPLACE primary_keys SET public = '";
+    req += public_key + "';";
+  } else {
+    req = "INSERT INTO primary_keys(public) VALUES  ('";
+    req += public_key + "');";
+  }
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set public key: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 
   sync();
 }
 
 void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
-  boost::filesystem::path private_key_path = config_.path / config_.uptane_private_key_path;
-  boost::filesystem::remove(private_key_path);
-  Utils::writeFile(private_key_path.string(), private_key);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM primary_keys;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get count of private key table: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+  std::string req;
+  if (boost::lexical_cast<int>(req_response["result"])) {
+    req = "UPDATE OR REPLACE primary_keys SET private = '";
+    req += private_key + "';";
+  } else {
+    req = "INSERT INTO primary_keys(private) VALUES  ('";
+    req += private_key + "');";
+  }
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set private key: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 
   sync();
 }
@@ -55,30 +99,61 @@ bool SQLStorage::loadPrimaryKeys(std::string* public_key, std::string* private_k
 }
 
 bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
-  boost::filesystem::path public_key_path = config_.path / config_.uptane_public_key_path;
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (!boost::filesystem::exists(public_key_path)) {
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
     return false;
   }
 
-  if (public_key) *public_key = Utils::readFile(public_key_path.string());
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT public FROM primary_keys LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get public key: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (public_key) *public_key = req_response["result"];
+
   return true;
 }
 
 bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
-  boost::filesystem::path private_key_path = config_.path / config_.uptane_private_key_path;
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (!boost::filesystem::exists(private_key_path)) {
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
     return false;
   }
 
-  if (private_key) *private_key = Utils::readFile(private_key_path.string());
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT private FROM primary_keys LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get private key: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (private_key) *private_key = req_response["result"];
+
   return true;
 }
 
 void SQLStorage::clearPrimaryKeys() {
-  boost::filesystem::remove(config_.path / config_.uptane_public_key_path);
-  boost::filesystem::remove(config_.path / config_.uptane_private_key_path);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM primary_keys;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't clear primary keys: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 }
 
 void SQLStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
