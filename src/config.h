@@ -93,7 +93,7 @@ struct RviConfig {
 
 struct P11Config {
   P11Config() {}
-  std::string module;
+  boost::filesystem::path module;
   std::string pass;
   std::string uptane_key_id;
   std::string tls_cacert_id;
@@ -147,7 +147,7 @@ struct OstreeConfig {
   OstreeConfig() : os(""), sysroot(""), packages_file("/usr/package.manifest") {}
   std::string os;
   std::string sysroot;
-  std::string packages_file;
+  boost::filesystem::path packages_file;
 };
 
 struct StorageConfig {
@@ -195,12 +195,12 @@ class Config {
  public:
   Config();
   Config(const boost::property_tree::ptree& pt);
-  Config(const std::string& filename, const boost::program_options::variables_map& cmd);
-  Config(const std::string& filename);
+  Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
+  Config(const boost::filesystem::path& filename);
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
-  void writeToFile(const std::string& filename);
+  void writeToFile(const boost::filesystem::path& filename);
 
   // config data structures
   DbusConfig dbus;
@@ -228,11 +228,11 @@ class Config {
   template <typename T>
   static void writeOption(std::ofstream& sink, const T& data, const std::string& option_name);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void updateFromToml(const std::string& filename);
+  void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   void readSecondaryConfigs(const std::vector<std::string>& sconfigs);
-  bool checkLegacyVersion(const std::string& legacy_interface);
-  void initLegacySecondaries(const std::string& legacy_interface);
+  bool checkLegacyVersion(const boost::filesystem::path& legacy_interface);
+  void initLegacySecondaries(const boost::filesystem::path& legacy_interface);
 };
 
 #endif  // CONFIG_H_

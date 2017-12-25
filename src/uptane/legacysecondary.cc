@@ -14,8 +14,8 @@ LegacySecondary::LegacySecondary(const SecondaryConfig& sconfig_in) : ManagedSec
 
 bool LegacySecondary::storeFirmware(const std::string& target_name, const std::string& content) {
   // reading target hash back is not currently supported, so primary needs to save the firmware file locally
-  Utils::writeFile(sconfig.target_name_path.string(), target_name);
-  Utils::writeFile(sconfig.firmware_path.string(), content);
+  Utils::writeFile(sconfig.target_name_path, target_name);
+  Utils::writeFile(sconfig.firmware_path, content);
   sync();
 
   std::stringstream command;

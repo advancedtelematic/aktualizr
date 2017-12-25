@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     config.import.tls_cacert_path = "/usr/lib/sota/root.crt";
     ca_path /= config.import.tls_cacert_path;
     std::cout << "Writing root CA: " << ca_path << "\n";
-    Utils::writeFile(ca_path.string(), boot.getCa());
+    Utils::writeFile(ca_path, boot.getCa());
   }
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
   if (!parent_dir.empty()) {
     boost::filesystem::create_directories(parent_dir);
   }
-  config.writeToFile(config_out_path);
+  config.writeToFile(boost::filesystem::path(config_out_path));
 
   return 0;
 }

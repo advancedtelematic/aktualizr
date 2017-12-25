@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    Config config(sota_config_path.string(), commandline_map);
+    Config config(sota_config_path, commandline_map);
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {

@@ -235,25 +235,25 @@ std::string Utils::genPrettyName() {
   return res;
 }
 
-std::string Utils::readFile(const std::string &filename) {
-  std::ifstream path_stream(filename.c_str());
+std::string Utils::readFile(const boost::filesystem::path &filename) {
+  std::ifstream path_stream(filename.string().c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return content;
 }
 
-void Utils::writeFile(const std::string &filename, const std::string &content, bool create_directories) {
+void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
   if (create_directories) {
-    boost::filesystem::create_directories(boost::filesystem::path(filename).parent_path());
+    boost::filesystem::create_directories(filename.parent_path());
   }
-  std::ofstream file(filename.c_str());
+  std::ofstream file(filename.string().c_str());
   if (!file.good()) {
-    throw std::runtime_error(std::string("Error opening file ") + filename);
+    throw std::runtime_error(std::string("Error opening file ") + filename.string());
   }
   file << content;
   file.close();
 }
 
-void Utils::writeFile(const std::string &filename, const Json::Value &content, bool create_directories) {
+void Utils::writeFile(const boost::filesystem::path &filename, const Json::Value &content, bool create_directories) {
   std::stringstream ss;
   ss << content;
   Utils::writeFile(filename, ss.str(), create_directories);

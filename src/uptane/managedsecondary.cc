@@ -136,8 +136,8 @@ Json::Value ManagedSecondary::getManifest() {
 }
 
 void ManagedSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key).string(), private_key);
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key).string(), public_key);
+  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key), private_key);
+  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key), public_key);
 }
 
 bool ManagedSecondary::loadKeys(std::string *public_key, std::string *private_key) {

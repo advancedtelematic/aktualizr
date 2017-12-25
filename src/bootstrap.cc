@@ -2,7 +2,6 @@
 
 #include <archive.h>
 #include <archive_entry.h>
-#include <boost/filesystem.hpp>
 
 #include <stdio.h>
 #include <fstream>
@@ -11,7 +10,7 @@
 #include "crypto.h"
 #include "logger.h"
 
-Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provision_password)
+Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::string& provision_password)
     : ca(""), cert(""), pkey("") {
   if (!provision_path.empty()) {
     if (boost::filesystem::exists(provision_path)) {
@@ -20,7 +19,7 @@ Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provi
       struct archive* a = archive_read_new();
       archive_read_support_filter_all(a);
       archive_read_support_format_all(a);
-      int r = archive_read_open_filename(a, provision_path.c_str(), 20 * 512);
+      int r = archive_read_open_filename(a, provision_path.string().c_str(), 20 * 512);
       if (r == ARCHIVE_OK) {
         struct archive_entry* entry;
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
@@ -78,14 +77,14 @@ Bootstrap::Bootstrap(const std::string& provision_path, const std::string& provi
   }
 }
 
-std::string Bootstrap::readServerUrl(const std::string& provision_path) {
+std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_path) {
   bool found = false;
   std::string url = "";
   std::stringstream url_stream;
   struct archive* a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  int r = archive_read_open_filename(a, provision_path.c_str(), 1024);
+  int r = archive_read_open_filename(a, provision_path.string().c_str(), 1024);
   if (r == ARCHIVE_OK) {
     struct archive_entry* entry;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {

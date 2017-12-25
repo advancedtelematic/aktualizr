@@ -24,7 +24,7 @@ void FSStorage::storePrimaryKeys(const std::string& public_key, const std::strin
 void FSStorage::storePrimaryPublic(const std::string& public_key) {
   boost::filesystem::path public_key_path = config_.path / config_.uptane_public_key_path;
   boost::filesystem::remove(public_key_path);
-  Utils::writeFile(public_key_path.string(), public_key);
+  Utils::writeFile(public_key_path, public_key);
 
   sync();
 }
@@ -32,7 +32,7 @@ void FSStorage::storePrimaryPublic(const std::string& public_key) {
 void FSStorage::storePrimaryPrivate(const std::string& private_key) {
   boost::filesystem::path private_key_path = config_.path / config_.uptane_private_key_path;
   boost::filesystem::remove(private_key_path);
-  Utils::writeFile(private_key_path.string(), private_key);
+  Utils::writeFile(private_key_path, private_key);
 
   sync();
 }
@@ -77,21 +77,21 @@ void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, co
 void FSStorage::storeTlsCa(const std::string& ca) {
   boost::filesystem::path ca_path(config_.path / config_.tls_cacert_path);
   boost::filesystem::remove(ca_path);
-  Utils::writeFile(ca_path.string(), ca);
+  Utils::writeFile(ca_path, ca);
   sync();
 }
 
 void FSStorage::storeTlsCert(const std::string& cert) {
   boost::filesystem::path cert_path(config_.path / config_.tls_clientcert_path);
   boost::filesystem::remove(cert_path);
-  Utils::writeFile(cert_path.string(), cert);
+  Utils::writeFile(cert_path, cert);
   sync();
 }
 
 void FSStorage::storeTlsPkey(const std::string& pkey) {
   boost::filesystem::path pkey_path(config_.path / config_.tls_pkey_path);
   boost::filesystem::remove(pkey_path);
-  Utils::writeFile(pkey_path.string(), pkey);
+  Utils::writeFile(pkey_path, pkey);
   sync();
 }
 
@@ -142,12 +142,12 @@ void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   boost::filesystem::path image_path = config_.path / config_.uptane_metadata_path / "repo";
   boost::filesystem::path director_path = config_.path / config_.uptane_metadata_path / "director";
 
-  Utils::writeFile((director_path / "root.json").string(), metadata.director_root.toJson());
-  Utils::writeFile((director_path / "targets.json").string(), metadata.director_targets.toJson());
-  Utils::writeFile((image_path / "root.json").string(), metadata.image_root.toJson());
-  Utils::writeFile((image_path / "targets.json").string(), metadata.image_targets.toJson());
-  Utils::writeFile((image_path / "timestamp.json").string(), metadata.image_timestamp.toJson());
-  Utils::writeFile((image_path / "snapshot.json").string(), metadata.image_snapshot.toJson());
+  Utils::writeFile((director_path / "root.json"), metadata.director_root.toJson());
+  Utils::writeFile((director_path / "targets.json"), metadata.director_targets.toJson());
+  Utils::writeFile((image_path / "root.json"), metadata.image_root.toJson());
+  Utils::writeFile((image_path / "targets.json"), metadata.image_targets.toJson());
+  Utils::writeFile((image_path / "timestamp.json"), metadata.image_timestamp.toJson());
+  Utils::writeFile((image_path / "snapshot.json"), metadata.image_snapshot.toJson());
   sync();
 }
 
@@ -197,7 +197,7 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
 #endif  // BUILD_OSTREE
 
 void FSStorage::storeDeviceId(const std::string& device_id) {
-  Utils::writeFile((config_.path / "device_id").string(), device_id);
+  Utils::writeFile((config_.path / "device_id"), device_id);
 }
 
 bool FSStorage::loadDeviceId(std::string* device_id) {
@@ -209,7 +209,7 @@ bool FSStorage::loadDeviceId(std::string* device_id) {
 
 void FSStorage::clearDeviceId() { boost::filesystem::remove(config_.path / "device_id"); }
 
-void FSStorage::storeEcuRegistered() { Utils::writeFile((config_.path / "is_registered").string(), std::string("1")); }
+void FSStorage::storeEcuRegistered() { Utils::writeFile((config_.path / "is_registered"), std::string("1")); }
 
 bool FSStorage::loadEcuRegistered() { return boost::filesystem::exists((config_.path / "is_registered").string()); }
 
@@ -217,8 +217,8 @@ void FSStorage::clearEcuRegistered() { boost::filesystem::remove(config_.path / 
 
 void FSStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
-    Utils::writeFile((config_.path / "primary_ecu_serial").string(), serials[0].first);
-    Utils::writeFile((config_.path / "primary_ecu_hardware_id").string(), serials[0].second);
+    Utils::writeFile((config_.path / "primary_ecu_serial"), serials[0].first);
+    Utils::writeFile((config_.path / "primary_ecu_hardware_id"), serials[0].second);
 
     boost::filesystem::remove_all((config_.path / "secondaries_list"));
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
@@ -288,7 +288,7 @@ void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>&
     content[it->first] = it->second;
   }
 
-  Utils::writeFile((config_.path / "installed_versions").string(), Json::FastWriter().write(content));
+  Utils::writeFile((config_.path / "installed_versions"), Json::FastWriter().write(content));
 }
 
 bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {

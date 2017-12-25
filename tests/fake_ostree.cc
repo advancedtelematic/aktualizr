@@ -31,7 +31,7 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
-Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
+Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_path) {
   (void)file_path;
   Json::Value packages(Json::arrayValue);
   Json::Value package;

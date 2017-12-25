@@ -210,7 +210,7 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
-Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
+Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_path) {
   std::string packages_str = Utils::readFile(file_path);
   std::vector<std::string> package_lines;
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));
