@@ -227,57 +227,61 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, con
 
 #ifdef BUILD_OSTREE
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
-  boost::filesystem::path image_path = config_.path / config_.uptane_metadata_path / "repo";
-  boost::filesystem::path director_path = config_.path / config_.uptane_metadata_path / "director";
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  Utils::writeFile((director_path / "root.json").string(), metadata.director_root.toJson());
-  Utils::writeFile((director_path / "targets.json").string(), metadata.director_targets.toJson());
-  Utils::writeFile((image_path / "root.json").string(), metadata.image_root.toJson());
-  Utils::writeFile((image_path / "targets.json").string(), metadata.image_targets.toJson());
-  Utils::writeFile((image_path / "timestamp.json").string(), metadata.image_timestamp.toJson());
-  Utils::writeFile((image_path / "snapshot.json").string(), metadata.image_snapshot.toJson());
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM meta;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't clear meta: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  std::string req = "INSERT INTO meta VALUES  ('";
+  req += Json::FastWriter().write(metadata.director_root.toJson()) + "', '";
+  req += Json::FastWriter().write(metadata.director_targets.toJson()) + "', '";
+  req += Json::FastWriter().write(metadata.image_root.toJson()) + "', '";
+  req += Json::FastWriter().write(metadata.image_targets.toJson()) + "', '";
+  req += Json::FastWriter().write(metadata.image_timestamp.toJson()) + "', '";
+  req += Json::FastWriter().write(metadata.image_snapshot.toJson()) + "');";
+
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set metadata: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
   sync();
 }
 
 bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
-  boost::filesystem::path image_path = config_.path / config_.uptane_metadata_path / "repo";
-  boost::filesystem::path director_path = config_.path / config_.uptane_metadata_path / "director";
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (!boost::filesystem::exists(director_path / "root.json") ||
-      !boost::filesystem::exists(director_path / "targets.json") ||
-      !boost::filesystem::exists(image_path / "root.json") || !boost::filesystem::exists(image_path / "targets.json") ||
-      !boost::filesystem::exists(image_path / "timestamp.json") ||
-      !boost::filesystem::exists(image_path / "snapshot.json"))
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
     return false;
+  }
 
-  Json::Value json = Utils::parseJSONFile(director_path / "root.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  request = kSqlGetTable;
+  req_response_table.clear();
+  if (sqlite3_exec(db.get(), "SELECT * FROM meta;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get meta: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+  if (req_response_table.empty()) return false;
+
+  Json::Value json = Utils::parseJSON(req_response_table[0]["director_root"]);
   metadata->director_root = Uptane::Root("director", json);
-
-  json = Utils::parseJSONFile(director_path / "targets.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  json = Utils::parseJSON(req_response_table[0]["director_targets"]);
   metadata->director_targets = Uptane::Targets(json);
-
-  json = Utils::parseJSONFile(image_path / "root.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  json = Utils::parseJSON(req_response_table[0]["image_root"]);
   metadata->image_root = Uptane::Root("image", json);
-
-  json = Utils::parseJSONFile(image_path / "targets.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  json = Utils::parseJSON(req_response_table[0]["image_targets"]);
   metadata->image_targets = Uptane::Targets(json);
-
-  json = Utils::parseJSONFile(image_path / "timestamp.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  json = Utils::parseJSON(req_response_table[0]["image_timestamp"]);
   metadata->image_timestamp = Uptane::TimestampMeta(json);
-
-  json = Utils::parseJSONFile(image_path / "snapshot.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
+  json = Utils::parseJSON(req_response_table[0]["image_snapshot"]);
   metadata->image_snapshot = Uptane::Snapshot(json);
 
   return true;
