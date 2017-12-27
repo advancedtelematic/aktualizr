@@ -8,8 +8,8 @@
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
-  boost::filesystem::create_directories(config_.path / config_.uptane_metadata_path / "repo");
-  boost::filesystem::create_directories(config_.path / config_.uptane_metadata_path / "director");
+  boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
+  boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
 }
 
 FSStorage::~FSStorage() {
@@ -22,7 +22,7 @@ void FSStorage::storePrimaryKeys(const std::string& public_key, const std::strin
 }
 
 void FSStorage::storePrimaryPublic(const std::string& public_key) {
-  boost::filesystem::path public_key_path = config_.path / config_.uptane_public_key_path;
+  boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
   boost::filesystem::remove(public_key_path);
   Utils::writeFile(public_key_path, public_key);
 
@@ -30,7 +30,7 @@ void FSStorage::storePrimaryPublic(const std::string& public_key) {
 }
 
 void FSStorage::storePrimaryPrivate(const std::string& private_key) {
-  boost::filesystem::path private_key_path = config_.path / config_.uptane_private_key_path;
+  boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
   boost::filesystem::remove(private_key_path);
   Utils::writeFile(private_key_path, private_key);
 
@@ -42,8 +42,7 @@ bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_ke
 }
 
 bool FSStorage::loadPrimaryPublic(std::string* public_key) {
-  boost::filesystem::path public_key_path = config_.path / config_.uptane_public_key_path;
-
+  boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
   if (!boost::filesystem::exists(public_key_path)) {
     return false;
   }
@@ -53,8 +52,7 @@ bool FSStorage::loadPrimaryPublic(std::string* public_key) {
 }
 
 bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
-  boost::filesystem::path private_key_path = config_.path / config_.uptane_private_key_path;
-
+  boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
   if (!boost::filesystem::exists(private_key_path)) {
     return false;
   }
@@ -64,8 +62,8 @@ bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
 }
 
 void FSStorage::clearPrimaryKeys() {
-  boost::filesystem::remove(config_.path / config_.uptane_public_key_path);
-  boost::filesystem::remove(config_.path / config_.uptane_private_key_path);
+  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.uptane_public_key_path));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.uptane_private_key_path));
 }
 
 void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
@@ -75,30 +73,30 @@ void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, co
 }
 
 void FSStorage::storeTlsCa(const std::string& ca) {
-  boost::filesystem::path ca_path(config_.path / config_.tls_cacert_path);
+  boost::filesystem::path ca_path(Utils::absolutePath(config_.path, config_.tls_cacert_path));
   boost::filesystem::remove(ca_path);
   Utils::writeFile(ca_path, ca);
   sync();
 }
 
 void FSStorage::storeTlsCert(const std::string& cert) {
-  boost::filesystem::path cert_path(config_.path / config_.tls_clientcert_path);
+  boost::filesystem::path cert_path(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
   boost::filesystem::remove(cert_path);
   Utils::writeFile(cert_path, cert);
   sync();
 }
 
 void FSStorage::storeTlsPkey(const std::string& pkey) {
-  boost::filesystem::path pkey_path(config_.path / config_.tls_pkey_path);
+  boost::filesystem::path pkey_path(Utils::absolutePath(config_.path, config_.tls_pkey_path));
   boost::filesystem::remove(pkey_path);
   Utils::writeFile(pkey_path, pkey);
   sync();
 }
 
 bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
-  boost::filesystem::path ca_path(config_.path / config_.tls_cacert_path);
-  boost::filesystem::path cert_path(config_.path / config_.tls_clientcert_path);
-  boost::filesystem::path pkey_path(config_.path / config_.tls_pkey_path);
+  boost::filesystem::path ca_path(Utils::absolutePath(config_.path, config_.tls_cacert_path));
+  boost::filesystem::path cert_path(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
+  boost::filesystem::path pkey_path(Utils::absolutePath(config_.path, config_.tls_pkey_path));
   if (!boost::filesystem::exists(ca_path) || boost::filesystem::is_directory(ca_path) ||
       !boost::filesystem::exists(cert_path) || boost::filesystem::is_directory(cert_path) ||
       !boost::filesystem::exists(pkey_path) || boost::filesystem::is_directory(pkey_path)) {
@@ -117,13 +115,13 @@ bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pk
 }
 
 void FSStorage::clearTlsCreds() {
-  boost::filesystem::remove(config_.path / config_.tls_cacert_path);
-  boost::filesystem::remove(config_.path / config_.tls_clientcert_path);
-  boost::filesystem::remove(config_.path / config_.tls_pkey_path);
+  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_cacert_path));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_pkey_path));
 }
 
 bool FSStorage::loadTlsCommon(std::string* data, const boost::filesystem::path& path_in) {
-  boost::filesystem::path path(config_.path / path_in);
+  boost::filesystem::path path(Utils::absolutePath(config_.path, path_in));
   if (!boost::filesystem::exists(path)) return false;
 
   if (data) *data = Utils::readFile(path.string());
@@ -139,8 +137,8 @@ bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, conf
 
 #ifdef BUILD_OSTREE
 void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
-  boost::filesystem::path image_path = config_.path / config_.uptane_metadata_path / "repo";
-  boost::filesystem::path director_path = config_.path / config_.uptane_metadata_path / "director";
+  boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
+  boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
   Utils::writeFile((director_path / "root.json"), metadata.director_root.toJson());
   Utils::writeFile((director_path / "targets.json"), metadata.director_targets.toJson());
@@ -152,8 +150,8 @@ void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
 }
 
 bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
-  boost::filesystem::path image_path = config_.path / config_.uptane_metadata_path / "repo";
-  boost::filesystem::path director_path = config_.path / config_.uptane_metadata_path / "director";
+  boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
+  boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
   if (!boost::filesystem::exists(director_path / "root.json") ||
       !boost::filesystem::exists(director_path / "targets.json") ||
@@ -197,32 +195,36 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
 #endif  // BUILD_OSTREE
 
 void FSStorage::storeDeviceId(const std::string& device_id) {
-  Utils::writeFile((config_.path / "device_id"), device_id);
+  Utils::writeFile(Utils::absolutePath(config_.path, "device_id"), device_id);
 }
 
 bool FSStorage::loadDeviceId(std::string* device_id) {
-  if (!boost::filesystem::exists((config_.path / "device_id").string())) return false;
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "device_id").string())) return false;
 
-  if (device_id) *device_id = Utils::readFile((config_.path / "device_id").string());
+  if (device_id) *device_id = Utils::readFile(Utils::absolutePath(config_.path, "device_id").string());
   return true;
 }
 
-void FSStorage::clearDeviceId() { boost::filesystem::remove(config_.path / "device_id"); }
+void FSStorage::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
 
-void FSStorage::storeEcuRegistered() { Utils::writeFile((config_.path / "is_registered"), std::string("1")); }
+void FSStorage::storeEcuRegistered() {
+  Utils::writeFile(Utils::absolutePath(config_.path, "is_registered"), std::string("1"));
+}
 
-bool FSStorage::loadEcuRegistered() { return boost::filesystem::exists((config_.path / "is_registered").string()); }
+bool FSStorage::loadEcuRegistered() {
+  return boost::filesystem::exists(Utils::absolutePath(config_.path, "is_registered").string());
+}
 
-void FSStorage::clearEcuRegistered() { boost::filesystem::remove(config_.path / "is_registered"); }
+void FSStorage::clearEcuRegistered() { boost::filesystem::remove(Utils::absolutePath(config_.path, "is_registered")); }
 
 void FSStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
-    Utils::writeFile((config_.path / "primary_ecu_serial"), serials[0].first);
-    Utils::writeFile((config_.path / "primary_ecu_hardware_id"), serials[0].second);
+    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_serial"), serials[0].first);
+    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"), serials[0].second);
 
-    boost::filesystem::remove_all((config_.path / "secondaries_list"));
+    boost::filesystem::remove_all(Utils::absolutePath(config_.path, "secondaries_list"));
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
-    std::ofstream file((config_.path / "secondaries_list").c_str());
+    std::ofstream file(Utils::absolutePath(config_.path, "secondaries_list").c_str());
     for (it = serials.begin() + 1; it != serials.end(); it++) {
       // Assuming that there are no tabs and linebreaks in serials and hardware ids
       file << it->first << "\t" << it->second << "\n";
@@ -235,15 +237,15 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
   std::string buf;
   std::string serial;
   std::string hw_id;
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_serial"))) {
+  if (!boost::filesystem::exists((Utils::absolutePath(config_.path, "primary_ecu_serial")))) {
     return false;
   }
-  serial = Utils::readFile((config_.path / "primary_ecu_serial").string());
+  serial = Utils::readFile(Utils::absolutePath(config_.path, "primary_ecu_serial").string());
   // use default hardware ID for backwards compatibility
-  if (!boost::filesystem::exists((config_.path / "primary_ecu_hardware_id"))) {
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"))) {
     hw_id = Utils::getHostname();
   } else {
-    hw_id = Utils::readFile((config_.path / "primary_ecu_hardware_id").string());
+    hw_id = Utils::readFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id").string());
   }
 
   if (serials) {
@@ -251,10 +253,10 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
   }
 
   // return true for backwards compatibility
-  if (!boost::filesystem::exists((config_.path / "secondaries_list"))) {
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "secondaries_list"))) {
     return true;
   }
-  std::ifstream file((config_.path / "secondaries_list").c_str());
+  std::ifstream file(Utils::absolutePath(config_.path, "secondaries_list").c_str());
   while (std::getline(file, buf)) {
     size_t tab = buf.find('\t');
     serial = buf.substr(0, tab);
@@ -276,9 +278,9 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
 }
 
 void FSStorage::clearEcuSerials() {
-  boost::filesystem::remove(config_.path / "primary_ecu_serial");
-  boost::filesystem::remove(config_.path / "primary_hardware_id");
-  boost::filesystem::remove(config_.path / "secondaries_list");
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_serial"));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_hardware_id"));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
 }
 
 void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
@@ -288,12 +290,12 @@ void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>&
     content[it->first] = it->second;
   }
 
-  Utils::writeFile((config_.path / "installed_versions"), Json::FastWriter().write(content));
+  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
 }
 
 bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
-  if (!boost::filesystem::exists(config_.path / "installed_versions")) return false;
-  Json::Value content_json = Utils::parseJSONFile((config_.path / "installed_versions").string());
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return false;
+  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
 
   for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
     std::cout << it.key();

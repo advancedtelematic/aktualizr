@@ -322,6 +322,14 @@ int Utils::shell(const std::string &command, std::string *output) {
   return WEXITSTATUS(exitcode);
 }
 
+boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file) {
+  if (file.is_absolute() || root.empty()) {
+    return file;
+  } else {
+    return (root / file);
+  }
+}
+
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}
 

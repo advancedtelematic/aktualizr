@@ -33,7 +33,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config,
                              INvStorage& storage, HttpInterface& http_client)
     : name_(name),
-      path_(config.storage.path / config.storage.uptane_metadata_path / name_),
+      path_(Utils::absolutePath(config.storage.path, config.storage.uptane_metadata_path) / name_),
       config_(config),
       storage_(storage),
       http_(http_client),
