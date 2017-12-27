@@ -1,11 +1,18 @@
 #!/usr/bin/python3
 
-import socket 
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-sock.connect("/tmp/sota-events.socket")
+import argparse
+import os
+import socket
 
-f = open('/tmp/sota-events.socket.txt', 'w')
-f.write(sock.recv(200))
+parser = argparse.ArgumentParser(os.path.basename(__file__))
+parser.add_argument('socket', metavar='socket', help='path to socket file')
+args = parser.parse_args()
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.connect(args.socket)
+
+f = open(args.socket + '.txt', 'w')
+f.write(sock.recv(200).decode("utf-8"))
 f.close()
 
 sock.close()
