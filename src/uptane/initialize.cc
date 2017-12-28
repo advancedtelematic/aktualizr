@@ -14,7 +14,7 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
                               const TlsConfig& tls_config) {
   // if device_id is already stored, just return
   std::string device_id;
-  if (storage.loadDeviceId(&device_id)) return true;
+  if (storage->loadDeviceId(&device_id)) return true;
 
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = uptane_config.device_id;
@@ -24,7 +24,7 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
     } else if (provision_config.mode == kImplicit) {
       std::string cert;
       if (tls_config.cert_source == kFile) {
-        if (!storage.loadTlsCert(&cert)) {
+        if (!storage->loadTlsCert(&cert)) {
           LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
           return false;
         }
@@ -49,10 +49,10 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
     }
   }
 
-  storage.storeDeviceId(device_id);
+  storage->storeDeviceId(device_id);
   return true;
 }
-void Repository::resetDeviceId() { storage.clearDeviceId(); }
+void Repository::resetDeviceId() { storage->clearDeviceId(); }
 
 void Repository::setEcuSerialMembers(const std::pair<std::string, std::string>& ecu_serials) {
   primary_ecu_serial = ecu_serials.first;
@@ -65,7 +65,7 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
 
   // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
   //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
-  if (storage.loadEcuSerials(&ecu_serials)) {
+  if (storage->loadEcuSerials(&ecu_serials)) {
     setEcuSerialMembers(ecu_serials[0]);
     return true;
   }
@@ -87,13 +87,13 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
     ecu_serials.push_back(std::pair<std::string, std::string>(it->first, it->second.first));
   }
 
-  storage.storeEcuSerials(ecu_serials);
+  storage->storeEcuSerials(ecu_serials);
   setEcuSerialMembers(ecu_serials[0]);
   return true;
 }
 
 void Repository::resetEcuSerials() {
-  storage.clearEcuSerials();
+  storage->clearEcuSerials();
   primary_ecu_serial = "";
 }
 
@@ -132,7 +132,7 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
   }
 #endif
   if (uptane_config.key_source == kFile) {
-    if (storage.loadPrimaryKeys(&primary_public, &primary_private)) {
+    if (storage->loadPrimaryKeys(&primary_public, &primary_private)) {
       primary_public_id = Crypto::getKeyId(primary_public);
       setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
       return true;
@@ -141,13 +141,13 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
   }
 
   primary_public_id = Crypto::getKeyId(primary_public);
-  storage.storePrimaryKeys(primary_public, primary_private);
+  storage->storePrimaryKeys(primary_public, primary_private);
   setEcuKeysMembers(primary_public, primary_private, primary_public_id, kFile);
   return true;
 }
 
 void Repository::resetEcuKeys() {
-  storage.clearPrimaryKeys();
+  storage->clearPrimaryKeys();
   primary_public_key_uri = "";
   primary_private_key_uri = "";
   primary_public_key_id = "";
@@ -162,7 +162,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
 
 #ifdef BUILD_P11
   if (tls_config.pkey_source == kFile) {
-    res = res && storage.loadTlsPkey(&pkey);
+    res = res && storage->loadTlsPkey(&pkey);
     pkcs11_tls_keyname = "";
   } else {  // kPkcs11
     pkey = p11.getTlsPkeyId();
@@ -170,7 +170,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
   }
 
   if (tls_config.cert_source == kFile) {
-    res = res && storage.loadTlsCert(&cert);
+    res = res && storage->loadTlsCert(&cert);
     pkcs11_tls_certname = "";
   } else {  // kPkcs11
     cert = p11.getTlsCertId();
@@ -178,12 +178,12 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
   }
 
   if (tls_config.ca_source == kFile) {
-    res = res && storage.loadTlsCa(&ca);
+    res = res && storage->loadTlsCa(&ca);
   } else {  // kPkcs11
     ca = p11.getTlsCacertId();
   }
 #else
-  res = storage.loadTlsCreds(&ca, &cert, &pkey);
+  res = storage->loadTlsCreds(&ca, &cert, &pkey);
 #endif
 
   if (res) http.setCerts(ca, tls_config.ca_source, cert, tls_config.cert_source, pkey, tls_config.pkey_source);
@@ -208,7 +208,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
 
   Json::Value data;
   std::string device_id;
-  if (!storage.loadDeviceId(&device_id)) {
+  if (!storage->loadDeviceId(&device_id)) {
     LOGGER_LOG(LVL_error, "device_id unknown during autoprovisioning process");
     return INIT_RET_STORAGE_FAILURE;
   }
@@ -235,7 +235,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
     return INIT_RET_BAD_P12;
   }
   fclose(device_p12);
-  storage.storeTlsCreds(ca, cert, pkey);
+  storage->storeTlsCreds(ca, cert, pkey);
 
   // set provisioned credentials
   if (!loadSetTlsCreds(tls_config)) {
@@ -249,19 +249,19 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
 
 void Repository::resetTlsCreds() {
   if (config.provision.mode != kImplicit) {
-    storage.clearTlsCreds();
+    storage->clearTlsCreds();
   }
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
 InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
-  if (storage.loadEcuRegistered()) return INIT_RET_OK;
+  if (storage->loadEcuRegistered()) return INIT_RET_OK;
 
   std::string primary_public;
 
 #ifdef BUILD_P11
   if (uptane_config.key_source == kFile) {
-    if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
+    if (!storage->loadPrimaryKeys(&primary_public, NULL)) {
       LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
       return INIT_RET_STORAGE_FAILURE;
     }
@@ -273,7 +273,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
   }
 #else
   (void)uptane_config;
-  if (!storage.loadPrimaryKeys(&primary_public, NULL)) {
+  if (!storage->loadPrimaryKeys(&primary_public, NULL)) {
     LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
     return INIT_RET_STORAGE_FAILURE;
   }
@@ -281,7 +281,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
   // initEcuSerials should have been called by this point
-  if (!storage.loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
+  if (!storage->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
     return INIT_RET_STORAGE_FAILURE;
   }
 
@@ -319,7 +319,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
       return INIT_RET_SERVER_FAILURE;
     }
   }
-  // do not call storage.storeEcuRegistered(), it will be called from the top-level Init function after the
+  // do not call storage->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
   LOGGER_LOG(LVL_info, "ECUs have been successfully registered to the server");
   return INIT_RET_OK;
@@ -365,7 +365,7 @@ bool Repository::initialize() {
     }
 
     // TODO: acknowledge on server _before_ setting the flag
-    storage.storeEcuRegistered();
+    storage->storeEcuRegistered();
     return true;
   }
   LOGGER_LOG(LVL_error, "Initialization failed after " << MaxInitializationAttempts << " attempts");
@@ -373,7 +373,7 @@ bool Repository::initialize() {
 }
 
 void Repository::initReset() {
-  storage.clearEcuRegistered();
+  storage->clearEcuRegistered();
   resetTlsCreds();
   resetEcuKeys();
   resetEcuSerials();

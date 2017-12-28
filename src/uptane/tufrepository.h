@@ -28,8 +28,8 @@ struct DownloadMetaStruct {
 
 class TufRepository {
  public:
-  TufRepository(const std::string& name, const std::string& base_url, const Config& config, INvStorage& storage,
-                HttpInterface& http_client);
+  TufRepository(const std::string& name, const std::string& base_url, const Config& config,
+                boost::shared_ptr<INvStorage>& storage, HttpInterface& http_client);
   Json::Value verifyRole(Role role, const TimeStamp& now, const Json::Value&, Uptane::Root* root_used = NULL);
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect
@@ -58,7 +58,7 @@ class TufRepository {
   std::string name_;
   boost::filesystem::path path_;
   const Config& config_;
-  INvStorage& storage_;
+  boost::shared_ptr<INvStorage>& storage_;
   HttpInterface& http_;
   std::string base_url_;
 

@@ -29,7 +29,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.postUpdateValues();
 
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(temp_dir.PathString());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(uptane.initialize());
@@ -48,7 +48,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(implicit_test_dir);
   Uptane::Repository uptane(config, storage, http);
 
@@ -103,7 +103,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
 
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(temp_dir.PathString());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_TRUE(uptane.initialize());

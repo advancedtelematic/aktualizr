@@ -31,7 +31,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 }
 
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config,
-                             INvStorage& storage, HttpInterface& http_client)
+                             boost::shared_ptr<INvStorage>& storage, HttpInterface& http_client)
     : name_(name),
       path_(config.storage.path / config.storage.uptane_metadata_path / name_),
       config_(config),
@@ -42,7 +42,7 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
   boost::filesystem::create_directories(path_ / "targets");
 
   Uptane::MetaPack meta;
-  if (storage_.loadMetadata(&meta)) {
+  if (storage_->loadMetadata(&meta)) {
     if (name_ == "repo") {
       root_ = meta.image_root;
       targets_ = meta.image_targets;

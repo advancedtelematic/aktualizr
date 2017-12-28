@@ -64,6 +64,8 @@ class INvStorage {
   // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;
   // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
   // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
+  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
+
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
   void importUpdateSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);

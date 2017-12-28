@@ -1,4 +1,6 @@
 #include "invstorage.h"
+#include "fsstorage.h"
+#include "sqlstorage.h"
 
 #include "logger.h"
 #include "utils.h"
@@ -45,4 +47,14 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importUpdateSimple(&INvStorage::storeTlsCa, &INvStorage::loadTlsCa, import_config.tls_cacert_path);
   importSimple(&INvStorage::storeTlsCert, &INvStorage::loadTlsCert, import_config.tls_clientcert_path);
   importSimple(&INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey, import_config.tls_pkey_path);
+}
+
+boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) {
+  switch (config.type) {
+    case kSqlite:
+      return boost::shared_ptr<INvStorage>(new SQLStorage(config));
+    case kFile:
+    default:
+      return boost::shared_ptr<INvStorage>(new FSStorage(config));
+  }
 }

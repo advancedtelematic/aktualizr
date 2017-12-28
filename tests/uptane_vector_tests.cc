@@ -45,7 +45,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.ostree.sysroot = "./sysroot";
 
   try {
-    FSStorage storage(config.storage);
+    boost::shared_ptr<INvStorage> storage (new FSStorage(config.storage));
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));

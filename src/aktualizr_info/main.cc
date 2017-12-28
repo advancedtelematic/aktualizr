@@ -3,7 +3,7 @@
 #include <string>
 
 #include "config.h"
-#include "fsstorage.h"
+#include "invstorage.h"
 #include "logger.h"
 
 namespace po = boost::program_options;
@@ -40,20 +40,20 @@ int main(int argc, char **argv) {
     }
     Config config(sota_config_path.string());
 
-    FSStorage storage(config.storage);
+    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     Uptane::MetaPack pack;
 
-    bool has_metadata = storage.loadMetadata(&pack);
+    bool has_metadata = storage->loadMetadata(&pack);
 
     std::string device_id;
-    if (!storage.loadDeviceId(&device_id)) {
+    if (!storage->loadDeviceId(&device_id)) {
       std::cout << "Couldn't load device ID" << std::endl;
     } else {
       std::cout << "Device ID: " << device_id << std::endl;
     }
 
     std::vector<std::pair<std::string, std::string> > serials;
-    if (!storage.loadEcuSerials(&serials)) {
+    if (!storage->loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
     } else if (serials.size() == 0) {
       std::cout << "Primary serial is not found" << std::endl;
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
       std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
     }
 
-    std::cout << "Provisioned on server: " << (storage.loadEcuRegistered() ? "yes" : "no") << std::endl;
+    std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
     if (has_metadata) {

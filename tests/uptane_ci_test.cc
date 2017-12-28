@@ -25,7 +25,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   pt.put("storage.path", test_dir);
   pt.put("uptane.metadata_path", test_dir);
   Config config(pt);
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
 
@@ -66,7 +66,7 @@ TEST(UptaneCI, CheckKeys) {
   ecu_config.metadata_path = test_dir + "/secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo);
@@ -75,14 +75,14 @@ TEST(UptaneCI, CheckKeys) {
   std::string ca;
   std::string cert;
   std::string pkey;
-  EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &pkey));
+  EXPECT_TRUE(storage->loadTlsCreds(&ca, &cert, &pkey));
   EXPECT_TRUE(ca.size() > 0);
   EXPECT_TRUE(cert.size() > 0);
   EXPECT_TRUE(pkey.size() > 0);
 
   std::string primary_public;
   std::string primary_private;
-  EXPECT_TRUE(storage.loadPrimaryKeys(&primary_public, &primary_private));
+  EXPECT_TRUE(storage->loadPrimaryKeys(&primary_public, &primary_private));
   EXPECT_TRUE(primary_public.size() > 0);
   EXPECT_TRUE(primary_private.size() > 0);
 
