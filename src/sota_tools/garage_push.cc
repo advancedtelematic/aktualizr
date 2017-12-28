@@ -17,12 +17,11 @@ using std::string;
 int main(int argc, char **argv) {
   logger_init();
 
-  string repo_path;
+  boost::filesystem::path repo_path;
   string ref;
-  string pull_cred;
   int max_curl_requests;
 
-  string credentials_path;
+  boost::filesystem::path credentials_path;
   string home_path = string(getenv("HOME"));
   string cacerts;
 
@@ -34,9 +33,9 @@ int main(int argc, char **argv) {
     ("help", "print usage")
     ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
-    ("repo,C", po::value<string>(&repo_path)->required(), "location of ostree repo")
+    ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("credentials,j", po::value<string>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "credentials (json or zip containing json)")
+    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload");
@@ -104,7 +103,7 @@ int main(int argc, char **argv) {
     ServerCredentials push_credentials(credentials_path);
     OSTreeRef ostree_ref = src_repo->GetRef(ref);
     if (!ostree_ref.IsValid()) {
-      LOG_FATAL << "Ref " << ref << " was not found in repository " << repo_path;
+      LOG_FATAL << "Ref " << ref << " was not found in repository " << repo_path.string();
       return EXIT_FAILURE;
     }
 

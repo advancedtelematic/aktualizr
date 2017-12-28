@@ -9,8 +9,8 @@
 #include "types.h"
 
 struct Ostree {
-  static boost::shared_ptr<OstreeDeployment> getStagedDeployment(const std::string &path);
-  static boost::shared_ptr<OstreeSysroot> LoadSysroot(const std::string &path);
+  static boost::shared_ptr<OstreeDeployment> getStagedDeployment(const boost::filesystem::path &path);
+  static boost::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
   static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
                         const data::PackageManagerCredentials &cred);
   static Json::Value getInstalledPackages(const boost::filesystem::path &file_path);
@@ -25,7 +25,7 @@ class OstreePackage {
   data::InstallOutcome install(const data::PackageManagerCredentials &cred, OstreeConfig config) const;
 
   Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const;
-  static std::string getCurrent(const std::string &ostree_sysroot);
+  static std::string getCurrent(const boost::filesystem::path &ostree_sysroot);
 };
 
 #endif  // OSTREE_H_

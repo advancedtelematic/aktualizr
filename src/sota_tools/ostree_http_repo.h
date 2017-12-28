@@ -2,6 +2,7 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_HTTP_REPO_H_
 
 #include <boost/array.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
 #include <list>
 #include <map>
@@ -22,7 +23,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const;
   OSTreeRef GetRef(const std::string& refname) const;
 
-  const std::string root() const { return root_.PathString(); }
+  const boost::filesystem::path root() const { return root_.PathString(); }
 
  private:
   bool Get(const boost::filesystem::path& path) const;

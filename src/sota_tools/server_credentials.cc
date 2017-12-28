@@ -39,7 +39,7 @@ boost::movelib::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
   return result;
 }
 
-ServerCredentials::ServerCredentials(const std::string &credentials_path)
+ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_path)
     : method_(AUTH_NONE), credentials_path_(credentials_path) {
   bool found_config = false;
 
@@ -54,7 +54,7 @@ ServerCredentials::ServerCredentials(const std::string &credentials_path)
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, credentials_path_.c_str(), 1024);
+  r = archive_read_open_filename(a, credentials_path_.string().c_str(), 1024);
   if (r == ARCHIVE_OK) {
     const char *filename = NULL;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
@@ -76,9 +76,10 @@ ServerCredentials::ServerCredentials(const std::string &credentials_path)
     }
     r = archive_read_free(a);
     if (r != ARCHIVE_OK) {
-      throw std::runtime_error(std::string("Error closing zipped credentials file: ") + credentials_path);
+      throw std::runtime_error(std::string("Error closing zipped credentials file: ") + credentials_path.string());
     } else if (!found_config) {
-      throw std::runtime_error(std::string("treehub.json not found in zipped credentials file: ") + credentials_path);
+      throw std::runtime_error(std::string("treehub.json not found in zipped credentials file: ") +
+                               credentials_path.string());
     }
   }
 
@@ -88,7 +89,7 @@ ServerCredentials::ServerCredentials(const std::string &credentials_path)
     if (found_config) {
       read_json(*json_stream, pt);
     } else {
-      read_json(credentials_path, pt);
+      read_json(credentials_path.string(), pt);
     }
 
     if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
@@ -112,7 +113,7 @@ ServerCredentials::ServerCredentials(const std::string &credentials_path)
     ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);
 
   } catch (json_parser_error e) {
-    throw std::runtime_error(std::string("Unable to read ") + credentials_path + " as archive or json file.");
+    throw std::runtime_error(std::string("Unable to read ") + credentials_path.string() + " as archive or json file.");
   }
 }
 
@@ -129,7 +130,7 @@ bool ServerCredentials::CanSignOffline() const {
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, credentials_path_.c_str(), 1024);
+  r = archive_read_open_filename(a, credentials_path_.string().c_str(), 1024);
   if (r == ARCHIVE_OK) {
     const char *filename = NULL;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {

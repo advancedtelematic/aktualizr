@@ -39,11 +39,9 @@ class CurlEasyWrapper {
 int main(int argc, char **argv) {
   logger_init();
 
-  string repo_path;
   string ref = "uninitialized";
-  string pull_cred;
 
-  string credentials_path;
+  boost::filesystem::path credentials_path;
   string home_path = string(getenv("HOME"));
   string cacerts;
 
@@ -55,7 +53,7 @@ int main(int argc, char **argv) {
     ("verbose,v",accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
     ("quiet,q", "quiet mode")
     ("ref,r", po::value<string>(&ref)->required(), "refhash to check")
-    ("credentials,j", po::value<string>(&credentials_path)->required(), "credentials (json or zip containing json)")
+    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
   // clang-format on
 

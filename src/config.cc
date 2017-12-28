@@ -348,7 +348,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
 
   if (cmd.count("legacy-interface") != 0) {
-    std::string legacy_interface = cmd["legacy-interface"].as<std::string>();
+    boost::filesystem::path legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
     if (checkLegacyVersion(legacy_interface)) {
       initLegacySecondaries(legacy_interface);
     }

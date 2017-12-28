@@ -146,7 +146,7 @@ struct UptaneConfig {
 struct OstreeConfig {
   OstreeConfig() : os(""), sysroot(""), packages_file("/usr/package.manifest") {}
   std::string os;
-  std::string sysroot;
+  boost::filesystem::path sysroot;
   boost::filesystem::path packages_file;
 };
 

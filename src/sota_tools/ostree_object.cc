@@ -11,7 +11,7 @@
 using std::string;
 
 OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string object_name)
-    : file_path_(repo.root() + "/objects/" + object_name),
+    : file_path_(repo.root() / "/objects/" / object_name),
       object_name_(object_name),
       repo_(repo),
       refcount_(0),

@@ -40,7 +40,7 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
   try {
     OstreePackage::getCurrent(config.ostree.sysroot);
   } catch (...) {
-    throw std::runtime_error("Could not find OSTree sysroot at:" + config.ostree.sysroot);
+    throw std::runtime_error("Could not find OSTree sysroot at:" + config.ostree.sysroot.string());
   }
 #endif
 }

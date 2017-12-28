@@ -42,7 +42,7 @@ Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_pat
   return packages;
 }
 
-std::string OstreePackage::getCurrent(const std::string &ostree_sysroot) {
+std::string OstreePackage::getCurrent(const boost::filesystem::path &ostree_sysroot) {
   (void)ostree_sysroot;
   return "hash";
 }

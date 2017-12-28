@@ -33,13 +33,13 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr_cert_provider version")
-      ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
+      ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
       ("target,t", bpo::value<std::string>(), "target device to scp credentials to (or [user@]host)")
       ("port,p", bpo::value<int>(), "target port")
       ("directory,d", bpo::value<boost::filesystem::path>()->default_value("/var/sota/token"), "directory on target to write credentials to")
       ("root-ca,r", "provide root CA")
       ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
-      ("config,g", bpo::value<std::string>(), "sota.toml configuration file from which to get file names");
+      ("config,g", bpo::value<boost::filesystem::path>(), "sota.toml configuration file from which to get file names");
   // clang-format on
 
   bpo::variables_map vm;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  std::string credentials_path = commandline_map["credentials"].as<std::string>();
+  boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
   std::string target = "";
   if (commandline_map.count("target") != 0) {
     target = commandline_map["target"].as<std::string>();
@@ -95,9 +95,9 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("local") != 0) {
     local_dir = commandline_map["local"].as<boost::filesystem::path>();
   }
-  std::string config_path = "";
+  boost::filesystem::path config_path = "";
   if (commandline_map.count("config") != 0) {
-    config_path = commandline_map["config"].as<std::string>();
+    config_path = commandline_map["config"].as<boost::filesystem::path>();
   }
 
   boost::filesystem::path pkey_file = "pkey.pem";

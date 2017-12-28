@@ -14,8 +14,8 @@ using std::stringstream;
 using std::ifstream;
 
 OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string &ref_name) : ref_name_(ref_name) {
-  if (boost::filesystem::is_regular_file(repo.root() + "/refs/heads/" + ref_name)) {
-    std::ifstream f(repo.root() + "/refs/heads/" + ref_name, std::ios::in | std::ios::binary);
+  if (boost::filesystem::is_regular_file(repo.root() / "/refs/heads/" / ref_name)) {
+    std::ifstream f((repo.root() / "/refs/heads/" / ref_name).string(), std::ios::in | std::ios::binary);
 
     std::istream_iterator<char> start(f);
     std::istream_iterator<char> end;

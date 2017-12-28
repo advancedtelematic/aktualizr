@@ -10,14 +10,14 @@
 #include "test_utils.h"
 
 TEST(authenticate, good_zip) {
-  std::string filepath = "sota_tools/auth_test_good.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_good.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, good_cert_zip) {
-  std::string filepath = "sota_tools/auth_test_cert_good.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_cert_good.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
@@ -30,7 +30,7 @@ TEST(authenticate, good_cert_zip) {
 }
 
 TEST(authenticate, good_cert_noauth_zip) {
-  std::string filepath = "sota_tools/auth_test_noauth_good.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_noauth_good.zip";
   TreehubServer treehub;
   int r = authenticate("fake_http_server/client.crt", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
@@ -43,7 +43,7 @@ TEST(authenticate, good_cert_noauth_zip) {
 }
 
 TEST(authenticate, bad_cert_zip) {
-  std::string filepath = "sota_tools/auth_test_cert_bad.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_cert_bad.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
@@ -56,18 +56,18 @@ TEST(authenticate, bad_cert_zip) {
 }
 
 TEST(authenticate, bad_zip) {
-  std::string filepath = "sota_tools/auth_test_bad.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_bad.zip";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
 }
 
 TEST(authenticate, no_json_zip) {
-  std::string filepath = "sota_tools/auth_test_no_json.zip";
+  boost::filesystem::path filepath = "sota_tools/auth_test_no_json.zip";
   try {
     ServerCredentials creds(filepath);
   } catch (const std::runtime_error &e) {
-    std::string err_expected = std::string("treehub.json not found in zipped credentials file: ") + filepath;
+    std::string err_expected = std::string("treehub.json not found in zipped credentials file: ") + filepath.string();
     EXPECT_EQ(err_expected, e.what());
     return;
   }
@@ -75,25 +75,25 @@ TEST(authenticate, no_json_zip) {
 }
 
 TEST(authenticate, good_json) {
-  std::string filepath = "sota_tools/auth_test_good.json";
+  boost::filesystem::path filepath = "sota_tools/auth_test_good.json";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, bad_json) {
-  std::string filepath = "sota_tools/auth_test_bad.json";
+  boost::filesystem::path filepath = "sota_tools/auth_test_bad.json";
   TreehubServer treehub;
   int r = authenticate("", filepath, treehub);
   EXPECT_EQ(1, r);
 }
 
 TEST(authenticate, invalid_file) {
-  std::string filepath = "sota_tools/auth_test.cc";
+  boost::filesystem::path filepath = "sota_tools/auth_test.cc";
   try {
     ServerCredentials creds(filepath);
   } catch (const std::runtime_error &e) {
-    std::string err_expected = std::string("Unable to read ") + filepath + " as archive or json file.";
+    std::string err_expected = std::string("Unable to read ") + filepath.string() + " as archive or json file.";
     EXPECT_EQ(err_expected, e.what());
     return;
   }
@@ -101,8 +101,8 @@ TEST(authenticate, invalid_file) {
 }
 
 TEST(authenticate, offline_sign_creds) {
-  std::string auth_offline = "sota_tools/auth_test_good_offline.zip";
-  std::string auth_online = "sota_tools/auth_test_cert_good.zip";
+  boost::filesystem::path auth_offline = "sota_tools/auth_test_good_offline.zip";
+  boost::filesystem::path auth_online = "sota_tools/auth_test_cert_good.zip";
 
   ServerCredentials creds_offline(auth_offline);
   ServerCredentials creds_online(auth_online);

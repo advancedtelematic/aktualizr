@@ -1,6 +1,7 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 
+#include <boost/filesystem.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -20,7 +21,7 @@ class OSTreeRepo : private boost::noncopyable {
   virtual bool LooksValid() const = 0;
   virtual OSTreeObject::ptr GetObject(const OSTreeHash hash) const = 0;
   virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const = 0;
-  virtual const std::string root() const = 0;
+  virtual const boost::filesystem::path root() const = 0;
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
 };
 
