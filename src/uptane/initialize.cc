@@ -307,7 +307,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
     all_ecus["ecus"].append(ecu);
   }
 
-  HttpResponse response = http.post(config.tls.server + "/director/ecus", all_ecus);
+  HttpResponse response = http.post(config.uptane.director_server + "/ecus", all_ecus);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&

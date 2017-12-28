@@ -11,7 +11,6 @@
 SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
   boost::filesystem::create_directories(config_.path);
 
-  // SQLStorage
   if (!dbMigrate()) {
     LOGGER_LOG(LVL_error, "SQLite database migration failed");
     // Continue to run anyway, it can't be worse

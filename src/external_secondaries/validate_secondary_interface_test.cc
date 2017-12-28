@@ -7,7 +7,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/shared_ptr.hpp>
-#include <regex>
 
 namespace bpo = boost::program_options;
 

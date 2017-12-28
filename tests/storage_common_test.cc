@@ -30,16 +30,6 @@ void InitConfig(StorageType type) {
     config.tls_clientcert_path = "test_tls.cert";
     config.tls_cacert_path = "test_tls.ca";
   } else {  // type == kSqlite
-    // FSStorage
-    config.path = storage_test_dir;
-    config.uptane_metadata_path = "metadata";
-    config.uptane_public_key_path = "test_primary.pub";
-    config.uptane_private_key_path = "test_primary.priv";
-    config.tls_pkey_path = "test_tls.pkey";
-    config.tls_clientcert_path = "test_tls.cert";
-    config.tls_cacert_path = "test_tls.ca";
-
-    // SQLStorage
     config.sqldb_path = storage_test_dir / "test.db";
     config.schemas_path = "config/storage";
   }

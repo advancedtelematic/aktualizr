@@ -41,7 +41,7 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
 /**
   * \verify{\tst{158}} Check that aktualizr can complete provisioning after previous network issues
 */
-TEST(SotaUptaneClientTest, partial_provision) {
+TEST(UptaneFakeHttp, partial_provision) {
   std::string port = TestUtils::getFreePort();
 
   TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);
@@ -52,6 +52,9 @@ TEST(SotaUptaneClientTest, partial_provision) {
   conf.storage.path = "tests/test_uptane_fake_http";
   conf.provision.server = "http://127.0.0.1:" + port;
   conf.tls.server = "http://127.0.0.1:" + port;
+  conf.uptane.repo_server = conf.tls.server + "/repo";
+  conf.uptane.director_server = conf.tls.server + "/director";
+  conf.uptane.ostree_server = conf.tls.server + "/treehub";
 
   EXPECT_TRUE(doInit("drop_request", "noerrors", conf));
   EXPECT_TRUE(doInit("drop_body", "noerrors", conf));
