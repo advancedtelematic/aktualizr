@@ -7,9 +7,9 @@ CREATE TABLE ecu_serials(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, is_prima
 CREATE TABLE primary_keys(private TEXT, public TEXT);
 CREATE TABLE installed_versions(hash TEXT UNIQUE, name TEXT NOT NULL);
 
-CREATE TABLE tls_creds(ca_cert BLOB NOT NULL, ca_cert_format TEXT NOT NULL,
-                       client_cert BLOB NOT NULL, client_cert_format TEXT NOT NULL,
-                       client_pkey BLOB NOT NULL, client_pkey_format TEXT NOT NULL);
+CREATE TABLE tls_creds(ca_cert BLOB, ca_cert_format TEXT,
+                       client_cert BLOB, client_cert_format TEXT,
+                       client_pkey BLOB, client_pkey_format TEXT);
 CREATE TABLE root_meta(root BLOB NOT NULL, root_format TEXT NOT NULL, director INTEGER NOT NULL CHECK (director IN (0,1)), version INTEGER NOT NULL);
 CREATE TABLE meta(director_root BLOB NOT NULL,
                   director_targets BLOB NOT NULL,

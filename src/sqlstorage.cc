@@ -163,67 +163,203 @@ void SQLStorage::storeTlsCreds(const std::string& ca, const std::string& cert, c
 }
 
 void SQLStorage::storeTlsCa(const std::string& ca) {
-  boost::filesystem::path ca_path(config_.path / config_.tls_cacert_path);
-  boost::filesystem::remove(ca_path);
-  Utils::writeFile(ca_path.string(), ca);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+  std::string req;
+  if (boost::lexical_cast<int>(req_response["result"])) {
+    req = "UPDATE OR REPLACE tls_creds SET ca_cert = '";
+    req += ca + "';";
+  } else {
+    req = "INSERT INTO tls_creds(ca_cert) VALUES  ('";
+    req += ca + "');";
+  }
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set ca_cert: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
   sync();
 }
 
 void SQLStorage::storeTlsCert(const std::string& cert) {
-  boost::filesystem::path cert_path(config_.path / config_.tls_clientcert_path);
-  boost::filesystem::remove(cert_path);
-  Utils::writeFile(cert_path.string(), cert);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+  std::string req;
+  if (boost::lexical_cast<int>(req_response["result"])) {
+    req = "UPDATE OR REPLACE tls_creds SET client_cert = '";
+    req += cert + "';";
+  } else {
+    req = "INSERT INTO tls_creds(client_cert) VALUES  ('";
+    req += cert + "');";
+  }
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set client_cert: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
   sync();
 }
 
 void SQLStorage::storeTlsPkey(const std::string& pkey) {
-  boost::filesystem::path pkey_path(config_.path / config_.tls_pkey_path);
-  boost::filesystem::remove(pkey_path);
-  Utils::writeFile(pkey_path.string(), pkey);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+  std::string req;
+  if (boost::lexical_cast<int>(req_response["result"])) {
+    req = "UPDATE OR REPLACE tls_creds SET client_pkey = '";
+    req += pkey + "';";
+  } else {
+    req = "INSERT INTO tls_creds(client_pkey) VALUES  ('";
+    req += pkey + "');";
+  }
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set client_pkey: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
   sync();
 }
 
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
-  boost::filesystem::path ca_path(config_.path / config_.tls_cacert_path);
-  boost::filesystem::path cert_path(config_.path / config_.tls_clientcert_path);
-  boost::filesystem::path pkey_path(config_.path / config_.tls_pkey_path);
-  if (!boost::filesystem::exists(ca_path) || boost::filesystem::is_directory(ca_path) ||
-      !boost::filesystem::exists(cert_path) || boost::filesystem::is_directory(cert_path) ||
-      !boost::filesystem::exists(pkey_path) || boost::filesystem::is_directory(pkey_path)) {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
     return false;
   }
+
+  request = kSqlGetTable;
+  req_response_table.clear();
+  if (sqlite3_exec(db.get(), "SELECT * FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get tls_creds: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response_table.empty()) return false;
+
   if (ca) {
-    *ca = Utils::readFile(ca_path.string());
+    *ca = req_response_table[0]["ca_cert"];
   }
   if (cert) {
-    *cert = Utils::readFile(cert_path.string());
+    *cert = req_response_table[0]["client_cert"];
   }
   if (pkey) {
-    *pkey = Utils::readFile(pkey_path.string());
+    *pkey = req_response_table[0]["client_pkey"];
   }
   return true;
 }
 
 void SQLStorage::clearTlsCreds() {
-  boost::filesystem::remove(config_.path / config_.tls_cacert_path);
-  boost::filesystem::remove(config_.path / config_.tls_clientcert_path);
-  boost::filesystem::remove(config_.path / config_.tls_pkey_path);
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM tls_creds;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't clear tls_creds: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 }
 
-bool SQLStorage::loadTlsCommon(std::string* data, const boost::filesystem::path& path_in) {
-  boost::filesystem::path path(config_.path / path_in);
-  if (!boost::filesystem::exists(path)) return false;
+bool SQLStorage::loadTlsCa(std::string* ca) {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-  if (data) *data = Utils::readFile(path.string());
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT ca_cert FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get device ID: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (ca) *ca = req_response["result"];
 
   return true;
 }
 
-bool SQLStorage::loadTlsCa(std::string* ca) { return loadTlsCommon(ca, config_.tls_cacert_path); }
+bool SQLStorage::loadTlsCert(std::string* cert) {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-bool SQLStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, config_.tls_clientcert_path); }
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
 
-bool SQLStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT client_cert FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get device ID: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (cert) *cert = req_response["result"];
+
+  return true;
+}
+
+bool SQLStorage::loadTlsPkey(std::string* pkey) {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT client_pkey FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get client_pkey: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  if (pkey) *pkey = req_response["result"];
+
+  return true;
+}
 
 #ifdef BUILD_OSTREE
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
@@ -664,7 +800,9 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
     case kSqlGetTable: {
       std::map<std::string, std::string> row;
       for (int i = 0; i < numcolumns; ++i) {
-        row[columns[i]] = values[i];
+        if (values[i] != NULL) {
+          row[columns[i]] = values[i];
+        }
       }
       instance->req_response_table.push_back(row);
       break;
