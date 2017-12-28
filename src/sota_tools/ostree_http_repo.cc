@@ -48,14 +48,14 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   server_->InjectIntoCurl(path.string(), easy_handle);
   curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
-  int fp = open((root_ / path).string().c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  int fp = open((root_ / path).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
   curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
   CURLcode err = curl_easy_perform(easy_handle);
   close(fp);
   curl_easy_cleanup(easy_handle);
   if (err) {
-    remove((root_ / path).string().c_str());
+    remove((root_ / path).c_str());
     return false;
   }
   return true;

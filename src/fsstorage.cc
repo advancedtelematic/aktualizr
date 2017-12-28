@@ -222,7 +222,7 @@ void FSStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::st
 
     boost::filesystem::remove_all((config_.path / "secondaries_list"));
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
-    std::ofstream file((config_.path / "secondaries_list").string().c_str());
+    std::ofstream file((config_.path / "secondaries_list").c_str());
     for (it = serials.begin() + 1; it != serials.end(); it++) {
       // Assuming that there are no tabs and linebreaks in serials and hardware ids
       file << it->first << "\t" << it->second << "\n";
@@ -254,7 +254,7 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
   if (!boost::filesystem::exists((config_.path / "secondaries_list"))) {
     return true;
   }
-  std::ifstream file((config_.path / "secondaries_list").string().c_str());
+  std::ifstream file((config_.path / "secondaries_list").c_str());
   while (std::getline(file, buf)) {
     size_t tab = buf.find('\t');
     serial = buf.substr(0, tab);

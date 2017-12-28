@@ -141,7 +141,7 @@ TEST(config, secondary_config) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "secondary ECU json configuration file");
+    ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file");
   // clang-format on
   const char *argv[] = {"aktualizr", "--secondary-config", "config/ex/secondary/virtualsec.json"};
   bpo::store(bpo::parse_command_line(3, argv, description), cmd);
@@ -162,7 +162,7 @@ TEST(config, legacy_interface) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("legacy-interface", bpo::value<std::string>()->composing(), "path to legacy secondary ECU interface program");
+    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program");
   // clang-format on
   std::string path = (build_dir / "src/external_secondaries/example-interface").string();
   const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str()};

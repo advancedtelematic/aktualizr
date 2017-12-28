@@ -54,7 +54,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, credentials_path_.string().c_str(), 1024);
+  r = archive_read_open_filename(a, credentials_path_.c_str(), 1024);
   if (r == ARCHIVE_OK) {
     const char *filename = NULL;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
@@ -130,7 +130,7 @@ bool ServerCredentials::CanSignOffline() const {
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, credentials_path_.string().c_str(), 1024);
+  r = archive_read_open_filename(a, credentials_path_.c_str(), 1024);
   if (r == ARCHIVE_OK) {
     const char *filename = NULL;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {

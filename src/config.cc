@@ -343,7 +343,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
 
   if (cmd.count("secondary-config") != 0) {
-    std::vector<std::string> sconfigs = cmd["secondary-config"].as<std::vector<std::string> >();
+    std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path> >();
     readSecondaryConfigs(sconfigs);
   }
 
@@ -355,8 +355,8 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
 }
 
-void Config::readSecondaryConfigs(const std::vector<std::string>& sconfigs) {
-  std::vector<std::string>::const_iterator it;
+void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
+  std::vector<boost::filesystem::path>::const_iterator it;
   for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
     Json::Value config_json = Utils::parseJSONFile(*it);
     Uptane::SecondaryConfig sconfig;

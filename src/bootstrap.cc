@@ -19,7 +19,7 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
       struct archive* a = archive_read_new();
       archive_read_support_filter_all(a);
       archive_read_support_format_all(a);
-      int r = archive_read_open_filename(a, provision_path.string().c_str(), 20 * 512);
+      int r = archive_read_open_filename(a, provision_path.c_str(), 20 * 512);
       if (r == ARCHIVE_OK) {
         struct archive_entry* entry;
         while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
@@ -84,7 +84,7 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
   struct archive* a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  int r = archive_read_open_filename(a, provision_path.string().c_str(), 1024);
+  int r = archive_read_open_filename(a, provision_path.c_str(), 1024);
   if (r == ARCHIVE_OK) {
     struct archive_entry* entry;
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {

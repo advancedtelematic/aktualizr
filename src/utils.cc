@@ -207,7 +207,7 @@ Json::Value Utils::parseJSON(const std::string &json_str) {
 }
 
 Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
-  std::ifstream path_stream(filename.string().c_str());
+  std::ifstream path_stream(filename.c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return Utils::parseJSON(content);
 }
@@ -236,7 +236,7 @@ std::string Utils::genPrettyName() {
 }
 
 std::string Utils::readFile(const boost::filesystem::path &filename) {
-  std::ifstream path_stream(filename.string().c_str());
+  std::ifstream path_stream(filename.c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return content;
 }
@@ -245,7 +245,7 @@ void Utils::writeFile(const boost::filesystem::path &filename, const std::string
   if (create_directories) {
     boost::filesystem::create_directories(filename.parent_path());
   }
-  std::ofstream file(filename.string().c_str());
+  std::ofstream file(filename.c_str());
   if (!file.good()) {
     throw std::runtime_error(std::string("Error opening file ") + filename.string());
   }

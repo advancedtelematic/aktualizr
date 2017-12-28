@@ -15,7 +15,7 @@
 boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const boost::filesystem::path &path) {
   OstreeSysroot *sysroot = NULL;
 
-  if (path.size()) {
+  if (!path.empty()) {
     GFile *fl = g_file_new_for_path(path.c_str());
     sysroot = ostree_sysroot_new(fl);
     g_object_unref(fl);
