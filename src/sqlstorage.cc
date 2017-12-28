@@ -476,11 +476,55 @@ void SQLStorage::clearDeviceId() {
   }
 }
 
-void SQLStorage::storeEcuRegistered() { Utils::writeFile((config_.path / "is_registered").string(), std::string("1")); }
+void SQLStorage::storeEcuRegistered() {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
 
-bool SQLStorage::loadEcuRegistered() { return boost::filesystem::exists((config_.path / "is_registered").string()); }
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
 
-void SQLStorage::clearEcuRegistered() { boost::filesystem::remove(config_.path / "is_registered"); }
+  std::string req = "UPDATE OR REPLACE device_info SET is_registered = 1";
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set is_registered: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+}
+
+bool SQLStorage::loadEcuRegistered() {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  request = kSqlGetSimple;
+  req_response.clear();
+  if (sqlite3_exec(db.get(), "SELECT is_registered FROM device_info LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't get device ID: " << sqlite3_errmsg(db.get()));
+    return false;
+  }
+
+  if (req_response.find("result") == req_response.end()) return false;
+
+  return boost::lexical_cast<int>(req_response["result"]);
+}
+
+void SQLStorage::clearEcuRegistered() {
+  SQLite3Guard db(config_.sqldb_path.string().c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't open database: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+
+  std::string req = "UPDATE OR REPLACE device_info SET is_registered = 0";
+  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    LOGGER_LOG(LVL_error, "Can't set is_registered: " << sqlite3_errmsg(db.get()));
+    return;
+  }
+}
 
 void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
