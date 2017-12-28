@@ -27,7 +27,7 @@ class Handler(BaseHTTPRequestHandler):
         elif data["ttl"] == "drop_body":
             self.send_response(200)
             self.end_headers()
-            self.wfile.write("some partial response")
+            self.wfile.write(b"some partial response")
         elif data["ttl"].startswith("status_"):
             self.send_response(int(data["ttl"][7:]))
             self.end_headers()
@@ -46,7 +46,7 @@ class Handler(BaseHTTPRequestHandler):
         elif data["primary_ecu_serial"] == "noerrors":
             self.send_response(200)
             self.end_headers()
-            self.wfile.write("{}")
+            self.wfile.write(b"{}")
 
 
 class ReUseHTTPServer(HTTPServer):
