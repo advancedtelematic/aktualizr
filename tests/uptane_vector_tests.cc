@@ -3,14 +3,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 #include <string>
-
-#include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 #include "config.h"
 #include "fsstorage.h"
@@ -45,7 +39,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.ostree.sysroot = "./sysroot";
 
   try {
-    boost::shared_ptr<INvStorage> storage (new FSStorage(config.storage));
+    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));

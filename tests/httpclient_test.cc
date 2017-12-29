@@ -57,21 +57,13 @@ TEST(PostTest, put_performed) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  if (argc >= 2) {
-    std::string port = TestUtils::getFreePort();
-    std::cout << "port number: " << port << "\n";
-    pid_t pID = fork();
-    if (pID == 0) {
-      execlp((std::string(argv[1]) + "/fake_http_server.py").c_str(), "fake_http_server.py", port.c_str(), (char*)0);
-      return 0;
-    } else {
-      sleep(4);
-      server += port;
-      int ret = RUN_ALL_TESTS();
-      kill(pID, SIGTERM);
-      return ret;
-    }
-  }
-  return -1;
+
+  std::string port = TestUtils::getFreePort();
+  server += port;
+  TestHelperProcess server_process("tests/fake_http_server/fake_http_server.py", port);
+
+  sleep(4);
+
+  return RUN_ALL_TESTS();
 }
 #endif

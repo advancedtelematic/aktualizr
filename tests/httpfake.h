@@ -14,7 +14,7 @@ enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
 class HttpFake : public HttpInterface {
  public:
-  HttpFake(const boost::filesystem::path &test_dir_in, bool is_initialized = false)
+  HttpFake(const boost::filesystem::path &test_dir_in, const bool is_initialized = false)
       : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {
     boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
     boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");

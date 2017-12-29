@@ -14,8 +14,6 @@
 #include "uptane/secondaryconfig.h"
 #include "uptane/uptanerepository.h"
 
-const std::string key_test_dir = "tests/test_uptane_key";
-
 void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::SecondaryConfig& ecu_config2,
                   TemporaryDirectory& temp_dir) {
   config.uptane.repo_server = tls_server + "/director";
@@ -113,14 +111,12 @@ TEST(UptaneKey, CheckAllKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
 
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-  HttpFake http(key_test_dir);
+  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane);
   EXPECT_TRUE(uptane.initialize());
   checkKeyTests(storage, sota_client);
-
-  boost::filesystem::remove_all(key_test_dir);
 }
 
 /**
@@ -136,7 +132,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-    HttpFake http(key_test_dir);
+    HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane);
@@ -149,7 +145,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   }
   {
     boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-    HttpFake http(key_test_dir);
+    HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane);
@@ -168,7 +164,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-    HttpFake http(key_test_dir);
+    HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane);
@@ -176,7 +172,6 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
   }
-  boost::filesystem::remove_all(key_test_dir);
 }
 
 #ifndef __NO_MAIN__

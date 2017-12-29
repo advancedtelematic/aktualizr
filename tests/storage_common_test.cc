@@ -8,15 +8,20 @@
 #include "fsstorage.h"
 #include "logger.h"
 #include "sqlstorage.h"
+#include "utils.h"
 
-const boost::filesystem::path storage_test_dir = "tests/test_storage";
+boost::filesystem::path storage_test_dir;
 StorageConfig config;
 
 boost::movelib::unique_ptr<INvStorage> Storage() {
-  if (config.type == kFileSystem)
+  if (config.type == kFileSystem) {
     return boost::movelib::unique_ptr<INvStorage>(new FSStorage(config));
-  else
+  } else if (config.type == kSqlite) {
     return boost::movelib::unique_ptr<INvStorage>(new SQLStorage(config));
+  } else {
+    std::cout << "Invalid config type: " << config.type << "\n";
+    return boost::movelib::unique_ptr<INvStorage>(NULL);
+  }
 }
 
 void InitConfig(StorageType type) {
@@ -29,13 +34,16 @@ void InitConfig(StorageType type) {
     config.tls_pkey_path = "test_tls.pkey";
     config.tls_clientcert_path = "test_tls.cert";
     config.tls_cacert_path = "test_tls.ca";
-  } else {  // type == kSqlite
+  } else if (config.type == kSqlite) {
     config.sqldb_path = storage_test_dir / "test.db";
     config.schemas_path = "config/storage";
+  } else {
+    std::cout << "Invalid config type: " << config.type << "\n";
   }
 }
 
 TEST(storage, load_store_primary_keys) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   storage->storePrimaryKeys("pr_public", "pr_private");
 
@@ -51,6 +59,7 @@ TEST(storage, load_store_primary_keys) {
 }
 
 TEST(storage, load_store_tls) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
@@ -70,6 +79,7 @@ TEST(storage, load_store_tls) {
 
 #ifdef BUILD_OSTREE
 TEST(storage, load_store_metadata) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   Uptane::MetaPack stored_meta;
   Json::Value root_json;
@@ -139,6 +149,7 @@ TEST(storage, load_store_metadata) {
 #endif  // BUILD_OSTREE
 
 TEST(storage, load_store_deviceid) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   storage->storeDeviceId("device_id");
 
@@ -153,6 +164,7 @@ TEST(storage, load_store_deviceid) {
 }
 
 TEST(storage, load_store_ecu_serials) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   std::vector<std::pair<std::string, std::string> > serials;
   serials.push_back(std::pair<std::string, std::string>("primary", "primary_hw"));
@@ -171,6 +183,7 @@ TEST(storage, load_store_ecu_serials) {
 }
 
 TEST(storage, load_store_ecu_registered) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
   storage->storeEcuRegistered();
 
@@ -182,6 +195,7 @@ TEST(storage, load_store_ecu_registered) {
 }
 
 TEST(storage, import_data) {
+  boost::filesystem::create_directories(storage_test_dir);
   boost::filesystem::create_directories(storage_test_dir / "import");
 
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
@@ -256,11 +270,16 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   loggerInit();
   loggerSetSeverity(LVL_trace);
+
   std::cout << "Running tests for FSStorage" << std::endl;
+  TemporaryDirectory temp_dir1;
+  storage_test_dir = temp_dir1.Path();
   InitConfig(kFileSystem);
   int res_fs = RUN_ALL_TESTS();
 
   std::cout << "Running tests for SQLStorage" << std::endl;
+  TemporaryDirectory temp_dir2;
+  storage_test_dir = temp_dir2.Path();
   InitConfig(kSqlite);
   int res_sql = RUN_ALL_TESTS();
 
