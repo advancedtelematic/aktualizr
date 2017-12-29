@@ -119,12 +119,12 @@ void Config::writeOption(std::ofstream& sink, const T& data, const std::string& 
 
 Config::Config() { postUpdateValues(); }
 
-Config::Config(const std::string& filename) {
+Config::Config(const boost::filesystem::path& filename) {
   updateFromToml(filename);
   postUpdateValues();
 }
 
-Config::Config(const std::string& filename, const boost::program_options::variables_map& cmd) {
+Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
@@ -159,9 +159,9 @@ void Config::postUpdateValues() {
   if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
 }
 
-void Config::updateFromToml(const std::string& filename) {
+void Config::updateFromToml(const boost::filesystem::path& filename) {
   boost::property_tree::ptree pt;
-  boost::property_tree::ini_parser::read_ini(filename, pt);
+  boost::property_tree::ini_parser::read_ini(filename.string(), pt);
   updateFromPropertyTree(pt);
   LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
 }
@@ -343,20 +343,20 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
 
   if (cmd.count("secondary-config") != 0) {
-    std::vector<std::string> sconfigs = cmd["secondary-config"].as<std::vector<std::string> >();
+    std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path> >();
     readSecondaryConfigs(sconfigs);
   }
 
   if (cmd.count("legacy-interface") != 0) {
-    std::string legacy_interface = cmd["legacy-interface"].as<std::string>();
+    boost::filesystem::path legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
     if (checkLegacyVersion(legacy_interface)) {
       initLegacySecondaries(legacy_interface);
     }
   }
 }
 
-void Config::readSecondaryConfigs(const std::vector<std::string>& sconfigs) {
-  std::vector<std::string>::const_iterator it;
+void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
+  std::vector<boost::filesystem::path>::const_iterator it;
   for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
     Json::Value config_json = Utils::parseJSONFile(*it);
     Uptane::SecondaryConfig sconfig;
@@ -389,7 +389,7 @@ void Config::readSecondaryConfigs(const std::vector<std::string>& sconfigs) {
   }
 }
 
-bool Config::checkLegacyVersion(const std::string& legacy_interface) {
+bool Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface) {
   bool ret = false;
   if (!boost::filesystem::exists(legacy_interface)) {
     LOGGER_LOG(LVL_error, "Legacy external flasher not found: " << legacy_interface);
@@ -412,10 +412,9 @@ bool Config::checkLegacyVersion(const std::string& legacy_interface) {
   return ret;
 }
 
-void Config::initLegacySecondaries(const std::string& legacy_interface) {
+void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interface) {
   std::stringstream command;
   std::string output;
-  output = std::string();
   command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
@@ -466,7 +465,7 @@ void Config::initLegacySecondaries(const std::string& legacy_interface) {
 // environment. However, if we were to want to simplify the output file, we
 // could skip blank strings or compare values against a freshly built instance
 // to detect and skip default values.
-void Config::writeToFile(const std::string& filename) {
+void Config::writeToFile(const boost::filesystem::path& filename) {
   // Keep this order the same as in config.h and updateFromPropertyTree().
 
   std::ofstream sink(filename.c_str(), std::ofstream::out);

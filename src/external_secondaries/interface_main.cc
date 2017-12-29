@@ -1,3 +1,4 @@
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
@@ -14,7 +15,7 @@ int main(int argc, char **argv) {
   string command;
   string hardware_identifier;
   string ecu_identifier;
-  string firmware_path;
+  boost::filesystem::path firmware_path;
 
   // clang-format off
   desc.add_options()
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
          "hardware identifier of the ECU where the update should be installed (e.g. rh850)")
     ("ecu-identifier", po::value<string>(&ecu_identifier),
          "unique serial number of the ECU where the update should be installed (e.g. ‘abcdef12345’)")
-    ("firmware", po::value<string>(&firmware_path),
+    ("firmware", po::value<boost::filesystem::path>(&firmware_path),
          "absolute path to the firmware image to be installed.")
     ("command", po::value<string>(&command),
          "command to run: api-version | list-ecus | install-software");
@@ -57,7 +58,8 @@ int main(int argc, char **argv) {
                        "--ecu-identifier.\n";
           return EXIT_FAILURE;
         }
-        ECUInterface::InstallStatus result = ecu->installSoftware(hardware_identifier, ecu_identifier, firmware_path);
+        ECUInterface::InstallStatus result =
+            ecu->installSoftware(hardware_identifier, ecu_identifier, firmware_path.string());
         std::cout << "Installation result: " << result << "\n";
         return result;
       } else {

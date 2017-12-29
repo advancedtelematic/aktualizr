@@ -31,7 +31,7 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
-Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
+Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_path) {
   (void)file_path;
   Json::Value packages(Json::arrayValue);
   Json::Value package;
@@ -42,7 +42,7 @@ Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
   return packages;
 }
 
-std::string OstreePackage::getCurrent(const std::string &ostree_sysroot) {
+std::string OstreePackage::getCurrent(const boost::filesystem::path &ostree_sysroot) {
   (void)ostree_sysroot;
   return "hash";
 }

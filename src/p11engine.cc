@@ -43,7 +43,7 @@ P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.mo
   if (!ENGINE_ctrl_cmd_string(ssl_engine_, "LOAD", NULL, 0)) throw std::runtime_error("Engine command failed: LOAD");
 
   if (!ENGINE_ctrl_cmd_string(ssl_engine_, "MODULE_PATH", config_.module.c_str(), 0))
-    throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module);
+    throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module.string());
 
   if (!ENGINE_ctrl_cmd_string(ssl_engine_, "PIN", config_.pass.c_str(), 0))
     throw std::runtime_error(std::string("Engine command failed: PIN ") + config_.pass);

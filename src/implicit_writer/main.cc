@@ -28,10 +28,10 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr_implicit_writer version")
-      ("credentials,c", bpo::value<std::string>()->required(), "zipped credentials file")
-      ("config-input,i", bpo::value<std::string>()->required(), "input sota.toml configuration file")
-      ("config-output,o", bpo::value<std::string>()->required(), "output sota.toml configuration file")
-      ("prefix,p", bpo::value<std::string>(), "prefix for root CA output path")
+      ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
+      ("config-input,i", bpo::value<boost::filesystem::path>()->required(), "input sota.toml configuration file")
+      ("config-output,o", bpo::value<boost::filesystem::path>()->required(), "output sota.toml configuration file")
+      ("prefix,p", bpo::value<boost::filesystem::path>(), "prefix for root CA output path")
       ("no-root-ca", "don't overwrite root CA path");
   // clang-format on
 
@@ -73,14 +73,14 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  std::string credentials_path = commandline_map["credentials"].as<std::string>();
-  std::string config_in_path = commandline_map["config-input"].as<std::string>();
-  std::string config_out_path = commandline_map["config-output"].as<std::string>();
+  boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
+  boost::filesystem::path config_in_path = commandline_map["config-input"].as<boost::filesystem::path>();
+  boost::filesystem::path config_out_path = commandline_map["config-output"].as<boost::filesystem::path>();
   bool no_root = (commandline_map.count("no-root-ca") != 0);
 
-  std::string prefix = "";
+  boost::filesystem::path prefix = "";
   if (commandline_map.count("prefix") != 0) {
-    prefix = commandline_map["prefix"].as<std::string>();
+    prefix = commandline_map["prefix"].as<boost::filesystem::path>();
   }
 
   std::cout << "Reading config file: " << config_in_path << "\n";
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     config.import.tls_cacert_path = "/usr/lib/sota/root.crt";
     ca_path /= config.import.tls_cacert_path;
     std::cout << "Writing root CA: " << ca_path << "\n";
-    Utils::writeFile(ca_path.string(), boot.getCa());
+    Utils::writeFile(ca_path, boot.getCa());
   }
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
   config.uptane.ostree_server = config.tls.server + "/treehub";
 
   std::cout << "Writing config file: " << config_out_path << "\n";
-  boost::filesystem::path parent_dir = boost::filesystem::path(config_out_path).parent_path();
+  boost::filesystem::path parent_dir = config_out_path.parent_path();
   if (!parent_dir.empty()) {
     boost::filesystem::create_directories(parent_dir);
   }

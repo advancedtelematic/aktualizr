@@ -4,13 +4,14 @@
 #include <libp11.h>
 #include <openssl/engine.h>
 #include <openssl/err.h>
+#include <boost/filesystem.hpp>
 
 #include "config.h"
 #include "logger.h"
 
 class P11ContextWrapper {
  public:
-  P11ContextWrapper(const std::string &module) {
+  P11ContextWrapper(const boost::filesystem::path &module) {
     if (module.empty()) {
       ctx = NULL;
       return;
@@ -19,7 +20,7 @@ class P11ContextWrapper {
     ctx = PKCS11_CTX_new();
     if (PKCS11_CTX_load(ctx, module.c_str())) {
       PKCS11_CTX_free(ctx);
-      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module << ": "
+      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module.string() << ": "
                                                            << ERR_error_string(ERR_get_error(), NULL));
       throw std::runtime_error("PKCS11 error");
     }

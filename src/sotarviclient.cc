@@ -169,7 +169,7 @@ void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
 
   std::string output = Utils::fromBase64(b64_text);
 
-  std::ofstream update_file((config.rvi.packages_dir / chunk_json["update_id"].asString()).string().c_str(),
+  std::ofstream update_file((config.rvi.packages_dir / chunk_json["update_id"].asString()).c_str(),
                             std::ios::out | std::ios::app | std::ios::binary);
   update_file << output;
   update_file.close();

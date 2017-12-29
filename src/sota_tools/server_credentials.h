@@ -1,13 +1,14 @@
 #ifndef SOTA_CLIENT_TOOLS_SERVER_CREDENTIALS_H_
 #define SOTA_CLIENT_TOOLS_SERVER_CREDENTIALS_H_
 
+#include <boost/filesystem.hpp>
 #include <string>
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
 
 class ServerCredentials {
  public:
-  ServerCredentials(const std::string &creds);
+  ServerCredentials(const boost::filesystem::path &creds);
   bool CanSignOffline() const;
   AuthMethod GetMethod() const { return method_; };
   std::string GetClientCert() const { return client_cert_; };
@@ -25,7 +26,7 @@ class ServerCredentials {
    * Path to the original credentials.zip on disk.  Needed to hand off to
    * garage-sign executable.
    */
-  std::string GetPathOnDisk() const { return credentials_path_; }
+  boost::filesystem::path GetPathOnDisk() const { return credentials_path_; }
 
  private:
   AuthMethod method_;
@@ -39,7 +40,7 @@ class ServerCredentials {
   std::string ostree_server_;
   std::string client_id_;
   std::string client_secret_;
-  std::string credentials_path_;
+  boost::filesystem::path credentials_path_;
 };
 
 #endif  // SOTA_CLIENT_TOOLS_SERVER_CREDENTIALS_H_

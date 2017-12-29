@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
   int verbosity;
   std::string ostree_commit;
   std::string name;
-  std::string fetch_cred;
-  std::string push_cred;
+  boost::filesystem::path fetch_cred;
+  boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
   po::options_description desc("garage_push command line options");
@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
     ("quiet,q", "Quiet mode")
     ("commit", po::value<std::string>(&ostree_commit)->required(), "OSTree commit to deploy")
     ("name", po::value<std::string>(&name)->required(), "Name of image")
-    ("fetch-credentials,f", po::value<std::string>(&fetch_cred)->required(), "path to source credentials")
-    ("push-credentials,p", po::value<std::string>(&push_cred)->required(), "path to destination credentials")
+    ("fetch-credentials,f", po::value<boost::filesystem::path>(&fetch_cred)->required(), "path to source credentials")
+    ("push-credentials,p", po::value<boost::filesystem::path>(&push_cred)->required(), "path to destination credentials")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
   // clang-format on

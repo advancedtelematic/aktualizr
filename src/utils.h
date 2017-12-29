@@ -14,9 +14,11 @@ struct Utils {
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
   static std::string intToString(unsigned int val);
   static std::string genPrettyName();
-  static std::string readFile(const std::string &filename);
-  static void writeFile(const std::string &filename, const std::string &content, bool create_directories = true);
-  static void writeFile(const std::string &filename, const Json::Value &content, bool create_directories = true);
+  static std::string readFile(const boost::filesystem::path &filename);
+  static void writeFile(const boost::filesystem::path &filename, const std::string &content,
+                        bool create_directories = true);
+  static void writeFile(const boost::filesystem::path &filename, const Json::Value &content,
+                        bool create_directories = true);
   static void copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to);
   static Json::Value getHardwareInfo();
   static std::string getHostname();

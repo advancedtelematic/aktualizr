@@ -10,8 +10,8 @@ namespace Uptane {
 VirtualSecondary::VirtualSecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {}
 
 bool VirtualSecondary::storeFirmware(const std::string& target_name, const std::string& content) {
-  Utils::writeFile(sconfig.target_name_path.string(), target_name);
-  Utils::writeFile(sconfig.firmware_path.string(), content);
+  Utils::writeFile(sconfig.target_name_path, target_name);
+  Utils::writeFile(sconfig.firmware_path, content);
   sync();
   return true;
 }

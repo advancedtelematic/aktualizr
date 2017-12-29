@@ -121,7 +121,7 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
                      const std::string &hardwareids) {
   if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
     std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
-    if (system((init_cmd + push_credentials.GetPathOnDisk()).c_str()) != 0) {
+    if (system((init_cmd + push_credentials.GetPathOnDisk().string()).c_str()) != 0) {
       LOG_ERROR << "Could not initilaize tuf repo for sign";
       return false;
     }

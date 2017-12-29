@@ -97,8 +97,8 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
 
 std::string TufRepository::downloadTarget(Target target) {
   DownloadMetaStruct ds;
-  int fp = open((path_ / "targets" / target.filename()).string().c_str(), O_WRONLY | O_CREAT,
-                S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  int fp =
+      open((path_ / "targets" / target.filename()).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   ds.fp = fp;
   ds.downloaded_length = 0;
   ds.expected_length = target.length();

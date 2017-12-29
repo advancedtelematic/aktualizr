@@ -12,10 +12,10 @@
 
 #include <gio/gio.h>
 
-boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const std::string &path) {
+boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const boost::filesystem::path &path) {
   OstreeSysroot *sysroot = NULL;
 
-  if (path.size()) {
+  if (!path.empty()) {
     GFile *fl = g_file_new_for_path(path.c_str());
     sysroot = ostree_sysroot_new(fl);
     g_object_unref(fl);
@@ -33,7 +33,7 @@ boost::shared_ptr<OstreeSysroot> Ostree::LoadSysroot(const std::string &path) {
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
 }
 
-boost::shared_ptr<OstreeDeployment> Ostree::getStagedDeployment(const std::string &path) {
+boost::shared_ptr<OstreeDeployment> Ostree::getStagedDeployment(const boost::filesystem::path &path) {
   boost::shared_ptr<OstreeSysroot> sysroot = Ostree::LoadSysroot(path);
   GPtrArray *deployments = NULL;
   OstreeDeployment *res = NULL;
@@ -187,7 +187,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   return data::InstallOutcome(data::OK, "Installation successful");
 }
 
-std::string OstreePackage::getCurrent(const std::string &ostree_sysroot) {
+std::string OstreePackage::getCurrent(const boost::filesystem::path &ostree_sysroot) {
   boost::shared_ptr<OstreeDeployment> staged_deployment = Ostree::getStagedDeployment(ostree_sysroot);
   return ostree_deployment_get_csum(staged_deployment.get());
 }
@@ -210,7 +210,7 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
-Json::Value Ostree::getInstalledPackages(const std::string &file_path) {
+Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_path) {
   std::string packages_str = Utils::readFile(file_path);
   std::vector<std::string> package_lines;
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));

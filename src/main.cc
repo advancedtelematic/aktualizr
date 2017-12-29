@@ -64,8 +64,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
       ("poll-once", "Check for updates only once and exit")
-      ("secondary-config", bpo::value<std::vector<std::string> >()->composing(), "secondary ECU json configuration file")
-      ("legacy-interface", bpo::value<std::string>(), "path to legacy secondary ECU interface program")
+      ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
+      ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
       ("disable-keyid-validation", "deprecated");
   // clang-format on
 
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    Config config(sota_config_path.string(), commandline_map);
+    Config config(sota_config_path, commandline_map);
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {

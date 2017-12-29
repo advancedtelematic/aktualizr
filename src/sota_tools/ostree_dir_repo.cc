@@ -15,9 +15,9 @@ namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
 
 bool OSTreeDirRepo::LooksValid() const {
-  fs::path objects_dir(root_ + "/objects");
-  fs::path refs_dir(root_ + "/refs");
-  fs::path config_file(root_ + "/config");
+  fs::path objects_dir(root_ / "/objects");
+  fs::path refs_dir(root_ / "/refs");
+  fs::path config_file(root_ / "/config");
   if (fs::is_directory(objects_dir) && fs::is_directory(refs_dir) && fs::is_regular(config_file)) {
     pt::ptree config;
     try {
@@ -52,11 +52,11 @@ OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash) const {
   }
 
   std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
-  std::string objpath = hash.string().insert(2, 1, '/');
+  boost::filesystem::path objpath = hash.string().insert(2, 1, '/');
 
   BOOST_FOREACH (std::string ext, exts) {
-    if (fs::is_regular_file(root_ + "/objects/" + objpath + ext)) {
-      OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
+    if (fs::is_regular_file((root_ / "/objects/" / objpath).string() + ext)) {
+      OSTreeObject::ptr obj(new OSTreeObject(*this, objpath.string() + ext));
       ObjectTable[hash] = obj;
       return obj;
     }

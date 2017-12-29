@@ -27,8 +27,8 @@ BIO *BIO_new_mem_buf(const void *, int);
 struct PublicKey {
   enum Type { RSA = 0, ED25519 };
   PublicKey() {}
-  PublicKey(const std::string &path) {
-    value = Utils::readFile(path);
+  PublicKey(const boost::filesystem::path &path) {
+    value = Utils::readFile(path.string());
     value = value.substr(0, value.size() - 1);
     // value = boost::replace_all_copy(value, "\n", "\\n");
     type = RSA;  // temporary suuport only RSA
