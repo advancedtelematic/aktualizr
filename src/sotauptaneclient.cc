@@ -65,7 +65,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
     TemporaryFile tmp_cert_file("ostree-cert");
 
     std::string ca;
-    if (!uptane_repo.storage.loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
+    if (!uptane_repo.storage->loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
 
     tmp_ca_file.PutContents(ca);
 
@@ -75,7 +75,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
       cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
     else {
       std::string pkey;
-      if (!uptane_repo.storage.loadTlsPkey(&pkey))
+      if (!uptane_repo.storage->loadTlsPkey(&pkey))
         return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
       tmp_pkey_file.PutContents(pkey);
       cred.pkey_file = tmp_pkey_file.Path().native();
@@ -85,7 +85,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
       cred.cert_file = uptane_repo.pkcs11_tls_certname;
     else {
       std::string cert;
-      if (!uptane_repo.storage.loadTlsCert(&cert))
+      if (!uptane_repo.storage->loadTlsCert(&cert))
         return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
       tmp_cert_file.PutContents(cert);
       cred.cert_file = tmp_cert_file.Path().native();
@@ -93,9 +93,9 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
 #else
     std::string pkey;
     std::string cert;
-    if (!uptane_repo.storage.loadTlsCert(&cert))
+    if (!uptane_repo.storage->loadTlsCert(&cert))
       return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-    if (!uptane_repo.storage.loadTlsPkey(&pkey))
+    if (!uptane_repo.storage->loadTlsPkey(&pkey))
       return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
     tmp_pkey_file.PutContents(pkey);
     tmp_cert_file.PutContents(cert);
@@ -247,7 +247,7 @@ void SotaUptaneClient::initSecondaries() {
 // commandline input and legacy interface.
 void SotaUptaneClient::verifySecondaries() {
   std::vector<std::pair<std::string, std::string> > serials;
-  if (!uptane_repo.storage.loadEcuSerials(&serials) || serials.empty()) {
+  if (!uptane_repo.storage->loadEcuSerials(&serials) || serials.empty()) {
     LOGGER_LOG(LVL_error, "No ECU serials found in storage!");
     return;
   }

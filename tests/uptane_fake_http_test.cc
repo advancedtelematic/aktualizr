@@ -19,7 +19,8 @@ bool doInit(const std::string &device_register_state, const std::string &ecu_reg
   }
 
   HttpClient http;
-  FSStorage fs(conf.storage);
+  boost::shared_ptr<INvStorage> fs(new FSStorage(conf.storage));
+
   Uptane::Repository *uptane = new Uptane::Repository(conf, fs, http);
   bool result = uptane->initialize();
   delete uptane;

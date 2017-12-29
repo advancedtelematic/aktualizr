@@ -57,23 +57,23 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.uptane.secondary_configs.push_back(ecu_config2);
 }
 
-void checkKeyTests(FSStorage& storage, SotaUptaneClient& sota_client) {
+void checkKeyTests(boost::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_client) {
   std::string ca;
   std::string cert;
   std::string pkey;
-  EXPECT_TRUE(storage.loadTlsCreds(&ca, &cert, &pkey));
+  EXPECT_TRUE(storage->loadTlsCreds(&ca, &cert, &pkey));
   EXPECT_TRUE(ca.size() > 0);
   EXPECT_TRUE(cert.size() > 0);
   EXPECT_TRUE(pkey.size() > 0);
 
   std::string primary_public;
   std::string primary_private;
-  EXPECT_TRUE(storage.loadPrimaryKeys(&primary_public, &primary_private));
+  EXPECT_TRUE(storage->loadPrimaryKeys(&primary_public, &primary_private));
   EXPECT_TRUE(primary_public.size() > 0);
   EXPECT_TRUE(primary_private.size() > 0);
 
   std::vector<std::pair<std::string, std::string> > ecu_serials;
-  EXPECT_TRUE(storage.loadEcuSerials(&ecu_serials));
+  EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));
   EXPECT_EQ(ecu_serials.size(), 3);
 
   std::vector<std::string> public_keys;
@@ -112,7 +112,7 @@ TEST(UptaneKey, CheckAllKeys) {
   TemporaryDirectory temp_dir;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
 
-  FSStorage storage(config.storage);
+  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(key_test_dir);
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
@@ -135,7 +135,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
 
   {
-    FSStorage storage(config.storage);
+    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
     HttpFake http(key_test_dir);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
@@ -145,10 +145,10 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     checkKeyTests(storage, sota_client);
 
     // Remove TLS keys but keep ECU keys and try to initialize.
-    storage.clearTlsCreds();
+    storage->clearTlsCreds();
   }
   {
-    FSStorage storage(config.storage);
+    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
     HttpFake http(key_test_dir);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
@@ -167,7 +167,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
 
   {
-    FSStorage storage(config.storage);
+    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
     HttpFake http(key_test_dir);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
