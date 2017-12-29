@@ -20,7 +20,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
                   TemporaryDirectory& temp_dir) {
   config.uptane.repo_server = tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
-  config.provision.provision_path = (temp_dir / "cred.zip").string();
+  config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;

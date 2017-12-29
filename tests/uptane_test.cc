@@ -275,7 +275,7 @@ TEST(Uptane, PetNameCreation) {
   conf.uptane.primary_ecu_serial = "testecuserial";
   boost::filesystem::create_directory(temp_dir.Path());
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
-  conf.provision.provision_path = (temp_dir.Path() / "cred.zip").string();
+  conf.provision.provision_path = temp_dir.Path() / "cred.zip";
 
   std::string test_name1, test_name2;
   {
@@ -457,7 +457,7 @@ TEST(Uptane, PutManifest) {
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
-  config.provision.provision_path = (temp_dir / "cred.zip").string();
+  config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
@@ -635,7 +635,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.repo_server = tls_server + "/director";
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
-  config.provision.provision_path = (temp_dir / "cred.zip").string();
+  config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;

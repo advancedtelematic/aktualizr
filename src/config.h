@@ -116,7 +116,7 @@ struct ProvisionConfig {
   std::string server;
   std::string p12_password;
   std::string expiry_days;
-  std::string provision_path;
+  boost::filesystem::path provision_path;
   ProvisionMode mode;
 };
 

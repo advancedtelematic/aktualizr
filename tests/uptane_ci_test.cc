@@ -16,7 +16,7 @@
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
-std::string credentials = "";
+boost::filesystem::path credentials = "";
 
 TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
