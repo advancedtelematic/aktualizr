@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <string>
-
 #include <boost/filesystem.hpp>
 
 #include "fsstorage.h"
@@ -9,6 +7,7 @@
 #include "logger.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
+#include "utils.h"
 
 /**
  * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr

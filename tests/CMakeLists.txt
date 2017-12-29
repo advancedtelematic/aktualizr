@@ -108,9 +108,9 @@ SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME events SOURCES events_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME events SOURCES events_test.cc)
 
-add_aktualizr_test(NAME commands SOURCES commands_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME commands SOURCES commands_test.cc)
 
 add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -136,13 +136,15 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
-                       PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc fake_ostree.cc
-                       PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc fake_ostree.cc
+    add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
                        PROJECT_WORKING_DIRECTORY)
 
     # This causes src/ostree.cc to be included in {TEST_SOURCES}, which might
@@ -165,8 +167,6 @@ if(BUILD_OSTREE)
     add_test(NAME test_ostree_invalid
              COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
     set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
-
-    add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
 
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc fake_ostree.cc

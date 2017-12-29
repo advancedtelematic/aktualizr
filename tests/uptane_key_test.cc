@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <map>
 #include <string>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
