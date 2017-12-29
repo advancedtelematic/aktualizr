@@ -24,6 +24,7 @@ struct Utils {
   static std::string getHostname();
   static std::string randomUuid();
   static int shell(const std::string &command, std::string *output);
+  static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
 };
 
 /**
