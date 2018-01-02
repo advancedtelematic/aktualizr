@@ -1,5 +1,7 @@
 #include "uptane/uptanerepository.h"
 
+#include <stdio.h>
+
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -7,8 +9,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/make_shared.hpp>
-
-#include <stdio.h>
 
 #include "bootstrap.h"
 #include "crypto.h"
@@ -19,7 +19,7 @@
 
 namespace Uptane {
 
-Repository::Repository(const Config &config_in, boost::shared_ptr<INvStorage> &storage_in, HttpInterface &http_client)
+Repository::Repository(const Config &config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
     : config(config_in),
       director("director", config.uptane.director_server, config, storage_in, http_client),
       image("repo", config.uptane.repo_server, config, storage_in, http_client),
@@ -131,4 +131,6 @@ std::string Repository::findInstalledVersion(const std::string &hash) {
   storage->loadInstalledVersions(&versions);
   return versions[boost::algorithm::to_lower_copy(hash)];
 }
+
+std::string Repository::getTargetPath(const Target &target) { return image.getTargetPath(target); }
 }

@@ -8,6 +8,7 @@
 #include "config.h"
 #include "events.h"
 #include "httpclient.h"
+#include "invstorage.h"
 #include "ostree.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
@@ -15,7 +16,8 @@
 
 class SotaUptaneClient {
  public:
-  SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo);
+  SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+                   const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   void OstreeInstallSetResult(const Uptane::Target &package);
   void runForever(command::Channel *commands_channel);
 
@@ -39,6 +41,8 @@ class SotaUptaneClient {
   const Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
+  const boost::shared_ptr<INvStorage> storage;
+  HttpInterface &http;
   int last_targets_version;
   Json::Value operation_result;
 };

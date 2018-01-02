@@ -62,11 +62,11 @@ TEST(Uptane, RandomSerial) {
   HttpFake http(temp_dir.Path());
 
   Uptane::Repository uptane_1(conf_1, storage_1, http);
-  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1);
+  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http);
   EXPECT_TRUE(uptane_1.initialize());
 
   Uptane::Repository uptane_2(conf_2, storage_2, http);
-  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2);
+  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http);
   EXPECT_TRUE(uptane_2.initialize());
 
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;
@@ -119,7 +119,7 @@ TEST(Uptane, ReloadSerial) {
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
-    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
@@ -139,7 +139,7 @@ TEST(Uptane, ReloadSerial) {
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
-    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
@@ -181,7 +181,7 @@ TEST(Uptane, LegacySerial) {
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
-    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
@@ -200,7 +200,7 @@ TEST(Uptane, LegacySerial) {
     boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
-    SotaUptaneClient uptane_client(conf, NULL, uptane);
+    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);

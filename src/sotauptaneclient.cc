@@ -6,15 +6,20 @@
 #include "json/json.h"
 
 #include "crypto.h"
-#include "httpclient.h"
 #include "logger.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
 #include "utils.h"
 
-SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo)
-    : config(config_in), events_channel(events_channel_in), uptane_repo(repo), last_targets_version(-1) {
+SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+                                   const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
+    : config(config_in),
+      events_channel(events_channel_in),
+      uptane_repo(repo),
+      storage(storage_in),
+      http(http_client),
+      last_targets_version(-1) {
   initSecondaries();
 }
 
@@ -65,7 +70,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
     TemporaryFile tmp_cert_file("ostree-cert");
 
     std::string ca;
-    if (!uptane_repo.storage->loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
+    if (!storage->loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
 
     tmp_ca_file.PutContents(ca);
 
@@ -75,8 +80,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
       cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
     else {
       std::string pkey;
-      if (!uptane_repo.storage->loadTlsPkey(&pkey))
-        return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
+      if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
       tmp_pkey_file.PutContents(pkey);
       cred.pkey_file = tmp_pkey_file.Path().native();
     }
@@ -85,18 +89,15 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
       cred.cert_file = uptane_repo.pkcs11_tls_certname;
     else {
       std::string cert;
-      if (!uptane_repo.storage->loadTlsCert(&cert))
-        return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
+      if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
       tmp_cert_file.PutContents(cert);
       cred.cert_file = tmp_cert_file.Path().native();
     }
 #else
     std::string pkey;
     std::string cert;
-    if (!uptane_repo.storage->loadTlsCert(&cert))
-      return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-    if (!uptane_repo.storage->loadTlsPkey(&pkey))
-      return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
+    if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
+    if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
     tmp_pkey_file.PutContents(pkey);
     tmp_cert_file.PutContents(cert);
     cred.pkey_file = tmp_pkey_file.Path().native();
@@ -126,12 +127,13 @@ void SotaUptaneClient::OstreeInstallSetResult(const Uptane::Target &target) {
 
 void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
-  if (!hw_info.empty()) uptane_repo.http.put(config.tls.server + "/core/system_info", hw_info);
+  if (!hw_info.empty()) {
+    http.put(config.tls.server + "/core/system_info", hw_info);
+  }
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  uptane_repo.http.put(config.tls.server + "/core/installed",
-                       Ostree::getInstalledPackages(config.ostree.packages_file));
+  http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
@@ -247,7 +249,7 @@ void SotaUptaneClient::initSecondaries() {
 // commandline input and legacy interface.
 void SotaUptaneClient::verifySecondaries() {
   std::vector<std::pair<std::string, std::string> > serials;
-  if (!uptane_repo.storage->loadEcuSerials(&serials) || serials.empty()) {
+  if (!storage->loadEcuSerials(&serials) || serials.empty()) {
     LOGGER_LOG(LVL_error, "No ECU serials found in storage!");
     return;
   }
@@ -303,7 +305,7 @@ void SotaUptaneClient::updateSecondaries(std::vector<Uptane::Target> targets) {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
         secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
-      std::string firmware_path = uptane_repo.image.getTargetPath(*it);
+      std::string firmware_path = uptane_repo.getTargetPath(*it);
       if (!boost::filesystem::exists(firmware_path)) continue;
 
       if (!sec->second->putMetadata(meta)) {
