@@ -349,7 +349,7 @@ TEST(Uptane, Expires) {
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(temp_dir.Path());
@@ -388,7 +388,7 @@ TEST(Uptane, Threshold) {
   config.uptane.repo_server = tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(temp_dir.Path());
@@ -451,7 +451,7 @@ TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
@@ -546,7 +546,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.uptane.repo_server = tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_metadata_path = temp_dir.Path();
+  conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 

@@ -28,7 +28,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.uptane.primary_ecu_serial = "testecuserial";
 
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "tests";
+  config.storage.uptane_metadata_path = "metadata";
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
 

@@ -19,7 +19,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "/";
+  config.storage.uptane_metadata_path = "metadata";
   config.storage.tls_cacert_path = "ca.pem";
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
