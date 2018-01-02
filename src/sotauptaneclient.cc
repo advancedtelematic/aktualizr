@@ -13,7 +13,7 @@
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
-                                   const boost::shared_ptr<INvStorage> &storage_in, HttpInterface &http_client)
+                                   const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
     : config(config_in),
       events_channel(events_channel_in),
       uptane_repo(repo),

@@ -32,7 +32,7 @@ const int MaxInitializationAttempts = 3;
 
 class Repository {
  public:
-  Repository(const Config &config, boost::shared_ptr<INvStorage> &storage, HttpInterface &http_client);
+  Repository(const Config &config, boost::shared_ptr<INvStorage> storage, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value signVersionManifest(const Json::Value &version_manifests);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
@@ -61,7 +61,7 @@ class Repository {
   const Config &config;
   TufRepository director;
   TufRepository image;
-  boost::shared_ptr<INvStorage> &storage;
+  boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
 #ifdef BUILD_P11
   P11Engine p11;

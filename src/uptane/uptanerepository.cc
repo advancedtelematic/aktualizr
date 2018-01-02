@@ -19,7 +19,7 @@
 
 namespace Uptane {
 
-Repository::Repository(const Config &config_in, boost::shared_ptr<INvStorage> &storage_in, HttpInterface &http_client)
+Repository::Repository(const Config &config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
     : config(config_in),
       director("director", config.uptane.director_server, config, storage_in, http_client),
       image("repo", config.uptane.repo_server, config, storage_in, http_client),
