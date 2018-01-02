@@ -14,7 +14,7 @@
    viewBox="0 0 297 210"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   inkscape:version="0.92.1 r15371"
    sodipodi:docname="secondaries.svg">
   <defs
      id="defs2">
@@ -576,17 +576,22 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0738956"
-     inkscape:cx="598.71497"
-     inkscape:cy="453.84445"
+     inkscape:zoom="0.75935886"
+     inkscape:cx="806.88299"
+     inkscape:cy="433.52146"
      inkscape:document-units="mm"
-     inkscape:current-layer="g6386-2"
-     showgrid="false"
-     inkscape:window-width="1914"
-     inkscape:window-height="1031"
-     inkscape:window-x="0"
-     inkscape:window-y="22"
-     inkscape:window-maximized="0" />
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1080"
+     inkscape:window-x="1920"
+     inkscape:window-y="-20"
+     inkscape:window-maximized="0"
+     inkscape:snap-text-baseline="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid164" />
+  </sodipodi:namedview>
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -595,7 +600,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -617,15 +622,15 @@
          style="font-size:7.05555534px;stroke-width:0.26458332">SotaUptaneClient</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="120.38541"
-       y="125.55"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="138.90625"
+       y="125.02084"
        id="text3705"><tspan
          sodipodi:role="line"
          id="tspan3703"
-         x="120.38541"
-         y="125.55"
-         style="font-size:7.05555534px;stroke-width:0.26458332">ISecondary</tspan></text>
+         x="138.90625"
+         y="125.02084"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332">SecondaryInterface</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -769,10 +774,11 @@
        id="path5472"
        inkscape:connector-curvature="0" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:1.165;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:6.99, 1.16500000000000004;stroke-dashoffset:0;marker-end:url(#Arrow1Send)"
-       d="m 210.60833,115.23126 -50.27083,7.9375"
+       style="fill:none;stroke:#000000;stroke-width:1.16499996;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:6.99, 1.165;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Send)"
+       d="m 210.60833,115.23126 -34.66041,5.82082"
        id="path5874"
-       inkscape:connector-curvature="0" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -795,27 +801,24 @@
          x="228.89102"
          y="211.88655"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic';stroke-width:0.26458332">Uptane ECU</tspan></text>
-    <g
-       id="g6386">
-      <text
-         id="text3721"
-         y="180.41565"
-         x="33.344967"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
-         xml:space="preserve"><tspan
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
-           y="180.41565"
-           x="33.344967"
-           id="tspan3719"
-           sodipodi:role="line">EcuInterface</tspan></text>
-      <rect
-         y="174.00424"
-         x="28.919682"
-         height="9.0591774"
-         width="52.264484"
-         id="rect6366"
-         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.16499996;stroke-miterlimit:4;stroke-dasharray:4.66, 2.33;stroke-dashoffset:0;stroke-opacity:1" />
-    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
+       x="13.229167"
+       y="180.58333"
+       id="text3721"><tspan
+         sodipodi:role="line"
+         id="tspan3719"
+         x="13.229167"
+         y="180.58333"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1">example_interface</tspan></text>
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.16499996;stroke-miterlimit:4;stroke-dasharray:4.65999994, 2.32999998;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect6366"
+       width="70.60083"
+       height="9.0591774"
+       x="10.583333"
+       y="174.00424" />
     <rect
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.29893482;stroke-miterlimit:4;stroke-dasharray:5.19573956, 2.59786978;stroke-dashoffset:0;stroke-opacity:1"
        id="rect6366-7"
@@ -983,7 +986,7 @@
            id="tspan9501-0-0"
            x="224.61143"
            y="173.78484"
-           style="font-size:7.76111126px;stroke-width:0.26458332">— Communicate</tspan></text>
+           style="font-size:7.76111126px;stroke-width:0.26458332">— Communicates</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.76111126px;line-height:1.25;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
