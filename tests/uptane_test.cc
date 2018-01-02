@@ -479,7 +479,7 @@ TEST(Uptane, PutManifest) {
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
-  SotaUptaneClient sota_client(config, NULL, uptane);
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
 
   EXPECT_TRUE(uptane.putManifest(sota_client.AssembleManifest()));
@@ -517,7 +517,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
   HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo);
+  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
   boost::shared_ptr<event::BaseEvent> event;
@@ -572,7 +572,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
   HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo);
+  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
   boost::shared_ptr<event::BaseEvent> event;
@@ -613,7 +613,7 @@ TEST(Uptane, RunForeverInstall) {
   boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
   HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo);
+  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
   // test_manifest is defined in httpfake.h
@@ -663,7 +663,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane);
+  SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -698,7 +698,7 @@ TEST(Uptane, ProvisionOnServer) {
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage, http);
-  SotaUptaneClient up(config, &events_channel, repo);
+  SotaUptaneClient up(config, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 }
 

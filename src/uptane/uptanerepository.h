@@ -1,22 +1,20 @@
 #ifndef UPTANE_REPOSITORY_H_
 #define UPTANE_REPOSITORY_H_
 
-#include <json/json.h>
 #include <vector>
-#include "config.h"
-#include "invstorage.h"
-#include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
+#include "json/json.h"
 
+#include "config.h"
 #include "crypto.h"
 #include "httpinterface.h"
+#include "invstorage.h"
 #include "logger.h"
+#include "uptane/secondaryinterface.h"
+#include "uptane/tufrepository.h"
 
 #ifdef BUILD_P11
 #include "p11engine.h"
 #endif
-
-class SotaUptaneClient;
 
 namespace Uptane {
 
@@ -29,7 +27,9 @@ enum InitRetCode {
   INIT_RET_BAD_P12,
   INIT_RET_PKCS11_FAILURE
 };
+
 const int MaxInitializationAttempts = 3;
+
 class Repository {
  public:
   Repository(const Config &config, boost::shared_ptr<INvStorage> &storage, HttpInterface &http_client);
@@ -43,6 +43,7 @@ class Repository {
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
+  std::string getTargetPath(const Target &target);
 
   // implemented in uptane/initialize.cc
   bool initialize();
@@ -52,6 +53,9 @@ class Repository {
   // TODO: Receive and update time nonces.
 
   bool currentMeta(Uptane::MetaPack *meta) { return storage->loadMetadata(meta); }
+
+  std::string pkcs11_tls_keyname;
+  std::string pkcs11_tls_certname;
 
  private:
   const Config &config;
@@ -72,13 +76,9 @@ class Repository {
   std::string primary_private_key_uri;
   std::string primary_public_key_id;
 
-  std::string pkcs11_tls_keyname;
-  std::string pkcs11_tls_certname;
-
   // ECU serial => (ECU hardware ID, ECU public_key)
   std::map<std::string, std::pair<std::string, std::string> > secondary_info;
 
-  friend class ::SotaUptaneClient;
   bool verifyMeta(const Uptane::MetaPack &meta);
   bool getMeta();
 

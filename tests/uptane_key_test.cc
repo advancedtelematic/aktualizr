@@ -116,7 +116,7 @@ TEST(UptaneKey, CheckAllKeys) {
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane);
+  SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
   checkKeyTests(storage, sota_client);
 }
@@ -137,7 +137,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
+    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
@@ -150,7 +150,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
+    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
@@ -169,7 +169,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane);
+    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);

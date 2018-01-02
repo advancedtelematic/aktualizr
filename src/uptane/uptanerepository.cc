@@ -1,5 +1,7 @@
 #include "uptane/uptanerepository.h"
 
+#include <stdio.h>
+
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -7,8 +9,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/make_shared.hpp>
-
-#include <stdio.h>
 
 #include "bootstrap.h"
 #include "crypto.h"
@@ -131,4 +131,6 @@ std::string Repository::findInstalledVersion(const std::string &hash) {
   storage->loadInstalledVersions(&versions);
   return versions[boost::algorithm::to_lower_copy(hash)];
 }
+
+std::string Repository::getTargetPath(const Target &target) { return image.getTargetPath(target); }
 }

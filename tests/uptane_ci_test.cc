@@ -70,7 +70,7 @@ TEST(UptaneCI, CheckKeys) {
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
-  SotaUptaneClient sota_client(config, NULL, repo);
+  SotaUptaneClient sota_client(config, NULL, repo, storage, http);
   EXPECT_TRUE(repo.initialize());
 
   std::string ca;
