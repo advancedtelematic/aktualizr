@@ -40,6 +40,10 @@ set(HEADERS
             logging.h
             openssl_compat.h
             ostree.h
+            ostreefake.h
+            ostreeinterface.h
+            packagemanagerfactory.h
+            packagemanagerinterface.h
             socketgateway.h
             sotauptaneclient.h
             timer.h
@@ -66,7 +70,8 @@ if(BUILD_GENIVI)
 endif(BUILD_GENIVI)
 
 if(BUILD_OSTREE)
-    list(APPEND SOURCES sotauptaneclient.cc
+    list(APPEND SOURCES ostree.cc
+                        sotauptaneclient.cc
                         uptane/initialize.cc
                         uptane/legacysecondary.cc
                         uptane/managedsecondary.cc
@@ -87,11 +92,7 @@ if(BUILD_P11)
     endif(TEST_PKCS11_MODULE_PATH)
 endif(BUILD_P11)
 # set the name of the executable
-if(BUILD_OSTREE)
-    add_executable(aktualizr main.cc ostree.cc)
-else(BUILD_OSTREE)
-    add_executable(aktualizr main.cc)
-endif(BUILD_OSTREE)
+add_executable(aktualizr main.cc)
 add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
 target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
 

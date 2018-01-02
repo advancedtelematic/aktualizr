@@ -26,6 +26,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   pt.put("provision.provision_path", credentials);
   pt.put("storage.path", temp_dir.Path());
   pt.put("uptane.metadata_path", temp_dir.Path());
+  pt.put("ostree.type", "ostreefake");
   Config config(pt);
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpClient http;
@@ -52,6 +53,7 @@ TEST(UptaneCI, CheckKeys) {
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
   pt.put("storage.path", temp_dir.Path());
+  pt.put("ostree.type", "ostreefake");
   Config config(pt);
   boost::filesystem::remove_all(config.storage.path);
 

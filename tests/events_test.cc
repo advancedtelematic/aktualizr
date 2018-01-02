@@ -4,10 +4,6 @@
 
 #include "events.h"
 
-#ifdef BUILD_OSTREE
-#include "ostree.h"
-#endif
-
 TEST(event, Error_event_to_json) {
   std::string error = "Error123";
   event::Error event(error);
@@ -77,8 +73,8 @@ TEST(event, UptaneTimestampUpdated_event_to_json) {
 
   EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
 }
-#ifdef BUILD_OSTREE
 
+#ifdef BUILD_OSTREE
 TEST(event, UptaneTargetsUpdated_event_to_json) {
   Json::Value target_json;
   target_json["ecu_serial"] = "test1";

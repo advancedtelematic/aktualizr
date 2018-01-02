@@ -7,6 +7,7 @@
 
 #include "crypto.h"
 #include "logging.h"
+#include "packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
@@ -20,6 +21,7 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       storage(storage_in),
       http(http_client),
       last_targets_version(-1) {
+  pacman = PackageManagerFactory::makePackageManager(config.ostree);
   initSecondaries();
 }
 
@@ -32,7 +34,7 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.sha256Hash() == OstreePackage::getCurrent(config.ostree.sysroot);
+    return target.sha256Hash() == pacman->getCurrent(config.ostree.sysroot);
   } else {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
@@ -58,13 +60,13 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
   return result;
 }
 
-data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &target) {
+data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &target) {
   try {
-    OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
-                          config.uptane.ostree_server);
+    boost::shared_ptr<PackageInterface> package = pacman->makePackage(
+        target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()), config.uptane.ostree_server);
 
     data::PackageManagerCredentials cred;
-    // All three files should live until package.install terminates
+    // All three files should live until package->install terminates
     TemporaryFile tmp_ca_file("ostree-ca");
     TemporaryFile tmp_pkey_file("ostree-pkey");
     TemporaryFile tmp_cert_file("ostree-cert");
@@ -103,13 +105,13 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
     cred.pkey_file = tmp_pkey_file.Path().native();
     cred.cert_file = tmp_cert_file.Path().native();
 #endif
-    return package.install(cred, config.ostree);
+    return package->install(cred, config.ostree);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());
   }
 }
 
-void SotaUptaneClient::OstreeInstallSetResult(const Uptane::Target &target) {
+void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   if (isInstalled(target)) {
     data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
@@ -117,7 +119,7 @@ void SotaUptaneClient::OstreeInstallSetResult(const Uptane::Target &target) {
     data::InstallOutcome outcome(data::VALIDATION_FAILED, "Cannot install a non-OSTree package on an OSTree system");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
   } else {
-    data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), OstreeInstall(target));
+    data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     operation_result["operation_result"] = result.toJson();
     if (result.result_code == data::OK) {
       uptane_repo.saveInstalledVersion(target);
@@ -133,18 +135,18 @@ void SotaUptaneClient::reportHwInfo() {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http.put(config.tls.server + "/core/installed", Ostree::getInstalledPackages(config.ostree.packages_file));
+  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages(config.ostree.packages_file));
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result = Json::arrayValue;
-  std::string hash = OstreePackage::getCurrent(config.ostree.sysroot);
+  std::string hash = pacman->getCurrent(config.ostree.sysroot);
   std::string refname = uptane_repo.findInstalledVersion(hash);
   if (refname.empty()) {
     (refname += "unknown-") += hash;
   }
   Json::Value unsigned_ecu_version =
-      OstreePackage(refname, hash, "").toEcuVersion(uptane_repo.getPrimaryEcuSerial(), operation_result);
+      pacman->makePackage(refname, hash, "")->toEcuVersion(uptane_repo.getPrimaryEcuSerial(), operation_result);
 
   result.append(uptane_repo.signVersionManifest(unsigned_ecu_version));
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
@@ -203,9 +205,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
             // treat empty format as OSTree for backwards compatibility
             // TODO: isInstalled gets called twice here, since
-            // OstreeInstallSetResult calls it too.
+            // PackageInstallSetResult calls it too.
             if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
-              OstreeInstallSetResult(*it);
+              PackageInstallSetResult(*it);
               break;
             }
           }

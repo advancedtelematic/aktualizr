@@ -9,7 +9,7 @@
 #include "events.h"
 #include "httpclient.h"
 #include "invstorage.h"
-#include "ostree.h"
+#include "packagemanagerinterface.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 #include "uptane/uptanerepository.h"
@@ -18,9 +18,7 @@ class SotaUptaneClient {
  public:
   SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
                    const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
-  void OstreeInstallSetResult(const Uptane::Target &package);
   void runForever(command::Channel *commands_channel);
-
   Json::Value AssembleManifest();
 
   // ecu_serial => secondary*
@@ -29,11 +27,11 @@ class SotaUptaneClient {
  private:
   bool isInstalled(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
-  data::InstallOutcome OstreeInstall(const Uptane::Target &package);
+  data::InstallOutcome PackageInstall(const Uptane::Target &package);
+  void PackageInstallSetResult(const Uptane::Target &package);
   void reportHwInfo();
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);
-  OstreePackage uptaneToOstree(const Uptane::Target &target);
   void initSecondaries();
   void verifySecondaries();
   void updateSecondaries(std::vector<Uptane::Target> targets);
@@ -42,6 +40,7 @@ class SotaUptaneClient {
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
   const boost::shared_ptr<INvStorage> storage;
+  boost::shared_ptr<PackageManagerInterface> pacman;
   HttpInterface &http;
   int last_targets_version;
   Json::Value operation_result;

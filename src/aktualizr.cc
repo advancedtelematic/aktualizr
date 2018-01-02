@@ -36,6 +36,8 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
 
+  // TODO: fix or move this
+  /*
 #ifdef BUILD_OSTREE
   try {
     OstreePackage::getCurrent(config.ostree.sysroot);
@@ -43,6 +45,7 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
     throw std::runtime_error("Could not find OSTree sysroot at:" + config.ostree.sysroot.string());
   }
 #endif
+*/
 }
 
 int Aktualizr::run() {

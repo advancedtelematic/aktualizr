@@ -10,13 +10,6 @@
 #include "ostree.h"
 #include "utils.h"
 
-TEST(ostree, constructor) {
-  OstreePackage op("branch-name-hash", "hash", "pull_uri");
-  EXPECT_EQ(op.ref_name, "branch-name-hash");
-  EXPECT_EQ(op.refhash, "hash");
-  EXPECT_EQ(op.pull_uri, "pull_uri");
-}
-
 TEST(ostree, toEcuVersion) {
   OstreePackage op("branch-name-hash", "hash", "pull_uri");
   Json::Value custom;
@@ -29,7 +22,8 @@ TEST(ostree, toEcuVersion) {
 }
 
 TEST(ostree, parse_installed_packages) {
-  Json::Value packages = Ostree::getInstalledPackages("tests/test_data/package.manifest");
+  OstreeManager ostree;
+  Json::Value packages = ostree.getInstalledPackages("tests/test_data/package.manifest");
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");
   EXPECT_EQ(packages[1]["name"], "emacs");
