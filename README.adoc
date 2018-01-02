@@ -2,9 +2,9 @@ https://opensource.org/licenses/MPL-2.0[image:https://img.shields.io/badge/Licen
 
 = aktualizr
 
-____
+====
 C++ reference implementation of https://github.com/advancedtelematic/rvi_sota_server[GENIVI SOTA] OTA update client.
-____
+====
 
 The client is intended to be installed on devices that wish to receive OTA updates from a GENIVI-compatible OTA server.
 
@@ -131,10 +131,9 @@ make test
 
 `make qa` will also run the test suite.
 
-Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-DOAUTH2_TEST_CLIENT_ID= -DOAUTH2_TEST_CLIENT_SECRET=...` to cmake, or by editing CMakeCache.txt in the build directory to set the following options:
+Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-DOAUTH2_TEST_CLIENT_ID= -DOAUTH2_TEST_CLIENT_SECRET=...` to cmake, or by editing `CMakeCache.txt` in the build directory to set the following options:
 
 ----
-# In CMakeCache.txt
 //Client ID for testing Auth+ authentication
 OAUTH2_TEST_CLIENT_ID:STRING=....
 
@@ -195,41 +194,43 @@ TOOLCHAIN_HOST_TASK_append = " nativesdk-cmake "
 2. Build the SDK:
 +
 ----
-# bitbake -c populate_sdk core-image-minimal
+bitbake -c populate_sdk core-image-minimal
 ----
 
 3. That will create a self-extracting installer that can be copied to your development machine. Install it by executing this script (or a similarly-named one, depending on your environment):
 +
 ----
-# ./tmp/deploy/sdk/poky-sota-glibc-x86_64-core-image-minimal-core2-64-toolchain-2.2.2.sh
+./tmp/deploy/sdk/poky-sota-glibc-x86_64-core-image-minimal-core2-64-toolchain-2.2.2.sh
 ----
 
 4. Execute this script (or something similar, depending on where you installed it) to update the environment to point to the cross compilers:
 +
 ----
-# . /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
-# which cmake
+. /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
+which cmake
 /opt/poky-sota/2.2.2/sysroots/x86_64-pokysdk-linux/usr/bin/cmake
 ----
 
 5. Create a cmake build directory for this cross-compile:
 +
 ----
-# mkdir build-cross
-# cd build-cross
-# cmake .. <options>
-# make aktualizr
+mkdir build-cross
+cd build-cross
+cmake .. <options>
+make aktualizr
 ----
 
 The compiled 'aktualizr' executable can be copied to the remote system and run.
 
 Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu-ota script in meta-updater does this), then:
 
+.On the target:
 ----
-// On the target:
-$ gdbserver 0.0.0.0:2159 ./aktualizr --config /usr/lib/sota/sota.toml --loglevel 0
+gdbserver 0.0.0.0:2159 ./aktualizr --config /usr/lib/sota/sota.toml --loglevel 0
+----
 
-// On the host:
+.On the host:
+----
 $ gdb aktualizr
 (gdb) target remote localhost:2159
 ----
@@ -240,11 +241,11 @@ image:docs/clion-debugger.png[CLion GDB configuration]
 
 It is also possible to run it inside valgrind:
 
+.On the target:
 ----
-# On the target
 valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /usr/lib/sota/sota.toml
 vgdb --port=2159
-# ...now connect the debugger as usual
+// ...now connect the debugger as usual
 ----
 
 == Usage
