@@ -1,17 +1,18 @@
+#include <gtest/gtest.h>
+
 #include <stdio.h>
 #include <cstdlib>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 
-#include <boost/make_shared.hpp>
 #include "commands.h"
 #include "config.h"
 #include "dbusgateway/dbusgateway.h"
 #include "events.h"
 #include "types.h"
 
-std::string fake_path;
+boost::filesystem::path fake_path;
 
 TEST(SWMTest, DownloadComplete_method_called) {
   Config conf;
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   if (argc >= 2) {
     fake_path = argv[1];
-    std::string cmd = fake_path + "swm.py &";
+    std::string cmd = (fake_path / "swm.py").string() + " &";
     EXPECT_EQ(0, system(cmd.c_str()));
     sleep(2);
   }

@@ -8,11 +8,15 @@
 
 #include "utils.h"
 
-std::string getFreePort();
+struct TestUtils {
+  static std::string getFreePort();
+  static void writePathToConfig(const boost::filesystem::path &toml_in, const boost::filesystem::path &toml_out,
+                                const boost::filesystem::path &storage_path);
+};
 
 class TestHelperProcess {
  public:
-  TestHelperProcess(const std::string& argv0, const std::string& argv1);
+  TestHelperProcess(const std::string &argv0, const std::string &argv1);
   ~TestHelperProcess();
 
  private:

@@ -1,6 +1,8 @@
 #ifndef SOCKETGATEWAY_H_
 #define SOCKETGATEWAY_H_
 
+#include <vector>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 

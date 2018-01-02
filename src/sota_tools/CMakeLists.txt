@@ -113,7 +113,6 @@ install(PROGRAMS ${SOURCE_DIR}/bin/garage-sign DESTINATION bin COMPONENT garage_
 install(DIRECTORY ${SOURCE_DIR}/lib DESTINATION . COMPONENT garage_deploy)
 
 add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS garage-deploy garage-sign)
-add_dependencies(garage-deploy download_garage_sign)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required

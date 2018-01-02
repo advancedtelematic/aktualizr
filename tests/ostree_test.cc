@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
-
-#include <boost/filesystem.hpp>
 #include <string>
-#include "boost/algorithm/hex.hpp"
+
+#include <boost/algorithm/hex.hpp>
+#include <boost/filesystem.hpp>
 
 #include "ostree.h"
 #include "utils.h"
+
 TEST(ostree, constructor) {
   OstreePackage op("branch-name-hash", "hash", "pull_uri");
   EXPECT_EQ(op.ref_name, "branch-name-hash");

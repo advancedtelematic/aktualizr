@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <string>
-
 #include <boost/filesystem.hpp>
 
 #include "fsstorage.h"
@@ -9,28 +7,26 @@
 #include "logger.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
-
-const std::string implicit_test_dir = "tests/test_implicit";
+#include "utils.h"
 
 /**
  * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr
  * halts if credentials are not available.
  */
 TEST(UptaneImplicit, ImplicitFailure) {
-  boost::filesystem::remove_all(implicit_test_dir);
   Config config;
   config.uptane.device_id = "device_id";
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "/";
+  config.storage.uptane_metadata_path = "metadata";
   config.storage.tls_cacert_path = "ca.pem";
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
   config.postUpdateValues();
 
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-  HttpFake http(temp_dir.PathString());
+  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(uptane.initialize());
 }
@@ -40,51 +36,49 @@ TEST(UptaneImplicit, ImplicitFailure) {
  * implicit provisioning credentials.
  */
 TEST(UptaneImplicit, ImplicitIncomplete) {
-  boost::filesystem::remove_all(implicit_test_dir);
+  TemporaryDirectory temp_dir;
   Config config;
-  config.storage.path = implicit_test_dir;
+  config.storage.path = temp_dir.Path();
   config.storage.tls_cacert_path = "ca.pem";
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-  HttpFake http(implicit_test_dir);
+  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
 
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", implicit_test_dir + "/ca.pem");
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
   EXPECT_FALSE(uptane.initialize());
 
-  boost::filesystem::remove_all(implicit_test_dir);
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", implicit_test_dir + "/client.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
   EXPECT_FALSE(uptane.initialize());
 
-  boost::filesystem::remove_all(implicit_test_dir);
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", implicit_test_dir + "/pkey.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
   EXPECT_FALSE(uptane.initialize());
 
-  boost::filesystem::remove_all(implicit_test_dir);
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", implicit_test_dir + "/ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", implicit_test_dir + "/client.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
   EXPECT_FALSE(uptane.initialize());
 
-  boost::filesystem::remove_all(implicit_test_dir);
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", implicit_test_dir + "/ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", implicit_test_dir + "/pkey.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
   EXPECT_FALSE(uptane.initialize());
 
-  boost::filesystem::remove_all(implicit_test_dir);
-  boost::filesystem::create_directory(implicit_test_dir);
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", implicit_test_dir + "/client.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", implicit_test_dir + "/pkey.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  boost::filesystem::create_directory(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
   EXPECT_FALSE(uptane.initialize());
-
-  boost::filesystem::remove_all(implicit_test_dir);
 }
 
 /**
@@ -92,7 +86,6 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
  * provided credentials.
  */
 TEST(UptaneImplicit, ImplicitProvision) {
-  boost::filesystem::remove_all(implicit_test_dir);
   Config config;
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
@@ -104,7 +97,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
   config.storage.tls_pkey_path = "pkey.pem";
 
   boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
-  HttpFake http(temp_dir.PathString());
+  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_TRUE(uptane.initialize());
 }

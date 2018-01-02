@@ -5,19 +5,22 @@
 #include "json/json.h"
 
 #include "httpinterface.h"
+#include "utils.h"
 
-const std::string test_manifest = "/test_aktualizr_manifest.txt";
+const std::string test_manifest = "test_aktualizr_manifest.txt";
 const std::string tls_server = "https://tlsserver.com";
-const std::string metadata_path = "tests/test_data";
 
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
 class HttpFake : public HttpInterface {
  public:
-  HttpFake(const std::string test_dir_in, bool is_initialized = false)
-      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {}
+  HttpFake(const boost::filesystem::path &test_dir_in, const bool is_initialized = false)
+      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {
+    boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
+    boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");
+  }
 
-  ~HttpFake() { boost::filesystem::remove(metadata_path + "/repo/timestamp.json"); }
+  ~HttpFake() {}
 
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) {
@@ -32,10 +35,10 @@ class HttpFake : public HttpInterface {
   HttpResponse get(const std::string &url) {
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
-      std::string path = metadata_path + url.substr(tls_server.size());
+      boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
       std::cout << "filetoopen: " << path << "\n\n\n";
       if (url.find("timestamp.json") != std::string::npos) {
-        std::cout << "CHECK PATH: " << metadata_path + "/timestamp.json\n";
+        std::cout << "CHECK PATH: " << (metadata_path.Path() / "timestamp.json").string() << "\n";
         if (boost::filesystem::exists(path)) {
           boost::filesystem::copy_file("tests/test_data/timestamp2.json", path,
                                        boost::filesystem::copy_option::overwrite_if_exists);
@@ -45,7 +48,7 @@ class HttpFake : public HttpInterface {
         }
         return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else if (url.find("targets.json") != std::string::npos) {
-        Json::Value timestamp = Utils::parseJSONFile(metadata_path + "/repo/timestamp.json");
+        Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
         if (timestamp["signed"]["version"].asInt64() == 2) {
           return HttpResponse(Utils::readFile("tests/test_data/targets_noupdates.json"), 200, CURLE_OK, "");
         } else {
@@ -75,7 +78,7 @@ class HttpFake : public HttpInterface {
         }
       }
     }
-    Utils::writeFile(test_dir + "/post.json", data);
+    Utils::writeFile((test_dir / "post.json").string(), data);
     if (provisioningResponse == ProvisionOK) {
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else {
@@ -101,7 +104,7 @@ class HttpFake : public HttpInterface {
                 "hash");
     }
 
-    std::ofstream director_file((test_dir + test_manifest).c_str());
+    std::ofstream director_file((test_dir / test_manifest).c_str());
     director_file << data;
     director_file.close();
     return HttpResponse(url, 200, CURLE_OK, "");
@@ -111,10 +114,10 @@ class HttpFake : public HttpInterface {
     (void)callback;
     (void)userp;
     std::cout << "URL: " << url << "\n";
-    std::string path = test_dir + "/" + url.substr(url.rfind("/targets/") + 9);
+    boost::filesystem::path path = test_dir / url.substr(url.rfind("/targets/") + 9);
     std::cout << "filetoopen: " << path << "\n\n\n";
 
-    std::string content = Utils::readFile(path);
+    std::string content = Utils::readFile(path.string());
 
     // Hack since the signature strangely requires non-const.
     callback(const_cast<char *>(content.c_str()), content.size(), 1, userp);
@@ -133,7 +136,8 @@ class HttpFake : public HttpInterface {
   HttpResponse post(const std::string &url, const std::string data);
   HttpResponse put(const std::string &url, const std::string data);
 
-  std::string test_dir;
+  boost::filesystem::path test_dir;
+  TemporaryDirectory metadata_path;
   bool ecu_registered;
 };
 

@@ -29,5 +29,6 @@ class OSTreeDirRepo : public OSTreeRepo {
   const boost::filesystem::path root_;
 };
 
-// vim: set tabstop=2 shiftwidth=2 expandtab:
 #endif  // SOTA_CLIENT_TOOLS_OSTREE_DIR_REPO_H_
+
+// vim: set tabstop=2 shiftwidth=2 expandtab:

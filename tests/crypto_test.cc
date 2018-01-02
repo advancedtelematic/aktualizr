@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <iostream>
+#include <string>
 
 #include <json/json.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
-#include <string>
-#include "boost/algorithm/hex.hpp"
 
 #include "crypto.h"
 #include "utils.h"
@@ -43,13 +44,10 @@ TEST(crypto, sign_verify_rsa_file) {
 }
 
 TEST(crypto, sign_tuf) {
-  Config config;
-
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
 
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
-
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Json::Value signed_json = Crypto::signTuf(NULL, private_key, Crypto::getKeyId(public_key), tosign_json);
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
@@ -178,14 +176,78 @@ TEST(crypto, parsep12) {
   FILE *p12file = fopen("tests/test_data/cred.p12", "rb");
   if (!p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
-    std::cout << "fdgdgdfg\n\n\n";
   }
   Crypto::parseP12(p12file, "", &pkey, &cert, &ca);
   fclose(p12file);
-  // TODO: expected values
-  EXPECT_EQ(!pkey.empty(), true);
-  EXPECT_EQ(!cert.empty(), true);
-  EXPECT_EQ(!ca.empty(), true);
+  EXPECT_EQ(pkey,
+            "-----BEGIN PRIVATE KEY-----\n"
+            "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRoQ43D8dREwDpt69\n"
+            "Is11MHeVjICMYVsETC/+v7o+FE+hRANCAAT6Xcj0DYxhKjaVxL19em0jjYdW+OFU\n"
+            "QgU2Jzb5F3HHQVpGoZDl6ehmoIGC0m/TYw+TrVNrXX3RmF+8K4qAFkXq\n"
+            "-----END PRIVATE KEY-----\n");
+  EXPECT_EQ(cert,
+            "-----BEGIN CERTIFICATE-----\n"
+            "MIIB+DCCAZ+gAwIBAgIUYkBInAAY+7qbt8otLB5WGmk87JswCgYIKoZIzj0EAwIw\n"
+            "LjEsMCoGA1UEAwwjZ29vZ2xlLW9hdXRoMnwxMDMxMDYxMTkyNTE5NjkyODc1NzEw\n"
+            "HhcNMTcwMzA3MTI1NDUwWhcNMTcwNDAxMDA1NTIwWjAvMS0wKwYDVQQDEyRjYzM0\n"
+            "ZjdmMy00ODFkLTQ0M2ItYmNlYi1lODM4YTM2YTJkMWYwWTATBgcqhkjOPQIBBggq\n"
+            "hkjOPQMBBwNCAAT6Xcj0DYxhKjaVxL19em0jjYdW+OFUQgU2Jzb5F3HHQVpGoZDl\n"
+            "6ehmoIGC0m/TYw+TrVNrXX3RmF+8K4qAFkXqo4GZMIGWMA4GA1UdDwEB/wQEAwID\n"
+            "qDATBgNVHSUEDDAKBggrBgEFBQcDAjAdBgNVHQ4EFgQUa9DKwtf7wNPgQeYdpUg/\n"
+            "myVvkv8wHwYDVR0jBBgwFoAUy1iQXM5laZGSrXDYPqrrEs/mAUkwLwYDVR0RBCgw\n"
+            "JoIkY2MzNGY3ZjMtNDgxZC00NDNiLWJjZWItZTgzOGEzNmEyZDFmMAoGCCqGSM49\n"
+            "BAMCA0cAMEQCIF7BH/kXuKD5f6f6ZNd2RLc1iwL2/nKq7FpaF6kunPV3AiA4pwZR\n"
+            "p3GnzAJ1QAqaric/3lvcPSofSr5i0OiGi6wwwg==\n"
+            "-----END CERTIFICATE-----\n"
+            "-----BEGIN CERTIFICATE-----\n"
+            "MIIB0DCCAXagAwIBAgIUY9ZexzxoSQ2s9l7rzrdFtziAf04wCgYIKoZIzj0EAwIw\n"
+            "LjEsMCoGA1UEAwwjZ29vZ2xlLW9hdXRoMnwxMDMxMDYxMTkyNTE5NjkyODc1NzEw\n"
+            "HhcNMTcwMzAyMDkzMTI3WhcNMjcwMjI4MDkzMTU3WjAuMSwwKgYDVQQDDCNnb29n\n"
+            "bGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTBZMBMGByqGSM49AgEGCCqG\n"
+            "SM49AwEHA0IABFjHD4kK3YBw7QTA1K659EMAYl5lxG5y5/4kWTr+bDuvYnYvpjFJ\n"
+            "x2P5CnoGmsffLvzgIjgrFV36cpHmXGalScCjcjBwMA4GA1UdDwEB/wQEAwIBBjAP\n"
+            "BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTLWJBczmVpkZKtcNg+qusSz+YBSTAu\n"
+            "BgNVHREEJzAlgiNnb29nbGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTAK\n"
+            "BggqhkjOPQQDAgNIADBFAiEAhoM17gakQxgEm/vkgV3RBo3oFgouzxP/qp2M4r4j\n"
+            "JqcCIBe+3Cgg9KjDGFaexf/T3sz0qjA5aT4/imsTS06NmbhW\n"
+            "-----END CERTIFICATE-----\n"
+            "-----BEGIN CERTIFICATE-----\n"
+            "MIIB0DCCAXagAwIBAgIUY9ZexzxoSQ2s9l7rzrdFtziAf04wCgYIKoZIzj0EAwIw\n"
+            "LjEsMCoGA1UEAwwjZ29vZ2xlLW9hdXRoMnwxMDMxMDYxMTkyNTE5NjkyODc1NzEw\n"
+            "HhcNMTcwMzAyMDkzMTI3WhcNMjcwMjI4MDkzMTU3WjAuMSwwKgYDVQQDDCNnb29n\n"
+            "bGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTBZMBMGByqGSM49AgEGCCqG\n"
+            "SM49AwEHA0IABFjHD4kK3YBw7QTA1K659EMAYl5lxG5y5/4kWTr+bDuvYnYvpjFJ\n"
+            "x2P5CnoGmsffLvzgIjgrFV36cpHmXGalScCjcjBwMA4GA1UdDwEB/wQEAwIBBjAP\n"
+            "BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTLWJBczmVpkZKtcNg+qusSz+YBSTAu\n"
+            "BgNVHREEJzAlgiNnb29nbGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTAK\n"
+            "BggqhkjOPQQDAgNIADBFAiEAhoM17gakQxgEm/vkgV3RBo3oFgouzxP/qp2M4r4j\n"
+            "JqcCIBe+3Cgg9KjDGFaexf/T3sz0qjA5aT4/imsTS06NmbhW\n"
+            "-----END CERTIFICATE-----\n");
+  EXPECT_EQ(ca,
+            "-----BEGIN CERTIFICATE-----\n"
+            "MIIB0DCCAXagAwIBAgIUY9ZexzxoSQ2s9l7rzrdFtziAf04wCgYIKoZIzj0EAwIw\n"
+            "LjEsMCoGA1UEAwwjZ29vZ2xlLW9hdXRoMnwxMDMxMDYxMTkyNTE5NjkyODc1NzEw\n"
+            "HhcNMTcwMzAyMDkzMTI3WhcNMjcwMjI4MDkzMTU3WjAuMSwwKgYDVQQDDCNnb29n\n"
+            "bGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTBZMBMGByqGSM49AgEGCCqG\n"
+            "SM49AwEHA0IABFjHD4kK3YBw7QTA1K659EMAYl5lxG5y5/4kWTr+bDuvYnYvpjFJ\n"
+            "x2P5CnoGmsffLvzgIjgrFV36cpHmXGalScCjcjBwMA4GA1UdDwEB/wQEAwIBBjAP\n"
+            "BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTLWJBczmVpkZKtcNg+qusSz+YBSTAu\n"
+            "BgNVHREEJzAlgiNnb29nbGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTAK\n"
+            "BggqhkjOPQQDAgNIADBFAiEAhoM17gakQxgEm/vkgV3RBo3oFgouzxP/qp2M4r4j\n"
+            "JqcCIBe+3Cgg9KjDGFaexf/T3sz0qjA5aT4/imsTS06NmbhW\n"
+            "-----END CERTIFICATE-----\n"
+            "-----BEGIN CERTIFICATE-----\n"
+            "MIIB0DCCAXagAwIBAgIUY9ZexzxoSQ2s9l7rzrdFtziAf04wCgYIKoZIzj0EAwIw\n"
+            "LjEsMCoGA1UEAwwjZ29vZ2xlLW9hdXRoMnwxMDMxMDYxMTkyNTE5NjkyODc1NzEw\n"
+            "HhcNMTcwMzAyMDkzMTI3WhcNMjcwMjI4MDkzMTU3WjAuMSwwKgYDVQQDDCNnb29n\n"
+            "bGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTBZMBMGByqGSM49AgEGCCqG\n"
+            "SM49AwEHA0IABFjHD4kK3YBw7QTA1K659EMAYl5lxG5y5/4kWTr+bDuvYnYvpjFJ\n"
+            "x2P5CnoGmsffLvzgIjgrFV36cpHmXGalScCjcjBwMA4GA1UdDwEB/wQEAwIBBjAP\n"
+            "BgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTLWJBczmVpkZKtcNg+qusSz+YBSTAu\n"
+            "BgNVHREEJzAlgiNnb29nbGUtb2F1dGgyfDEwMzEwNjExOTI1MTk2OTI4NzU3MTAK\n"
+            "BggqhkjOPQQDAgNIADBFAiEAhoM17gakQxgEm/vkgV3RBo3oFgouzxP/qp2M4r4j\n"
+            "JqcCIBe+3Cgg9KjDGFaexf/T3sz0qjA5aT4/imsTS06NmbhW\n"
+            "-----END CERTIFICATE-----\n");
 }
 
 TEST(crypto, parsep12_FAIL) {
@@ -205,7 +267,6 @@ TEST(crypto, parsep12_FAIL) {
 TEST(crypto, generateRSAKeyPair) {
   std::string public_key;
   std::string private_key;
-  // Generation should succeed
   EXPECT_TRUE(Crypto::generateRSAKeyPair(&public_key, &private_key));
 }
 
