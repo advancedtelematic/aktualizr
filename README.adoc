@@ -141,7 +141,7 @@ OAUTH2_TEST_CLIENT_ID:STRING=....
 OAUTH2_TEST_CLIENT_SECRET:STRING=...
 ----
 
-Other tests require provisioning credentials. For details of the credentials format, see credentials.adoc. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the same manner as the Auth+ properties.
+Other tests require provisioning credentials. For details of the credentials format, see link:docs/credentials.adoc[credentials.adoc]. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the same manner as the Auth+ properties.
 
 === Code Coverage
 
@@ -207,7 +207,11 @@ bitbake -c populate_sdk core-image-minimal
 +
 ----
 . /opt/poky-sota/2.2.2/environment-setup-core2-64-poky-linux
-which cmake
+----
++
+You may want to verify that `which cmake` returns something like this:
++
+----
 /opt/poky-sota/2.2.2/sysroots/x86_64-pokysdk-linux/usr/bin/cmake
 ----
 
@@ -245,8 +249,9 @@ It is also possible to run it inside valgrind:
 ----
 valgrind --vgdb=yes --vgdb-error=0 ./aktualizr --config /usr/lib/sota/sota.toml
 vgdb --port=2159
-// ...now connect the debugger as usual
 ----
+
+Then connect the debugger as usual.
 
 == Usage
 
@@ -262,7 +267,7 @@ This code is maintained by the team at https://www.advancedtelematic.com[ATS Adv
 
 == Contribute
 
-Complete contribution guidelines can be found in CONTRIBUTING.md
+Complete contribution guidelines can be found in link:CONTRIBUTING.md[].
 
 == License
 
