@@ -48,32 +48,33 @@ This client, and the [GENIVI SOTA](https://github.com/advancedtelematic/rvi_sota
 
 The following debian packages are used in the project:
 
- - libboost-dev
- - libboost-program-options-dev (>= 1.58.0)
- - libboost-system-dev (>= 1.58.0)
- - libboost-thread-dev (>= 1.58.0)
- - libboost-log-dev (>= 1.58.0)
- - libboost-regex-dev (>= 1.58.0)
- - libboost-random-dev (>= 1.58.0)
- - libpthread-stubs0-dev (>=0.3)
- - libyaml-cpp-dev (>=0.5.2)
- - curl (>= 7.47)
- - libcurl4-openssl-dev (>= 7.47)
- - cmake (>= 3.5.1)
- - libostree-dev
- - valgrind
- - libjansson-dev
- - libsqlite3-dev
- - libssl-dev
- - libarchive-dev
- - libsodium-dev
+ - build-essential
  - clang (optional)
  - clang-format-3.8 (optional)
- - python3-dev (when building tests)
- - python3-venv (when building tests)
- - python3-openssl (when building tests)
- - libdbus-1-dev (when building tests)
+ - cmake (>= 3.5.1)
+ - curl (>= 7.47)
  - lcov (when building for code coverage)
+ - libarchive-dev
+ - libboost-dev
+ - libboost-log-dev (>= 1.58.0)
+ - libboost-program-options-dev (>= 1.58.0)
+ - libboost-random-dev (>= 1.58.0)
+ - libboost-regex-dev (>= 1.58.0)
+ - libboost-system-dev (>= 1.58.0)
+ - libboost-thread-dev (>= 1.58.0)
+ - libcurl4-openssl-dev (>= 7.47)
+ - libdbus-1-dev (when building tests)
+ - libjansson-dev
+ - libostree-dev
+ - libpthread-stubs0-dev (>=0.3)
+ - libsodium-dev
+ - libsqlite3-dev
+ - libssl-dev
+ - libyaml-cpp-dev (>=0.5.2)
+ - python3-dev (when building tests)
+ - python3-openssl (when building tests)
+ - python3-venv (when building tests)
+ - valgrind
 
 ### Building
 
@@ -94,7 +95,7 @@ git submodule update --init --recursive
 ~~~
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 ~~~
 
 You can then build the project from the `build` directory using Make:
@@ -111,6 +112,17 @@ Before checking in code, the code linting checks should be run:
 make qa
 ~~~
 
+This will reformat all the code with clang-format and run clang-check and the test suite.
+Please follow the https://google.github.io/styleguide/cppguide.html[Google C++ Style Guide] coding standard.
+
+### Tags
+
+Generate tags:
+
+~~~
+make tags
+~~~
+
 ### Testing
 
 To run the test suite:
@@ -118,6 +130,21 @@ To run the test suite:
 ~~~
 make test
 ~~~
+
+`make qa` will also run the test suite.
+
+Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-DOAUTH2_TEST_CLIENT_ID= -DOAUTH2_TEST_CLIENT_SECRET=...` to cmake, or by editing CMakeCache.txt in the build directory to set the following options:
+
+~~~
+# In CMakeCache.txt
+//Client ID for testing Auth+ authentication
+OAUTH2_TEST_CLIENT_ID:STRING=....
+
+//Client secret for testing Auth+ authentication
+OAUTH2_TEST_CLIENT_SECRET:STRING=...
+~~~
+
+Other tests require provisioning credentials. For details of the credentials format, see [credentials.adoc](credentials.adoc). Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the same manner as the Auth+ properties.
 
 ### Code Coverage
 
@@ -139,7 +166,7 @@ The report will be output to the `coverage` folder in your `build-coverage` dire
 
 ### Building with Docker
 
-A Dockerfile is provided to support building / testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
+A Dockerfile is provided to support building and testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
 
 ~~~
 docker build -t advancedtelematic/aktualizr .
@@ -235,5 +262,5 @@ Complete contibution guidelines can be found in [CONTRIBUTING.md](CONTRIBUTING.m
 
 ## License
 
-This code is licensed under the [Mozilla Public License 2.0](LICENSE), a copy of which can be found in this repository. All code is copyright [ATS Advanced Telematic Systems GmbH](https://www.advancedtelematic.com), 2016-2017.
+This code is licensed under the [Mozilla Public License 2.0](LICENSE), a copy of which can be found in this repository. All code is copyright [ATS Advanced Telematic Systems GmbH](https://www.advancedtelematic.com), 2016-2018.
 
