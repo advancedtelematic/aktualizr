@@ -1,5 +1,5 @@
 
-#include "logger.h"
+#include "logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
 
@@ -25,21 +25,21 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
     std::string role_name = it.key().asString();
     Role role = Role(role_name);
     if (role == Role::InvalidRole()) {
-      LOGGER_LOG(LVL_warning, "Invalid role in root.json");
-      LOGGER_LOG(LVL_trace, "Role name:" << role_name);
-      LOGGER_LOG(LVL_trace, "root.json is:" << json);
+      LOG_WARNING << "Invalid role in root.json";
+      LOG_TRACE << "Role name:" << role_name;
+      LOG_TRACE << "root.json is:" << json;
       continue;
     }
     // Threshold
     int requiredThreshold = (*it)["threshold"].asInt();
     if (requiredThreshold < kMinSignatures) {
-      LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
-                                                               << kMinSignatures);
+      LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
+                << (int)kMinSignatures;
       throw IllegalThreshold(repository, "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
-      LOGGER_LOG(LVL_debug, "Failing with threshold for role " << role << " too large: " << kMaxSignatures << " < "
-                                                               << requiredThreshold);
+      LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << (int)kMaxSignatures << " < "
+                << requiredThreshold;
       throw IllegalThreshold(repository, "root.json contains a role that requires too many signatures");
     }
     thresholds_for_role_[role] = requiredThreshold;
@@ -125,23 +125,23 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
     }
     std::string keyid = (*sig)["keyid"].asString();
     if (!keys_.count(keyid)) {
-      LOGGER_LOG(LVL_info, "Signed by unknown keyid, skipping");
-      LOGGER_LOG(LVL_trace, "Key ID: " << keyid);
+      LOG_INFO << "Signed by unknown keyid, skipping";
+      LOG_TRACE << "Key ID: " << keyid;
       continue;
     }
 
     if (!keys_for_role_.count(std::make_pair(role, keyid))) {
-      LOGGER_LOG(LVL_warning, "KeyId is not valid to sign for this role");
-      LOGGER_LOG(LVL_trace, "KeyId: " << keyid);
+      LOG_WARNING << "KeyId is not valid to sign for this role";
+      LOG_TRACE << "KeyId: " << keyid;
       continue;
     }
 
     if (Crypto::VerifySignature(keys_[keyid], signature, canonical)) {
       valid_signatures++;
     } else {
-      LOGGER_LOG(LVL_warning, "Signature was present but invalid");
-      LOGGER_LOG(LVL_trace, "  keyid:" << keyid);
-      LOGGER_LOG(LVL_trace, "  signature:" << signature);
+      LOG_WARNING << "Signature was present but invalid";
+      LOG_TRACE << "  keyid:" << keyid;
+      LOG_TRACE << "  signature:" << signature;
       // throw SecurityException(repository, "Invalid signature, verification failed");
     }
   }
@@ -158,15 +158,15 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
   // TODO check timestamp
   Uptane::TimeStamp expiry(Uptane::TimeStamp(res["expires"].asString()));
   if (expiry.IsExpiredAt(now)) {
-    LOGGER_LOG(LVL_trace, "Metadata expired at:" << expiry);
+    LOG_TRACE << "Metadata expired at:" << expiry;
     throw ExpiredMetadata(repository, role.ToString());
   }
 
   Uptane::Role actual_role(Uptane::Role(res["_type"].asString()));
   if (role != actual_role) {
-    LOGGER_LOG(LVL_warning, "Object was signed for a different role");
-    LOGGER_LOG(LVL_trace, "  role:" << role);
-    LOGGER_LOG(LVL_trace, "  actual_role:" << actual_role);
+    LOG_WARNING << "Object was signed for a different role";
+    LOG_TRACE << "  role:" << role;
+    LOG_TRACE << "  actual_role:" << actual_role;
     throw SecurityException(repository, "Object was signed for a different role");
   }
   return res;

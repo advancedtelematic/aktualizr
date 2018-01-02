@@ -18,12 +18,12 @@ P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.mo
   PKCS11_SLOT* slot = PKCS11_find_token(ctx_.get(), slots_.get_slots(), slots_.get_nslots());
   if (!slot || !slot->token) throw std::runtime_error("Couldn't find pkcs11 token");
 
-  LOGGER_LOG(LVL_debug, "Slot manufacturer......: " << slot->manufacturer);
-  LOGGER_LOG(LVL_debug, "Slot description.......: " << slot->description);
-  LOGGER_LOG(LVL_debug, "Slot token label.......: " << slot->token->label);
-  LOGGER_LOG(LVL_debug, "Slot token manufacturer: " << slot->token->manufacturer);
-  LOGGER_LOG(LVL_debug, "Slot token model.......: " << slot->token->model);
-  LOGGER_LOG(LVL_debug, "Slot token serialnr....: " << slot->token->serialnr);
+  LOG_DEBUG << "Slot manufacturer......: " << slot->manufacturer;
+  LOG_DEBUG << "Slot description.......: " << slot->description;
+  LOG_DEBUG << "Slot token label.......: " << slot->token->label;
+  LOG_DEBUG << "Slot token manufacturer: " << slot->token->manufacturer;
+  LOG_DEBUG << "Slot token model.......: " << slot->token->model;
+  LOG_DEBUG << "Slot token serialnr....: " << slot->token->serialnr;
 
   uri_prefix_ = std::string("pkcs11:serial=") + slot->token->serialnr + ";pin-value=" + config_.pass + ";id=%";
 
@@ -61,18 +61,18 @@ P11Engine::~P11Engine() {
 PKCS11_SLOT* P11Engine::findTokenSlot() {
   PKCS11_SLOT* slot = PKCS11_find_token(ctx_.get(), slots_.get_slots(), slots_.get_nslots());
   if (!slot || !slot->token) {
-    LOGGER_LOG(LVL_error, "Couldn't find a token");
+    LOG_ERROR << "Couldn't find a token";
     return NULL;
   }
   int rv;
   PKCS11_is_logged_in(slot, 1, &rv);
   if (rv == 0) {
     if (PKCS11_open_session(slot, 1)) {
-      LOGGER_LOG(LVL_error, "Error creating rw session in to the slot: " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "Error creating rw session in to the slot: " << ERR_error_string(ERR_get_error(), NULL);
     }
 
     if (PKCS11_login(slot, 0, config_.pass.c_str())) {
-      LOGGER_LOG(LVL_error, "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "Error logging in to the token: " << ERR_error_string(ERR_get_error(), NULL);
       return NULL;
     }
   }
@@ -90,8 +90,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
   unsigned int nkeys;
   int rc = PKCS11_enumerate_public_keys(slot->token, &keys, &nkeys);
   if (rc < 0) {
-    LOGGER_LOG(LVL_error,
-               "Error enumerating public keys in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "Error enumerating public keys in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL);
     return false;
   }
   PKCS11_KEY* key = NULL;
@@ -108,7 +107,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
     }
   }
   if (key == NULL) {
-    LOGGER_LOG(LVL_error, "Requested public key was not found");
+    LOG_ERROR << "Requested public key was not found";
     return false;
   }
   EVP_PKEY* evp_key = PKCS11_get_public_key(key);
@@ -131,7 +130,7 @@ bool P11Engine::generateUptaneKeyPair() {
   Utils::hex2bin(config_.uptane_key_id, id_hex.get());
 
   if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (config_.uptane_key_id.length() / 2))) {
-    LOGGER_LOG(LVL_error, "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL);
 
     return false;
   }
@@ -152,8 +151,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) {
   unsigned int ncerts;
   int rc = PKCS11_enumerate_certs(slot->token, &certs, &ncerts);
   if (rc < 0) {
-    LOGGER_LOG(LVL_error,
-               "Error enumerating certificates in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "Error enumerating certificates in PKCS11 device: " << ERR_error_string(ERR_get_error(), NULL);
     return false;
   }
 
@@ -170,7 +168,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) {
     }
   }
   if (cert == NULL) {
-    LOGGER_LOG(LVL_error, "Requested certificate was not found");
+    LOG_ERROR << "Requested certificate was not found";
     return false;
   }
   BIO* mem = BIO_new(BIO_s_mem());

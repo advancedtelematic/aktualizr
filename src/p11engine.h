@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 
 #include "config.h"
-#include "logger.h"
+#include "logging.h"
 
 class P11ContextWrapper {
  public:
@@ -20,8 +20,7 @@ class P11ContextWrapper {
     ctx = PKCS11_CTX_new();
     if (PKCS11_CTX_load(ctx, module.c_str())) {
       PKCS11_CTX_free(ctx);
-      LOGGER_LOG(LVL_error, "Couldn't load PKCS11 module " << module.string() << ": "
-                                                           << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "Couldn't load PKCS11 module " << module.string() << ": " << ERR_error_string(ERR_get_error(), NULL);
       throw std::runtime_error("PKCS11 error");
     }
   }
@@ -47,8 +46,8 @@ class P11SlotsWrapper {
       return;
     }
     if (PKCS11_enumerate_slots(ctx, &slots, &nslots)) {
-      LOGGER_LOG(LVL_error, "Couldn't enumerate slots"
-                                << ": " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "Couldn't enumerate slots"
+                << ": " << ERR_error_string(ERR_get_error(), NULL);
       throw std::runtime_error("PKCS11 error");
     }
   }

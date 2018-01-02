@@ -7,7 +7,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 #include <gio/gio.h>
@@ -73,13 +73,13 @@ bool Ostree::addRemote(OstreeRepo *repo, const std::string &remote, const std::s
 
   if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_DELETE_IF_EXISTS, remote.c_str(), url.c_str(),
                                  options, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "Error of adding remote: " << error->message);
+    LOG_ERROR << "Error of adding remote: " << error->message;
     g_error_free(error);
     return false;
   }
   if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_ADD_IF_NOT_EXISTS, remote.c_str(), url.c_str(),
                                  options, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "Error of adding remote: " << error->message);
+    LOG_ERROR << "Error of adding remote: " << error->message;
     g_error_free(error);
     return false;
   }
@@ -108,7 +108,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   }
   boost::shared_ptr<OstreeSysroot> sysroot = Ostree::LoadSysroot(config.sysroot);
   if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "could not get repo");
+    LOG_ERROR << "could not get repo";
     g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
@@ -125,7 +125,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   options = g_variant_ref_sink(g_variant_builder_end(&builder));
 
   if (!ostree_repo_pull_with_options(repo, remote, options, NULL, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "Error of pulling image: " << error->message);
+    LOG_ERROR << "Error of pulling image: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
@@ -133,7 +133,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
   GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), commit_ids[0]);
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
-    LOGGER_LOG(LVL_error, error->message);
+    LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
@@ -141,12 +141,12 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
   if (merge_deployment == NULL) {
-    LOGGER_LOG(LVL_error, "No merge deployment");
+    LOG_ERROR << "No merge deployment";
     return data::InstallOutcome(data::INSTALL_FAILED, "No merge deployment");
   }
 
   if (!ostree_sysroot_prepare_cleanup(sysroot.get(), cancellable, &error)) {
-    LOGGER_LOG(LVL_error, error->message);
+    LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
@@ -169,7 +169,7 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   OstreeDeployment *new_deployment = NULL;
   if (!ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin, merge_deployment, kargs_strv,
                                   &new_deployment, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "ostree_sysroot_deploy_tree: " << error->message);
+    LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
@@ -177,12 +177,12 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
 
   if (!ostree_sysroot_simple_write_deployment(sysroot.get(), NULL, new_deployment, merge_deployment,
                                               OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable, &error)) {
-    LOGGER_LOG(LVL_error, "ostree_sysroot_simple_write_deployment:" << error->message);
+    LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
-  LOGGER_LOG(LVL_info, "Performing sync()");
+  LOG_INFO << "Performing sync()";
   sync();
   return data::InstallOutcome(data::OK, "Installation successful");
 }

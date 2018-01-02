@@ -6,7 +6,7 @@
 #include "json/json.h"
 
 #include "crypto.h"
-#include "logger.h"
+#include "logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
@@ -41,7 +41,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
       return true;
     } else {
       // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << map_it->second->getSerial());
+      LOG_ERROR << "Multiple secondaries found with the same serial: " << map_it->second->getSerial();
       return false;
     }
   }
@@ -156,13 +156,13 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 }
 
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
-  LOGGER_LOG(LVL_debug, "Checking if device is provisioned...");
+  LOG_DEBUG << "Checking if device is provisioned...";
 
   if (!uptane_repo.initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
   verifySecondaries();
-  LOGGER_LOG(LVL_debug, "... provisioned OK");
+  LOG_DEBUG << "... provisioned OK";
   reportHwInfo();
   reportInstalledPackages();
 
@@ -170,7 +170,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
-    LOGGER_LOG(LVL_info, "got " + command->variant + " command");
+    LOG_INFO << "got " + command->variant + " command";
 
     try {
       if (command->variant == "GetUpdateRequests") {
@@ -180,11 +180,11 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         // Uptane steps 3 and 4 (download metadata and then images):
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
-          LOGGER_LOG(LVL_info, "got new updates");
+          LOG_INFO << "got new updates";
           *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates.second);
           last_targets_version = updates.first;  // TODO: What if we fail install targets?
         } else {
-          LOGGER_LOG(LVL_info, "no new updates, sending UptaneTimestampUpdated event");
+          LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
@@ -222,9 +222,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
       }
 
     } catch (Uptane::Exception e) {
-      LOGGER_LOG(LVL_error, e.what());
+      LOG_ERROR << e.what();
     } catch (const std::exception &ex) {
-      LOGGER_LOG(LVL_error, "Unknown exception was thrown: " << ex.what());
+      LOG_ERROR << "Unknown exception was thrown: " << ex.what();
     }
   }
 }
@@ -237,7 +237,7 @@ void SotaUptaneClient::initSecondaries() {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(sec_serial);
     if (map_it != secondaries.end()) {
-      LOGGER_LOG(LVL_error, "Multiple secondaries found with the same serial: " << sec_serial);
+      LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
       continue;
     }
     secondaries[sec_serial] = sec;
@@ -250,7 +250,7 @@ void SotaUptaneClient::initSecondaries() {
 void SotaUptaneClient::verifySecondaries() {
   std::vector<std::pair<std::string, std::string> > serials;
   if (!storage->loadEcuSerials(&serials) || serials.empty()) {
-    LOGGER_LOG(LVL_error, "No ECU serials found in storage!");
+    LOG_ERROR << "No ECU serials found in storage!";
     return;
   }
 
@@ -260,7 +260,7 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<std::pair<std::string, std::string> >::iterator store_it;
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
-    LOGGER_LOG(LVL_error, "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!");
+    LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
   } else {
     found[std::distance(serials.begin(), store_it)] = true;
   }
@@ -270,11 +270,11 @@ void SotaUptaneClient::verifySecondaries() {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
     if (store_it == serials.end()) {
-      LOGGER_LOG(LVL_error, "Secondary ECU serial " << it->second->getSerial() << " (hardware ID "
-                                                    << it->second->getHwId() << ") not found in storage!");
+      LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
+                << ") not found in storage!";
     } else if (found[std::distance(serials.begin(), store_it)] == true) {
-      LOGGER_LOG(LVL_error, "Secondary ECU serial " << it->second->getSerial() << " (hardware ID "
-                                                    << it->second->getHwId() << ") has a duplicate entry in storage!");
+      LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
+                << ") has a duplicate entry in storage!";
     } else {
       found[std::distance(serials.begin(), store_it)] = true;
     }
@@ -283,8 +283,8 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<bool>::iterator found_it;
   for (found_it = found.begin(); found_it != found.end(); ++found_it) {
     if (!*found_it) {
-      LOGGER_LOG(LVL_warning, "ECU serial " << serials[std::distance(found.begin(), found_it)].first
-                                            << " in storage was not reported to aktualizr!");
+      LOG_WARNING << "ECU serial " << serials[std::distance(found.begin(), found_it)].first
+                  << " in storage was not reported to aktualizr!";
     }
   }
 }

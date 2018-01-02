@@ -4,7 +4,7 @@
 #include <boost/scoped_array.hpp>
 
 #include "bootstrap.h"
-#include "logger.h"
+#include "logging.h"
 #include "uptane/uptanerepository.h"
 
 namespace Uptane {
@@ -25,26 +25,26 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
       std::string cert;
       if (tls_config.cert_source == kFile) {
         if (!storage->loadTlsCert(&cert)) {
-          LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+          LOG_ERROR << "Certificate is not found, can't extract device_id";
           return false;
         }
       } else {  // kPkcs11
 #ifdef BUILD_P11
         if (!p11.readTlsCert(&cert)) {
-          LOGGER_LOG(LVL_error, "Certificate is not found, can't extract device_id");
+          LOG_ERROR << "Certificate is not found, can't extract device_id";
           return false;
         }
 #else
-        LOGGER_LOG(LVL_error, "Aktualizr was built without PKCS#11 support, can't extract device_id");
+        LOG_ERROR << "Aktualizr was built without PKCS#11 support, can't extract device_id";
         return false;
 #endif
       }
       if (!Crypto::extractSubjectCN(cert, &device_id)) {
-        LOGGER_LOG(LVL_error, "Couldn't extract CN from the certificate");
+        LOG_ERROR << "Couldn't extract CN from the certificate";
         return false;
       }
     } else {
-      LOGGER_LOG(LVL_error, "Unknown provisioning method");
+      LOG_ERROR << "Unknown provisioning method";
       return false;
     }
   }
@@ -196,7 +196,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
   if (loadSetTlsCreds(tls_config)) return INIT_RET_OK;
 
   if (provision_config.mode != kAutomatic) {
-    LOGGER_LOG(LVL_error, "Credentials not found");
+    LOG_ERROR << "Credentials not found";
     return INIT_RET_STORAGE_FAILURE;
   }
 
@@ -209,7 +209,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
   Json::Value data;
   std::string device_id;
   if (!storage->loadDeviceId(&device_id)) {
-    LOGGER_LOG(LVL_error, "device_id unknown during autoprovisioning process");
+    LOG_ERROR << "device_id unknown during autoprovisioning process";
     return INIT_RET_STORAGE_FAILURE;
   }
   data["deviceId"] = device_id;
@@ -218,10 +218,10 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
-      LOGGER_LOG(LVL_error, "Device id" << device_id << "is occupied");
+      LOG_ERROR << "Device id" << device_id << "is occupied";
       return INIT_RET_OCCUPIED;
     } else {
-      LOGGER_LOG(LVL_error, "Autoprovisioning failed, response: " << response.body);
+      LOG_ERROR << "Autoprovisioning failed, response: " << response.body;
       return INIT_RET_SERVER_FAILURE;
     }
   }
@@ -231,7 +231,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
   std::string ca;
   FILE* device_p12 = fmemopen(const_cast<char*>(response.body.c_str()), response.body.size(), "rb");
   if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
-    LOGGER_LOG(LVL_error, "Received a malformed P12 package from the server");
+    LOG_ERROR << "Received a malformed P12 package from the server";
     return INIT_RET_BAD_P12;
   }
   fclose(device_p12);
@@ -239,11 +239,11 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config, co
 
   // set provisioned credentials
   if (!loadSetTlsCreds(tls_config)) {
-    LOGGER_LOG(LVL_info, "Failed to set provisioned credentials");
+    LOG_INFO << "Failed to set provisioned credentials";
     return INIT_RET_STORAGE_FAILURE;
   }
 
-  LOGGER_LOG(LVL_info, "Provisioned successfully on Device Gateway");
+  LOG_INFO << "Provisioned successfully on Device Gateway";
   return INIT_RET_OK;
 }
 
@@ -262,19 +262,19 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
 #ifdef BUILD_P11
   if (uptane_config.key_source == kFile) {
     if (!storage->loadPrimaryKeys(&primary_public, NULL)) {
-      LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
+      LOG_ERROR << "Unable to read primary public key from the storage";
       return INIT_RET_STORAGE_FAILURE;
     }
   } else {  // kPkcs11
     if (!p11.readUptanePublicKey(&primary_public)) {
-      LOGGER_LOG(LVL_error, "Unable to read primary public key from the PKCS#11 device");
+      LOG_ERROR << "Unable to read primary public key from the PKCS#11 device";
       return INIT_RET_STORAGE_FAILURE;
     }
   }
 #else
   (void)uptane_config;
   if (!storage->loadPrimaryKeys(&primary_public, NULL)) {
-    LOGGER_LOG(LVL_error, "Unable to read primary public key from the storage");
+    LOG_ERROR << "Unable to read primary public key from the storage";
     return INIT_RET_STORAGE_FAILURE;
   }
 #endif
@@ -312,16 +312,16 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&
         (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
-      LOGGER_LOG(LVL_error, "Some ECU is already registered");
+      LOG_ERROR << "Some ECU is already registered";
       return INIT_RET_OCCUPIED;
     } else {
-      LOGGER_LOG(LVL_error, "Error registering device on Uptane, response: " << response.body);
+      LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
       return INIT_RET_SERVER_FAILURE;
     }
   }
   // do not call storage->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
-  LOGGER_LOG(LVL_info, "ECUs have been successfully registered to the server");
+  LOG_INFO << "ECUs have been successfully registered to the server";
   return INIT_RET_OK;
 }
 
@@ -329,15 +329,15 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
 bool Repository::initialize() {
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId(config.provision, config.uptane, config.tls)) {
-      LOGGER_LOG(LVL_error, "Device ID generation failed, abort initialization");
+      LOG_ERROR << "Device ID generation failed, abort initialization";
       return false;
     }
     if (!initPrimaryEcuKeys(config.uptane)) {
-      LOGGER_LOG(LVL_error, "ECU key generation failed, abort initialization");
+      LOG_ERROR << "ECU key generation failed, abort initialization";
       return false;
     }
     if (!initEcuSerials(config.uptane)) {
-      LOGGER_LOG(LVL_error, "ECU serial generation failed, abort initialization");
+      LOG_ERROR << "ECU serial generation failed, abort initialization";
       return false;
     }
 
@@ -347,10 +347,10 @@ bool Repository::initialize() {
       resetEcuKeys();
       resetEcuSerials();
       resetDeviceId();
-      LOGGER_LOG(LVL_info, "Device name is already registered, restart");
+      LOG_INFO << "Device name is already registered, restart";
       continue;
     } else if (ret_code != INIT_RET_OK) {
-      LOGGER_LOG(LVL_error, "Autoprovisioning failed, abort initialization");
+      LOG_ERROR << "Autoprovisioning failed, abort initialization";
       return false;
     }
 
@@ -358,9 +358,9 @@ bool Repository::initialize() {
     // if am ECU with the same ID has already been registered to the server, repeat the whole registration process
     //   excluding the device registration
     if (ret_code == INIT_RET_OCCUPIED) {
-      LOGGER_LOG(LVL_info, "ECU serial is already registered");
+      LOG_INFO << "ECU serial is already registered";
     } else if (ret_code != INIT_RET_OK) {
-      LOGGER_LOG(LVL_error, "ECU registration failed, abort initialization");
+      LOG_ERROR << "ECU registration failed, abort initialization";
       return false;
     }
 
@@ -368,7 +368,7 @@ bool Repository::initialize() {
     storage->storeEcuRegistered();
     return true;
   }
-  LOGGER_LOG(LVL_error, "Initialization failed after " << MaxInitializationAttempts << " attempts");
+  LOG_ERROR << "Initialization failed after " << MaxInitializationAttempts << " attempts";
   return false;
 }
 

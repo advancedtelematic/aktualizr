@@ -16,7 +16,7 @@ EventsInterpreter::EventsInterpreter(const Config& config_in, event::Channel* ev
 EventsInterpreter::~EventsInterpreter() {
   events_channel->close();
   if (!thread.try_join_for(boost::chrono::seconds(10))) {
-    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+    LOG_ERROR << "join()-ing DBusGateway thread timed out";
   }
 }
 
@@ -25,7 +25,7 @@ void EventsInterpreter::interpret() { thread = boost::thread(boost::bind(&Events
 void EventsInterpreter::run() {
   boost::shared_ptr<event::BaseEvent> event;
   while (*events_channel >> event) {
-    LOGGER_LOG(LVL_info, "got " << event->variant << " event");
+    LOG_INFO << "got " << event->variant << " event";
     gateway_manager.processEvents(event);
 
     if (event->variant == "UpdateAvailable") {

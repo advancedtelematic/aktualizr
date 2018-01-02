@@ -4,7 +4,7 @@
 
 #include <boost/scoped_array.hpp>
 
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : config_(config) {

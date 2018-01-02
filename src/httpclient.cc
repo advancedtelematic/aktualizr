@@ -18,7 +18,7 @@
 #include <libp11.h>
 #endif
 
-#include "logger.h"
+#include "logging.h"
 #include "openssl_compat.h"
 
 /*****************************************************************************/
@@ -52,9 +52,7 @@ HttpClient::HttpClient()
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
-  if (loggerGetSeverity() == LVL_trace) {
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-  }
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
 
   headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "Accept: */*");
@@ -90,7 +88,7 @@ HttpClient::~HttpClient() {
 HttpResponse HttpClient::get(const std::string& url) {
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-  LOGGER_LOG(LVL_debug, "GET " << url);
+  LOG_DEBUG << "GET " << url;
   return perform(curl, RETRY_TIMES);
 }
 
@@ -141,7 +139,7 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
   curl_easy_setopt(curl, CURLOPT_POST, 1);
   std::string data_str = Json::FastWriter().write(data);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data_str.c_str());
-  LOGGER_LOG(LVL_trace, "post request body:" << data);
+  LOG_TRACE << "post request body:" << data;
   return perform(curl, RETRY_TIMES);
 }
 
@@ -160,7 +158,7 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   std::string data_str = Json::FastWriter().write(data);
   curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
   curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
-  LOGGER_LOG(LVL_trace, "put request body:" << data);
+  LOG_TRACE << "put request body:" << data;
   HttpResponse result = perform(curl_put, RETRY_TIMES);
   curl_easy_cleanup(curl_put);
   return result;
@@ -176,13 +174,13 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
     std::ostringstream error_message;
     error_message << "curl error " << response.curl_code << " (http code " << response.http_status_code
                   << "): " << response.error_message;
-    LOGGER_LOG(LVL_error, error_message.str());
+    LOG_ERROR << error_message.str();
     if (retry_times) {
       sleep(1);
       response = perform(curl_handler, --retry_times);
     }
   }
-  LOGGER_LOG(LVL_trace, "response: " << response.body);
+  LOG_TRACE << "response: " << response.body;
   return response;
 }
 

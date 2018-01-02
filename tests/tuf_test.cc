@@ -2,7 +2,7 @@
 
 #include <json/json.h>
 
-#include "logger.h"
+#include "logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
 #include "utils.h"
@@ -11,7 +11,7 @@ Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(Root, RootValidates) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
-  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  LOG_INFO << "Root is:" << initial_root;
 
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
@@ -24,7 +24,7 @@ TEST(Root, RootValidates) {
 TEST(Root, RootJsonNoKeys) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
-  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  LOG_INFO << "Root is:" << initial_root;
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   i.removeMember("keys");
   EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
@@ -33,7 +33,7 @@ TEST(Root, RootJsonNoKeys) {
 TEST(Root, RootJsonNoRoles) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
-  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  LOG_INFO << "Root is:" << initial_root;
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   i.removeMember("roles");
   EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
@@ -46,7 +46,7 @@ TEST(Root, RootJsonNoRoles) {
 TEST(Root, RootJsonRsassaPssSha256) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/rsassa-pss-sha256/root.json");
-  LOGGER_LOG(LVL_info, "Root is:" << initial_root);
+  LOG_INFO << "Root is:" << initial_root;
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
   try {
     Uptane::Root root("director", i);
@@ -85,7 +85,7 @@ TEST(TimeStamp, Now) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_set_threshold(boost::log::trivial::trace);
   return RUN_ALL_TESTS();
 }
 #endif

@@ -2,7 +2,6 @@
 set (SOTA_TOOLS_LIB_SRC
   authenticate.cc
   server_credentials.cc
-  logging.cc
   oauth2.cc
   ostree_hash.cc
   ostree_ref.cc
@@ -141,7 +140,6 @@ set(ALL_SOTA_TOOLS_HEADERS
   accumulator.h
   authenticate.h
   deploy.h
-  logging.h
   oauth2.h
   ostree_dir_repo.h
   ostree_hash.h

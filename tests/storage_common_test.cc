@@ -6,7 +6,7 @@
 #include <boost/move/make_unique.hpp>
 
 #include "fsstorage.h"
-#include "logger.h"
+#include "logging.h"
 #include "sqlstorage.h"
 #include "utils.h"
 
@@ -268,9 +268,8 @@ TEST(storage, import_data) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerInit();
-  loggerSetSeverity(LVL_trace);
-
+  logger_init();
+  logger_set_threshold(boost::log::trivial::trace);
   std::cout << "Running tests for FSStorage" << std::endl;
   TemporaryDirectory temp_dir1;
   storage_test_dir = temp_dir1.Path();

@@ -26,7 +26,7 @@
 
 #include "aktualizr.h"
 #include "config.h"
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 /*****************************************************************************/
@@ -98,7 +98,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     check_info_options(description, vm);
 
     // log boost error
-    LOGGER_LOG(LVL_warning, "boost command line option error: " << ex.what());
+    LOG_WARNING << "boost command line option error: " << ex.what();
 
     // print the error message to the standard output too, as the user provided
     // a non-supported commandline option
@@ -114,27 +114,28 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
-  loggerInit();
+  logger_init();
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
   // check for loglevel
   if (commandline_map.count("loglevel") != 0) {
     // set the log level from command line option
-    LoggerLevels severity = static_cast<LoggerLevels>(commandline_map["loglevel"].as<int>());
-    if (severity < LVL_minimum) {
-      LOGGER_LOG(LVL_debug, "Invalid log level");
-      severity = LVL_trace;
+    boost::log::trivial::severity_level severity =
+        static_cast<boost::log::trivial::severity_level>(commandline_map["loglevel"].as<int>());
+    if (severity < boost::log::trivial::trace) {
+      LOG_DEBUG << "Invalid log level";
+      severity = boost::log::trivial::trace;
     }
-    if (LVL_maximum < severity) {
-      LOGGER_LOG(LVL_warning, "Invalid log level");
-      severity = LVL_error;
+    if (boost::log::trivial::fatal < severity) {
+      LOG_WARNING << "Invalid log level";
+      severity = boost::log::trivial::fatal;
     }
-    loggerSetSeverity(severity);
+    logger_set_threshold(severity);
   }
 
-  LOGGER_LOG(LVL_info, "Aktualizr version " AKTUALIZR_VERSION " starting");
-  LOGGER_LOG(LVL_debug, "Current directory: " << boost::filesystem::current_path().string());
+  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
+  LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
   // Initialize config with default values, the update with config, then with cmd
   std::string sota_config_file = commandline_map["config"].as<std::string>();
   boost::filesystem::path sota_config_path(sota_config_file);
@@ -149,7 +150,7 @@ int main(int argc, char *argv[]) {
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {
-    LOGGER_LOG(LVL_error, ex.what());
+    LOG_ERROR << ex.what();
     return -1;
   }
 }

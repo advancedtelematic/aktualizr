@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -30,7 +30,7 @@ bool LegacySecondary::storeFirmware(const std::string& target_name, const std::s
     // 1 - The firmware image is invalid.
     // 2 - Installation failure. The previous firmware was not modified.
     // 3 - Installation failure. The previous firmware was partially overwritten or erased.
-    LOGGER_LOG(LVL_error, "Legacy external flasher install-software command failed: " << output);
+    LOG_ERROR << "Legacy external flasher install-software command failed: " << output;
   }
   return (rs == 0);
 }

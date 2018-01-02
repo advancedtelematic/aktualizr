@@ -10,7 +10,7 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 namespace Uptane {

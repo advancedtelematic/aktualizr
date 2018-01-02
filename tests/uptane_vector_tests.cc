@@ -9,7 +9,7 @@
 #include "config.h"
 #include "fsstorage.h"
 #include "httpclient.h"
-#include "logger.h"
+#include "logging.h"
 #include "ostree.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -79,8 +79,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerInit();
-  loggerSetSeverity(LVL_maximum);
+  logger_init();
+  logger_set_threshold(boost::log::trivial::trace);
 
   if (argc != 3) {
     std::cerr << "This program is intended to be run from run_vector_tests.sh\n";

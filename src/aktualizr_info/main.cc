@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "invstorage.h"
-#include "logger.h"
+#include "logging.h"
 
 namespace po = boost::program_options;
 
@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
   // clang-format on
 
   try {
-    loggerSetSeverity(LVL_error);
+    logger_init();
+    logger_set_threshold(boost::log::trivial::error);
     po::variables_map vm;
     po::basic_parsed_options<char> parsed_options = po::command_line_parser(argc, argv).options(desc).run();
     po::store(parsed_options, vm);

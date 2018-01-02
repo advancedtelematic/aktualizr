@@ -11,7 +11,7 @@
 #include "config.h"
 #include "crypto.h"
 #include "httpclient.h"
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 namespace bpo = boost::program_options;
@@ -75,8 +75,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  loggerInit();
-  loggerSetSeverity(static_cast<LoggerLevels>(2));
+  logger_init();
+  logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 

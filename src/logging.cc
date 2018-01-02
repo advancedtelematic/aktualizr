@@ -19,4 +19,7 @@ void logger_set_threshold(severity_level threshold) {
   gLoggingThreshold = threshold;
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
 }
+
+int loggerGetSeverity() { return (int)gLoggingThreshold; }
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:

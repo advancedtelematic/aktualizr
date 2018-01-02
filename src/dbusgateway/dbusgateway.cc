@@ -2,7 +2,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "logger.h"
+#include "logging.h"
 #include "types.h"
 
 DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_channel_in)
@@ -11,15 +11,15 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
   dbus_error_init(&err);
   conn = dbus_bus_get(config_in.dbus.bus, &err);
   if (dbus_error_is_set(&err)) {
-    LOGGER_LOG(LVL_error, "D-Bus Connection Error: " << err.message);
+    LOG_ERROR << "D-Bus Connection Error: " << err.message;
     dbus_error_free(&err);
     return;
   }
 
   int ret = dbus_bus_request_name(conn, config_in.dbus.interface.c_str(), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-    LOGGER_LOG(LVL_error, "Cannot request D-Bus name '"
-                              << config_in.dbus.interface << "' as primary owner. D-Bus communication disabled");
+    LOG_ERROR << "Cannot request D-Bus name '"
+              << config_in.dbus.interface << "' as primary owner. D-Bus communication disabled";
     return;
   }
   thread = boost::thread(boost::bind(&DbusGateway::run, this));
@@ -28,7 +28,7 @@ DbusGateway::DbusGateway(const Config& config_in, command::Channel* command_chan
 DbusGateway::~DbusGateway() {
   stop = true;
   if (!thread.try_join_for(boost::chrono::seconds(10))) {
-    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+    LOG_ERROR << "join()-ing DBusGateway thread timed out";
   }
   dbus_bus_release_name(conn, config.dbus.interface.c_str(), NULL);
   dbus_connection_unref(conn);
@@ -124,7 +124,7 @@ void DbusGateway::run() {
         dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "abortDownload") ||
         dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "updateReport")) {
       if (!dbus_message_iter_init(msg, &args) || DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args)) {
-        LOGGER_LOG(LVL_error, "D-Bus method initiateDownload called with wrong arguments");
+        LOG_ERROR << "D-Bus method initiateDownload called with wrong arguments";
         dbus_message_unref(msg);
         continue;
       } else {
@@ -145,12 +145,12 @@ void DbusGateway::run() {
           try {
             update_report.operation_results.push_back(getOperationResult(&operation_result_args));
           } catch (...) {
-            LOGGER_LOG(LVL_error, "D-Bus method 'updateReport' called with wrong arguments");
+            LOG_ERROR << "D-Bus method 'updateReport' called with wrong arguments";
           }
         } while (dbus_message_iter_next(&operation_result_args));
 
       } else {
-        LOGGER_LOG(LVL_error, "D-Bus method called with wrong arguments");
+        LOG_ERROR << "D-Bus method called with wrong arguments";
         dbus_message_unref(msg);
         continue;
       }
@@ -158,12 +158,12 @@ void DbusGateway::run() {
     }
 
     int message_type = dbus_message_get_type(msg);
-    LOGGER_LOG(LVL_trace, "Got D-Bus message type:" << dbus_message_type_to_string(message_type));
+    LOG_TRACE << "Got D-Bus message type:" << dbus_message_type_to_string(message_type);
     if (message_type == DBUS_MESSAGE_TYPE_METHOD_CALL) {
       DBusMessage* reply = dbus_message_new_method_return(msg);
       dbus_bool_t ok = dbus_connection_send(conn, reply, NULL);
       if (!ok) {
-        LOGGER_LOG(LVL_error, "D-Bus method send failed");
+        LOG_ERROR << "D-Bus method send failed";
       }
       dbus_connection_flush(conn);
 

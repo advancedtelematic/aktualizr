@@ -4,7 +4,7 @@
 
 #include "fsstorage.h"
 #include "httpfake.h"
-#include "logger.h"
+#include "logging.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -105,7 +105,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_set_threshold(boost::log::trivial::trace);
   return RUN_ALL_TESTS();
 }
 #endif

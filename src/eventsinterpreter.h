@@ -6,7 +6,7 @@
 #include "config.h"
 #include "events.h"
 #include "gatewaymanager.h"
-#include "logger.h"
+#include "logging.h"
 
 class EventsInterpreter {
  public:
