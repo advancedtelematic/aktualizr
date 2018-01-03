@@ -4,7 +4,7 @@ set(ECU_INTERFACE_HEADERS ecuinterface.h)
 set(MAIN_ECU_INTERFACE_SRC interface_main.cc make_ecu.cc)
 
 add_executable(example-interface ${MAIN_ECU_INTERFACE_SRC} example_flasher.cc)
-target_link_libraries(example-interface aktualizr_static_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(example-interface ${Boost_SYSTEM_LIBRARIES} aktualizr_static_lib ${Boost_LIBRARIES})
 target_compile_options(example-interface PUBLIC -DECUFLASHER_EXAMPLE)
 
 add_executable(aktualizr-validate-secondary-interface validate_secondary_interface_test.cc)

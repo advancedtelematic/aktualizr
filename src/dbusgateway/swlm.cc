@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "logger.h"
+#include "logging.h"
 
 SoftwareLoadingManagerProxy::SoftwareLoadingManagerProxy(const Config &config_in) : config(config_in) {
   dbus_error_init(&err);
   conn = dbus_bus_get(config_in.dbus.bus, &err);
 
   if (dbus_error_is_set(&err)) {
-    LOGGER_LOG(LVL_error, "Dbus Connection Error: " << err.message);
+    LOG_ERROR << "Dbus Connection Error: " << err.message;
     dbus_error_free(&err);
     return;
   }
@@ -36,7 +36,7 @@ void SoftwareLoadingManagerProxy::downloadComplete(const std::string &update_ima
   dbus_error_init(&err);
   reply = dbus_connection_send_with_reply_and_block(conn, msg, -1, &err);
   if (dbus_error_is_set(&err)) {
-    LOGGER_LOG(LVL_error, "Error " << err.name << ":" << err.message);
+    LOG_ERROR << "Error " << err.name << ":" << err.message;
     dbus_message_unref(msg);
     return;
   }

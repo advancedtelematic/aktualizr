@@ -15,7 +15,7 @@ set(SOURCES aktualizr.cc
             sqlstorage.cc
             gatewaymanager.cc
             httpclient.cc
-            logger.cc
+            logging.cc
             socketgateway.cc
             timer.cc
             types.cc
@@ -37,7 +37,7 @@ set(HEADERS
             httpclient.h
             httpinterface.h
             invstorage.h
-            logger.h
+            logging.h
             openssl_compat.h
             ostree.h
             socketgateway.h

@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
-#include "logger.h"
+#include "logging.h"
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
@@ -14,8 +14,7 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
   // loadMetadata(meta_pack);
   if (!loadKeys(&public_key, &private_key)) {
     if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
-      LOGGER_LOG(LVL_error, "Could not generate rsa keys for secondary " << getSerial() << "@"
-                                                                         << sconfig.ecu_hardware_id);
+      LOG_ERROR << "Could not generate rsa keys for secondary " << getSerial() << "@" << sconfig.ecu_hardware_id;
       throw std::runtime_error("Unable to initialize libsodium");
     }
     storeKeys(public_key, private_key);

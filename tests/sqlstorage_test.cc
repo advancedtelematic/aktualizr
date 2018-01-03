@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "logging.h"
 #include "sqlstorage.h"
-
-#include "logger.h"
 #include "utils.h"
 
 TEST(sqlstorage, migrate) {
@@ -23,8 +22,8 @@ TEST(sqlstorage, migrate) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerInit();
-  loggerSetSeverity(LVL_trace);
+  logger_init();
+  logger_set_threshold(boost::log::trivial::trace);
   return RUN_ALL_TESTS();
 }
 #endif

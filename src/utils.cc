@@ -18,7 +18,7 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include "logger.h"
+#include "logging.h"
 
 const char *adverbs[] = {
     "adorable", "acidic",     "ample",        "aromatic",   "artistic", "attractive", "basic",    "beautiful",
@@ -264,7 +264,7 @@ Json::Value Utils::getHardwareInfo() {
   int exit_code = shell("lshw -json", &result);
 
   if (exit_code) {
-    LOGGER_LOG(LVL_warning, "Could not execute lshw (is it installed?).");
+    LOG_WARNING << "Could not execute lshw (is it installed?).";
     return Json::Value();
   } else {
     return Utils::parseJSON(result);

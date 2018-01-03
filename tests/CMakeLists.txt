@@ -11,6 +11,7 @@ add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_AL
 
 # use the same libraries as the normal target but add our test utility library, gtest, gmock and gcov
 set (TEST_LIBS
+    ${Boost_SYSTEM_LIBRARIES}
     ${Boost_LIBRARIES}
     ${CURL_LIBRARIES}
     ${OPENSSL_LIBRARIES}

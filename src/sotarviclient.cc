@@ -6,7 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "logger.h"
+#include "logging.h"
 #include "types.h"
 #include "utils.h"
 
@@ -19,7 +19,7 @@ Json::Value parseParameters(const char *parameters) {
 
 void notifyCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
-  LOGGER_LOG(LVL_info, "got callback notify");
+  LOG_INFO << "got callback notify";
   ((SotaRVIClient *)service_data)
       ->sendEvent(boost::make_shared<event::UpdateAvailable>(
           event::UpdateAvailable(data::UpdateAvailable::fromJson(parseParameters(parameters)[0]["update_available"]))));
@@ -27,26 +27,26 @@ void notifyCallback(int fd, void *service_data, const char *parameters) {
 
 void startCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
-  LOGGER_LOG(LVL_info, "got callback start");
+  LOG_INFO << "got callback start";
   ((SotaRVIClient *)service_data)->invokeAck(parseParameters(parameters)[0]["update_id"].asString());
 }
 
 void chunkCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
-  LOGGER_LOG(LVL_info, "got callback chunk");
+  LOG_INFO << "got callback chunk";
   ((SotaRVIClient *)service_data)->saveChunk(parseParameters(parameters)[0]);
 }
 
 void finishCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
-  LOGGER_LOG(LVL_info, "got callback finish");
+  LOG_INFO << "got callback finish";
   ((SotaRVIClient *)service_data)->downloadComplete(parseParameters(parameters)[0]);
 }
 
 void getpackagesCallback(int fd, void *service_data, const char *parameters) {
   (void)fd;
   (void)parameters;
-  LOGGER_LOG(LVL_info, "got callback getpackages");
+  LOG_INFO << "got callback getpackages";
   ((SotaRVIClient *)service_data)->sendEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
 }
 
@@ -60,7 +60,7 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   json["ca"]["dir"] = config.rvi.cert_dir;
   json["creddir"] = config.rvi.cred_dir;
 
-  rviSetVerboseLogs(loggerGetSeverity() == LVL_trace);
+  rviSetVerboseLogs(loggerGetSeverity() == boost::log::trivial::trace);
 
   rvi = rviJsonInit(const_cast<char *>(Json::FastWriter().write(json).c_str()));
   if (!rvi) {
@@ -70,40 +70,40 @@ SotaRVIClient::SotaRVIClient(const Config &config_in, event::Channel *events_cha
   connection = rviConnect(rvi, config.rvi.node_host.c_str(), config.rvi.node_port.c_str());
 
   if (connection <= 0) {
-    LOGGER_LOG(LVL_error, "cannot connect to rvi node");
+    LOG_ERROR << "cannot connect to rvi node";
   }
 
   std::string service_name = "notify";
   int stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), notifyCallback, (void *)this);
   if (stat) {
-    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+    LOG_ERROR << "unable to register " << service_name;
   }
 
   service_name = "start";
   stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), startCallback, (void *)this);
   if (stat) {
-    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+    LOG_ERROR << "unable to register " << service_name;
   }
 
   service_name = "chunk";
   stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), chunkCallback, (void *)this);
   if (stat) {
-    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+    LOG_ERROR << "unable to register " << service_name;
   }
 
   service_name = "finish";
   stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), finishCallback, (void *)this);
   if (stat) {
-    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+    LOG_ERROR << "unable to register " << service_name;
   }
 
   service_name = "getpackages";
   stat = rviRegisterService(rvi, (std::string("sota/") + service_name).c_str(), getpackagesCallback, (void *)this);
   if (stat) {
-    LOGGER_LOG(LVL_error, "unable to register " << service_name);
+    LOG_ERROR << "unable to register " << service_name;
   }
 
-  LOGGER_LOG(LVL_info, "rvi services registered!!");
+  LOG_INFO << "rvi services registered!!";
   thread = boost::thread(boost::bind(&SotaRVIClient::run, this));
 }
 
@@ -111,7 +111,7 @@ SotaRVIClient::~SotaRVIClient() {
   rviCleanup(rvi);
   stop = true;
   if (!thread.try_join_for(boost::chrono::seconds(10))) {
-    LOGGER_LOG(LVL_error, "join()-ing DBusGateway thread timed out");
+    LOG_ERROR << "join()-ing DBusGateway thread timed out";
   }
 }
 
@@ -127,10 +127,10 @@ void SotaRVIClient::run() {
       case RVI_OK:
         break;
       case RVI_ERR_JSON_PART:
-        LOGGER_LOG(LVL_trace, "Partial RVI message, continuing");
+        LOG_TRACE << "Partial RVI message, continuing";
         break;
       default:
-        LOGGER_LOG(LVL_error, "rviProcessInput error: " << result);
+        LOG_ERROR << "rviProcessInput error: " << result;
         sleep(5);
     }
   }
@@ -144,7 +144,7 @@ void SotaRVIClient::startDownload(const data::UpdateRequestId &update_id) {
   Json::Value params(Json::arrayValue);
   params.append(value);
   int stat = rviInvokeService(rvi, "genivi.org/backend/sota/start", Json::FastWriter().write(params).c_str());
-  LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/start, return code is " << stat);
+  LOG_INFO << "invoked genivi.org/backend/sota/start, return code is " << stat;
 }
 
 void SotaRVIClient::invokeAck(const std::string &update_id) {
@@ -161,7 +161,7 @@ void SotaRVIClient::invokeAck(const std::string &update_id) {
   Json::Value params(Json::arrayValue);
   params.append(value);
   int stat = rviInvokeService(rvi, "genivi.org/backend/sota/ack", Json::FastWriter().write(params).c_str());
-  LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/ack, return code is " << stat);
+  LOG_INFO << "invoked genivi.org/backend/sota/ack, return code is " << stat;
 }
 
 void SotaRVIClient::saveChunk(const Json::Value &chunk_json) {
@@ -194,14 +194,14 @@ void SotaRVIClient::sendUpdateReport(data::UpdateReport update_report) {
   params.append(report);
 
   int stat = rviInvokeService(rvi, "genivi.org/backend/sota/report", Json::FastWriter().write(params).c_str());
-  LOGGER_LOG(LVL_info, "invoked genivi.org/backend/sota/report, return code is " << stat);
+  LOG_INFO << "invoked genivi.org/backend/sota/report, return code is " << stat;
   chunks_map.erase(update_report.update_id);
 }
 
 void SotaRVIClient::runForever(command::Channel *commands_channel) {
   boost::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
-    LOGGER_LOG(LVL_info, "got " + command->variant + " command");
+    LOG_INFO << "got " + command->variant + " command";
     if (command->variant == "StartDownload") {
       command::StartDownload *start_download_command = command->toChild<command::StartDownload>();
       startDownload(start_download_command->update_request_id);

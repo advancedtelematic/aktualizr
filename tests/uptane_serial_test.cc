@@ -9,7 +9,7 @@
 
 #include "fsstorage.h"
 #include "httpfake.h"
-#include "logger.h"
+#include "logging.h"
 #include "sotauptaneclient.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
@@ -224,7 +224,7 @@ TEST(Uptane, LegacySerial) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_set_threshold(boost::log::trivial::trace);
 
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";

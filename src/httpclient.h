@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "httpinterface.h"
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 /**

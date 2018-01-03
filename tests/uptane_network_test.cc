@@ -12,7 +12,7 @@
 
 #include "fsstorage.h"
 #include "httpclient.h"
-#include "logger.h"
+#include "logging.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
@@ -97,7 +97,7 @@ TEST(UptaneNetwork, no_errors) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_set_threshold(boost::log::trivial::trace);
 
   port = TestUtils::getFreePort();
   TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);

@@ -17,7 +17,7 @@
 #include <dbus/dbus.h>
 #endif
 
-#include "logger.h"
+#include "logging.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
@@ -221,7 +221,7 @@ class Config {
   template <typename T>
   static T StripQuotesFromStrings(const T& value);
   template <typename T>
-  static void CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+  static void CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
                              const boost::property_tree::ptree& pt);
   template <typename T>
   static T addQuotesToStrings(const T& value);

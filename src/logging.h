@@ -30,4 +30,6 @@ void logger_init();
 
 void logger_set_threshold(boost::log::trivial::severity_level severity_level);
 
+int loggerGetSeverity();
+
 #endif

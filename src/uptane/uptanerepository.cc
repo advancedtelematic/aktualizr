@@ -13,7 +13,7 @@
 #include "bootstrap.h"
 #include "crypto.h"
 #include "invstorage.h"
-#include "logger.h"
+#include "logging.h"
 #include "openssl_compat.h"
 #include "utils.h"
 
@@ -97,7 +97,7 @@ bool Repository::getMeta() {
       image.setMeta(&meta.image_root, &meta.image_targets, &meta.image_timestamp, &meta.image_snapshot);
       director.setMeta(&meta.director_root, &meta.director_targets);
     } else {
-      LOGGER_LOG(LVL_info, "Metadata consistency check failed");
+      LOG_INFO << "Metadata consistency check failed";
       return false;
     }
   }

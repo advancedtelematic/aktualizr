@@ -9,7 +9,7 @@
 
 #include "crypto.h"
 #include "exceptions.h"
-#include "logger.h"
+#include "logging.h"
 
 using Uptane::Hash;
 using Uptane::Target;

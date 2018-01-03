@@ -7,7 +7,7 @@
 #include <sys/un.h>
 #include <boost/make_shared.hpp>
 
-#include "logger.h"
+#include "logging.h"
 
 using boost::shared_ptr;
 using boost::make_shared;
@@ -61,11 +61,11 @@ void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
       try {
         *channel << command::BaseCommand::fromPicoJson(item);
       } catch (...) {
-        LOGGER_LOG(LVL_error, "failed command deserealization: " << item);
+        LOG_ERROR << "failed command deserealization: " << item.serialize();
       }
     }
   }
-  LOGGER_LOG(LVL_error, "unix domain socket recv command error, errno: " << errno);
+  LOG_ERROR << "unix domain socket recv command error, errno: " << errno;
   close(socket);
 }
 
@@ -86,7 +86,7 @@ void SocketGateway::eventsServer() {
       break;
     }
   }
-  LOGGER_LOG(LVL_error, "unix domain event socket accept error, errno: " << errno);
+  LOG_ERROR << "unix domain event socket accept error, errno: " << errno;
   close(events_socket);
 }
 
@@ -110,7 +110,7 @@ void SocketGateway::commandsServer() {
       break;
     }
   }
-  LOGGER_LOG(LVL_error, "unix domain command socket accept error, errno: " << errno);
+  LOG_ERROR << "unix domain command socket accept error, errno: " << errno;
   close(commands_socket);
 }
 
@@ -121,7 +121,7 @@ void SocketGateway::broadcast_event(const boost::shared_ptr<event::BaseEvent> &e
     if (bytes_sent != -1) {
       ++it;
     } else {
-      LOGGER_LOG(LVL_error, "unix domain socket write error, errno: " << errno);
+      LOG_ERROR << "unix domain socket write error, errno: " << errno;
       close(*it);
       it = event_connections.erase(it);
     }

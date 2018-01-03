@@ -10,7 +10,7 @@
 
 #include "fsstorage.h"
 #include "httpfake.h"
-#include "logger.h"
+#include "logging.h"
 #include "sotauptaneclient.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/secondaryconfig.h"
@@ -179,7 +179,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_set_threshold(boost::log::trivial::trace);
   return RUN_ALL_TESTS();
 }
 #endif

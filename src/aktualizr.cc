@@ -27,14 +27,14 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
     throw std::runtime_error("Unable to initialize libsodium");
   }
 
-  LOGGER_LOG(LVL_trace, "Seeding random number generator from /dev/random...");
+  LOG_TRACE << "Seeding random number generator from /dev/random...";
   Timer timer;
   unsigned int seed;
   std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
   urandom.read(reinterpret_cast<char *>(&seed), sizeof(seed));
   urandom.close();
   std::srand(seed);  // seeds pseudo random generator with random number
-  LOGGER_LOG(LVL_trace, "... seeding complete in " << timer);
+  LOG_TRACE << "... seeding complete in " << timer;
 
 #ifdef BUILD_OSTREE
   try {
@@ -59,11 +59,11 @@ int Aktualizr::run() {
     try {
       SotaRVIClient(config_, &events_channel).runForever(&commands_channel);
     } catch (std::runtime_error e) {
-      LOGGER_LOG(LVL_error, "Missing RVI configurations: " << e.what());
+      LOG_ERROR << "Missing RVI configurations: " << e.what();
       return EXIT_FAILURE;
     }
 #else
-    LOGGER_LOG(LVL_error, "RVI support is not enabled");
+    LOG_ERROR << "RVI support is not enabled";
     return EXIT_FAILURE;
 #endif
   } else {
@@ -76,7 +76,7 @@ int Aktualizr::run() {
     SotaUptaneClient uptane_client(config_, &events_channel, repo, storage, http);
     uptane_client.runForever(&commands_channel);
 #else
-    LOGGER_LOG(LVL_error, "OSTree support is disabled, but currently required for UPTANE");
+    LOG_ERROR << "OSTree support is disabled, but currently required for UPTANE";
     return EXIT_FAILURE;
 #endif
   }

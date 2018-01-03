@@ -4,7 +4,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "logger.h"
+#include "logging.h"
 #include "uptane/legacysecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
@@ -23,10 +23,10 @@ class SecondaryFactory {
         return boost::make_shared<LegacySecondary>(sconfig);
         break;
       case kUptane:
-        LOGGER_LOG(LVL_error, "Uptane secondaries are not currently supported.");
+        LOG_ERROR << "Uptane secondaries are not currently supported.";
         return boost::shared_ptr<SecondaryInterface>();  // NULL-equivalent
       default:
-        LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << sconfig.secondary_type);
+        LOG_ERROR << "Unrecognized secondary type: " << sconfig.secondary_type;
         return boost::shared_ptr<SecondaryInterface>();  // NULL-equivalent
     }
   }

@@ -8,7 +8,7 @@
 #include "crypto.h"
 #include "httpinterface.h"
 #include "invstorage.h"
-#include "logger.h"
+#include "logging.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 

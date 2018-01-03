@@ -9,7 +9,7 @@
 
 #include "fsstorage.h"
 #include "httpclient.h"
-#include "logger.h"
+#include "logging.h"
 #include "ostree.h"
 #include "sotauptaneclient.h"
 #include "uptane/managedsecondary.h"
@@ -107,7 +107,8 @@ TEST(UptaneCI, CheckKeys) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  loggerSetSeverity(LVL_trace);
+  logger_init();
+  logger_set_threshold(boost::log::trivial::trace);
 
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive as an input argument.\n";

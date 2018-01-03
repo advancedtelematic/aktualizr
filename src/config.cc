@@ -90,13 +90,15 @@ T Config::StripQuotesFromStrings(const T& value) {
 }
 
 template <typename T>
-void Config::CopyFromConfig(T& dest, const std::string& option_name, LoggerLevels warning_level,
+void Config::CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
                             const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());
   } else {
-    LOGGER_LOG(warning_level, option_name << " not in config file. Using default:" << dest);
+    static boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger;
+    BOOST_LOG_SEV(logger, static_cast<boost::log::trivial::severity_level>(warning_level))
+        << option_name << " not in config file. Using default:" << dest;
   }
 }
 
@@ -145,7 +147,7 @@ void Config::postUpdateValues() {
       if (boost::filesystem::exists(provision.provision_path)) {
         tls.server = Bootstrap::readServerUrl(provision.provision_path);
       } else {
-        LOGGER_LOG(LVL_error, "Provided provision archive '" << provision.provision_path << "' does not exist!");
+        LOG_ERROR << "Provided provision archive '" << provision.provision_path << "' does not exist!";
       }
     }
   }
@@ -163,7 +165,7 @@ void Config::updateFromToml(const boost::filesystem::path& filename) {
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename.string(), pt);
   updateFromPropertyTree(pt);
-  LOGGER_LOG(LVL_trace, "config read from " << filename << " :\n" << (*this));
+  LOG_TRACE << "config read from " << filename << " :\n" << (*this);
 }
 
 // For testing
@@ -178,11 +180,11 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 // Keep this order the same as in config.h and writeToFile().
 
 #ifdef WITH_GENIVI
-  CopyFromConfig(dbus.software_manager, "dbus.software_manager", LVL_trace, pt);
-  CopyFromConfig(dbus.software_manager_path, "dbus.software_manager_path", LVL_trace, pt);
-  CopyFromConfig(dbus.path, "dbus.path", LVL_trace, pt);
-  CopyFromConfig(dbus.interface, "dbus.interface", LVL_trace, pt);
-  CopyFromConfig(dbus.timeout, "dbus.timeout", LVL_trace, pt);
+  CopyFromConfig(dbus.software_manager, "dbus.software_manager", boost::log::trivial::trace, pt);
+  CopyFromConfig(dbus.software_manager_path, "dbus.software_manager_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(dbus.path, "dbus.path", boost::log::trivial::trace, pt);
+  CopyFromConfig(dbus.interface, "dbus.interface", boost::log::trivial::trace, pt);
+  CopyFromConfig(dbus.timeout, "dbus.timeout", boost::log::trivial::trace, pt);
   boost::optional<std::string> dbus_type = pt.get_optional<std::string>("dbus.bus");
   if (dbus_type.is_initialized()) {
     std::string bus = stripQuotes(dbus_type.get());
@@ -191,20 +193,20 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
     } else if (bus == "session") {
       dbus.bus = DBUS_BUS_SESSION;
     } else {
-      LOGGER_LOG(LVL_error, "Unrecognised value for dbus.bus:" << bus);
+      LOG_ERROR << "Unrecognised value for dbus.bus:" << bus;
     }
   } else {
-    LOGGER_LOG(LVL_trace, "dbus.bus not in config file. Using default");
+    LOG_TRACE << "dbus.bus not in config file. Using default";
   }
 #endif
 
-  CopyFromConfig(gateway.http, "gateway.http", LVL_info, pt);
-  CopyFromConfig(gateway.rvi, "gateway.rvi", LVL_info, pt);
-  CopyFromConfig(gateway.socket, "gateway.socket", LVL_info, pt);
-  CopyFromConfig(gateway.dbus, "gateway.dbus", LVL_info, pt);
+  CopyFromConfig(gateway.http, "gateway.http", boost::log::trivial::info, pt);
+  CopyFromConfig(gateway.rvi, "gateway.rvi", boost::log::trivial::info, pt);
+  CopyFromConfig(gateway.socket, "gateway.socket", boost::log::trivial::info, pt);
+  CopyFromConfig(gateway.dbus, "gateway.dbus", boost::log::trivial::info, pt);
 
-  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", LVL_trace, pt);
-  CopyFromConfig(network.socket_events_path, "network.socket_events_path", LVL_trace, pt);
+  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(network.socket_events_path, "network.socket_events_path", boost::log::trivial::trace, pt);
 
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
@@ -212,66 +214,66 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
     network.socket_events.empty();
     boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
   } else {
-    LOGGER_LOG(LVL_trace, "network.socket_events not in config file. Using default");
+    LOG_TRACE << "network.socket_events not in config file. Using default";
   }
 
-  CopyFromConfig(rvi.node_host, "rvi.node_host", LVL_warning, pt);
-  CopyFromConfig(rvi.node_port, "rvi.node_port", LVL_trace, pt);
-  CopyFromConfig(rvi.device_key, "rvi.device_key", LVL_warning, pt);
-  CopyFromConfig(rvi.device_cert, "rvi.device_cert", LVL_warning, pt);
-  CopyFromConfig(rvi.ca_cert, "rvi.ca_cert", LVL_warning, pt);
-  CopyFromConfig(rvi.cert_dir, "rvi.cert_dir", LVL_warning, pt);
-  CopyFromConfig(rvi.cred_dir, "rvi.cred_dir", LVL_warning, pt);
-  CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", LVL_trace, pt);
-  CopyFromConfig(rvi.uuid, "rvi.uuid", LVL_warning, pt);
+  CopyFromConfig(rvi.node_host, "rvi.node_host", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.node_port, "rvi.node_port", boost::log::trivial::trace, pt);
+  CopyFromConfig(rvi.device_key, "rvi.device_key", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.device_cert, "rvi.device_cert", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.ca_cert, "rvi.ca_cert", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.cert_dir, "rvi.cert_dir", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.cred_dir, "rvi.cred_dir", boost::log::trivial::warning, pt);
+  CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", boost::log::trivial::trace, pt);
+  CopyFromConfig(rvi.uuid, "rvi.uuid", boost::log::trivial::warning, pt);
 
-  CopyFromConfig(p11.module, "p11.module", LVL_trace, pt);
-  CopyFromConfig(p11.pass, "p11.pass", LVL_trace, pt);
-  CopyFromConfig(p11.uptane_key_id, "p11.uptane_key_id", LVL_warning, pt);
-  CopyFromConfig(p11.tls_cacert_id, "p11.tls_cacert_id", LVL_warning, pt);
-  CopyFromConfig(p11.tls_pkey_id, "p11.tls_pkey_id", LVL_warning, pt);
-  CopyFromConfig(p11.tls_clientcert_id, "p11.tls_clientcert_id", LVL_warning, pt);
+  CopyFromConfig(p11.module, "p11.module", boost::log::trivial::trace, pt);
+  CopyFromConfig(p11.pass, "p11.pass", boost::log::trivial::trace, pt);
+  CopyFromConfig(p11.uptane_key_id, "p11.uptane_key_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(p11.tls_cacert_id, "p11.tls_cacert_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(p11.tls_pkey_id, "p11.tls_pkey_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(p11.tls_clientcert_id, "p11.tls_clientcert_id", boost::log::trivial::warning, pt);
 
-  CopyFromConfig(tls.server, "tls.server", LVL_warning, pt);
+  CopyFromConfig(tls.server, "tls.server", boost::log::trivial::warning, pt);
 
   std::string tls_source = "file";
-  CopyFromConfig(tls_source, "tls.ca_source", LVL_warning, pt);
+  CopyFromConfig(tls_source, "tls.ca_source", boost::log::trivial::warning, pt);
   if (tls_source == "pkcs11")
     tls.ca_source = kPkcs11;
   else
     tls.ca_source = kFile;
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "tls.cert_source", LVL_warning, pt);
+  CopyFromConfig(tls_source, "tls.cert_source", boost::log::trivial::warning, pt);
   if (tls_source == "pkcs11")
     tls.cert_source = kPkcs11;
   else
     tls.cert_source = kFile;
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "tls.pkey_source", LVL_warning, pt);
+  CopyFromConfig(tls_source, "tls.pkey_source", boost::log::trivial::warning, pt);
   if (tls_source == "pkcs11")
     tls.pkey_source = kPkcs11;
   else
     tls.pkey_source = kFile;
 
-  CopyFromConfig(provision.server, "provision.server", LVL_warning, pt);
-  CopyFromConfig(provision.p12_password, "provision.p12_password", LVL_warning, pt);
-  CopyFromConfig(provision.expiry_days, "provision.expiry_days", LVL_warning, pt);
-  CopyFromConfig(provision.provision_path, "provision.provision_path", LVL_warning, pt);
+  CopyFromConfig(provision.server, "provision.server", boost::log::trivial::warning, pt);
+  CopyFromConfig(provision.p12_password, "provision.p12_password", boost::log::trivial::warning, pt);
+  CopyFromConfig(provision.expiry_days, "provision.expiry_days", boost::log::trivial::warning, pt);
+  CopyFromConfig(provision.provision_path, "provision.provision_path", boost::log::trivial::warning, pt);
   // provision.mode is set in postUpdateValues.
 
-  CopyFromConfig(uptane.polling, "uptane.polling", LVL_trace, pt);
-  CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", LVL_trace, pt);
-  CopyFromConfig(uptane.device_id, "uptane.device_id", LVL_warning, pt);
-  CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", LVL_warning, pt);
-  CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", LVL_warning, pt);
-  CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", LVL_warning, pt);
-  CopyFromConfig(uptane.director_server, "uptane.director_server", LVL_warning, pt);
-  CopyFromConfig(uptane.repo_server, "uptane.repo_server", LVL_warning, pt);
+  CopyFromConfig(uptane.polling, "uptane.polling", boost::log::trivial::trace, pt);
+  CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", boost::log::trivial::trace, pt);
+  CopyFromConfig(uptane.device_id, "uptane.device_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", boost::log::trivial::warning, pt);
+  CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", boost::log::trivial::warning, pt);
+  CopyFromConfig(uptane.director_server, "uptane.director_server", boost::log::trivial::warning, pt);
+  CopyFromConfig(uptane.repo_server, "uptane.repo_server", boost::log::trivial::warning, pt);
 
   std::string key_source = "file";
-  CopyFromConfig(key_source, "uptane.key_source", LVL_warning, pt);
+  CopyFromConfig(key_source, "uptane.key_source", boost::log::trivial::warning, pt);
   if (key_source == "pkcs11")
     uptane.key_source = kPkcs11;
   else
@@ -279,32 +281,32 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   // uptane.secondary_configs currently can only be set via command line.
 
-  CopyFromConfig(ostree.os, "ostree.os", LVL_warning, pt);
-  CopyFromConfig(ostree.sysroot, "ostree.sysroot", LVL_warning, pt);
-  CopyFromConfig(ostree.packages_file, "ostree.packages_file", LVL_warning, pt);
+  CopyFromConfig(ostree.os, "ostree.os", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree.sysroot, "ostree.sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree.packages_file, "ostree.packages_file", boost::log::trivial::warning, pt);
 
   std::string storage_type = "filesystem";
-  CopyFromConfig(storage_type, "storage.type", LVL_warning, pt);
+  CopyFromConfig(storage_type, "storage.type", boost::log::trivial::warning, pt);
   if (storage_type == "sqlite")
     storage.type = kSqlite;
   else
     storage.type = kFileSystem;
 
-  CopyFromConfig(storage.uptane_metadata_path, "storage.uptane_metadata_path", LVL_warning, pt);
-  CopyFromConfig(storage.uptane_private_key_path, "storage.uptane_private_key_path", LVL_warning, pt);
-  CopyFromConfig(storage.uptane_public_key_path, "storage.uptane_public_key_path", LVL_warning, pt);
-  CopyFromConfig(storage.tls_cacert_path, "storage.tls_cacert_path", LVL_warning, pt);
-  CopyFromConfig(storage.tls_pkey_path, "storage.tls_pkey_path", LVL_warning, pt);
-  CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", LVL_warning, pt);
-  CopyFromConfig(storage.path, "storage.path", LVL_trace, pt);
-  CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", LVL_trace, pt);
-  CopyFromConfig(storage.schemas_path, "storage.schemas_path", LVL_trace, pt);
+  CopyFromConfig(storage.uptane_metadata_path, "storage.uptane_metadata_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.uptane_private_key_path, "storage.uptane_private_key_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.uptane_public_key_path, "storage.uptane_public_key_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.tls_cacert_path, "storage.tls_cacert_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.tls_pkey_path, "storage.tls_pkey_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(storage.path, "storage.path", boost::log::trivial::trace, pt);
+  CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(storage.schemas_path, "storage.schemas_path", boost::log::trivial::trace, pt);
 
-  CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", LVL_warning, pt);
-  CopyFromConfig(import.uptane_public_key_path, "import.uptane_public_key_path", LVL_warning, pt);
-  CopyFromConfig(import.tls_cacert_path, "import.tls_cacert_path", LVL_warning, pt);
-  CopyFromConfig(import.tls_pkey_path, "import.tls_pkey_path", LVL_warning, pt);
-  CopyFromConfig(import.tls_clientcert_path, "import.tls_clientcert_path", LVL_warning, pt);
+  CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(import.uptane_public_key_path, "import.uptane_public_key_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(import.tls_cacert_path, "import.tls_cacert_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(import.tls_pkey_path, "import.tls_pkey_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(import.tls_clientcert_path, "import.tls_clientcert_path", boost::log::trivial::warning, pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -365,12 +367,12 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     if (stype == "virtual") {
       sconfig.secondary_type = Uptane::kVirtual;
     } else if (stype == "legacy") {
-      LOGGER_LOG(LVL_error, "Legacy secondaries should be initialized with --legacy-interface.");
+      LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
     } else if (stype == "uptane") {
       sconfig.secondary_type = Uptane::kUptane;
     } else {
-      LOGGER_LOG(LVL_error, "Unrecognized secondary type: " << stype);
+      LOG_ERROR << "Unrecognized secondary type: " << stype;
       continue;
     }
     sconfig.ecu_serial = config_json["ecu_serial"].asString();
@@ -392,7 +394,7 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
 bool Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface) {
   bool ret = false;
   if (!boost::filesystem::exists(legacy_interface)) {
-    LOGGER_LOG(LVL_error, "Legacy external flasher not found: " << legacy_interface);
+    LOG_ERROR << "Legacy external flasher not found: " << legacy_interface;
     return ret;
   }
   std::stringstream command;
@@ -400,11 +402,11 @@ bool Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface)
   command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
-    LOGGER_LOG(LVL_error, "Legacy external flasher api-version command failed: " << output);
+    LOG_ERROR << "Legacy external flasher api-version command failed: " << output;
   } else {
     boost::trim_if(output, boost::is_any_of(" \n\r\t"));
     if (output != "1") {
-      LOGGER_LOG(LVL_error, "Unexpected legacy external flasher API version: " << output);
+      LOG_ERROR << "Unexpected legacy external flasher API version: " << output;
     } else {
       ret = true;
     }
@@ -418,7 +420,7 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
   command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
-    LOGGER_LOG(LVL_error, "Legacy external flasher list-ecus command failed: " << output);
+    LOG_ERROR << "Legacy external flasher list-ecus command failed: " << output;
     return;
   }
 
@@ -437,14 +439,14 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
       // Use getSerial, which will get the public_key_id, initialized in ManagedSecondary constructor.
       sconfig.ecu_serial = "";
       sconfig.full_client_dir = storage.path / sconfig.ecu_hardware_id;
-      LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id);
+      LOG_INFO << "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id;
     } else if (ecu_info.size() >= 2) {
       // For now, silently ignore anything after the second token.
       sconfig.ecu_hardware_id = ecu_info[0];
       sconfig.ecu_serial = ecu_info[1];
       sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + sconfig.ecu_serial);
-      LOGGER_LOG(LVL_info, "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id << " and serial "
-                                                                     << sconfig.ecu_serial);
+      LOG_INFO << "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id << " and serial "
+               << sconfig.ecu_serial;
     }
 
     sconfig.partial_verifying = false;

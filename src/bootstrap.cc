@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "crypto.h"
-#include "logger.h"
+#include "logging.h"
 
 Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::string& provision_password)
     : ca(""), cert(""), pkey("") {
@@ -34,7 +34,7 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
               if (r == ARCHIVE_EOF) {
                 break;
               } else if (r != ARCHIVE_OK) {
-                LOGGER_LOG(LVL_error, "Error reading provision archive: " << archive_error_string(a));
+                LOG_ERROR << "Error reading provision archive: " << archive_error_string(a);
               } else if (size > 0 && buff != NULL) {
                 p12_stream.write(buff, size);
               }
@@ -45,7 +45,7 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
           }
         }
         r = archive_read_free(a);
-        if (r != ARCHIVE_OK) LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision_path);
+        if (r != ARCHIVE_OK) LOG_ERROR << "Error closing provision archive: " << provision_path;
 
         if (found) {
           std::string p12_str = p12_stream.str();
@@ -60,19 +60,19 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
           }
           fclose(reg_p12);
         } else {
-          LOGGER_LOG(LVL_error, "autoprov_credentials.p12 not found in provision archive: " << provision_path);
+          LOG_ERROR << "autoprov_credentials.p12 not found in provision archive: " << provision_path;
           throw std::runtime_error("Unable to parse bootstrap credentials");
         }
       } else {
-        LOGGER_LOG(LVL_error, "Could not read provision archive file, are you sure it is valid archive?");
+        LOG_ERROR << "Could not read provision archive file, are you sure it is valid archive?";
         throw std::runtime_error("Unable to parse bootstrap credentials");
       }
     } else {
-      LOGGER_LOG(LVL_error, "Provided provision archive '" << provision_path << "' does not exist!");
+      LOG_ERROR << "Provided provision archive '" << provision_path << "' does not exist!";
       throw std::runtime_error("Unable to parse bootstrap credentials");
     }
   } else {
-    LOGGER_LOG(LVL_error, "Provision path is empty!");
+    LOG_ERROR << "Provision path is empty!";
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 }
@@ -99,7 +99,7 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
           if (r == ARCHIVE_EOF) {
             break;
           } else if (r != ARCHIVE_OK) {
-            LOGGER_LOG(LVL_error, "Error reading provision archive: " << archive_error_string(a));
+            LOG_ERROR << "Error reading provision archive: " << archive_error_string(a);
           } else if (size > 0 && buff != NULL) {
             url_stream.write(buff, size);
           }
@@ -111,15 +111,15 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
     }
     r = archive_read_free(a);
     if (r != ARCHIVE_OK) {
-      LOGGER_LOG(LVL_error, "Error closing provision archive: " << provision_path);
+      LOG_ERROR << "Error closing provision archive: " << provision_path;
     }
     if (found) {
       url = url_stream.str();
     } else {
-      LOGGER_LOG(LVL_error, "autoprov.url not found in provision archive: " << provision_path);
+      LOG_ERROR << "autoprov.url not found in provision archive: " << provision_path;
     }
   } else if (r != ARCHIVE_OK) {
-    LOGGER_LOG(LVL_error, "Error opening provision archive: " << provision_path);
+    LOG_ERROR << "Error opening provision archive: " << provision_path;
   }
   return url;
 }

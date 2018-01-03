@@ -2,14 +2,14 @@
 #include "fsstorage.h"
 #include "sqlstorage.h"
 
-#include "logger.h"
+#include "logging.h"
 #include "utils.h"
 
 void INvStorage::importSimple(store_data_t store_func, load_data_t load_func,
                               boost::filesystem::path imported_data_path) {
   if (!(this->*load_func)(NULL) && !imported_data_path.empty()) {
     if (!boost::filesystem::exists(imported_data_path)) {
-      LOGGER_LOG(LVL_error, "Couldn't import data: " << imported_data_path << " doesn't exist.");
+      LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
     }
     std::string content = Utils::readFile(imported_data_path.string());
     (this->*store_func)(content);
@@ -32,7 +32,7 @@ void INvStorage::importUpdateSimple(store_data_t store_func, load_data_t load_fu
 
   if (update && !imported_data_path.empty()) {
     if (!boost::filesystem::exists(imported_data_path)) {
-      LOGGER_LOG(LVL_error, "Couldn't import data: " << imported_data_path << " doesn't exist.");
+      LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
     }
     if (content.empty()) content = Utils::readFile(imported_data_path.string());
     (this->*store_func)(content);

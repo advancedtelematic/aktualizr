@@ -6,7 +6,7 @@
 
 #include <sodium.h>
 
-#include "logger.h"
+#include "logging.h"
 #include "openssl_compat.h"
 #include "utils.h"
 
@@ -40,14 +40,14 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
     key = ENGINE_load_private_key(engine, private_key.c_str(), NULL, NULL);
 
     if (!key) {
-      LOGGER_LOG(LVL_error, "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), NULL);
       return std::string();
     }
 
     rsa = EVP_PKEY_get1_RSA(key);
     EVP_PKEY_free(key);
     if (!rsa) {
-      LOGGER_LOG(LVL_error, "EVP_PKEY_get1_RSA failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "EVP_PKEY_get1_RSA failed with error " << ERR_error_string(ERR_get_error(), NULL);
       return std::string();
     }
   } else {
@@ -59,7 +59,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
     EVP_PKEY_free(key);
 
     if (!rsa) {
-      LOGGER_LOG(LVL_error, "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL));
+      LOG_ERROR << "PEM_read_bio_PrivateKey failed with error " << ERR_error_string(ERR_get_error(), NULL);
       return std::string();
     }
 
@@ -78,7 +78,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
   int status = RSA_padding_add_PKCS1_PSS(rsa, EM.get(), (const unsigned char *)digest.c_str(), EVP_sha256(),
                                          -1 /* maximum salt length*/);
   if (!status) {
-    LOGGER_LOG(LVL_error, "RSA_padding_add_PKCS1_PSS failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "RSA_padding_add_PKCS1_PSS failed with error " << ERR_error_string(ERR_get_error(), NULL);
     RSA_free(rsa);
     return std::string();
   }
@@ -86,7 +86,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
   /* perform digital signature */
   status = RSA_private_encrypt(RSA_size(rsa), EM.get(), pSignature.get(), rsa, RSA_NO_PADDING);
   if (status == -1) {
-    LOGGER_LOG(LVL_error, "RSA_private_encrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "RSA_private_encrypt failed with error " << ERR_error_string(ERR_get_error(), NULL);
     RSA_free(rsa);
     return std::string();
   }
@@ -123,7 +123,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   RSA *rsa = NULL;
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());
   if (!PEM_read_bio_RSA_PUBKEY(bio, &rsa, NULL, NULL)) {
-    LOGGER_LOG(LVL_error, "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "PEM_read_bio_RSA_PUBKEY failed with error " << ERR_error_string(ERR_get_error(), NULL);
     BIO_free_all(bio);
     return false;
   }
@@ -143,7 +143,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   int status = RSA_public_decrypt((int)signature.size(), (const unsigned char *)signature.c_str(), pDecrypted.get(),
                                   rsa, RSA_NO_PADDING);
   if (status == -1) {
-    LOGGER_LOG(LVL_error, "RSA_public_decrypt failed with error " << ERR_error_string(ERR_get_error(), NULL));
+    LOG_ERROR << "RSA_public_decrypt failed with error " << ERR_error_string(ERR_get_error(), NULL);
     RSA_free(rsa);
     return false;
   }
@@ -170,7 +170,7 @@ bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &sig
   } else if (public_key.type == PublicKey::RSA) {
     return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
   } else {
-    LOGGER_LOG(LVL_error, "unsupported keytype: " << public_key.type);
+    LOG_ERROR << "unsupported keytype: " << public_key.type;
     return false;
   }
 }
@@ -182,7 +182,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
 #endif
   PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
   if (!p12) {
-    LOGGER_LOG(LVL_error, "Could not read from " << p12_fp << " file pointer");
+    LOG_ERROR << "Could not read from " << p12_fp << " file pointer";
     return false;
   }
 
@@ -190,7 +190,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   X509 *x509_cert = NULL;
   STACK_OF(X509) *ca_certs = NULL;
   if (!PKCS12_parse(p12, p12_password.c_str(), &pkey, &x509_cert, &ca_certs)) {
-    LOGGER_LOG(LVL_error, "Could not parse file from " << p12_fp << " file pointer");
+    LOG_ERROR << "Could not parse file from " << p12_fp << " file pointer";
     PKCS12_free(p12);
     return false;
   }
@@ -200,7 +200,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t pkey_len;
   FILE *pkey_pem_file = open_memstream(&pkey_buf, &pkey_len);
   if (!pkey_pem_file) {
-    LOGGER_LOG(LVL_error, "Could not open pkey buffer for writing");
+    LOG_ERROR << "Could not open pkey buffer for writing";
     EVP_PKEY_free(pkey);
     return false;
   }
@@ -214,7 +214,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t cert_len;
   FILE *cert_file = open_memstream(&cert_buf, &cert_len);
   if (!cert_file) {
-    LOGGER_LOG(LVL_error, "Could not open certificate buffer for writing");
+    LOG_ERROR << "Could not open certificate buffer for writing";
     return false;
   }
   PEM_write_X509(cert_file, x509_cert);
@@ -223,7 +223,7 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   size_t ca_len;
   FILE *ca_file = open_memstream(&ca_buf, &ca_len);
   if (!ca_file) {
-    LOGGER_LOG(LVL_error, "Could not open ca buffer for writing");
+    LOG_ERROR << "Could not open ca buffer for writing";
     return false;
   }
   X509 *ca_cert = NULL;
