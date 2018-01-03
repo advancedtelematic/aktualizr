@@ -5,4 +5,4 @@
 
 ECUInterface* make_ecu(unsigned int loglevel);
 
-#endif // MAKE_ECU_H_
+#endif  // MAKE_ECU_H_

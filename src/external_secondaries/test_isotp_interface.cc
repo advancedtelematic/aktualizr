@@ -11,10 +11,6 @@
 #include "test_isotp_interface.h"
 #include "utils.h"
 
-#ifndef CANINTERFACE
-#define CANINFTERFACE "can0"
-#endif
-
 #define HW_ID_DID 0x0001
 #define ECU_SERIAL_DID 0x0002
 
