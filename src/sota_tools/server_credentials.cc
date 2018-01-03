@@ -30,7 +30,7 @@ boost::movelib::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
     if (r == ARCHIVE_EOF) {
       break;
     } else if (r != ARCHIVE_OK) {
-      throw std::runtime_error(archive_error_string(a));
+      throw BadCredentialsArchive(archive_error_string(a));
       break;
     } else if (size > 0 && buff != nullptr) {
       result->write(buff, size);
@@ -76,10 +76,10 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     }
     r = archive_read_free(a);
     if (r != ARCHIVE_OK) {
-      throw std::runtime_error(std::string("Error closing zipped credentials file: ") + credentials_path.string());
+      throw BadCredentialsArchive(std::string("Error closing zipped credentials file: ") + credentials_path.string());
     } else if (!found_config) {
-      throw std::runtime_error(std::string("treehub.json not found in zipped credentials file: ") +
-                               credentials_path.string());
+      throw BadCredentialsContent(std::string("treehub.json not found in zipped credentials file: ") +
+                                  credentials_path.string());
     }
   }
 
@@ -105,7 +105,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       if (client_cert_.size() && client_key_.size() && root_cert_.size()) {
         method_ = CERT;
       } else {
-        throw std::runtime_error(
+        throw BadCredentialsContent(
             "treehub.json requires certificate authentication, but credential archive, didn't include all or "
             "some certificate files");
       }
@@ -113,7 +113,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);
 
   } catch (json_parser_error e) {
-    throw std::runtime_error(std::string("Unable to read ") + credentials_path.string() + " as archive or json file.");
+    throw BadCredentialsJson(std::string("Unable to read ") + credentials_path.string() + " as archive or json file.");
   }
 }
 

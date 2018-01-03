@@ -6,6 +6,21 @@
 
 enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
 
+class BadCredentialsContent : public std::runtime_error {
+ public:
+  BadCredentialsContent(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+};
+
+class BadCredentialsJson : public std::runtime_error {
+ public:
+  BadCredentialsJson(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+};
+
+class BadCredentialsArchive : public std::runtime_error {
+ public:
+  BadCredentialsArchive(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+};
+
 class ServerCredentials {
  public:
   ServerCredentials(const boost::filesystem::path &creds);

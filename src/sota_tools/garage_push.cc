@@ -124,7 +124,13 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
       }
     }
-  } catch (std::runtime_error &e) {  // TODO see PRO-4549
+  } catch (const BadCredentialsArchive &e) {
+    LOG_FATAL << e.what();
+    return EXIT_FAILURE;
+  } catch (const BadCredentialsContent &e) {
+    LOG_FATAL << e.what();
+    return EXIT_FAILURE;
+  } catch (const BadCredentialsJson &e) {
     LOG_FATAL << e.what();
     return EXIT_FAILURE;
   }

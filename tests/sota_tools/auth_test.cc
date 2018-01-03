@@ -64,14 +64,7 @@ TEST(authenticate, bad_zip) {
 
 TEST(authenticate, no_json_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_no_json.zip";
-  try {
-    ServerCredentials creds(filepath);
-  } catch (const std::runtime_error &e) {
-    std::string err_expected = std::string("treehub.json not found in zipped credentials file: ") + filepath.string();
-    EXPECT_EQ(err_expected, e.what());
-    return;
-  }
-  FAIL();
+  EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsContent);
 }
 
 TEST(authenticate, good_json) {
@@ -90,14 +83,7 @@ TEST(authenticate, bad_json) {
 
 TEST(authenticate, invalid_file) {
   boost::filesystem::path filepath = "sota_tools/auth_test.cc";
-  try {
-    ServerCredentials creds(filepath);
-  } catch (const std::runtime_error &e) {
-    std::string err_expected = std::string("Unable to read ") + filepath.string() + " as archive or json file.";
-    EXPECT_EQ(err_expected, e.what());
-    return;
-  }
-  FAIL();
+  EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsJson);
 }
 
 TEST(authenticate, offline_sign_creds) {
