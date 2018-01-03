@@ -55,6 +55,7 @@ The following debian packages are used in the project:
 * lcov (when building for code coverage)
 * libarchive-dev
 * libboost-dev
+* libboost-filesystem-dev (>= 1.58.0)
 * libboost-log-dev (>= 1.58.0)
 * libboost-program-options-dev (>= 1.58.0)
 * libboost-random-dev (>= 1.58.0)
