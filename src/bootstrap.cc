@@ -123,3 +123,50 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
   }
   return url;
 }
+
+std::string Bootstrap::readServerCa(const boost::filesystem::path& provision_path) {
+  bool found = false;
+  std::string server_ca = "";
+  std::stringstream ca_stream;
+  struct archive* a = archive_read_new();
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  int r = archive_read_open_filename(a, provision_path.c_str(), 1024);
+  if (r == ARCHIVE_OK) {
+    struct archive_entry* entry;
+    while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+      std::string filename(archive_entry_pathname(entry));
+      if (filename == "server_ca.pem") {
+        const char* buff;
+        size_t size;
+        int64_t offset;
+
+        for (;;) {
+          r = archive_read_data_block(a, (const void**)&buff, &size, &offset);
+          if (r == ARCHIVE_EOF) {
+            break;
+          } else if (r != ARCHIVE_OK) {
+            LOG_ERROR << "Error reading provision archive: " << archive_error_string(a);
+          } else if (size > 0 && buff != NULL) {
+            ca_stream.write(buff, size);
+          }
+        }
+        found = true;
+      } else {
+        archive_read_data_skip(a);
+      }
+    }
+    r = archive_read_free(a);
+    if (r != ARCHIVE_OK) {
+      LOG_ERROR << "Error closing provision archive: " << provision_path;
+    }
+    if (found) {
+      server_ca = ca_stream.str();
+    } else {
+      LOG_INFO << "server_ca.pem not found in provision archive: " << provision_path;
+    }
+  } else if (r != ARCHIVE_OK) {
+    LOG_ERROR << "Error opening provision archive: " << provision_path;
+  }
+  return server_ca;
+}
