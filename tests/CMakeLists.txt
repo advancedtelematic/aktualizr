@@ -397,27 +397,27 @@ set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 # aktualizr-info tests
 add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set_tests_properties(aktualizr-info-noarguments PROPERTIES
     PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
 
 add_test(NAME aktualizr-info-images-root
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-images-root PROPERTIES
     PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-director-root
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-director-root PROPERTIES
     PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-director-target
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-director-target PROPERTIES
     PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
 
 add_test(NAME aktualizr-info-images-target
-    COMMAND aktualizr-info -c conf_test_aktualizr_info.toml --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
 set_tests_properties(aktualizr-info-images-target PROPERTIES
     PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 

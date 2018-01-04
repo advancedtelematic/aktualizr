@@ -361,15 +361,7 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
-    return;
-  }
-
-  if (sqlite3_exec(db.get(), "DELETE FROM meta;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear meta: " << sqlite3_errmsg(db.get());
-    return;
-  }
+  clearMetadata();
 
   std::string req = "INSERT INTO meta VALUES  ('";
   req += Json::FastWriter().write(metadata.director_root.toJson()) + "', '";
@@ -418,6 +410,21 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
 
   return true;
 }
+
+void SQLStorage::clearMetadata() {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM meta;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear meta: " << sqlite3_errmsg(db.get());
+    return;
+  }
+}
+
 #endif  // BUILD_OSTREE
 
 void SQLStorage::storeDeviceId(const std::string& device_id) {
@@ -597,15 +604,7 @@ void SQLStorage::storeInstalledVersions(const std::map<std::string, std::string>
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
-    if (db.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
-      return;
-    }
-
-    if (sqlite3_exec(db.get(), "DELETE FROM installed_versions;", NULL, NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't clear installed_versions: " << sqlite3_errmsg(db.get());
-      return;
-    }
+    clearInstalledVersions();
 
     std::map<std::string, std::string>::const_iterator it;
     for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
@@ -643,6 +642,20 @@ bool SQLStorage::loadInstalledVersions(std::map<std::string, std::string>* insta
   }
 
   return true;
+}
+
+void SQLStorage::clearInstalledVersions() {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    return;
+  }
+
+  if (sqlite3_exec(db.get(), "DELETE FROM installed_versions;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear installed_versions: " << sqlite3_errmsg(db.get());
+    return;
+  }
 }
 
 bool SQLStorage::tableSchemasEqual(const std::string& left, const std::string& right) {

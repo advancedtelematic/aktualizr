@@ -719,6 +719,208 @@ TEST(Uptane, CheckOldProvision) {
   EXPECT_TRUE(storage->loadEcuRegistered());
 }
 
+TEST(Uptane, fs_to_sql_full) {
+  TemporaryDirectory temp_dir;
+  system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
+  StorageConfig config;
+  config.type = kSqlite;
+  config.uptane_metadata_path = "repo";
+  config.path = temp_dir.Path();
+  config.sqldb_path = temp_dir.Path() / "database.db";
+  config.schemas_path = "config/storage";
+
+  FSStorage fs_storage(config);
+
+  std::string public_key;
+  std::string private_key;
+  fs_storage.loadPrimaryKeys(&public_key, &private_key);
+
+  std::string ca;
+  std::string cert;
+  std::string pkey;
+  fs_storage.loadTlsCreds(&ca, &cert, &pkey);
+
+  std::string device_id;
+  fs_storage.loadDeviceId(&device_id);
+
+  std::vector<std::pair<std::string, std::string> > serials;
+  fs_storage.loadEcuSerials(&serials);
+
+  bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
+
+  std::map<std::string, std::string> installed_versions;
+  fs_storage.loadInstalledVersions(&installed_versions);
+
+  Uptane::MetaPack metadata;
+  fs_storage.loadMetadata(&metadata);
+
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_cacert_path)));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_clientcert_path)));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_pkey_path)));
+
+  boost::filesystem::path image_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "repo";
+  boost::filesystem::path director_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "director";
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "timestamp.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "snapshot.json"));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "device_id")));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "is_registered")));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_serial")));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
+
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config);
+
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_cacert_path)));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_clientcert_path)));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_pkey_path)));
+
+  EXPECT_FALSE(boost::filesystem::exists(director_path / "root.json"));
+  EXPECT_FALSE(boost::filesystem::exists(director_path / "targets.json"));
+  EXPECT_FALSE(boost::filesystem::exists(director_path / "root.json"));
+  EXPECT_FALSE(boost::filesystem::exists(director_path / "targets.json"));
+  EXPECT_FALSE(boost::filesystem::exists(image_path / "timestamp.json"));
+  EXPECT_FALSE(boost::filesystem::exists(image_path / "snapshot.json"));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, "device_id")));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, "is_registered")));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_serial")));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
+
+  std::string sql_public_key;
+  std::string sql_private_key;
+  sql_storage->loadPrimaryKeys(&sql_public_key, &sql_private_key);
+
+  std::string sql_ca;
+  std::string sql_cert;
+  std::string sql_pkey;
+  sql_storage->loadTlsCreds(&sql_ca, &sql_cert, &sql_pkey);
+
+  std::string sql_device_id;
+  sql_storage->loadDeviceId(&sql_device_id);
+
+  std::vector<std::pair<std::string, std::string> > sql_serials;
+  sql_storage->loadEcuSerials(&sql_serials);
+
+  bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
+
+  std::map<std::string, std::string> sql_installed_versions;
+  sql_storage->loadInstalledVersions(&sql_installed_versions);
+
+  Uptane::MetaPack sql_metadata;
+  sql_storage->loadMetadata(&sql_metadata);
+
+  EXPECT_EQ(sql_public_key, public_key);
+  EXPECT_EQ(sql_private_key, private_key);
+  EXPECT_EQ(sql_ca, ca);
+  EXPECT_EQ(sql_cert, cert);
+  EXPECT_EQ(sql_pkey, pkey);
+  EXPECT_EQ(sql_device_id, device_id);
+  EXPECT_EQ(sql_serials, serials);
+  EXPECT_EQ(sql_ecu_registered, ecu_registered);
+  EXPECT_EQ(sql_installed_versions, installed_versions);
+
+  EXPECT_EQ(sql_metadata.director_root, metadata.director_root);
+  EXPECT_EQ(sql_metadata.director_targets, metadata.director_targets);
+  EXPECT_EQ(sql_metadata.image_root, metadata.image_root);
+  EXPECT_EQ(sql_metadata.image_targets, metadata.image_targets);
+  EXPECT_EQ(sql_metadata.image_timestamp, metadata.image_timestamp);
+  EXPECT_EQ(sql_metadata.image_snapshot, metadata.image_snapshot);
+}
+
+TEST(Uptane, fs_to_sql_partial) {
+  TemporaryDirectory temp_dir;
+  boost::filesystem::copy_file("tests/test_data/prov/ecukey.pem", temp_dir.Path() / "ecukey.pem");
+  boost::filesystem::copy_file("tests/test_data/prov/ecukey.pub", temp_dir.Path() / "ecukey.pub");
+
+  StorageConfig config;
+  config.type = kSqlite;
+  config.uptane_metadata_path = "repo";
+  config.path = temp_dir.Path();
+  config.sqldb_path = temp_dir.Path() / "database.db";
+  config.schemas_path = "config/storage";
+
+  FSStorage fs_storage(config);
+
+  std::string public_key;
+  std::string private_key;
+  fs_storage.loadPrimaryKeys(&public_key, &private_key);
+
+  std::string ca;
+  std::string cert;
+  std::string pkey;
+  fs_storage.loadTlsCreds(&ca, &cert, &pkey);
+
+  std::string device_id;
+  fs_storage.loadDeviceId(&device_id);
+
+  std::vector<std::pair<std::string, std::string> > serials;
+  fs_storage.loadEcuSerials(&serials);
+
+  bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
+
+  std::map<std::string, std::string> installed_versions;
+  fs_storage.loadInstalledVersions(&installed_versions);
+
+  Uptane::MetaPack metadata;
+  fs_storage.loadMetadata(&metadata);
+
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
+  EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
+
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config);
+
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
+  EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
+
+  std::string sql_public_key;
+  std::string sql_private_key;
+  sql_storage->loadPrimaryKeys(&sql_public_key, &sql_private_key);
+
+  std::string sql_ca;
+  std::string sql_cert;
+  std::string sql_pkey;
+  sql_storage->loadTlsCreds(&sql_ca, &sql_cert, &sql_pkey);
+
+  std::string sql_device_id;
+  sql_storage->loadDeviceId(&sql_device_id);
+
+  std::vector<std::pair<std::string, std::string> > sql_serials;
+  sql_storage->loadEcuSerials(&sql_serials);
+
+  bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
+
+  std::map<std::string, std::string> sql_installed_versions;
+  sql_storage->loadInstalledVersions(&sql_installed_versions);
+
+  Uptane::MetaPack sql_metadata;
+  sql_storage->loadMetadata(&sql_metadata);
+
+  EXPECT_EQ(sql_public_key, public_key);
+  EXPECT_EQ(sql_private_key, private_key);
+  EXPECT_EQ(sql_ca, ca);
+  EXPECT_EQ(sql_cert, cert);
+  EXPECT_EQ(sql_pkey, pkey);
+  EXPECT_EQ(sql_device_id, device_id);
+  EXPECT_EQ(sql_serials, serials);
+  EXPECT_EQ(sql_ecu_registered, ecu_registered);
+  EXPECT_EQ(sql_installed_versions, installed_versions);
+
+  EXPECT_EQ(sql_metadata.director_root, metadata.director_root);
+  EXPECT_EQ(sql_metadata.director_targets, metadata.director_targets);
+  EXPECT_EQ(sql_metadata.image_root, metadata.image_root);
+  EXPECT_EQ(sql_metadata.image_targets, metadata.image_targets);
+  EXPECT_EQ(sql_metadata.image_timestamp, metadata.image_timestamp);
+  EXPECT_EQ(sql_metadata.image_snapshot, metadata.image_snapshot);
+}
+
 TEST(Uptane, SaveVersion) {
   TemporaryDirectory temp_dir;
   Config config;

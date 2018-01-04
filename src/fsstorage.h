@@ -29,6 +29,8 @@ class FSStorage : public INvStorage {
 #ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata);
   virtual bool loadMetadata(Uptane::MetaPack* metadata);
+  virtual void clearMetadata();
+
 #endif  // BUILD_OSTREE
   virtual void storeDeviceId(const std::string& device_id);
   virtual bool loadDeviceId(std::string* device_id);
@@ -41,6 +43,7 @@ class FSStorage : public INvStorage {
   virtual void clearEcuRegistered();
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
+  virtual void clearInstalledVersions();
 
  private:
   const StorageConfig& config_;
