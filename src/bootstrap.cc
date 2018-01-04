@@ -2,6 +2,7 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <boost/algorithm/string.hpp>
 
 #include <stdio.h>
 #include <fstream>
@@ -49,10 +50,14 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
 
         if (found) {
           std::string p12_str = p12_stream.str();
-          if (p12_str.empty()) throw std::runtime_error("Unable to parse bootstrap credentials");
+          if (p12_str.empty()) {
+            throw std::runtime_error("Unable to parse bootstrap credentials");
+          }
           FILE* reg_p12 = fmemopen(const_cast<char*>(p12_str.c_str()), p12_str.size(), "rb");
 
-          if (!reg_p12) throw std::runtime_error("Unable to parse bootstrap credentials");
+          if (!reg_p12) {
+            throw std::runtime_error("Unable to parse bootstrap credentials");
+          }
 
           if (!Crypto::parseP12(reg_p12, provision_password, &pkey, &cert, &ca)) {
             fclose(reg_p12);
@@ -115,6 +120,7 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
     }
     if (found) {
       url = url_stream.str();
+      boost::trim(url);
     } else {
       LOG_ERROR << "autoprov.url not found in provision archive: " << provision_path;
     }
