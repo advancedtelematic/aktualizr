@@ -12,7 +12,6 @@ class OSTreeHash {
   /**
    * Parse an OSTree hash from a string. This will normally be a root commit.
    * @throws OSTreeCommitParseError on invalid input
-   * TODO test cases
    */
   static OSTreeHash Parse(const std::string& hash);
 
