@@ -87,12 +87,21 @@ int main(int argc, char *argv[]) {
   Config config(config_in_path);
 
   if (!no_root) {
-    Bootstrap boot(credentials_path, "");
     boost::filesystem::path ca_path(prefix);
     config.import.tls_cacert_path = "/usr/lib/sota/root.crt";
     ca_path /= config.import.tls_cacert_path;
+
+    std::string server_ca = Bootstrap::readServerCa(credentials_path);
+    if (server_ca.empty()) {
+      Bootstrap boot(credentials_path, "");
+      server_ca = boot.getCa();
+      std::cout << "Server root CA read from autoprov_credentials.p12 in zipped archive.\n";
+    } else {
+      std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
+    }
+
     std::cout << "Writing root CA: " << ca_path << "\n";
-    Utils::writeFile(ca_path, boot.getCa());
+    Utils::writeFile(ca_path, server_ca);
   }
 
   config.tls.server = Bootstrap::readServerUrl(credentials_path);
