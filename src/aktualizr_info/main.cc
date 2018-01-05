@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     Config config(sota_config_path.string());
 
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-    std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite");
+    std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
 
     Uptane::MetaPack pack;
 
@@ -63,6 +63,15 @@ int main(int argc, char **argv) {
     } else {
       std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
       std::cout << "Primary ecu hardware ID: " << serials[0].second << std::endl;
+    }
+    if (serials.size() > 1) {
+      std::vector<std::pair<std::string, std::string> >::iterator it = serials.begin() + 1;
+      std::cout << "Secondaries:\n";
+      int secondary_number = 1;
+      for (; it != serials.end(); ++it) {
+        std::cout << secondary_number++ << ") serial ID: " << it->first << std::endl;
+        std::cout << "   hardware ID: " << it->second << std::endl;
+      }
     }
 
     std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;
