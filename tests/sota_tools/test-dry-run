@@ -1,1 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+
 $1 --ref master --repo sota_tools/repo --credentials sota_tools/sota_tools_basic_auth.json -n

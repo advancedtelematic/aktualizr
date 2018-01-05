@@ -1,2 +1,5 @@
+#!/bin/bash
+set -eu
+
 TARGET="Ref badref was not found in repository sota_tools/repo"
 $1 --ref badref --repo sota_tools/repo --credentials sota_tools/auth_test_good.zip | grep -q "$TARGET"

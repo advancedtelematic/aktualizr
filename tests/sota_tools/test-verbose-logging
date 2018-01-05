@@ -1,3 +1,6 @@
+#!/bin/bash
+set -eu
+
 CREDS_FILE=$(mktemp)
 trap "rm -f $CREDS_FILE" EXIT
 cat > $CREDS_FILE <<EOF
