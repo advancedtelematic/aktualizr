@@ -45,8 +45,10 @@ class FSStorage : public INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
   virtual void cleanUp();
+  virtual StorageType type() { return type_; };
 
  private:
+  const StorageType type_;
   const StorageConfig& config_;
   // descriptors of currently downloaded files
   std::map<std::string, FILE*> director_files;

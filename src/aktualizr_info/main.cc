@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
     Config config(sota_config_path.string());
 
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+    std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite");
+
     Uptane::MetaPack pack;
 
     bool has_metadata = storage->loadMetadata(&pack);
@@ -60,6 +62,7 @@ int main(int argc, char **argv) {
       std::cout << "Primary serial is not found" << std::endl;
     } else {
       std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+      std::cout << "Primary ecu hardware ID: " << serials[0].second << std::endl;
     }
 
     std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;

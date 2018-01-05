@@ -68,12 +68,14 @@ class SQLStorage : public INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
   virtual void cleanUp();
+  virtual StorageType type() { return type_; };
 
   bool dbMigrate();
   bool dbCheck();
   bool dbInit();
 
  private:
+  const StorageType type_;
   const StorageConfig& config_;
   // request info
   SQLReqId request;

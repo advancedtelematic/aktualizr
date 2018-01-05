@@ -73,6 +73,7 @@ class INvStorage {
   static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
                                                   const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
+  virtual StorageType type() = 0;
 
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);

@@ -8,7 +8,7 @@
 #include "logging.h"
 #include "utils.h"
 
-SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
+SQLStorage::SQLStorage(const StorageConfig& config) : type_(kSqlite), config_(config) {
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
