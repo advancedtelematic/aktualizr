@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("config,c", po::value<std::string>()->default_value("/usr/lib/sota/sota.toml"), "toml configuration file")
+    ("config,c", po::value<std::string>(), "toml configuration file")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("director-root",  "Outputs root.json from director repo")
@@ -32,7 +32,13 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    std::string sota_config_file = vm["config"].as<std::string>();
+    std::string sota_config_file = "/usr/lib/sota/sota.toml";
+    if (vm.count("config") != 0) {
+      sota_config_file = vm["config"].as<std::string>();
+    } else if (boost::filesystem::exists("/tmp/aktualizr_config_path")) {
+      sota_config_file = Utils::readFile("/tmp/aktualizr_config_path");
+    }
+
     boost::filesystem::path sota_config_path(sota_config_file);
     if (false == boost::filesystem::exists(sota_config_path)) {
       std::cout << "configuration file " << boost::filesystem::absolute(sota_config_path) << " not found. Exiting."
