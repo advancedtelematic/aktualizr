@@ -6,7 +6,7 @@
 		{
 			"keyid" : "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187",
 			"method" : "rsassa-pss",
-			"sig" : "SWtMJk01yd7Ge45vSU6KSWanpQZExUhCpKKF0siNwFBaq25ZFDrv3B9QvHsK3ViaMKWWeiyon6mmDt2GXx0QDoA1HVXyGGqjlCVRjn+5+4lxtSBFp9Cu0500skcgHNDgss5sa0CDpGBz/4D/f+caCXDhoRMw0CDZy3jrgvJP3/wN+WxHxAJ3WOAZZOHtDQNooUhqp7rkJwxZcfKX3F07RrfHebqdSlFCWdsPQkA4RtylI+n12RIddIVrV7R25htvB/QvwiTLfF6s8c3PUKBF/Pzn3SK/4pWTqmCELK1C2yTV+qzATF+WM1VbAHAneoCUJLgxu5KbGp4MDUcY3+4oCg=="
+			"sig" : "h4dsFvaC8ZxXieVKBVCHbdB+5EB+amXk2xJch3Vio1SfDhdc55yzmti1E7txXcslXWPyjvcFvCgaE2xjfd1lEU6P3f5w+H3F2wO72VwW5ve1CWuaA6yj5iiSvX/JXIo2JO72YwVb7wrlOUTP50N7tW20sxT0UEpR8zTUtqEaeiuofRbr2pPmqoKSx8tPXiaWlNHj14GPQWFMXwvP8MyAUDYhE+QagNF0wvO3MPx9ghaPj5Owlhd404ShSSzGZ0jH88rCx8z5S8JJiUc6M6eqe8gPOxV3Fgu3xXrWFyZ0g3j23j0bOH14hgPwU8z3O2vI1ea5WNcw1uNsSJfxZ3joqQ=="
 		}
 	],
 	"signed" : 
@@ -14,7 +14,7 @@
 		"_type" : "Root",
 		"compression_algorithms" : [ "gz" ],
 		"consistent_snapshot" : false,
-		"expires" : "2018-01-06T20:01:05Z",
+		"expires" : "2038-01-06T20:01:05Z",
 		"keys" : 
 		{
 			"19a1384696d031c756db1fa3d3c9434f3c97a0dcef39a2349ca7b0c546942881" : 
