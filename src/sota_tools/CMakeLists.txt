@@ -100,8 +100,8 @@ add_dependencies(build_tests garage-deploy)
 install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
 
 include(ExternalProject)
-ExternalProject_Add(garage-sign DEPENDS garage-deploy URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-82-gf5ea70d.tgz
-URL_HASH SHA256=b63ff315ee168998a32a3ddf6888d4447f588612cbe8fa976835bb8116a2c68b
+ExternalProject_Add(garage-sign DEPENDS garage-deploy URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-84-g397b981.tgz
+URL_HASH SHA256=d6524167fea02213a89c33b4898d84069c33d4e17fe70a740f48a5abdf116741
 CONFIGURE_COMMAND echo "Skipping configure"
 BUILD_COMMAND echo "Skipping build"
 INSTALL_COMMAND echo "Skipping install")
