@@ -76,6 +76,22 @@ http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target
 
 ```
 
+== Inspect stored info with aktualizr-info
+
+To get information stored in data storage, could be used aktualizr-info utility.
+By default, without any commandline arguments this utility displays all information without metadata.
+But metadata output also supported with special arguments:
+
+```
+  --images-root                         Outputs root.json from images repo
+  --images-target                       Outputs targets.json from images repo
+  --director-root                       Outputs root.json from director repo
+  --director-target                     Outputs targets.json from director repo
+```
+
+If You didn't specify the config file, the latest used with aktualizr config will be used.
+Otherwise You could specify config file with `-c` commandline argument.
+
 == Valgrind and gdb
 
 If the target application or test is running under valgrind, then gdb can still be connected to the process without stopping it.  First run `vgdb --port=2159` in a different shell on the same machine, then connect to it using `target remote localhost:2159` in gdb
