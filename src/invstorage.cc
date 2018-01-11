@@ -80,30 +80,30 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
                            boost::shared_ptr<INvStorage>& sql_storage) {
   std::string public_key;
   std::string private_key;
-  fs_storage->loadPrimaryKeys(&public_key, &private_key);
-  sql_storage->storePrimaryKeys(public_key, private_key);
+  if(fs_storage->loadPrimaryKeys(&public_key, &private_key))
+	  sql_storage->storePrimaryKeys(public_key, private_key);
 
   std::string ca;
   std::string cert;
   std::string pkey;
-  fs_storage->loadTlsCreds(&ca, &cert, &pkey);
-  sql_storage->storeTlsCreds(ca, cert, pkey);
+  if(fs_storage->loadTlsCreds(&ca, &cert, &pkey))
+	  sql_storage->storeTlsCreds(ca, cert, pkey);
 
   std::string device_id;
-  fs_storage->loadDeviceId(&device_id);
-  sql_storage->storeDeviceId(device_id);
+  if(fs_storage->loadDeviceId(&device_id))
+	  sql_storage->storeDeviceId(device_id);
 
   std::vector<std::pair<std::string, std::string> > serials;
-  fs_storage->loadEcuSerials(&serials);
-  sql_storage->storeEcuSerials(serials);
+  if(fs_storage->loadEcuSerials(&serials))
+	  sql_storage->storeEcuSerials(serials);
 
   if (fs_storage->loadEcuRegistered()) {
     sql_storage->storeEcuRegistered();
   }
 
   std::map<std::string, std::string> installed_versions;
-  fs_storage->loadInstalledVersions(&installed_versions);
-  sql_storage->storeInstalledVersions(installed_versions);
+  if(fs_storage->loadInstalledVersions(&installed_versions))
+	  sql_storage->storeInstalledVersions(installed_versions);
 
 #ifdef BUILD_OSTREE
   Uptane::MetaPack metadata;
