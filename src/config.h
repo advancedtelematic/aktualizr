@@ -231,7 +231,7 @@ class Config {
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
-  bool checkLegacyVersion(const boost::filesystem::path& legacy_interface);
+  void checkLegacyVersion(const boost::filesystem::path& legacy_interface);
   void initLegacySecondaries(const boost::filesystem::path& legacy_interface);
 };
 
