@@ -7,7 +7,7 @@
 #include "logging.h"
 #include "utils.h"
 
-FSStorage::FSStorage(const StorageConfig& config) : type_(kFileSystem), config_(config) {
+FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
 }
@@ -294,6 +294,34 @@ void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_serial"));
   boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"));
   boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
+}
+
+void FSStorage::storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus) {
+  Json::Value json(Json::arrayValue);
+  std::vector<MissconfiguredEcu>::const_iterator it;
+  for (it = ecus.begin(); it != ecus.end(); it++) {
+    Json::Value ecu;
+    ecu["serial"] = it->serial;
+    ecu["hardware_id"] = it->hardware_id;
+    ecu["state"] = it->state;
+    json.append(ecu);
+  }
+  Utils::writeFile(Utils::absolutePath(config_.path, "missconfigured_ecus"), Json::FastWriter().write(json));
+}
+
+bool FSStorage::loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) {
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "missconfigured_ecus"))) return false;
+  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "missconfigured_ecus").string());
+
+  for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
+    ecus->push_back(MissconfiguredEcu((*it)["serial"].asString(), (*it)["hardware_id"].asString(),
+                                      static_cast<EcuState>((*it)["state"].asInt())));
+  }
+  return true;
+}
+
+void FSStorage::clearMissconfiguredEcus() {
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "missconfigured_ecus"));
 }
 
 void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {

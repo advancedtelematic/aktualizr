@@ -14,6 +14,15 @@ class SQLStorage;
 typedef void (INvStorage::*store_data_t)(const std::string& data);
 typedef bool (INvStorage::*load_data_t)(std::string* data);
 
+enum EcuState { kOld = 0, kNotRegistered };
+struct MissconfiguredEcu {
+  MissconfiguredEcu(const std::string& serial_in, const std::string hardware_id_in, EcuState state_in)
+      : serial(serial_in), hardware_id(hardware_id_in), state(state_in) {}
+  std::string serial;
+  std::string hardware_id;
+  EcuState state;
+};
+
 // Functions loading/storing multiple pieces of data are supposed to do so atomically as far as implementation makes it
 // possible
 class INvStorage {
@@ -51,6 +60,10 @@ class INvStorage {
   virtual void storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) = 0;
   virtual bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) = 0;
   virtual void clearEcuSerials() = 0;
+
+  virtual void storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus) = 0;
+  virtual bool loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) = 0;
+  virtual void clearMissconfiguredEcus() = 0;
 
   virtual void storeEcuRegistered() = 0;
   virtual bool loadEcuRegistered() = 0;

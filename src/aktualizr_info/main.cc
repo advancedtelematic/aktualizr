@@ -80,6 +80,17 @@ int main(int argc, char **argv) {
       }
     }
 
+    std::vector<MissconfiguredEcu> missconfigured_ecus;
+    storage->loadMissconfiguredEcus(&missconfigured_ecus);
+    if (missconfigured_ecus.size()) {
+      std::cout << "Removed or not registered ecus:" << std::endl;
+      std::vector<MissconfiguredEcu>::const_iterator it;
+      for (it = missconfigured_ecus.begin(); it != missconfigured_ecus.end(); ++it) {
+        std::cout << "   '" << it->serial << "' with hardware_id '" << it->hardware_id << "' "
+                  << (it->state == kOld ? "has been removed from config" : "not registered yet") << std::endl;
+      }
+    }
+
     std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 

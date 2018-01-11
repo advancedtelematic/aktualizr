@@ -182,6 +182,29 @@ TEST(storage, load_store_ecu_serials) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+TEST(storage, load_store_missconfigured_ecus) {
+  boost::filesystem::create_directories(storage_test_dir);
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::vector<MissconfiguredEcu> ecus;
+  ecus.push_back(MissconfiguredEcu("primary", "primary_hw", kNotRegistered));
+
+  storage->storeMissconfiguredEcus(ecus);
+
+  std::vector<MissconfiguredEcu> ecus_out;
+
+  EXPECT_TRUE(storage->loadMissconfiguredEcus(&ecus_out));
+
+  EXPECT_EQ(ecus_out.size(), ecus.size());
+  EXPECT_EQ(ecus_out[0].serial, std::string("primary"));
+  EXPECT_EQ(ecus_out[0].hardware_id, std::string("primary_hw"));
+  EXPECT_EQ(ecus_out[0].state, kNotRegistered);
+
+  storage->clearMissconfiguredEcus();
+  ecus_out.clear();
+  EXPECT_FALSE(storage->loadMissconfiguredEcus(&ecus_out));
+  boost::filesystem::remove_all(storage_test_dir);
+}
+
 TEST(storage, load_store_ecu_registered) {
   boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
