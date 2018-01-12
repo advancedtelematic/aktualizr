@@ -20,6 +20,15 @@
    ...
 }
 {
+   gobject _dl_init
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   ...
+   fun:_dl_init
+   ...
+}
+{
    ignore_externa_libs_Cond
    Memcheck:Cond
    ...
