@@ -46,3 +46,13 @@
    ...
    obj:*/lib/*/*
 }
+{
+   boost 1.66.0 unique_path
+   Memcheck:Cond
+   ...
+   fun:_ZN5boost10filesystem11path_traits7convertEPKwS3_RNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKSt7codecvtIwc11__mbstate_tE
+   fun:_ZN5boost10filesystem6detail11unique_pathERKNS0_4pathEPNS_6system10error_codeE
+   fun:_ZN5boost10filesystem11unique_pathERKNS0_4pathE
+   ...
+}
+
