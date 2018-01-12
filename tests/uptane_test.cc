@@ -724,7 +724,7 @@ TEST(Uptane, fs_to_sql_full) {
   system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
   StorageConfig config;
   config.type = kSqlite;
-  config.uptane_metadata_path = "repo";
+  config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
   config.schemas_path = "config/storage";
@@ -774,7 +774,7 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
 
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config);
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -842,7 +842,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   StorageConfig config;
   config.type = kSqlite;
-  config.uptane_metadata_path = "repo";
+  config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
   config.schemas_path = "config/storage";
@@ -875,7 +875,7 @@ TEST(Uptane, fs_to_sql_partial) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
 
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config);
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));

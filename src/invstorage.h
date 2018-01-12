@@ -68,7 +68,8 @@ class INvStorage {
   // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;
   // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
   // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
-  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
+  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
+                                                  const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
 
  private:
