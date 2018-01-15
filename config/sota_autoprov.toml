@@ -2,11 +2,6 @@
 provision_path = "/var/sota/sota_provisioning_credentials.zip"
 
 [storage]
-type = "filesystem"
-path = "/var/sota/"
-tls_cacert_path = "root.crt"
-tls_clientcert_path = "client.pem"
-tls_pkey_path = "pkey.pem"
-uptane_metadata_path = "metadata"
-uptane_private_key_path = "ecukey.der"
-uptane_public_key_path = "ecukey.pub"
+type = "sqlite"
+sqldb_path = "/var/sota/sql.db"
+schemas_path = "/usr/lib/sota/schemas"

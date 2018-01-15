@@ -8,6 +8,8 @@
 #include "uptane/tuf.h"
 
 class INvStorage;
+class FSStorage;
+class SQLStorage;
 
 typedef void (INvStorage::*store_data_t)(const std::string& data);
 typedef bool (INvStorage::*load_data_t)(std::string* data);
@@ -38,6 +40,7 @@ class INvStorage {
 
   virtual void storeMetadata(const Uptane::MetaPack& metadata) = 0;
   virtual bool loadMetadata(Uptane::MetaPack* metadata) = 0;
+  virtual void clearMetadata() = 0;
 
 #endif  // BUILD_OSTREE
 
@@ -55,6 +58,9 @@ class INvStorage {
 
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) = 0;
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
+  virtual void clearInstalledVersions() = 0;
+
+  virtual void cleanUp() = 0;
 
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
@@ -64,7 +70,9 @@ class INvStorage {
   // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;
   // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
   // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
-  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
+  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
+                                                  const boost::filesystem::path& path = "/var/sota");
+  static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
 
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);

@@ -192,6 +192,19 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
 
   return true;
 }
+
+void FSStorage::clearMetadata() {
+  boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
+  boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
+
+  boost::filesystem::remove(director_path / "root.json");
+  boost::filesystem::remove(director_path / "targets.json");
+  boost::filesystem::remove(director_path / "root.json");
+  boost::filesystem::remove(director_path / "targets.json");
+  boost::filesystem::remove(image_path / "timestamp.json");
+  boost::filesystem::remove(image_path / "snapshot.json");
+}
+
 #endif  // BUILD_OSTREE
 
 void FSStorage::storeDeviceId(const std::string& device_id) {
@@ -279,7 +292,7 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
 
 void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_serial"));
-  boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_hardware_id"));
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"));
   boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
 }
 
@@ -298,8 +311,16 @@ bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* instal
   Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
 
   for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
-    std::cout << it.key();
     (*installed_versions)[it.key().asString()] = (*it).asString();
   }
   return true;
+}
+
+void FSStorage::clearInstalledVersions() {
+  if (boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
+    boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
+  }
+}
+void FSStorage::cleanUp() {
+  boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));
 }
