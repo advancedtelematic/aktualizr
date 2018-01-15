@@ -60,6 +60,8 @@ class INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
+  virtual void cleanUp() = 0;
+
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
 

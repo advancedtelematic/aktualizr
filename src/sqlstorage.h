@@ -67,6 +67,7 @@ class SQLStorage : public INvStorage {
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
+  virtual void cleanUp();
 
   bool dbMigrate();
   bool dbCheck();

@@ -321,3 +321,6 @@ void FSStorage::clearInstalledVersions() {
     boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
   }
 }
+void FSStorage::cleanUp() {
+  boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));
+}

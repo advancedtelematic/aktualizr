@@ -9,8 +9,6 @@
 #include "utils.h"
 
 SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
-  boost::filesystem::create_directories(config_.path);
-
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
@@ -657,6 +655,8 @@ void SQLStorage::clearInstalledVersions() {
     return;
   }
 }
+
+void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }
 
 bool SQLStorage::tableSchemasEqual(const std::string& left, const std::string& right) {
   boost::char_separator<char> sep(" \"\t\r\n", "(),;");
