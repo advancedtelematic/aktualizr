@@ -58,9 +58,9 @@ boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config
         old_config.type = kFileSystem;
         old_config.path = path;
         old_config.uptane_metadata_path = "metadata";
-        old_config.uptane_private_key_path = "ecukey.pem";
+        old_config.uptane_private_key_path = "ecukey.der";
         old_config.uptane_public_key_path = "ecukey.pub";
-        old_config.tls_cacert_path = "ca.pem";
+        old_config.tls_cacert_path = "root.crt";
         old_config.tls_pkey_path = "pkey.pem";
         old_config.tls_clientcert_path = "client.pem";
 
