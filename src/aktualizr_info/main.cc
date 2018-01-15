@@ -14,6 +14,8 @@ int main(int argc, char **argv) {
   desc.add_options()
     ("help,h", "print usage")
     ("config,c", po::value<std::string>(), "toml configuration file")
+    ("tls-creds",  "Outputs TLS credentials")
+    ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("director-root",  "Outputs root.json from director repo")
@@ -114,6 +116,26 @@ int main(int argc, char **argv) {
         std::cout << "director targets.json content:" << std::endl;
         std::cout << pack.director_targets.toJson();
       }
+    }
+
+    if (vm.count("tls-creds")) {
+      std::string ca;
+      std::string cert;
+      std::string pkey;
+
+      storage->loadTlsCreds(&ca, &cert, &pkey);
+      std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
+      std::cout << "Client certificate:" << std::endl << cert << std::endl;
+      std::cout << "Client private key:" << std::endl << ca << std::endl;
+    }
+
+    if (vm.count("ecu-keys")) {
+      std::string priv;
+      std::string pub;
+
+      storage->loadPrimaryKeys(&pub, &priv);
+      std::cout << "Public key:" << std::endl << pub << std::endl;
+      std::cout << "Private key:" << std::endl << priv << std::endl;
     }
 
   } catch (const po::error &o) {
