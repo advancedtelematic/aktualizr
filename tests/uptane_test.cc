@@ -729,6 +729,9 @@ TEST(Uptane, fs_to_sql_full) {
   config.sqldb_path = temp_dir.Path() / "database.db";
   config.schemas_path = "config/storage";
 
+  config.uptane_private_key_path = "ecukey.der";
+  config.tls_cacert_path = "root.crt";
+
   FSStorage fs_storage(config);
 
   std::string public_key;
@@ -754,6 +757,8 @@ TEST(Uptane, fs_to_sql_full) {
   Uptane::MetaPack metadata;
   fs_storage.loadMetadata(&metadata);
 
+  std::cout << "CONFIG.PATH: " << config.path << std::endl;
+  std::cout << "CONFIG.UPTANE_PUBLIC_KEY_PATH: " << config.uptane_public_key_path << std::endl;
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_cacert_path)));
@@ -837,7 +842,7 @@ TEST(Uptane, fs_to_sql_full) {
 
 TEST(Uptane, fs_to_sql_partial) {
   TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/prov/ecukey.pem", temp_dir.Path() / "ecukey.pem");
+  boost::filesystem::copy_file("tests/test_data/prov/ecukey.der", temp_dir.Path() / "ecukey.der");
   boost::filesystem::copy_file("tests/test_data/prov/ecukey.pub", temp_dir.Path() / "ecukey.pub");
 
   StorageConfig config;
@@ -846,6 +851,9 @@ TEST(Uptane, fs_to_sql_partial) {
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
   config.schemas_path = "config/storage";
+
+  config.uptane_private_key_path = "ecukey.der";
+  config.tls_cacert_path = "root.crt";
 
   FSStorage fs_storage(config);
 
