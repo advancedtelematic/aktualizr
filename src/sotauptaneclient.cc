@@ -254,6 +254,7 @@ void SotaUptaneClient::verifySecondaries() {
     return;
   }
 
+  std::vector<MissconfiguredEcu> missconfigured_ecus;
   std::vector<bool> found(serials.size(), false);
   SerialCompare primary_comp(uptane_repo.getPrimaryEcuSerial());
   // Should be a const_iterator but we need C++11 for cbegin.
@@ -261,6 +262,7 @@ void SotaUptaneClient::verifySecondaries() {
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
+    missconfigured_ecus.push_back(MissconfiguredEcu(store_it->first, store_it->second, kOld));
   } else {
     found[std::distance(serials.begin(), store_it)] = true;
   }
@@ -272,6 +274,7 @@ void SotaUptaneClient::verifySecondaries() {
     if (store_it == serials.end()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
+      missconfigured_ecus.push_back(MissconfiguredEcu(it->second->getSerial(), it->second->getHwId(), kOld));
     } else if (found[std::distance(serials.begin(), store_it)] == true) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
@@ -283,8 +286,9 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<bool>::iterator found_it;
   for (found_it = found.begin(); found_it != found.end(); ++found_it) {
     if (!*found_it) {
-      LOG_WARNING << "ECU serial " << serials[std::distance(found.begin(), found_it)].first
-                  << " in storage was not reported to aktualizr!";
+      std::pair<std::string, std::string> not_registered = serials[std::distance(found.begin(), found_it)];
+      LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
+      missconfigured_ecus.push_back(MissconfiguredEcu(not_registered.first, not_registered.second, kNotRegistered));
     }
   }
 }

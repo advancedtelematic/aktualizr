@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
 
   try {
     Config config(sota_config_path, commandline_map);
+    Utils::writeFile("/tmp/aktualizr_config_path", boost::filesystem::absolute(sota_config_path).string());
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {

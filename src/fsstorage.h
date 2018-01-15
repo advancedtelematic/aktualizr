@@ -38,6 +38,9 @@ class FSStorage : public INvStorage {
   virtual void storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials);
   virtual bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials);
   virtual void clearEcuSerials();
+  virtual void storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus);
+  virtual bool loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus);
+  virtual void clearMissconfiguredEcus();
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();
@@ -45,6 +48,7 @@ class FSStorage : public INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
   virtual void cleanUp();
+  virtual StorageType type() { return kFileSystem; };
 
  private:
   const StorageConfig& config_;

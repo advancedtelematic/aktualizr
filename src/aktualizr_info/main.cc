@@ -13,7 +13,9 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("config,c", po::value<std::string>()->default_value("/usr/lib/sota/sota.toml"), "toml configuration file")
+    ("config,c", po::value<std::string>(), "toml configuration file")
+    ("tls-creds",  "Outputs TLS credentials")
+    ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("director-root",  "Outputs root.json from director repo")
@@ -32,7 +34,13 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    std::string sota_config_file = vm["config"].as<std::string>();
+    std::string sota_config_file = "/usr/lib/sota/sota.toml";
+    if (vm.count("config") != 0) {
+      sota_config_file = vm["config"].as<std::string>();
+    } else if (boost::filesystem::exists("/tmp/aktualizr_config_path")) {
+      sota_config_file = Utils::readFile("/tmp/aktualizr_config_path");
+    }
+
     boost::filesystem::path sota_config_path(sota_config_file);
     if (false == boost::filesystem::exists(sota_config_path)) {
       std::cout << "configuration file " << boost::filesystem::absolute(sota_config_path) << " not found. Exiting."
@@ -42,6 +50,8 @@ int main(int argc, char **argv) {
     Config config(sota_config_path.string());
 
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+    std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
+
     Uptane::MetaPack pack;
 
     bool has_metadata = storage->loadMetadata(&pack);
@@ -60,6 +70,27 @@ int main(int argc, char **argv) {
       std::cout << "Primary serial is not found" << std::endl;
     } else {
       std::cout << "Primary ecu serial ID: " << serials[0].first << std::endl;
+      std::cout << "Primary ecu hardware ID: " << serials[0].second << std::endl;
+    }
+    if (serials.size() > 1) {
+      std::vector<std::pair<std::string, std::string> >::iterator it = serials.begin() + 1;
+      std::cout << "Secondaries:\n";
+      int secondary_number = 1;
+      for (; it != serials.end(); ++it) {
+        std::cout << secondary_number++ << ") serial ID: " << it->first << std::endl;
+        std::cout << "   hardware ID: " << it->second << std::endl;
+      }
+    }
+
+    std::vector<MissconfiguredEcu> missconfigured_ecus;
+    storage->loadMissconfiguredEcus(&missconfigured_ecus);
+    if (missconfigured_ecus.size()) {
+      std::cout << "Removed or not registered ecus:" << std::endl;
+      std::vector<MissconfiguredEcu>::const_iterator it;
+      for (it = missconfigured_ecus.begin(); it != missconfigured_ecus.end(); ++it) {
+        std::cout << "   '" << it->serial << "' with hardware_id '" << it->hardware_id << "' "
+                  << (it->state == kOld ? "has been removed from config" : "not registered yet") << std::endl;
+      }
     }
 
     std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;
@@ -85,6 +116,26 @@ int main(int argc, char **argv) {
         std::cout << "director targets.json content:" << std::endl;
         std::cout << pack.director_targets.toJson();
       }
+    }
+
+    if (vm.count("tls-creds")) {
+      std::string ca;
+      std::string cert;
+      std::string pkey;
+
+      storage->loadTlsCreds(&ca, &cert, &pkey);
+      std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
+      std::cout << "Client certificate:" << std::endl << cert << std::endl;
+      std::cout << "Client private key:" << std::endl << ca << std::endl;
+    }
+
+    if (vm.count("ecu-keys")) {
+      std::string priv;
+      std::string pub;
+
+      storage->loadPrimaryKeys(&pub, &priv);
+      std::cout << "Public key:" << std::endl << pub << std::endl;
+      std::cout << "Private key:" << std::endl << priv << std::endl;
     }
 
   } catch (const po::error &o) {
