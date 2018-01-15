@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
-  po::options_description desc("garage_push command line options");
+  po::options_description desc("garage-deploy command line options");
   // clang-format off
   desc.add_options()
     ("help", "print usage")
