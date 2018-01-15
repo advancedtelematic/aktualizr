@@ -79,10 +79,12 @@ http PUT "https://ci-app.atsgarage.com/api/v1/admin/devices/$DEVICE/multi_target
 == Inspect stored info with aktualizr-info
 
 To get information stored in data storage, could be used aktualizr-info utility.
-By default, without any commandline arguments this utility displays all information without metadata.
-But metadata output also supported with special arguments:
+By default, without any commandline arguments this utility displays only basic information including storage type, device ID, primary ECU serial and hardware ID and provisioning status.
+Additional information can be requested with the following command line parameters:
 
 ```
+  --tls-creds				Output root CA certificate, client certificate and client private key
+  --ecu-keys				Output UPTANE keys for primary ECU
   --images-root                         Outputs root.json from images repo
   --images-target                       Outputs targets.json from images repo
   --director-root                       Outputs root.json from director repo
