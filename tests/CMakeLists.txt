@@ -37,7 +37,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage-push garage-deploy-deb)
+    add_dependencies(build_tests garage-push garage-deploy-deb aktualizr-info)
 endif(BUILD_SOTA_TOOLS)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
@@ -395,7 +395,6 @@ set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 
 
 # aktualizr-info tests
-add_dependencies(build_tests aktualizr-info)
 add_test(NAME aktualizr-info-noarguments
     COMMAND aktualizr-info -c conf_test_aktualizr_info.toml WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set_tests_properties(aktualizr-info-noarguments PROPERTIES
