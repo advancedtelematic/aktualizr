@@ -15,7 +15,7 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
   if (!loadKeys(&public_key, &private_key)) {
     if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
       LOG_ERROR << "Could not generate rsa keys for secondary " << getSerial() << "@" << sconfig.ecu_hardware_id;
-      throw std::runtime_error("Unable to initialize libsodium");
+      throw std::runtime_error("Unable to generate secondary rsa keys");
     }
     storeKeys(public_key, private_key);
   }

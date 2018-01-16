@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   string cacerts;
 
   int verbosity;
-  po::options_description desc("garage_push command line options");
+  po::options_description desc("garage-check command line options");
   // clang-format off
   desc.add_options()
     ("help", "print usage")
