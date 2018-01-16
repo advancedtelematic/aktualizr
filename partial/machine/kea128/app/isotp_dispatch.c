@@ -61,6 +61,11 @@ void isotp_dispatch() {
 		else
 			sending_ts = time_get();
 	}
+
+	if(sending && time_passed(sending_ts) > 1000) {
+		sending = 0;
+		/* TODO: some error callback?*/
+	}
 }
 
 int isotp_dispatch_send(const uint8_t* data, uint16_t size, uint32_t af) {
