@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
       storage->loadTlsCreds(&ca, &cert, &pkey);
       std::cout << "Root CA certificate:" << std::endl << ca << std::endl;
       std::cout << "Client certificate:" << std::endl << cert << std::endl;
-      std::cout << "Client private key:" << std::endl << ca << std::endl;
+      std::cout << "Client private key:" << std::endl << pkey << std::endl;
     }
 
     if (vm.count("ecu-keys")) {
