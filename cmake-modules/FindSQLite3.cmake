@@ -19,7 +19,7 @@
 FIND_PATH(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 
 # Look for the library.
-FIND_LIBRARY(SQLITE3_LIBRARY NAMES sqlite sqlite3)
+FIND_LIBRARY(SQLITE3_LIBRARY NAMES sqlite3 sqlite)
 
 # Handle the QUIETLY and REQUIRED arguments and set SQLITE3_FOUND to TRUE if all listed variables are TRUE.
 INCLUDE(FindPackageHandleStandardArgs)
