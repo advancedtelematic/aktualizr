@@ -45,6 +45,7 @@ set(HEADERS
             timer.h
             types.h
             utils.h
+            exceptions.h
             uptane/exceptions.h
             uptane/legacysecondary.h
             uptane/managedsecondary.h

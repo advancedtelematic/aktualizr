@@ -10,6 +10,7 @@
 #include <boost/filesystem.hpp>
 
 #include "bootstrap.h"
+#include "exceptions.h"
 #include "utils.h"
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
@@ -351,15 +352,17 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
   if (cmd.count("legacy-interface") != 0) {
     boost::filesystem::path legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
-    if (checkLegacyVersion(legacy_interface)) {
-      initLegacySecondaries(legacy_interface);
-    }
+    checkLegacyVersion(legacy_interface);
+    initLegacySecondaries(legacy_interface);
   }
 }
 
 void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
   std::vector<boost::filesystem::path>::const_iterator it;
   for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
+    if (!boost::filesystem::exists(*it)) {
+      throw FatalException(it->string() + " does not exist!");
+    }
     Json::Value config_json = Utils::parseJSONFile(*it);
     Uptane::SecondaryConfig sconfig;
 
@@ -391,27 +394,22 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
   }
 }
 
-bool Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface) {
-  bool ret = false;
+void Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface) {
   if (!boost::filesystem::exists(legacy_interface)) {
-    LOG_ERROR << "Legacy external flasher not found: " << legacy_interface;
-    return ret;
+    throw FatalException(std::string("Legacy external flasher not found: ") + legacy_interface.string());
   }
   std::stringstream command;
   std::string output;
   command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
-    LOG_ERROR << "Legacy external flasher api-version command failed: " << output;
+    throw FatalException(std::string("Legacy external flasher api-version command failed: ") + output);
   } else {
     boost::trim_if(output, boost::is_any_of(" \n\r\t"));
     if (output != "1") {
-      LOG_ERROR << "Unexpected legacy external flasher API version: " << output;
-    } else {
-      ret = true;
+      throw FatalException(std::string("Unexpected legacy external flasher API version: ") + output);
     }
   }
-  return ret;
 }
 
 void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interface) {

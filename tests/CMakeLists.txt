@@ -248,6 +248,18 @@ set_tests_properties(test-help-with-other-options
 set_tests_properties(test-help-with-notexisting-options
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
+add_test(NAME test-legacy-interface-with-notexisting-file
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --legacy-interface nonexistentfile)
+
+set_tests_properties(test-legacy-interface-with-notexisting-file
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "Legacy external flasher not found: nonexistentfile")
+
+add_test(NAME test-secondary-config-with-nonexistent-file
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --secondary-config nonexistentfile)
+
+set_tests_properties(test-secondary-config-with-nonexistent-file
+                     PROPERTIES PASS_REGULAR_EXPRESSION  "nonexistentfile does not exist!")
+
 # Try building with various cmake options
 add_test(NAME test_build_all_off
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
