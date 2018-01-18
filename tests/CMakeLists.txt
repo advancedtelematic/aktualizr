@@ -236,7 +236,7 @@ add_test(NAME test-no-config-check-message
 add_test(NAME test-help-with-other-options
          COMMAND aktualizr --help -c someconfig.toml)
 
-add_test(NAME test-help-with-notexisting-options
+add_test(NAME test-help-with-nonexistent-options
          COMMAND aktualizr --help -somebadoption)
 
 set_tests_properties(test-no-config-check-message
@@ -245,13 +245,13 @@ set_tests_properties(test-no-config-check-message
 set_tests_properties(test-help-with-other-options
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
-set_tests_properties(test-help-with-notexisting-options
+set_tests_properties(test-help-with-nonexistent-options
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
-add_test(NAME test-legacy-interface-with-notexisting-file
+add_test(NAME test-legacy-interface-with-nonexistent-file
          COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --legacy-interface nonexistentfile)
 
-set_tests_properties(test-legacy-interface-with-notexisting-file
+set_tests_properties(test-legacy-interface-with-nonexistent-file
                      PROPERTIES PASS_REGULAR_EXPRESSION  "Legacy external flasher not found: nonexistentfile")
 
 add_test(NAME test-secondary-config-with-nonexistent-file
@@ -321,11 +321,6 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
         target_compile_options(sota_tools_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     endif(BUILD_WITH_CODE_COVERAGE)
 
-    # The tests can optionally test authentication against Auth+. To do this they
-    # require a client id & secret. Specify credentials here to enable these tests
-    set(OAUTH2_TEST_CLIENT_ID "" CACHE STRING "Client ID for testing Auth+ authentication")
-    set(OAUTH2_TEST_CLIENT_SECRET "" CACHE STRING "Client Secret for testing Auth+ authentication")
-
     # Check the --help option works
     add_test(NAME option-help
         COMMAND garage-push --help)
@@ -372,30 +367,27 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
         COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
 
-    if (OAUTH2_TEST_CLIENT_ID)
+    add_test(NAME auth-plus-failure
+        COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    if(SOTA_PACKED_CREDENTIALS)
         add_test(NAME auth-plus-happy-case
             COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
-            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-        add_test(NAME auth-plus-failure
-            COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push>
-            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+            ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
         add_test(NAME verbose-logging
             COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
-            ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+            ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
         if(STRACE)
             add_test(NAME cacert-used
                 COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push>
-                ${OAUTH2_TEST_CLIENT_ID} ${OAUTH2_TEST_CLIENT_SECRET} ${STRACE}
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+                ${SOTA_PACKED_CREDENTIALS} ${STRACE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
-    endif(OAUTH2_TEST_CLIENT_ID)
+    endif(SOTA_PACKED_CREDENTIALS)
 
-# garage-deploy tests
+    # garage-deploy tests
     add_test(NAME garage-deploy-option-help
         COMMAND garage-deploy --help)
 
@@ -405,7 +397,7 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
 endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
 
 if(BUILD_OSTREE)
-# aktualizr-info tests
+    # aktualizr-info tests
     add_test(NAME aktualizr-info-noarguments
         COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set_tests_properties(aktualizr-info-noarguments PROPERTIES

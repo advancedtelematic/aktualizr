@@ -132,17 +132,7 @@ make test
 
 `make qa` will also run the test suite.
 
-Some of the tests require an Auth+ account. These are disabled by default, and can be enabled by setting the following properties, either in the cmake GUI, by passing `-DOAUTH2_TEST_CLIENT_ID= -DOAUTH2_TEST_CLIENT_SECRET=...` to cmake, or by editing `CMakeCache.txt` in the build directory to set the following options:
-
-----
-//Client ID for testing Auth+ authentication
-OAUTH2_TEST_CLIENT_ID:STRING=....
-
-//Client secret for testing Auth+ authentication
-OAUTH2_TEST_CLIENT_SECRET:STRING=...
-----
-
-Other tests require provisioning credentials. For details of the credentials format, see link:docs/credentials.adoc[credentials.adoc]. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the same manner as the Auth+ properties.
+Some of the tests require provisioning credentials. For details of the credentials format, see link:docs/credentials.adoc[credentials.adoc]. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the cmake GUI, by passing `-DSOTA_PACKED_CREDENTIALS=...` to cmake, or by editing `CMakeCache.txt` in the build directory.
 
 === Code Coverage
 
