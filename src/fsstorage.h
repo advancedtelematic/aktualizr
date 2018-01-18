@@ -38,9 +38,9 @@ class FSStorage : public INvStorage {
   virtual void storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials);
   virtual bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials);
   virtual void clearEcuSerials();
-  virtual void storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus);
-  virtual bool loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus);
-  virtual void clearMissconfiguredEcus();
+  virtual void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus);
+  virtual bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus);
+  virtual void clearMisconfiguredEcus();
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();

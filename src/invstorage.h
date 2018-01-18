@@ -15,8 +15,8 @@ typedef void (INvStorage::*store_data_t)(const std::string& data);
 typedef bool (INvStorage::*load_data_t)(std::string* data);
 
 enum EcuState { kOld = 0, kNotRegistered };
-struct MissconfiguredEcu {
-  MissconfiguredEcu(const std::string& serial_in, const std::string hardware_id_in, EcuState state_in)
+struct MisconfiguredEcu {
+  MisconfiguredEcu(const std::string& serial_in, const std::string hardware_id_in, EcuState state_in)
       : serial(serial_in), hardware_id(hardware_id_in), state(state_in) {}
   std::string serial;
   std::string hardware_id;
@@ -61,9 +61,9 @@ class INvStorage {
   virtual bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) = 0;
   virtual void clearEcuSerials() = 0;
 
-  virtual void storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus) = 0;
-  virtual bool loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) = 0;
-  virtual void clearMissconfiguredEcus() = 0;
+  virtual void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) = 0;
+  virtual bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) = 0;
+  virtual void clearMisconfiguredEcus() = 0;
 
   virtual void storeEcuRegistered() = 0;
   virtual bool loadEcuRegistered() = 0;

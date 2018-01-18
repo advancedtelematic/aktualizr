@@ -598,9 +598,9 @@ void SQLStorage::clearEcuSerials() {
   }
 }
 
-void SQLStorage::storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus) {
+void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
   if (ecus.size() >= 1) {
-    clearMissconfiguredEcus();
+    clearMisconfiguredEcus();
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
@@ -608,23 +608,22 @@ void SQLStorage::storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& e
       return;
     }
 
-    std::vector<MissconfiguredEcu>::const_iterator it;
+    std::vector<MisconfiguredEcu>::const_iterator it;
     for (it = ecus.begin(); it != ecus.end(); it++) {
-      std::string req = "INSERT INTO missconfigured_ecus VALUES  ('";
+      std::string req = "INSERT INTO misconfigured_ecus VALUES  ('";
       req += it->serial + "', '";
       req += it->hardware_id + "', ";
       req += Utils::intToString(it->state) + ");";
 
-      std::cout << "sql: " << req << "\n";
       if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-        LOG_ERROR << "Can't set missconfigured_ecus: " << sqlite3_errmsg(db.get());
+        LOG_ERROR << "Can't set misconfigured_ecus: " << sqlite3_errmsg(db.get());
         return;
       }
     }
   }
 }
 
-bool SQLStorage::loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) {
+bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -634,22 +633,22 @@ bool SQLStorage::loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) {
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM missconfigured_ecus;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get missconfigured_ecus: " << sqlite3_errmsg(db.get());
+  if (sqlite3_exec(db.get(), "SELECT * FROM misconfigured_ecus;", callback, this, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't get misconfigured_ecus: " << sqlite3_errmsg(db.get());
     return false;
   }
   if (req_response_table.empty()) return false;
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    ecus->push_back(MissconfiguredEcu((*it)["serial"], (*it)["hardware_id"],
-                                      static_cast<EcuState>(boost::lexical_cast<int>((*it)["state"]))));
+    ecus->push_back(MisconfiguredEcu((*it)["serial"], (*it)["hardware_id"],
+                                     static_cast<EcuState>(boost::lexical_cast<int>((*it)["state"]))));
   }
 
   return true;
 }
 
-void SQLStorage::clearMissconfiguredEcus() {
+void SQLStorage::clearMisconfiguredEcus() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -657,8 +656,8 @@ void SQLStorage::clearMissconfiguredEcus() {
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM missconfigured_ecus;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear missconfigured_ecus: " << sqlite3_errmsg(db.get());
+  if (sqlite3_exec(db.get(), "DELETE FROM misconfigured_ecus;", NULL, NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear misconfigured_ecus: " << sqlite3_errmsg(db.get());
     return;
   }
 }
