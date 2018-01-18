@@ -296,9 +296,9 @@ void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
 }
 
-void FSStorage::storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ecus) {
+void FSStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
   Json::Value json(Json::arrayValue);
-  std::vector<MissconfiguredEcu>::const_iterator it;
+  std::vector<MisconfiguredEcu>::const_iterator it;
   for (it = ecus.begin(); it != ecus.end(); it++) {
     Json::Value ecu;
     ecu["serial"] = it->serial;
@@ -306,22 +306,22 @@ void FSStorage::storeMissconfiguredEcus(const std::vector<MissconfiguredEcu>& ec
     ecu["state"] = it->state;
     json.append(ecu);
   }
-  Utils::writeFile(Utils::absolutePath(config_.path, "missconfigured_ecus"), Json::FastWriter().write(json));
+  Utils::writeFile(Utils::absolutePath(config_.path, "misconfigured_ecus"), Json::FastWriter().write(json));
 }
 
-bool FSStorage::loadMissconfiguredEcus(std::vector<MissconfiguredEcu>* ecus) {
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "missconfigured_ecus"))) return false;
-  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "missconfigured_ecus").string());
+bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) return false;
+  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "misconfigured_ecus").string());
 
   for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
-    ecus->push_back(MissconfiguredEcu((*it)["serial"].asString(), (*it)["hardware_id"].asString(),
-                                      static_cast<EcuState>((*it)["state"].asInt())));
+    ecus->push_back(MisconfiguredEcu((*it)["serial"].asString(), (*it)["hardware_id"].asString(),
+                                     static_cast<EcuState>((*it)["state"].asInt())));
   }
   return true;
 }
 
-void FSStorage::clearMissconfiguredEcus() {
-  boost::filesystem::remove(Utils::absolutePath(config_.path, "missconfigured_ecus"));
+void FSStorage::clearMisconfiguredEcus() {
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
 void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
