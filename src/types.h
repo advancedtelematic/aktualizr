@@ -2,6 +2,8 @@
 #define TYPES_H_
 
 #include <json/json.h>
+#include "invstorage.h"
+#include "utils.h"
 
 namespace data {
 
@@ -134,10 +136,18 @@ struct InstalledSoftware {
 };
 
 struct PackageManagerCredentials {
+  PackageManagerCredentials(const boost::shared_ptr<INvStorage>& storage, const TlsConfig& config);
   std::string access_token;
   std::string ca_file;
   std::string cert_file;
   std::string pkey_file;
+
+ private:
+  const boost::shared_ptr<INvStorage>& storage_;
+  TlsConfig config_;
+  TemporaryFile tmp_ca_file;
+  TemporaryFile tmp_pkey_file;
+  TemporaryFile tmp_cert_file;
 };
 }
 

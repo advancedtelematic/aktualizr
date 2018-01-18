@@ -41,7 +41,6 @@ class TufRepository {
   std::vector<Target> getTargets() { return targets_.targets; }
   // std::pair<uint32_t, std::vector<Target> > fetchTargets();
   void saveTarget(const Target& target);
-  std::string downloadTarget(Target target);
   int rootVersion() { return root_.version(); }
   int targetsVersion() { return targets_.version; }
   int timestampVersion() { return timestamp_.version; }

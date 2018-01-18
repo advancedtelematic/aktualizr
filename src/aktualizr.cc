@@ -68,8 +68,12 @@ int Aktualizr::run() {
 #endif
   } else {
 #ifdef BUILD_OSTREE
-    // TODO: compile unconditionally
+// TODO: compile unconditionally
+#ifdef BUILD_P11
+    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage, config_.p11);
+#else
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+#endif
     storage->importData(config_.import);
     HttpClient http;
     Uptane::Repository repo(config_, storage, http);

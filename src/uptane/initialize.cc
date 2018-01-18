@@ -30,7 +30,7 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
         }
       } else {  // kPkcs11
 #ifdef BUILD_P11
-        if (!p11.readTlsCert(&cert)) {
+        if (!storage->p11_engine.readTlsCert(&cert)) {
           LOG_ERROR << "Certificate is not found, can't extract device_id";
           return false;
         }
@@ -116,15 +116,15 @@ bool Repository::initPrimaryEcuKeys(const UptaneConfig& uptane_config) {
 
 #ifdef BUILD_P11
   if (uptane_config.key_source == kPkcs11) {
-    primary_public = p11.getUptaneKeyId();
+    primary_public = storage->p11_engine.getUptaneKeyId();
     std::string public_key_content;
 
     // dummy read to check if the key is present
-    if (!p11.readUptanePublicKey(&public_key_content))
-      if (!p11.generateUptaneKeyPair()) return false;
+    if (!storage->p11_engine.readUptanePublicKey(&public_key_content))
+      if (!storage->p11_engine.generateUptaneKeyPair()) return false;
 
     // realy read the key
-    if (!p11.readUptanePublicKey(&public_key_content)) return false;
+    if (!storage->p11_engine.readUptanePublicKey(&public_key_content)) return false;
 
     primary_public_id = Crypto::getKeyId(public_key_content);
     setEcuKeysMembers(primary_public, primary_private, primary_public_id, kPkcs11);
@@ -165,7 +165,7 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage->loadTlsPkey(&pkey);
     pkcs11_tls_keyname = "";
   } else {  // kPkcs11
-    pkey = p11.getTlsPkeyId();
+    pkey = storage->p11_engine.getTlsPkeyId();
     pkcs11_tls_keyname = pkey;
   }
 
@@ -173,14 +173,14 @@ bool Repository::loadSetTlsCreds(const TlsConfig& tls_config) {
     res = res && storage->loadTlsCert(&cert);
     pkcs11_tls_certname = "";
   } else {  // kPkcs11
-    cert = p11.getTlsCertId();
+    cert = storage->p11_engine.getTlsCertId();
     pkcs11_tls_certname = cert;
   }
 
   if (tls_config.ca_source == kFile) {
     res = res && storage->loadTlsCa(&ca);
   } else {  // kPkcs11
-    ca = p11.getTlsCacertId();
+    ca = storage->p11_engine.getTlsCacertId();
   }
 #else
   res = storage->loadTlsCreds(&ca, &cert, &pkey);
@@ -266,7 +266,7 @@ InitRetCode Repository::initEcuRegister(const UptaneConfig& uptane_config) {
       return INIT_RET_STORAGE_FAILURE;
     }
   } else {  // kPkcs11
-    if (!p11.readUptanePublicKey(&primary_public)) {
+    if (!storage->p11_engine.readUptanePublicKey(&primary_public)) {
       LOG_ERROR << "Unable to read primary public key from the PKCS#11 device";
       return INIT_RET_STORAGE_FAILURE;
     }

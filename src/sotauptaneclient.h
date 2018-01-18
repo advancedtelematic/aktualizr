@@ -33,10 +33,10 @@ class SotaUptaneClient {
   void reportHwInfo();
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);
-  OstreePackage uptaneToOstree(const Uptane::Target &target);
   void initSecondaries();
   void verifySecondaries();
-  void updateSecondaries(std::vector<Uptane::Target> targets);
+  void sendMetadataToEcus(std::vector<Uptane::Target> targets);
+  void sendImagesToEcus(std::vector<Uptane::Target> targets);
 
   const Config &config;
   event::Channel *events_channel;

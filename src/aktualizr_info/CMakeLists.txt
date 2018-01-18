@@ -11,6 +11,7 @@ target_link_libraries(aktualizr-info aktualizr_static_lib
   ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES}
   ${SQLITE3_LIBRARIES}
+  ${LIBP11_LIBRARIES}
   gcov)
 
 install(TARGETS aktualizr-info RUNTIME DESTINATION bin)

@@ -51,7 +51,8 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importSimple(&INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey, import_config.tls_pkey_path);
 }
 
-boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
+boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const P11Config& p11_config,
+                                                     const boost::filesystem::path& path) {
   (void)path;
   switch (config.type) {
     case kSqlite:
@@ -71,10 +72,10 @@ boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
       }
-      return boost::make_shared<SQLStorage>(config);
+      return boost::shared_ptr<INvStorage>(new SQLStorage(config, p11_config));
     case kFileSystem:
     default:
-      return boost::make_shared<FSStorage>(config);
+      return boost::shared_ptr<INvStorage>(new FSStorage(config, p11_config));
   }
 }
 

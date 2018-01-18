@@ -12,10 +12,6 @@
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 
-#ifdef BUILD_P11
-#include "p11engine.h"
-#endif
-
 namespace Uptane {
 
 enum InitRetCode {
@@ -44,6 +40,7 @@ class Repository {
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
   std::string getTargetPath(const Target &target);
+  bool getMeta();
 
   // implemented in uptane/initialize.cc
   bool initialize();
@@ -63,9 +60,6 @@ class Repository {
   TufRepository image;
   boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
-#ifdef BUILD_P11
-  P11Engine p11;
-#endif
   Json::Value manifests;
 
   std::string primary_ecu_serial;
@@ -80,7 +74,6 @@ class Repository {
   std::map<std::string, std::pair<std::string, std::string> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
-  bool getMeta();
 
   // implemented in uptane/initialize.cc
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config,

@@ -7,6 +7,10 @@
 
 #include "uptane/tuf.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#endif
+
 class INvStorage;
 class FSStorage;
 class SQLStorage;
@@ -27,6 +31,15 @@ struct MisconfiguredEcu {
 // possible
 class INvStorage {
  public:
+  INvStorage(const P11Config& config)
+#ifdef BUILD_P11
+      : p11_engine(config) {
+  }
+#else
+  {
+    (void)config;
+  }
+#endif
   virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual void storePrimaryPublic(const std::string& public_key) = 0;
@@ -84,9 +97,13 @@ class INvStorage {
   // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
   // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
   static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
+                                                  const P11Config& p11_config = P11Config(),
                                                   const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
   virtual StorageType type() = 0;
+#ifdef BUILD_P11
+  P11Engine p11_engine;
+#endif
 
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
