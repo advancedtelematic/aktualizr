@@ -615,7 +615,6 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
       req += it->hardware_id + "', ";
       req += Utils::intToString(it->state) + ");";
 
-      std::cout << "sql: " << req << "\n";
       if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
         LOG_ERROR << "Can't set misconfigured_ecus: " << sqlite3_errmsg(db.get());
         return;

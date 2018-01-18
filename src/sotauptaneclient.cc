@@ -274,7 +274,7 @@ void SotaUptaneClient::verifySecondaries() {
     if (store_it == serials.end()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
-      misconfigured_ecus.push_back(MisconfiguredEcu(it->second->getSerial(), it->second->getHwId(), kOld));
+      misconfigured_ecus.push_back(MisconfiguredEcu(it->second->getSerial(), it->second->getHwId(), kNotRegistered));
     } else if (found[std::distance(serials.begin(), store_it)] == true) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
@@ -288,9 +288,10 @@ void SotaUptaneClient::verifySecondaries() {
     if (!*found_it) {
       std::pair<std::string, std::string> not_registered = serials[std::distance(found.begin(), found_it)];
       LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
-      misconfigured_ecus.push_back(MisconfiguredEcu(not_registered.first, not_registered.second, kNotRegistered));
+      misconfigured_ecus.push_back(MisconfiguredEcu(not_registered.first, not_registered.second, kOld));
     }
   }
+  storage->storeMisconfiguredEcus(misconfigured_ecus);
 }
 
 // TODO: the function can't currently return any errors. The problem of error reporting from secondaries should be
