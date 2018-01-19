@@ -1,6 +1,7 @@
 #include "dbusgateway.h"
 
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "logging.h"
 #include "types.h"
@@ -132,9 +133,9 @@ void DbusGateway::run() {
       }
     }
     if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "initiateDownload")) {
-      *command_channel << boost::shared_ptr<command::StartDownload>(new command::StartDownload(string_param));
+      *command_channel << boost::make_shared<command::StartDownload>(string_param);
     } else if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "abortDownload")) {
-      *command_channel << boost::shared_ptr<command::AbortDownload>(new command::AbortDownload(string_param));
+      *command_channel << boost::make_shared<command::AbortDownload>(string_param);
     } else if (dbus_message_is_method_call(msg, config.dbus.interface.c_str(), "updateReport")) {
       data::UpdateReport update_report;
       update_report.update_id = string_param;
@@ -154,7 +155,7 @@ void DbusGateway::run() {
         dbus_message_unref(msg);
         continue;
       }
-      *command_channel << boost::shared_ptr<command::SendUpdateReport>(new command::SendUpdateReport(update_report));
+      *command_channel << boost::make_shared<command::SendUpdateReport>(update_report);
     }
 
     int message_type = dbus_message_get_type(msg);

@@ -5,6 +5,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -77,7 +78,7 @@ TEST(CommandsTest, DownloadCompleteSignal_sent) {
   download_complete.update_id = "testupdateid";
   download_complete.update_image = "/tmp/img.test";
   download_complete.signature = "signature";
-  gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::DownloadComplete(download_complete)));
+  gateway.processEvent(boost::make_shared<event::DownloadComplete>(download_complete));
   sleep(5);
 
   std::ifstream file_stream("/tmp/dbustestclient.txt");
@@ -99,7 +100,7 @@ TEST(CommandsTest, UpdateAvailableSignal_sent) {
   update_available.signature = "signature";
   update_available.size = 200;
   gateway.fireUpdateAvailableEvent(update_available);
-  gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::UpdateAvailable(update_available)));
+  gateway.processEvent(boost::make_shared<event::UpdateAvailable>(update_available));
 
   sleep(5);
 
@@ -117,7 +118,7 @@ TEST(CommandsTest, InstalledSoftwareNeededSignal_sent) {
 
   DbusGateway gateway(conf, chan);
 
-  gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::InstalledSoftwareNeeded()));
+  gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>());
   sleep(5);
 
   std::ifstream file_stream("/tmp/dbustestclient.txt");

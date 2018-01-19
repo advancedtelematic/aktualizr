@@ -7,6 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "fsstorage.h"
 #include "httpfake.h"
@@ -112,7 +113,7 @@ TEST(UptaneKey, CheckAllKeys) {
   TemporaryDirectory temp_dir;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
 
-  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
@@ -133,7 +134,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir);
 
   {
-    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
@@ -146,7 +147,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     storage->clearTlsCreds();
   }
   {
-    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
@@ -165,7 +166,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
 
   {
-    boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
