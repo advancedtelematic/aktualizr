@@ -521,19 +521,16 @@ TEST(Uptane, RunForeverNoUpdates) {
   up.runForever(&commands_channel);
 
   boost::shared_ptr<event::BaseEvent> event;
-  if (!events_channel.hasValues()) {
-    FAIL();
-  }
+
+  EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
-  if (!events_channel.hasValues()) {
-    FAIL();
-  }
+
+  EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
-  if (!events_channel.hasValues()) {
-    FAIL();
-  }
+
+  EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
@@ -576,9 +573,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   up.runForever(&commands_channel);
 
   boost::shared_ptr<event::BaseEvent> event;
-  if (!events_channel.hasValues()) {
-    FAIL();
-  }
+  EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());

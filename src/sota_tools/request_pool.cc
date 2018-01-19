@@ -34,7 +34,7 @@ void RequestPool::AddUpload(OSTreeObject::ptr request) {
   }
 }
 
-void RequestPool::LoopLaunch() {
+void RequestPool::LoopLaunch(const bool dryrun) {
   while (running_requests_ < max_requests_ && (!query_queue_.empty() || !upload_queue_.empty())) {
     OSTreeObject::ptr cur;
 
@@ -42,7 +42,9 @@ void RequestPool::LoopLaunch() {
     if (query_queue_.empty()) {
       cur = upload_queue_.front();
       upload_queue_.pop_front();
-      cur->Upload(server_, multi_);
+      if (!dryrun) {
+        cur->Upload(server_, multi_);
+      }
     } else {
       cur = query_queue_.front();
       query_queue_.pop_front();
@@ -112,8 +114,8 @@ void RequestPool::LoopListen() {
   } while (msgs_in_queue > 0);
 }
 
-void RequestPool::Loop() {
-  LoopLaunch();
+void RequestPool::Loop(const bool dryrun) {
+  LoopLaunch(dryrun);
   LoopListen();
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

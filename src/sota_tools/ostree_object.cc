@@ -215,17 +215,22 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle) {
       is_on_server_ = OBJECT_MISSING;
     } else {
       is_on_server_ = OBJECT_BREAKS_SERVER;
-      LOG_ERROR << "error: " << rescode;
+      LOG_ERROR << "OSTree fetch error: " << rescode;
+      if (rescode == 0) {
+        char *url = NULL;
+        curl_easy_getinfo(curl_handle_, CURLINFO_EFFECTIVE_URL, &url);
+        LOG_ERROR << "Check your OSTree server in treehub.json: " << url;
+      }
     }
   } else if (current_operation_ == OSTREE_OBJECT_UPLOADING) {
     // TODO: check that http_response_ matches the object hash
     curl_formfree(form_post_);
     form_post_ = NULL;
     if (rescode == 200) {
-      LOG_DEBUG << "Upload successful";
+      LOG_DEBUG << "OSTree upload successful";
       is_on_server_ = OBJECT_PRESENT;
     } else {
-      LOG_ERROR << "Upload error: " << rescode;
+      LOG_ERROR << "OSTree upload error: " << rescode;
       is_on_server_ = OBJECT_BREAKS_SERVER;
     }
   } else {
