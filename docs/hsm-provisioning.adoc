@@ -49,3 +49,9 @@ Implicit provisioning can be simulated with `cert_provider` without need for the
 1. Optionally, verify that Aktualizr is not provisioning and that the device is not visible in the Garage.
 1. Load credentials onto the device, for example with `cert_provider` from the Aktualizr repo: `cert_provider -c credentials.zip -t <device> -d /var/sota`
 1. Verify that Aktualizr provisions correctly with the server using the expected Device ID.
+
+## Credentials format
+
+The provisioning credentials zip file format is specified in link:credentials.adoc[]. However, the only files in the archive used by `implicit_writer` are `autoprov.url` and `autoprov_credentials.p12`. Optionally, instead of including `autoprov_credentials.p12`, `implicit_writer` will also try looking for a file named `server_ca.pem` from which to read the server's root CA certificate. Note that `treehub.json` is required by `garage-sign`, and offline signing may require additional files.
+
+`cert_provider`, if used, also requires `autoprov.url` and `autoprov_credentials.p12`. Because `cert_provider` autoprovisions with the server, `server_ca.pem` cannot be substituted in place of `autoprov_credentials.p12`.
