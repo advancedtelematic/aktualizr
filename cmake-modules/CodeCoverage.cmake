@@ -142,7 +142,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 		${LCOV_PATH} --directory . --zerocounters
 
 		# Run tests
-		COMMAND ${test_command} -E test_build\\|test_valgrind_uptane_vectors ${ARGV3}
+		COMMAND ${test_command} -E test_build\\|test_uptane_vectors ${ARGV3}
 
 		# Capturing lcov counters and generating report
 		COMMAND ${LCOV_PATH} --directory ${CMAKE_BINARY_DIR} --capture --output-file ${coverage_info}

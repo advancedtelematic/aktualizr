@@ -36,9 +36,9 @@ endif(BUILD_GENIVI)
 add_dependencies(build_tests aktualizr)
 
 
-if(BUILD_SOTA_TOOLS)
+if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
     add_dependencies(build_tests garage-push garage-deploy-deb aktualizr-info)
-endif(BUILD_SOTA_TOOLS)
+endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
                   -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
@@ -304,7 +304,7 @@ add_test(NAME validate-secondary-interface
     --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
-if(BUILD_SOTA_TOOLS)
+if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
     # sota-tools tests
     add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
                        CPP11 PROJECT_WORKING_DIRECTORY NO_VALGRIND)
@@ -394,43 +394,43 @@ if(BUILD_SOTA_TOOLS)
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
         endif(STRACE)
     endif(OAUTH2_TEST_CLIENT_ID)
-endif(BUILD_SOTA_TOOLS)
-
 
 # garage-deploy tests
-add_test(NAME garage-deploy-option-help
-    COMMAND garage-deploy --help)
+    add_test(NAME garage-deploy-option-help
+        COMMAND garage-deploy --help)
 
-add_test(NAME garage-deploy-nonexistent-option
-    COMMAND garage-deploy --test )
-set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
+    add_test(NAME garage-deploy-nonexistent-option
+        COMMAND garage-deploy --test )
+    set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
+endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
 
-
+if(BUILD_OSTREE)
 # aktualizr-info tests
-add_test(NAME aktualizr-info-noarguments
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-set_tests_properties(aktualizr-info-noarguments PROPERTIES
-    PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
+    add_test(NAME aktualizr-info-noarguments
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    set_tests_properties(aktualizr-info-noarguments PROPERTIES
+        PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
 
-add_test(NAME aktualizr-info-images-root
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-images-root PROPERTIES
-    PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
+    add_test(NAME aktualizr-info-images-root
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    set_tests_properties(aktualizr-info-images-root PROPERTIES
+        PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
 
-add_test(NAME aktualizr-info-director-root
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-director-root PROPERTIES
-    PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
+    add_test(NAME aktualizr-info-director-root
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    set_tests_properties(aktualizr-info-director-root PROPERTIES
+        PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
 
-add_test(NAME aktualizr-info-director-target
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-director-target PROPERTIES
-    PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
+    add_test(NAME aktualizr-info-director-target
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    set_tests_properties(aktualizr-info-director-target PROPERTIES
+        PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
 
-add_test(NAME aktualizr-info-images-target
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-set_tests_properties(aktualizr-info-images-target PROPERTIES
-    PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
+    add_test(NAME aktualizr-info-images-target
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+    set_tests_properties(aktualizr-info-images-target PROPERTIES
+        PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
+endif(BUILD_OSTREE)
 
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
