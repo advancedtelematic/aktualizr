@@ -1,0 +1,32 @@
+SecondaryConfig DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+  IMPORTS Identifier,
+          FileName,
+          FilePath FROM Common;
+
+  SecondaryConfig ::= SEQUENCE {
+    secondaryType     SecondaryType,
+    partialVerifying  BOOLEAN,
+    ecuSerial         ECUSerial,
+    ecuHardwareId     ECUHardwareId,
+
+    fullClientDir     FilePath,
+    ecuPrivateKey     FileName,
+    ecuPublicKey      FileName,
+    firmwarePath      FilePath,
+    targetNamePath    FilePath,
+    metadataPath      FilePath,
+    ...
+  }
+
+  SecondaryType ::= ENUMERATED {
+    virtual,
+    legacy,
+    uptane,
+    ...
+  }
+
+  ECUSerial ::= Identifier
+  ECUHardwareId ::= Identifier
+
+END
