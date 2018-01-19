@@ -26,7 +26,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   pt.put("storage.path", temp_dir.Path());
   pt.put("uptane.metadata_path", temp_dir.Path());
   Config config(pt);
-  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
 
@@ -67,7 +67,7 @@ TEST(UptaneCI, CheckKeys) {
   ecu_config.metadata_path = (temp_dir / "secondary_metadata").string();
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  boost::shared_ptr<INvStorage> storage(new FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);

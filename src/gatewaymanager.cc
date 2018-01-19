@@ -11,11 +11,11 @@
 
 GatewayManager::GatewayManager(const Config &config, command::Channel *commands_channel_in) {
   if (config.gateway.socket) {
-    gateways.push_back(boost::shared_ptr<Gateway>(new SocketGateway(config, commands_channel_in)));
+    gateways.push_back(boost::make_shared<SocketGateway>(config, commands_channel_in));
   }
 #ifdef WITH_GENIVI
   if (config.gateway.dbus) {
-    gateways.push_back(boost::shared_ptr<Gateway>(new DbusGateway(config, commands_channel_in)));
+    gateways.push_back(boost::make_shared<DbusGateway>(config, commands_channel_in));
   }
 #endif
 }

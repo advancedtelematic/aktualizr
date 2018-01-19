@@ -2,6 +2,8 @@
 #include "fsstorage.h"
 #include "sqlstorage.h"
 
+#include <boost/smart_ptr/make_shared.hpp>
+
 #include "logging.h"
 #include "utils.h"
 
@@ -64,15 +66,15 @@ boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config
         old_config.tls_pkey_path = "pkey.pem";
         old_config.tls_clientcert_path = "client.pem";
 
-        boost::shared_ptr<INvStorage> sql_storage(new SQLStorage(config));
-        boost::shared_ptr<INvStorage> fs_storage(new FSStorage(old_config));
+        boost::shared_ptr<INvStorage> sql_storage = boost::make_shared<SQLStorage>(config);
+        boost::shared_ptr<INvStorage> fs_storage = boost::make_shared<FSStorage>(old_config);
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
       }
-      return boost::shared_ptr<INvStorage>(new SQLStorage(config));
+      return boost::make_shared<SQLStorage>(config);
     case kFileSystem:
     default:
-      return boost::shared_ptr<INvStorage>(new FSStorage(config));
+      return boost::make_shared<FSStorage>(config);
   }
 }
 

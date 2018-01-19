@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "fsstorage.h"
 #include "httpfake.h"
@@ -57,8 +58,8 @@ TEST(Uptane, RandomSerial) {
   ecu_config.full_client_dir = temp_dir.Path() / "sec_2";
   conf_2.uptane.secondary_configs.push_back(ecu_config);
 
-  boost::shared_ptr<INvStorage> storage_1(new FSStorage(conf_1.storage));
-  boost::shared_ptr<INvStorage> storage_2(new FSStorage(conf_2.storage));
+  boost::shared_ptr<INvStorage> storage_1 = boost::make_shared<FSStorage>(conf_1.storage);
+  boost::shared_ptr<INvStorage> storage_2 = boost::make_shared<FSStorage>(conf_2.storage);
   HttpFake http(temp_dir.Path());
 
   Uptane::Repository uptane_1(conf_1, storage_1, http);
@@ -116,7 +117,7 @@ TEST(Uptane, ReloadSerial) {
     conf.storage.uptane_public_key_path = "public.key";
     conf.uptane.secondary_configs.push_back(ecu_config);
 
-    boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
@@ -136,7 +137,7 @@ TEST(Uptane, ReloadSerial) {
     conf.storage.uptane_public_key_path = "public.key";
     conf.uptane.secondary_configs.push_back(ecu_config);
 
-    boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
@@ -178,7 +179,7 @@ TEST(Uptane, LegacySerial) {
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
-    boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
@@ -197,7 +198,7 @@ TEST(Uptane, LegacySerial) {
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
-    boost::shared_ptr<INvStorage> storage(new FSStorage(conf.storage));
+    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);

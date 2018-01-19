@@ -5,6 +5,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr/make_shared.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -24,7 +25,7 @@ TEST(SWMTest, DownloadComplete_method_called) {
   download_complete.update_id = "testupdateid";
   download_complete.update_image = "/tmp/img.test";
   download_complete.signature = "signature";
-  gateway.processEvent(boost::shared_ptr<event::BaseEvent>(new event::DownloadComplete(download_complete)));
+  gateway.processEvent(boost::make_shared<event::DownloadComplete>(download_complete));
   sleep(2);
 
   std::ifstream file_stream("/tmp/dbustestswm.txt");
