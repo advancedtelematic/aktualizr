@@ -33,6 +33,7 @@ find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(Asn1c REQUIRED)
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
