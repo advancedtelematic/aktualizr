@@ -67,7 +67,8 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
 }
 
 bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &push_credentials,
-                     const OSTreeHash &ostree_commit, const std::string &cacerts, bool dryrun, int max_curl_requests) {
+                     const OSTreeHash &ostree_commit, const std::string &cacerts, const bool dryrun,
+                     const int max_curl_requests) {
   TreehubServer push_server;
   assert(max_curl_requests > 0);
   if (authenticate(cacerts, push_credentials, push_server) != EXIT_SUCCESS) {
@@ -81,11 +82,6 @@ bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &pu
   } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "OSTree Commit " << ostree_commit << " was not found in src repository";
     return false;
-  }
-
-  if (dryrun) {
-    LOG_INFO << "Dry run. Exiting.";
-    return true;
   }
 
   RequestPool request_pool(push_server, max_curl_requests);
@@ -104,8 +100,13 @@ bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &pu
   // stop the pool on error
 
   do {
-    request_pool.Loop();
+    request_pool.Loop(dryrun);
   } while (root_object->is_on_server() != OBJECT_PRESENT && !request_pool.is_stopped());
+
+  if (dryrun) {
+    LOG_INFO << "Dry run. No objects uploaded. Exiting.";
+    return true;
+  }
 
   LOG_INFO << "Uploaded " << uploaded << " objects";
   LOG_INFO << "Already present " << present_already << " objects";

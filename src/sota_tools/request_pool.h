@@ -20,14 +20,14 @@ class RequestPool {
   };
   bool is_idle() { return query_queue_.empty() && upload_queue_.empty() && running_requests_ == 0; }
   bool is_stopped() { return stopped_; }
-  void Loop();  // one iteration of request-listen loop, launches up to
-                // max_requests_ requests, then listens for the result
+  void Loop(const bool dryrun);  // one iteration of request-listen loop, launches up to
+                                 // max_requests_ requests, then listens for the result
   void OnQuery(requestCallBack cb) { query_cb_ = cb; }
   void OnUpload(requestCallBack cb) { upload_cb_ = cb; }
 
  private:
-  void LoopLaunch();  // launches up to max_requests_ requests from the queues
-  void LoopListen();  // listens to the result of launched requests
+  void LoopLaunch(const bool dryrun);  // launches up to max_requests_ requests from the queues
+  void LoopListen();                   // listens to the result of launched requests
 
   int max_requests_;
   int running_requests_;

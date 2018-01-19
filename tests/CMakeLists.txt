@@ -355,10 +355,6 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
         COMMAND sota_tools/test-invalid-credentials $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-    add_test(NAME dry-run
-        COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
     add_test(NAME cacert-not-found
         COMMAND sota_tools/test-cacert-not-found $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -372,6 +368,10 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     if(SOTA_PACKED_CREDENTIALS)
+        add_test(NAME dry-run
+            COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
+            ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
         add_test(NAME auth-plus-happy-case
             COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
