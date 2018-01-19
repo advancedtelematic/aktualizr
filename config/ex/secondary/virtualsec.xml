@@ -1,0 +1,12 @@
+<SecondaryConfig>
+    <secondaryType><virtual/></secondaryType>
+    <partialVerifying><false/></partialVerifying>
+    <ecuSerial>test-serial</ecuSerial>
+    <ecuHardwareId>test-virtual</ecuHardwareId>
+    <fullClientDir>/tmp/test-virtual-secondary</fullClientDir>
+    <ecuPrivateKey>sec.private</ecuPrivateKey>
+    <ecuPublicKey>sec.public</ecuPublicKey>
+    <firmwarePath>/tmp/test-virtual-secondary/firmware.bin</firmwarePath>
+    <targetNamePath>/tmp/test-virtual-secondary/target_name</targetNamePath>
+    <metadataPath>/tmp/test-virtual-secondary/metadata</metadataPath>
+</SecondaryConfig>

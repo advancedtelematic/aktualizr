@@ -2,6 +2,7 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
+#include <sys/socket.h>
 #include <boost/move/unique_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 #include "json/json.h"

@@ -7,6 +7,10 @@
 
 namespace Uptane {
 
+namespace ASN1 {
+#include "SecondaryConfig.h"
+}
+
 enum SecondaryType {
   kVirtual,  // Virtual secondary (in-process fake implementation).
   kLegacy,   // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an

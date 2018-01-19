@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <netinet/in.h>
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 

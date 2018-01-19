@@ -13,6 +13,11 @@
 #include "exceptions.h"
 #include "utils.h"
 
+#include "asn1/helpers.h"
+
+using boost::shared_ptr;
+namespace ASN1 = Uptane::ASN1;
+
 std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
@@ -395,31 +400,35 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     if (!boost::filesystem::exists(*it)) {
       throw FatalException(it->string() + " does not exist!");
     }
-    Json::Value config_json = Utils::parseJSONFile(*it);
+
+    std::ifstream path_stream(it->c_str());
+
+    shared_ptr<ASN1::SecondaryConfig> asnSc =
+        ASN1::xer_parse<ASN1::SecondaryConfig>(ASN1::asn_DEF_SecondaryConfig, path_stream);
+
     Uptane::SecondaryConfig sconfig;
 
-    std::string stype = config_json["secondary_type"].asString();
-    if (stype == "virtual") {
+    if (asnSc->secondaryType == ASN1::SecondaryType_virtual) {
       sconfig.secondary_type = Uptane::kVirtual;
-    } else if (stype == "legacy") {
+    } else if (asnSc->secondaryType == ASN1::SecondaryType_legacy) {
       LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
-    } else if (stype == "uptane") {
+    } else if (asnSc->secondaryType == ASN1::SecondaryType_uptane) {
       sconfig.secondary_type = Uptane::kUptane;
     } else {
-      LOG_ERROR << "Unrecognized secondary type: " << stype;
-      continue;
+      throw std::runtime_error("");
     }
-    sconfig.ecu_serial = config_json["ecu_serial"].asString();
-    sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-    sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-    sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
-    sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
+    sconfig.ecu_serial = std::string(reinterpret_cast<char*>(asnSc->ecuSerial.buf), asnSc->ecuSerial.size);
+    sconfig.ecu_hardware_id = std::string(reinterpret_cast<char*>(asnSc->ecuHardwareId.buf), asnSc->ecuHardwareId.size);
+    sconfig.partial_verifying = asnSc->partialVerifying;
+    sconfig.ecu_private_key = std::string(reinterpret_cast<char*>(asnSc->ecuPrivateKey.buf), asnSc->ecuPrivateKey.size);
+    sconfig.ecu_public_key = std::string(reinterpret_cast<char*>(asnSc->ecuPublicKey.buf), asnSc->ecuPublicKey.size);
 
-    sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-    sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-    sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
-    sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+    sconfig.full_client_dir = std::string(reinterpret_cast<char*>(asnSc->fullClientDir.buf), asnSc->fullClientDir.size);
+    sconfig.firmware_path = std::string(reinterpret_cast<char*>(asnSc->firmwarePath.buf), asnSc->firmwarePath.size);
+    sconfig.metadata_path = std::string(reinterpret_cast<char*>(asnSc->metadataPath.buf), asnSc->metadataPath.size);
+    sconfig.target_name_path =
+        std::string(reinterpret_cast<char*>(asnSc->targetNamePath.buf), asnSc->targetNamePath.size);
     sconfig.flasher = "";
 
     uptane.secondary_configs.push_back(sconfig);
