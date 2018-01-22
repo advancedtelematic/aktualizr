@@ -301,6 +301,9 @@ add_test(NAME validate-secondary-interface
     --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface
     --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
+# asn1 tests
+add_aktualizr_test(NAME asn1_test SOURCES asn1_test.cc PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_asn1_test defs_asn1 ${TEST_LIBS})
 
 if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
     # sota-tools tests
