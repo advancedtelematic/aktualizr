@@ -185,9 +185,9 @@ add_subdirectory("src/cert_provider")
 add_subdirectory("src/implicit_writer")
 add_subdirectory("src/external_secondaries")
 
-if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
+if(BUILD_SOTA_TOOLS)
     add_subdirectory("src/sota_tools")
-endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
+endif(BUILD_SOTA_TOOLS)
 
 if(BUILD_OSTREE)
     add_subdirectory("src/aktualizr_info")
