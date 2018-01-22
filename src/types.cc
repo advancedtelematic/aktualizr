@@ -241,5 +241,48 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   installed_software.firmwares = firmwares;
   return installed_software;
 }
+
+PackageManagerCredentials::PackageManagerCredentials(const boost::shared_ptr<INvStorage>& storage,
+                                                     const TlsConfig& config)
+    : storage_(storage),
+      config_(config),
+      tmp_ca_file("ostree-ca"),
+      tmp_pkey_file("ostree-pkey"),
+      tmp_cert_file("ostree-cert") {
+  std::string ca;
+  if (!storage->loadTlsCa(&ca)) throw std::runtime_error("CA file is absent");
+
+  tmp_ca_file.PutContents(ca);
+
+  ca_file = tmp_ca_file.Path().native();
+#ifdef BUILD_P11
+  if (config.pkey_source == kPkcs11)
+    pkey_file = storage->p11_engine.getTlsPkeyId();
+  else {
+    std::string pkey;
+    if (!storage->loadTlsPkey(&pkey)) throw std::runtime_error("TLS primary key is absent");
+    tmp_pkey_file.PutContents(pkey);
+    pkey_file = tmp_pkey_file.Path().native();
+  }
+
+  if (config.cert_source == kPkcs11)
+    cert_file = storage->p11_engine.getTlsCertId();
+  else {
+    std::string cert;
+    if (!storage->loadTlsCert(&cert)) throw std::runtime_error("TLS certificate is absent");
+    tmp_cert_file.PutContents(cert);
+    cert_file = tmp_cert_file.Path().native();
+  }
+#else
+  std::string pkey;
+  std::string cert;
+  if (!storage->loadTlsCert(&cert)) throw std::runtime_error("TLS certificate is absent");
+  if (!storage->loadTlsPkey(&pkey)) throw std::runtime_error("TLS primary key is absent");
+  tmp_pkey_file.PutContents(pkey);
+  tmp_cert_file.PutContents(cert);
+  pkey_file = tmp_pkey_file.Path().native();
+  cert_file = tmp_cert_file.Path().native();
+#endif
+}
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

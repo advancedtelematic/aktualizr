@@ -77,7 +77,7 @@ class P11Engine {
   bool generateUptaneKeyPair();
 
  private:
-  const P11Config &config_;
+  const P11Config config_;
   std::string uri_prefix_;
   ENGINE *ssl_engine_;
   P11ContextWrapper ctx_;

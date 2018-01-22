@@ -53,7 +53,10 @@ P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.mo
 
 P11Engine::~P11Engine() {
   if (!config_.module.empty()) {
-    ENGINE_finish(ssl_engine_);
+    if (ssl_engine_) {
+      ENGINE_finish(ssl_engine_);
+      ENGINE_free(ssl_engine_);
+    }
     ENGINE_cleanup();
   }
 }

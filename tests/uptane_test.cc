@@ -727,7 +727,8 @@ TEST(Uptane, fs_to_sql_full) {
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
 
-  FSStorage fs_storage(config);
+  P11Config p11_config;
+  FSStorage fs_storage(config, p11_config);
 
   std::string public_key;
   std::string private_key;
@@ -774,7 +775,7 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
 
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, p11_config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -850,7 +851,8 @@ TEST(Uptane, fs_to_sql_partial) {
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
 
-  FSStorage fs_storage(config);
+  P11Config p11_config;
+  FSStorage fs_storage(config, p11_config);
 
   std::string public_key;
   std::string private_key;
@@ -878,7 +880,7 @@ TEST(Uptane, fs_to_sql_partial) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
 
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
+  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, p11_config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -988,7 +990,7 @@ TEST(Uptane, Pkcs11Provision) {
   config.storage.tls_cacert_path = "ca.pem";
   config.postUpdateValues();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage, config.p11);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_TRUE(uptane.initialize());

@@ -31,7 +31,7 @@ class SQLite3Guard {
 
 class SQLStorage : public INvStorage {
  public:
-  SQLStorage(const StorageConfig& config);
+  SQLStorage(const StorageConfig& config, const P11Config& p11_config = P11Config());
   virtual ~SQLStorage();
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
   virtual void storePrimaryPublic(const std::string& public_key);

@@ -8,7 +8,8 @@
 #include "logging.h"
 #include "utils.h"
 
-SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
+SQLStorage::SQLStorage(const StorageConfig& config, const P11Config& p11_config)
+    : INvStorage(p11_config), config_(config) {
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse

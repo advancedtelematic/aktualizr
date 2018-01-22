@@ -4,8 +4,7 @@ OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &
                              const std::string &treehub_in)
     : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred, OstreeConfig config) const {
-  (void)cred;
+data::InstallOutcome OstreePackage::install(const OstreeConfig &config) const {
   (void)config;
   return data::InstallOutcome(data::OK, "Good");
 }
@@ -29,6 +28,14 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
     value["custom"] = false;
   }
   return value;
+}
+
+data::InstallOutcome Ostree::pull(const Config &config, const data::PackageManagerCredentials &cred,
+                                  const std::string &hash) {
+  (void)config;
+  (void)cred;
+  (void)hash;
+  return data::InstallOutcome(data::OK, "Good");
 }
 
 Json::Value Ostree::getInstalledPackages(const boost::filesystem::path &file_path) {

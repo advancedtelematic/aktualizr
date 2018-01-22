@@ -7,7 +7,8 @@
 #include "logging.h"
 #include "utils.h"
 
-FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
+FSStorage::FSStorage(const StorageConfig& config, const P11Config& p11_config)
+    : INvStorage(p11_config), config_(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
 }

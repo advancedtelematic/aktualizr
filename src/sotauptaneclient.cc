@@ -62,48 +62,7 @@ data::InstallOutcome SotaUptaneClient::OstreeInstall(const Uptane::Target &targe
   try {
     OstreePackage package(target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()),
                           config.uptane.ostree_server);
-
-    data::PackageManagerCredentials cred;
-    // All three files should live until package.install terminates
-    TemporaryFile tmp_ca_file("ostree-ca");
-    TemporaryFile tmp_pkey_file("ostree-pkey");
-    TemporaryFile tmp_cert_file("ostree-cert");
-
-    std::string ca;
-    if (!storage->loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
-
-    tmp_ca_file.PutContents(ca);
-
-    cred.ca_file = tmp_ca_file.Path().native();
-#ifdef BUILD_P11
-    if (config.tls.pkey_source == kPkcs11)
-      cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
-    else {
-      std::string pkey;
-      if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
-      tmp_pkey_file.PutContents(pkey);
-      cred.pkey_file = tmp_pkey_file.Path().native();
-    }
-
-    if (config.tls.cert_source == kPkcs11)
-      cred.cert_file = uptane_repo.pkcs11_tls_certname;
-    else {
-      std::string cert;
-      if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-      tmp_cert_file.PutContents(cert);
-      cred.cert_file = tmp_cert_file.Path().native();
-    }
-#else
-    std::string pkey;
-    std::string cert;
-    if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-    if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
-    tmp_pkey_file.PutContents(pkey);
-    tmp_cert_file.PutContents(cert);
-    cred.pkey_file = tmp_pkey_file.Path().native();
-    cred.cert_file = tmp_cert_file.Path().native();
-#endif
-    return package.install(cred, config.ostree);
+    return package.install(config.ostree);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());
   }
@@ -177,7 +136,13 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         // Uptane step 1 (build the vehicle version manifest):
         uptane_repo.putManifest(AssembleManifest());
         // Uptane step 2 (download time) is not implemented yet.
-        // Uptane steps 3 and 4 (download metadata and then images):
+        // Uptane step 3 (download metadata)
+        if (!uptane_repo.getMeta()) {
+          LOG_ERROR << "could not retrive metadata";
+          continue;
+        }
+        // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
+        // deploying)
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOG_INFO << "got new updates";
@@ -188,15 +153,13 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
+        // Uptane step 5 (send time to all ECUs) is not implemented yet.
         operation_result = Json::nullValue;
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.getPrimaryEcuSerial());
-        // TODO: both primary and secondary updates should be split into sequence of stages specified by UPTANE:
-        //   4 - download all the images and verify them against the metadata (for OSTree - pull without deploying)
         //   6 - send metadata to all the ECUs
+        sendMetadataToEcus(updates);
         //   7 - send images to ECUs (deploy for OSTree)
-        // Uptane step 5 (send time to all ECUs) is not implemented yet.
-        updateSecondaries(updates);
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           std::vector<Uptane::Target>::const_iterator it;
@@ -211,6 +174,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           }
           // TODO: other updates for primary
         }
+        sendImagesToEcus(updates);
         // Not required for Uptane, but used to send a status code to the
         // director.
         uptane_repo.putManifest(AssembleManifest());
@@ -297,7 +261,7 @@ void SotaUptaneClient::verifySecondaries() {
 // TODO: the function can't currently return any errors. The problem of error reporting from secondaries should be
 // solved on a system (backend+frontend) error.
 // TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
-void SotaUptaneClient::updateSecondaries(std::vector<Uptane::Target> targets) {
+void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
   std::vector<Uptane::Target>::const_iterator it;
 
   Uptane::MetaPack meta;
@@ -310,16 +274,24 @@ void SotaUptaneClient::updateSecondaries(std::vector<Uptane::Target> targets) {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
         secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
-      std::string firmware_path = uptane_repo.getTargetPath(*it);
-      if (!boost::filesystem::exists(firmware_path)) continue;
-
       if (!sec->second->putMetadata(meta)) {
-        // connection error while putting metadata, can't upload firmware
+        // connection error while putting metadata
         continue;
       }
+    }
+  }
+}
 
+void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
+  std::vector<Uptane::Target>::const_iterator it;
+  // target images should already have been downloaded to metadata_path/targets/
+  for (it = targets.begin(); it != targets.end(); ++it) {
+    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
+        secondaries.find(it->ecu_identifier());
+    if (sec != secondaries.end()) {
+      std::string firmware_path = uptane_repo.getTargetPath(*it);
+      if (!boost::filesystem::exists(firmware_path)) continue;
       std::string firmware = Utils::readFile(firmware_path);
-
       sec->second->sendFirmware(firmware);
     }
   }

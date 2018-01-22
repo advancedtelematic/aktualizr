@@ -7,7 +7,7 @@
 
 class FSStorage : public INvStorage {
  public:
-  FSStorage(const StorageConfig& config);
+  FSStorage(const StorageConfig& config, const P11Config& p11_config = P11Config());
   virtual ~FSStorage();
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
   virtual void storePrimaryPublic(const std::string& public_key);

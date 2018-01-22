@@ -11,6 +11,7 @@
 
 #include "crypto.h"
 #include "logging.h"
+#include "ostree.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -95,35 +96,33 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
   return result;
 }
 
-std::string TufRepository::downloadTarget(Target target) {
-  DownloadMetaStruct ds;
-  int fp =
-      open((path_ / "targets" / target.filename()).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-  ds.fp = fp;
-  ds.downloaded_length = 0;
-  ds.expected_length = target.length();
-
-  HttpResponse response = http_.download(base_url_ + "/targets/" + target.filename(), DownloadHandler, &ds);
-  close(fp);
-  if (!response.isOk()) {
-    if (response.curl_code == CURLE_WRITE_ERROR) {
-      throw OversizedTarget(target.filename());
-    } else {
-      throw Exception(name_, "Could not download file, error: " + response.error_message);
-    }
-  }
-  std::string h256 = ds.sha256_hasher.getHexDigest();
-  std::string h512 = ds.sha512_hasher.getHexDigest();
-
-  if (!target.MatchWith(Hash(Hash::kSha256, h256)) && !target.MatchWith(Hash(Hash::kSha512, h512))) {
-    throw TargetHashMismatch(target.filename());
-  }
-  return response.body;
-}
-
 void TufRepository::saveTarget(const Target& target) {
   if (target.length() > 0) {
-    downloadTarget(target);
+    DownloadMetaStruct ds;
+    int fp = open((path_ / "targets" / target.filename()).c_str(), O_WRONLY | O_CREAT,
+                  S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+    ds.fp = fp;
+    ds.downloaded_length = 0;
+    ds.expected_length = target.length();
+
+    HttpResponse response = http_.download(base_url_ + "/targets/" + target.filename(), DownloadHandler, &ds);
+    close(fp);
+    if (!response.isOk()) {
+      if (response.curl_code == CURLE_WRITE_ERROR) {
+        throw OversizedTarget(target.filename());
+      } else {
+        throw Exception(name_, "Could not download file, error: " + response.error_message);
+      }
+    }
+    std::string h256 = ds.sha256_hasher.getHexDigest();
+    std::string h512 = ds.sha512_hasher.getHexDigest();
+
+    if (!target.MatchWith(Hash(Hash::kSha256, h256)) && !target.MatchWith(Hash(Hash::kSha512, h512))) {
+      throw TargetHashMismatch(target.filename());
+    }
+  } else if (target.format().empty() || target.format() == "OSTREE") {
+    data::PackageManagerCredentials creds(storage_, config_.tls);
+    Ostree::pull(config_, creds, target.sha256Hash());
   }
 }
 

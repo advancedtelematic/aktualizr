@@ -139,11 +139,11 @@ add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc fake_ostree.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc fake_ostree.cc ARGS ${PROJECT_BINARY_DIR}
                        PROJECT_WORKING_DIRECTORY)
