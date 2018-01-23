@@ -62,11 +62,12 @@ static inline int asn1_write_stream (const void *buffer, size_t size, void *arg)
   return 0;
 };
 
-std::string xer_serialize(void *v, asn_TYPE_descriptor_t *descr) {
+std::string xer_serialize(void *v, asn_TYPE_descriptor_t *descr, bool pretty=false) {
   std::string out;
   asn_enc_rval_t rval;
+  enum xer_encoder_flags_e flags = pretty ? XER_F_BASIC : XER_F_CANONICAL;
 
-  rval = xer_encode(descr, static_cast<void*>(v), XER_F_CANONICAL, asn1_write_stream, &out);
+  rval = xer_encode(descr, static_cast<void*>(v), flags, asn1_write_stream, &out);
 
   if (rval.encoded == -1) {
     throw EncodeError();
@@ -75,6 +76,10 @@ std::string xer_serialize(void *v, asn_TYPE_descriptor_t *descr) {
   return out;
 }
 
+// Others
+static inline std::string extract_string(const OCTET_STRING_t &s) {
+  return std::string(reinterpret_cast<char*>(s.buf), s.size);
+}
 
 }
 }

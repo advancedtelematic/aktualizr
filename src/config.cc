@@ -418,17 +418,16 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     } else {
       throw std::runtime_error("");
     }
-    sconfig.ecu_serial = std::string(reinterpret_cast<char*>(asnSc->ecuSerial.buf), asnSc->ecuSerial.size);
-    sconfig.ecu_hardware_id = std::string(reinterpret_cast<char*>(asnSc->ecuHardwareId.buf), asnSc->ecuHardwareId.size);
+    sconfig.ecu_serial = ASN1::extract_string(asnSc->ecuSerial);
+    sconfig.ecu_hardware_id = ASN1::extract_string(asnSc->ecuHardwareId);
     sconfig.partial_verifying = asnSc->partialVerifying;
-    sconfig.ecu_private_key = std::string(reinterpret_cast<char*>(asnSc->ecuPrivateKey.buf), asnSc->ecuPrivateKey.size);
-    sconfig.ecu_public_key = std::string(reinterpret_cast<char*>(asnSc->ecuPublicKey.buf), asnSc->ecuPublicKey.size);
+    sconfig.ecu_private_key = ASN1::extract_string(asnSc->ecuPrivateKey);
+    sconfig.ecu_public_key = ASN1::extract_string(asnSc->ecuPublicKey);
 
-    sconfig.full_client_dir = std::string(reinterpret_cast<char*>(asnSc->fullClientDir.buf), asnSc->fullClientDir.size);
-    sconfig.firmware_path = std::string(reinterpret_cast<char*>(asnSc->firmwarePath.buf), asnSc->firmwarePath.size);
-    sconfig.metadata_path = std::string(reinterpret_cast<char*>(asnSc->metadataPath.buf), asnSc->metadataPath.size);
-    sconfig.target_name_path =
-        std::string(reinterpret_cast<char*>(asnSc->targetNamePath.buf), asnSc->targetNamePath.size);
+    sconfig.full_client_dir = ASN1::extract_string(asnSc->fullClientDir);
+    sconfig.firmware_path = ASN1::extract_string(asnSc->firmwarePath);
+    sconfig.metadata_path = ASN1::extract_string(asnSc->metadataPath);
+    sconfig.target_name_path = ASN1::extract_string(asnSc->targetNamePath);
     sconfig.flasher = "";
 
     uptane.secondary_configs.push_back(sconfig);
