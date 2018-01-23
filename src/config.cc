@@ -418,7 +418,11 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     } else {
       throw std::runtime_error("");
     }
-    sconfig.ecu_serial = ASN1::extract_string(asnSc->ecuSerial);
+    if (!asnSc->ecuSerial) {
+      sconfig.ecu_serial = "";
+    } else {
+      sconfig.ecu_serial = ASN1::extract_string(*asnSc->ecuSerial);
+    }
     sconfig.ecu_hardware_id = ASN1::extract_string(asnSc->ecuHardwareId);
     sconfig.partial_verifying = asnSc->partialVerifying;
     sconfig.ecu_private_key = ASN1::extract_string(asnSc->ecuPrivateKey);

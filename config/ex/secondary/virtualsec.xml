@@ -1,7 +1,6 @@
 <SecondaryConfig>
     <secondaryType><virtual/></secondaryType>
     <partialVerifying><false/></partialVerifying>
-    <ecuSerial>test-serial</ecuSerial>
     <ecuHardwareId>test-virtual</ecuHardwareId>
     <fullClientDir>/tmp/test-virtual-secondary</fullClientDir>
     <ecuPrivateKey>sec.private</ecuPrivateKey>

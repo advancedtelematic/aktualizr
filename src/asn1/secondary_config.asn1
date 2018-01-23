@@ -7,7 +7,7 @@ SecondaryConfig DEFINITIONS AUTOMATIC TAGS ::= BEGIN
   SecondaryConfig ::= SEQUENCE {
     secondaryType     SecondaryType,
     partialVerifying  BOOLEAN,
-    ecuSerial         ECUSerial,
+    ecuSerial         ECUSerial OPTIONAL,
     ecuHardwareId     ECUHardwareId,
 
     fullClientDir     FilePath,

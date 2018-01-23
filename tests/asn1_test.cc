@@ -14,7 +14,7 @@ TEST(asn1, serialize_simple) {
 
   secConf->secondaryType = SecondaryType_virtual;
   secConf->partialVerifying = 0;
-  OCTET_STRING_fromString(&secConf->ecuSerial, "serial");
+  secConf->ecuSerial = OCTET_STRING_new_fromBuf(&asn_DEF_OCTET_STRING, "serial", -1);
   OCTET_STRING_fromString(&secConf->ecuHardwareId, "hwid");
 
   OCTET_STRING_fromString(&secConf->fullClientDir, "/d1");
@@ -37,13 +37,21 @@ TEST(asn1, serialize_simple) {
 TEST(asn1, deserialize_simple) {
   ASSERT_THROW(xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, "hey"), DecodeError);
 
-  std::string inStr =
+  std::string withSerial =
       "<SecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
       "partialVerifying><ecuSerial>serial</ecuSerial><ecuHardwareId>hwid</ecuHardwareId><fullClientDir>/d1</"
       "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
       "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
       "SecondaryConfig>";
-  xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, inStr);
+  xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, withSerial);
+
+  std::string withoutSerial =
+      "<SecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
+      "partialVerifying><ecuHardwareId>hwid</ecuHardwareId><fullClientDir>/d1</"
+      "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
+      "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
+      "SecondaryConfig>";
+  xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, withoutSerial);
 }
 
 #ifndef __NO_MAIN__
