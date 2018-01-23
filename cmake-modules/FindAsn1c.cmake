@@ -5,6 +5,7 @@ if(ASN1C MATCHES ".*-NOTFOUND")
 endif(ASN1C MATCHES ".*-NOTFOUND")
 
 if(ASN1C)
+    message(STATUS "Found asn1c: ${ASN1C}")
     function(add_asn1c_lib lib_name)
         set(ASN1_SRCS ${ARGN})
         foreach(MOD ${ASN1_SRCS})
