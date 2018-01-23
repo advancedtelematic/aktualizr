@@ -6,8 +6,10 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/make_shared.hpp>
 
 #include "config.h"
+#include "fsstorage.h"
 #include "ostree.h"
 #include "types.h"
 #include "utils.h"
@@ -27,10 +29,11 @@ TEST(OstreePackage, ToEcuVersion) {
 
 TEST(OstreePackage, InstallBadUri) {
   OstreePackage op("branch-name-hash", "hash", "bad_uri");
-  data::PackageManagerCredentials cred;
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
+  CryptoKey keys(boost::make_shared<FSStorage>(FSStorage(config.storage)), config);
+  data::PackageManagerCredentials cred(keys);
   data::InstallOutcome result = op.install(cred, config.pacman);
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
   EXPECT_EQ(result.second, "Failed to parse uri: bad_uri");

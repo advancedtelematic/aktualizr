@@ -14,10 +14,6 @@
 #include <boost/move/make_unique.hpp>
 #include <boost/move/utility.hpp>
 
-#ifdef BUILD_P11
-#include <libp11.h>
-#endif
-
 #include "logging.h"
 #include "openssl_compat.h"
 
