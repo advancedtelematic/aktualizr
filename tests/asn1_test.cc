@@ -4,17 +4,17 @@
 
 #include <boost/smart_ptr.hpp>
 
-#include <SecondaryConfig.h>
+#include "uptane/secondaryconfig.h"
 #include "asn1/helpers.h"
 
-using namespace Uptane::ASN1;
+namespace ASN1 = Uptane::ASN1;
 
 TEST(asn1, serialize_simple) {
-  SecondaryConfig *secConf = static_cast<SecondaryConfig *>(calloc(1, sizeof(*secConf)));
+  ASN1::SecondaryConfig *secConf = static_cast<ASN1::SecondaryConfig *>(calloc(1, sizeof(*secConf)));
 
-  secConf->secondaryType = SecondaryType_virtual;
+  secConf->secondaryType = ASN1::SecondaryType_virtual;
   secConf->partialVerifying = 0;
-  secConf->ecuSerial = OCTET_STRING_new_fromBuf(&asn_DEF_OCTET_STRING, "serial", -1);
+  secConf->ecuSerial = OCTET_STRING_new_fromBuf(&ASN1::asn_DEF_OCTET_STRING, "serial", -1);
   OCTET_STRING_fromString(&secConf->ecuHardwareId, "hwid");
 
   OCTET_STRING_fromString(&secConf->fullClientDir, "/d1");
@@ -24,18 +24,18 @@ TEST(asn1, serialize_simple) {
   OCTET_STRING_fromString(&secConf->targetNamePath, "/target");
   OCTET_STRING_fromString(&secConf->metadataPath, "/meta");
 
-  EXPECT_EQ(xer_serialize(static_cast<void *>(secConf), &asn_DEF_SecondaryConfig),
+  EXPECT_EQ(ASN1::xer_serialize(static_cast<void *>(secConf), &ASN1::asn_DEF_SecondaryConfig),
             "<SecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
             "partialVerifying><ecuSerial>serial</ecuSerial><ecuHardwareId>hwid</ecuHardwareId><fullClientDir>/d1</"
             "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
             "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
             "SecondaryConfig>");
 
-  ASN_STRUCT_FREE(asn_DEF_SecondaryConfig, secConf);
+  ASN_STRUCT_FREE(ASN1::asn_DEF_SecondaryConfig, secConf);
 }
 
 TEST(asn1, deserialize_simple) {
-  ASSERT_THROW(xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, "hey"), DecodeError);
+  ASSERT_THROW(ASN1::xer_parse<ASN1::SecondaryConfig>(ASN1::asn_DEF_SecondaryConfig, "hey"), ASN1::DecodeError);
 
   std::string withSerial =
       "<SecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
@@ -43,7 +43,7 @@ TEST(asn1, deserialize_simple) {
       "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
       "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
       "SecondaryConfig>";
-  xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, withSerial);
+  ASN1::xer_parse<ASN1::SecondaryConfig>(ASN1::asn_DEF_SecondaryConfig, withSerial);
 
   std::string withoutSerial =
       "<SecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
@@ -51,7 +51,7 @@ TEST(asn1, deserialize_simple) {
       "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
       "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
       "SecondaryConfig>";
-  xer_parse<SecondaryConfig>(asn_DEF_SecondaryConfig, withoutSerial);
+  ASN1::xer_parse<ASN1::SecondaryConfig>(ASN1::asn_DEF_SecondaryConfig, withoutSerial);
 }
 
 #ifndef __NO_MAIN__
