@@ -8,6 +8,7 @@
 #include "crypto.h"
 #include "logging.h"
 #include "packagemanagerfactory.h"
+#include "uptane/cryptokey.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
@@ -65,46 +66,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
     boost::shared_ptr<PackageInterface> package = pacman->makePackage(
         target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()), config.uptane.ostree_server);
 
-    data::PackageManagerCredentials cred;
-    // All three files should live until package->install terminates
-    TemporaryFile tmp_ca_file("ostree-ca");
-    TemporaryFile tmp_pkey_file("ostree-pkey");
-    TemporaryFile tmp_cert_file("ostree-cert");
-
-    std::string ca;
-    if (!storage->loadTlsCa(&ca)) return data::InstallOutcome(data::INSTALL_FAILED, "CA file is absent");
-
-    tmp_ca_file.PutContents(ca);
-
-    cred.ca_file = tmp_ca_file.Path().native();
-#ifdef BUILD_P11
-    if (config.tls.pkey_source == kPkcs11)
-      cred.pkey_file = uptane_repo.pkcs11_tls_keyname;
-    else {
-      std::string pkey;
-      if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
-      tmp_pkey_file.PutContents(pkey);
-      cred.pkey_file = tmp_pkey_file.Path().native();
-    }
-
-    if (config.tls.cert_source == kPkcs11)
-      cred.cert_file = uptane_repo.pkcs11_tls_certname;
-    else {
-      std::string cert;
-      if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-      tmp_cert_file.PutContents(cert);
-      cred.cert_file = tmp_cert_file.Path().native();
-    }
-#else
-    std::string pkey;
-    std::string cert;
-    if (!storage->loadTlsCert(&cert)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS certificate is absent");
-    if (!storage->loadTlsPkey(&pkey)) return data::InstallOutcome(data::INSTALL_FAILED, "TLS primary key is absent");
-    tmp_pkey_file.PutContents(pkey);
-    tmp_cert_file.PutContents(cert);
-    cred.pkey_file = tmp_pkey_file.Path().native();
-    cred.cert_file = tmp_cert_file.Path().native();
-#endif
+    data::PackageManagerCredentials cred(OnDiskCryptoKey(storage, config));
     return package->install(cred, config.ostree);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());

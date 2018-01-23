@@ -80,7 +80,8 @@ if(BUILD_OSTREE)
                         uptane/tuf.cc
                         uptane/tufrepository.cc
                         uptane/uptanerepository.cc
-                        uptane/virtualsecondary.cc)
+                        uptane/virtualsecondary.cc
+                        uptane/cryptokey.cc)
 endif(BUILD_OSTREE)
 
 if(BUILD_P11)

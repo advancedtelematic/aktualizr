@@ -43,19 +43,6 @@ TEST(crypto, sign_verify_rsa_file) {
   EXPECT_TRUE(signe_is_ok);
 }
 
-TEST(crypto, sign_tuf) {
-  Json::Value tosign_json;
-  tosign_json["mykey"] = "value";
-
-  std::string private_key = Utils::readFile("tests/test_data/priv.key");
-  std::string public_key = Utils::readFile("tests/test_data/public.key");
-  Json::Value signed_json = Crypto::signTuf(NULL, private_key, Crypto::getKeyId(public_key), tosign_json);
-  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
-  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
-            "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
-  EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
-}
-
 #ifdef BUILD_P11
 TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;

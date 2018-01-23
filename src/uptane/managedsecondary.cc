@@ -130,7 +130,18 @@ Json::Value ManagedSecondary::getManifest() {
   manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
-  Json::Value signed_ecu_version = Crypto::signTuf(NULL, private_key, public_key_id, manifest);
+  Json::Value signed_ecu_version;
+
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(NULL, private_key, Json::FastWriter().write(manifest)));
+  Json::Value signature;
+  signature["method"] = "rsassa-pss";
+  signature["sig"] = b64sig;
+
+  signature["keyid"] = public_key_id;
+  signed_ecu_version["signed"] = manifest;
+  signed_ecu_version["signatures"] = Json::Value(Json::arrayValue);
+  signed_ecu_version["signatures"].append(signature);
+
   return signed_ecu_version;
 }
 
