@@ -6,6 +6,10 @@ endif(ASN1C MATCHES ".*-NOTFOUND")
 
 if(ASN1C)
     message(STATUS "Found asn1c: ${ASN1C}")
+
+    # -fnative-types is required for compat with asn1c <= 0.9.24
+    set(ASN1C_FLAGS ${ASN1C_FLAGS} -fnative-types -pdu=all)
+
     function(add_asn1c_lib lib_name)
         set(ASN1_SRCS ${ARGN})
         foreach(MOD ${ASN1_SRCS})
@@ -21,7 +25,7 @@ if(ASN1C)
         endif(IS_DIRECTORY ${ASN1_GEN_DIR})
         file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
 
-        execute_process(COMMAND ${ASN1C} -pdu=all ${ASN1_FILES}
+        execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
             WORKING_DIRECTORY ${ASN1_GEN_DIR}
             OUTPUT_QUIET
             )
@@ -29,7 +33,7 @@ if(ASN1C)
 
         add_custom_command(
             OUTPUT ${ASN1_GENERATED}
-            COMMAND ${ASN1C} -pdu=all ${ASN1_FILES}
+            COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
             WORKING_DIRECTORY ${ASN1_GEN_DIR}
             DEPENDS ${ASN1_FILES}
             )
