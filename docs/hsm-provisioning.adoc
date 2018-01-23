@@ -31,7 +31,7 @@ An example `.toml` configuration file can be found at `config/sota_hsm_prov.toml
 
 1. Generate a root CA private key and self-signed certificate.
 1. Upload the root CA certificate to the server.
-1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to a provisioning credentials zip file.
+1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"` and `SOTA_CLIENT_FEATURES = "hsm"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to a provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
 1. Sign the client device certificate with the root private key and install it in the HSM on the client device.
