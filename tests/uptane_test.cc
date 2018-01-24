@@ -462,6 +462,7 @@ TEST(Uptane, PutManifest) {
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
   config.uptane.primary_ecu_serial = "testecuserial";
+  config.ostree.type = kOstreeFake;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
@@ -634,12 +635,11 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.provision.mode = kAutomatic;
   config.uptane.repo_server = tls_server + "/repo";
   config.tls.server = tls_server;
-
   config.uptane.primary_ecu_serial = "testecuserial";
-
   config.storage.path = temp_dir.Path();
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
+  config.ostree.type = kOstreeFake;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
@@ -679,11 +679,9 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
-
   config.uptane.device_id = "tst149_device_id";
   config.uptane.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.uptane.primary_ecu_serial = "tst149_ecu_serial";
-
   config.storage.path = temp_dir.Path();
 
   event::Channel events_channel;

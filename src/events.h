@@ -8,9 +8,6 @@
 
 #include "channel.h"
 #include "types.h"
-#ifdef BUILD_OSTREE
-#include "ostree.h"
-#endif
 #include "uptane/tuf.h"
 
 namespace event {

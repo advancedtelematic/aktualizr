@@ -30,20 +30,41 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, StorageType cs) {
-  std::string cs_str;
-  switch (cs) {
+std::ostream& operator<<(std::ostream& os, StorageType stype) {
+  std::string stype_str;
+  switch (stype) {
     case kFileSystem:
-      cs_str = "filesystem";
+      stype_str = "filesystem";
       break;
     case kSqlite:
-      cs_str = "sqlite";
+      stype_str = "sqlite";
       break;
     default:
-      cs_str = "unknown";
+      stype_str = "unknown";
       break;
   }
-  os << '"' << cs_str << '"';
+  os << '"' << stype_str << '"';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, PackageManager pm) {
+  std::string pm_str;
+  switch (pm) {
+    case kOstree:
+      pm_str = "ostree";
+      break;
+    case kOstreeFake:
+      pm_str = "ostreefake";
+      break;
+    case kDebian:
+      pm_str = "debian";
+      break;
+    case kNone:
+    default:
+      pm_str = "none";
+      break;
+  }
+  os << '"' << pm_str << '"';
   return os;
 }
 
@@ -282,9 +303,20 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   // uptane.secondary_configs currently can only be set via command line.
 
+  std::string package_manager = "none";
+  CopyFromConfig(package_manager, "ostree.type", boost::log::trivial::warning, pt);
   CopyFromConfig(ostree.os, "ostree.os", boost::log::trivial::warning, pt);
   CopyFromConfig(ostree.sysroot, "ostree.sysroot", boost::log::trivial::warning, pt);
   CopyFromConfig(ostree.packages_file, "ostree.packages_file", boost::log::trivial::warning, pt);
+  if (package_manager == "ostree") {
+    ostree.type = kOstree;
+  } else if (package_manager == "ostreefake") {
+    ostree.type = kOstreeFake;
+  } else if (package_manager == "debian") {
+    ostree.type = kDebian;
+  } else {
+    ostree.type = kNone;
+  }
 
   std::string storage_type = "filesystem";
   CopyFromConfig(storage_type, "storage.type", boost::log::trivial::warning, pt);
@@ -557,6 +589,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   sink << "\n";
 
   sink << "[ostree]\n";
+  writeOption(sink, ostree.type, "type");
   writeOption(sink, ostree.os, "os");
   writeOption(sink, ostree.sysroot, "sysroot");
   writeOption(sink, ostree.packages_file, "packages_file");

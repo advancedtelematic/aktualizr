@@ -23,6 +23,7 @@
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
 enum StorageType { kFileSystem = 0, kSqlite };
+enum PackageManager { kNone = 0, kOstree, kOstreeFake, kDebian };
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
@@ -144,7 +145,8 @@ struct UptaneConfig {
 };
 
 struct OstreeConfig {
-  OstreeConfig() : os(""), sysroot(""), packages_file("/usr/package.manifest") {}
+  OstreeConfig() : type(kOstree), os(""), sysroot(""), packages_file("/usr/package.manifest") {}
+  PackageManager type;
   std::string os;
   boost::filesystem::path sysroot;
   boost::filesystem::path packages_file;
