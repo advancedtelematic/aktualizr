@@ -279,8 +279,7 @@ add_dependencies(qa check-full)
 
 
 # implicit_writer tests
-add_test(NAME implicit-writer-help
-    COMMAND aktualizr_implicit_writer --help)
+add_test(NAME implicit-writer-help COMMAND aktualizr_implicit_writer --help)
 
 if(SOTA_PACKED_CREDENTIALS)
     set(IMPLICIT_CREDENTIALS ${SOTA_PACKED_CREDENTIALS})
@@ -294,8 +293,7 @@ add_test(NAME implicit-writer-test
 
 
 # external_secondaries tests
-add_dependencies(build_tests aktualizr-validate-secondary-interface)
-add_dependencies(build_tests example-interface)
+add_dependencies(build_tests aktualizr-validate-secondary-interface example-interface)
 add_test(NAME validate-secondary-interface
     COMMAND aktualizr-validate-secondary-interface
     --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface
