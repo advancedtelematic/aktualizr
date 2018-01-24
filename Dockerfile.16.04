@@ -1,0 +1,66 @@
+FROM ubuntu:16.04
+LABEL Description="Dockerfile for building non-OSTree version of Aktualizr for Ubuntu 16.04"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get -y install debian-archive-keyring
+
+# It is important to run these in the same RUN command, because otherwise
+# Docker layer caching breaks us
+RUN apt-get update && apt-get -y install \
+  autoconf \
+  automake \
+  bison \
+  clang \
+  clang-format-3.8 \
+  cmake \
+  curl \
+  dbus \
+  e2fslibs-dev \
+  g++ \
+  gcc \
+  git \
+  lcov \
+  libarchive-dev \
+  libboost-dev \
+  libboost-log-dev \
+  libboost-program-options-dev \
+  libboost-random-dev \
+  libboost-regex-dev \
+  libboost-system-dev \
+  libboost-test-dev \
+  libboost-thread-dev \
+  libcurl4-openssl-dev \
+  libdbus-1-dev \
+  libengine-pkcs11-openssl \
+  libexpat1-dev \
+  libglib2.0-dev \
+  libgpgme11-dev \
+  libgtest-dev \
+  libjansson-dev \
+  libjsoncpp-dev \
+  liblzma-dev \
+  libsodium-dev \
+  libsqlite3-dev \
+  libssl-dev \
+  libtool \
+  make \
+  opensc \
+  pkg-config \
+  psmisc \
+  python3-dbus \
+  python3-dev \
+  python3-gi \
+  python3-openssl \
+  python3-venv \
+  valgrind \
+  wget
+
+RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
+RUN apt-get update && apt-get -y install \
+  libp11-2 \
+  libp11-dev \
+  softhsm2
+
+WORKDIR aktualizr
+ADD . src

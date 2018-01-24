@@ -12,6 +12,7 @@ env:
 - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eBUILD_ONLY=1"
 - DOCKERFILE=Dockerfile.gcc4 CACHE=latest SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
+- DOCKERFILE=Dockerfile.16.04 CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
 services:
 - docker
 script:
@@ -22,6 +23,7 @@ script:
 - docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
   ${SCRIPT}
 - "./scripts/test_deb_in_docker.sh ${DOCKERFILE}"
+- "./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}"
 deploy:
   provider: releases
   file: /persistent/garage_deploy.deb
