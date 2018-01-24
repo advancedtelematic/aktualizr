@@ -22,8 +22,9 @@ ln -s loader.0 ${TARGETDIR}/boot/loader
 
 touch ${TARGETDIR}/boot/loader/uEnv.txt
 
+SCRIPT_DIR="$(dirname "$0")"
 OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXX)
-./makedeployed.sh ${OSTREE_DIR}/repo ${BRANCHNAME} ${HARDWARE}
+${SCRIPT_DIR}/makedeployed.sh ${OSTREE_DIR}/repo ${BRANCHNAME} ${HARDWARE}
 
 CURDIR=${pwd}
 
