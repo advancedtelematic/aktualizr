@@ -35,6 +35,8 @@ ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remot
 ostree --repo=${TARGETDIR}/ostree/repo pull generate-remote  ${BRANCHNAME}
 # kill SimpleHTTPServer
 kill %1
+cd ${CURDIR}
+rm -rf ${OSTREE_DIR}
 export OSTREE_BOOT_PARTITION="/boot"
 
 ostree admin --sysroot=${TARGETDIR} deploy --os=${OSNAME} ${BRANCHNAME}
