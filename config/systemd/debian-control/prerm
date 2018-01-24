@@ -1,0 +1,5 @@
+#!/bin/bash
+
+systemctl stop aktualizr || true
+systemctl disable aktualizr || true
+
