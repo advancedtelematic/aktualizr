@@ -14,7 +14,6 @@ set (SOTA_TOOLS_LIB_SRC
 )
 
 add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
-set_property(TARGET sota_tools_static_lib PROPERTY CXX_STANDARD 11)
 
 ##### garage-push targets
 
@@ -23,7 +22,6 @@ set (GARAGE_PUSH_SRCS
 )
 
 add_executable(garage-push ${GARAGE_PUSH_SRCS})
-set_property(TARGET garage-push PROPERTY CXX_STANDARD 11)
 
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -50,7 +48,6 @@ set (GARAGE_CHECK_SRCS
 )
 
 add_executable(garage-check ${GARAGE_CHECK_SRCS})
-set_property(TARGET garage-check PROPERTY CXX_STANDARD 11)
 
 target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib
   ${Boost_LIBRARIES}
@@ -72,7 +69,6 @@ set (GARAGE_DEPLOY_SRCS
 )
 
 add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
-set_property(TARGET garage-deploy PROPERTY CXX_STANDARD 11)
 target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}

@@ -136,6 +136,11 @@ function(aktualizr_source_file_checks)
     aktualizr_clang_format(${ARGN})
 endfunction()
 
+
+# Use C++11, but without GNU or other extensions
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Export compile_commands.json for clang-check
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -150,10 +155,6 @@ include_directories(${LIBDBUS_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-    # Still enforce C++98/03 for client-side code.
-    set(CMAKE_CXX_STANDARD 98)
-    # Do not use GNU or other extensions.
-    set(CMAKE_CXX_EXTENSIONS OFF)
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
