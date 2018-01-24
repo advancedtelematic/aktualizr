@@ -303,11 +303,8 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   // uptane.secondary_configs currently can only be set via command line.
 
-  std::string package_manager = "none";
+  std::string package_manager = "ostree";
   CopyFromConfig(package_manager, "ostree.type", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree.os, "ostree.os", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree.sysroot, "ostree.sysroot", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree.packages_file, "ostree.packages_file", boost::log::trivial::warning, pt);
   if (package_manager == "ostree") {
     ostree.type = kOstree;
   } else if (package_manager == "ostreefake") {
@@ -317,6 +314,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   } else {
     ostree.type = kNone;
   }
+
+  CopyFromConfig(ostree.os, "ostree.os", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree.sysroot, "ostree.sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree.packages_file, "ostree.packages_file", boost::log::trivial::warning, pt);
 
   std::string storage_type = "filesystem";
   CopyFromConfig(storage_type, "storage.type", boost::log::trivial::warning, pt);

@@ -14,7 +14,7 @@ class PackageManagerFactory {
   static boost::shared_ptr<PackageManagerInterface> makePackageManager(const OstreeConfig& oconfig) {
     switch (oconfig.type) {
       case kOstree:
-        return boost::make_shared<OstreeManager>();
+        return boost::make_shared<OstreeManager>(oconfig);
         break;
       case kOstreeFake:
         return boost::make_shared<OstreeFakeManager>();

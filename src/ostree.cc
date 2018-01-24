@@ -133,6 +133,14 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
+OstreeManager::OstreeManager(const OstreeConfig &oconfig) {
+  try {
+    getCurrent(oconfig.sysroot);
+  } catch (...) {
+    throw std::runtime_error("Could not find OSTree sysroot at:" + oconfig.sysroot.string());
+  }
+}
+
 boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
   OstreeSysroot *sysroot = NULL;
 

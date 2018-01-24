@@ -7,8 +7,11 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "config.h"
 #include "ostree.h"
 #include "utils.h"
+
+boost::filesystem::path sysroot;
 
 TEST(ostree, toEcuVersion) {
   OstreePackage op("branch-name-hash", "hash", "pull_uri");
@@ -22,7 +25,10 @@ TEST(ostree, toEcuVersion) {
 }
 
 TEST(ostree, parse_installed_packages) {
-  OstreeManager ostree;
+  Config config;
+  config.ostree.type = kOstree;
+  config.ostree.sysroot = sysroot;
+  OstreeManager ostree(config.ostree);
   Json::Value packages = ostree.getInstalledPackages("tests/test_data/package.manifest");
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");
@@ -35,6 +41,12 @@ TEST(ostree, parse_installed_packages) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

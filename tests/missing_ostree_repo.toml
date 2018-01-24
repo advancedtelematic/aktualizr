@@ -2,8 +2,12 @@
 certificates_directory = "sota-prov"
 
 [ostree]
+type = "ostree"
 sysroot = "sysroot-that-is-missing"
 os = "myos"
+
+[storage]
+path = "./missing_test"
 
 [uptane]
 metadata_path = "sota-prov"
