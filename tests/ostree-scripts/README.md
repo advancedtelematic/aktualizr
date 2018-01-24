@@ -1,6 +1,6 @@
 # OSTree sysroot generators
 
-Scripts for generating minimal OSTree sysroots primarily for [load tests](https://github.com/advancedtelematic/ota-load-tests-aktualizr).
+Scripts for generating minimal OSTree sysroots for testing purposes.
 
 ## Usage
 
