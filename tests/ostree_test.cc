@@ -13,7 +13,7 @@
 
 boost::filesystem::path sysroot;
 
-TEST(ostree, toEcuVersion) {
+TEST(OstreePackage, ToEcuVersion) {
   OstreePackage op("branch-name-hash", "hash", "pull_uri");
   Json::Value custom;
   custom["key"] = "value";
@@ -24,7 +24,14 @@ TEST(ostree, toEcuVersion) {
   EXPECT_EQ(ecuver["installed_image"]["filepath"], "branch-name-hash");
 }
 
-TEST(ostree, parse_installed_packages) {
+TEST(OstreeManager, BadSysroot) {
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = "sysroot-that-is-missing";
+  EXPECT_THROW(OstreeManager ostree(config.pacman), std::runtime_error);
+}
+
+TEST(OstreeManager, ParseInstalledPackages) {
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;

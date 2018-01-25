@@ -171,10 +171,6 @@ if(BUILD_OSTREE)
              ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
     add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
-    add_test(NAME test_ostree_invalid
-             COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
-    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
-
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc
                            PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
