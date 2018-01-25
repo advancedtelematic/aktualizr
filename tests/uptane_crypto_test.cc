@@ -11,7 +11,7 @@ TEST(crypto, sign_tuf) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<FSStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
   storage->storePrimaryKeys(public_key, private_key);
   CryptoKey keys(storage, config);
 
@@ -43,7 +43,7 @@ TEST(crypto, sign_tuf_pkcs11) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<FSStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
   storage->storePrimaryKeys(public_key, private_key);
   CryptoKey keys(storage, config);
 

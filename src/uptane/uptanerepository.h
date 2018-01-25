@@ -41,6 +41,7 @@ class Repository {
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
   std::string getTargetPath(const Target &target);
+  bool getMeta();
 
   // implemented in uptane/initialize.cc
   bool initialize();
@@ -72,7 +73,6 @@ class Repository {
   std::map<std::string, std::pair<std::string, std::string> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
-  bool getMeta();
 
   // implemented in uptane/initialize.cc
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);

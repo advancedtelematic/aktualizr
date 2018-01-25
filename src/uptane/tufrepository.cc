@@ -11,6 +11,10 @@
 
 #include "crypto.h"
 #include "logging.h"
+#ifdef BUILD_OSTREE
+#include "ostree.h"
+#endif
+#include "types.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -124,6 +128,13 @@ std::string TufRepository::downloadTarget(Target target) {
 void TufRepository::saveTarget(const Target& target) {
   if (target.length() > 0) {
     downloadTarget(target);
+  } else if (target.format().empty() || target.format() == "OSTREE") {
+#ifdef BUILD_OSTREE
+    data::PackageManagerCredentials cred(CryptoKey(storage_, config_));
+    OstreeManager::pull(config_, cred, target.sha256Hash());
+#else
+    LOG_ERROR << "Could not pull ostree target. Aktualizr builded without OSTree support!";
+#endif
   }
 }
 

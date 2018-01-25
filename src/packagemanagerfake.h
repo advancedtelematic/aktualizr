@@ -13,9 +13,8 @@ class PackageFake : public PackageInterface {
 
   ~PackageFake() {}
 
-  data::InstallOutcome install(const data::PackageManagerCredentials &cred, const PackageConfig &pconfig) const {
-    (void)cred;
-    (void)pconfig;
+  data::InstallOutcome install(const PackageConfig &config) const {
+    (void)config;
     return data::InstallOutcome(data::OK, "Good");
   }
 

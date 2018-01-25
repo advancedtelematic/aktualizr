@@ -135,7 +135,8 @@ add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
 add_aktualizr_test(NAME uptane_crypto SOURCES uptane_crypto_test.cc PROJECT_WORKING_DIRECTORY)
 

@@ -46,7 +46,6 @@ TEST(crypto, sign_verify_rsa_file) {
 }
 
 #ifdef BUILD_P11
-
 TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
