@@ -16,7 +16,6 @@
 #include "asn1/helpers.h"
 
 using boost::shared_ptr;
-namespace ASN1 = Uptane::ASN1;
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
@@ -403,17 +402,16 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
 
     std::ifstream path_stream(it->c_str());
 
-    shared_ptr<ASN1::SecondaryConfig> asnSc =
-        ASN1::xer_parse<ASN1::SecondaryConfig>(ASN1::asn_DEF_SecondaryConfig, path_stream);
+    shared_ptr<AKSecondaryConfig> asnSc = ASN1::xer_parse<AKSecondaryConfig>(asn_DEF_AKSecondaryConfig, path_stream);
 
     Uptane::SecondaryConfig sconfig;
 
-    if (asnSc->secondaryType == ASN1::SecondaryType_virtual) {
+    if (asnSc->secondaryType == AKSecondaryType_virtual) {
       sconfig.secondary_type = Uptane::kVirtual;
-    } else if (asnSc->secondaryType == ASN1::SecondaryType_legacy) {
+    } else if (asnSc->secondaryType == AKSecondaryType_legacy) {
       LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
-    } else if (asnSc->secondaryType == ASN1::SecondaryType_uptane) {
+    } else if (asnSc->secondaryType == AKSecondaryType_uptane) {
       sconfig.secondary_type = Uptane::kUptane;
     } else {
       throw std::runtime_error("");

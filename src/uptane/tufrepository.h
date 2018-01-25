@@ -8,7 +8,6 @@
 #include <utility>
 
 #include <json/json.h>
-#include <netinet/in.h>
 #include "config.h"
 #include "crypto.h"
 #include "httpinterface.h"

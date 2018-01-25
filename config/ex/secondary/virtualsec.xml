@@ -1,4 +1,4 @@
-<SecondaryConfig>
+<AKSecondaryConfig>
     <secondaryType><virtual/></secondaryType>
     <partialVerifying><false/></partialVerifying>
     <ecuHardwareId>test-virtual</ecuHardwareId>
@@ -8,4 +8,4 @@
     <firmwarePath>/tmp/test-virtual-secondary/firmware.bin</firmwarePath>
     <targetNamePath>/tmp/test-virtual-secondary/target_name</targetNamePath>
     <metadataPath>/tmp/test-virtual-secondary/metadata</metadataPath>
-</SecondaryConfig>
+</AKSecondaryConfig>

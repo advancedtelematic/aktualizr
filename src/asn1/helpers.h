@@ -10,7 +10,6 @@
 
 #include "constr_TYPE.h"
 
-namespace Uptane {
 namespace ASN1 {
 
 class DecodeError : public std::domain_error {
@@ -81,7 +80,6 @@ static inline std::string extract_string(const OCTET_STRING_t &s) {
   return std::string(reinterpret_cast<char*>(s.buf), s.size);
 }
 
-}
 }
 
 #endif

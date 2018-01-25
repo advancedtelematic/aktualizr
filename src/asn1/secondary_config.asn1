@@ -1,32 +1,32 @@
 SecondaryConfig DEFINITIONS AUTOMATIC TAGS ::= BEGIN
 
-  IMPORTS Identifier,
-          FileName,
-          FilePath FROM Common;
+  IMPORTS AKIdentifier,
+          AKFileName,
+          AKFilePath FROM Common;
 
-  SecondaryConfig ::= SEQUENCE {
-    secondaryType     SecondaryType,
+  AKSecondaryConfig ::= SEQUENCE {
+    secondaryType     AKSecondaryType,
     partialVerifying  BOOLEAN,
-    ecuSerial         ECUSerial OPTIONAL,
-    ecuHardwareId     ECUHardwareId,
+    ecuSerial         AKECUSerial OPTIONAL,
+    ecuHardwareId     AKECUHardwareId,
 
-    fullClientDir     FilePath,
-    ecuPrivateKey     FileName,
-    ecuPublicKey      FileName,
-    firmwarePath      FilePath,
-    targetNamePath    FilePath,
-    metadataPath      FilePath,
+    fullClientDir     AKFilePath,
+    ecuPrivateKey     AKFileName,
+    ecuPublicKey      AKFileName,
+    firmwarePath      AKFilePath,
+    targetNamePath    AKFilePath,
+    metadataPath      AKFilePath,
     ...
   }
 
-  SecondaryType ::= ENUMERATED {
+  AKSecondaryType ::= ENUMERATED {
     virtual,
     legacy,
     uptane,
     ...
   }
 
-  ECUSerial ::= Identifier
-  ECUHardwareId ::= Identifier
+  AKECUSerial ::= AKIdentifier
+  AKECUHardwareId ::= AKIdentifier
 
 END

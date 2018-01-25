@@ -5,11 +5,9 @@
 
 #include <boost/filesystem.hpp>
 
-namespace Uptane {
+#include "AKSecondaryConfig.h"
 
-namespace ASN1 {
-#include "SecondaryConfig.h"
-}
+namespace Uptane {
 
 enum SecondaryType {
   kVirtual,  // Virtual secondary (in-process fake implementation).

@@ -2,7 +2,6 @@
 
 #include "timer.h"
 
-#include <netinet/in.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <sodium.h>
