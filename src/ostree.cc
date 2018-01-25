@@ -20,7 +20,7 @@ OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &
     : OstreePackageInterface(ref_name_in, refhash_in, treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred,
-                                            const OstreeConfig &config) const {
+                                            const PackageConfig &config) const {
   const char remote[] = "aktualizr-remote";
   const char *const commit_ids[] = {refhash.c_str()};
   const char *opt_osname = NULL;
@@ -133,11 +133,11 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
   return value;
 }
 
-OstreeManager::OstreeManager(const OstreeConfig &oconfig) {
+OstreeManager::OstreeManager(const PackageConfig &pconfig) {
   try {
-    getCurrent(oconfig.sysroot);
+    getCurrent(pconfig.sysroot);
   } catch (...) {
-    throw std::runtime_error("Could not find OSTree sysroot at:" + oconfig.sysroot.string());
+    throw std::runtime_error("Could not find OSTree sysroot at:" + pconfig.sysroot.string());
   }
 }
 

@@ -26,9 +26,9 @@ TEST(ostree, toEcuVersion) {
 
 TEST(ostree, parse_installed_packages) {
   Config config;
-  config.ostree.type = kOstree;
-  config.ostree.sysroot = sysroot;
-  OstreeManager ostree(config.ostree);
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  OstreeManager ostree(config.pacman);
   Json::Value packages = ostree.getInstalledPackages("tests/test_data/package.manifest");
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");

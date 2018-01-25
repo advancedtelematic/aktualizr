@@ -144,8 +144,8 @@ struct UptaneConfig {
   std::vector<Uptane::SecondaryConfig> secondary_configs;
 };
 
-struct OstreeConfig {
-  OstreeConfig() : type(kOstree), os(""), sysroot(""), packages_file("/usr/package.manifest") {}
+struct PackageConfig {
+  PackageConfig() : type(kOstree), os(""), sysroot(""), packages_file("/usr/package.manifest") {}
   PackageManager type;
   std::string os;
   boost::filesystem::path sysroot;
@@ -213,7 +213,7 @@ class Config {
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;
-  OstreeConfig ostree;
+  PackageConfig pacman;
   StorageConfig storage;
   ImportConfig import;
 

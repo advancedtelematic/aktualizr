@@ -14,7 +14,7 @@ class PackageInterface {
       : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
   virtual ~PackageInterface() {}
   virtual data::InstallOutcome install(const data::PackageManagerCredentials &cred,
-                                       const OstreeConfig &config) const = 0;
+                                       const PackageConfig &pconfig) const = 0;
   virtual Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const = 0;
 
  protected:

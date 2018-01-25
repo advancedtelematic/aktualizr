@@ -1,7 +1,7 @@
 [tls]
 certificates_directory = "sota-prov"
 
-[ostree]
+[pacman]
 type = "ostree"
 sysroot = "sysroot-that-is-missing"
 os = "myos"

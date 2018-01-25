@@ -23,5 +23,5 @@ server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtele
 polling = false
 polling_sec = 91
 
-[ostree]
+[pacman]
 type = "ostreefake"

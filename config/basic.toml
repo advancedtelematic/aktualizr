@@ -1,7 +1,7 @@
 [storage]
 path = "sota-prov"
 
-[ostree]
+[pacman]
 sysroot = "sysroot"
 os = "myos"
 

@@ -10,9 +10,9 @@ class OstreeFakePackage : public OstreePackageInterface {
 
   ~OstreeFakePackage() {}
 
-  data::InstallOutcome install(const data::PackageManagerCredentials &cred, const OstreeConfig &config) const {
+  data::InstallOutcome install(const data::PackageManagerCredentials &cred, const PackageConfig &pconfig) const {
     (void)cred;
-    (void)config;
+    (void)pconfig;
     return data::InstallOutcome(data::OK, "Good");
   }
 

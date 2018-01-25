@@ -11,10 +11,10 @@
 
 class PackageManagerFactory {
  public:
-  static boost::shared_ptr<PackageManagerInterface> makePackageManager(const OstreeConfig& oconfig) {
-    switch (oconfig.type) {
+  static boost::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig) {
+    switch (pconfig.type) {
       case kOstree:
-        return boost::make_shared<OstreeManager>(oconfig);
+        return boost::make_shared<OstreeManager>(pconfig);
         break;
       case kOstreeFake:
         return boost::make_shared<OstreeFakeManager>();
@@ -24,7 +24,7 @@ class PackageManagerFactory {
         return boost::shared_ptr<PackageManagerInterface>();  // NULL-equivalent
       case kNone:
       default:
-        LOG_ERROR << "Unrecognized package manager type: " << oconfig.type;
+        LOG_ERROR << "Unrecognized package manager type: " << pconfig.type;
         return boost::shared_ptr<PackageManagerInterface>();  // NULL-equivalent
     }
   }

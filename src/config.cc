@@ -304,20 +304,20 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // uptane.secondary_configs currently can only be set via command line.
 
   std::string package_manager = "ostree";
-  CopyFromConfig(package_manager, "ostree.type", boost::log::trivial::warning, pt);
+  CopyFromConfig(package_manager, "pacman.type", boost::log::trivial::warning, pt);
   if (package_manager == "ostree") {
-    ostree.type = kOstree;
+    pacman.type = kOstree;
   } else if (package_manager == "ostreefake") {
-    ostree.type = kOstreeFake;
+    pacman.type = kOstreeFake;
   } else if (package_manager == "debian") {
-    ostree.type = kDebian;
+    pacman.type = kDebian;
   } else {
-    ostree.type = kNone;
+    pacman.type = kNone;
   }
 
-  CopyFromConfig(ostree.os, "ostree.os", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree.sysroot, "ostree.sysroot", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree.packages_file, "ostree.packages_file", boost::log::trivial::warning, pt);
+  CopyFromConfig(pacman.os, "pacman.os", boost::log::trivial::warning, pt);
+  CopyFromConfig(pacman.sysroot, "pacman.sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(pacman.packages_file, "pacman.packages_file", boost::log::trivial::warning, pt);
 
   std::string storage_type = "filesystem";
   CopyFromConfig(storage_type, "storage.type", boost::log::trivial::warning, pt);
@@ -589,11 +589,11 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   // not read from or written to the primary config file.
   sink << "\n";
 
-  sink << "[ostree]\n";
-  writeOption(sink, ostree.type, "type");
-  writeOption(sink, ostree.os, "os");
-  writeOption(sink, ostree.sysroot, "sysroot");
-  writeOption(sink, ostree.packages_file, "packages_file");
+  sink << "[pacman]\n";
+  writeOption(sink, pacman.type, "type");
+  writeOption(sink, pacman.os, "os");
+  writeOption(sink, pacman.sysroot, "sysroot");
+  writeOption(sink, pacman.packages_file, "packages_file");
   sink << "\n";
 
   sink << "[storage]\n";

@@ -1,5 +1,4 @@
 [dbus]
-name = "org.genivi.SotaClient"
 path = "/org/genivi/SotaClient"
 interface = "org.genivi.SotaClient"
 software_manager = "org.genivi.SoftwareLoadingManager"
@@ -14,21 +13,15 @@ certificates_directory = "/tmp/aktualizr/"
 system_info = "system_info.sh"
 
 [gateway]
-console = false
 dbus = false
 http = true
 rvi = false
 socket = false
-websocket = false
 
 [network]
-http_server = "127.0.0.1:8888"
-rvi_edge_server = "127.0.0.1:9080"
-websocket_server = "127.0.0.1:3012"
 socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, UpdateAvailable"
-
 
 [rvi]
 node_host = "localhost"
@@ -38,10 +31,8 @@ device_cert = "./config/ex/certificates/insecure_device_cert.crt"
 ca_cert = "./config/ex/certificates/insecure_root_cert.crt"
 cert_dir =  "./config/ex/certificates"
 cred_dir = "./config/ex/credentials/"
-
-client = "http://127.0.0.1:8901"
-storage_dir = "/var/sota"
-timeout = 20
+packages_dir = "/tmp/"
+uuid = "123e4567-e89b-12d3-a456-426655440000"
 
 [provision]
 provision_path = "tests/test_data/credentials.zip"
@@ -49,17 +40,25 @@ p12_password = ""
 
 [tls]
 server = "https://7d0a4914-c392-4ccd-a8f9-3d4ed969da07.tcpgw.prod01.advancedtelematic.com:8000"
-ca_file = "ca.pem"
-pkey_file = "pkey.pem"
-client_certificate = "client.pem"
+ca_source = "file"
+pkey_source = "file"
+cert_source = "file"
+
+[storage]
+path = "/tmp"
+uptane_metadata_path = "/tmp/aktualizr/metadata"
+uptane_private_key_path = "ecukey.pem"
+uptane_public_key_path = "ecukey.pub"
+tls_cacert_path = "ca.pem"
+tls_pkey_path = "pkey.pem"
+tls_clientcert_path = "client.pem"
 
 [uptane]
 polling = true
 polling_sec = 10
-metadata_path = "/tmp/aktualizr/metadata"
-private_key_path = "ecukey.pem"
-public_key_path = "ecukey.pub"
+key_source = "file"
 
-[ostree]
+[pacman]
+type = "ostree"
 os = "testos"
 sysroot = "/opt/sysroot"
