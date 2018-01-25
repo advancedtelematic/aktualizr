@@ -134,18 +134,4 @@ if(INSTALL_LIB)
   install(DIRECTORY uptane DESTINATION include FILES_MATCHING PATTERN "*.h")
 endif()
 
-##### CPACK configuration
-set(CPACK_GENERATOR "DEB")
-set(CPACK_PACKAGE_NAME "aktualizr")
-set(CPACK_PACKAGE_FILE_NAME "aktualizr")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "UPTANE-compliant embedded software update client")
-set(CPACK_PACKAGE_DESCRIPTION "UPTANE-compliant embedded software update client")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.gerasimov@here.com")
-SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
-set(CPACK_PACKAGE_VERSION 1.0.0)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsodium18, libboost-filesystem1.58.0, libboost-log1.58.0, libboost-thread1.58.0, libboost-chrono1.58.0, libboost-random1.58.0, libboost-system1.58.0, libcurl3, openssl (>=1.0.1), libsqlite3-0, libssl1.0.0, libarchive13")
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/config/systemd/debian-control/preinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/postinst;${PROJECT_SOURCE_DIR}/config/systemd/debian-control/prerm;")
-set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${CMAKE_PROJECT_NAME};aktualizr;/")
-#SET(CPACK_SET_DESTDIR ON)
-include(CPack)
 # vim: set tabstop=4 shiftwidth=4 expandtab:
