@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include "ostree.h"
+#include "types.h"
 #include "utils.h"
 
 boost::filesystem::path sysroot;
@@ -22,6 +23,17 @@ TEST(OstreePackage, ToEcuVersion) {
   EXPECT_EQ(ecuver["ecu_serial"], "ecu_serial");
   EXPECT_EQ(ecuver["installed_image"]["fileinfo"]["hashes"]["sha256"], "hash");
   EXPECT_EQ(ecuver["installed_image"]["filepath"], "branch-name-hash");
+}
+
+TEST(OstreePackage, InstallBadUri) {
+  OstreePackage op("branch-name-hash", "hash", "bad_uri");
+  data::PackageManagerCredentials cred;
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  data::InstallOutcome result = op.install(cred, config.pacman);
+  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.second, "Failed to parse uri: bad_uri");
 }
 
 TEST(OstreeManager, BadSysroot) {

@@ -36,9 +36,9 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
   }
   boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
   if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
-    LOG_ERROR << "could not get repo";
+    LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
-    return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
+    return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
   if (!OstreeManager::addRemote(repo, remote, pull_uri, cred)) {
