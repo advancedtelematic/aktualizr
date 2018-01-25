@@ -42,6 +42,7 @@ RUN apt-get update && apt-get -y install \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \
+  libprotobuf-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
@@ -50,6 +51,7 @@ RUN apt-get update && apt-get -y install \
   opensc \
   ostree \
   pkg-config \
+  protobuf-compiler \
   psmisc \
   python3-dbus \
   python3-dev \

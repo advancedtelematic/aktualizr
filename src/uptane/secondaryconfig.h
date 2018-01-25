@@ -4,6 +4,7 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
+#include "secondary_config.pb.h"
 
 namespace Uptane {
 

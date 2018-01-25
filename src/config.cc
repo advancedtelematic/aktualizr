@@ -9,9 +9,14 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+
 #include "bootstrap.h"
 #include "exceptions.h"
 #include "utils.h"
+
+namespace protobuf = google::protobuf;
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
@@ -396,31 +401,34 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     if (!boost::filesystem::exists(*it)) {
       throw FatalException(it->string() + " does not exist!");
     }
-    Json::Value config_json = Utils::parseJSONFile(*it);
-    Uptane::SecondaryConfig sconfig;
+    std::ifstream stream(it->c_str());
+    protobuf::io::IstreamInputStream zcstream(&stream);
+    uptane::proto::SecondaryConfig pconfig;
+    protobuf::TextFormat::Parse(&zcstream, &pconfig);
 
-    std::string stype = config_json["secondary_type"].asString();
-    if (stype == "virtual") {
+    Uptane::SecondaryConfig sconfig;
+    uptane::proto::SecondaryConfig::Type stype = pconfig.secondary_type();
+    if (stype == uptane::proto::SecondaryConfig::VIRTUAL) {
       sconfig.secondary_type = Uptane::kVirtual;
-    } else if (stype == "legacy") {
+    } else if (stype == uptane::proto::SecondaryConfig::LEGACY) {
       LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
-    } else if (stype == "uptane") {
+    } else if (stype == uptane::proto::SecondaryConfig::UPTANE) {
       sconfig.secondary_type = Uptane::kUptane;
     } else {
       LOG_ERROR << "Unrecognized secondary type: " << stype;
       continue;
     }
-    sconfig.ecu_serial = config_json["ecu_serial"].asString();
-    sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-    sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-    sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
-    sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
+    sconfig.ecu_serial = pconfig.ecu_serial();
+    sconfig.ecu_hardware_id = pconfig.ecu_hardware_id();
+    sconfig.partial_verifying = pconfig.partial_verifying();
+    sconfig.ecu_private_key = pconfig.ecu_private_key();
+    sconfig.ecu_public_key = pconfig.ecu_public_key();
 
-    sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-    sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-    sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
-    sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
+    sconfig.full_client_dir = boost::filesystem::path(pconfig.full_client_dir());
+    sconfig.firmware_path = boost::filesystem::path(pconfig.firmware_path());
+    sconfig.metadata_path = boost::filesystem::path(pconfig.metadata_path());
+    sconfig.target_name_path = boost::filesystem::path(pconfig.target_name_path());
     sconfig.flasher = "";
 
     uptane.secondary_configs.push_back(sconfig);

@@ -1,0 +1,5 @@
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS secondary_config.proto)
+add_library(proto_defs ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(proto_defs ${Protobuf_LIBRARIES})
+target_compile_options(proto_defs PRIVATE "-Wno-unused-parameter")
+target_include_directories(proto_defs PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
