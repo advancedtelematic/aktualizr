@@ -22,14 +22,18 @@ class OstreePackage : public OstreePackageInterface {
 class OstreeManager : public OstreeManagerInterface {
  public:
   OstreeManager(const PackageConfig &pconfig);
-  static boost::shared_ptr<OstreeDeployment> getStagedDeployment(const boost::filesystem::path &path);
+  virtual Json::Value getInstalledPackages();
+  virtual std::string getCurrent();
+  virtual boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in,
+                                                          const std::string &refhash_in, const std::string &treehub_in);
+  boost::shared_ptr<OstreeDeployment> getStagedDeployment();
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
   static bool addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
                         const data::PackageManagerCredentials &cred);
-  virtual Json::Value getInstalledPackages(const boost::filesystem::path &file_path);
-  virtual std::string getCurrent(const boost::filesystem::path &ostree_sysroot);
-  virtual boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in,
-                                                          const std::string &refhash_in, const std::string &treehub_in);
+
+ private:
+  boost::filesystem::path sysroot_dir;
+  boost::filesystem::path packages_file;
 };
 
 #endif  // OSTREE_H_

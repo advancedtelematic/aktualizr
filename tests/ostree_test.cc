@@ -28,8 +28,9 @@ TEST(ostree, parse_installed_packages) {
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
+  config.pacman.packages_file = "tests/test_data/package.manifest";
   OstreeManager ostree(config.pacman);
-  Json::Value packages = ostree.getInstalledPackages("tests/test_data/package.manifest");
+  Json::Value packages = ostree.getInstalledPackages();
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");
   EXPECT_EQ(packages[1]["name"], "emacs");

@@ -40,8 +40,7 @@ class OstreeFakePackage : public OstreePackageInterface {
 
 class OstreeFakeManager : public OstreeManagerInterface {
  public:
-  Json::Value getInstalledPackages(const boost::filesystem::path &file_path) {
-    (void)file_path;
+  Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
     Json::Value package;
     package["name"] = "vim";
@@ -51,10 +50,7 @@ class OstreeFakeManager : public OstreeManagerInterface {
     return packages;
   }
 
-  std::string getCurrent(const boost::filesystem::path &ostree_sysroot) {
-    (void)ostree_sysroot;
-    return "hash";
-  }
+  std::string getCurrent() { return "hash"; }
 
   boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in, const std::string &refhash_in,
                                                   const std::string &treehub_in) {

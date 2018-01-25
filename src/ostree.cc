@@ -134,11 +134,63 @@ Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Jso
 }
 
 OstreeManager::OstreeManager(const PackageConfig &pconfig) {
+  sysroot_dir = pconfig.sysroot;
+  packages_file = pconfig.packages_file;
   try {
-    getCurrent(pconfig.sysroot);
+    getCurrent();
   } catch (...) {
-    throw std::runtime_error("Could not find OSTree sysroot at:" + pconfig.sysroot.string());
+    throw std::runtime_error("Could not find OSTree sysroot at:" + sysroot_dir.string());
   }
+}
+
+Json::Value OstreeManager::getInstalledPackages() {
+  std::string packages_str = Utils::readFile(packages_file);
+  std::vector<std::string> package_lines;
+  boost::split(package_lines, packages_str, boost::is_any_of("\n"));
+  Json::Value packages(Json::arrayValue);
+  for (std::vector<std::string>::iterator it = package_lines.begin(); it != package_lines.end(); ++it) {
+    if (it->empty()) {
+      continue;
+    }
+    size_t pos = it->find(" ");
+    if (pos == std::string::npos) {
+      throw std::runtime_error("Wrong packages file format");
+    }
+    Json::Value package;
+    package["name"] = it->substr(0, pos);
+    package["version"] = it->substr(pos + 1);
+    packages.append(package);
+  }
+  return packages;
+}
+
+std::string OstreeManager::getCurrent() {
+  boost::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
+  return ostree_deployment_get_csum(staged_deployment.get());
+}
+
+boost::shared_ptr<PackageInterface> OstreeManager::makePackage(const std::string &branch_name_in,
+                                                               const std::string &refhash_in,
+                                                               const std::string &treehub_in) {
+  return boost::make_shared<OstreePackage>(branch_name_in, refhash_in, treehub_in);
+}
+
+boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
+  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_dir);
+  GPtrArray *deployments = NULL;
+  OstreeDeployment *res = NULL;
+
+  deployments = ostree_sysroot_get_deployments(sysroot.get());
+
+  if (deployments->len == 0) {
+    res = NULL;
+  } else {
+    OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
+    res = static_cast<OstreeDeployment *>(g_object_ref(d));
+  }
+
+  g_ptr_array_unref(deployments);
+  return boost::shared_ptr<OstreeDeployment>(res, g_object_unref);
 }
 
 boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
@@ -160,24 +212,6 @@ boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesys
     throw std::runtime_error("could not load sysroot");
   }
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
-}
-
-boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment(const boost::filesystem::path &path) {
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(path);
-  GPtrArray *deployments = NULL;
-  OstreeDeployment *res = NULL;
-
-  deployments = ostree_sysroot_get_deployments(sysroot.get());
-
-  if (deployments->len == 0) {
-    res = NULL;
-  } else {
-    OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
-    res = static_cast<OstreeDeployment *>(g_object_ref(d));
-  }
-
-  g_ptr_array_unref(deployments);
-  return boost::shared_ptr<OstreeDeployment>(res, g_object_unref);
 }
 
 bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
@@ -213,36 +247,4 @@ bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &remote, const
     return false;
   }
   return true;
-}
-
-Json::Value OstreeManager::getInstalledPackages(const boost::filesystem::path &file_path) {
-  std::string packages_str = Utils::readFile(file_path);
-  std::vector<std::string> package_lines;
-  boost::split(package_lines, packages_str, boost::is_any_of("\n"));
-  Json::Value packages(Json::arrayValue);
-  for (std::vector<std::string>::iterator it = package_lines.begin(); it != package_lines.end(); ++it) {
-    if (it->empty()) {
-      continue;
-    }
-    size_t pos = it->find(" ");
-    if (pos == std::string::npos) {
-      throw std::runtime_error("Wrong packages file format");
-    }
-    Json::Value package;
-    package["name"] = it->substr(0, pos);
-    package["version"] = it->substr(pos + 1);
-    packages.append(package);
-  }
-  return packages;
-}
-
-std::string OstreeManager::getCurrent(const boost::filesystem::path &ostree_sysroot) {
-  boost::shared_ptr<OstreeDeployment> staged_deployment = OstreeManager::getStagedDeployment(ostree_sysroot);
-  return ostree_deployment_get_csum(staged_deployment.get());
-}
-
-boost::shared_ptr<PackageInterface> OstreeManager::makePackage(const std::string &branch_name_in,
-                                                               const std::string &refhash_in,
-                                                               const std::string &treehub_in) {
-  return boost::make_shared<OstreePackage>(branch_name_in, refhash_in, treehub_in);
 }

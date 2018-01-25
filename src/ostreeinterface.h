@@ -22,8 +22,8 @@ class OstreePackageInterface : public PackageInterface {
 
 class OstreeManagerInterface : public PackageManagerInterface {
  public:
-  virtual Json::Value getInstalledPackages(const boost::filesystem::path &file_path) = 0;
-  virtual std::string getCurrent(const boost::filesystem::path &ostree_sysroot) = 0;
+  virtual Json::Value getInstalledPackages() = 0;
+  virtual std::string getCurrent() = 0;
   virtual boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in,
                                                           const std::string &refhash_in,
                                                           const std::string &treehub_in) = 0;

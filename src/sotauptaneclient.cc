@@ -34,7 +34,7 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.sha256Hash() == pacman->getCurrent(config.pacman.sysroot);
+    return target.sha256Hash() == pacman->getCurrent();
   } else {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
@@ -135,12 +135,12 @@ void SotaUptaneClient::reportHwInfo() {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages(config.pacman.packages_file));
+  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages());
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result = Json::arrayValue;
-  std::string hash = pacman->getCurrent(config.pacman.sysroot);
+  std::string hash = pacman->getCurrent();
   std::string refname = uptane_repo.findInstalledVersion(hash);
   if (refname.empty()) {
     (refname += "unknown-") += hash;
