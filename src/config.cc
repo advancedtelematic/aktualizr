@@ -402,7 +402,7 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
 
     std::ifstream path_stream(it->c_str());
 
-    shared_ptr<AKSecondaryConfig> asnSc = ASN1::xer_parse<AKSecondaryConfig>(asn_DEF_AKSecondaryConfig, path_stream);
+    shared_ptr<AKSecondaryConfig> asnSc = ASN1::xer_parse<AKSecondaryConfig>(&asn_DEF_AKSecondaryConfig, path_stream);
 
     Uptane::SecondaryConfig sconfig;
 

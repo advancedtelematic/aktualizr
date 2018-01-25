@@ -34,7 +34,7 @@ TEST(asn1, serialize_simple) {
 }
 
 TEST(asn1, deserialize_simple) {
-  ASSERT_THROW(ASN1::xer_parse<AKSecondaryConfig>(asn_DEF_AKSecondaryConfig, "hey"), ASN1::DecodeError);
+  ASSERT_THROW(ASN1::xer_parse<AKSecondaryConfig>(&asn_DEF_AKSecondaryConfig, "hey"), ASN1::DecodeError);
 
   std::string withSerial =
       "<AKSecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
@@ -42,7 +42,7 @@ TEST(asn1, deserialize_simple) {
       "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
       "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
       "AKSecondaryConfig>";
-  ASN1::xer_parse<AKSecondaryConfig>(asn_DEF_AKSecondaryConfig, withSerial);
+  ASN1::xer_parse<AKSecondaryConfig>(&asn_DEF_AKSecondaryConfig, withSerial);
 
   std::string withoutSerial =
       "<AKSecondaryConfig><secondaryType><virtual/></secondaryType><partialVerifying><false/></"
@@ -50,7 +50,7 @@ TEST(asn1, deserialize_simple) {
       "fullClientDir><ecuPrivateKey>priv.key</ecuPrivateKey><ecuPublicKey>pub.key</ecuPublicKey><firmwarePath>/"
       "firm.bin</firmwarePath><targetNamePath>/target</targetNamePath><metadataPath>/meta</metadataPath></"
       "AKSecondaryConfig>";
-  ASN1::xer_parse<AKSecondaryConfig>(asn_DEF_AKSecondaryConfig, withoutSerial);
+  ASN1::xer_parse<AKSecondaryConfig>(&asn_DEF_AKSecondaryConfig, withoutSerial);
 }
 
 #ifndef __NO_MAIN__
