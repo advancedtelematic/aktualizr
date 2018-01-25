@@ -45,6 +45,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));
+    repo.getMeta();
     repo.getTargets();
 
   } catch (Uptane::Exception e) {

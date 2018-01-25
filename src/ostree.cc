@@ -19,29 +19,22 @@ OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &
                              const std::string &treehub_in)
     : OstreePackageInterface(ref_name_in, refhash_in, treehub_in) {}
 
-data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred,
-                                            const OstreeConfig &config) const {
-  const char remote[] = "aktualizr-remote";
-  const char *const commit_ids[] = {refhash.c_str()};
-  const char *opt_osname = NULL;
+data::InstallOutcome OstreeManager::pull(const Config &config, const data::PackageManagerCredentials &cred,
+                                         const std::string &refhash) {
   OstreeRepo *repo = NULL;
+  const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = NULL;
   GError *error = NULL;
-  char *revision;
   GVariantBuilder builder;
   GVariant *options;
 
-  if (config.os.size()) {
-    opt_osname = config.os.c_str();
-  }
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
-  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
+  if (!ostree_sysroot_get_repo(OstreeManager::LoadSysroot(config.ostree.sysroot).get(), &repo, cancellable, &error)) {
     LOG_ERROR << "could not get repo";
     g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
-  if (!OstreeManager::addRemote(repo, remote, pull_uri, cred)) {
+  if (!OstreeManager::addRemote(repo, config.uptane.ostree_server, cred)) {
     return data::InstallOutcome(data::INSTALL_FAILED, "Error of adding remote");
   }
 
@@ -58,8 +51,29 @@ data::InstallOutcome OstreePackage::install(const data::PackageManagerCredential
     g_error_free(error);
     return install_outcome;
   }
+  return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
+}
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), commit_ids[0]);
+data::InstallOutcome OstreePackage::install(const OstreeConfig &config) const {
+  const char *opt_osname = NULL;
+  OstreeRepo *repo = NULL;
+  GCancellable *cancellable = NULL;
+  GError *error = NULL;
+  char *revision;
+
+  if (config.os.size()) {
+    opt_osname = config.os.c_str();
+  }
+
+  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+
+  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
+    LOG_ERROR << "could not get repo";
+    g_error_free(error);
+    return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
+  }
+
+  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), refhash.c_str());
   if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
     LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
@@ -172,8 +186,7 @@ boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment(const boo
   return boost::shared_ptr<OstreeDeployment>(res, g_object_unref);
 }
 
-bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &remote, const std::string &url,
-                              const data::PackageManagerCredentials &cred) {
+bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const data::PackageManagerCredentials &cred) {
   GCancellable *cancellable = NULL;
   GError *error = NULL;
   GVariantBuilder b;
@@ -192,14 +205,8 @@ bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &remote, const
   }
   options = g_variant_builder_end(&b);
 
-  if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_DELETE_IF_EXISTS, remote.c_str(), url.c_str(),
-                                 options, cancellable, &error)) {
-    LOG_ERROR << "Error of adding remote: " << error->message;
-    g_error_free(error);
-    return false;
-  }
-  if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_ADD_IF_NOT_EXISTS, remote.c_str(), url.c_str(),
-                                 options, cancellable, &error)) {
+  if (!ostree_repo_remote_change(repo, NULL, OSTREE_REPO_REMOTE_CHANGE_DELETE_IF_EXISTS, remote, url.c_str(), options,
+                                 cancellable, &error)) {
     LOG_ERROR << "Error of adding remote: " << error->message;
     g_error_free(error);
     return false;

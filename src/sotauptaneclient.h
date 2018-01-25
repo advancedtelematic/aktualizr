@@ -34,8 +34,8 @@ class SotaUptaneClient {
   void run(command::Channel *commands_channel);
   void initSecondaries();
   void verifySecondaries();
-  void updateSecondaries(std::vector<Uptane::Target> targets);
-
+  void sendMetadataToEcus(std::vector<Uptane::Target> targets);
+  void sendImagesToEcus(std::vector<Uptane::Target> targets);
   const Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;

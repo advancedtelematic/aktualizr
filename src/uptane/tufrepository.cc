@@ -11,6 +11,8 @@
 
 #include "crypto.h"
 #include "logging.h"
+#include "ostree.h"
+#include "types.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -124,6 +126,9 @@ std::string TufRepository::downloadTarget(Target target) {
 void TufRepository::saveTarget(const Target& target) {
   if (target.length() > 0) {
     downloadTarget(target);
+  } else if (target.format().empty() || target.format() == "OSTREE") {
+    data::PackageManagerCredentials cred(OnDiskCryptoKey(storage_, config_));
+    OstreeManager::pull(config_, cred, target.sha256Hash());
   }
 }
 
