@@ -25,11 +25,8 @@ Repository::Repository(const Config &config_in, boost::shared_ptr<INvStorage> st
       image("repo", config.uptane.repo_server, config, storage_in, http_client),
       storage(storage_in),
       http(http_client),
-#ifdef BUILD_P11
-      p11(config.p11),
-#endif
-      manifests(Json::arrayValue) {
-}
+      keys_(storage, config),
+      manifests(Json::arrayValue) {}
 
 void Repository::updateRoot(Version version) {
   director.updateRoot(version);
@@ -41,23 +38,13 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
   manifest["primary_ecu_serial"] = primary_ecu_serial;
   manifest["ecu_version_manifest"] = version_manifests;
 
-  ENGINE *crypto_engine = NULL;
-#ifdef BUILD_P11
-  if (key_source == kPkcs11) crypto_engine = p11.getEngine();
-#endif
-  Json::Value tuf_signed = Crypto::signTuf(crypto_engine, primary_private_key_uri, primary_public_key_id, manifest);
+  Json::Value tuf_signed = keys_.signTuf(manifest);
   HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
   return response.isOk();
 }
 
 Json::Value Repository::signVersionManifest(const Json::Value &primary_version_manifest) {
-  ENGINE *crypto_engine = NULL;
-#ifdef BUILD_P11
-  if (key_source == kPkcs11) crypto_engine = p11.getEngine();
-#endif
-
-  Json::Value ecu_version_signed =
-      Crypto::signTuf(crypto_engine, primary_private_key_uri, primary_public_key_id, primary_version_manifest);
+  Json::Value ecu_version_signed = keys_.signTuf(primary_version_manifest);
   return ecu_version_signed;
 }
 
@@ -105,8 +92,6 @@ bool Repository::getMeta() {
 }
 
 std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
-  if (!getMeta()) return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
-
   std::vector<Uptane::Target> director_targets = director.getTargets();
   int version = director.targetsVersion();
 

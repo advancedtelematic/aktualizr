@@ -15,8 +15,7 @@ class OstreePackageInterface : public PackageInterface {
   OstreePackageInterface(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in)
       : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
   virtual ~OstreePackageInterface() {}
-  virtual data::InstallOutcome install(const data::PackageManagerCredentials &cred,
-                                       const OstreeConfig &config) const = 0;
+  virtual data::InstallOutcome install(const OstreeConfig &config) const = 0;
   virtual Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const = 0;
 };
 

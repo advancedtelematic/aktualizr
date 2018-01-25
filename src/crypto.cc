@@ -104,21 +104,6 @@ std::string Crypto::getKeyId(const std::string &key) {
   return keyid;
 }
 
-Json::Value Crypto::signTuf(ENGINE *engine, const std::string &private_key, const std::string &public_key_id,
-                            const Json::Value &in_data) {
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(engine, private_key, Json::FastWriter().write(in_data)));
-  Json::Value signature;
-  signature["method"] = "rsassa-pss";
-  signature["sig"] = b64sig;
-
-  Json::Value out_data;
-  signature["keyid"] = public_key_id;
-  out_data["signed"] = in_data;
-  out_data["signatures"] = Json::Value(Json::arrayValue);
-  out_data["signatures"].append(signature);
-  return out_data;
-}
-
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
   RSA *rsa = NULL;
   BIO *bio = BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), (int)public_key.size());

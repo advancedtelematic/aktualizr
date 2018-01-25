@@ -2,6 +2,7 @@
 #define TYPES_H_
 
 #include <json/json.h>
+#include "uptane/cryptokey.h"
 
 namespace data {
 
@@ -134,10 +135,16 @@ struct InstalledSoftware {
 };
 
 struct PackageManagerCredentials {
+  PackageManagerCredentials(const OnDiskCryptoKey& cryptokey);
   std::string access_token;
   std::string ca_file;
   std::string cert_file;
   std::string pkey_file;
+
+ private:
+  TemporaryFile tmp_ca_file;
+  TemporaryFile tmp_pkey_file;
+  TemporaryFile tmp_cert_file;
 };
 }
 

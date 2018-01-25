@@ -58,7 +58,7 @@ P11Engine::~P11Engine() {
   }
 }
 
-PKCS11_SLOT* P11Engine::findTokenSlot() {
+PKCS11_SLOT* P11Engine::findTokenSlot() const {
   PKCS11_SLOT* slot = PKCS11_find_token(ctx_.get(), slots_.get_slots(), slots_.get_nslots());
   if (!slot || !slot->token) {
     LOG_ERROR << "Couldn't find a token";
@@ -138,7 +138,7 @@ bool P11Engine::generateUptaneKeyPair() {
   return true;
 }
 
-bool P11Engine::readTlsCert(std::string* cert_out) {
+bool P11Engine::readTlsCert(std::string* cert_out) const{
   const std::string& id = config_.tls_clientcert_id;
 
   if (config_.module.empty()) return false;
