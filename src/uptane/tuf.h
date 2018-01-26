@@ -111,7 +111,7 @@ std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class Target {
  public:
-  Target(const std::string &name, const Json::Value &content);
+  Target(const std::string &filename, const Json::Value &content);
 
   // TODO: ECU HW ID
   std::string ecu_identifier() const { return ecu_identifier_; }
