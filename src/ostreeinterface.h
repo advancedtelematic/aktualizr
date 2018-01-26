@@ -16,14 +16,14 @@ class OstreePackageInterface : public PackageInterface {
       : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
   virtual ~OstreePackageInterface() {}
   virtual data::InstallOutcome install(const data::PackageManagerCredentials &cred,
-                                       const OstreeConfig &config) const = 0;
+                                       const PackageConfig &pconfig) const = 0;
   virtual Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const = 0;
 };
 
 class OstreeManagerInterface : public PackageManagerInterface {
  public:
-  virtual Json::Value getInstalledPackages(const boost::filesystem::path &file_path) = 0;  // could be static
-  virtual std::string getCurrent(const boost::filesystem::path &ostree_sysroot) = 0;       // could be static
+  virtual Json::Value getInstalledPackages() = 0;
+  virtual std::string getCurrent() = 0;
   virtual boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in,
                                                           const std::string &refhash_in,
                                                           const std::string &treehub_in) = 0;

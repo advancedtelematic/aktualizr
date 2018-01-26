@@ -21,7 +21,7 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       storage(storage_in),
       http(http_client),
       last_targets_version(-1) {
-  pacman = PackageManagerFactory::makePackageManager(config.ostree);
+  pacman = PackageManagerFactory::makePackageManager(config.pacman);
   initSecondaries();
 }
 
@@ -34,7 +34,7 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.sha256Hash() == pacman->getCurrent(config.ostree.sysroot);
+    return target.sha256Hash() == pacman->getCurrent();
   } else {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
@@ -105,7 +105,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
     cred.pkey_file = tmp_pkey_file.Path().native();
     cred.cert_file = tmp_cert_file.Path().native();
 #endif
-    return package->install(cred, config.ostree);
+    return package->install(cred, config.pacman);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());
   }
@@ -135,12 +135,12 @@ void SotaUptaneClient::reportHwInfo() {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages(config.ostree.packages_file));
+  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages());
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result = Json::arrayValue;
-  std::string hash = pacman->getCurrent(config.ostree.sysroot);
+  std::string hash = pacman->getCurrent();
   std::string refname = uptane_repo.findInstalledVersion(hash);
   if (refname.empty()) {
     (refname += "unknown-") += hash;

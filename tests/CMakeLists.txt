@@ -137,6 +137,22 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
+    include(ExternalProject)
+    ExternalProject_Add(ostreesysroot
+                        GIT_REPOSITORY https://github.com/advancedtelematic/ostreesysroot
+                        CONFIGURE_COMMAND <SOURCE_DIR>/makephysical.sh <BINARY_DIR>/ostree_repo
+                        BUILD_COMMAND "" INSTALL_COMMAND "")
+    ExternalProject_Get_Property(ostreesysroot BINARY_DIR)
+    add_dependencies(build_tests ostreesysroot)
+
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY
+                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
+
+    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc
+                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
+
+    add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
@@ -148,9 +164,7 @@ if(BUILD_OSTREE)
     add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
                        PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND)
-
-    add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc)
 
     add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
     target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
@@ -161,11 +175,6 @@ if(BUILD_OSTREE)
     add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
              ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
     add_dependencies(build_tests aktualizr_uptane_vector_tests)
-
-# TODO: restore?
-#    add_test(NAME test_ostree_invalid
-#             COMMAND aktualizr --config ${CMAKE_CURRENT_SOURCE_DIR}/missing_ostree_repo.toml)
-#    set_tests_properties(test_ostree_invalid PROPERTIES PASS_REGULAR_EXPRESSION "Could not find OSTree sysroot at:")
 
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc
@@ -279,8 +288,7 @@ add_dependencies(qa check-full)
 
 
 # implicit_writer tests
-add_test(NAME implicit-writer-help
-    COMMAND aktualizr_implicit_writer --help)
+add_test(NAME implicit-writer-help COMMAND aktualizr_implicit_writer --help)
 
 if(SOTA_PACKED_CREDENTIALS)
     set(IMPLICIT_CREDENTIALS ${SOTA_PACKED_CREDENTIALS})
@@ -294,8 +302,7 @@ add_test(NAME implicit-writer-test
 
 
 # external_secondaries tests
-add_dependencies(build_tests aktualizr-validate-secondary-interface)
-add_dependencies(build_tests example-interface)
+add_dependencies(build_tests aktualizr-validate-secondary-interface example-interface)
 add_test(NAME validate-secondary-interface
     COMMAND aktualizr-validate-secondary-interface
     --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface

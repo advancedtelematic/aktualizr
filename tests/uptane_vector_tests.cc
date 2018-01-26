@@ -37,8 +37,8 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = port + "/aktualizr_repos";
-  config.ostree.os = "myos";
-  config.ostree.sysroot = "./sysroot";
+  config.pacman.os = "myos";
+  config.pacman.sysroot = "./sysroot";
 
   try {
     boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);

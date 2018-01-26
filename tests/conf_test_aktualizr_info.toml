@@ -2,7 +2,7 @@
 polling = true
 polling_sec = 10
 
-[ostree]
+[pacman]
 os = "myos"
 
 [p11]

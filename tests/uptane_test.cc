@@ -462,7 +462,7 @@ TEST(Uptane, PutManifest) {
   config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
   config.uptane.primary_ecu_serial = "testecuserial";
-  config.ostree.type = kOstreeFake;
+  config.pacman.type = kOstreeFake;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
@@ -639,7 +639,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.storage.path = temp_dir.Path();
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
-  config.ostree.type = kOstreeFake;
+  config.pacman.type = kOstreeFake;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;

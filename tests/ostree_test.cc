@@ -7,10 +7,14 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "config.h"
 #include "ostree.h"
+#include "types.h"
 #include "utils.h"
 
-TEST(ostree, toEcuVersion) {
+boost::filesystem::path sysroot;
+
+TEST(OstreePackage, ToEcuVersion) {
   OstreePackage op("branch-name-hash", "hash", "pull_uri");
   Json::Value custom;
   custom["key"] = "value";
@@ -21,9 +25,31 @@ TEST(ostree, toEcuVersion) {
   EXPECT_EQ(ecuver["installed_image"]["filepath"], "branch-name-hash");
 }
 
-TEST(ostree, parse_installed_packages) {
-  OstreeManager ostree;
-  Json::Value packages = ostree.getInstalledPackages("tests/test_data/package.manifest");
+TEST(OstreePackage, InstallBadUri) {
+  OstreePackage op("branch-name-hash", "hash", "bad_uri");
+  data::PackageManagerCredentials cred;
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  data::InstallOutcome result = op.install(cred, config.pacman);
+  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.second, "Failed to parse uri: bad_uri");
+}
+
+TEST(OstreeManager, BadSysroot) {
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = "sysroot-that-is-missing";
+  EXPECT_THROW(OstreeManager ostree(config.pacman), std::runtime_error);
+}
+
+TEST(OstreeManager, ParseInstalledPackages) {
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.pacman.packages_file = "tests/test_data/package.manifest";
+  OstreeManager ostree(config.pacman);
+  Json::Value packages = ostree.getInstalledPackages();
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");
   EXPECT_EQ(packages[1]["name"], "emacs");
@@ -35,6 +61,12 @@ TEST(ostree, parse_installed_packages) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif
