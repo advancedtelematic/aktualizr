@@ -141,19 +141,11 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    include(ExternalProject)
-    ExternalProject_Add(ostreesysroot
-                        GIT_REPOSITORY https://github.com/advancedtelematic/ostreesysroot
-                        CONFIGURE_COMMAND <SOURCE_DIR>/makephysical.sh <BINARY_DIR>/ostree_repo
-                        BUILD_COMMAND "" INSTALL_COMMAND "")
-    ExternalProject_Get_Property(ostreesysroot BINARY_DIR)
-    add_dependencies(build_tests ostreesysroot)
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
 
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY
-                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
-
-    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc
-                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
+    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
+                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
 
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
