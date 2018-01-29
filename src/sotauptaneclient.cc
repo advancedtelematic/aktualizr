@@ -105,8 +105,20 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   if (refname.empty()) {
     (refname += "unknown-") += hash;
   }
-  Json::Value unsigned_ecu_version =
-      pacman->makePackage(refname, hash, "")->toEcuVersion(uptane_repo.getPrimaryEcuSerial(), operation_result);
+  Json::Value installed_image;
+  installed_image["filepath"] = refname;
+  installed_image["fileinfo"]["length"] = 0;
+  installed_image["fileinfo"]["hashes"]["sha256"] = hash;
+
+  Json::Value unsigned_ecu_version;
+  unsigned_ecu_version["attacks_detected"] = "";
+  unsigned_ecu_version["installed_image"] = installed_image;
+  unsigned_ecu_version["ecu_serial"] = uptane_repo.getPrimaryEcuSerial();
+  unsigned_ecu_version["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
+  unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
+  if (operation_result != Json::nullValue) {
+    unsigned_ecu_version["custom"] = operation_result;
+  }
 
   result.append(uptane_repo.signVersionManifest(unsigned_ecu_version));
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;

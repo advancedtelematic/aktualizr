@@ -38,16 +38,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
 
   EXPECT_TRUE(repo.initialize());
-
-  Json::Value result = Json::arrayValue;
-  std::string hash = pacman->getCurrent();
-  std::string refname(std::string("unknown-") + hash);
-  Json::Value unsigned_ecu_version =
-      OstreePackage(refname, hash, "").toEcuVersion(repo.getPrimaryEcuSerial(), Json::nullValue);
-
-  result.append(repo.signVersionManifest(unsigned_ecu_version));
-  EXPECT_TRUE(repo.putManifest(result));
-
+  EXPECT_TRUE(repo.putManifest(repo.AssembleManifest()));
   // should not throw any exceptions
   repo.getTargets();
 }
