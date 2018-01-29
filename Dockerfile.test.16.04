@@ -5,6 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 
 RUN apt-get update && apt-get -y install debian-archive-keyring
-RUN apt-get update && apt-get install -y libsodium18 libboost-filesystem1.58.0 libboost-log1.58.0 libboost-thread1.58.0 libboost-chrono1.58.0 libboost-random1.58.0 libboost-system1.58.0 libcurl3 openssl libsqlite3-0  libssl1.0.0 libarchive13
+RUN apt-get update && apt-get install -y libarchive13 libc6 libgcc1 libsodium18 libssl1.0.0 libstdc++6
 
-ENTRYPOINT dpkg -i /persistent/aktualizr.deb && aktualizr --help
+ENTRYPOINT dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb && aktualizr --help
