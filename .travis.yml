@@ -26,12 +26,21 @@ script:
 - "./scripts/test_deb_in_docker.sh ${DOCKERFILE}"
 - "./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}"
 deploy:
-  provider: releases
-  file: /persistent/garage_deploy.deb
-  skip-cleanup: true
-  api_key:
-    secure: ${GITHUB_API_KEY}
-  on:
-    tags: true
-    repo: advancedtelematic/aktualizr
-    condition: $DOCKERFILE = Dockerfile.deb-stable
+        - provider: releases
+          file: /persistent/garage_deploy.deb
+          skip-cleanup: true
+          api_key:
+                  secure: ${GITHUB_API_KEY}
+                  on:
+                          tags: true
+                          repo: advancedtelematic/aktualizr
+                          condition: $DOCKERFILE = Dockerfile.deb-stable
+        - provider: releases
+          file: /persistent/aktualizr.deb
+          skip-cleanup: true
+          api_key:
+                  secure: ${GITHUB_API_KEY}
+                  on:
+                          tags: true
+                          repo: advancedtelematic/aktualizr
+                          condition: $DOCKERFILE = Dockerfile.16.04
