@@ -32,6 +32,7 @@ find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(Asn1c REQUIRED)
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
@@ -206,6 +207,7 @@ include(CPackComponent)
 
 
 add_subdirectory("src")
+add_subdirectory("src/asn1")
 add_subdirectory("src/cert_provider")
 add_subdirectory("src/implicit_writer")
 add_subdirectory("src/external_secondaries")

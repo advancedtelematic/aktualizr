@@ -5,6 +5,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "AKSecondaryConfig.h"
+
 namespace Uptane {
 
 enum SecondaryType {
