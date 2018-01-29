@@ -36,9 +36,13 @@ endif(BUILD_GENIVI)
 add_dependencies(build_tests aktualizr)
 
 
-if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
-    add_dependencies(build_tests garage-push aktualizr-info)
-endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
+if(BUILD_SOTA_TOOLS)
+    add_dependencies(build_tests garage-push garage-deploy-deb)
+endif(BUILD_SOTA_TOOLS)
+
+if (BUILD_OSTREE)
+    add_dependencies(build_tests aktualizr-info)
+endif (BUILD_OSTREE)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
                   -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
