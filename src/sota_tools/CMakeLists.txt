@@ -85,11 +85,7 @@ if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(garage-deploy gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-if(GARAGE_DEPLOY_VERSION)
-    add_definitions(-DGARAGE_DEPLOY_VERSION="${GARAGE_DEPLOY_VERSION}")
-else(GARAGE_DEPLOY_VERSION)
-    add_definitions(-DGARAGE_DEPLOY_VERSION="dev")
-endif(GARAGE_DEPLOY_VERSION)
+add_definitions(-DGARAGE_DEPLOY_VERSION="${AKTUALIZR_VERSION}")
 
 
 aktualizr_source_file_checks(${GARAGE_DEPLOY_SRCS})
@@ -108,27 +104,6 @@ ExternalProject_Get_Property(garage-sign SOURCE_DIR)
 
 install(PROGRAMS ${SOURCE_DIR}/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
 install(DIRECTORY ${SOURCE_DIR}/lib DESTINATION . COMPONENT garage_deploy)
-
-add_custom_target(garage-deploy-deb COMMAND cpack WORKING_DIRECTORY ${CMAKE_BINARY_DIR} DEPENDS garage-deploy garage-sign)
-
-set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Serhiy Stetskovych<serhiy.stetskovych@innoteka.com>") #required
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "garage-deploy utility")
-set(CPACK_DEB_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL garage_deploy garage-sign)
-set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
-set(CPACK_PACKAGE_FILE_NAME garage_deploy)
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libostree-1-1, libsodium18, openjdk-8-jre")
-
-
-if(GARAGE_DEPLOY_VERSION)
-    set(CPACK_PACKAGE_VERSION "${GARAGE_DEPLOY_VERSION}")
-else(GARAGE_DEPLOY_VERSION)
-    set(CPACK_PACKAGE_VERSION "1.0")
-endif(GARAGE_DEPLOY_VERSION)
-include(CPack)
-add_dependencies(qa garage-deploy-deb)
 
 
 ##### clang-format
