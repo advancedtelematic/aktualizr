@@ -37,7 +37,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
-    add_dependencies(build_tests garage-push garage-deploy-deb aktualizr-info)
+    add_dependencies(build_tests garage-push aktualizr-info)
 endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
