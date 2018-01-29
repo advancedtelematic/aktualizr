@@ -43,6 +43,7 @@ set(HEADERS
             ostreefake.h
             ostreeinterface.h
             packagemanagerfactory.h
+            packagemanagerfake.h
             packagemanagerinterface.h
             socketgateway.h
             sotauptaneclient.h
