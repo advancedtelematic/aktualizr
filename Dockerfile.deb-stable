@@ -45,6 +45,7 @@ RUN apt-get update && apt-get -y install \
   liblzma-dev \
   libostree-dev \
   libp11-dev \
+  libprotobuf-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl1.0-dev \
@@ -53,6 +54,7 @@ RUN apt-get update && apt-get -y install \
   opensc \
   ostree \
   pkg-config \
+  protobuf-compiler \
   psmisc \
   softhsm2 \
   wget

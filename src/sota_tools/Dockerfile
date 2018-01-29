@@ -20,6 +20,7 @@ RUN apt-get update -q && apt-get -qy install \
   libboost-system-dev \
   libcurl4-gnutls-dev \
   libglib2.0-dev \
+  libprotobuf-dev \
   libsodium-dev \
   libssl-dev \
   make \

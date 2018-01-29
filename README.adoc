@@ -66,11 +66,13 @@ The following debian packages are used in the project:
 * libdbus-1-dev (when building tests)
 * libjansson-dev
 * libostree-dev
+* libprotobuf-dev
 * libpthread-stubs0-dev (>=0.3)
 * libsodium-dev
 * libsqlite3-dev
 * libssl-dev
 * libyaml-cpp-dev (>=0.5.2)
+* protobuf-compiler
 * python3-dev (when building tests)
 * python3-openssl (when building tests)
 * python3-venv (when building tests)

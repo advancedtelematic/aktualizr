@@ -95,6 +95,7 @@ endif(BUILD_P11)
 add_executable(aktualizr main.cc)
 add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
 target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
+target_link_libraries(aktualizr_static_lib PUBLIC proto_defs)
 
 target_link_libraries(aktualizr aktualizr_static_lib
         ${Boost_LIBRARIES}

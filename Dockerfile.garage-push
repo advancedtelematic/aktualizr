@@ -37,12 +37,14 @@ RUN apt-get update && apt-get -y install \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \
+  libprotobuf-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
   libtool \
   make \
   pkg-config \
+  protobuf-compiler \
   psmisc \
   wget
 

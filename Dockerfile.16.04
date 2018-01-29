@@ -40,6 +40,7 @@ RUN apt-get update && apt-get -y install \
   libjansson-dev \
   libjsoncpp-dev \
   liblzma-dev \
+  libprotobuf-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
@@ -47,6 +48,7 @@ RUN apt-get update && apt-get -y install \
   make \
   opensc \
   pkg-config \
+  protobuf-compiler \
   psmisc \
   python3-dbus \
   python3-dev \

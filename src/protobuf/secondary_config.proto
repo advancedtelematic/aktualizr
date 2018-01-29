@@ -1,0 +1,21 @@
+syntax = "proto2";
+package uptane.proto;
+
+message SecondaryConfig {
+  enum Type {
+    VIRTUAL = 0;
+    LEGACY = 1;
+    UPTANE = 2;
+  }
+  required Type secondary_type = 1;
+  optional string ecu_serial = 2;
+  required string ecu_hardware_id = 3;
+  optional bool partial_verifying = 4;
+  required string ecu_private_key = 5;
+  required string ecu_public_key = 6;
+
+  required string full_client_dir = 7;
+  required string firmware_path = 8;
+  required string target_name_path = 9;
+  required string metadata_path = 10;
+}
