@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
   conf.tls.server = "http://127.0.0.1:" + port;
   conf.uptane.repo_server = conf.tls.server + "/repo";
   conf.uptane.director_server = conf.tls.server + "/director";
-  conf.uptane.ostree_server = conf.tls.server + "/treehub";
+  conf.pacman.ostree_server = conf.tls.server + "/treehub";
 
   return RUN_ALL_TESTS();
 }

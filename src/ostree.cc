@@ -35,7 +35,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const data::Packa
     return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
-  if (!OstreeManager::addRemote(repo, config.uptane.ostree_server, cred)) {
+  if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, cred)) {
     g_object_unref(repo);
     return data::InstallOutcome(data::INSTALL_FAILED, "Error of adding remote");
   }
