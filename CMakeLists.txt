@@ -15,11 +15,6 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
 endif()
 
-if(NOT AKTUALIZR_VERSION)
-    set(AKTUALIZR_VERSION "1.0-dev")
-endif(NOT AKTUALIZR_VERSION)
-add_definitions(-DAKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 
 # find all required libraries
@@ -32,6 +27,18 @@ find_package(Threads REQUIRED)
 find_package(LibArchive REQUIRED)
 find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(Git)
+
+if(NOT AKTUALIZR_VERSION)
+    if(GIT_EXECUTABLE)
+        execute_process(COMMAND sh -c "${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe | tr -d '\n'" OUTPUT_VARIABLE AKTUALIZR_VERSION)
+    else(GIT_EXECUTABLE)
+        message(WARNING "Version is not set and git is not available, set version to an arbitrary string")
+        set(AKTUALIZR_VERSION "0.0-dev")
+    endif(GIT_EXECUTABLE)
+endif(NOT AKTUALIZR_VERSION)
+
+add_definitions(-DAKTUALIZR_VERSION="${AKTUALIZR_VERSION}")
 
 if(BUILD_OSTREE)
     find_package(OSTree REQUIRED)
