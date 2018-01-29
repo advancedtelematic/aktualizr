@@ -30,12 +30,16 @@ CURDIR=${pwd}
 
 cd ${OSTREE_DIR}/repo
 python3 -m http.server 56042&
+HTTP_PID=$!
 sleep 2
 
 ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remote http://127.0.0.1:56042 ${BRANCHNAME}
 ostree --repo=${TARGETDIR}/ostree/repo pull generate-remote  ${BRANCHNAME}
+
 # kill SimpleHTTPServer
-kill %1
+kill ${HTTP_PID}
+wait ${HTTP_PID} 2>/dev/null
+
 cd ${CURDIR}
 rm -rf ${OSTREE_DIR}
 export OSTREE_BOOT_PARTITION="/boot"
