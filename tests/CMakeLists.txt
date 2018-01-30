@@ -141,12 +141,6 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
-                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
-
-    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
-                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
-
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
@@ -172,9 +166,16 @@ if(BUILD_OSTREE)
              ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
     add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+
+    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
+                       ARGS ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+
     if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc
-                           PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                           ARGS ${SOTA_PACKED_CREDENTIALS}
+                           ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
     endif(SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE)
 
