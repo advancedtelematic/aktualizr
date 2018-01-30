@@ -97,8 +97,8 @@ install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
 
 include(ExternalProject)
 ExternalProject_Add(garage-sign DEPENDS garage-deploy
-                    URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-95-g966d7e3.tgz
-                    URL_HASH SHA256=82ba4f49732c8caf0101551d8207f6a58e0ffbbf3eb0fc05d8e9888cdf58aa6d
+                    URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-104-g0ee4516.tgz
+                    URL_HASH SHA256=4a2efba9a52f3e1283197eb44622432a0a9556f4e9b80f7c29c5c3bcc9251ed1
                     CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
 ExternalProject_Get_Property(garage-sign SOURCE_DIR)
 
