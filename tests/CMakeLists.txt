@@ -159,6 +159,8 @@ if(BUILD_OSTREE)
 
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
 
+    add_aktualizr_test(NAME uptane_crypto SOURCES uptane_crypto_test.cc PROJECT_WORKING_DIRECTORY)
+
     add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
