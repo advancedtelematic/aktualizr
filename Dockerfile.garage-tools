@@ -1,5 +1,5 @@
 FROM ubuntu:xenial
-LABEL Description="garage-push"
+LABEL Description="garage-tools"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -41,6 +41,7 @@ RUN apt-get update && apt-get -y install \
   libsqlite3-dev \
   libssl-dev \
   libtool \
+  openjdk-8-jre-headless \
   make \
   pkg-config \
   psmisc \
@@ -49,6 +50,3 @@ RUN apt-get update && apt-get -y install \
 ADD . aktualizr
 WORKDIR aktualizr/build
 RUN cmake -DBUILD_SOTA_TOOLS=ON .. && make install
-
-ENTRYPOINT [ "garage-push" ]
-
