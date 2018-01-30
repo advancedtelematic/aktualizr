@@ -30,7 +30,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.storage.uptane_metadata_path = "metadata";
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
-  config.pacman.type = kOstreeFake;
+  config.pacman.type = kNone;
 
   ecu_config1.secondary_type = Uptane::kVirtual;
   ecu_config1.partial_verifying = false;

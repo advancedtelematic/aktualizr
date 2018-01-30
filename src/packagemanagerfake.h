@@ -56,4 +56,4 @@ class PackageManagerFake : public PackageManagerInterface {
   }
 };
 
-#endif  // OSTREEFAKE_H_
+#endif  // PACKAGEMANAGERFAKE_H_

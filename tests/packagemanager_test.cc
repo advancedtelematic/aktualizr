@@ -18,13 +18,6 @@ TEST(PackageManagerFactory, Ostree) {
   EXPECT_TRUE(pacman);
 }
 
-TEST(PackageManagerFactory, OstreeFake) {
-  Config config;
-  config.pacman.type = kOstreeFake;
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
-  EXPECT_TRUE(pacman);
-}
-
 TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = kDebian;

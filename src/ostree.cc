@@ -17,7 +17,7 @@
 
 OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &refhash_in,
                              const std::string &treehub_in)
-    : OstreePackageInterface(ref_name_in, refhash_in, treehub_in) {}
+    : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
 
 data::InstallOutcome OstreePackage::install(const data::PackageManagerCredentials &cred,
                                             const PackageConfig &config) const {

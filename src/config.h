@@ -23,7 +23,7 @@
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
 enum StorageType { kFileSystem = 0, kSqlite };
-enum PackageManager { kNone = 0, kOstree, kOstreeFake, kDebian };
+enum PackageManager { kNone = 0, kOstree, kDebian };
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
