@@ -1,5 +1,5 @@
-#ifndef ONDISKCRYPTOKEY_H_
-#define ONDISKCRYPTOKEY_H_
+#ifndef CRYPTOKEY_H_
+#define CRYPTOKEY_H_
 
 #include "invstorage.h"
 #include "config.h"
@@ -34,4 +34,4 @@ class CryptoKey {
 
 };
 
-#endif // ONDISKCRYPTOKEY_H_
+#endif // CRYPTOKEY_H_
