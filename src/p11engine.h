@@ -30,7 +30,7 @@ class P11ContextWrapper {
       PKCS11_CTX_free(ctx);
     }
   }
-  PKCS11_CTX *get() { return ctx; }
+  PKCS11_CTX *get() const { return ctx; }
 
  private:
   PKCS11_CTX *ctx;
@@ -54,8 +54,8 @@ class P11SlotsWrapper {
   ~P11SlotsWrapper() {
     if (slots && nslots) PKCS11_release_all_slots(ctx, slots, nslots);
   }
-  PKCS11_SLOT *get_slots() { return slots; }
-  unsigned int get_nslots() { return nslots; }
+  PKCS11_SLOT *get_slots() const { return slots; }
+  unsigned int get_nslots() const { return nslots; }
 
  private:
   PKCS11_CTX *ctx;
@@ -73,7 +73,7 @@ class P11Engine {
   std::string getTlsPkeyId() const { return uri_prefix_ + config_.tls_pkey_id; }
   std::string getTlsCertId() const { return uri_prefix_ + config_.tls_clientcert_id; }
   bool readUptanePublicKey(std::string *key);
-  bool readTlsCert(std::string *cert_out);
+  bool readTlsCert(std::string *cert_out) const;
   bool generateUptaneKeyPair();
 
  private:
@@ -83,7 +83,7 @@ class P11Engine {
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
 
-  PKCS11_SLOT *findTokenSlot();
+  PKCS11_SLOT *findTokenSlot() const;
 };
 
 #endif

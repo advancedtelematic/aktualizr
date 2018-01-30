@@ -10,6 +10,7 @@
 #include "config.h"
 #include "ostreeinterface.h"
 #include "types.h"
+#include "uptane/cryptokey.h"
 
 class OstreePackage : public OstreePackageInterface {
  public:

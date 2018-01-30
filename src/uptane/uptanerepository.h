@@ -9,12 +9,9 @@
 #include "httpinterface.h"
 #include "invstorage.h"
 #include "logging.h"
+#include "uptane/cryptokey.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
-
-#ifdef BUILD_P11
-#include "p11engine.h"
-#endif
 
 namespace Uptane {
 
@@ -63,18 +60,13 @@ class Repository {
   TufRepository image;
   boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
-#ifdef BUILD_P11
-  P11Engine p11;
-#endif
+
+  CryptoKey keys_;
+
   Json::Value manifests;
 
   std::string primary_ecu_serial;
   std::string primary_hardware_id_;
-
-  CryptoSource key_source;
-  std::string primary_public_key_uri;
-  std::string primary_private_key_uri;
-  std::string primary_public_key_id;
 
   // ECU serial => (ECU hardware ID, ECU public_key)
   std::map<std::string, std::pair<std::string, std::string> > secondary_info;
@@ -83,22 +75,19 @@ class Repository {
   bool getMeta();
 
   // implemented in uptane/initialize.cc
-  bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config,
-                    const TlsConfig &tls_config);
+  bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);
   void resetDeviceId();
   bool initEcuSerials(const UptaneConfig &uptane_config);
   void resetEcuSerials();
-  bool initPrimaryEcuKeys(const UptaneConfig &uptane_config);
+  bool initPrimaryEcuKeys();
   bool initSecondaryEcuKeys();
 
   void resetEcuKeys();
-  InitRetCode initTlsCreds(const ProvisionConfig &provision_config, const TlsConfig &tls_config);
+  InitRetCode initTlsCreds(const ProvisionConfig &provision_config);
   void resetTlsCreds();
-  InitRetCode initEcuRegister(const UptaneConfig &uptane_config);
-  bool loadSetTlsCreds(const TlsConfig &tls_config);
+  InitRetCode initEcuRegister();
+  bool loadSetTlsCreds();
   void setEcuSerialMembers(const std::pair<std::string, std::string> &ecu_serials);
-  void setEcuKeysMembers(const std::string &primary_public, const std::string &primary_private,
-                         const std::string &primary_public_id, CryptoSource source);
 };
 }
 
