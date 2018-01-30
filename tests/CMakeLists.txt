@@ -37,7 +37,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage-push garage-deploy-deb)
+    add_dependencies(build_tests garage-push)
 endif(BUILD_SOTA_TOOLS)
 
 if (BUILD_OSTREE)
