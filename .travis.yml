@@ -35,8 +35,7 @@ deploy:
                   repo: advancedtelematic/aktualizr
                   condition: $DOCKERFILE = Dockerfile.deb-stable
 
-          api_key:
-                  secure: ${GITHUB_API_KEY}
+          api_key: ${GITHUB_API_KEY}
 
         - provider: releases
           file: /persistent/aktualizr.deb
@@ -46,5 +45,4 @@ deploy:
                   all_branches: true
                   repo: advancedtelematic/aktualizr
                   condition: $DOCKERFILE = Dockerfile.16.04
-          api_key:
-                  secure: ${GITHUB_API_KEY}
+          api_key: ${GITHUB_API_KEY}
