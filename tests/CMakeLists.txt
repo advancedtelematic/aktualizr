@@ -29,10 +29,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     list(APPEND TEST_LIBS gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-if(BUILD_GENIVI)
-    list(APPEND TEST_LIBS rvi)
-endif(BUILD_GENIVI)
-
 add_dependencies(build_tests aktualizr)
 
 
@@ -188,28 +184,6 @@ if(BUILD_OSTREE)
 endif(BUILD_OSTREE)
 
 
-if(BUILD_GENIVI)
-    aktualizr_source_file_checks(dbusgateway_test.cc swm_test.cc)
-
-    add_aktualizr_test(NAME rvi_client SOURCES rvisotaclient_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_executable(aktualizr_test_dbusgateway dbusgateway_test.cc)
-    target_link_libraries(aktualizr_test_dbusgateway aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_dbusgateway
-             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf --
-             ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_dbusgateway ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
-             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-    add_executable(aktualizr_test_swm swm_test.cc)
-    target_link_libraries(aktualizr_test_swm aktualizr_static_lib ${TEST_LIBS} ${LIBDBUS_LIBRARIES})
-    add_test(NAME test_swm
-             COMMAND dbus-run-session --config-file ${PROJECT_SOURCE_DIR}/tests/session.conf --
-             ${CMAKE_CURRENT_BINARY_DIR}/aktualizr_test_swm ${PROJECT_SOURCE_DIR}/tests/fake_dbus_tools/
-             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-    add_dependencies(build_tests aktualizr_test_dbusgateway aktualizr_test_swm)
-endif(BUILD_GENIVI)
-
-
 ###############################################################################
 # The test feature of cmake checks the return value when the program
 # exits. If the return value is zero, the testcase passes.
@@ -275,11 +249,11 @@ set_tests_properties(test-secondary-config-with-nonexistent-file
 # Try building with various cmake options
 add_test(NAME test_build_all_off
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_GENIVI=OFF -DBUILD_OSTREE=OFF")
+        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF")
 
 add_test(NAME test_build_all_on
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON")
+        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON")
 
 add_test(NAME test_build_debug
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh

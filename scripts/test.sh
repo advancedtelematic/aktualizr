@@ -3,7 +3,7 @@ set -e
 
 mkdir -p build-test
 cd build-test
-cmake -DBUILD_GENIVI=ON -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON ../src
+cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON ../src
 
 make check-format
 

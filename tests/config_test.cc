@@ -21,61 +21,15 @@ TEST(config, config_initialized_values) {
   EXPECT_EQ(conf.uptane.polling, true);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 
-  EXPECT_EQ(conf.rvi.uuid, "123e4567-e89b-12d3-a456-426655440000");
-  EXPECT_EQ(conf.rvi.packages_dir, "/tmp/");
-
   EXPECT_EQ(conf.gateway.http, true);
-  EXPECT_EQ(conf.gateway.rvi, false);
 }
 
 TEST(config, config_toml_parsing) {
   Config conf("tests/config_tests.toml");
 
-  EXPECT_EQ(conf.rvi.uuid, "bc50fa11-eb93-41c0-b0fa-5ce56affa63e");
-  EXPECT_EQ(conf.rvi.packages_dir, "/tmp/packages_dir");
-
-  EXPECT_EQ(conf.gateway.dbus, true);
   EXPECT_EQ(conf.gateway.http, false);
-  EXPECT_EQ(conf.gateway.rvi, true);
   EXPECT_EQ(conf.gateway.socket, true);
-
-  EXPECT_EQ(conf.rvi.node_host, "rvi.example.com");
-
-  EXPECT_EQ(conf.rvi.node_port, "9999");
 }
-
-#ifdef WITH_GENIVI
-
-TEST(config, config_toml_dbus_session) {
-  Config conf;
-  conf.dbus.bus = DBUS_BUS_SYSTEM;
-  conf.updateFromTomlString("[dbus]\nbus = \"session\"");
-
-  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SESSION);
-}
-
-TEST(config, config_toml_dbus_system) {
-  Config conf;
-  conf.dbus.bus = DBUS_BUS_SESSION;
-  conf.updateFromTomlString("[dbus]\nbus = \"system\"");
-
-  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SYSTEM);
-}
-
-TEST(config, config_toml_dbus_invalid) {
-  Config conf;
-  conf.dbus.bus = DBUS_BUS_SYSTEM;
-  conf.updateFromTomlString("[dbus]\nbus = \"foo\"");
-
-  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SYSTEM);
-
-  conf.dbus.bus = DBUS_BUS_SESSION;
-  conf.updateFromTomlString("[dbus]\nbus = 123");
-
-  EXPECT_EQ(conf.dbus.bus, DBUS_BUS_SESSION);
-}
-
-#endif
 
 TEST(config, config_toml_parsing_empty_file) {
   Config conf;
@@ -84,22 +38,17 @@ TEST(config, config_toml_parsing_empty_file) {
   EXPECT_EQ(conf.uptane.polling, true);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 
-  EXPECT_EQ(conf.rvi.uuid, "123e4567-e89b-12d3-a456-426655440000");
-  EXPECT_EQ(conf.rvi.packages_dir, "/tmp/");
-
   EXPECT_EQ(conf.gateway.http, true);
-  EXPECT_EQ(conf.gateway.rvi, false);
 }
 
 TEST(config, config_cmdl_parsing) {
-  int argc = 7;
-  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-rvi", "on", "--gateway-socket", "on"};
+  int argc = 5;
+  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-socket", "on"};
 
   bpo::options_description description("CommandLine Options");
   // clang-format off
   description.add_options()
     ("gateway-http", bpo::value<bool>(), "on/off the http gateway")
-    ("gateway-rvi", bpo::value<bool>(), "on/off the rvi gateway")
     ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway");
   // clang-format on
 
@@ -108,7 +57,6 @@ TEST(config, config_cmdl_parsing) {
   Config conf("tests/config_tests.toml", vm);
 
   EXPECT_FALSE(conf.gateway.http);
-  EXPECT_TRUE(conf.gateway.rvi);
   EXPECT_TRUE(conf.gateway.socket);
 }
 

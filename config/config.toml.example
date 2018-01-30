@@ -15,24 +15,12 @@ system_info = "system_info.sh"
 [gateway]
 dbus = false
 http = true
-rvi = false
 socket = false
 
 [network]
 socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, UpdateAvailable"
-
-[rvi]
-node_host = "localhost"
-node_port = 8810
-device_key =  "./config/ex/keys/insecure_device_key.pem"
-device_cert = "./config/ex/certificates/insecure_device_cert.crt"
-ca_cert = "./config/ex/certificates/insecure_root_cert.crt"
-cert_dir =  "./config/ex/certificates"
-cred_dir = "./config/ex/credentials/"
-packages_dir = "/tmp/"
-uuid = "123e4567-e89b-12d3-a456-426655440000"
 
 [provision]
 provision_path = "tests/test_data/credentials.zip"

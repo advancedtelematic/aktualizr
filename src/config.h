@@ -13,10 +13,6 @@
 #include <boost/uuid/uuid_generators.hpp>  // generators
 #include <boost/uuid/uuid_io.hpp>
 
-#ifdef WITH_GENIVI
-#include <dbus/dbus.h>
-#endif
-
 #include "logging.h"
 #include "uptane/secondaryconfig.h"
 
@@ -29,35 +25,10 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
 // updateFromPropertyTree() in config.cc.
 
-#ifdef WITH_GENIVI
-// DbusConfig depends on DBusBusType with is defined in libdbus
-// We don't want to take that dependency unless it is required
-struct DbusConfig {
-  DbusConfig()
-      : software_manager("org.genivi.SoftwareLoadingManager"),
-        software_manager_path("/org/genivi/SoftwareLoadingManager"),
-        path("/org/genivi/SotaClient"),
-        interface("org.genivi.SotaClient"),
-        timeout(0),
-        bus(DBUS_BUS_SESSION) {}
-
-  std::string software_manager;
-  std::string software_manager_path;
-  std::string path;
-  std::string interface;
-  unsigned int timeout;
-  DBusBusType bus;
-};
-#else
-struct DbusConfig {};
-#endif
-
 struct GatewayConfig {
-  GatewayConfig() : http(true), rvi(false), socket(false), dbus(false) {}
+  GatewayConfig() : http(true), socket(false) {}
   bool http;
-  bool rvi;
   bool socket;
-  bool dbus;
 };
 
 struct NetworkConfig {
@@ -205,7 +176,6 @@ class Config {
   void writeToFile(const boost::filesystem::path& filename);
 
   // config data structures
-  DbusConfig dbus;
   GatewayConfig gateway;
   NetworkConfig network;
   RviConfig rvi;

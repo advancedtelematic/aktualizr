@@ -1,20 +1,10 @@
 [gateway]
-dbus = true
 http = false
-rvi = true
 socket = true
 
 [network]
 http_server = "127.0.0.1:8888"
-rvi_edge_server = "127.0.0.1:9080"
 socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
 websocket_server = "127.0.0.1:3012"
-
-[rvi]
-uuid = "bc50fa11-eb93-41c0-b0fa-5ce56affa63e"
-packages_dir = "/tmp/packages_dir"
-node_host = "rvi.example.com"
-node_port = 9999
-client_config = "my/rvi_conf.json"

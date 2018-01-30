@@ -13,10 +13,6 @@
 #include "fsstorage.h"
 #include "httpclient.h"
 
-#ifdef WITH_GENIVI
-#include "sotarviclient.h"
-#endif
-
 #ifdef BUILD_OSTREE
 #include "ostree.h"
 #include "sotauptaneclient.h"
@@ -46,31 +42,18 @@ int Aktualizr::run() {
   // run events interpreter in background
   events_interpreter.interpret();
 
-  if (config_.gateway.rvi) {
-#ifdef WITH_GENIVI
-    try {
-      SotaRVIClient(config_, &events_channel).runForever(&commands_channel);
-    } catch (std::runtime_error e) {
-      LOG_ERROR << "Missing RVI configurations: " << e.what();
-      return EXIT_FAILURE;
-    }
-#else
-    LOG_ERROR << "RVI support is not enabled";
-    return EXIT_FAILURE;
-#endif
-  } else {
 #ifdef BUILD_OSTREE
-    // TODO: compile unconditionally
-    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
-    storage->importData(config_.import);
-    HttpClient http;
-    Uptane::Repository repo(config_, storage, http);
-    SotaUptaneClient uptane_client(config_, &events_channel, repo, storage, http);
-    uptane_client.runForever(&commands_channel);
+  // TODO: compile unconditionally
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+  storage->importData(config_.import);
+  HttpClient http;
+  Uptane::Repository repo(config_, storage, http);
+  SotaUptaneClient uptane_client(config_, &events_channel, repo, storage, http);
+  uptane_client.runForever(&commands_channel);
 #else
-    LOG_ERROR << "OSTree support is disabled, but currently required for UPTANE";
-    return EXIT_FAILURE;
+  LOG_ERROR << "OSTree support is disabled, but currently required for UPTANE";
+  return EXIT_FAILURE;
 #endif
-  }
+
   return EXIT_SUCCESS;
 }
