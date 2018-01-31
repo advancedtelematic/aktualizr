@@ -77,7 +77,6 @@ TEST(storage, load_store_tls) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
-#ifdef BUILD_OSTREE
 TEST(storage, load_store_metadata) {
   boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
@@ -146,7 +145,6 @@ TEST(storage, load_store_metadata) {
 
   boost::filesystem::remove_all(storage_test_dir);
 }
-#endif  // BUILD_OSTREE
 
 TEST(storage, load_store_deviceid) {
   boost::filesystem::create_directories(storage_test_dir);

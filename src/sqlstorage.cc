@@ -355,7 +355,6 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
   return true;
 }
 
-#ifdef BUILD_OSTREE
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
@@ -422,8 +421,6 @@ void SQLStorage::clearMetadata() {
     return;
   }
 }
-
-#endif  // BUILD_OSTREE
 
 void SQLStorage::storeDeviceId(const std::string& device_id) {
   SQLite3Guard db(config_.sqldb_path.c_str());

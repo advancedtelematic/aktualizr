@@ -241,7 +241,6 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   installed_software.firmwares = firmwares;
   return installed_software;
 }
-#ifdef BUILD_OSTREE
 PackageManagerCredentials::PackageManagerCredentials(const CryptoKey& cryptokey)
     : tmp_ca_file("ostree-ca"), tmp_pkey_file("ostree-pkey"), tmp_cert_file("ostree-cert") {
   ca_file = cryptokey.getCa();
@@ -252,6 +251,5 @@ PackageManagerCredentials::PackageManagerCredentials(const CryptoKey& cryptokey)
   tmp_pkey_file.PutContents(cryptokey.getPkey());
   tmp_cert_file.PutContents(cryptokey.getCert());
 }
-#endif
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

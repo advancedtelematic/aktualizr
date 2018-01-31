@@ -13,7 +13,6 @@
 #include "fsstorage.h"
 #include "httpfake.h"
 #include "logging.h"
-#include "ostree.h"
 #include "sotauptaneclient.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"

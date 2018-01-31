@@ -50,11 +50,9 @@ class SQLStorage : public INvStorage {
   virtual bool loadTlsCa(std::string* ca);
   virtual bool loadTlsCert(std::string* cert);
   virtual bool loadTlsPkey(std::string* cert);
-#ifdef BUILD_OSTREE
   virtual void storeMetadata(const Uptane::MetaPack& metadata);
   virtual bool loadMetadata(Uptane::MetaPack* metadata);
   virtual void clearMetadata();
-#endif  // BUILD_OSTREE
   virtual void storeDeviceId(const std::string& device_id);
   virtual bool loadDeviceId(std::string* device_id);
   virtual void clearDeviceId();

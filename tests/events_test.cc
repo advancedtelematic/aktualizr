@@ -74,7 +74,6 @@ TEST(event, UptaneTimestampUpdated_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
 }
 
-#ifdef BUILD_OSTREE
 TEST(event, UptaneTargetsUpdated_event_to_json) {
   Json::Value target_json;
   target_json["ecu_serial"] = "test1";
@@ -92,7 +91,6 @@ TEST(event, UptaneTargetsUpdated_event_to_json) {
 
   EXPECT_EQ(json["variant"].asString(), "UptaneTargetsUpdated");
 }
-#endif
 
 TEST(event, Error_event_from_json) {
   std::string json = "{\"fields\":[\"Error123\"],\"variant\":\"Error\"}";

@@ -17,9 +17,20 @@ set(SOURCES aktualizr.cc
             httpclient.cc
             logging.cc
             socketgateway.cc
+            sotauptaneclient.cc
             timer.cc
             types.cc
-            utils.cc)
+            utils.cc
+            uptane/initialize.cc
+            uptane/legacysecondary.cc
+            uptane/managedsecondary.cc
+            uptane/role.cc
+            uptane/root.cc
+            uptane/tuf.cc
+            uptane/tufrepository.cc
+            uptane/uptanerepository.cc
+            uptane/virtualsecondary.cc
+            uptane/cryptokey.cc)
 
 # set headers used for clang format
 set(HEADERS
@@ -61,18 +72,7 @@ set(HEADERS
             uptane/virtualsecondary.h)
 
 if(BUILD_OSTREE)
-    list(APPEND SOURCES ostree.cc
-                        sotauptaneclient.cc
-                        uptane/initialize.cc
-                        uptane/legacysecondary.cc
-                        uptane/managedsecondary.cc
-                        uptane/role.cc
-                        uptane/root.cc
-                        uptane/tuf.cc
-                        uptane/tufrepository.cc
-                        uptane/uptanerepository.cc
-                        uptane/virtualsecondary.cc
-                        uptane/cryptokey.cc)
+    list(APPEND SOURCES ostree.cc)
 endif(BUILD_OSTREE)
 
 if(BUILD_P11)

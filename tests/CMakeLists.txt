@@ -36,9 +36,7 @@ if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
 endif(BUILD_SOTA_TOOLS)
 
-if (BUILD_OSTREE)
-    add_dependencies(build_tests aktualizr-info)
-endif (BUILD_OSTREE)
+add_dependencies(build_tests aktualizr-info)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
                   -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
@@ -106,14 +104,6 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-if(BUILD_OSTREE)
-    add_custom_target(make_ostree_sysroot
-                      COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
-                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
-    add_dependencies(build_tests make_ostree_sysroot)
-endif(BUILD_OSTREE)
-
-
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME events SOURCES events_test.cc)
@@ -143,33 +133,38 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_crypto SOURCES uptane_crypto_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
+                   PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc)
+
+add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
+target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
+set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
+
+add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
+         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
+add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
+         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
+add_dependencies(build_tests aktualizr_uptane_vector_tests)
+
 if(BUILD_OSTREE)
-    add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_crypto SOURCES uptane_crypto_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
-                       PROJECT_WORKING_DIRECTORY)
-
-    add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc)
-
-    add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
-    target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
-    set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
-
-    add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-             ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
-    add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-             ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
-    add_dependencies(build_tests aktualizr_uptane_vector_tests)
+    add_custom_target(make_ostree_sysroot
+                      COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
+                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+    add_dependencies(build_tests make_ostree_sysroot)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
@@ -259,9 +254,13 @@ add_test(NAME test_build_debug
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
         ${PROJECT_SOURCE_DIR} test_build_debug "-DCMAKE_BUILD_TYPE=Debug")
 
+add_test(NAME test_build_release_no_ostree
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_release_no_ostree "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=off")
+
 add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
+        ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=on")
 
 add_dependencies(qa check-full)
 
@@ -288,7 +287,7 @@ add_test(NAME validate-secondary-interface
     --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
-if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
+if((BUILD_SOTA_TOOLS))
     # sota-tools tests
     add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
                        CPP11 PROJECT_WORKING_DIRECTORY NO_VALGRIND)
@@ -378,35 +377,33 @@ if((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
     add_test(NAME garage-deploy-nonexistent-option
         COMMAND garage-deploy --test )
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
-endif((BUILD_SOTA_TOOLS) AND (BUILD_OSTREE))
+endif((BUILD_SOTA_TOOLS))
 
-if(BUILD_OSTREE)
-    # aktualizr-info tests
-    add_test(NAME aktualizr-info-noarguments
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set_tests_properties(aktualizr-info-noarguments PROPERTIES
-        PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
+# aktualizr-info tests
+add_test(NAME aktualizr-info-noarguments
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_tests_properties(aktualizr-info-noarguments PROPERTIES
+    PASS_REGULAR_EXPRESSION "Device ID: new-kartoffelpuffer-706\nPrimary ecu serial ID: cd51a49a-25d9-438e-93fa-c0dde6bfcec9")
 
-    add_test(NAME aktualizr-info-images-root
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    set_tests_properties(aktualizr-info-images-root PROPERTIES
-        PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
+add_test(NAME aktualizr-info-images-root
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+set_tests_properties(aktualizr-info-images-root PROPERTIES
+    PASS_REGULAR_EXPRESSION "image root.json content:\n\n\\{.*\\}")
 
-    add_test(NAME aktualizr-info-director-root
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    set_tests_properties(aktualizr-info-director-root PROPERTIES
-        PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
+add_test(NAME aktualizr-info-director-root
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-root WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+set_tests_properties(aktualizr-info-director-root PROPERTIES
+    PASS_REGULAR_EXPRESSION "director root.json content:\n\n\\{.*\\}")
 
-    add_test(NAME aktualizr-info-director-target
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    set_tests_properties(aktualizr-info-director-target PROPERTIES
-        PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
+add_test(NAME aktualizr-info-director-target
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --director-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+set_tests_properties(aktualizr-info-director-target PROPERTIES
+    PASS_REGULAR_EXPRESSION "director targets.json content:\n\n\\{.*\\}")
 
-    add_test(NAME aktualizr-info-images-target
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
-    set_tests_properties(aktualizr-info-images-target PROPERTIES
-        PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
-endif(BUILD_OSTREE)
+add_test(NAME aktualizr-info-images-target
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info --images-target WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+set_tests_properties(aktualizr-info-images-target PROPERTIES
+    PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
