@@ -43,21 +43,11 @@ TEST(PackageManagerFactory, Bad) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
-  if (argc != 3) {
-    std::cerr << "Error: " << argv[0]
-              << " requires the paths to an OSTree sysroot generator and output as input arguments.\n";
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
     return EXIT_FAILURE;
   }
-  boost::filesystem::path generator = argv[1];
-  sysroot = argv[2];
-  if (!boost::filesystem::exists(sysroot)) {
-    std::string output;
-    int result = Utils::shell(generator.string() + " " + sysroot.string(), &output);
-    if (result != 0) {
-      std::cerr << "Error: Unable to create OSTree sysroot: " << output;
-      return EXIT_FAILURE;
-    }
-  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

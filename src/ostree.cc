@@ -139,7 +139,7 @@ OstreeManager::OstreeManager(const PackageConfig &pconfig) {
   try {
     getCurrent();
   } catch (...) {
-    throw std::runtime_error("Could not find OSTree sysroot at:" + sysroot_dir.string());
+    throw std::runtime_error("Could not find OSTree sysroot at: " + sysroot_dir.string());
   }
 }
 
@@ -166,6 +166,9 @@ Json::Value OstreeManager::getInstalledPackages() {
 
 std::string OstreeManager::getCurrent() {
   boost::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
+  if (!staged_deployment) {
+    throw std::runtime_error("No deployments found in OSTree sysroot at: " + sysroot_dir.string());
+  }
   return ostree_deployment_get_csum(staged_deployment.get());
 }
 
@@ -178,19 +181,18 @@ boost::shared_ptr<PackageInterface> OstreeManager::makePackage(const std::string
 boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
   boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_dir);
   GPtrArray *deployments = NULL;
-  OstreeDeployment *res = NULL;
+  boost::shared_ptr<OstreeDeployment> res;
 
   deployments = ostree_sysroot_get_deployments(sysroot.get());
 
-  if (deployments->len == 0) {
-    res = NULL;
-  } else {
+  if (deployments->len > 0) {
     OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
-    res = static_cast<OstreeDeployment *>(g_object_ref(d));
+    OstreeDeployment *d2 = static_cast<OstreeDeployment *>(g_object_ref(d));
+    res = boost::shared_ptr<OstreeDeployment>(d2, g_object_unref);
   }
 
   g_ptr_array_unref(deployments);
-  return boost::shared_ptr<OstreeDeployment>(res, g_object_unref);
+  return res;
 }
 
 boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {

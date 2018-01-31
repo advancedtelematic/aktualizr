@@ -119,22 +119,12 @@ int main(int argc, char **argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
 
-  if (argc != 4) {
-    std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive, an OSTree sysroot generator, "
-                                         "and sysroot output as input arguments.\n";
+  if (argc != 3) {
+    std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive and an OSTree sysroot as input arguments.\n";
     exit(EXIT_FAILURE);
   }
   credentials = argv[1];
-  boost::filesystem::path generator = argv[2];
-  sysroot = argv[3];
-  if (!boost::filesystem::exists(sysroot)) {
-    std::string output;
-    int result = Utils::shell(generator.string() + " " + sysroot.string(), &output);
-    if (result != 0) {
-      std::cerr << "Error: Unable to create OSTree sysroot: " << output;
-      return EXIT_FAILURE;
-    }
-  }
+  sysroot = argv[2];
   return RUN_ALL_TESTS();
 }
 #endif
