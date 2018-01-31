@@ -104,14 +104,6 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-if(BUILD_OSTREE)
-    add_custom_target(make_ostree_sysroot
-                      COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
-                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
-    add_dependencies(build_tests make_ostree_sysroot)
-endif(BUILD_OSTREE)
-
-
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME events SOURCES events_test.cc)
@@ -169,6 +161,11 @@ add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/r
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
 if(BUILD_OSTREE)
+    add_custom_target(make_ostree_sysroot
+                      COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
+                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+    add_dependencies(build_tests make_ostree_sysroot)
+
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
