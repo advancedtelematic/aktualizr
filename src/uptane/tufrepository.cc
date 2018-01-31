@@ -23,11 +23,11 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
     return (size * nmemb) + 1;  // curl will abort if return unexpected size;
   }
 
-  write(ds->fp, contents, nmemb * size);
-  size_t data_size = size * nmemb;
-  ds->sha256_hasher.update((const unsigned char*)contents, data_size);
-  ds->sha512_hasher.update((const unsigned char*)contents, data_size);
-  return data_size;
+  // incomplete writes will stop the download (written_size != nmemb*size)
+  size_t written_size = write(ds->fp, contents, nmemb * size);
+  ds->sha256_hasher.update((const unsigned char*)contents, written_size);
+  ds->sha512_hasher.update((const unsigned char*)contents, written_size);
+  return written_size;
 }
 
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config,
