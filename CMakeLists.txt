@@ -143,14 +143,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/rvi_lib/include)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${LIBDBUS_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
 
-# Setup warnings. Do this after rvi_lib is added so that it isn't affected.
 if (CMAKE_COMPILER_IS_GNUCXX)
     # Still enforce C++98/03 for client-side code.
     set(CMAKE_CXX_STANDARD 98)

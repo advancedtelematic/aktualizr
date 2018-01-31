@@ -14,7 +14,6 @@ RUN apt-get update && apt-get -y install \
   bison \
   cmake \
   curl \
-  dbus \
   e2fslibs-dev \
   g++ \
   gcc \
@@ -29,11 +28,9 @@ RUN apt-get update && apt-get -y install \
   libboost-test-dev \
   libboost-thread-dev \
   libcurl4-openssl-dev \
-  libdbus-1-dev \
   libexpat1-dev \
   libglib2.0-dev \
   libgpgme11-dev \
-  libjansson-dev \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \

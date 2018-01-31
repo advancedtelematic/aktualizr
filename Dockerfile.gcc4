@@ -16,7 +16,6 @@ RUN apt-get update && apt-get -y install \
   clang-format-3.8 \
   cmake \
   curl \
-  dbus \
   e2fslibs-dev \
   g++-4.9 \
   gcc-4.9 \
@@ -32,13 +31,11 @@ RUN apt-get update && apt-get -y install \
   libboost-test-dev \
   libboost-thread-dev \
   libcurl4-openssl-dev \
-  libdbus-1-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
-  libjansson-dev \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \
@@ -52,7 +49,6 @@ RUN apt-get update && apt-get -y install \
   ostree \
   pkg-config \
   psmisc \
-  python3-dbus \
   python3-dev \
   python3-gi \
   python3-openssl \

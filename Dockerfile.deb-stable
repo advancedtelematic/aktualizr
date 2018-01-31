@@ -17,7 +17,6 @@ RUN apt-get update && apt-get -y install \
   clang-format-3.8 \
   cmake \
   curl \
-  dbus \
   dpkg-dev \
   e2fslibs-dev \
   g++ \
@@ -34,13 +33,11 @@ RUN apt-get update && apt-get -y install \
   libboost-test-dev \
   libboost-thread-dev \
   libcurl4-openssl-dev \
-  libdbus-1-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
-  libjansson-dev \
   libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \

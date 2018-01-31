@@ -63,8 +63,6 @@ The following debian packages are used in the project:
 * libboost-system-dev (>= 1.58.0)
 * libboost-thread-dev (>= 1.58.0)
 * libcurl4-openssl-dev (>= 7.47)
-* libdbus-1-dev (when building tests)
-* libjansson-dev
 * libostree-dev
 * libpthread-stubs0-dev (>=0.3)
 * libsodium-dev
