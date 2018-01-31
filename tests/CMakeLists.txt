@@ -254,9 +254,13 @@ add_test(NAME test_build_debug
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
         ${PROJECT_SOURCE_DIR} test_build_debug "-DCMAKE_BUILD_TYPE=Debug")
 
+add_test(NAME test_build_release_no_ostree
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
+        ${PROJECT_SOURCE_DIR} test_build_release_no_ostree "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=off")
+
 add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release")
+        ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=on")
 
 add_dependencies(qa check-full)
 
