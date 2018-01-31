@@ -24,4 +24,4 @@ polling = false
 polling_sec = 91
 
 [pacman]
-type = "ostreefake"
+type = "none"

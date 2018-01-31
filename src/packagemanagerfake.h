@@ -1,14 +1,17 @@
+#ifndef PACKAGEMANAGERFAKE_H_
+#define PACKAGEMANAGERFAKE_H_
+
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "ostreeinterface.h"
+#include "packagemanagerinterface.h"
 
-class OstreeFakePackage : public OstreePackageInterface {
+class PackageFake : public PackageInterface {
  public:
-  OstreeFakePackage(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in)
-      : OstreePackageInterface(ref_name_in, refhash_in, treehub_in) {}
+  PackageFake(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in)
+      : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
 
-  ~OstreeFakePackage() {}
+  ~PackageFake() {}
 
   data::InstallOutcome install(const data::PackageManagerCredentials &cred, const PackageConfig &pconfig) const {
     (void)cred;
@@ -38,15 +41,10 @@ class OstreeFakePackage : public OstreePackageInterface {
   }
 };
 
-class OstreeFakeManager : public OstreeManagerInterface {
+class PackageManagerFake : public PackageManagerInterface {
  public:
   Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
-    Json::Value package;
-    package["name"] = "vim";
-    package["version"] = "1.0";
-    packages.append(package);
-
     return packages;
   }
 
@@ -54,6 +52,8 @@ class OstreeFakeManager : public OstreeManagerInterface {
 
   boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in, const std::string &refhash_in,
                                                   const std::string &treehub_in) {
-    return boost::make_shared<OstreeFakePackage>(branch_name_in, refhash_in, treehub_in);
+    return boost::make_shared<PackageFake>(branch_name_in, refhash_in, treehub_in);
   }
 };
+
+#endif  // PACKAGEMANAGERFAKE_H_

@@ -6,6 +6,7 @@
 #include <config.h>
 #include <packagemanagerfactory.h>
 #include <packagemanagerinterface.h>
+#include <utils.h>
 
 boost::filesystem::path sysroot;
 
@@ -17,11 +18,18 @@ TEST(PackageManagerFactory, Ostree) {
   EXPECT_TRUE(pacman);
 }
 
+TEST(PackageManagerFactory, Debian) {
+  Config config;
+  config.pacman.type = kDebian;
+  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
+  EXPECT_FALSE(pacman);
+}
+
 TEST(PackageManagerFactory, None) {
   Config config;
   config.pacman.type = kNone;
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
-  EXPECT_FALSE(pacman);
+  EXPECT_TRUE(pacman);
 }
 
 TEST(PackageManagerFactory, Bad) {

@@ -55,7 +55,10 @@ bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
        it != meta.director_targets.targets.end(); ++it) {
     std::vector<Uptane::Target>::const_iterator image_target_it;
     image_target_it = std::find(meta.image_targets.targets.begin(), meta.image_targets.targets.end(), *it);
-    if (image_target_it == meta.image_targets.targets.end()) return false;
+    if (image_target_it == meta.image_targets.targets.end()) {
+      LOG_WARNING << "Target " << it->filename() << " in director repo not found in image repo.";
+      return false;
+    }
   }
   return true;
 }
@@ -84,7 +87,7 @@ bool Repository::getMeta() {
       image.setMeta(&meta.image_root, &meta.image_targets, &meta.image_timestamp, &meta.image_snapshot);
       director.setMeta(&meta.director_root, &meta.director_targets);
     } else {
-      LOG_INFO << "Metadata consistency check failed";
+      LOG_WARNING << "Metadata image/directory repo consistency check failed.";
       return false;
     }
   }
@@ -92,7 +95,9 @@ bool Repository::getMeta() {
 }
 
 std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
-  if (!getMeta()) return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
+  if (!getMeta()) {
+    return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
+  }
 
   std::vector<Uptane::Target> director_targets = director.getTargets();
   int version = director.targetsVersion();

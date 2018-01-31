@@ -8,11 +8,11 @@
 #include <boost/shared_ptr.hpp>
 
 #include "config.h"
-#include "ostreeinterface.h"
+#include "packagemanagerinterface.h"
 #include "types.h"
 #include "uptane/cryptokey.h"
 
-class OstreePackage : public OstreePackageInterface {
+class OstreePackage : public PackageInterface {
  public:
   OstreePackage(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in);
   virtual ~OstreePackage() {}
@@ -20,7 +20,7 @@ class OstreePackage : public OstreePackageInterface {
   virtual Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const;
 };
 
-class OstreeManager : public OstreeManagerInterface {
+class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(const PackageConfig &pconfig);
   virtual Json::Value getInstalledPackages();

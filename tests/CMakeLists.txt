@@ -37,7 +37,7 @@ add_dependencies(build_tests aktualizr)
 
 
 if(BUILD_SOTA_TOOLS)
-    add_dependencies(build_tests garage-push garage-deploy-deb)
+    add_dependencies(build_tests garage-push)
 endif(BUILD_SOTA_TOOLS)
 
 if (BUILD_OSTREE)
@@ -110,6 +110,13 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
+if(BUILD_OSTREE)
+    add_custom_target(make_ostree_sysroot
+                      COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
+                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+    add_dependencies(build_tests make_ostree_sysroot)
+endif(BUILD_OSTREE)
+
 
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
@@ -141,20 +148,6 @@ add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 if(BUILD_OSTREE)
-    include(ExternalProject)
-    ExternalProject_Add(ostreesysroot
-                        GIT_REPOSITORY https://github.com/advancedtelematic/ostreesysroot
-                        CONFIGURE_COMMAND <SOURCE_DIR>/makephysical.sh <BINARY_DIR>/ostree_repo
-                        BUILD_COMMAND "" INSTALL_COMMAND "")
-    ExternalProject_Get_Property(ostreesysroot BINARY_DIR)
-    add_dependencies(build_tests ostreesysroot)
-
-    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY
-                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
-
-    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc
-                       NO_VALGRIND ARGS ${BINARY_DIR}/ostree_repo)
-
     add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
     add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
@@ -182,9 +175,15 @@ if(BUILD_OSTREE)
              ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
     add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
+    add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+
+    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+
     if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc
-                           PROJECT_WORKING_DIRECTORY ARGS ${SOTA_PACKED_CREDENTIALS})
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                           ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
     endif(SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE)
 

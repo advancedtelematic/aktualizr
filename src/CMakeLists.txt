@@ -40,9 +40,8 @@ set(HEADERS
             logging.h
             openssl_compat.h
             ostree.h
-            ostreefake.h
-            ostreeinterface.h
             packagemanagerfactory.h
+            packagemanagerfake.h
             packagemanagerinterface.h
             socketgateway.h
             sotauptaneclient.h

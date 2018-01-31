@@ -53,9 +53,6 @@ std::ostream& operator<<(std::ostream& os, PackageManager pm) {
     case kOstree:
       pm_str = "ostree";
       break;
-    case kOstreeFake:
-      pm_str = "ostreefake";
-      break;
     case kDebian:
       pm_str = "debian";
       break;
@@ -307,8 +304,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(package_manager, "pacman.type", boost::log::trivial::warning, pt);
   if (package_manager == "ostree") {
     pacman.type = kOstree;
-  } else if (package_manager == "ostreefake") {
-    pacman.type = kOstreeFake;
   } else if (package_manager == "debian") {
     pacman.type = kDebian;
   } else {

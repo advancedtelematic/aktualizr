@@ -12,12 +12,15 @@
 #include "httpclient.h"
 #include "logging.h"
 #include "ostree.h"
+#include "packagemanagerfactory.h"
+#include "packagemanagerinterface.h"
 #include "sotauptaneclient.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
-boost::filesystem::path credentials = "";
+boost::filesystem::path credentials;
+boost::filesystem::path sysroot;
 
 TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
@@ -26,16 +29,18 @@ TEST(UptaneCI, OneCycleUpdate) {
   pt.put("provision.provision_path", credentials);
   pt.put("storage.path", temp_dir.Path());
   pt.put("uptane.metadata_path", temp_dir.Path());
-  pt.put("pacman.type", "ostreefake");
+  pt.put("pacman.type", "ostree");
+  pt.put("pacman.sysroot", sysroot);
   Config config(pt);
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
+  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
 
   EXPECT_TRUE(repo.initialize());
 
   Json::Value result = Json::arrayValue;
-  std::string hash = OstreePackage::getCurrent(config.pacman.sysroot);
+  std::string hash = pacman->getCurrent();
   std::string refname(std::string("unknown-") + hash);
   Json::Value unsigned_ecu_version =
       OstreePackage(refname, hash, "").toEcuVersion(repo.getPrimaryEcuSerial(), Json::nullValue);
@@ -53,7 +58,8 @@ TEST(UptaneCI, CheckKeys) {
   boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
   pt.put("provision.provision_path", credentials);
   pt.put("storage.path", temp_dir.Path());
-  pt.put("pacman.type", "ostreefake");
+  pt.put("pacman.type", "ostree");
+  pt.put("pacman.sysroot", sysroot);
   Config config(pt);
   boost::filesystem::remove_all(config.storage.path);
 
@@ -113,11 +119,12 @@ int main(int argc, char **argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive as an input argument.\n";
+  if (argc != 3) {
+    std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive and an OSTree sysroot as input arguments.\n";
     exit(EXIT_FAILURE);
   }
   credentials = argv[1];
+  sysroot = argv[2];
   return RUN_ALL_TESTS();
 }
 #endif
