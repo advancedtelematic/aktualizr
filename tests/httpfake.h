@@ -1,9 +1,12 @@
 #ifndef HTTPFAKE_H_
 #define HTTPFAKE_H_
 
+#include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
+#include "crypto.h"
 #include "httpinterface.h"
 #include "utils.h"
 
@@ -97,11 +100,12 @@ class HttpFake : public HttpInterface {
       EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url == "tst149/director/manifest") {
+      std::string hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
-                "unknown-hash");
+                "unknown-" + hash);
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"]
                     .asString(),
-                "hash");
+                hash);
     }
 
     std::ofstream director_file((test_dir / test_manifest).c_str());

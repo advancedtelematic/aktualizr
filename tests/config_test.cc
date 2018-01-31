@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
