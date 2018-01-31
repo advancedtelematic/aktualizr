@@ -102,12 +102,10 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
   std::map<std::string, std::string> installed_versions;
   if (fs_storage->loadInstalledVersions(&installed_versions)) sql_storage->storeInstalledVersions(installed_versions);
 
-#ifdef BUILD_OSTREE
   Uptane::MetaPack metadata;
   if (fs_storage->loadMetadata(&metadata)) {
     sql_storage->storeMetadata(metadata);
   }
-#endif
 
   // if everything is ok, remove old files.
   fs_storage->clearPrimaryKeys();
@@ -116,8 +114,6 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
   fs_storage->clearEcuSerials();
   fs_storage->clearEcuRegistered();
   fs_storage->clearInstalledVersions();
-#ifdef BUILD_OSTREE
   fs_storage->clearMetadata();
-#endif
   fs_storage->cleanUp();
 }

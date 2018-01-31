@@ -134,7 +134,6 @@ struct InstalledSoftware {
   static InstalledSoftware fromJson(const std::string& json_str);
 };
 
-#ifdef BUILD_OSTREE
 struct PackageManagerCredentials {
   PackageManagerCredentials(const CryptoKey& cryptokey);
   std::string access_token;
@@ -147,7 +146,6 @@ struct PackageManagerCredentials {
   TemporaryFile tmp_pkey_file;
   TemporaryFile tmp_cert_file;
 };
-#endif
 }
 
 #endif

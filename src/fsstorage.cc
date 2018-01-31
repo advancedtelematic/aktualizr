@@ -135,7 +135,6 @@ bool FSStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, conf
 
 bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
 
-#ifdef BUILD_OSTREE
 void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
@@ -204,8 +203,6 @@ void FSStorage::clearMetadata() {
   boost::filesystem::remove(image_path / "timestamp.json");
   boost::filesystem::remove(image_path / "snapshot.json");
 }
-
-#endif  // BUILD_OSTREE
 
 void FSStorage::storeDeviceId(const std::string& device_id) {
   Utils::writeFile(Utils::absolutePath(config_.path, "device_id"), device_id);

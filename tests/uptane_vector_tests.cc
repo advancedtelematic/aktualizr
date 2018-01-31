@@ -12,7 +12,6 @@
 #include "fsstorage.h"
 #include "httpclient.h"
 #include "logging.h"
-#include "ostree.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 

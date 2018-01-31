@@ -12,11 +12,7 @@
 #include "eventsinterpreter.h"
 #include "fsstorage.h"
 #include "httpclient.h"
-
-#ifdef BUILD_OSTREE
-#include "ostree.h"
 #include "sotauptaneclient.h"
-#endif
 
 Aktualizr::Aktualizr(const Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
@@ -42,18 +38,12 @@ int Aktualizr::run() {
   // run events interpreter in background
   events_interpreter.interpret();
 
-#ifdef BUILD_OSTREE
-  // TODO: compile unconditionally
   boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
   HttpClient http;
   Uptane::Repository repo(config_, storage, http);
   SotaUptaneClient uptane_client(config_, &events_channel, repo, storage, http);
   uptane_client.runForever(&commands_channel);
-#else
-  LOG_ERROR << "OSTree support is disabled, but currently required for UPTANE";
-  return EXIT_FAILURE;
-#endif
 
   return EXIT_SUCCESS;
 }
