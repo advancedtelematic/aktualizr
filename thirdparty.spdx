@@ -2,23 +2,9 @@ DocumentNamespace: https://github.com/advancedtelematic/aktualizr/
 DocumentName: SPDX-third_party
 SPDXID: SPDXRef-DOCUMENT
 Creator: Person: Serhiy Stetskovych (patriotyk@gmail.com)
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-dbus
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-picojson
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-rvi_lib
-
-PackageName: dbus
-SPDXID: SPDXRef-dbus
-PackageVersion: 1.9.0
-PackageDownloadLocation: https://dbus.freedesktop.org/releases/dbus/dbus-1.9.0.tar.gz
-PackageHomePage: https://www.freedesktop.org/wiki/Software/dbus/
-PackageLicenseConcluded: (AFL-2.1 AND GPL-2.0)
-PackageLicenseDeclared: (AFL-2.1 AND GPL-2.0)
-PackageLicenseInfoFromFiles: AFL-2.1
-PackageCopyrightText: <text> Copyright (C) 2003  CodeFactory AB
-Copyright (C) 2004,2005  Red Hat, Inc.</text>
-FilesAnalyzed: false
 
 PackageName: googletest
 SPDXID: SPDXRef-googletest
@@ -53,17 +39,6 @@ PackageLicenseDeclared: LicenseRef-picojson
 PackageLicenseInfoFromFiles: LicenseRef-picojson
 PackageCopyrightText: <text>Copyright 2009-2010 Cybozu Labs, Inc.
 Copyright 2011-2014 Kazuho Oku</text>
-FilesAnalyzed: false
-
-PackageName: rvi_lib
-SPDXID: SPDXRef-rvi_lib
-PackageVersion: 1.0.1
-PackageDownloadLocation: https://github.com/GENIVI/rvi_lib/archive/v1.0.1.zip
-PackageHomePage: https://github.com/GENIVI/rvi_lib
-PackageLicenseConcluded: MPL-2.0
-PackageLicenseDeclared: MPL-2.0
-PackageLicenseInfoFromFiles: MPL-2.0
-PackageCopyrightText: <text>Copyright (c) 2016, Jaguar Land Rover.</text>
 FilesAnalyzed: false
 
 

@@ -1,12 +1,9 @@
 [gateway]
-dbus = true
 http = false
-rvi = true
 socket = true
 
 [network]
 http_server = "127.0.0.1:8888"
-rvi_edge_server = "127.0.0.1:9080"
 websocket_server = "127.0.0.1:3012"
 socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"

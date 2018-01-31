@@ -196,33 +196,10 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-// Keep this order the same as in config.h and writeToFile().
-
-#ifdef WITH_GENIVI
-  CopyFromConfig(dbus.software_manager, "dbus.software_manager", boost::log::trivial::trace, pt);
-  CopyFromConfig(dbus.software_manager_path, "dbus.software_manager_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(dbus.path, "dbus.path", boost::log::trivial::trace, pt);
-  CopyFromConfig(dbus.interface, "dbus.interface", boost::log::trivial::trace, pt);
-  CopyFromConfig(dbus.timeout, "dbus.timeout", boost::log::trivial::trace, pt);
-  boost::optional<std::string> dbus_type = pt.get_optional<std::string>("dbus.bus");
-  if (dbus_type.is_initialized()) {
-    std::string bus = stripQuotes(dbus_type.get());
-    if (bus == "system") {
-      dbus.bus = DBUS_BUS_SYSTEM;
-    } else if (bus == "session") {
-      dbus.bus = DBUS_BUS_SESSION;
-    } else {
-      LOG_ERROR << "Unrecognised value for dbus.bus:" << bus;
-    }
-  } else {
-    LOG_TRACE << "dbus.bus not in config file. Using default";
-  }
-#endif
+  // Keep this order the same as in config.h and writeToFile().
 
   CopyFromConfig(gateway.http, "gateway.http", boost::log::trivial::info, pt);
-  CopyFromConfig(gateway.rvi, "gateway.rvi", boost::log::trivial::info, pt);
   CopyFromConfig(gateway.socket, "gateway.socket", boost::log::trivial::info, pt);
-  CopyFromConfig(gateway.dbus, "gateway.dbus", boost::log::trivial::info, pt);
 
   CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
   CopyFromConfig(network.socket_events_path, "network.socket_events_path", boost::log::trivial::trace, pt);
@@ -235,16 +212,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   } else {
     LOG_TRACE << "network.socket_events not in config file. Using default";
   }
-
-  CopyFromConfig(rvi.node_host, "rvi.node_host", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.node_port, "rvi.node_port", boost::log::trivial::trace, pt);
-  CopyFromConfig(rvi.device_key, "rvi.device_key", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.device_cert, "rvi.device_cert", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.ca_cert, "rvi.ca_cert", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.cert_dir, "rvi.cert_dir", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.cred_dir, "rvi.cred_dir", boost::log::trivial::warning, pt);
-  CopyFromConfig(rvi.packages_dir, "rvi.packages_dir", boost::log::trivial::trace, pt);
-  CopyFromConfig(rvi.uuid, "rvi.uuid", boost::log::trivial::warning, pt);
 
   CopyFromConfig(p11.module, "p11.module", boost::log::trivial::trace, pt);
   CopyFromConfig(p11.pass, "p11.pass", boost::log::trivial::trace, pt);
@@ -344,12 +311,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("gateway-http") != 0) {
     gateway.http = cmd["gateway-http"].as<bool>();
-  }
-  if (cmd.count("gateway-rvi") != 0) {
-    gateway.rvi = cmd["gateway-rvi"].as<bool>();
-  }
-  if (cmd.count("gateway-dbus") != 0) {
-    gateway.dbus = cmd["gateway-dbus"].as<bool>();
   }
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
@@ -499,26 +460,9 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
-#ifdef WITH_GENIVI
-  sink << "[dbus]\n";
-  writeOption(sink, dbus.software_manager, "software_manager");
-  writeOption(sink, dbus.software_manager_path, "software_manager_path");
-  writeOption(sink, dbus.path, "path");
-  writeOption(sink, dbus.interface, "interface");
-  writeOption(sink, dbus.timeout, "timeout");
-  if (dbus.bus == DBUS_BUS_SYSTEM) {
-    writeOption(sink, std::string("system"), "bus");
-  } else if (dbus.bus == DBUS_BUS_SESSION) {
-    writeOption(sink, std::string("session"), "bus");
-  }
-  sink << "\n";
-#endif
-
   sink << "[gateway]\n";
   writeOption(sink, gateway.http, "http");
-  writeOption(sink, gateway.rvi, "rvi");
   writeOption(sink, gateway.socket, "socket");
-  writeOption(sink, gateway.dbus, "dbus");
   sink << "\n";
 
   sink << "[network]\n";

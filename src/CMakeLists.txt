@@ -60,14 +60,6 @@ set(HEADERS
             uptane/uptanerepository.h
             uptane/virtualsecondary.h)
 
-if(BUILD_GENIVI)
-    list(APPEND SOURCES dbusgateway/dbusgateway.cc
-                        dbusgateway/swlm.cc
-                        sotarviclient.cc)
-    list(APPEND HEADERS dbusgateway/dbusgateway.h
-                        dbusgateway/swlm.h)
-endif(BUILD_GENIVI)
-
 if(BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc
                         sotauptaneclient.cc
@@ -112,10 +104,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
-if(BUILD_GENIVI)
-    target_link_libraries(aktualizr rvi)
-endif(BUILD_GENIVI)
-
 ################ QA RULES
 aktualizr_source_file_checks(main.cc ${SOURCES} ${HEADERS})
 
@@ -123,9 +111,6 @@ aktualizr_source_file_checks(main.cc ${SOURCES} ${HEADERS})
 install(FILES ${PROJECT_SOURCE_DIR}/config/systemd/aktualizr-ubuntu.service DESTINATION /lib/systemd/system RENAME aktualizr.service  COMPONENT aktualizr)
 install(FILES ${PROJECT_SOURCE_DIR}/config/sota_ubuntu.toml DESTINATION /usr/lib/sota RENAME sota.toml  COMPONENT aktualizr)
 install(TARGETS aktualizr RUNTIME DESTINATION bin COMPONENT aktualizr)
-if(BUILD_GENIVI)
-    install(FILES dbus/org.genivi.SotaClient.conf DESTINATION /etc/dbus-1/system.d)
-endif(BUILD_GENIVI)
 if(INSTALL_LIB)
   install(TARGETS aktualizr_static_lib ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
   install(FILES ${HEADERS} DESTINATION include)

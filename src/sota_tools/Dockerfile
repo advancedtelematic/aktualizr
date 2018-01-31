@@ -28,7 +28,7 @@ RUN apt-get update -q && apt-get -qy install \
 WORKDIR sota-tools
 COPY . src
 WORKDIR build-test
-RUN cmake -DBUILD_GENIVI=OFF -DBUILD_OSTREE=OFF -DBUILD_SOTA_TOOLS=ON ../src
+RUN cmake -DBUILD_OSTREE=OFF -DBUILD_SOTA_TOOLS=ON ../src
 RUN make garage-push -j8
 
 ENTRYPOINT ["./garage-push"]
