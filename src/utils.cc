@@ -334,31 +334,47 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
   }
 }
 
-static boost::filesystem::path safe_temp_root() {
-  static boost::filesystem::path root;
-  static boost::mutex mutex;
+class SafeTempRoot : private boost::noncopyable {
+ public:
+  // provide this as a static method so that we can use C++ static destructor
+  // to remove the temp root
+  static boost::filesystem::path &Get() {
+    {
+      // Ensure thread safety (uneeded in c++11)
+      boost::lock_guard<boost::mutex> lock(mutex);
+      static SafeTempRoot r;
 
-  {
-    // Ensure thread safety (uneeded in c++11)
-    boost::lock_guard<boost::mutex> lock(mutex);
-
-    if (root == "") {
-      boost::filesystem::path p =
-          boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%");
-
-      if (mkdir(p.c_str(), S_IRWXU) == -1) {
-        throw std::runtime_error("could not create temporary directory root: " + p.native());
-      }
-
-      root = boost::filesystem::path(p);
+      return r.path;
     }
   }
 
-  return root;
-}
+ private:
+  SafeTempRoot() {
+    boost::filesystem::path p =
+        boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%-%%%%");
+
+    if (mkdir(p.c_str(), S_IRWXU) == -1) {
+      throw std::runtime_error("could not create temporary directory root: " + p.native());
+    }
+
+    path = boost::filesystem::path(p);
+  }
+  ~SafeTempRoot() {
+    try {
+      boost::filesystem::remove_all(path);
+    } catch (...) {
+      // ignore this, not critical
+    }
+  }
+
+  boost::filesystem::path path;
+  static boost::mutex mutex;
+};
+
+boost::mutex SafeTempRoot::mutex;
 
 TemporaryFile::TemporaryFile(const std::string &hint)
-    : tmp_name_(safe_temp_root() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}
+    : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}
 
 TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
@@ -372,7 +388,7 @@ boost::filesystem::path TemporaryFile::Path() const { return tmp_name_; }
 std::string TemporaryFile::PathString() const { return Path().string(); }
 
 TemporaryDirectory::TemporaryDirectory(const std::string &hint)
-    : tmp_name_(safe_temp_root() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {
+    : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {
   boost::filesystem::create_directories(tmp_name_);
 }
 
