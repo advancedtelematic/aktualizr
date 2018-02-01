@@ -91,7 +91,8 @@ class HttpFake : public HttpInterface {
 
   HttpResponse put(const std::string &url, const Json::Value &data) {
     if (url == "tst149/core/installed") {
-      EXPECT_EQ(data[0]["name"].asString(), "vim");
+      EXPECT_EQ(data.size(), 1);
+      EXPECT_EQ(data[0]["name"].asString(), "fake-package");
       EXPECT_EQ(data[0]["version"].asString(), "1.0");
     } else if (url == "tst149/core/system_info") {
       Json::Value hwinfo = Utils::getHardwareInfo();
@@ -100,6 +101,7 @@ class HttpFake : public HttpInterface {
       EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url == "tst149/director/manifest") {
+      // Check for default initial value of packagemanagerfake.
       std::string hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
                 "unknown-" + hash);

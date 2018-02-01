@@ -48,11 +48,17 @@ class PackageFake : public PackageInterface {
 class PackageManagerFake : public PackageManagerInterface {
  public:
   PackageManagerFake() {
+    // Default to a dummy hash so that we can send something to the server and
+    // tests have something to check for.
     refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
   }
 
   Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
+    Json::Value package;
+    package["name"] = "fake-package";
+    package["version"] = "1.0";
+    packages.append(package);
     return packages;
   }
 

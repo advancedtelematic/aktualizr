@@ -682,6 +682,7 @@ TEST(Uptane, ProvisionOnServer) {
   Config config("tests/config_tests_prov.toml");
   std::string server = "tst149";
   config.provision.server = server;
+  config.tls.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
   config.uptane.device_id = "tst149_device_id";
