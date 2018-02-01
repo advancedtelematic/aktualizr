@@ -92,6 +92,21 @@ TEST(Utils, Base64RoundTrip) {
   }
 }
 
+TEST(Utils, TemporaryDirectory) {
+  boost::filesystem::path p;
+  {
+    TemporaryDirectory f("ahint");
+    p = f.Path();
+    EXPECT_TRUE(boost::filesystem::exists(p));               // The dir should exist
+    EXPECT_NE(p.string().find("ahint"), std::string::npos);  // The hint is included in the filename
+
+    struct stat statbuf;
+    stat(p.parent_path().c_str(), &statbuf);
+    EXPECT_EQ(statbuf.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO), S_IRWXU);
+  }
+  EXPECT_FALSE(boost::filesystem::exists(p));
+}
+
 TEST(Utils, TemporaryFile) {
   boost::filesystem::path p;
   {
@@ -104,6 +119,10 @@ TEST(Utils, TemporaryFile) {
     EXPECT_TRUE(file);                                       // The write succeeded
     EXPECT_TRUE(boost::filesystem::exists(p));               // The file should exist here
     EXPECT_NE(p.string().find("ahint"), std::string::npos);  // The hint is included in the filename
+
+    struct stat statbuf;
+    stat(p.parent_path().c_str(), &statbuf);
+    EXPECT_EQ(statbuf.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO), S_IRWXU);
   }
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
