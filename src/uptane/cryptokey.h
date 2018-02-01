@@ -29,7 +29,7 @@ class CryptoKey {
     boost::shared_ptr<INvStorage> backend_;
     Config config_;
 #ifdef BUILD_P11
-    P11Engine p11_;
+    P11Engine& p11_;
 #endif
 
 };

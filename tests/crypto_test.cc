@@ -53,7 +53,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   config.pass = "1234";
   config.uptane_key_id = "03";
 
-  P11Engine p11(config);
+  P11Engine &p11 = P11Engine::Get(config);
   std::string text = "This is text for sign";
   std::string key_content;
   EXPECT_TRUE(p11.readUptanePublicKey(&key_content));
@@ -70,7 +70,7 @@ TEST(crypto, generate_rsa_keypair_p11) {
   config.pass = "1234";
   config.uptane_key_id = "05";
 
-  P11Engine p11(config);
+  P11Engine &p11 = P11Engine::Get(config);
   std::string key_content;
   EXPECT_FALSE(p11.readUptanePublicKey(&key_content));
   EXPECT_TRUE(p11.generateUptaneKeyPair());
@@ -82,7 +82,7 @@ TEST(crypto, certificate_pkcs11) {
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
   p11_conf.pass = "1234";
   p11_conf.tls_clientcert_id = "01";
-  P11Engine p11(p11_conf);
+  P11Engine &p11 = P11Engine::Get(p11_conf);
 
   std::string cert;
   bool res = p11.readTlsCert(&cert);

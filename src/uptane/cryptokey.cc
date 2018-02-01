@@ -8,7 +8,7 @@ CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config 
       config_(config)
 #ifdef BUILD_P11
       ,
-      p11_(config_.p11)
+      p11_(P11Engine::Get(config.p11))
 #endif
 {
 }
