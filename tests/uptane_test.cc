@@ -972,6 +972,7 @@ TEST(Uptane, LoadVersion) {
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {
   Config config;
+  delete P11Engine::Get(config.p11);
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
   config.tls.cert_source = kPkcs11;
