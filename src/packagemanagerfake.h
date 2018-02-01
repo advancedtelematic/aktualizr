@@ -1,7 +1,7 @@
 #ifndef PACKAGEMANAGERFAKE_H_
 #define PACKAGEMANAGERFAKE_H_
 
-#include <sstream>
+#include <string>
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
@@ -11,7 +11,7 @@
 #include "crypto.h"
 #include "packagemanagerinterface.h"
 
-int current_package = 0;
+static std::string refhash_fake;
 
 class PackageFake : public PackageInterface {
  public:
@@ -22,7 +22,7 @@ class PackageFake : public PackageInterface {
 
   data::InstallOutcome install(const PackageConfig &config) const {
     (void)config;
-    ++current_package;
+    refhash_fake = refhash;
     return data::InstallOutcome(data::OK, "Installation successful");
   }
 
@@ -47,16 +47,16 @@ class PackageFake : public PackageInterface {
 
 class PackageManagerFake : public PackageManagerInterface {
  public:
+  PackageManagerFake() {
+    refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+  }
+
   Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
     return packages;
   }
 
-  std::string getCurrent() {
-    std::stringstream stream;
-    stream << current_package;
-    return boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(stream.str())));
-  }
+  std::string getCurrent() { return refhash_fake; }
 
   boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in, const std::string &refhash_in,
                                                   const std::string &treehub_in) {
