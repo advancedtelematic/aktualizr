@@ -52,7 +52,6 @@ void INvStorage::importData(const ImportConfig& import_config) {
 }
 
 boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
-  (void)path;
   switch (config.type) {
     case kSqlite:
       if (!boost::filesystem::exists(config.sqldb_path)) {

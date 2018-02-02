@@ -45,8 +45,12 @@ class FSStorage : public INvStorage {
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
+  virtual std::unique_ptr<TargetFileHandle> allocateFile(bool from_director,
+      const std::string &filename, size_t size);
   virtual void cleanUp();
   virtual StorageType type() { return kFileSystem; };
+
+  friend class FSTargetFileHandle;
 
  private:
   const StorageConfig& config_;

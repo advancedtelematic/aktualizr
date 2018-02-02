@@ -1,7 +1,9 @@
 #include "sqlstorage.h"
 
 #include <iostream>
+#include <memory>
 
+#include <boost/make_shared.hpp>
 #include <boost/move/make_unique.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -719,6 +721,45 @@ void SQLStorage::clearInstalledVersions() {
     LOG_ERROR << "Can't clear installed_versions: " << sqlite3_errmsg(db.get());
     return;
   }
+}
+
+class SQLTargetFileHandle: public INvStorage::TargetFileHandle {
+  public:
+    SQLTargetFileHandle(const SQLStorage &storage, bool from_director,
+        const std::string &filename, size_t size):
+      storage_(storage),
+      filename_(filename),
+      expected_size_(size)
+    {
+      (void)from_director;
+    }
+
+    /* ~FSTargetFileHandle() { */
+    /* } */
+
+    size_t feed(const uint8_t *buf, size_t size) {
+      (void)buf;
+      (void)size;
+      return 0;
+    }
+
+    void commit() {
+    }
+
+    void abort() {
+    }
+
+  private:
+    const SQLStorage &storage_;
+    const std::string filename_;
+    size_t expected_size_;
+};
+
+std::unique_ptr<INvStorage::TargetFileHandle> SQLStorage::allocateFile(bool from_director,
+    const std::string &filename, size_t size) {
+
+  return std::unique_ptr<INvStorage::TargetFileHandle>(new SQLTargetFileHandle(*this, from_director,
+        filename, size));
 }
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }

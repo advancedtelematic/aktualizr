@@ -4,12 +4,17 @@
 
 #include <boost/scoped_array.hpp>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "logging.h"
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
+  boost::filesystem::create_directories(config_.path / "targets");
 }
 
 FSStorage::~FSStorage() {
@@ -346,6 +351,81 @@ void FSStorage::clearInstalledVersions() {
     boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
   }
 }
+
+class FSTargetFileHandle: public INvStorage::TargetFileHandle {
+  public:
+    FSTargetFileHandle(const FSStorage &storage, bool from_director,
+        const std::string &filename, size_t size):
+      storage_(storage),
+      filename_(filename),
+      expected_size_(size),
+      written_size_(0),
+      closed_(false),
+      fp_(0)
+    {
+      (void)from_director;
+      fp_ = open((storage_.config_.path / "targets" / filename_).c_str(),
+          O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+
+      if (fp_ == -1) {
+        throw INvStorage::TargetFileHandle::AllocateError("could not save file " + filename_ + " to disk");
+      }
+    }
+
+    ~FSTargetFileHandle() {
+      if (!closed_) {
+        LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
+        this->abort();
+      }
+    }
+
+    size_t feed(const uint8_t *buf, size_t size) {
+      if (written_size_ + size > expected_size_) {
+        return 0;
+      }
+
+      size_t written = write(fp_, buf, size);
+      written_size_ += written;
+
+      return written;
+    }
+
+    void commit() {
+      closed_ = true;
+      if (written_size_ != expected_size_) {
+        LOG_WARNING << "got " << written_size_ << "instead of " << expected_size_ << " while writing "
+          << filename_;
+        throw INvStorage::TargetFileHandle::AllocateError("could not save file " + filename_ + " to disk");
+      }
+
+      if (close(fp_) == -1) {
+        throw INvStorage::TargetFileHandle::AllocateError("could not save file " + filename_ + " to disk");
+      }
+    }
+
+    void abort() {
+      closed_ = true;
+      close(fp_);
+      boost::filesystem::remove(filename_);
+    }
+
+  private:
+    const FSStorage &storage_;
+    const std::string filename_;
+    size_t expected_size_;
+    size_t written_size_;
+    bool closed_;
+    int fp_;
+};
+
+std::unique_ptr<INvStorage::TargetFileHandle> FSStorage::allocateFile(bool from_director,
+    const std::string &filename, size_t size) {
+
+  return std::unique_ptr<INvStorage::TargetFileHandle>(new FSTargetFileHandle(*this,
+        from_director, filename, size));
+}
+
+
 void FSStorage::cleanUp() {
   boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));
 }

@@ -2,6 +2,7 @@
 #define INVSTORAGE_H_
 
 #include <boost/filesystem.hpp>
+#include <memory>
 #include <string>
 #include "config.h"
 
@@ -27,6 +28,17 @@ struct MisconfiguredEcu {
 // possible
 class INvStorage {
  public:
+   class TargetFileHandle {
+     public:
+       class AllocateError : public std::runtime_error {
+         public:
+           AllocateError(const std::string &what): std::runtime_error(what) {}
+       };
+       virtual size_t feed(const uint8_t *buf, size_t size) = 0;
+       virtual void commit() = 0;
+       virtual void abort() = 0;
+   };
+
   virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual void storePrimaryPublic(const std::string& public_key) = 0;
@@ -70,16 +82,15 @@ class INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
+  // Incremental file API
+  virtual std::unique_ptr<TargetFileHandle> allocateFile(bool from_director,
+      const std::string &filename, size_t size) = 0;
+
   virtual void cleanUp() = 0;
 
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
 
-  // Incremental file API
-  // virtual bool filePreallocate(bool from_director, const std::string &filename, size_t size) = 0;
-  // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;
-  // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
-  // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
   static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
                                                   const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);

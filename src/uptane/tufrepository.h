@@ -21,7 +21,7 @@ typedef std::map<std::string, unsigned int> RoleThreshold;
 struct DownloadMetaStruct {
   int64_t expected_length;
   int64_t downloaded_length;
-  int fp;
+  INvStorage::TargetFileHandle *fhandle;
   MultiPartSHA256Hasher sha256_hasher;
   MultiPartSHA512Hasher sha512_hasher;
 };
@@ -56,7 +56,6 @@ class TufRepository {
 
  private:
   std::string name_;
-  boost::filesystem::path path_;
   const Config& config_;
   boost::shared_ptr<INvStorage>& storage_;
   HttpInterface& http_;

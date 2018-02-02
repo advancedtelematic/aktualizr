@@ -31,6 +31,7 @@ class SQLite3Guard {
 
 class SQLStorage : public INvStorage {
  public:
+  friend class SQLTargetFileHandle;
   SQLStorage(const StorageConfig& config);
   virtual ~SQLStorage();
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
@@ -68,6 +69,8 @@ class SQLStorage : public INvStorage {
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
+  virtual std::unique_ptr<TargetFileHandle> allocateFile(bool from_director,
+      const std::string &filename, size_t size);
   virtual void cleanUp();
   virtual StorageType type() { return kSqlite; };
 
