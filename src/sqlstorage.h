@@ -10,7 +10,7 @@
 #include "config.h"
 #include "invstorage.h"
 
-const int kSqlSchemaVersion = 1;
+const int kSqlSchemaVersion = 2;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
 
