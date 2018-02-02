@@ -21,7 +21,7 @@ typedef std::map<std::string, unsigned int> RoleThreshold;
 struct DownloadMetaStruct {
   int64_t expected_length;
   int64_t downloaded_length;
-  INvStorage::TargetFileHandle *fhandle;
+  StorageTargetWHandle* fhandle;
   MultiPartSHA256Hasher sha256_hasher;
   MultiPartSHA512Hasher sha512_hasher;
 };

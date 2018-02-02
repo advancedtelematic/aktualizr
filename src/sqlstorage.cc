@@ -723,43 +723,235 @@ void SQLStorage::clearInstalledVersions() {
   }
 }
 
-class SQLTargetFileHandle: public INvStorage::TargetFileHandle {
-  public:
-    SQLTargetFileHandle(const SQLStorage &storage, bool from_director,
-        const std::string &filename, size_t size):
-      storage_(storage),
-      filename_(filename),
-      expected_size_(size)
-    {
-      (void)from_director;
+class SQLTargetWHandle : public StorageTargetWHandle {
+ public:
+  SQLTargetWHandle(const SQLStorage& storage, const std::string& filename, size_t size)
+      : db_(storage.config_.sqldb_path.c_str()),
+        storage_(storage),
+        filename_(filename),
+        expected_size_(size),
+        written_size_(0),
+        closed_(false),
+        blob_(nullptr) {
+    StorageTargetWHandle::WriteError exc("could not save file " + filename_ + " to sql storage");
+
+    if (db_.get_rc() != SQLITE_OK) {
+      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db_.get());
+      throw exc;
     }
 
-    /* ~FSTargetFileHandle() { */
-    /* } */
+    // allocate a zero blob
+    if (sqlite3_exec(db_.get(), "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
 
-    size_t feed(const uint8_t *buf, size_t size) {
-      (void)buf;
-      (void)size;
+    sqlite3_stmt* statement;
+    if (sqlite3_prepare_v2(db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", -1, &statement,
+                           nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    if (sqlite3_bind_text(statement, 1, filename_.c_str(), -1, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    if (sqlite3_bind_zeroblob(statement, 2, expected_size_) != SQLITE_OK) {
+      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    if (sqlite3_step(statement) != SQLITE_DONE) {
+      LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    // TODO: finalize statement in case of error
+    sqlite3_finalize(statement);
+
+    // open the created blob for writing
+    sqlite3_int64 row_id = sqlite3_last_insert_rowid(db_.get());
+
+    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 1, &blob_) != SQLITE_OK) {
+      LOG_ERROR << "Could not open blob" << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+  }
+
+  ~SQLTargetWHandle() {
+    if (!closed_) {
+      LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
+      this->wabort();
+    }
+  }
+
+  size_t wfeed(const uint8_t* buf, size_t size) override {
+    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), written_size_) != SQLITE_OK) {
+      LOG_ERROR << "Could not write in blob: " << sqlite3_errmsg(db_.get());
+      return 0;
+    }
+    written_size_ += size;
+    return size;
+  }
+
+  void wcommit() override {
+    closed_ = true;
+    sqlite3_blob_close(blob_);
+    blob_ = nullptr;
+    if (sqlite3_exec(db_.get(), "COMMIT TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << sqlite3_errmsg(db_.get());
+      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
+    }
+  }
+
+  void wabort() override {
+    closed_ = true;
+    if (blob_ != nullptr) {
+      sqlite3_blob_close(blob_);
+      blob_ = nullptr;
+    }
+    if (sqlite3_exec(db_.get(), "ROLLBACK TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't rollback transaction: " << sqlite3_errmsg(db_.get());
+      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
+    }
+  }
+
+ private:
+  SQLite3Guard db_;
+  const SQLStorage& storage_;
+  const std::string filename_;
+  size_t expected_size_;
+  size_t written_size_;
+  bool closed_;
+  sqlite3_blob* blob_;
+};
+
+std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const std::string& filename,
+                                                                     size_t size) {
+  (void)from_director;
+
+  return std::unique_ptr<StorageTargetWHandle>(new SQLTargetWHandle(*this, filename, size));
+}
+
+class SQLTargetRHandle : public StorageTargetRHandle {
+ public:
+  SQLTargetRHandle(const SQLStorage& storage, const std::string& filename)
+      : db_(storage.config_.sqldb_path.c_str()),
+        storage_(storage),
+        filename_(filename),
+        size_(0),
+        read_size_(0),
+        closed_(false),
+        blob_(nullptr) {
+    StorageTargetRHandle::ReadError exc("could not read file " + filename_ + " from sql storage");
+
+    if (db_.get_rc() != SQLITE_OK) {
+      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+
+    if (sqlite3_exec(db_.get(), "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    sqlite3_stmt* statement;
+    if (sqlite3_prepare_v2(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?", -1, &statement, nullptr) !=
+        SQLITE_OK) {
+      LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    if (sqlite3_bind_text(statement, 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    if (sqlite3_step(statement) != SQLITE_ROW) {
+      LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+
+    sqlite3_int64 row_id = sqlite3_column_int64(statement, 0);
+
+    // TODO: finalize statement in case of error
+    sqlite3_finalize(statement);
+
+    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
+      LOG_ERROR << "Could not open blob: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+    size_ = sqlite3_blob_bytes(blob_);
+
+    if (sqlite3_exec(db_.get(), "COMMIT TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << sqlite3_errmsg(db_.get());
+      throw exc;
+    }
+  }
+
+  SQLTargetRHandle(const SQLTargetRHandle& other) = delete;
+  SQLTargetRHandle& operator=(const SQLTargetRHandle& other) = delete;
+
+  ~SQLTargetRHandle() {
+    if (!closed_) {
+      this->rclose();
+    }
+  }
+
+  size_t rsize() const override { return size_; }
+
+  size_t rread(uint8_t* buf, size_t size) override {
+    if (read_size_ + size > size_) {
+      size = size_ - read_size_;
+    }
+    if (size == 0) {
       return 0;
     }
 
-    void commit() {
+    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), read_size_) != SQLITE_OK) {
+      LOG_ERROR << "Could not read from blob: " << sqlite3_errmsg(db_.get());
+      return 0;
     }
+    read_size_ += size;
 
-    void abort() {
-    }
+    return size;
+  }
 
-  private:
-    const SQLStorage &storage_;
-    const std::string filename_;
-    size_t expected_size_;
+  void rclose() override { sqlite3_blob_close(blob_); }
+
+ private:
+  SQLite3Guard db_;
+  const SQLStorage& storage_;
+  const std::string filename_;
+  size_t size_;
+  size_t read_size_;
+  bool closed_;
+  sqlite3_blob* blob_;
 };
 
-std::unique_ptr<INvStorage::TargetFileHandle> SQLStorage::allocateFile(bool from_director,
-    const std::string &filename, size_t size) {
+std::unique_ptr<StorageTargetRHandle> SQLStorage::openTargetFile(const std::string& filename) {
+  return std::unique_ptr<StorageTargetRHandle>(new SQLTargetRHandle(*this, filename));
+}
 
-  return std::unique_ptr<INvStorage::TargetFileHandle>(new SQLTargetFileHandle(*this, from_director,
-        filename, size));
+void SQLStorage::removeTargetFile(const std::string& filename) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    return;
+  }
+
+  sqlite3_stmt* statement;
+  if (sqlite3_prepare_v2(db.get(), "DELETE FROM target_images WHERE filename=?", -1, &statement, nullptr) !=
+      SQLITE_OK) {
+    LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db.get());
+    throw std::runtime_error("");
+  }
+  if (sqlite3_bind_text(statement, 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db.get());
+    throw std::runtime_error("");
+  }
+  if (sqlite3_step(statement) != SQLITE_DONE) {
+    LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
+    throw std::runtime_error("");
+  }
+  // TODO: finalize statement in case of error
+  sqlite3_finalize(statement);
 }
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 
 #include <boost/filesystem.hpp>
@@ -212,6 +213,36 @@ TEST(storage, load_store_ecu_registered) {
 
   storage->clearEcuRegistered();
   EXPECT_FALSE(storage->loadEcuRegistered());
+  boost::filesystem::remove_all(storage_test_dir);
+}
+
+TEST(storage, store_target) {
+  boost::filesystem::create_directories(storage_test_dir);
+  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    const uint8_t wb[] = "ab";
+    fhandle->wfeed(wb, 1);
+    fhandle->wfeed(wb + 1, 1);
+    fhandle->wcommit();
+  }
+
+  {
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    uint8_t rb[3] = {0};
+    EXPECT_EQ(rhandle->rsize(), 2);
+    rhandle->rread(rb, 1);
+    rhandle->rread(rb + 1, 1);
+    rhandle->rclose();
+    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
+  }
+
+  {
+    storage->removeTargetFile("testfile");
+    EXPECT_THROW(storage->openTargetFile("testfile"), StorageTargetRHandle::ReadError);
+  }
+
   boost::filesystem::remove_all(storage_test_dir);
 }
 

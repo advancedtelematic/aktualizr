@@ -45,16 +45,20 @@ class FSStorage : public INvStorage {
   virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
   virtual void clearInstalledVersions();
-  virtual std::unique_ptr<TargetFileHandle> allocateFile(bool from_director,
-      const std::string &filename, size_t size);
+  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
+                                                           size_t size) override;
+  std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;
+  void removeTargetFile(const std::string& filename) override;
   virtual void cleanUp();
   virtual StorageType type() { return kFileSystem; };
 
-  friend class FSTargetFileHandle;
+  friend class FSTargetWHandle;
+  friend class FSTargetRHandle;
 
  private:
   const StorageConfig& config_;
 
+  boost::filesystem::path targetFilepath(const std::string& filename) const;
   bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);
 };
 
