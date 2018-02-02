@@ -1,8 +1,9 @@
 #!/bin/bash
+set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-	echo "Usage: ./makephysical.sh /path/to/physical_sysroot"
-	exit 1
+if [ "$#" -lt 1 ]; then
+  echo "Usage: ./makephysical.sh /path/to/physical_sysroot [port]"
+  exit 1
 fi
 
 TARGETDIR=$(realpath $1)
@@ -26,19 +27,26 @@ SCRIPT_DIR="$(dirname "$0")"
 OSTREE_DIR=$(mktemp -d /tmp/ostreephys-XXXXX)
 ${SCRIPT_DIR}/makedeployed.sh ${OSTREE_DIR}/repo ${BRANCHNAME} ${HARDWARE}
 
-CURDIR=${pwd}
+if [ "$#" -eq 2 ]; then
+  echo "port: $2"
+  PORT=$2
+else
+  PORT=56042
+fi
 
+CURDIR=$(pwd)
 cd ${OSTREE_DIR}/repo
-python3 -m http.server 56042&
+
+python3 -m http.server ${PORT} &
 HTTP_PID=$!
 sleep 2
 
-ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remote http://127.0.0.1:56042 ${BRANCHNAME}
+ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remote http://127.0.0.1:${PORT} ${BRANCHNAME}
 ostree --repo=${TARGETDIR}/ostree/repo pull generate-remote  ${BRANCHNAME}
 
 # kill SimpleHTTPServer
 kill ${HTTP_PID}
-wait ${HTTP_PID} 2>/dev/null
+wait ${HTTP_PID} 2>/dev/null || true
 
 cd ${CURDIR}
 rm -rf ${OSTREE_DIR}

@@ -1,8 +1,9 @@
 #!/bin/bash
+set -euo pipefail
 
 if [ "$#" -ne 3 ]; then
-	echo "Usage: ./makedeployed.sh /path/to/ostree/repo branchname hardware_id"
-	exit 1
+  echo "Usage: ./makedeployed.sh /path/to/ostree/repo branchname hardware_id"
+  exit 1
 fi
 
 REPO=$1
@@ -39,7 +40,7 @@ mv ${TARGETDIR}/boot/vmlinuz ${TARGETDIR}/boot/vmlinuz-${checksum}
 mv ${TARGETDIR}/boot/initramfs ${TARGETDIR}/boot/initramfs-${checksum}
 
 if [ ! -d ${REPO} ]; then
-	ostree --repo=${REPO} init --mode=archive-z2
+  ostree --repo=${REPO} init --mode=archive-z2
 fi
 
 ostree --repo=${REPO} commit \
