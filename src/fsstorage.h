@@ -50,9 +50,6 @@ class FSStorage : public INvStorage {
 
  private:
   const StorageConfig& config_;
-  // descriptors of currently downloaded files
-  std::map<std::string, FILE*> director_files;
-  std::map<std::string, FILE*> image_files;
 
   bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);
 };
