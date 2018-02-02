@@ -588,6 +588,17 @@ TEST(Uptane, RunForeverHasUpdates) {
   EXPECT_EQ(targets_event->packages[1].filename(), "secondary_firmware.txt");
 }
 
+std::vector<Uptane::Target> makePackage(const std::string& serial) {
+  std::vector<Uptane::Target> packages_to_install;
+  Json::Value ot_json;
+  ot_json["custom"]["ecuIdentifier"] = serial;
+  ot_json["custom"]["targetFormat"] = "OSTREE";
+  ot_json["length"] = 0;
+  ot_json["hashes"]["sha256"] = serial;
+  packages_to_install.push_back(Uptane::Target(std::string("unknown-") + serial, ot_json));
+  return packages_to_install;
+}
+
 TEST(Uptane, RunForeverInstall) {
   TemporaryDirectory temp_dir;
   Config conf("tests/config_tests_prov.toml");
@@ -603,12 +614,7 @@ TEST(Uptane, RunForeverInstall) {
   event::Channel events_channel;
   command::Channel commands_channel;
 
-  std::vector<Uptane::Target> packages_to_install;
-  Json::Value ot_json;
-  ot_json["custom"]["ecuIdentifier"] = "testecuserial";
-  ot_json["custom"]["targetFormat"] = "OSTREE";
-  ot_json["length"] = 10;
-  packages_to_install.push_back(Uptane::Target("testostree-hash", ot_json));
+  std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
   commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
@@ -676,12 +682,14 @@ TEST(Uptane, UptaneSecondaryAdd) {
 
 /**
  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
+ * Also test that installation works as expected with the fake package manager.
  */
 TEST(Uptane, ProvisionOnServer) {
   TemporaryDirectory temp_dir;
   Config config("tests/config_tests_prov.toml");
   std::string server = "tst149";
   config.provision.server = server;
+  config.tls.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
   config.uptane.device_id = "tst149_device_id";
@@ -693,7 +701,9 @@ TEST(Uptane, ProvisionOnServer) {
   command::Channel commands_channel;
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
+  std::vector<Uptane::Target> packages_to_install = makePackage(config.uptane.primary_ecu_serial);
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
+  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient up(config, &events_channel, repo, storage, http);

@@ -120,7 +120,8 @@ int main(int argc, char **argv) {
   logger_set_threshold(boost::log::trivial::trace);
 
   if (argc != 3) {
-    std::cerr << "Error: " << argv[0] << " requires a path to a credentials archive and an OSTree sysroot as input arguments.\n";
+    std::cerr << "Error: " << argv[0]
+              << " requires a path to a credentials archive and an OSTree sysroot as input arguments.\n";
     exit(EXIT_FAILURE);
   }
   credentials = argv[1];
