@@ -18,7 +18,7 @@ enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 class HttpFake : public HttpInterface {
  public:
   HttpFake(const boost::filesystem::path &test_dir_in, const bool is_initialized = false)
-      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), ecu_registered(is_initialized) {
+      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), manifest_count(0), ecu_registered(is_initialized) {
     boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
     boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");
   }
@@ -101,8 +101,14 @@ class HttpFake : public HttpInterface {
       EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url == "tst149/director/manifest") {
-      // Check for default initial value of packagemanagerfake.
-      std::string hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+      std::string hash;
+      if (manifest_count == 0) {
+        // Check for default initial value of packagemanagerfake.
+        hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+        ++manifest_count;
+      } else {
+        hash = "tst149_ecu_serial";
+      }
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
                 "unknown-" + hash);
       EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"]
@@ -144,6 +150,7 @@ class HttpFake : public HttpInterface {
 
   boost::filesystem::path test_dir;
   TemporaryDirectory metadata_path;
+  int manifest_count;
   bool ecu_registered;
 };
 
