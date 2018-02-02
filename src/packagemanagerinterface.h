@@ -13,8 +13,7 @@ class PackageInterface {
   PackageInterface(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in)
       : ref_name(ref_name_in), refhash(refhash_in), pull_uri(treehub_in) {}
   virtual ~PackageInterface() {}
-  virtual data::InstallOutcome install(const data::PackageManagerCredentials &cred,
-                                       const PackageConfig &pconfig) const = 0;
+  virtual data::InstallOutcome install(const PackageConfig &config) const = 0;
   virtual Json::Value toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const = 0;
 
  protected:

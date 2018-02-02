@@ -26,6 +26,8 @@
 #endif
 #endif
 
+boost::filesystem::path sysroot;
+
 const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(Uptane, Verify) {
@@ -502,8 +504,10 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.uptane.repo_server = tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.storage.path = temp_dir.Path();
+  conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
+  conf.pacman.sysroot = sysroot;
 
   conf.tls.server = tls_server;
   event::Channel events_channel;
@@ -546,6 +550,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
+  conf.pacman.sysroot = sysroot;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
@@ -592,6 +597,7 @@ TEST(Uptane, RunForeverInstall) {
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
+  conf.pacman.sysroot = sysroot;
 
   conf.tls.server = tls_server;
   event::Channel events_channel;
@@ -996,6 +1002,12 @@ TEST(Uptane, Pkcs11Provision) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   logger_set_threshold(boost::log::trivial::trace);
+
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

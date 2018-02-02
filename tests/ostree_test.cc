@@ -27,6 +27,26 @@ TEST(OstreePackage, ToEcuVersion) {
   EXPECT_EQ(ecuver["installed_image"]["filepath"], "branch-name-hash");
 }
 
+TEST(OstreePackage, PullBadUri) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.uptane.ostree_server = "bad-url";
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_private_key_path = "public.key";
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
+  CryptoKey keys(storage, config);
+  data::PackageManagerCredentials cred(keys);
+  data::InstallOutcome result = OstreeManager::pull(config, cred, "hash");
+
+  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
+}
+
 TEST(OstreePackage, InstallBadUri) {
   OstreePackage op("branch-name-hash", "hash", "bad_uri");
   TemporaryDirectory temp_dir;
@@ -38,11 +58,9 @@ TEST(OstreePackage, InstallBadUri) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  CryptoKey keys(boost::make_shared<FSStorage>(FSStorage(config.storage)), config);
-  data::PackageManagerCredentials cred(keys);
-  data::InstallOutcome result = op.install(cred, config.pacman);
+  data::InstallOutcome result = op.install(config.pacman);
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
-  EXPECT_EQ(result.second, "Failed to parse uri: bad_uri");
+  EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }
 
 TEST(OstreeManager, BadSysroot) {

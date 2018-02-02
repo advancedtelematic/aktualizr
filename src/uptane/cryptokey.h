@@ -26,7 +26,7 @@ class CryptoKey {
     std::string getUptanePublicKey();
     Json::Value signTuf(const Json::Value &in_data);
   private:
-    boost::shared_ptr<INvStorage> backend_;
+    const boost::shared_ptr<INvStorage> &backend_;
     Config config_;
 #ifdef BUILD_P11
     P11Engine p11_;

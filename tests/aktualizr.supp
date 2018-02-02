@@ -55,4 +55,16 @@
    fun:_ZN5boost10filesystem11unique_pathERKNS0_4pathE
    ...
 }
+{
+    glib
+    Memcheck:Leak
+    ...
+    obj:/lib/x86_64-linux-gnu/libglib-2.0.so*
+}
+{
+    gio
+    Memcheck:Leak
+    ...
+    obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so*
+}
 

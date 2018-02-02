@@ -95,10 +95,6 @@ bool Repository::getMeta() {
 }
 
 std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
-  if (!getMeta()) {
-    return std::pair<int, std::vector<Uptane::Target> >(-1, std::vector<Uptane::Target>());
-  }
-
   std::vector<Uptane::Target> director_targets = director.getTargets();
   int version = director.targetsVersion();
 
