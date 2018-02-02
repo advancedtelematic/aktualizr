@@ -241,15 +241,18 @@ InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
   installed_software.firmwares = firmwares;
   return installed_software;
 }
+
 PackageManagerCredentials::PackageManagerCredentials(const CryptoKey& cryptokey)
     : tmp_ca_file("ostree-ca"), tmp_pkey_file("ostree-pkey"), tmp_cert_file("ostree-cert") {
-  ca_file = cryptokey.getCa();
-  if (ca_file.find("pkcs11:") != 0) {
-    tmp_ca_file.PutContents(cryptokey.getCa());
-    ca_file = tmp_ca_file.Path().string();
-  }
+  tmp_ca_file.PutContents(cryptokey.getCa());
   tmp_pkey_file.PutContents(cryptokey.getPkey());
   tmp_cert_file.PutContents(cryptokey.getCert());
 }
+
+boost::filesystem::path PackageManagerCredentials::ca_file() const { return tmp_ca_file.Path(); }
+
+boost::filesystem::path PackageManagerCredentials::pkey_file() const { return tmp_pkey_file.Path(); }
+
+boost::filesystem::path PackageManagerCredentials::cert_file() const { return tmp_cert_file.Path(); }
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

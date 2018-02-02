@@ -2,6 +2,8 @@
 #define TYPES_H_
 
 #include <json/json.h>
+#include <boost/filesystem.hpp>
+
 #include "uptane/cryptokey.h"
 
 namespace data {
@@ -134,12 +136,12 @@ struct InstalledSoftware {
   static InstalledSoftware fromJson(const std::string& json_str);
 };
 
-struct PackageManagerCredentials {
+class PackageManagerCredentials {
+ public:
   PackageManagerCredentials(const CryptoKey& cryptokey);
-  std::string access_token;
-  std::string ca_file;
-  std::string cert_file;
-  std::string pkey_file;
+  boost::filesystem::path ca_file() const;
+  boost::filesystem::path pkey_file() const;
+  boost::filesystem::path cert_file() const;
 
  private:
   TemporaryFile tmp_ca_file;
