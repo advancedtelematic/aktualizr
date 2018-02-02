@@ -226,13 +226,14 @@ bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &remote, const
   g_variant_builder_init(&b, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&b, "{s@v}", "gpg-verify", g_variant_new_variant(g_variant_new_boolean(FALSE)));
 
-  if (cred.cert_file.size() && cred.pkey_file.size() && cred.ca_file.size()) {
+  if (!boost::filesystem::is_empty(cred.cert_file()) && !boost::filesystem::is_empty(cred.pkey_file()) &&
+      !boost::filesystem::is_empty(cred.ca_file())) {
     g_variant_builder_add(&b, "{s@v}", "tls-client-cert-path",
-                          g_variant_new_variant(g_variant_new_string(cred.cert_file.c_str())));
+                          g_variant_new_variant(g_variant_new_string(cred.cert_file().c_str())));
     g_variant_builder_add(&b, "{s@v}", "tls-client-key-path",
-                          g_variant_new_variant(g_variant_new_string(cred.pkey_file.c_str())));
+                          g_variant_new_variant(g_variant_new_string(cred.pkey_file().c_str())));
     g_variant_builder_add(&b, "{s@v}", "tls-ca-path",
-                          g_variant_new_variant(g_variant_new_string(cred.ca_file.c_str())));
+                          g_variant_new_variant(g_variant_new_string(cred.ca_file().c_str())));
   }
   options = g_variant_builder_end(&b);
 
