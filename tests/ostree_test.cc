@@ -17,7 +17,10 @@
 boost::filesystem::path sysroot;
 
 TEST(OstreePackage, InstallBadUri) {
-  OstreePackage op("branch-name-hash", "hash", "bad_uri");
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "hash";
+  target_json["length"] = 0;
+  Uptane::Target target("branch-name-hash", target_json);
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = kOstree;
@@ -27,7 +30,8 @@ TEST(OstreePackage, InstallBadUri) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  data::InstallOutcome result = op.install(config.pacman);
+  OstreeManager ostree(config.pacman);
+  data::InstallOutcome result = ostree.install(target);
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }

@@ -11,31 +11,9 @@
 #include "crypto.h"
 #include "packagemanagerinterface.h"
 
-static std::string refhash_fake;
-
-class PackageFake : public PackageInterface {
- public:
-  PackageFake(const std::string &ref_name_in, const std::string &refhash_in, const std::string &treehub_in)
-      : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
-
-  ~PackageFake() {}
-
-  data::InstallOutcome install(const PackageConfig &config) const {
-    (void)config;
-    refhash_fake = refhash;
-    return data::InstallOutcome(data::OK, "Installation successful");
-  }
-};
-
 class PackageManagerFake : public PackageManagerInterface {
  public:
-  PackageManagerFake() {
-    // Default to a dummy hash so that we can send something to the server and
-    // tests have something to check for.
-    refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
-  }
-
-  Json::Value getInstalledPackages() {
+  virtual Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
     Json::Value package;
     package["name"] = "fake-package";
@@ -44,12 +22,12 @@ class PackageManagerFake : public PackageManagerInterface {
     return packages;
   }
 
-  std::string getCurrent() { return refhash_fake; }
+  virtual std::string getCurrent() { return refhash_fake; }
 
-  boost::shared_ptr<PackageInterface> makePackage(const std::string &branch_name_in, const std::string &refhash_in,
-                                                  const std::string &treehub_in) {
-    return boost::make_shared<PackageFake>(branch_name_in, refhash_in, treehub_in);
-  }
+  virtual data::InstallOutcome install(const Uptane::Target &target) const {
+    (void)target;
+    return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
+  };
 };
 
 #endif  // PACKAGEMANAGERFAKE_H_

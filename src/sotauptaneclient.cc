@@ -63,9 +63,7 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 
 data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &target) {
   try {
-    boost::shared_ptr<PackageInterface> package = pacman->makePackage(
-        target.filename(), boost::algorithm::to_lower_copy(target.sha256Hash()), config.pacman.ostree_server);
-    return package->install(config.pacman);
+    return pacman->install(target);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::INSTALL_FAILED, ex.what());
   }
