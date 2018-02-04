@@ -199,10 +199,14 @@ inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id,
   UA_StatusCode retval = UA_Client_writeValueAttribute(
       client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
   if (retval == UA_STATUSCODE_GOOD) {
-      UA_Variant_setArray(val, &(*bin_data)[0], bin_data->size(),
+      // write binary child node
+      UA_Variant *bin_val = UA_Variant_new();
+      UA_Variant_setArray(bin_val, &(*bin_data)[0], bin_data->size(),
                           &UA_TYPES[UA_TYPES_BYTE]);
+      bin_val->storageType = UA_VARIANT_DATA_NODELETE;
       retval = UA_Client_writeValueAttribute(
-          client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), val);
+          client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
+      UA_Variant_delete(bin_val);
   }
   UA_Variant_delete(val);
   return retval;
@@ -233,15 +237,18 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id,
       UA_Variant_hasArrayType(val, &UA_TYPES[UA_TYPES_BYTE])) {
     MessageT::unwrapMessage(obj, reinterpret_cast<const char *>(val->data),
                             val->arrayLength);
+    // read binary child node
+    UA_Variant *bin_val = UA_Variant_new();
     UA_StatusCode retval = UA_Client_readValueAttribute(
-        client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), val);
+        client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
     if (retval == UA_STATUSCODE_GOOD &&
-        UA_Variant_hasArrayType(val, &UA_TYPES[UA_TYPES_BYTE])) {
-      bin_data->resize(val->arrayLength);
+        UA_Variant_hasArrayType(bin_val, &UA_TYPES[UA_TYPES_BYTE])) {
+      bin_data->resize(bin_val->arrayLength);
       const unsigned char* src = 
-        reinterpret_cast<const unsigned char *>(val->data);
-      std::copy(src, src + val->arrayLength, bin_data->begin());
+        reinterpret_cast<const unsigned char *>(bin_val->data);
+      std::copy(src, src + bin_val->arrayLength, bin_data->begin());
     }
+    UA_Variant_delete(bin_val);
   }
   UA_Variant_delete(val);
   return retval;
