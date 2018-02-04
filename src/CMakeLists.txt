@@ -51,6 +51,7 @@ set(HEADERS
             logging.h
             openssl_compat.h
             ostree.h
+            deb.h
             packagemanagerfactory.h
             packagemanagerfake.h
             packagemanagerinterface.h
@@ -74,6 +75,11 @@ set(HEADERS
 if(BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc)
 endif(BUILD_OSTREE)
+
+if(BUILD_DEB)
+    list(APPEND SOURCES deb.cc)
+endif(BUILD_DEB)
+
 
 if(BUILD_P11)
     list(APPEND SOURCES p11engine.cc)
