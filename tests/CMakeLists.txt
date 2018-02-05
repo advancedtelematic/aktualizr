@@ -250,7 +250,7 @@ add_test(NAME test_build_all_off
 
 add_test(NAME test_build_all_on
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON")
+        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON -DBUILD_DEB=ON")
 
 add_test(NAME test_build_debug
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh

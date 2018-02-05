@@ -35,6 +35,7 @@ RUN apt-get update && apt-get -y install \
   libcurl4-openssl-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
+  libdpkg-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
