@@ -478,18 +478,6 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, socket_events, "socket_events");
   sink << "\n";
 
-  sink << "[rvi]\n";
-  writeOption(sink, rvi.node_host, "node_host");
-  writeOption(sink, rvi.node_port, "node_port");
-  writeOption(sink, rvi.device_key, "device_key");
-  writeOption(sink, rvi.device_cert, "device_cert");
-  writeOption(sink, rvi.ca_cert, "ca_cert");
-  writeOption(sink, rvi.cert_dir, "cert_dir");
-  writeOption(sink, rvi.cred_dir, "cred_dir");
-  writeOption(sink, rvi.packages_dir, "packages_dir");
-  writeOption(sink, rvi.uuid, "uuid");
-  sink << "\n";
-
   sink << "[p11]\n";
   writeOption(sink, p11.module, "module");
   writeOption(sink, p11.pass, "pass");
