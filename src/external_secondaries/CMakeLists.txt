@@ -12,7 +12,6 @@ target_link_libraries(example-interface
 target_compile_options(example-interface PUBLIC -DECUFLASHER_EXAMPLE)
 
 add_executable(aktualizr-validate-secondary-interface validate_secondary_interface_test.cc)
-set_property(TARGET aktualizr-validate-secondary-interface PROPERTY CXX_STANDARD 11)
 target_link_libraries(aktualizr-validate-secondary-interface ${Boost_LIBRARIES} gtest)
 
 if(BUILD_WITH_CODE_COVERAGE)

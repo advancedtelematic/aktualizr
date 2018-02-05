@@ -52,15 +52,12 @@ set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h)
 include(CMakeParseArguments)
 
 function(add_aktualizr_test)
-    set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND CPP11)
+    set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES ARGS)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     add_executable(t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_SOURCES})
     target_link_libraries(t_${AKTUALIZR_TEST_NAME} aktualizr_static_lib ${TEST_LIBS})
-    if (AKTUALIZR_TEST_CPP11)
-        set_property(TARGET t_${AKTUALIZR_TEST_NAME} PROPERTY CXX_STANDARD 11)
-    endif()
     if(AKTUALIZR_TEST_PROJECT_WORKING_DIRECTORY)
         set(WD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     else()
@@ -291,13 +288,13 @@ add_test(NAME validate-secondary-interface
 if((BUILD_SOTA_TOOLS))
     # sota-tools tests
     add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
-                       CPP11 PROJECT_WORKING_DIRECTORY NO_VALGRIND)
+                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
     target_include_directories(t_sota_tools_auth_test
                                PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools
                                ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
 
-    add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc CPP11)
+    add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc)
     target_link_libraries(t_ostree_hash sota_tools_static_lib)
 
     # Setup coverage for sota_tools_static_lib
