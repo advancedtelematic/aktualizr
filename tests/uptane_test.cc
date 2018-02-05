@@ -32,14 +32,14 @@ const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 
 TEST(Uptane, Verify) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
   repo.updateRoot(Uptane::Version());
 
   repo.verifyRole(Uptane::Role::Root(), now, repo.getJSON("root.json"));
@@ -47,14 +47,14 @@ TEST(Uptane, Verify) {
 
 TEST(Uptane, VerifyDataBad) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json.removeMember("signatures");
 
@@ -67,14 +67,14 @@ TEST(Uptane, VerifyDataBad) {
 
 TEST(Uptane, VerifyDataUnknownType) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
@@ -88,14 +88,14 @@ TEST(Uptane, VerifyDataUnknownType) {
 
 TEST(Uptane, VerifyDataBadKeyId) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
@@ -108,14 +108,14 @@ TEST(Uptane, VerifyDataBadKeyId) {
 
 TEST(Uptane, VerifyDataBadThreshold) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
   Json::Value data_json = repo.getJSON("root.json");
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
@@ -132,11 +132,12 @@ TEST(Uptane, VerifyDataBadThreshold) {
  */
 TEST(Uptane, Initialize) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config conf("tests/config_tests_prov.toml");
-  conf.uptane.repo_server = tls_server + "/director";
+  conf.uptane.repo_server = http.tls_server + "/director";
 
-  conf.uptane.repo_server = tls_server + "/repo";
-  conf.tls.server = tls_server;
+  conf.uptane.repo_server = http.tls_server + "/repo";
+  conf.tls.server = http.tls_server;
 
   conf.uptane.primary_ecu_serial = "testecuserial";
 
@@ -160,7 +161,6 @@ TEST(Uptane, Initialize) {
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(conf, storage, http);
   result = uptane.initialize();
   EXPECT_TRUE(result);
@@ -345,16 +345,16 @@ TEST(Uptane, PetNameCreation) {
  */
 TEST(Uptane, Expires) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
 
   // Check that we don't fail on good metadata.
   EXPECT_NO_THROW(
@@ -384,16 +384,16 @@ TEST(Uptane, Expires) {
  */
 TEST(Uptane, Threshold) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
-  Uptane::TufRepository repo("director", tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
 
   // Check that we don't fail on good metadata.
   EXPECT_NO_THROW(
@@ -427,19 +427,19 @@ TEST(Uptane, Threshold) {
 
 TEST(Uptane, InitializeFail) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config conf("tests/config_tests_prov.toml");
-  conf.uptane.repo_server = tls_server + "/director";
+  conf.uptane.repo_server = http.tls_server + "/director";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 
-  conf.uptane.repo_server = tls_server + "/repo";
-  conf.tls.server = tls_server;
+  conf.uptane.repo_server = http.tls_server + "/repo";
+  conf.tls.server = http.tls_server;
 
   conf.uptane.primary_ecu_serial = "testecuserial";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(conf, storage, http);
 
   http.provisioningResponse = ProvisionFailure;
@@ -450,6 +450,7 @@ TEST(Uptane, InitializeFail) {
 
 TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   Config config;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
@@ -460,8 +461,8 @@ TEST(Uptane, PutManifest) {
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
   config.uptane.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
@@ -479,15 +480,13 @@ TEST(Uptane, PutManifest) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
 
   EXPECT_TRUE(uptane.putManifest(sota_client.AssembleManifest()));
-  // test_manifest is defined in httpfake.h
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir / test_manifest));
-  Json::Value json = Utils::parseJSONFile((temp_dir / test_manifest).string());
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir / http.test_manifest));
+  Json::Value json = Utils::parseJSONFile((temp_dir / http.test_manifest).string());
 
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
@@ -497,11 +496,12 @@ TEST(Uptane, PutManifest) {
 }
 
 TEST(Uptane, RunForeverNoUpdates) {
-  Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config conf("tests/config_tests_prov.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
-  conf.uptane.director_server = tls_server + "/director";
-  conf.uptane.repo_server = tls_server + "/repo";
+  conf.uptane.director_server = http.tls_server + "/director";
+  conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -509,7 +509,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.storage.uptane_public_key_path = "public.key";
   conf.pacman.sysroot = sysroot;
 
-  conf.tls.server = tls_server;
+  conf.tls.server = http.tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
 
@@ -519,7 +519,6 @@ TEST(Uptane, RunForeverNoUpdates) {
   commands_channel << boost::make_shared<command::Shutdown>();
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
@@ -540,11 +539,12 @@ TEST(Uptane, RunForeverNoUpdates) {
 }
 
 TEST(Uptane, RunForeverHasUpdates) {
-  Config conf("tests/config_tests_prov.toml");
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config conf("tests/config_tests_prov.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
-  conf.uptane.director_server = tls_server + "/director";
-  conf.uptane.repo_server = tls_server + "/repo";
+  conf.uptane.director_server = http.tls_server + "/director";
+  conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -565,14 +565,13 @@ TEST(Uptane, RunForeverHasUpdates) {
   ecu_config.metadata_path = temp_dir / "secondary_metadata";
   conf.uptane.secondary_configs.push_back(ecu_config);
 
-  conf.tls.server = tls_server;
+  conf.tls.server = http.tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
 
   commands_channel << boost::make_shared<command::GetUpdateRequests>();
   commands_channel << boost::make_shared<command::Shutdown>();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
@@ -600,17 +599,18 @@ std::vector<Uptane::Target> makePackage(const std::string& serial) {
 }
 
 TEST(Uptane, RunForeverInstall) {
-  TemporaryDirectory temp_dir;
   Config conf("tests/config_tests_prov.toml");
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
   conf.uptane.primary_ecu_serial = "testecuserial";
-  conf.uptane.director_server = tls_server + "/director";
-  conf.uptane.repo_server = tls_server + "/repo";
+  conf.uptane.director_server = http.tls_server + "/director";
+  conf.uptane.repo_server = http.tls_server + "/repo";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
   conf.pacman.sysroot = sysroot;
 
-  conf.tls.server = tls_server;
+  conf.tls.server = http.tls_server;
   event::Channel events_channel;
   command::Channel commands_channel;
 
@@ -618,17 +618,15 @@ TEST(Uptane, RunForeverInstall) {
   commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
   commands_channel << boost::make_shared<command::Shutdown>();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
-  // test_manifest is defined in httpfake.h
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / test_manifest));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
 
   Json::Value json;
   Json::Reader reader;
-  std::ifstream ks((temp_dir.Path() / test_manifest).c_str());
+  std::ifstream ks((temp_dir.Path() / http.test_manifest).c_str());
   std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
 
   reader.parse(mnfst_str, json);
@@ -638,14 +636,15 @@ TEST(Uptane, RunForeverInstall) {
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
-  Config config;
-  config.uptane.repo_server = tls_server + "/director";
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.uptane.repo_server = http.tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
-  config.uptane.repo_server = tls_server + "/repo";
-  config.tls.server = tls_server;
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.tls.server = http.tls_server;
   config.uptane.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_private_key_path = "private.key";
@@ -666,7 +665,6 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -712,14 +710,14 @@ TEST(Uptane, ProvisionOnServer) {
 
 TEST(Uptane, CheckOldProvision) {
   TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path(), true);
   system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
   Config config;
-  config.tls.server = tls_server;
-  config.uptane.director_server = tls_server + "/director";
-  config.uptane.repo_server = tls_server + "/repo";
+  config.tls.server = http.tls_server;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.path = temp_dir.Path();
 
-  HttpFake http(temp_dir.Path(), true);
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(storage->loadEcuRegistered());

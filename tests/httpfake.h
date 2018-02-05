@@ -10,9 +10,6 @@
 #include "httpinterface.h"
 #include "utils.h"
 
-const std::string test_manifest = "test_aktualizr_manifest.txt";
-const std::string tls_server = "https://tlsserver.com";
-
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
 class HttpFake : public HttpInterface {
@@ -137,6 +134,8 @@ class HttpFake : public HttpInterface {
   }
 
   ProvisioningResult provisioningResponse;
+  const std::string test_manifest = "test_aktualizr_manifest.txt";
+  const std::string tls_server = "https://tlsserver.com";
 
  private:
   /**
