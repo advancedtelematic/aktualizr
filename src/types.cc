@@ -20,49 +20,6 @@ Package Package::fromJson(const std::string& json_str) {
   return package;
 }
 
-Json::Value UpdateRequest::toJson() {
-  Json::Value json;
-  json["requestId"] = requestId;
-  switch (status) {
-    case Pending:
-      json["status"] = "Pending";
-      break;
-    case InFlight:
-      json["status"] = "InFlight";
-      break;
-    default:
-      throw std::logic_error("Unknown value for status");
-  }
-  json["packageId"] = packageId.toJson();
-  json["installPos"] = installPos;
-  json["createdAt"] = createdAt;
-  return json;
-}
-
-UpdateRequest UpdateRequest::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  return fromJson(json);
-}
-
-UpdateRequest UpdateRequest::fromJson(const Json::Value& json) {
-  UpdateRequest ur;
-  ur.requestId = json["requestId"].asString();
-  std::string status = json["status"].asString();
-  if (status == "Pending") {
-    ur.status = Pending;
-  } else if (status == "InFlight") {
-    ur.status = InFlight;
-  } else {
-    throw std::runtime_error("Failed to parse UpdateRequest");
-  }
-  ur.packageId = data::Package::fromJson(Json::FastWriter().write(json["packageId"]));
-  ur.installPos = json["installPos"].asUInt();
-  ur.createdAt = json["createdAt"].asString();
-  return ur;
-}
-
 Json::Value UpdateAvailable::toJson() {
   Json::Value json;
   json["update_id"] = update_id;
@@ -167,79 +124,6 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
         OperationResult::fromJson(Json::FastWriter().write(json["operation_results"][index])));
   }
   return update_report;
-}
-
-Json::Value InstalledFirmware::toJson() {
-  Json::Value json;
-  json["module"] = module;
-  json["firmware_id"] = firmware_id;
-  json["last_modified"] = last_modified;
-  return json;
-}
-
-InstalledFirmware InstalledFirmware::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  InstalledFirmware installed_firmware;
-  installed_firmware.firmware_id = json["firmware_id"].asString();
-  installed_firmware.module = json["module"].asString();
-  installed_firmware.last_modified = json["last_modified"].asUInt();
-  return installed_firmware;
-}
-
-Json::Value InstalledPackage::toJson() {
-  Json::Value json;
-  json["package_id"] = package_id;
-  json["name"] = name;
-  json["description"] = description;
-  json["last_modified"] = last_modified;
-  return json;
-}
-
-InstalledPackage InstalledPackage::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  InstalledPackage installed_package;
-  installed_package.package_id = json["package_id"].asString();
-  installed_package.name = json["name"].asString();
-  installed_package.description = json["description"].asString();
-  installed_package.last_modified = json["last_modified"].asUInt();
-  return installed_package;
-}
-
-Json::Value InstalledSoftware::toJson() {
-  Json::Value json;
-  json["packages"] = Json::arrayValue;
-  for (std::vector<InstalledPackage>::iterator it = packages.begin(); it != packages.end(); ++it) {
-    json["packages"].append(it->toJson());
-  }
-  json["firmwares"] = Json::arrayValue;
-  for (std::vector<InstalledFirmware>::iterator it = firmwares.begin(); it != firmwares.end(); ++it) {
-    json["firmwares"].append(it->toJson());
-  }
-  return json;
-}
-
-InstalledSoftware InstalledSoftware::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  std::vector<InstalledPackage> packages;
-
-  for (unsigned int index = 0; index < json["packages"].size(); ++index) {
-    packages.push_back(InstalledPackage::fromJson(Json::FastWriter().write(json["packages"][index])));
-  }
-
-  std::vector<InstalledFirmware> firmwares;
-  for (unsigned int index = 0; index < json["firmwares"].size(); ++index) {
-    firmwares.push_back(InstalledFirmware::fromJson(Json::FastWriter().write(json["firmwares"][index])));
-  }
-  InstalledSoftware installed_software;
-  installed_software.packages = packages;
-  installed_software.firmwares = firmwares;
-  return installed_software;
 }
 
 PackageManagerCredentials::PackageManagerCredentials(const CryptoKey& cryptokey)
