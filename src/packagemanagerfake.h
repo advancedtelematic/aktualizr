@@ -22,7 +22,9 @@ class PackageManagerFake : public PackageManagerInterface {
     return packages;
   }
 
-  virtual std::string getCurrent() { return refhash_fake; }
+  virtual std::string getCurrent() {
+    return boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+  }
 
   virtual data::InstallOutcome install(const Uptane::Target &target) const {
     (void)target;
