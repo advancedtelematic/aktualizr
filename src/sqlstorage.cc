@@ -9,6 +9,10 @@
 #include "utils.h"
 
 SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
+  if (!boost::filesystem::is_directory(config.schemas_path)) {
+    throw std::runtime_error("Aktualizr installation incorrect. Schemas directory " + config.schemas_path.string() +
+                             " missing");
+  }
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
