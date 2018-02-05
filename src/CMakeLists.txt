@@ -104,7 +104,8 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
         ${SQLITE3_LIBRARIES}
-        ${LibArchive_LIBRARIES})
+        ${LibArchive_LIBRARIES}
+        ${LIBDPKG_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr gcov)

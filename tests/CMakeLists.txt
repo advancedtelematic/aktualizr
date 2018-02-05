@@ -22,6 +22,7 @@ set (TEST_LIBS
     ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
+    ${LIBDPKG_LIBRARIES}
     testutilities
     gtest gmock)
 

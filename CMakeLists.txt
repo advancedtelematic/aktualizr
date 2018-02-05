@@ -46,6 +46,7 @@ if(BUILD_OSTREE)
 endif(BUILD_OSTREE)
 
 if(BUILD_DEB)
+    find_package(libdpkg REQUIRED)
     add_definitions(-DBUILD_DEB)
 endif(BUILD_DEB)
 
