@@ -13,7 +13,9 @@ target_link_libraries(aktualizr-info aktualizr_static_lib
   ${SQLITE3_LIBRARIES}
   gcov)
 
-install(TARGETS aktualizr-info RUNTIME DESTINATION bin)
+install(TARGETS aktualizr-info
+        COMPONENT aktualizr
+        RUNTIME DESTINATION bin)
 
 aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC})
 

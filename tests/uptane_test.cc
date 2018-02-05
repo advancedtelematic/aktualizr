@@ -735,7 +735,7 @@ TEST(Uptane, fs_to_sql_full) {
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
-  config.schemas_path = "config/storage";
+  config.schemas_path = "config/schemas";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
@@ -858,7 +858,7 @@ TEST(Uptane, fs_to_sql_partial) {
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
-  config.schemas_path = "config/storage";
+  config.schemas_path = "config/schemas";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
