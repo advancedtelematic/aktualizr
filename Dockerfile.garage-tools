@@ -29,6 +29,7 @@ RUN apt-get update && apt-get -y install \
   libboost-thread-dev \
   libcurl4-openssl-dev \
   libexpat1-dev \
+  libdpkg-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libjsoncpp-dev \

@@ -51,6 +51,7 @@ set(HEADERS
             logging.h
             openssl_compat.h
             ostree.h
+            deb.h
             packagemanagerfactory.h
             packagemanagerfake.h
             packagemanagerinterface.h
@@ -75,6 +76,11 @@ if(BUILD_OSTREE)
     list(APPEND SOURCES ostree.cc)
 endif(BUILD_OSTREE)
 
+if(BUILD_DEB)
+    list(APPEND SOURCES deb.cc)
+endif(BUILD_DEB)
+
+
 if(BUILD_P11)
     list(APPEND SOURCES p11engine.cc)
     list(APPEND HEADERS p11engine.h)
@@ -98,7 +104,8 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
         ${SQLITE3_LIBRARIES}
-        ${LibArchive_LIBRARIES})
+        ${LibArchive_LIBRARIES}
+        ${LIBDPKG_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr gcov)

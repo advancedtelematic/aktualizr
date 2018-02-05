@@ -15,10 +15,6 @@
 #include "logging.h"
 #include "utils.h"
 
-OstreePackage::OstreePackage(const std::string &ref_name_in, const std::string &refhash_in,
-                             const std::string &treehub_in)
-    : PackageInterface(ref_name_in, refhash_in, treehub_in) {}
-
 data::InstallOutcome OstreeManager::pull(const Config &config, const data::PackageManagerCredentials &cred,
                                          const std::string &refhash) {
   OstreeRepo *repo = NULL;
@@ -35,7 +31,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const data::Packa
     return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
-  if (!OstreeManager::addRemote(repo, config.uptane.ostree_server, cred)) {
+  if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, cred)) {
     g_object_unref(repo);
     return data::InstallOutcome(data::INSTALL_FAILED, "Error of adding remote");
   }
@@ -60,7 +56,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const data::Packa
   return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
 }
 
-data::InstallOutcome OstreePackage::install(const PackageConfig &config) const {
+data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const {
   const char *opt_osname = NULL;
   OstreeRepo *repo = NULL;
   GCancellable *cancellable = NULL;
@@ -79,8 +75,8 @@ data::InstallOutcome OstreePackage::install(const PackageConfig &config) const {
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), refhash.c_str());
-  if (!ostree_repo_resolve_rev(repo, refhash.c_str(), FALSE, &revision, &error)) {
+  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str());
+  if (!ostree_repo_resolve_rev(repo, target.sha256Hash().c_str(), FALSE, &revision, &error)) {
     LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
@@ -135,36 +131,16 @@ data::InstallOutcome OstreePackage::install(const PackageConfig &config) const {
   return data::InstallOutcome(data::OK, "Installation successful");
 }
 
-Json::Value OstreePackage::toEcuVersion(const std::string &ecu_serial, const Json::Value &custom) const {
-  Json::Value installed_image;
-  installed_image["filepath"] = ref_name;
-  installed_image["fileinfo"]["length"] = 0;
-  installed_image["fileinfo"]["hashes"]["sha256"] = refhash;
-
-  Json::Value value;
-  value["attacks_detected"] = "";
-  value["installed_image"] = installed_image;
-  value["ecu_serial"] = ecu_serial;
-  value["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
-  value["timeserver_time"] = "1970-01-01T00:00:00Z";
-  if (custom != Json::nullValue) {
-    value["custom"] = custom;
-  }
-  return value;
-}
-
-OstreeManager::OstreeManager(const PackageConfig &pconfig) {
-  sysroot_dir = pconfig.sysroot;
-  packages_file = pconfig.packages_file;
+OstreeManager::OstreeManager(const PackageConfig &pconfig) : config(pconfig) {
   try {
     getCurrent();
   } catch (...) {
-    throw std::runtime_error("Could not find OSTree sysroot at: " + sysroot_dir.string());
+    throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
   }
 }
 
 Json::Value OstreeManager::getInstalledPackages() {
-  std::string packages_str = Utils::readFile(packages_file);
+  std::string packages_str = Utils::readFile(config.packages_file);
   std::vector<std::string> package_lines;
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));
   Json::Value packages(Json::arrayValue);
@@ -187,19 +163,13 @@ Json::Value OstreeManager::getInstalledPackages() {
 std::string OstreeManager::getCurrent() {
   boost::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
   if (!staged_deployment) {
-    throw std::runtime_error("No deployments found in OSTree sysroot at: " + sysroot_dir.string());
+    throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
   }
   return ostree_deployment_get_csum(staged_deployment.get());
 }
 
-boost::shared_ptr<PackageInterface> OstreeManager::makePackage(const std::string &branch_name_in,
-                                                               const std::string &refhash_in,
-                                                               const std::string &treehub_in) {
-  return boost::make_shared<OstreePackage>(branch_name_in, refhash_in, treehub_in);
-}
-
 boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
-  boost::shared_ptr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(sysroot_dir);
+  boost::shared_ptr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
   GPtrArray *deployments = NULL;
   boost::shared_ptr<OstreeDeployment> res;

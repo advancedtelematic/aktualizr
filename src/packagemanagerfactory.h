@@ -12,6 +12,10 @@
 #include "ostree.h"
 #endif
 
+#ifdef BUILD_DEB
+#include "deb.h"
+#endif
+
 class PackageManagerFactory {
  public:
   static boost::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig) {
@@ -23,8 +27,11 @@ class PackageManagerFactory {
         throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif
       case kDebian:
-        LOG_ERROR << "Debian package managament is not currently supported.";
-        return boost::shared_ptr<PackageManagerInterface>();  // NULL-equivalent
+#ifdef BUILD_DEB
+        return boost::make_shared<DebianManager>(pconfig);
+#else
+        throw std::runtime_error("aktualizr was compiled without debian packages support!");
+#endif
       case kNone:
         return boost::make_shared<PackageManagerFake>();
       default:

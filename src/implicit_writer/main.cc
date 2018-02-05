@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
   config.provision.server = config.tls.server;
   config.uptane.repo_server = config.tls.server + "/repo";
   config.uptane.director_server = config.tls.server + "/director";
-  config.uptane.ostree_server = config.tls.server + "/treehub";
+  config.pacman.ostree_server = config.tls.server + "/treehub";
 
   std::cout << "Writing config file: " << config_out_path << "\n";
   boost::filesystem::path parent_dir = config_out_path.parent_path();

@@ -75,7 +75,8 @@ target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib
   ${CURL_LIBRARIES}
   ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES}
-  ${LIBOSTREE_LIBRARIES})
+  ${LIBOSTREE_LIBRARIES}
+  ${LIBDPKG_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(garage-deploy gcov)

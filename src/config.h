@@ -99,7 +99,6 @@ struct UptaneConfig {
         device_id(""),
         primary_ecu_serial(""),
         primary_ecu_hardware_id(""),
-        ostree_server(""),
         director_server(""),
         repo_server(""),
         key_source(kFile) {}
@@ -108,7 +107,6 @@ struct UptaneConfig {
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
-  std::string ostree_server;
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source;
@@ -116,10 +114,11 @@ struct UptaneConfig {
 };
 
 struct PackageConfig {
-  PackageConfig() : type(kOstree), os(""), sysroot(""), packages_file("/usr/package.manifest") {}
+  PackageConfig() : type(kOstree), os(""), sysroot(""), ostree_server(""), packages_file("/usr/package.manifest") {}
   PackageManager type;
   std::string os;
   boost::filesystem::path sysroot;
+  std::string ostree_server;
   boost::filesystem::path packages_file;
 };
 

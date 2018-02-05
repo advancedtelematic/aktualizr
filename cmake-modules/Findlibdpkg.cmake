@@ -1,0 +1,31 @@
+# - Find libdpkg-dev
+# Find the native LIBDPKG includes and library
+#
+#  LIBDPKG_INCLUDE_DIR - where to find libp11.h, etc.
+#  LIBDPKG_LIBRARIES   - List of libraries when using libp11.
+#  LIBDPKG_FOUND       - True if libdpkg-dev found.
+
+
+IF (LIBDPKG_INCLUDE_DIR)
+  # Already in cache, be silent
+  SET(LIBDPKG_FIND_QUIETLY TRUE)
+ENDIF (LIBDPKG_INCLUDE_DIR)
+
+FIND_PATH(LIBDPKG_INCLUDE_DIR dpkg/dpkg.h)
+
+SET(LIBDPKG_NAMES dpkg libdpkg)
+FIND_LIBRARY(LIBDPKG_LIBRARY NAMES ${LIBDPKG_NAMES} )
+
+# handle the QUIETLY and REQUIRED arguments and set LIBDPKG_FOUND to TRUE if 
+# all listed variables are TRUE
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(libdpkg DEFAULT_MSG LIBDPKG_LIBRARY LIBDPKG_INCLUDE_DIR)
+
+IF(LIBDPKG_FOUND)
+  SET( LIBDPKG_LIBRARIES ${LIBDPKG_LIBRARY} )
+ELSE(LIBDPKG_FOUND)
+  SET( LIBDPKG_LIBRARIES )
+ENDIF(LIBDPKG_FOUND)
+
+MARK_AS_ADVANCED( LIBDPKG_LIBRARY LIBDPKG_INCLUDE_DIR )
+

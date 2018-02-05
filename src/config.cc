@@ -177,7 +177,7 @@ void Config::postUpdateValues() {
 
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
-  if (uptane.ostree_server.empty()) uptane.ostree_server = tls.server + "/treehub";
+  if (pacman.ostree_server.empty()) pacman.ostree_server = tls.server + "/treehub";
 }
 
 void Config::updateFromToml(const boost::filesystem::path& filename) {
@@ -254,7 +254,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(uptane.device_id, "uptane.device_id", boost::log::trivial::warning, pt);
   CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", boost::log::trivial::warning, pt);
   CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(uptane.ostree_server, "uptane.ostree_server", boost::log::trivial::warning, pt);
   CopyFromConfig(uptane.director_server, "uptane.director_server", boost::log::trivial::warning, pt);
   CopyFromConfig(uptane.repo_server, "uptane.repo_server", boost::log::trivial::warning, pt);
 
@@ -279,6 +278,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   CopyFromConfig(pacman.os, "pacman.os", boost::log::trivial::warning, pt);
   CopyFromConfig(pacman.sysroot, "pacman.sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(pacman.ostree_server, "pacman.ostree_server", boost::log::trivial::warning, pt);
   CopyFromConfig(pacman.packages_file, "pacman.packages_file", boost::log::trivial::warning, pt);
 
   std::string storage_type = "filesystem";
@@ -331,7 +331,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     uptane.director_server = cmd["director-server"].as<std::string>();
   }
   if (cmd.count("ostree-server") != 0) {
-    uptane.ostree_server = cmd["ostree-server"].as<std::string>();
+    pacman.ostree_server = cmd["ostree-server"].as<std::string>();
   }
 
   if (cmd.count("secondary-config") != 0) {
@@ -508,7 +508,6 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, uptane.device_id, "device_id");
   writeOption(sink, uptane.primary_ecu_serial, "primary_ecu_serial");
   writeOption(sink, uptane.primary_ecu_hardware_id, "primary_ecu_hardware_id");
-  writeOption(sink, uptane.ostree_server, "ostree_server");
   writeOption(sink, uptane.director_server, "director_server");
   writeOption(sink, uptane.repo_server, "repo_server");
   writeOption(sink, uptane.key_source, "key_source");
@@ -520,6 +519,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, pacman.type, "type");
   writeOption(sink, pacman.os, "os");
   writeOption(sink, pacman.sysroot, "sysroot");
+  writeOption(sink, pacman.ostree_server, "ostree_server");
   writeOption(sink, pacman.packages_file, "packages_file");
   sink << "\n";
 

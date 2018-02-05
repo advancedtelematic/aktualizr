@@ -22,7 +22,7 @@ TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = kDebian;
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
-  EXPECT_FALSE(pacman);
+  EXPECT_TRUE(pacman);
 }
 
 TEST(PackageManagerFactory, None) {
