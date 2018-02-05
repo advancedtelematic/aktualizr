@@ -16,7 +16,7 @@
 
 boost::filesystem::path sysroot;
 
-TEST(OstreePackage, PullBadUri) {
+TEST(OstreeManager, PullBadUriNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.ostree_server = "bad-url";
@@ -36,7 +36,33 @@ TEST(OstreePackage, PullBadUri) {
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
-TEST(OstreePackage, InstallBadUri) {
+TEST(OstreeManager, PullBadUriWithCreds) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.ostree_server = "bad-url";
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_private_key_path = "public.key";
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
+  std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
+  std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
+  storage->storeTlsCa(ca);
+  storage->storeTlsPkey(pkey);
+  storage->storeTlsCert(cert);
+  CryptoKey keys(storage, config);
+  data::PackageManagerCredentials cred(keys);
+  data::InstallOutcome result = OstreeManager::pull(config, cred, "hash");
+
+  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
+}
+
+TEST(OstreeManager, InstallBadUri) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
   target_json["length"] = 0;
@@ -76,6 +102,90 @@ TEST(OstreeManager, ParseInstalledPackages) {
   EXPECT_EQ(packages[1]["version"], "2.0");
   EXPECT_EQ(packages[2]["name"], "bash");
   EXPECT_EQ(packages[2]["version"], "1.1");
+}
+
+TEST(OstreeManager, AddRemoteNoCreds) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.storage.path = temp_dir.Path();
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  CryptoKey keys(storage, config);
+  data::PackageManagerCredentials cred(keys);
+
+  OstreeRepo *repo = NULL;
+  GError *error = NULL;
+  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  EXPECT_TRUE(ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, &error));
+  EXPECT_TRUE(OstreeManager::addRemote(repo, config.pacman.ostree_server, cred));
+
+  g_autofree char *url = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "url", NULL, &url, &error));
+  EXPECT_EQ(url, config.pacman.ostree_server);
+
+  gboolean out_gpg_verify;
+  EXPECT_TRUE(ostree_repo_get_remote_boolean_option(repo, remote, "gpg-verify", FALSE, &out_gpg_verify, &error));
+
+  g_autofree char *ostree_cert = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-client-cert-path", NULL, &ostree_cert, &error));
+  EXPECT_EQ(ostree_cert, nullptr);
+
+  g_autofree char *ostree_key = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-client-key-path", NULL, &ostree_key, &error));
+  EXPECT_EQ(ostree_key, nullptr);
+
+  g_autofree char *ostree_ca = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-ca-path", NULL, &ostree_ca, &error));
+  EXPECT_EQ(ostree_ca, nullptr);
+
+  g_object_unref(repo);
+}
+
+TEST(OstreeManager, AddRemoteWithCreds) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.storage.path = temp_dir.Path();
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
+  std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
+  std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
+  storage->storeTlsCa(ca);
+  storage->storeTlsPkey(pkey);
+  storage->storeTlsCert(cert);
+  CryptoKey keys(storage, config);
+  data::PackageManagerCredentials cred(keys);
+
+  OstreeRepo *repo = NULL;
+  GError *error = NULL;
+  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  EXPECT_TRUE(ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, &error));
+  EXPECT_TRUE(OstreeManager::addRemote(repo, config.pacman.ostree_server, cred));
+
+  g_autofree char *url = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "url", NULL, &url, &error));
+  EXPECT_EQ(url, config.pacman.ostree_server);
+
+  gboolean out_gpg_verify;
+  EXPECT_TRUE(ostree_repo_get_remote_boolean_option(repo, remote, "gpg-verify", FALSE, &out_gpg_verify, &error));
+
+  g_autofree char *ostree_cert = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-client-cert-path", NULL, &ostree_cert, &error));
+  EXPECT_EQ(ostree_cert, cred.cert_file());
+
+  g_autofree char *ostree_key = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-client-key-path", NULL, &ostree_key, &error));
+  EXPECT_EQ(ostree_key, cred.pkey_file());
+
+  g_autofree char *ostree_ca = NULL;
+  EXPECT_TRUE(ostree_repo_get_remote_option(repo, remote, "tls-ca-path", NULL, &ostree_ca, &error));
+  EXPECT_EQ(ostree_ca, cred.ca_file());
+
+  g_object_unref(repo);
 }
 
 #ifndef __NO_MAIN__

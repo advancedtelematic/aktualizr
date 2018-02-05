@@ -33,7 +33,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const data::Packa
 
   if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, cred)) {
     g_object_unref(repo);
-    return data::InstallOutcome(data::INSTALL_FAILED, "Error of adding remote");
+    return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
   }
 
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
