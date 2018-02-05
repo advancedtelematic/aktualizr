@@ -11,8 +11,15 @@
 #include "crypto.h"
 #include "packagemanagerinterface.h"
 
+static std::string refhash_fake;
+
 class PackageManagerFake : public PackageManagerInterface {
  public:
+  PackageManagerFake() {
+    // Default to a dummy hash so that we can send something to the server and
+    // tests have something to check for.
+    refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+  }
   virtual Json::Value getInstalledPackages() {
     Json::Value packages(Json::arrayValue);
     Json::Value package;
@@ -22,12 +29,11 @@ class PackageManagerFake : public PackageManagerInterface {
     return packages;
   }
 
-  virtual std::string getCurrent() {
-    return boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
-  }
+  virtual std::string getCurrent() { return refhash_fake; }
 
   virtual data::InstallOutcome install(const Uptane::Target &target) const {
     (void)target;
+    refhash_fake = target.sha256Hash();
     return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
   };
 };
