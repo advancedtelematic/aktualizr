@@ -17,13 +17,13 @@ if (INKSCAPE)
     add_dependencies(docs docs-inkscape)
 endif(INKSCAPE)
 
-if (DOXYGEN_FOUND)
+if (DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
     configure_file(Doxyfile.in Doxyfile @ONLY)
     add_custom_target(doxygen
         COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
         COMMENT "Generating Doxygen Documentation")
     add_dependencies(docs doxygen)
     install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html/ DESTINATION share/doc/aktualizr)
-else(DOXYGEN_FOUND)
-    message(WARNING "doxygen not found, skipping")
-endif(DOXYGEN_FOUND)
+else(DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
+    message(WARNING "doxygen + dot not found, skipping")
+endif(DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
