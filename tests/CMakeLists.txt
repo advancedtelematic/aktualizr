@@ -102,15 +102,6 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME events SOURCES events_test.cc)
-
-add_aktualizr_test(NAME commands SOURCES commands_test.cc)
-
-add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
-
-
 if(NOT BUILD_WITH_CODE_COVERAGE)
     # Code coverage disables valgrind, and this test is only checking that
     # valgrind finds memory leaks
@@ -118,20 +109,28 @@ if(NOT BUILD_WITH_CODE_COVERAGE)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
+add_aktualizr_test(NAME commands SOURCES commands_test.cc)
+
+add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME events SOURCES events_test.cc)
+
+add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME socket_gateway SOURCES socketgateway_test.cc
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/)
-
-add_aktualizr_test(NAME timer SOURCES timer_test.cc)
-
-add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
 add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)

@@ -16,6 +16,26 @@
 
 boost::filesystem::path sysroot;
 
+TEST(OstreePackage, PullBadUri) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.pacman.ostree_server = "bad-url";
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_private_key_path = "public.key";
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  CryptoKey keys(storage, config);
+  data::PackageManagerCredentials cred(keys);
+  data::InstallOutcome result = OstreeManager::pull(config, cred, "hash");
+
+  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
+}
+
 TEST(OstreePackage, InstallBadUri) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
