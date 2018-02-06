@@ -52,6 +52,8 @@ The following debian packages are used in the project:
 * clang-format-3.8 (optional)
 * cmake (>= 3.5.1)
 * curl (>= 7.47)
+* doxygen (when building additional documentation)
+* graphiz (when building additional documentation)
 * lcov (when building for code coverage)
 * libarchive-dev
 * libboost-dev
@@ -63,7 +65,8 @@ The following debian packages are used in the project:
 * libboost-system-dev (>= 1.58.0)
 * libboost-thread-dev (>= 1.58.0)
 * libcurl4-openssl-dev (>= 7.47)
-* libostree-dev
+* libdpkg-dev (when building with Debian packaging support)
+* libostree-dev (when building with OSTree support)
 * libpthread-stubs0-dev (>=0.3)
 * libsodium-dev
 * libsqlite3-dev

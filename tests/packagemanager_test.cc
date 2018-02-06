@@ -14,15 +14,27 @@ TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
+#ifdef BUILD_OSTREE
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
   EXPECT_TRUE(pacman);
+#else
+  EXPECT_THROW(
+      boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman),
+      std::runtime_error);
+#endif
 }
 
 TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = kDebian;
+#ifdef BUILD_DEB
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
   EXPECT_TRUE(pacman);
+#else
+  EXPECT_THROW(
+      boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman),
+      std::runtime_error);
+#endif
 }
 
 TEST(PackageManagerFactory, None) {
