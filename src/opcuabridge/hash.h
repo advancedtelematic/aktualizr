@@ -8,35 +8,36 @@ class Hash {
  public:
   Hash() {}
   virtual ~Hash() {}
- public:
-  const HashFunction& get_function() const { return function_; }
-  void set_function(const HashFunction& function) { function_ = function; }
-  const std::string& get_digest() const { return digest_; }
-  void set_digest(const std::string& digest) { digest_ = digest; }
- protected:
-  HashFunction function_;
-  std::string digest_;
- public:
+
+  const HashFunction& getFunction() const { return function_; }
+  void setFunction(const HashFunction& function) { function_ = function; }
+  const std::string& getDigest() const { return digest_; }
+  void setDigest(const std::string& digest) { digest_ = digest; }
+
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["function"] = get_function();
-    v["digest"] = get_digest();
+    v["function"] = getFunction();
+    v["digest"] = getDigest();
     return v;
   }
   void unwrapMessage(Json::Value v) {
-    set_function(static_cast<HashFunction>(v["function"].asInt()));
-    set_digest(v["digest"].asString());
+    setFunction(static_cast<HashFunction>(v["function"].asInt()));
+    setDigest(v["digest"].asString());
   }
+
+ protected:
+  HashFunction function_;
+  std::string digest_;
+
  private:
- private:
-  #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
+#ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
   SERIALIZE_FUNCTION_FRIEND_DECLARATION
 
   DEFINE_SERIALIZE_METHOD() {
     SERIALIZE_FIELD(ar, "function_", function_);
     SERIALIZE_FIELD(ar, "digest_", digest_);
   }
-  #endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
+#endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
 };
 }  // namespace opcuabridge
 

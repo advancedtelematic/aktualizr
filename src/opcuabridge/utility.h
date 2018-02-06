@@ -11,8 +11,7 @@ template <typename A, typename T> struct serialize_field {};
     void operator()(STREAM &ar, const std::string &xml_tag, T &d)
 
 #define SERIALIZE_FIELD_DECL_END                                               \
-  }                                                                            \
-  ;
+  };
 
 SERIALIZE_FIELD_DECL_BEGIN(DATA_SERIALIZATION_OUT_XML_STREAM) {
   ar &boost::serialization::make_nvp(xml_tag.c_str(), d);

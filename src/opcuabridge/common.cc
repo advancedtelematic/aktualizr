@@ -36,7 +36,7 @@ UA_StatusCode read<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
                                const UA_NumericRange *range, UA_DataValue *dataValue) {
 
   const BinaryDataContainer& bin_data =
-      *reinterpret_cast<BinaryDataContainer*>(nodeContext);
+    *static_cast<BinaryDataContainer*>(nodeContext);
 
   UA_Variant_setArrayCopy(&dataValue->value, &bin_data[0], bin_data.size(),
                           &UA_TYPES[UA_TYPES_BYTE]);
@@ -54,10 +54,10 @@ UA_StatusCode write<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
   if (!UA_Variant_isEmpty(&data->value) &&
       UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
     BinaryDataContainer* bin_data =
-        reinterpret_cast<BinaryDataContainer*>(nodeContext);
+      static_cast<BinaryDataContainer*>(nodeContext);
     bin_data->resize(data->value.arrayLength);
     const unsigned char* src = 
-      reinterpret_cast<const unsigned char *>(data->value.data);
+      static_cast<const unsigned char *>(data->value.data);
     std::copy(src, src + data->value.arrayLength, bin_data->begin());
   }
   return UA_STATUSCODE_GOOD;

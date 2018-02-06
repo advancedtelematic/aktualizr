@@ -8,37 +8,39 @@ class ImageRequest {
  public:
   ImageRequest() {}
   virtual ~ImageRequest() {}
- public:
-  const std::string& get_filename() const { return filename_; }
-  void set_filename(const std::string& filename) { filename_ = filename; }
+
+  const std::string& getFilename() const { return filename_; }
+  void setFilename(const std::string& filename) { filename_ = filename; }
   INITSERVERNODESET_FUNCTION_DEFINITION(ImageRequest)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_FUNCTION_DEFINITION()                     // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                    // ClientWrite(UA_Client*)
+
  protected:
   std::string filename_;
+
  private:
   static const char* node_id_;
- private:
+
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["filename"] = get_filename();
+    v["filename"] = getFilename();
     return v;
   }
-  void unwrapMessage(Json::Value v) { set_filename(v["filename"].asString()); }
- private:
+  void unwrapMessage(Json::Value v) { setFilename(v["filename"].asString()); }
+
   WRAPMESSAGE_FUCTION_DEFINITION(ImageRequest)
   UNWRAPMESSAGE_FUCTION_DEFINITION(ImageRequest)
   READ_FUNCTION_FRIEND_DECLARATION(ImageRequest)
   WRITE_FUNCTION_FRIEND_DECLARATION(ImageRequest)
   INTERNAL_FUNCTIONS_FRIEND_DECLARATION(ImageRequest)
- private:
-  #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
+
+#ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
   SERIALIZE_FUNCTION_FRIEND_DECLARATION
 
   DEFINE_SERIALIZE_METHOD() {
     SERIALIZE_FIELD(ar, "filename_", filename_);
   }
-  #endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
+#endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
 };
 }  // namespace opcuabridge
 

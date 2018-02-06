@@ -63,23 +63,22 @@ const std::string kHexValue = "00010203040506070809AABBCCDDEEFF";
 opcuabridge::Signature createSignature(const std::string& keyid, const opcuabridge::SignatureMethod& method,
                                        const std::string& hash, const std::string& value) {
   opcuabridge::Signature s;
-  s.set_keyid(keyid);
-  s.set_method(method);
+  s.setKeyid(keyid);
+  s.setMethod(method);
   opcuabridge::Hash h;
-  h.set_function(opcuabridge::HASH_FUN_SHA256);
-  h.set_digest(kHexValue);
-  s.set_hash(h);
-  s.set_value(value);
+  h.setFunction(opcuabridge::HASH_FUN_SHA256);
+  h.setDigest(kHexValue);
+  s.setHash(h);
+  s.setValue(value);
   return s;
 }
 
 opcuabridge::Signed createSigned(std::size_t n) {
   opcuabridge::Signed s;
-  s.set_numberOfTokens(n);
   std::vector<int> tokens;
   for (int i = 0; i < n; ++i) tokens.push_back(i);
-  s.set_tokens(tokens);
-  s.set_timestamp(time(NULL));
+  s.setTokens(tokens);
+  s.setTimestamp(time(NULL));
   return s;
 }
 
@@ -116,40 +115,37 @@ TEST(opcuabridge, serialization) {
 
   std::vector<opcuabridge::Hash> hashes;
   opcuabridge::Hash h;
-  h.set_function(opcuabridge::HASH_FUN_SHA256);
-  h.set_digest(kHexValue);
+  h.setFunction(opcuabridge::HASH_FUN_SHA256);
+  h.setDigest(kHexValue);
   hashes.push_back(h);
 
   opcuabridge::Image image;
-  image.set_filename("IMAGE_FILENAME.EXT");
-  image.set_length(0xffff);
-  image.set_numberOfHashes(hashes.size());
-  image.set_hashes(hashes);
+  image.setFilename("IMAGE_FILENAME.EXT");
+  image.setLength(0xffff);
+  image.setHashes(hashes);
 
   opcuabridge::ECUVersionManifestSigned ecu_version_manifest_signed;
-  ecu_version_manifest_signed.set_ecuIdentifier("XXXXXXXX");
-  ecu_version_manifest_signed.set_previousTime(0);
-  ecu_version_manifest_signed.set_currentTime(time(NULL));
-  ecu_version_manifest_signed.set_securityAttack("");
-  ecu_version_manifest_signed.set_installedImage(image);
+  ecu_version_manifest_signed.setEcuIdentifier("XXXXXXXX");
+  ecu_version_manifest_signed.setPreviousTime(0);
+  ecu_version_manifest_signed.setCurrentTime(time(NULL));
+  ecu_version_manifest_signed.setSecurityAttack("");
+  ecu_version_manifest_signed.setInstalledImage(image);
 
   opcuabridge::ECUVersionManifest ecu_version_manifest;
-  ecu_version_manifest.set_numberOfSignatures(signatures.size());
-  ecu_version_manifest.set_signatures(signatures);
-  ecu_version_manifest.set_ecuVersionManifestSigned(ecu_version_manifest_signed);
+  ecu_version_manifest.setSignatures(signatures);
+  ecu_version_manifest.setEcuVersionManifestSigned(ecu_version_manifest_signed);
 
   opcuabridge::VersionReport vr;
-  vr.set_tokenForTimeServer(0);
-  vr.set_ecuVersionManifest(ecu_version_manifest);
+  vr.setTokenForTimeServer(0);
+  vr.setEcuVersionManifest(ecu_version_manifest);
 
   EXPECT_TRUE(SerializeMessage("VersionReport", vr));
 
   // CurrentTime
 
   opcuabridge::CurrentTime ct;
-  ct.set_numberOfSignatures(signatures.size());
-  ct.set_signatures(signatures);
-  ct.set_signed(s);
+  ct.setSignatures(signatures);
+  ct.setSigned(s);
 
   EXPECT_TRUE(SerializeMessage("CurrentTime", ct));
 
@@ -157,47 +153,47 @@ TEST(opcuabridge, serialization) {
 
   int guid = time(NULL);
   opcuabridge::MetadataFiles mds;
-  mds.set_GUID(guid);
-  mds.set_numberOfMetadataFiles(1);
+  mds.setGUID(guid);
+  mds.setNumberOfMetadataFiles(1);
 
   EXPECT_TRUE(SerializeMessage("MetadataFiles", mds));
 
   // MetadataFile
 
   opcuabridge::MetadataFile md;
-  md.set_GUID(guid);
-  md.set_fileNumber(1);
-  md.set_filename("METADATA.EXT");
+  md.setGUID(guid);
+  md.setFileNumber(1);
+  md.setFilename("METADATA.EXT");
   std::vector<unsigned char> metadata(1024);
   std::generate(metadata.begin(), metadata.end(), boost::bind(random_byte, boost::ref(gen)));
-  md.set_metadata(metadata);
+  md.setMetadata(metadata);
 
   EXPECT_TRUE(SerializeMessage("MetadataFile", md));
 
   // ImageRequest
 
   opcuabridge::ImageRequest ir;
-  ir.set_filename("IMAGE_FILE.EXT");
+  ir.setFilename("IMAGE_FILE.EXT");
 
   EXPECT_TRUE(SerializeMessage("ImageRequest", ir));
 
   // ImageFile
 
   opcuabridge::ImageFile img_file;
-  img_file.set_filename("IMAGE_FILE.EXT");
-  img_file.set_numberOfBlocks(1);
-  img_file.set_blockSize(1024);
+  img_file.setFilename("IMAGE_FILE.EXT");
+  img_file.setNumberOfBlocks(1);
+  img_file.setBlockSize(1024);
 
   EXPECT_TRUE(SerializeMessage("ImageFile", img_file));
 
   // ImageBlock
 
   opcuabridge::ImageBlock img_block;
-  img_block.set_filename("IMAGE_FILE.EXT");
-  img_block.set_blockNumber(1);
+  img_block.setFilename("IMAGE_FILE.EXT");
+  img_block.setBlockNumber(1);
   std::vector<unsigned char> block(1024);
   std::generate(block.begin(), block.end(), boost::bind(random_byte, boost::ref(gen)));
-  img_block.set_block(block);
+  img_block.setBlock(block);
 
   EXPECT_TRUE(SerializeMessage("ImageBlock", img_block));
 }
@@ -206,7 +202,7 @@ TEST(opcuabridge, transfer_messages) {
   std::string opc_port = TestUtils::getFreePort();
   std::string opc_url = std::string("opc.tcp://localhost:") + opc_port;
 
-  TestHelperProcess server("./opcuabridge_server", opc_port);
+  TestHelperProcess server("./opcuabridge-server", opc_port);
 
   UA_Client* client = UA_Client_new(UA_ClientConfig_default);
 

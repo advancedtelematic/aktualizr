@@ -115,7 +115,7 @@ UA_StatusCode read(UA_Server *server, const UA_NodeId *sessionId,
                    void *nodeContext, UA_Boolean sourceTimeStamp,
                    const UA_NumericRange *range, UA_DataValue *dataValue) {
 
-  std::string msg = T::wrapMessage(reinterpret_cast<T *>(nodeContext));
+  std::string msg = T::wrapMessage(static_cast<T*>(nodeContext));
 
   UA_Variant_setArrayCopy(&dataValue->value, msg.c_str(), msg.size(),
                           &UA_TYPES[UA_TYPES_BYTE]);
@@ -138,8 +138,8 @@ UA_StatusCode write(UA_Server *server, const UA_NodeId *sessionId,
 
   if (!UA_Variant_isEmpty(&data->value) &&
       UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    T::unwrapMessage(reinterpret_cast<T *>(nodeContext),
-                     reinterpret_cast<const char *>(data->value.data),
+    T::unwrapMessage(static_cast<T*>(nodeContext),
+                     static_cast<const char*>(data->value.data),
                      data->value.arrayLength);
   }
   return UA_STATUSCODE_GOOD;
@@ -220,7 +220,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id,
       client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
   if (retval == UA_STATUSCODE_GOOD &&
       UA_Variant_hasArrayType(val, &UA_TYPES[UA_TYPES_BYTE])) {
-    MessageT::unwrapMessage(obj, reinterpret_cast<const char *>(val->data),
+    MessageT::unwrapMessage(obj, static_cast<const char*>(val->data),
                             val->arrayLength);
   }
   UA_Variant_delete(val);
@@ -235,7 +235,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id,
       client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
   if (retval == UA_STATUSCODE_GOOD &&
       UA_Variant_hasArrayType(val, &UA_TYPES[UA_TYPES_BYTE])) {
-    MessageT::unwrapMessage(obj, reinterpret_cast<const char *>(val->data),
+    MessageT::unwrapMessage(obj, static_cast<const char*>(val->data),
                             val->arrayLength);
     // read binary child node
     UA_Variant *bin_val = UA_Variant_new();
@@ -245,7 +245,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id,
         UA_Variant_hasArrayType(bin_val, &UA_TYPES[UA_TYPES_BYTE])) {
       bin_data->resize(bin_val->arrayLength);
       const unsigned char* src = 
-        reinterpret_cast<const unsigned char *>(bin_val->data);
+        static_cast<const unsigned char*>(bin_val->data);
       std::copy(src, src + bin_val->arrayLength, bin_data->begin());
     }
     UA_Variant_delete(bin_val);
@@ -255,7 +255,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id,
 }
 } // namespace internal
 
-namespace converto {
+namespace convert_to {
 
 template <typename T> inline Json::Value jsonArray(const std::vector<T> &v) {
   Json::Value jsonArray;
@@ -299,7 +299,7 @@ template <> inline std::vector<int> stdVector(const Json::Value &v) {
   return stdv;
 }
 
-} // namespace converto
+} // namespace convert_to
 
 } // namespace opcuabridge
 

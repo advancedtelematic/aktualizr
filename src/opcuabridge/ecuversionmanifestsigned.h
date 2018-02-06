@@ -10,43 +10,44 @@ class ECUVersionManifestSigned {
  public:
   ECUVersionManifestSigned() {}
   virtual ~ECUVersionManifestSigned() {}
- public:
-  const std::string& get_ecuIdentifier() const { return ecuIdentifier_; }
-  void set_ecuIdentifier(const std::string& ecuIdentifier) { ecuIdentifier_ = ecuIdentifier; }
-  const int& get_previousTime() const { return previousTime_; }
-  void set_previousTime(const int& previousTime) { previousTime_ = previousTime; }
-  const int& get_currentTime() const { return currentTime_; }
-  void set_currentTime(const int& currentTime) { currentTime_ = currentTime; }
-  const std::string& get_securityAttack() const { return securityAttack_; }
-  void set_securityAttack(const std::string& securityAttack) { securityAttack_ = securityAttack; }
-  const Image& get_installedImage() const { return installedImage_; }
-  void set_installedImage(const Image& installedImage) { installedImage_ = installedImage; }
+
+  const std::string& getEcuIdentifier() const { return ecuIdentifier_; }
+  void setEcuIdentifier(const std::string& ecuIdentifier) { ecuIdentifier_ = ecuIdentifier; }
+  const int& getPreviousTime() const { return previousTime_; }
+  void setPreviousTime(const int& previousTime) { previousTime_ = previousTime; }
+  const int& getCurrentTime() const { return currentTime_; }
+  void setCurrentTime(const int& currentTime) { currentTime_ = currentTime; }
+  const std::string& getSecurityAttack() const { return securityAttack_; }
+  void setSecurityAttack(const std::string& securityAttack) { securityAttack_ = securityAttack; }
+  const Image& getInstalledImage() const { return installedImage_; }
+  void setInstalledImage(const Image& installedImage) { installedImage_ = installedImage; }
+
+  Json::Value wrapMessage() const {
+    Json::Value v;
+    v["ecuIdentifier"] = getEcuIdentifier();
+    v["previousTime"] = getPreviousTime();
+    v["currentTime"] = getCurrentTime();
+    v["securityAttack"] = getSecurityAttack();
+    v["installedImage"] = getInstalledImage().wrapMessage();
+    return v;
+  }
+  void unwrapMessage(Json::Value v) {
+    setEcuIdentifier(v["ecuIdentifier"].asString());
+    setPreviousTime(v["previousTime"].asInt());
+    setCurrentTime(v["currentTime"].asInt());
+    setSecurityAttack(v["securityAttack"].asString());
+    Image i; i.unwrapMessage(v["installedImage"]); setInstalledImage(i);
+  }
+
  protected:
   std::string ecuIdentifier_;
   int previousTime_;
   int currentTime_;
   std::string securityAttack_;
   Image installedImage_;
- public:
-  Json::Value wrapMessage() const {
-    Json::Value v;
-    v["ecuIdentifier"] = get_ecuIdentifier();
-    v["previousTime"] = get_previousTime();
-    v["currentTime"] = get_currentTime();
-    v["securityAttack"] = get_securityAttack();
-    v["installedImage"] = get_installedImage().wrapMessage();
-    return v;
-  }
-  void unwrapMessage(Json::Value v) {
-    set_ecuIdentifier(v["ecuIdentifier"].asString());
-    set_previousTime(v["previousTime"].asInt());
-    set_currentTime(v["currentTime"].asInt());
-    set_securityAttack(v["securityAttack"].asString());
-    Image i; i.unwrapMessage(v["installedImage"]); set_installedImage(i);
-  }
+
  private:
- private:
-  #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
+#ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
   SERIALIZE_FUNCTION_FRIEND_DECLARATION
 
   DEFINE_SERIALIZE_METHOD() {
@@ -56,7 +57,7 @@ class ECUVersionManifestSigned {
     SERIALIZE_FIELD(ar, "securityAttack_", securityAttack_);
     SERIALIZE_FIELD(ar, "installedImage_", installedImage_);
   }
-  #endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
+#endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
 };
 }  // namespace opcuabridge
 

@@ -11,16 +11,16 @@ class VersionReport {
   VersionReport() {}
   virtual ~VersionReport() {}
 
- public:
-  const int& get_tokenForTimeServer() const { return tokenForTimeServer_; }
-  void set_tokenForTimeServer(const int& tokenForTimeServer) { tokenForTimeServer_ = tokenForTimeServer; }
-  const ECUVersionManifest& get_ecuVersionManifest() const { return ecuVersionManifest_; }
-  void set_ecuVersionManifest(const ECUVersionManifest& ecuVersionManifest) {
+  const int& getTokenForTimeServer() const { return tokenForTimeServer_; }
+  void setTokenForTimeServer(const int& tokenForTimeServer) { tokenForTimeServer_ = tokenForTimeServer; }
+  const ECUVersionManifest& getEcuVersionManifest() const { return ecuVersionManifest_; }
+  void setEcuVersionManifest(const ECUVersionManifest& ecuVersionManifest) {
     ecuVersionManifest_ = ecuVersionManifest;
   }
   INITSERVERNODESET_FUNCTION_DEFINITION(VersionReport)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
+
  protected:
   int tokenForTimeServer_;
   ECUVersionManifest ecuVersionManifest_;
@@ -28,27 +28,25 @@ class VersionReport {
  private:
   static const char* node_id_;
 
- private:
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["tokenForTimeServer"] = get_tokenForTimeServer();
-    v["ecuVersionManifest"] = get_ecuVersionManifest().wrapMessage();
+    v["tokenForTimeServer"] = getTokenForTimeServer();
+    v["ecuVersionManifest"] = getEcuVersionManifest().wrapMessage();
     return v;
   }
   void unwrapMessage(Json::Value v) {
-    set_tokenForTimeServer(v["tokenForTimeServer"].asInt());
+    setTokenForTimeServer(v["tokenForTimeServer"].asInt());
     ECUVersionManifest vm;
     vm.unwrapMessage(v["ecuVersionManifest"]);
-    set_ecuVersionManifest(vm);
+    setEcuVersionManifest(vm);
   }
 
- private:
   WRAPMESSAGE_FUCTION_DEFINITION(VersionReport)
   UNWRAPMESSAGE_FUCTION_DEFINITION(VersionReport)
   READ_FUNCTION_FRIEND_DECLARATION(VersionReport)
   WRITE_FUNCTION_FRIEND_DECLARATION(VersionReport)
   INTERNAL_FUNCTIONS_FRIEND_DECLARATION(VersionReport)
- private:
+
 #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
   SERIALIZE_FUNCTION_FRIEND_DECLARATION
 
