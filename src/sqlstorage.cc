@@ -10,6 +10,19 @@
 #include "logging.h"
 #include "utils.h"
 
+typedef std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)> SQLGuardedStatement;
+
+static SQLGuardedStatement sqlite3_prepare_guarded(sqlite3* db, const char* zSql, int nByte) {
+  sqlite3_stmt* statement;
+
+  if (sqlite3_prepare_v2(db, zSql, nByte, &statement, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db);
+    throw std::runtime_error("SQLite fatal error");
+  }
+
+  return std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)>(statement, sqlite3_finalize);
+}
+
 SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
   if (!boost::filesystem::is_directory(config.schemas_path)) {
     throw std::runtime_error("Aktualizr installation incorrect. Schemas directory " + config.schemas_path.string() +
@@ -746,26 +759,21 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    sqlite3_stmt* statement;
-    if (sqlite3_prepare_v2(db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", -1, &statement,
-                           nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_.get());
-      throw exc;
-    }
-    if (sqlite3_bind_text(statement, 1, filename_.c_str(), -1, nullptr) != SQLITE_OK) {
+    SQLGuardedStatement statement =
+        sqlite3_prepare_guarded(db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", -1);
+
+    if (sqlite3_bind_text(statement.get(), 1, filename_.c_str(), -1, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    if (sqlite3_bind_zeroblob(statement, 2, expected_size_) != SQLITE_OK) {
+    if (sqlite3_bind_zeroblob(statement.get(), 2, expected_size_) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    if (sqlite3_step(statement) != SQLITE_DONE) {
+    if (sqlite3_step(statement.get()) != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    // TODO: finalize statement in case of error
-    sqlite3_finalize(statement);
 
     // open the created blob for writing
     sqlite3_int64 row_id = sqlite3_last_insert_rowid(db_.get());
@@ -851,17 +859,15 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    sqlite3_stmt* statement;
-    if (sqlite3_prepare_v2(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?", -1, &statement, nullptr) !=
-        SQLITE_OK) {
-      LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_.get());
-      throw exc;
-    }
-    if (sqlite3_bind_text(statement, 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
+
+    SQLGuardedStatement statement =
+        sqlite3_prepare_guarded(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?", -1);
+
+    if (sqlite3_bind_text(statement.get(), 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    int err = sqlite3_step(statement);
+    int err = sqlite3_step(statement.get());
     if (err == SQLITE_DONE) {
       LOG_ERROR << "No such file in db: " + filename_;
       throw exc;
@@ -870,10 +876,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    sqlite3_int64 row_id = sqlite3_column_int64(statement, 0);
-
-    // TODO: finalize statement in case of error
-    sqlite3_finalize(statement);
+    sqlite3_int64 row_id = sqlite3_column_int64(statement.get(), 0);
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
       LOG_ERROR << "Could not open blob: " << sqlite3_errmsg(db_.get());
