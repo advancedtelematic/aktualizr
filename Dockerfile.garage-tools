@@ -28,8 +28,8 @@ RUN apt-get update && apt-get -y install \
   libboost-test-dev \
   libboost-thread-dev \
   libcurl4-openssl-dev \
-  libexpat1-dev \
   libdpkg-dev \
+  libexpat1-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libjsoncpp-dev \
@@ -39,8 +39,8 @@ RUN apt-get update && apt-get -y install \
   libsqlite3-dev \
   libssl-dev \
   libtool \
-  openjdk-8-jre-headless \
   make \
+  openjdk-8-jre-headless \
   pkg-config \
   psmisc \
   wget
