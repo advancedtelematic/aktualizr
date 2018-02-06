@@ -12,6 +12,14 @@
 #define kPkcs11Path "/usr/lib/engines/libpkcs11.so"
 #endif
 
+P11Engine* P11Engine::instance = NULL;
+P11Engine* P11Engine::Get(const P11Config& config) {
+  if (instance == NULL) {
+    instance = new P11Engine(config);
+  }
+  return instance;
+}
+
 P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.module), slots_(ctx_.get()) {
   if (config_.module.empty()) return;
 
@@ -56,6 +64,7 @@ P11Engine::~P11Engine() {
     ENGINE_finish(ssl_engine_);
     ENGINE_cleanup();
   }
+  P11Engine::instance = NULL;
 }
 
 PKCS11_SLOT* P11Engine::findTokenSlot() const {

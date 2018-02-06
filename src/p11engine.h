@@ -65,7 +65,7 @@ class P11SlotsWrapper {
 
 class P11Engine {
  public:
-  P11Engine(const P11Config &config);
+  static P11Engine *Get(const P11Config &config);
   ~P11Engine();
   ENGINE *getEngine() { return ssl_engine_; }
   std::string getUptaneKeyId() const { return uri_prefix_ + config_.uptane_key_id; }
@@ -77,6 +77,8 @@ class P11Engine {
   bool generateUptaneKeyPair();
 
  private:
+  P11Engine(const P11Config &config);
+
   const P11Config &config_;
   std::string uri_prefix_;
   ENGINE *ssl_engine_;
@@ -84,6 +86,7 @@ class P11Engine {
   P11SlotsWrapper slots_;
 
   PKCS11_SLOT *findTokenSlot() const;
+  static P11Engine *instance;
 };
 
 #endif
