@@ -189,6 +189,14 @@ if(BUILD_OPCUA)
     set(TEST_SOURCES ${TEST_SOURCES} opcuabridge_messaging.cc opcuabridge_server.cc)
 endif(BUILD_OPCUA)
 
+if(BUILD_DEB)
+    add_executable(t_packagemanager_deb packagemanager_deb_tests.cc)
+    add_dependencies(build_tests t_packagemanager_deb)
+    target_link_libraries(t_packagemanager_deb aktualizr_static_lib ${TEST_LIBS})
+
+    add_test(NAME test_packagemanager_deb COMMAND ${PROJECT_SOURCE_DIR}/tests/run_debian_tests.sh ${CMAKE_CURRENT_BINARY_DIR}/t_packagemanager_deb
+    ${PROJECT_SOURCE_DIR}/tests/test_data/fake_dpkg)
+endif(BUILD_DEB)
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program

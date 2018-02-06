@@ -14,14 +14,14 @@ TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
-#ifdef BUILD_OSTREE  
+#ifdef BUILD_OSTREE
   boost::shared_ptr<PackageManagerInterface> pacman =
       PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path());
   EXPECT_TRUE(pacman);
 #else
-  EXPECT_THROW(
-      boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path()),
-      std::runtime_error);
+  EXPECT_THROW(boost::shared_ptr<PackageManagerInterface> pacman =
+                   PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path()),
+               std::runtime_error);
 #endif
 }
 
