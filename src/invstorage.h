@@ -30,6 +30,7 @@ class StorageTargetWHandle {
    public:
     WriteError(const std::string& what) : std::runtime_error(what) {}
   };
+  virtual ~StorageTargetWHandle() = default;
   virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
   virtual void wcommit() = 0;
   virtual void wabort() = 0;
@@ -53,6 +54,7 @@ class StorageTargetRHandle {
    public:
     ReadError(const std::string& what) : std::runtime_error(what) {}
   };
+  virtual ~StorageTargetRHandle() = default;
   virtual size_t rsize() const = 0;
   virtual size_t rread(uint8_t* buf, size_t size) = 0;
   virtual void rclose() = 0;

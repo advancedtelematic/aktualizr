@@ -802,7 +802,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
   }
 
-  void wabort() override {
+  void wabort() noexcept override {
     closed_ = true;
     if (blob_ != nullptr) {
       sqlite3_blob_close(blob_);
@@ -810,7 +810,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
     if (sqlite3_exec(db_.get(), "ROLLBACK TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't rollback transaction: " << sqlite3_errmsg(db_.get());
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
     }
   }
 
@@ -862,7 +861,11 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
-    if (sqlite3_step(statement) != SQLITE_ROW) {
+    int err = sqlite3_step(statement);
+    if (err == SQLITE_DONE) {
+      LOG_ERROR << "No such file in db: " + filename_;
+      throw exc;
+    } else if (err != SQLITE_ROW) {
       LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
@@ -883,9 +886,6 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
   }
-
-  SQLTargetRHandle(const SQLTargetRHandle& other) = delete;
-  SQLTargetRHandle& operator=(const SQLTargetRHandle& other) = delete;
 
   ~SQLTargetRHandle() {
     if (!closed_) {
@@ -912,7 +912,10 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     return size;
   }
 
-  void rclose() override { sqlite3_blob_close(blob_); }
+  void rclose() noexcept override {
+    sqlite3_blob_close(blob_);
+    closed_ = true;
+  }
 
  private:
   SQLite3Guard db_;
