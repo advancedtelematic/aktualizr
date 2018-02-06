@@ -5,6 +5,13 @@
 #include "fsstorage.h"
 #include "uptane/cryptokey.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#ifndef TEST_PKCS11_MODULE_PATH
+#define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
+#endif
+#endif
+
 TEST(crypto, sign_tuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");

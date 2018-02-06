@@ -66,7 +66,6 @@ TEST(PackageManagerCredentials, InitPkcs11Empty) {
   p11_conf.pass = "1234";
   p11_conf.uptane_key_id = "03";
   config.p11 = p11_conf;
-  P11Engine p11(p11_conf);
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
@@ -89,7 +88,6 @@ TEST(PackageManagerCredentials, InitPkcs11Valid) {
   p11_conf.pass = "1234";
   p11_conf.uptane_key_id = "03";
   config.p11 = p11_conf;
-  P11Engine p11(p11_conf);
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
