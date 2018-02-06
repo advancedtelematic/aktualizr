@@ -102,15 +102,6 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME events SOURCES events_test.cc)
-
-add_aktualizr_test(NAME commands SOURCES commands_test.cc)
-
-add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
-
-
 if(NOT BUILD_WITH_CODE_COVERAGE)
     # Code coverage disables valgrind, and this test is only checking that
     # valgrind finds memory leaks
@@ -118,20 +109,33 @@ if(NOT BUILD_WITH_CODE_COVERAGE)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
+add_aktualizr_test(NAME commands SOURCES commands_test.cc)
+
+add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME events SOURCES events_test.cc)
+
+add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+
 add_aktualizr_test(NAME socket_gateway SOURCES socketgateway_test.cc
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/)
-
-add_aktualizr_test(NAME timer SOURCES timer_test.cc)
-
-add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
 add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME types SOURCES types_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
@@ -166,9 +170,6 @@ if(BUILD_OSTREE)
     add_dependencies(build_tests make_ostree_sysroot)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
-
-    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(SOTA_PACKED_CREDENTIALS)
@@ -243,7 +244,7 @@ set_tests_properties(test-secondary-config-with-nonexistent-file
 # Try building with various cmake options
 add_test(NAME test_build_all_off
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF")
+        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF -DBUILD_DEB=OFF")
 
 add_test(NAME test_build_all_on
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh

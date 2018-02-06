@@ -31,8 +31,8 @@ RUN apt-get update && apt-get -y install \
   libboost-test-dev \
   libboost-thread-dev \
   libcurl4-openssl-dev \
-  libexpat1-dev \
   libdpkg-dev \
+  libexpat1-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \

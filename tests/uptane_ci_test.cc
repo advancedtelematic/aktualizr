@@ -35,10 +35,9 @@ TEST(UptaneCI, OneCycleUpdate) {
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
-
+  SotaUptaneClient sota_client(config, NULL, repo, storage, http);
   EXPECT_TRUE(repo.initialize());
-  EXPECT_TRUE(repo.putManifest(repo.AssembleManifest()));
+  EXPECT_TRUE(repo.putManifest(sota_client.AssembleManifest()));
   // should not throw any exceptions
   repo.getTargets();
 }

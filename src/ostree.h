@@ -11,6 +11,7 @@
 #include "packagemanagerinterface.h"
 #include "types.h"
 #include "uptane/cryptokey.h"
+
 const char remote[] = "aktualizr-remote";
 
 class OstreeManager : public PackageManagerInterface {

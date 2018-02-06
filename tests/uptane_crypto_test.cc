@@ -5,13 +5,20 @@
 #include "fsstorage.h"
 #include "uptane/cryptokey.h"
 
+#ifdef BUILD_P11
+#include "p11engine.h"
+#ifndef TEST_PKCS11_MODULE_PATH
+#define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
+#endif
+#endif
+
 TEST(crypto, sign_tuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
   CryptoKey keys(storage, config);
 
@@ -41,7 +48,7 @@ TEST(crypto, sign_tuf_pkcs11) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
   CryptoKey keys(storage, config);
 
