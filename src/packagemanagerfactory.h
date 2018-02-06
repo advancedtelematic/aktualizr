@@ -20,6 +20,7 @@ class PackageManagerFactory {
  public:
   static boost::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig,
                                                                        const boost::filesystem::path& path) {
+    (void)path;
     switch (pconfig.type) {
       case kOstree:
 #ifdef BUILD_OSTREE
