@@ -39,8 +39,6 @@ TEST(crypto, sign_tuf_pkcs11) {
   Config config;
   config.p11 = p11_conf;
 
-  P11Engine p11(p11_conf);
-
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(FSStorage(config.storage));
@@ -57,7 +55,7 @@ TEST(crypto, sign_tuf_pkcs11) {
 #endif
 
 #ifndef __NO_MAIN__
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

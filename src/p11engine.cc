@@ -12,6 +12,9 @@
 #define kPkcs11Path "/usr/lib/engines/libpkcs11.so"
 #endif
 
+P11Engine* P11EngineGuard::instance = NULL;
+int P11EngineGuard::ref_counter = 0;
+
 P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.module), slots_(ctx_.get()) {
   if (config_.module.empty()) return;
 

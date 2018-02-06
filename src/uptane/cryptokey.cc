@@ -8,7 +8,7 @@ CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config 
       config_(config)
 #ifdef BUILD_P11
       ,
-      p11_(config_.p11)
+      p11_(config.p11)
 #endif
 {
 }
@@ -17,7 +17,7 @@ std::string CryptoKey::getPkey() const {
   std::string pkey;
 #ifdef BUILD_P11
   if (config_.tls.pkey_source == kPkcs11) {
-    pkey = p11_.getTlsPkeyId();
+    pkey = p11_->getTlsPkeyId();
   }
 #endif
   if (config_.tls.pkey_source == kFile) {
@@ -30,7 +30,7 @@ std::string CryptoKey::getCert() const {
   std::string cert;
 #ifdef BUILD_P11
   if (config_.tls.cert_source == kPkcs11) {
-    cert = p11_.getTlsCertId();
+    cert = p11_->getTlsCertId();
   }
 #endif
   if (config_.tls.cert_source == kFile) {
@@ -43,7 +43,7 @@ std::string CryptoKey::getCa() const {
   std::string ca;
 #ifdef BUILD_P11
   if (config_.tls.ca_source == kPkcs11) {
-    ca = p11_.getTlsCacertId();
+    ca = p11_->getTlsCacertId();
   }
 #endif
   if (config_.tls.ca_source == kFile) {
@@ -61,7 +61,7 @@ std::string CryptoKey::getCN() const {
     }
   } else {  // kPkcs11
 #ifdef BUILD_P11
-    if (!p11_.readTlsCert(&cert)) {
+    if (!p11_->readTlsCert(&cert)) {
       throw std::runtime_error(not_found_cert_message);
     }
 #else
@@ -100,7 +100,7 @@ Json::Value CryptoKey::signTuf(const Json::Value &in_data) {
   ENGINE *crypto_engine = NULL;
   std::string private_key;
 #ifdef BUILD_P11
-  if (config_.uptane.key_source == kPkcs11) crypto_engine = p11_.getEngine();
+  if (config_.uptane.key_source == kPkcs11) crypto_engine = p11_->getEngine();
 #endif
   if (config_.uptane.key_source == kFile) {
     backend_->loadPrimaryPrivate(&private_key);
@@ -128,7 +128,7 @@ std::string CryptoKey::getUptanePublicKey() {
   } else {
 #ifdef BUILD_P11
     // dummy read to check if the key is present
-    if (!p11_.readUptanePublicKey(&primary_public)) {
+    if (!p11_->readUptanePublicKey(&primary_public)) {
       throw std::runtime_error("Could not get uptane public key!");
     }
 #else
@@ -154,11 +154,11 @@ std::string CryptoKey::generateUptaneKeyPair() {
   } else {
 #ifdef BUILD_P11
     // dummy read to check if the key is present
-    if (!p11_.readUptanePublicKey(&primary_public)) {
-      p11_.generateUptaneKeyPair();
+    if (!p11_->readUptanePublicKey(&primary_public)) {
+      p11_->generateUptaneKeyPair();
     }
     // realy read the key
-    if (primary_public.empty() && !p11_.readUptanePublicKey(&primary_public)) {
+    if (primary_public.empty() && !p11_->readUptanePublicKey(&primary_public)) {
       throw std::runtime_error("Could not get uptane keys");
     }
     return primary_public;

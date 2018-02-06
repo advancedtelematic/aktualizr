@@ -5,6 +5,8 @@
 #include <openssl/engine.h>
 #include <openssl/err.h>
 #include <boost/filesystem.hpp>
+#include <boost/move/make_unique.hpp>
+#include <boost/move/unique_ptr.hpp>
 
 #include "config.h"
 #include "logging.h"
@@ -63,9 +65,10 @@ class P11SlotsWrapper {
   unsigned int nslots;
 };
 
-class P11Engine {
+class P11EngineGuard;
+
+class P11Engine : public boost::noncopyable {
  public:
-  P11Engine(const P11Config &config);
   ~P11Engine();
   ENGINE *getEngine() { return ssl_engine_; }
   std::string getUptaneKeyId() const { return uri_prefix_ + config_.uptane_key_id; }
@@ -84,6 +87,30 @@ class P11Engine {
   P11SlotsWrapper slots_;
 
   PKCS11_SLOT *findTokenSlot() const;
+
+  P11Engine(const P11Config &config);
+
+  friend class P11EngineGuard;
+};
+
+class P11EngineGuard {
+ public:
+  P11EngineGuard(const P11Config &config) {
+    if (!instance) instance = new P11Engine(config);
+    ++ref_counter;
+  };
+  ~P11EngineGuard() {
+    if (ref_counter) --ref_counter;
+    if (!ref_counter) {
+      delete instance;
+      instance = NULL;
+    }
+  }
+  P11Engine *operator->() const { return instance; }
+
+ private:
+  static P11Engine *instance;
+  static int ref_counter;
 };
 
 #endif
