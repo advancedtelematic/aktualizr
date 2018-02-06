@@ -163,7 +163,7 @@ std::string CryptoKey::generateUptaneKeyPair() {
     }
     return primary_public;
 #else
-    throw std::runtime_error("Aktualizr builded without pkcs11 support!");
+    throw std::runtime_error("Aktualizr was built without pkcs11 support!");
 #endif
   }
   return primary_public;
