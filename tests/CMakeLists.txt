@@ -119,6 +119,9 @@ add_aktualizr_test(NAME events SOURCES events_test.cc)
 
 add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+
 add_aktualizr_test(NAME socket_gateway SOURCES socketgateway_test.cc
                    ARGS ${PROJECT_SOURCE_DIR}/tests/fake_unix_socket/)
 
@@ -167,9 +170,6 @@ if(BUILD_OSTREE)
     add_dependencies(build_tests make_ostree_sysroot)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
-
-    add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
     if(SOTA_PACKED_CREDENTIALS)
@@ -244,7 +244,7 @@ set_tests_properties(test-secondary-config-with-nonexistent-file
 # Try building with various cmake options
 add_test(NAME test_build_all_off
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF")
+        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF -DBUILD_DEB=OFF")
 
 add_test(NAME test_build_all_on
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
