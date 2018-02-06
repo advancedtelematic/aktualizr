@@ -27,3 +27,16 @@ Json::Value DebianManager::getInstalledPackages() {
   dpkg_program_done();
   return packages;
 }
+
+data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
+  std::string cmd = "dpkg -i ";
+  std::string output;
+  int status = Utils::shell(cmd + (path_ / "targets" / target.filename()).string(), &output);
+  if (status != 0) {
+    return data::InstallOutcome(data::INSTALL_FAILED, output);
+  }
+  Utils::writeFile(path_ / "targets/installed", target.sha256Hash());
+  return data::InstallOutcome(data::OK, "Installing debian package was successful");
+}
+
+std::string DebianManager::getCurrent() { return Utils::readFile(path_ / "targets/installed"); }

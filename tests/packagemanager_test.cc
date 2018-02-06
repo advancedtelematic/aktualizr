@@ -14,12 +14,13 @@ TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
-#ifdef BUILD_OSTREE
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
+#ifdef BUILD_OSTREE  
+  boost::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path());
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(
-      boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman),
+      boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path()),
       std::runtime_error);
 #endif
 }
@@ -28,7 +29,8 @@ TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = kDebian;
 #ifdef BUILD_DEB
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
+  boost::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path());
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(
@@ -40,14 +42,16 @@ TEST(PackageManagerFactory, Debian) {
 TEST(PackageManagerFactory, None) {
   Config config;
   config.pacman.type = kNone;
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
+  boost::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path());
   EXPECT_TRUE(pacman);
 }
 
 TEST(PackageManagerFactory, Bad) {
   Config config;
   config.pacman.type = (PackageManager)-1;
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman);
+  boost::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, boost::filesystem::path());
   EXPECT_FALSE(pacman);
 }
 

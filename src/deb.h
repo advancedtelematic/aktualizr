@@ -11,18 +11,12 @@
 
 class DebianManager : public PackageManagerInterface {
  public:
-  DebianManager(const PackageConfig &pconfig) : config_(pconfig) {}
+  DebianManager(const PackageConfig &pconfig, const boost::filesystem::path &path) : config_(pconfig), path_(path) {}
   virtual Json::Value getInstalledPackages();
-  virtual std::string getCurrent() {
-    throw std::runtime_error("Not implemented yet");
-    return "";
-  }
-  virtual data::InstallOutcome install(const Uptane::Target &target) const {
-    (void)target;
-    throw std::runtime_error("Not implemented yet");
-    return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
-  }
+  virtual std::string getCurrent();
+  virtual data::InstallOutcome install(const Uptane::Target &target) const;
   PackageConfig config_;
+  boost::filesystem::path path_;
 };
 
 #endif  // DEB_H_

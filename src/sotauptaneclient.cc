@@ -22,7 +22,7 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       storage(storage_in),
       http(http_client),
       last_targets_version(-1) {
-  pacman = PackageManagerFactory::makePackageManager(config.pacman);
+  pacman = PackageManagerFactory::makePackageManager(config.pacman, uptane_repo.getRepoPath());
   initSecondaries();
 }
 

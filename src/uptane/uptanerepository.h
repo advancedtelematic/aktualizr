@@ -42,6 +42,8 @@ class Repository {
   void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
   std::string getTargetPath(const Target &target);
+  boost::filesystem::path getRepoPath() const { return image.getPath(); }
+
   bool getMeta();
 
   // implemented in uptane/initialize.cc

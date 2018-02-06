@@ -53,6 +53,7 @@ class TufRepository {
   void setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp = NULL,
                Uptane::Snapshot* snapshot = NULL);
   std::string getTargetPath(const Target& target);
+  boost::filesystem::path getPath() const { return path_; }
 
  private:
   std::string name_;
