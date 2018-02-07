@@ -89,12 +89,6 @@ class Hash {
   Hash(const std::string &type, const std::string &hash);
   Hash(Type type, const std::string &hash);
 
-  /**
-   * Hash content and check it
-   * @param content
-   * @return
-   */
-
   bool HaveAlgorithm() const { return type_ != kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
   std::string TypeString() const;
@@ -163,8 +157,9 @@ class Root {
    */
   Root(Policy policy = kRejectAll) : policy_(policy), version_(0) {}
   /**
-   * json should be the contents of the 'signed' portion
-   * @param json
+   * A 'real' root that implements TUF signature validation
+   * @param repository - The name of the repository (only used to improve the error messages)
+   * @param json - The contents of the 'signed' portion
    */
   Root(const std::string &repository, const Json::Value &json);
   /**
@@ -177,6 +172,7 @@ class Root {
    * * "expires" is in the past (vs 'now')
    * * The blob has valid signatures from enough keys to cross the threshold for this role
    * @param now - The current time (for signature expiry)
+   * @param repository - The name of the repository (only used to improve the error messages)
    * @param role
    * @param signed_object
    * @return

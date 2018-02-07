@@ -78,6 +78,8 @@ void TufRepository::updateRoot(Version version) {
 /**
  * Note this doesn't check the validity of version numbers, only that the signed part is actually signed.
  * @param role
+ * @param version
+ * @param root_used
  * @return The contents of the "signed" section
  */
 Json::Value TufRepository::fetchAndCheckRole(Uptane::Role role, Version version, Uptane::Root* root_used) {
