@@ -220,6 +220,7 @@ TEST(storage, store_target) {
   boost::filesystem::create_directories(storage_test_dir);
   boost::movelib::unique_ptr<INvStorage> storage = Storage();
 
+  // write
   {
     std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
     const uint8_t wb[] = "ab";
@@ -228,6 +229,7 @@ TEST(storage, store_target) {
     fhandle->wcommit();
   }
 
+  // read
   {
     std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
     uint8_t rb[3] = {0};
@@ -238,9 +240,25 @@ TEST(storage, store_target) {
     EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
   }
 
+  // delete
   {
     storage->removeTargetFile("testfile");
     EXPECT_THROW(storage->openTargetFile("testfile"), StorageTargetRHandle::ReadError);
+  }
+
+  // write stream
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+
+    std::stringstream("ab") >> *fhandle;
+  }
+
+  // read stream
+  {
+    std::stringstream sstr;
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    sstr << *rhandle;
+    EXPECT_STREQ(sstr.str().c_str(), "ab");
   }
 
   boost::filesystem::remove_all(storage_test_dir);
