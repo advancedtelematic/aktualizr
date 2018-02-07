@@ -244,6 +244,7 @@ TEST(storage, store_target) {
   {
     storage->removeTargetFile("testfile");
     EXPECT_THROW(storage->openTargetFile("testfile"), StorageTargetRHandle::ReadError);
+    EXPECT_THROW(storage->removeTargetFile("testfile"), std::runtime_error);
   }
 
   // write stream

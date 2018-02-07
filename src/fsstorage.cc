@@ -456,7 +456,11 @@ std::unique_ptr<StorageTargetRHandle> FSStorage::openTargetFile(const std::strin
   return std::unique_ptr<StorageTargetRHandle>(new FSTargetRHandle(*this, filename));
 }
 
-void FSStorage::removeTargetFile(const std::string& filename) { boost::filesystem::remove(targetFilepath(filename)); }
+void FSStorage::removeTargetFile(const std::string& filename) {
+  if (!boost::filesystem::remove(targetFilepath(filename))) {
+    throw std::runtime_error("Target file " + filename + " not found");
+  }
+}
 
 void FSStorage::cleanUp() {
   boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));

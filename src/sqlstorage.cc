@@ -951,6 +951,10 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
     throw std::runtime_error("Could not remove target file");
   }
+
+  if (sqlite3_changes(db.get()) != 1) {
+    throw std::runtime_error("Target file " + filename + " not found");
+  }
 }
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }
