@@ -942,22 +942,15 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     return;
   }
 
-  sqlite3_stmt* statement;
-  if (sqlite3_prepare_v2(db.get(), "DELETE FROM target_images WHERE filename=?", -1, &statement, nullptr) !=
-      SQLITE_OK) {
-    LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db.get());
-    throw std::runtime_error("");
-  }
-  if (sqlite3_bind_text(statement, 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
+  SQLGuardedStatement statement = sqlite3_prepare_guarded(db.get(), "DELETE FROM target_images WHERE filename=?", -1);
+  if (sqlite3_bind_text(statement.get(), 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db.get());
-    throw std::runtime_error("");
+    throw std::runtime_error("Could not remove target file");
   }
-  if (sqlite3_step(statement) != SQLITE_DONE) {
+  if (sqlite3_step(statement.get()) != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
-    throw std::runtime_error("");
+    throw std::runtime_error("Could not remove target file");
   }
-  // TODO: finalize statement in case of error
-  sqlite3_finalize(statement);
 }
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }
