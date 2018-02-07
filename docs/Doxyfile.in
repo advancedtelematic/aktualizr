@@ -240,8 +240,9 @@ TAB_SIZE               = 4
 
 ALIASES                = "verify{1}=\xrefitem verify \"Verifies requirement\" \"Requirement Verification\" \1" \
                          "satisfy{1}=\xrefitem satisfy \"Satisfies requirement\" \"Requirement Implementation\" \1" \
-                         "req{1}=\ref PRO-\1 \"PRO-\1\"" \
                          "jira{1}=<a href=\"https://advancedtelematic.atlassian.net/browse/\1\">\1</a> " \
+                         "tst{1}=<a href=\"https://advancedtelematic.atlassian.net/browse/TST-\1\">TST-\1</a> " \
+                         "req{1}=<a href=\"https://advancedtelematic.atlassian.net/browse/REQ-\1\">REQ-\1</a> " \
                          "aktualizr=%Aktualizr"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
@@ -786,7 +787,6 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../src \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@ \
                          @CMAKE_CURRENT_SOURCE_DIR@/../tests \
@@ -2035,7 +2035,7 @@ PERLMOD_MAKEVAR_PREFIX =
 # C-preprocessor directives found in the sources and include files.
 # The default value is: YES.
 
-ENABLE_PREPROCESSING   = NO
+ENABLE_PREPROCESSING   = YES
 
 # If the MACRO_EXPANSION tag is set to YES, doxygen will expand all macro names
 # in the source code. If set to NO, only conditional compilation will be

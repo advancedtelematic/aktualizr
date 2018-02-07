@@ -1,4 +1,8 @@
 /**
+ * \file
+ */
+
+/**
  * \verify{\tst{158}} Check that aktualizr can complete provisioning after
  * encountering various network issues.
  */
