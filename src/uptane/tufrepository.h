@@ -57,7 +57,7 @@ class TufRepository {
  private:
   std::string name_;
   const Config& config_;
-  boost::shared_ptr<INvStorage>& storage_;
+  boost::shared_ptr<INvStorage> storage_;
   HttpInterface& http_;
   std::string base_url_;
 
