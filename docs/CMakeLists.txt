@@ -2,7 +2,7 @@
 find_program(INKSCAPE NAMES inkscape)
 find_package(Doxygen)
 
-add_custom_target(docs ALL)
+add_custom_target(docs)
 
 if (INKSCAPE)
     add_custom_command(OUTPUT overview.pdf
