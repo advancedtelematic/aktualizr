@@ -61,6 +61,7 @@ set(HEADERS
             types.h
             utils.h
             exceptions.h
+            uptane/cryptokey.h
             uptane/exceptions.h
             uptane/legacysecondary.h
             uptane/managedsecondary.h
