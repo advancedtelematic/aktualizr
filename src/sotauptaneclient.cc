@@ -303,9 +303,8 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
         secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
-      std::string firmware_path = uptane_repo.getTargetPath(*it);
       std::stringstream sstr;
-      sstr << *storage->openTargetFile(firmware_path);
+      sstr << *storage->openTargetFile(it->filename());
       sec->second->sendFirmware(sstr.str());
     }
   }

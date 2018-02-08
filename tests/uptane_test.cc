@@ -761,7 +761,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  Json::Value installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -825,7 +825,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  Json::Value sql_installed_versions;
+  std::map<std::string, InstalledVersion> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -883,7 +883,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  Json::Value installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -914,7 +914,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  Json::Value sql_installed_versions;
+  std::map<std::string, InstalledVersion> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -982,9 +982,9 @@ TEST(Uptane, LoadVersion) {
   Uptane::Target t("target_name", target_json);
   storage->saveInstalledVersion(t);
 
-  Json::Value versions;
+  std::map<std::string, InstalledVersion> versions;
   storage->loadInstalledVersions(&versions);
-  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"]["name"], "target_name");
+  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].first, "target_name");
 }
 
 #ifdef BUILD_P11

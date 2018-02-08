@@ -42,8 +42,8 @@ class FSStorage : public INvStorage {
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();
-  virtual void storeInstalledVersions(const Json::Value& installed_versions);
-  virtual bool loadInstalledVersions(Json::Value* installed_versions);
+  virtual void storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions);
+  virtual bool loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions);
   virtual void clearInstalledVersions();
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                            size_t size) override;

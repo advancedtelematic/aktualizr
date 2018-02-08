@@ -98,7 +98,7 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
     sql_storage->storeEcuRegistered();
   }
 
-  Json::Value installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   if (fs_storage->loadInstalledVersions(&installed_versions)) {
     sql_storage->storeInstalledVersions(installed_versions);
   }
@@ -120,14 +120,12 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {
-  Json::Value versions;
+  std::map<std::string, InstalledVersion> versions;
   loadInstalledVersions(&versions);
-  for (Json::Value::iterator it = versions.begin(); it != versions.end(); it++) {
-    (*it)["is_current"] = false;
+  for (std::map<std::string, InstalledVersion>::iterator it = versions.begin(); it != versions.end(); it++) {
+    it->second.second = false;
   }
-  Json::Value version;
-  version["name"] = target.filename();
-  version["is_current"] = true;
-  versions[boost::algorithm::to_lower_copy(target.sha256Hash())] = version;
+  InstalledVersion version(target.filename(), true);
+  versions[target.sha256Hash()] = version;
   storeInstalledVersions(versions);
 }

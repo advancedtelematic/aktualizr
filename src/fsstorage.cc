@@ -326,25 +326,32 @@ void FSStorage::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
-void FSStorage::storeInstalledVersions(const Json::Value& installed_versions) {
-  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"),
-                   Json::FastWriter().write(installed_versions));
+void FSStorage::storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) {
+  Json::Value content;
+  std::map<std::string, InstalledVersion>::const_iterator it;
+  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+    content[it->first]["name"] = it->second.first;
+    content[it->first]["is_current"] = it->second.second;
+  }
+  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
 }
 
-bool FSStorage::loadInstalledVersions(Json::Value* installed_versions) {
+bool FSStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return false;
-  *installed_versions = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
+  Json::Value installed_versions_json =
+      Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
 
-  if (installed_versions->size()) {
-    if (!(*installed_versions->begin()).isObject()) {
+  std::map<std::string, InstalledVersion> new_versions;
+  for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
+    if (!(*it).isObject()) {
       // We loaded old format, migrate to new one.
-      Json::Value new_versions;
-      for (Json::ValueIterator it = installed_versions->begin(); it != installed_versions->end(); ++it) {
-        new_versions[it.key().asString()]["name"] = (*it).asString();
-        new_versions[it.key().asString()]["is_current"] = false;
-      }
-      *installed_versions = new_versions;
+      new_versions[it.key().asString()].first = (*it).asString();
+      new_versions[it.key().asString()].second = false;
+    } else {
+      new_versions[it.key().asString()].first = (*it)["name"].asString();
+      new_versions[it.key().asString()].second = (*it)["is_current"].asBool();
     }
+    *installed_versions = new_versions;
   }
 
   return true;
@@ -363,7 +370,8 @@ class FSTargetWHandle : public StorageTargetWHandle {
     fp_ = open(storage_.targetFilepath(filename_).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
     if (fp_ == -1) {
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+      throw StorageTargetWHandle::WriteError("could not create file " + storage_.targetFilepath(filename_).string() +
+                                             " on disk");
     }
   }
 
@@ -396,7 +404,7 @@ class FSTargetWHandle : public StorageTargetWHandle {
     }
 
     if (close(fp_) == -1) {
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+      throw StorageTargetWHandle::WriteError("could not close file " + filename_ + " on disk");
     }
   }
 

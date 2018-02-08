@@ -139,8 +139,6 @@ void TufRepository::saveTarget(const Target& target) {
   }
 }
 
-std::string TufRepository::getTargetPath(const Target& target) { return target.filename(); }
-
 void TufRepository::setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp,
                             Uptane::Snapshot* snapshot) {
   if (root) root_ = *root;

@@ -17,7 +17,7 @@ TEST(PackageManagerFactory, Ostree) {
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
   TemporaryDirectory dir;
-  config.storage.uptane_metadata_path = dir.Path();
+  config.storage.path = dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
 #ifdef BUILD_OSTREE
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -33,7 +33,7 @@ TEST(PackageManagerFactory, Debian) {
   Config config;
   config.pacman.type = kDebian;
   TemporaryDirectory dir;
-  config.storage.uptane_metadata_path = dir.Path();
+  config.storage.path = dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
 #ifdef BUILD_DEB
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -48,7 +48,7 @@ TEST(PackageManagerFactory, Debian) {
 TEST(PackageManagerFactory, None) {
   Config config;
   TemporaryDirectory dir;
-  config.storage.uptane_metadata_path = dir.Path();
+  config.storage.path = dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   config.pacman.type = kNone;
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -58,7 +58,7 @@ TEST(PackageManagerFactory, None) {
 TEST(PackageManagerFactory, Bad) {
   Config config;
   TemporaryDirectory dir;
-  config.storage.uptane_metadata_path = dir.Path();
+  config.storage.path = dir.Path();
   config.pacman.type = (PackageManager)-1;
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);

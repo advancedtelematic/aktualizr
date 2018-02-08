@@ -108,10 +108,8 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
 }
 
 std::string Repository::findInstalledVersion(const std::string &hash) {
-  Json::Value versions;
+  std::map<std::string, InstalledVersion> versions;
   storage->loadInstalledVersions(&versions);
-  return versions[boost::algorithm::to_lower_copy(hash)].asString();
+  return versions[boost::algorithm::to_lower_copy(hash)].first;
 }
-
-std::string Repository::getTargetPath(const Target &target) { return image.getTargetPath(target); }
 }

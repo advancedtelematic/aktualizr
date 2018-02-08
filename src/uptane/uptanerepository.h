@@ -40,8 +40,6 @@ class Repository {
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
   std::string findInstalledVersion(const std::string &hash);
-  std::string getTargetPath(const Target &target);
-  boost::filesystem::path getRepoPath() const { return image.getPath(); }
 
   bool getMeta();
 

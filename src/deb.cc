@@ -31,7 +31,13 @@ Json::Value DebianManager::getInstalledPackages() {
 data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
   std::string cmd = "dpkg -i ";
   std::string output;
-  int status = Utils::shell(cmd + (storage_->getImagesPath() / target.filename()).string(), &output);
+  TemporaryDirectory package_dir("deb_dir");
+  std::stringstream sstr;
+  sstr << *storage_->openTargetFile(target.filename());
+  boost::filesystem::path deb_path = package_dir / target.filename();
+  Utils::writeFile(deb_path, sstr.str());
+
+  int status = Utils::shell(cmd + deb_path.string(), &output);
   if (status != 0) {
     return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
@@ -40,13 +46,13 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
 }
 
 std::string DebianManager::getCurrent() {
-  Json::Value installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   storage_->loadInstalledVersions(&installed_versions);
 
-  Json::Value::const_iterator it;
+  std::map<std::string, InstalledVersion>::iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    if ((*it)["is_current"].asBool()) {
-      return it.key().asString();
+    if ((*it).second.second) {
+      return it->first;
     }
   }
   return std::string();
