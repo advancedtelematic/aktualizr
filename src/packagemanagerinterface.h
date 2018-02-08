@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "types.h"
+#include "uptane/tuf.h"
 
 class PackageManagerInterface {
  public:

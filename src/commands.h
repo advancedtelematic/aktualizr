@@ -1,10 +1,11 @@
 #ifndef COMANDS_H_
 #define COMANDS_H_
 
+#include <string>
+
 #include <json/json.h>
 #include <picojson.h>
 #include <boost/shared_ptr.hpp>
-#include <string>
 
 #include "channel.h"
 #include "types.h"

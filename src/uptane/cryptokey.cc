@@ -1,7 +1,9 @@
 #include "cryptokey.h"
 
-#include <boost/scoped_array.hpp>
 #include <stdexcept>
+
+#include <boost/move/make_unique.hpp>
+#include <boost/scoped_array.hpp>
 
 CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config &config)
     : backend_(backend),
@@ -11,6 +13,69 @@ CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config 
       p11_(config.p11)
 #endif
 {
+}
+
+std::string CryptoKey::getPkeyFile() {
+  std::string pkey_file;
+#ifdef BUILD_P11
+  if (config_.tls.pkey_source == kPkcs11) {
+    pkey_file = p11_->getTlsPkeyId();
+  }
+#endif
+  if (config_.tls.pkey_source == kFile) {
+    std::string pkey;
+    backend_->loadTlsPkey(&pkey);
+    if (!pkey.empty()) {
+      if (tmp_pkey_file == nullptr) {
+        tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+      }
+      tmp_pkey_file->PutContents(pkey);
+      pkey_file = tmp_pkey_file->PathString();
+    }
+  }
+  return pkey_file;
+}
+
+std::string CryptoKey::getCertFile() {
+  std::string cert_file;
+#ifdef BUILD_P11
+  if (config_.tls.cert_source == kPkcs11) {
+    cert_file = p11_->getTlsCertId();
+  }
+#endif
+  if (config_.tls.cert_source == kFile) {
+    std::string cert;
+    backend_->loadTlsCert(&cert);
+    if (!cert.empty()) {
+      if (tmp_cert_file == nullptr) {
+        tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
+      }
+      tmp_cert_file->PutContents(cert);
+      cert_file = tmp_cert_file->PathString();
+    }
+  }
+  return cert_file;
+}
+
+std::string CryptoKey::getCaFile() {
+  std::string ca_file;
+#ifdef BUILD_P11
+  if (config_.tls.ca_source == kPkcs11) {
+    ca_file = p11_->getTlsCacertId();
+  }
+#endif
+  if (config_.tls.ca_source == kFile) {
+    std::string ca;
+    backend_->loadTlsCa(&ca);
+    if (!ca.empty()) {
+      if (tmp_ca_file == nullptr) {
+        tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+      }
+      tmp_ca_file->PutContents(ca);
+      ca_file = tmp_ca_file->PathString();
+    }
+  }
+  return ca_file;
 }
 
 std::string CryptoKey::getPkey() const {

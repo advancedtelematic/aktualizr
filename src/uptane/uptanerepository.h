@@ -52,9 +52,6 @@ class Repository {
 
   bool currentMeta(Uptane::MetaPack *meta) { return storage->loadMetadata(meta); }
 
-  std::string pkcs11_tls_keyname;
-  std::string pkcs11_tls_certname;
-
  private:
   const Config &config;
   TufRepository director;
