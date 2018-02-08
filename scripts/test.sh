@@ -8,6 +8,10 @@ cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON ../src
 make check-format
 
 make -j8
+
+# Check that 'make install' works
+DESTDIR=/tmp/aktualizr make install
+
 if [ -n "$BUILD_ONLY" ]; then
   if [ -n "$BUILD_DEB" ]; then
     make package
