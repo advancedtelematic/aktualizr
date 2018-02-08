@@ -10,11 +10,11 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto.h"
+#include "keymanager.h"
 #include "logging.h"
 #ifdef BUILD_OSTREE
 #include "ostree.h"
 #endif
-#include "uptane/cryptokey.h"
 #include "utils.h"
 
 namespace Uptane {
@@ -130,7 +130,7 @@ void TufRepository::saveTarget(const Target& target) {
     downloadTarget(target);
   } else if (target.format().empty() || target.format() == "OSTREE") {
 #ifdef BUILD_OSTREE
-    CryptoKey keys(storage_, config_);
+    KeyManager keys(storage_, config_);
     keys.loadKeys();
     OstreeManager::pull(config_, keys, target.sha256Hash());
 #else

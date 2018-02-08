@@ -4,8 +4,8 @@
 #include <boost/scoped_array.hpp>
 
 #include "bootstrap.h"
+#include "keymanager.h"
 #include "logging.h"
-#include "uptane/cryptokey.h"
 #include "uptane/uptanerepository.h"
 
 namespace Uptane {
@@ -22,7 +22,7 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
     if (provision_config.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
     } else if (provision_config.mode == kImplicit) {
-      device_id = CryptoKey(storage, config).getCN();
+      device_id = KeyManager(storage, config).getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
       return false;
@@ -83,7 +83,7 @@ bool Repository::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().siz
 void Repository::resetEcuKeys() { storage->clearPrimaryKeys(); }
 
 bool Repository::loadSetTlsCreds() {
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.copyCertsToCurl(&http);
   return keys.isOk();
 }

@@ -1,5 +1,5 @@
-#ifndef CRYPTOKEY_H_
-#define CRYPTOKEY_H_
+#ifndef KEYMANAGER_H_
+#define KEYMANAGER_H_
 
 #include <boost/move/unique_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -12,12 +12,12 @@
 #endif
 #include "utils.h"
 
-class CryptoKey {
+class KeyManager {
  public:
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
-  CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config &config);
+  KeyManager(const boost::shared_ptr<INvStorage> &backend, const Config &config);
   void loadKeys();
   std::string getPkeyFile() const;
   std::string getCertFile() const;
@@ -42,4 +42,4 @@ class CryptoKey {
   boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file;
 };
 
-#endif  // CRYPTOKEY_H_
+#endif  // KEYMANAGER_H_

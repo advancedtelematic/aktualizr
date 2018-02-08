@@ -15,7 +15,7 @@
 #include "logging.h"
 #include "utils.h"
 
-data::InstallOutcome OstreeManager::pull(const Config &config, const CryptoKey &keys, const std::string &refhash) {
+data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager &keys, const std::string &refhash) {
   OstreeRepo *repo = NULL;
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = NULL;
@@ -206,7 +206,7 @@ boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesys
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
 }
 
-bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const CryptoKey &keys) {
+bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys) {
   GCancellable *cancellable = NULL;
   GError *error = NULL;
   GVariantBuilder b;

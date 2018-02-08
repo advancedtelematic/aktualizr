@@ -1,11 +1,11 @@
-#include "cryptokey.h"
+#include "keymanager.h"
 
 #include <stdexcept>
 
 #include <boost/move/make_unique.hpp>
 #include <boost/scoped_array.hpp>
 
-CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config &config)
+KeyManager::KeyManager(const boost::shared_ptr<INvStorage> &backend, const Config &config)
     : backend_(backend),
       config_(config)
 #ifdef BUILD_P11
@@ -15,7 +15,7 @@ CryptoKey::CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config 
 {
 }
 
-void CryptoKey::loadKeys() {
+void KeyManager::loadKeys() {
   if (config_.tls.pkey_source == kFile) {
     std::string pkey;
     backend_->loadTlsPkey(&pkey);
@@ -44,7 +44,7 @@ void CryptoKey::loadKeys() {
   }
 }
 
-std::string CryptoKey::getPkeyFile() const {
+std::string KeyManager::getPkeyFile() const {
   std::string pkey_file;
 #ifdef BUILD_P11
   if (config_.tls.pkey_source == kPkcs11) {
@@ -59,7 +59,7 @@ std::string CryptoKey::getPkeyFile() const {
   return pkey_file;
 }
 
-std::string CryptoKey::getCertFile() const {
+std::string KeyManager::getCertFile() const {
   std::string cert_file;
 #ifdef BUILD_P11
   if (config_.tls.cert_source == kPkcs11) {
@@ -74,7 +74,7 @@ std::string CryptoKey::getCertFile() const {
   return cert_file;
 }
 
-std::string CryptoKey::getCaFile() const {
+std::string KeyManager::getCaFile() const {
   std::string ca_file;
 #ifdef BUILD_P11
   if (config_.tls.ca_source == kPkcs11) {
@@ -89,7 +89,7 @@ std::string CryptoKey::getCaFile() const {
   return ca_file;
 }
 
-std::string CryptoKey::getPkey() const {
+std::string KeyManager::getPkey() const {
   std::string pkey;
 #ifdef BUILD_P11
   if (config_.tls.pkey_source == kPkcs11) {
@@ -102,7 +102,7 @@ std::string CryptoKey::getPkey() const {
   return pkey;
 }
 
-std::string CryptoKey::getCert() const {
+std::string KeyManager::getCert() const {
   std::string cert;
 #ifdef BUILD_P11
   if (config_.tls.cert_source == kPkcs11) {
@@ -115,7 +115,7 @@ std::string CryptoKey::getCert() const {
   return cert;
 }
 
-std::string CryptoKey::getCa() const {
+std::string KeyManager::getCa() const {
   std::string ca;
 #ifdef BUILD_P11
   if (config_.tls.ca_source == kPkcs11) {
@@ -128,7 +128,7 @@ std::string CryptoKey::getCa() const {
   return ca;
 }
 
-std::string CryptoKey::getCN() const {
+std::string KeyManager::getCN() const {
   std::string not_found_cert_message = "Certificate is not found, can't extract device_id";
   std::string cert;
   if (config_.tls.cert_source == kFile) {
@@ -162,7 +162,7 @@ std::string CryptoKey::getCN() const {
   return cn;
 }
 
-void CryptoKey::copyCertsToCurl(HttpInterface *http) {
+void KeyManager::copyCertsToCurl(HttpInterface *http) {
   std::string pkey = getPkey();
   std::string cert = getCert();
   std::string ca = getCa();
@@ -172,7 +172,7 @@ void CryptoKey::copyCertsToCurl(HttpInterface *http) {
   }
 }
 
-Json::Value CryptoKey::signTuf(const Json::Value &in_data) {
+Json::Value KeyManager::signTuf(const Json::Value &in_data) {
   ENGINE *crypto_engine = NULL;
   std::string private_key;
 #ifdef BUILD_P11
@@ -195,7 +195,7 @@ Json::Value CryptoKey::signTuf(const Json::Value &in_data) {
   return out_data;
 }
 
-std::string CryptoKey::getUptanePublicKey() {
+std::string KeyManager::getUptanePublicKey() {
   std::string primary_public;
   if (config_.uptane.key_source == kFile) {
     if (!backend_->loadPrimaryPublic(&primary_public)) {
@@ -214,7 +214,7 @@ std::string CryptoKey::getUptanePublicKey() {
   return primary_public;
 }
 
-std::string CryptoKey::generateUptaneKeyPair() {
+std::string KeyManager::generateUptaneKeyPair() {
   std::string primary_public;
 
   if (config_.uptane.key_source == kFile) {

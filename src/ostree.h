@@ -8,9 +8,9 @@
 #include <boost/shared_ptr.hpp>
 
 #include "config.h"
+#include "keymanager.h"
 #include "packagemanagerinterface.h"
 #include "types.h"
-#include "uptane/cryptokey.h"
 
 const char remote[] = "aktualizr-remote";
 
@@ -23,8 +23,8 @@ class OstreeManager : public PackageManagerInterface {
 
   boost::shared_ptr<OstreeDeployment> getStagedDeployment();
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
-  static bool addRemote(OstreeRepo *repo, const std::string &url, const CryptoKey &keys);
-  static data::InstallOutcome pull(const Config &config, const CryptoKey &keys, const std::string &refhash);
+  static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
+  static data::InstallOutcome pull(const Config &config, const KeyManager &keys, const std::string &refhash);
 
  private:
   PackageConfig config;

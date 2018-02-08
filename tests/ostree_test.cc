@@ -28,7 +28,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   config.storage.uptane_private_key_path = "public.key";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config, keys, "hash");
 
@@ -54,7 +54,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   storage->storeTlsCa(ca);
   storage->storeTlsPkey(pkey);
   storage->storeTlsCert(cert);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config, keys, "hash");
 
@@ -112,7 +112,7 @@ TEST(OstreeManager, AddRemoteNoCreds) {
   config.storage.path = temp_dir.Path();
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.loadKeys();
 
   OstreeRepo *repo = NULL;
@@ -157,7 +157,7 @@ TEST(OstreeManager, AddRemoteWithCreds) {
   storage->storeTlsCa(ca);
   storage->storeTlsPkey(pkey);
   storage->storeTlsCert(cert);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.loadKeys();
 
   OstreeRepo *repo = NULL;

@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
+#include "json/json.h"
 
+#include "config.h"
 #include "fsstorage.h"
-#include "uptane/cryptokey.h"
+#include "keymanager.h"
+#include "utils.h"
 
 #ifdef BUILD_P11
 #include "p11engine.h"
@@ -12,7 +16,7 @@
 #endif
 #endif
 
-TEST(UptaneCrypto, SignTuf) {
+TEST(KeyManager, SignTuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Config config;
@@ -20,7 +24,7 @@ TEST(UptaneCrypto, SignTuf) {
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -31,12 +35,12 @@ TEST(UptaneCrypto, SignTuf) {
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 
-TEST(UptaneCrypto, InitFileEmpty) {
+TEST(KeyManager, InitFileEmpty) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
 
   EXPECT_TRUE(keys.getCaFile().empty());
   EXPECT_TRUE(keys.getPkeyFile().empty());
@@ -47,7 +51,7 @@ TEST(UptaneCrypto, InitFileEmpty) {
   EXPECT_TRUE(keys.getCertFile().empty());
 }
 
-TEST(UptaneCrypto, InitFileValid) {
+TEST(KeyManager, InitFileValid) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
@@ -58,7 +62,7 @@ TEST(UptaneCrypto, InitFileValid) {
   storage->storeTlsCa(ca);
   storage->storeTlsPkey(pkey);
   storage->storeTlsCert(cert);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   keys.loadKeys();
 
   std::string ca_file = keys.getCaFile();
@@ -77,7 +81,7 @@ TEST(UptaneCrypto, InitFileValid) {
 }
 
 #ifdef BUILD_P11
-TEST(UptaneCrypto, SignTufPkcs11) {
+TEST(KeyManager, SignTufPkcs11) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
 
@@ -95,7 +99,7 @@ TEST(UptaneCrypto, SignTufPkcs11) {
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
 
   EXPECT_TRUE(keys.getUptanePublicKey().size());
   Json::Value signed_json = keys.signTuf(tosign_json);
@@ -105,7 +109,7 @@ TEST(UptaneCrypto, SignTufPkcs11) {
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 
-TEST(UptaneCrypto, InitPkcs11Empty) {
+TEST(KeyManager, InitPkcs11Empty) {
   Config config;
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
@@ -116,7 +120,7 @@ TEST(UptaneCrypto, InitPkcs11Empty) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
 
   EXPECT_TRUE(keys.getCaFile().empty());
   EXPECT_TRUE(keys.getPkeyFile().empty());
@@ -127,7 +131,7 @@ TEST(UptaneCrypto, InitPkcs11Empty) {
   EXPECT_TRUE(keys.getCertFile().empty());
 }
 
-TEST(UptaneCrypto, InitPkcs11Valid) {
+TEST(KeyManager, InitPkcs11Valid) {
   Config config;
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
@@ -144,7 +148,7 @@ TEST(UptaneCrypto, InitPkcs11Valid) {
   storage->storeTlsCa(ca);
   storage->storeTlsPkey(pkey);
   storage->storeTlsCert(cert);
-  CryptoKey keys(storage, config);
+  KeyManager keys(storage, config);
   EXPECT_FALSE(keys.getCaFile().empty());
   EXPECT_FALSE(keys.getPkeyFile().empty());
   EXPECT_FALSE(keys.getCertFile().empty());
