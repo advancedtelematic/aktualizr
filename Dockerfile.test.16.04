@@ -14,4 +14,4 @@ RUN apt-get update && apt-get install -y \
   libssl1.0.0 \
   libstdc++6
 
-ENTRYPOINT dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb && aktualizr --help
+ENTRYPOINT dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb && aktualizr --version | grep `cat /persistent/aktualizr-version` && aktualizr-info
