@@ -116,8 +116,10 @@ endif(BUILD_WITH_CODE_COVERAGE)
 aktualizr_source_file_checks(main.cc ${SOURCES} ${HEADERS})
 
 ################## INSTALL RULES
-install(FILES ${PROJECT_SOURCE_DIR}/config/systemd/aktualizr-ubuntu.service DESTINATION /lib/systemd/system RENAME aktualizr.service  COMPONENT aktualizr)
-install(FILES ${PROJECT_SOURCE_DIR}/config/sota_ubuntu.toml DESTINATION /usr/lib/sota RENAME sota.toml  COMPONENT aktualizr)
+install(FILES ${PROJECT_SOURCE_DIR}/config/systemd/aktualizr-ubuntu.service
+        DESTINATION lib/systemd/system RENAME aktualizr.service COMPONENT aktualizr)
+install(FILES ${PROJECT_SOURCE_DIR}/config/sota_ubuntu.toml
+        DESTINATION lib/sota RENAME sota.toml COMPONENT aktualizr)
 install(TARGETS aktualizr RUNTIME DESTINATION bin COMPONENT aktualizr)
 if(INSTALL_LIB)
   install(TARGETS aktualizr_static_lib ARCHIVE DESTINATION lib LIBRARY DESTINATION lib)
