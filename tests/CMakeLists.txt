@@ -196,6 +196,7 @@ if(BUILD_DEB)
 
     add_test(NAME test_packagemanager_deb COMMAND ${PROJECT_SOURCE_DIR}/tests/run_debian_tests.sh ${CMAKE_CURRENT_BINARY_DIR}/t_packagemanager_deb
     ${PROJECT_SOURCE_DIR}/tests/test_data/fake_dpkg)
+    list(APPEND TEST_SOURCES packagemanager_deb_tests.cc)
 endif(BUILD_DEB)
 
 ###############################################################################

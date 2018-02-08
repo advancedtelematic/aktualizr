@@ -77,6 +77,7 @@ class StorageTargetRHandle {
 // possible
 class INvStorage {
  public:
+  INvStorage(const StorageConfig& config) : config_(config) {}
   virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual void storePrimaryPublic(const std::string& public_key) = 0;
@@ -116,8 +117,8 @@ class INvStorage {
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
 
-  virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) = 0;
-  virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
+  virtual void storeInstalledVersions(const Json::Value& installed_versions) = 0;
+  virtual bool loadInstalledVersions(Json::Value* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
   // Incremental file API
@@ -139,6 +140,9 @@ class INvStorage {
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
   void importUpdateSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
+
+ protected:
+  const StorageConfig& config_;
 };
 
 #endif  // INVSTORAGE_H_

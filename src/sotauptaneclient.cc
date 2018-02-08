@@ -22,7 +22,7 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       storage(storage_in),
       http(http_client),
       last_targets_version(-1) {
-  pacman = PackageManagerFactory::makePackageManager(config.pacman, uptane_repo.getRepoPath());
+  pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   initSecondaries();
 }
 
@@ -80,7 +80,7 @@ void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     operation_result["operation_result"] = result.toJson();
     if (result.result_code == data::OK) {
-      uptane_repo.saveInstalledVersion(target);
+      storage->saveInstalledVersion(target);
     }
   }
 }

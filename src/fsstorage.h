@@ -42,8 +42,8 @@ class FSStorage : public INvStorage {
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();
-  virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
-  virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
+  virtual void storeInstalledVersions(const Json::Value& installed_versions);
+  virtual bool loadInstalledVersions(Json::Value* installed_versions);
   virtual void clearInstalledVersions();
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                            size_t size) override;
@@ -56,7 +56,9 @@ class FSStorage : public INvStorage {
   friend class FSTargetRHandle;
 
  private:
-  const StorageConfig& config_;
+  // descriptors of currently downloaded files
+  std::map<std::string, FILE*> director_files;
+  std::map<std::string, FILE*> image_files;
 
   boost::filesystem::path targetFilepath(const std::string& filename) const;
   bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);

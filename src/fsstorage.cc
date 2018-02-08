@@ -11,7 +11,7 @@
 #include "logging.h"
 #include "utils.h"
 
-FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
+FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
   boost::filesystem::create_directories(config_.path / "targets");
@@ -326,23 +326,27 @@ void FSStorage::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
-void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
-  Json::Value content;
-  std::map<std::string, std::string>::const_iterator it;
-  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    content[it->first] = it->second;
-  }
-
-  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
+void FSStorage::storeInstalledVersions(const Json::Value& installed_versions) {
+  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"),
+                   Json::FastWriter().write(installed_versions));
 }
 
-bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
+bool FSStorage::loadInstalledVersions(Json::Value* installed_versions) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return false;
-  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
+  *installed_versions = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
 
-  for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
-    (*installed_versions)[it.key().asString()] = (*it).asString();
+  if (installed_versions->size()) {
+    if (!(*installed_versions->begin()).isObject()) {
+      // We loaded old format, migrate to new one.
+      Json::Value new_versions;
+      for (Json::ValueIterator it = installed_versions->begin(); it != installed_versions->end(); ++it) {
+        new_versions[it.key().asString()]["name"] = (*it).asString();
+        new_versions[it.key().asString()]["is_current"] = false;
+      }
+      *installed_versions = new_versions;
+    }
   }
+
   return true;
 }
 

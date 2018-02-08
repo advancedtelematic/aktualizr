@@ -98,8 +98,10 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
     sql_storage->storeEcuRegistered();
   }
 
-  std::map<std::string, std::string> installed_versions;
-  if (fs_storage->loadInstalledVersions(&installed_versions)) sql_storage->storeInstalledVersions(installed_versions);
+  Json::Value installed_versions;
+  if (fs_storage->loadInstalledVersions(&installed_versions)) {
+    sql_storage->storeInstalledVersions(installed_versions);
+  }
 
   Uptane::MetaPack metadata;
   if (fs_storage->loadMetadata(&metadata)) {
@@ -115,4 +117,17 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
   fs_storage->clearInstalledVersions();
   fs_storage->clearMetadata();
   fs_storage->cleanUp();
+}
+
+void INvStorage::saveInstalledVersion(const Uptane::Target& target) {
+  Json::Value versions;
+  loadInstalledVersions(&versions);
+  for (Json::Value::iterator it = versions.begin(); it != versions.end(); it++) {
+    (*it)["is_current"] = false;
+  }
+  Json::Value version;
+  version["name"] = target.filename();
+  version["is_current"] = true;
+  versions[boost::algorithm::to_lower_copy(target.sha256Hash())] = version;
+  storeInstalledVersions(versions);
 }

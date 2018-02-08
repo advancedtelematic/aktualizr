@@ -31,12 +31,23 @@ Json::Value DebianManager::getInstalledPackages() {
 data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
   std::string cmd = "dpkg -i ";
   std::string output;
-  int status = Utils::shell(cmd + (path_ / "targets" / target.filename()).string(), &output);
+  int status = Utils::shell(cmd + (storage_->getImagesPath() / target.filename()).string(), &output);
   if (status != 0) {
     return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
-  Utils::writeFile(path_ / "targets/installed", target.sha256Hash());
+  storage_->saveInstalledVersion(target);
   return data::InstallOutcome(data::OK, "Installing debian package was successful");
 }
 
-std::string DebianManager::getCurrent() { return Utils::readFile(path_ / "targets/installed"); }
+std::string DebianManager::getCurrent() {
+  Json::Value installed_versions;
+  storage_->loadInstalledVersions(&installed_versions);
+
+  Json::Value::const_iterator it;
+  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+    if ((*it)["is_current"].asBool()) {
+      return it.key().asString();
+    }
+  }
+  return std::string();
+}

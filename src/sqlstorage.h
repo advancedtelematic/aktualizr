@@ -68,8 +68,8 @@ class SQLStorage : public INvStorage {
   virtual void storeEcuRegistered();
   virtual bool loadEcuRegistered();
   virtual void clearEcuRegistered();
-  virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions);
-  virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions);
+  virtual void storeInstalledVersions(const Json::Value& installed_versions);
+  virtual bool loadInstalledVersions(Json::Value* installed_versions);
   virtual void clearInstalledVersions();
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                            size_t size) override;
@@ -84,7 +84,6 @@ class SQLStorage : public INvStorage {
   bool dbInit();
 
  private:
-  const StorageConfig& config_;
   // request info
   SQLReqId request;
   std::map<std::string, std::string> req_params;

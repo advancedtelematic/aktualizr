@@ -11,12 +11,13 @@
 
 class DebianManager : public PackageManagerInterface {
  public:
-  DebianManager(const PackageConfig &pconfig, const boost::filesystem::path &path) : config_(pconfig), path_(path) {}
+  DebianManager(const PackageConfig &pconfig, const boost::shared_ptr<INvStorage> &storage)
+      : config_(pconfig), storage_(storage) {}
   virtual Json::Value getInstalledPackages();
   virtual std::string getCurrent();
   virtual data::InstallOutcome install(const Uptane::Target &target) const;
   PackageConfig config_;
-  boost::filesystem::path path_;
+  boost::shared_ptr<INvStorage> storage_;
 };
 
 #endif  // DEB_H_
