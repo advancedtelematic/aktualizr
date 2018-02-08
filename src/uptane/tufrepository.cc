@@ -28,7 +28,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   }
 
   // incomplete writes will stop the download (written_size != nmemb*size)
-  size_t written_size = write(ds->fp, contents, nmemb * size);
+  size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), nmemb * size);
   ds->sha256_hasher.update((const unsigned char*)contents, written_size);
   ds->sha512_hasher.update((const unsigned char*)contents, written_size);
   return written_size;
@@ -37,14 +37,11 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 TufRepository::TufRepository(const std::string& name, const std::string& base_url, const Config& config,
                              boost::shared_ptr<INvStorage>& storage, HttpInterface& http_client)
     : name_(name),
-      path_(Utils::absolutePath(config.storage.path, config.storage.uptane_metadata_path) / name_),
       config_(config),
       storage_(storage),
       http_(http_client),
       base_url_(base_url),
       root_(Root::kRejectAll) {
-  boost::filesystem::create_directories(path_ / "targets");
-
   Uptane::MetaPack meta;
   if (storage_->loadMetadata(&meta)) {
     if (name_ == "repo") {
@@ -103,21 +100,22 @@ Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, c
 
 std::string TufRepository::downloadTarget(Target target) {
   DownloadMetaStruct ds;
-  int fp =
-      open((path_ / "targets" / target.filename()).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-  ds.fp = fp;
+  std::unique_ptr<StorageTargetWHandle> fhandle =
+      storage_->allocateTargetFile(false, target.filename(), target.length());
+  ds.fhandle = fhandle.get();
   ds.downloaded_length = 0;
   ds.expected_length = target.length();
 
   HttpResponse response = http_.download(base_url_ + "/targets/" + target.filename(), DownloadHandler, &ds);
-  close(fp);
   if (!response.isOk()) {
+    fhandle->wabort();
     if (response.curl_code == CURLE_WRITE_ERROR) {
       throw OversizedTarget(target.filename());
     } else {
       throw Exception(name_, "Could not download file, error: " + response.error_message);
     }
   }
+  fhandle->wcommit();
   std::string h256 = ds.sha256_hasher.getHexDigest();
   std::string h512 = ds.sha512_hasher.getHexDigest();
 
@@ -140,9 +138,7 @@ void TufRepository::saveTarget(const Target& target) {
   }
 }
 
-std::string TufRepository::getTargetPath(const Target& target) {
-  return (path_ / "targets" / target.filename()).string();
-}
+std::string TufRepository::getTargetPath(const Target& target) { return target.filename(); }
 
 void TufRepository::setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp,
                             Uptane::Snapshot* snapshot) {

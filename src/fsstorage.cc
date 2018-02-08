@@ -4,12 +4,17 @@
 
 #include <boost/scoped_array.hpp>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "logging.h"
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
+  boost::filesystem::create_directories(config_.path / "targets");
 }
 
 FSStorage::~FSStorage() {
@@ -346,6 +351,121 @@ void FSStorage::clearInstalledVersions() {
     boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
   }
 }
+
+class FSTargetWHandle : public StorageTargetWHandle {
+ public:
+  FSTargetWHandle(const FSStorage& storage, const std::string& filename, size_t size)
+      : storage_(storage), filename_(filename), expected_size_(size), written_size_(0), closed_(false), fp_(0) {
+    fp_ = open(storage_.targetFilepath(filename_).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+
+    if (fp_ == -1) {
+      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+    }
+  }
+
+  FSTargetWHandle(const FSTargetWHandle& other) = delete;
+  FSTargetWHandle& operator=(const FSTargetWHandle& other) = delete;
+
+  ~FSTargetWHandle() {
+    if (!closed_) {
+      LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
+      this->wabort();
+    }
+  }
+
+  size_t wfeed(const uint8_t* buf, size_t size) override {
+    if (written_size_ + size > expected_size_) {
+      return 0;
+    }
+
+    size_t written = write(fp_, buf, size);
+    written_size_ += written;
+
+    return written;
+  }
+
+  void wcommit() override {
+    closed_ = true;
+    if (written_size_ != expected_size_) {
+      LOG_WARNING << "got " << written_size_ << "instead of " << expected_size_ << " while writing " << filename_;
+      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+    }
+
+    if (close(fp_) == -1) {
+      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+    }
+  }
+
+  void wabort() override {
+    closed_ = true;
+    close(fp_);
+    boost::filesystem::remove(storage_.targetFilepath(filename_));
+  }
+
+ private:
+  const FSStorage& storage_;
+  const std::string filename_;
+  size_t expected_size_;
+  size_t written_size_;
+  bool closed_;
+  int fp_;
+};
+
+std::unique_ptr<StorageTargetWHandle> FSStorage::allocateTargetFile(bool from_director, const std::string& filename,
+                                                                    size_t size) {
+  (void)from_director;
+
+  return std::unique_ptr<StorageTargetWHandle>(new FSTargetWHandle(*this, filename, size));
+}
+
+class FSTargetRHandle : public StorageTargetRHandle {
+ public:
+  FSTargetRHandle(const FSStorage& storage, const std::string& filename) : storage_(storage), closed_(false), fp_(0) {
+    fp_ = open(storage_.targetFilepath(filename).c_str(), 0);
+    if (fp_ == -1) {
+      throw StorageTargetRHandle::ReadError("Could not open " + filename);
+    }
+  }
+
+  FSTargetRHandle(const FSTargetRHandle& other) = delete;
+  FSTargetRHandle& operator=(const FSTargetRHandle& other) = delete;
+
+  ~FSTargetRHandle() {
+    if (!closed_) {
+      this->rclose();
+    }
+  }
+
+  size_t rsize() const override {
+    struct stat sb;
+    fstat(fp_, &sb);
+    return sb.st_size;
+  }
+
+  size_t rread(uint8_t* buf, size_t size) override { return read(fp_, buf, size); }
+
+  void rclose() override { close(fp_); }
+
+ private:
+  const FSStorage& storage_;
+  bool closed_;
+  int fp_;
+};
+
+std::unique_ptr<StorageTargetRHandle> FSStorage::openTargetFile(const std::string& filename) {
+  return std::unique_ptr<StorageTargetRHandle>(new FSTargetRHandle(*this, filename));
+}
+
+void FSStorage::removeTargetFile(const std::string& filename) {
+  if (!boost::filesystem::remove(targetFilepath(filename))) {
+    throw std::runtime_error("Target file " + filename + " not found");
+  }
+}
+
 void FSStorage::cleanUp() {
   boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));
+}
+
+boost::filesystem::path FSStorage::targetFilepath(const std::string& filename) const {
+  return config_.path / "targets" / filename;
 }

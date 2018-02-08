@@ -2,6 +2,7 @@
 #define INVSTORAGE_H_
 
 #include <boost/filesystem.hpp>
+#include <memory>
 #include <string>
 #include "config.h"
 
@@ -21,6 +22,55 @@ struct MisconfiguredEcu {
   std::string serial;
   std::string hardware_id;
   EcuState state;
+};
+
+class StorageTargetWHandle {
+ public:
+  class WriteError : public std::runtime_error {
+   public:
+    WriteError(const std::string& what) : std::runtime_error(what) {}
+  };
+  virtual ~StorageTargetWHandle() = default;
+  virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
+  virtual void wcommit() = 0;
+  virtual void wabort() = 0;
+
+  friend std::istream& operator>>(std::istream& is, StorageTargetWHandle& handle) {
+    std::array<uint8_t, 256> arr;
+    while (!is.eof()) {
+      is.read(reinterpret_cast<char*>(arr.data()), arr.size());
+
+      handle.wfeed(arr.data(), is.gcount());
+    }
+    handle.wcommit();
+
+    return is;
+  }
+};
+
+class StorageTargetRHandle {
+ public:
+  class ReadError : public std::runtime_error {
+   public:
+    ReadError(const std::string& what) : std::runtime_error(what) {}
+  };
+  virtual ~StorageTargetRHandle() = default;
+  virtual size_t rsize() const = 0;
+  virtual size_t rread(uint8_t* buf, size_t size) = 0;
+  virtual void rclose() = 0;
+
+  friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
+    std::array<uint8_t, 256> arr;
+    size_t written = 0;
+    while (written < handle.rsize()) {
+      size_t nread = handle.rread(arr.data(), arr.size());
+
+      os.write(reinterpret_cast<char*>(arr.data()), nread);
+      written += nread;
+    }
+
+    return os;
+  }
 };
 
 // Functions loading/storing multiple pieces of data are supposed to do so atomically as far as implementation makes it
@@ -70,16 +120,17 @@ class INvStorage {
   virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
+  // Incremental file API
+  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
+                                                                   size_t size) = 0;
+  virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) = 0;
+  virtual void removeTargetFile(const std::string& filename) = 0;
+
   virtual void cleanUp() = 0;
 
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
 
-  // Incremental file API
-  // virtual bool filePreallocate(bool from_director, const std::string &filename, size_t size) = 0;
-  // virtual bool fileFeed(bool from_director, const std::string &filename, const uint8_t* buf, size_t len) = 0;
-  // virtual bool fileCommit(bool from_director, const std::string &filename) = 0;
-  // virtual void fileAbort(bool from_director, const std::string &filename) = 0;
   static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
                                                   const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
