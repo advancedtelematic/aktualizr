@@ -12,7 +12,7 @@
 #endif
 #endif
 
-TEST(crypto, sign_tuf) {
+TEST(UptaneCrypto, SignTuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Config config;
@@ -31,8 +31,53 @@ TEST(crypto, sign_tuf) {
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
 }
 
+TEST(UptaneCrypto, InitFileEmpty) {
+  Config config;
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  CryptoKey keys(storage, config);
+
+  EXPECT_TRUE(keys.getCaFile().empty());
+  EXPECT_TRUE(keys.getPkeyFile().empty());
+  EXPECT_TRUE(keys.getCertFile().empty());
+  keys.loadKeys();
+  EXPECT_TRUE(keys.getCaFile().empty());
+  EXPECT_TRUE(keys.getPkeyFile().empty());
+  EXPECT_TRUE(keys.getCertFile().empty());
+}
+
+TEST(UptaneCrypto, InitFileValid) {
+  Config config;
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
+  std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
+  std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
+  storage->storeTlsCa(ca);
+  storage->storeTlsPkey(pkey);
+  storage->storeTlsCert(cert);
+  CryptoKey keys(storage, config);
+  keys.loadKeys();
+
+  std::string ca_file = keys.getCaFile();
+  std::string pkey_file = keys.getPkeyFile();
+  std::string cert_file = keys.getCertFile();
+
+  EXPECT_TRUE(boost::filesystem::exists(ca_file));
+  EXPECT_TRUE(boost::filesystem::exists(pkey_file));
+  EXPECT_TRUE(boost::filesystem::exists(cert_file));
+  EXPECT_FALSE(boost::filesystem::is_empty(ca_file));
+  EXPECT_FALSE(boost::filesystem::is_empty(pkey_file));
+  EXPECT_FALSE(boost::filesystem::is_empty(cert_file));
+  EXPECT_EQ(ca, Utils::readFile(ca_file));
+  EXPECT_EQ(pkey, Utils::readFile(pkey_file));
+  EXPECT_EQ(cert, Utils::readFile(cert_file));
+}
+
 #ifdef BUILD_P11
-TEST(crypto, sign_tuf_pkcs11) {
+TEST(UptaneCrypto, SignTufPkcs11) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
 
@@ -58,6 +103,51 @@ TEST(crypto, sign_tuf_pkcs11) {
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
   EXPECT_EQ(signed_json["signatures"][0]["sig"].asString().size() != 0, true);
+}
+
+TEST(UptaneCrypto, InitPkcs11Empty) {
+  Config config;
+  P11Config p11_conf;
+  p11_conf.module = TEST_PKCS11_MODULE_PATH;
+  p11_conf.pass = "1234";
+  p11_conf.uptane_key_id = "03";
+  config.p11 = p11_conf;
+
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  CryptoKey keys(storage, config);
+
+  EXPECT_TRUE(keys.getCaFile().empty());
+  EXPECT_TRUE(keys.getPkeyFile().empty());
+  EXPECT_TRUE(keys.getCertFile().empty());
+  keys.loadKeys();
+  EXPECT_TRUE(keys.getCaFile().empty());
+  EXPECT_TRUE(keys.getPkeyFile().empty());
+  EXPECT_TRUE(keys.getCertFile().empty());
+}
+
+TEST(UptaneCrypto, InitPkcs11Valid) {
+  Config config;
+  P11Config p11_conf;
+  p11_conf.module = TEST_PKCS11_MODULE_PATH;
+  p11_conf.pass = "1234";
+  p11_conf.uptane_key_id = "03";
+  config.p11 = p11_conf;
+
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
+  std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
+  std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
+  storage->storeTlsCa(ca);
+  storage->storeTlsPkey(pkey);
+  storage->storeTlsCert(cert);
+  CryptoKey keys(storage, config);
+  EXPECT_FALSE(keys.getCaFile().empty());
+  EXPECT_FALSE(keys.getPkeyFile().empty());
+  EXPECT_FALSE(keys.getCertFile().empty());
 }
 #endif
 

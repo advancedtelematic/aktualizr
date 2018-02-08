@@ -18,9 +18,10 @@ class CryptoKey {
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
   CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config &config);
-  std::string getPkeyFile();
-  std::string getCertFile();
-  std::string getCaFile();
+  void loadKeys();
+  std::string getPkeyFile() const;
+  std::string getCertFile() const;
+  std::string getCaFile() const;
   std::string getPkey() const;
   std::string getCert() const;
   std::string getCa() const;

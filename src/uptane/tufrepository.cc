@@ -130,8 +130,9 @@ void TufRepository::saveTarget(const Target& target) {
     downloadTarget(target);
   } else if (target.format().empty() || target.format() == "OSTREE") {
 #ifdef BUILD_OSTREE
-    CryptoKey cred(storage_, config_);
-    OstreeManager::pull(config_, cred, target.sha256Hash());
+    CryptoKey keys(storage_, config_);
+    keys.loadKeys();
+    OstreeManager::pull(config_, keys, target.sha256Hash());
 #else
     LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
 #endif

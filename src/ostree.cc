@@ -15,7 +15,7 @@
 #include "logging.h"
 #include "utils.h"
 
-data::InstallOutcome OstreeManager::pull(const Config &config, CryptoKey &cred, const std::string &refhash) {
+data::InstallOutcome OstreeManager::pull(const Config &config, const CryptoKey &keys, const std::string &refhash) {
   OstreeRepo *repo = NULL;
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = NULL;
@@ -30,7 +30,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, CryptoKey &cred, 
     return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
-  if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, cred)) {
+  if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, keys)) {
     g_object_unref(repo);
     return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
   }
@@ -206,7 +206,7 @@ boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesys
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
 }
 
-bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, CryptoKey &cred) {
+bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const CryptoKey &keys) {
   GCancellable *cancellable = NULL;
   GError *error = NULL;
   GVariantBuilder b;
@@ -215,9 +215,9 @@ bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, CryptoKe
   g_variant_builder_init(&b, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&b, "{s@v}", "gpg-verify", g_variant_new_variant(g_variant_new_boolean(FALSE)));
 
-  std::string cert_file = cred.getCertFile();
-  std::string pkey_file = cred.getPkeyFile();
-  std::string ca_file = cred.getCaFile();
+  std::string cert_file = keys.getCertFile();
+  std::string pkey_file = keys.getPkeyFile();
+  std::string ca_file = keys.getCaFile();
   if (!cert_file.empty() && !pkey_file.empty() && !ca_file.empty()) {
     g_variant_builder_add(&b, "{s@v}", "tls-client-cert-path",
                           g_variant_new_variant(g_variant_new_string(cert_file.c_str())));
