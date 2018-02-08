@@ -25,6 +25,8 @@ void KeyManager::loadKeys() {
       }
       tmp_pkey_file->PutContents(pkey);
     }
+  }
+  if (config_.tls.cert_source == kFile) {
     std::string cert;
     backend_->loadTlsCert(&cert);
     if (!cert.empty()) {
@@ -33,6 +35,8 @@ void KeyManager::loadKeys() {
       }
       tmp_cert_file->PutContents(cert);
     }
+  }
+  if (config_.tls.ca_source == kFile) {
     std::string ca;
     backend_->loadTlsCa(&ca);
     if (!ca.empty()) {
@@ -208,7 +212,7 @@ std::string KeyManager::getUptanePublicKey() {
       throw std::runtime_error("Could not get uptane public key!");
     }
 #else
-    throw std::runtime_error("Aktualizr builded without pkcs11 support!");
+    throw std::runtime_error("Aktualizr was built without pkcs11 support!");
 #endif
   }
   return primary_public;
@@ -233,7 +237,7 @@ std::string KeyManager::generateUptaneKeyPair() {
     if (!p11_->readUptanePublicKey(&primary_public)) {
       p11_->generateUptaneKeyPair();
     }
-    // realy read the key
+    // really read the key
     if (primary_public.empty() && !p11_->readUptanePublicKey(&primary_public)) {
       throw std::runtime_error("Could not get uptane keys");
     }
