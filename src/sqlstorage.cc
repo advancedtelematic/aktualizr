@@ -31,8 +31,6 @@ SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
-  } else if (!dbCheck()) {
-    LOG_ERROR << "SQLite database doesn't match its schema";
   } else if (!dbInit()) {
     LOG_ERROR << "Couldn't initialize database";
   }
@@ -959,73 +957,6 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
 
 void SQLStorage::cleanUp() { boost::filesystem::remove_all(config_.sqldb_path); }
 
-bool SQLStorage::tableSchemasEqual(const std::string& left, const std::string& right) {
-  boost::char_separator<char> sep(" \"\t\r\n", "(),;");
-  sql_tokenizer tokl(left, sep);
-  sql_tokenizer tokr(right, sep);
-
-  sql_tokenizer::iterator it_l;
-  sql_tokenizer::iterator it_r;
-  for (it_l = tokl.begin(), it_r = tokr.begin(); it_l != tokl.end() && it_r != tokr.end(); ++it_l, ++it_r) {
-    if (*it_l != *it_r) return false;
-  }
-  return (it_l == tokl.end()) && (it_r == tokr.end());
-}
-
-boost::movelib::unique_ptr<std::map<std::string, std::string> > SQLStorage::parseSchema(int version) {
-  boost::filesystem::path schema_file =
-      config_.schemas_path / (std::string("schema.") + boost::lexical_cast<std::string>(version) + ".sql");
-  std::string schema = Utils::readFile(schema_file.string());
-  boost::movelib::unique_ptr<std::map<std::string, std::string> > result =
-      boost::movelib::make_unique<std::map<std::string, std::string> >();
-  std::vector<std::string> tokens;
-
-  enum { STATE_INIT, STATE_CREATE, STATE_TABLE, STATE_NAME };
-  boost::char_separator<char> sep(" \"\t\r\n", "(),;");
-  sql_tokenizer tok(schema, sep);
-  int parsing_state = STATE_INIT;
-
-  std::string key;
-  std::string value;
-  for (sql_tokenizer::iterator it = tok.begin(); it != tok.end(); ++it) {
-    std::string token = *it;
-    if (value.empty())
-      value = token;
-    else
-      value = value + " " + token;
-    switch (parsing_state) {
-      case STATE_INIT:
-        if (token != "CREATE") {
-          return boost::movelib::make_unique<std::map<std::string, std::string> >();
-        }
-        parsing_state = STATE_CREATE;
-        break;
-      case STATE_CREATE:
-        if (token != "TABLE") {
-          return boost::movelib::make_unique<std::map<std::string, std::string> >();
-        }
-        parsing_state = STATE_TABLE;
-        break;
-      case STATE_TABLE:
-        if (token == "(" || token == ")" || token == "," || token == ";") {
-          return boost::movelib::make_unique<std::map<std::string, std::string> >();
-        }
-        key = token;
-        parsing_state = STATE_NAME;
-        break;
-      case STATE_NAME:
-        if (token == ";") {
-          (*result)[key] = value;
-          key.clear();
-          value.clear();
-          parsing_state = STATE_INIT;
-        }
-        break;
-    }
-  }
-  return boost::move(result);
-}
-
 std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
@@ -1071,21 +1002,6 @@ bool SQLStorage::dbMigrate() {
     }
   }
 
-  return true;
-}
-
-bool SQLStorage::dbCheck() {
-  boost::movelib::unique_ptr<std::map<std::string, std::string> > tables = parseSchema(kSqlSchemaVersion);
-
-  for (std::map<std::string, std::string>::iterator it = tables->begin(); it != tables->end(); ++it) {
-    std::string schema_from_db = getTableSchemaFromDb(it->first);
-    if (!tableSchemasEqual(schema_from_db, it->second)) {
-      LOG_ERROR << "Schemas don't match for " << it->first;
-      LOG_ERROR << "Expected " << it->second;
-      LOG_ERROR << "Found " << schema_from_db;
-      return false;
-    }
-  }
   return true;
 }
 
