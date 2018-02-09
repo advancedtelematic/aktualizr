@@ -715,7 +715,8 @@ TEST(Uptane, ProvisionOnServer) {
 TEST(Uptane, CheckOldProvision) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path(), true);
-  system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
+  int result = system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
+  (void)result;
   Config config;
   config.tls.server = http.tls_server;
   config.uptane.director_server = http.tls_server + "/director";
@@ -731,7 +732,8 @@ TEST(Uptane, CheckOldProvision) {
 
 TEST(Uptane, fs_to_sql_full) {
   TemporaryDirectory temp_dir;
-  system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
+  int result = system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
+  (void)result;
   StorageConfig config;
   config.type = kSqlite;
   config.uptane_metadata_path = "metadata";

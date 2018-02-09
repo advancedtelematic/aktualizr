@@ -80,7 +80,12 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Debug")
     set(CMAKE_BUILD_TYPE Debug)
 endif(NOT CMAKE_BUILD_TYPE)
+
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
+
+SET(CMAKE_BUILD_TYPE Valgrind)
+SET(CMAKE_CXX_FLAGS_VALGRIND "-O1")
+SET(CMAKE_C_FLAGS_VALGRIND "-O1")
 
 
 ################ QA RULES
