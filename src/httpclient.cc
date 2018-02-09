@@ -10,7 +10,6 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
-#include <sys/stat.h>
 #include <boost/move/make_unique.hpp>
 #include <boost/move/utility.hpp>
 
