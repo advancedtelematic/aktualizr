@@ -180,7 +180,10 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) {
   ENGINE *crypto_engine = NULL;
   std::string private_key;
 #ifdef BUILD_P11
-  if (config_.uptane.key_source == kPkcs11) crypto_engine = p11_->getEngine();
+  if (config_.uptane.key_source == kPkcs11) {
+    crypto_engine = p11_->getEngine();
+    private_key = config_.p11.uptane_key_id;
+  }
 #endif
   if (config_.uptane.key_source == kFile) {
     backend_->loadPrimaryPrivate(&private_key);
