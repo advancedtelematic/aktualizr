@@ -1,3 +1,4 @@
+-- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 BEGIN TRANSACTION;
 
 ALTER TABLE primary_image ADD COLUMN installed_versions TEXT NOT NULL DEFAULT '';

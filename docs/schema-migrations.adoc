@@ -1,0 +1,6 @@
+= How to add a schema migration
+
+1. Copy schema.n.sql to schema.n+1.sql
+2. Modify the schema as you see fit
+3. Write a migrate.n+1.sql that will convert an existing data file in schema.n.sql format to one in schema.n+1.sql format. Note that old migrations must not be modified.
+4. Update kSqlSchemaVersion in sqlstorage.h to n+1

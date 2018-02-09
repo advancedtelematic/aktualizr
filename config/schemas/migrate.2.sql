@@ -1,3 +1,4 @@
+-- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 BEGIN TRANSACTION;
 
 DROP TABLE primary_image;
