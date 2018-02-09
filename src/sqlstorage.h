@@ -77,8 +77,9 @@ class SQLStorage : public INvStorage {
   virtual void cleanUp();
   virtual StorageType type() { return kSqlite; };
 
+  std::string getTableSchemaFromDb(const std::string& tablename);
+
   bool dbMigrate();
-  bool dbCheck();
   bool dbInit();
 
  private:
@@ -88,10 +89,6 @@ class SQLStorage : public INvStorage {
   std::map<std::string, std::string> req_params;
   std::map<std::string, std::string> req_response;
   std::vector<std::map<std::string, std::string> > req_response_table;
-
-  boost::movelib::unique_ptr<std::map<std::string, std::string> > parseSchema(int version);
-  bool tableSchemasEqual(const std::string& left, const std::string& right);
-  std::string getTableSchemaFromDb(const std::string& tablename);
 
   static int callback(void* instance_, int numcolumns, char** values, char** columns);
   int getVersion();  // non-negative integer on success or -1 on error
