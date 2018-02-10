@@ -306,24 +306,19 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
   }
 }
 
-int Utils::shell(const std::string &command, std::string *output) {
+int Utils::shell(const std::string &command, std::string *output, bool include_stderr) {
   char buffer[128];
-  FILE *pipe = popen(command.c_str(), "r");
+  std::string full_command(command);
+  if (include_stderr) full_command += " 2>&1";
+  FILE *pipe = popen(full_command.c_str(), "r");
   if (!pipe) {
     *output = "popen() failed!";
     return -1;
   }
-  try {
-    while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != NULL) {
-        *output += buffer;
-      }
+  while (!feof(pipe)) {
+    if (fgets(buffer, 128, pipe) != NULL) {
+      *output += buffer;
     }
-  } catch (std::exception e) {
-    *output = "Exception: ";
-    *output += e.what();
-    pclose(pipe);
-    return -1;
   }
   int exitcode = pclose(pipe);
   return WEXITSTATUS(exitcode);

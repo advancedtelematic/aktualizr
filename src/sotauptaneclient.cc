@@ -70,10 +70,8 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 }
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
-  if (isInstalled(target)) {
-    data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
-    operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
-  } else if ((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) {
+  if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
+      config.pacman.type == kOstree) {
     data::InstallOutcome outcome(data::VALIDATION_FAILED, "Cannot install a non-OSTree package on an OSTree system");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
   } else {
@@ -178,13 +176,14 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           std::vector<Uptane::Target>::const_iterator it;
           for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
-            // treat empty format as OSTree for backwards compatibility
-            // TODO: isInstalled gets called twice here, since
-            // PackageInstallSetResult calls it too.
-            if ((it->format().empty() || it->format() == "OSTREE") && !isInstalled(*it)) {
+            if (!isInstalled(*it)) {
               PackageInstallSetResult(*it);
-              break;
+            } else {
+              data::InstallOutcome outcome(data::ALREADY_PROCESSED, "Package already installed");
+              operation_result["operation_result"] =
+                  data::OperationResult::fromOutcome(it->filename(), outcome).toJson();
             }
+            break;
           }
           // TODO: other updates for primary
         }

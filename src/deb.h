@@ -9,6 +9,8 @@
 #include "packagemanagerinterface.h"
 #include "types.h"
 
+#include "invstorage.h"
+
 class DebianManager : public PackageManagerInterface {
  public:
   DebianManager(const PackageConfig &pconfig, const boost::shared_ptr<INvStorage> &storage)

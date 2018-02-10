@@ -37,7 +37,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   boost::filesystem::path deb_path = package_dir / target.filename();
   Utils::writeFile(deb_path, sstr.str());
 
-  int status = Utils::shell(cmd + deb_path.string(), &output);
+  int status = Utils::shell(cmd + deb_path.string(), &output, true);
   if (status != 0) {
     return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
@@ -55,5 +55,5 @@ std::string DebianManager::getCurrent() {
       return it->first;
     }
   }
-  return std::string();
+  return boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
 }
