@@ -1,0 +1,23 @@
+[tls]
+ca_source = "file"
+pkey_source = "file"
+cert_source = "file"
+server = "http://localhost:8000"
+
+[storage]
+path = "/persistent/prov_selfupdate"
+uptane_metadata_path = "metadata"
+uptane_private_key_path = "ecukey.pem"
+uptane_public_key_path = "ecukey.pub"
+tls_cacert_path = "ca.pem"
+tls_pkey_path = "pkey.pem"
+tls_clientcert_path = "client.pem"
+
+[uptane]
+polling = false
+polling_sec = 10
+key_source = "file"
+
+[pacman]
+type = "debian"
+
