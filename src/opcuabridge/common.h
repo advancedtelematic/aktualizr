@@ -1,8 +1,12 @@
 #ifndef OPCUABRIDGE_COMMON_H_
 #define OPCUABRIDGE_COMMON_H_
 
+#ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
 #include "boostarch.h"
 #include "utility.h"
+#endif
+
+#include <boost/function.hpp>
 
 #include "json/json.h"
 #include <open62541.h>
@@ -109,13 +113,28 @@ enum SignatureMethod {
 struct BinaryData {};
 typedef std::vector<unsigned char> BinaryDataContainer;
 
+template<typename T>
+struct MessageOnBeforeReadCallback {
+    typedef boost::function<void (T*)>  type;
+};
+
+template<typename T>
+struct MessageOnAfterWriteCallback {
+    typedef boost::function<void (T*)>  type;
+};
+
 template <typename T>
 UA_StatusCode read(UA_Server *server, const UA_NodeId *sessionId,
                    void *sessionContext, const UA_NodeId *nodeId,
                    void *nodeContext, UA_Boolean sourceTimeStamp,
                    const UA_NumericRange *range, UA_DataValue *dataValue) {
 
-  std::string msg = T::wrapMessage(static_cast<T*>(nodeContext));
+  T* obj = static_cast<T*>(nodeContext);
+
+  if (obj->on_before_read_cb_)
+      obj->on_before_read_cb_(obj);
+
+  std::string msg = T::wrapMessage(obj);
 
   UA_Variant_setArrayCopy(&dataValue->value, msg.c_str(), msg.size(),
                           &UA_TYPES[UA_TYPES_BYTE]);
@@ -135,13 +154,15 @@ UA_StatusCode write(UA_Server *server, const UA_NodeId *sessionId,
                     void *sessionContext, const UA_NodeId *nodeId,
                     void *nodeContext, const UA_NumericRange *range,
                     const UA_DataValue *data) {
+  T* obj = static_cast<T*>(nodeContext);
 
   if (!UA_Variant_isEmpty(&data->value) &&
       UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    T::unwrapMessage(static_cast<T*>(nodeContext),
-                     static_cast<const char*>(data->value.data),
+    T::unwrapMessage(obj, static_cast<const char*>(data->value.data),
                      data->value.arrayLength);
   }
+  if (obj->on_after_write_cb_)
+      obj->on_after_write_cb_(obj);
   return UA_STATUSCODE_GOOD;
 }
 
@@ -191,24 +212,25 @@ inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id,
 template <typename MessageT>
 inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id,
                                  MessageT *obj, BinaryDataContainer* bin_data) {
-  UA_Variant *val = UA_Variant_new();
-  std::string msg = MessageT::wrapMessage(obj);
-  UA_Variant_setArray(val, const_cast<char *>(msg.c_str()), msg.size(),
+  // write binary child node
+  UA_Variant *bin_val = UA_Variant_new();
+  UA_Variant_setArray(bin_val, &(*bin_data)[0], bin_data->size(),
                       &UA_TYPES[UA_TYPES_BYTE]);
-  val->storageType = UA_VARIANT_DATA_NODELETE;
+  bin_val->storageType = UA_VARIANT_DATA_NODELETE;
   UA_StatusCode retval = UA_Client_writeValueAttribute(
-      client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
+      client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
+  UA_Variant_delete(bin_val);
+
   if (retval == UA_STATUSCODE_GOOD) {
-      // write binary child node
-      UA_Variant *bin_val = UA_Variant_new();
-      UA_Variant_setArray(bin_val, &(*bin_data)[0], bin_data->size(),
-                          &UA_TYPES[UA_TYPES_BYTE]);
-      bin_val->storageType = UA_VARIANT_DATA_NODELETE;
-      retval = UA_Client_writeValueAttribute(
-          client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
-      UA_Variant_delete(bin_val);
+    UA_Variant *val = UA_Variant_new();
+    std::string msg = MessageT::wrapMessage(obj);
+    UA_Variant_setArray(val, const_cast<char *>(msg.c_str()), msg.size(),
+                        &UA_TYPES[UA_TYPES_BYTE]);
+    val->storageType = UA_VARIANT_DATA_NODELETE;
+    retval = UA_Client_writeValueAttribute(
+        client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
+    UA_Variant_delete(val);
   }
-  UA_Variant_delete(val);
   return retval;
 }
 

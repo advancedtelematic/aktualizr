@@ -21,9 +21,19 @@ class VersionReport {
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<VersionReport>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<VersionReport>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   int tokenForTimeServer_;
   ECUVersionManifest ecuVersionManifest_;
+
+  MessageOnBeforeReadCallback<VersionReport>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<VersionReport>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;

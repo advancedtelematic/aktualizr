@@ -19,10 +19,20 @@ class ImageBlock {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&block_)                     // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&block_)                    // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageBlock>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageBlock>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   std::string filename_;
   std::size_t blockNumber_;
   std::vector<unsigned char> block_;
+
+  MessageOnBeforeReadCallback<ImageBlock>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<ImageBlock>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;

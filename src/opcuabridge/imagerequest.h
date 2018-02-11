@@ -15,8 +15,18 @@ class ImageRequest {
   CLIENTREAD_FUNCTION_DEFINITION()                     // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                    // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageRequest>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageRequest>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   std::string filename_;
+
+  MessageOnBeforeReadCallback<ImageRequest>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<ImageRequest>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;
