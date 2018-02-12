@@ -165,7 +165,7 @@ add_dependencies(build_tests aktualizr_uptane_vector_tests)
 if(BUILD_OSTREE)
     add_custom_target(make_ostree_sysroot
                       COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh
-                      ${PROJECT_SOURCE_DIR}/tests/ostreesysroot/makephysical.sh ${PROJECT_BINARY_DIR}/ostree_repo)
+                      ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
     add_dependencies(build_tests make_ostree_sysroot)
 
     add_aktualizr_test(NAME ostree SOURCES ostree_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
