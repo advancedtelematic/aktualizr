@@ -5,6 +5,7 @@
 
 #include <sqlite3.h>
 
+// Unique ownership SQLite3 statement creation
 template <typename T>
 static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, int v) {
   if (sqlite3_bind_int(statement, cnt, v) != SQLITE_OK) {
@@ -47,13 +48,13 @@ static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, T& v, T
   bindArguments<Types...>(db, statement, cnt + 1, args...);
 }
 
-class SQLStatement {
+class SQLiteStatement {
  public:
   inline sqlite3_stmt* get() const { return stmt_.get(); }
   inline int step() const { return sqlite3_step(stmt_.get()); }
 
   template <typename... Types>
-  static SQLStatement prepare(sqlite3* db, const char* zSql, Types... args) {
+  static SQLiteStatement prepare(sqlite3* db, const char* zSql, Types... args) {
     sqlite3_stmt* statement;
 
     if (sqlite3_prepare_v2(db, zSql, -1, &statement, nullptr) != SQLITE_OK) {
@@ -63,14 +64,36 @@ class SQLStatement {
 
     bindArguments<Types...>(db, statement, 1, args...);
 
-    return SQLStatement(db, statement);
+    return SQLiteStatement(db, statement);
   }
 
  private:
-  SQLStatement(sqlite3* db, sqlite3_stmt* stmt) : db_(db), stmt_(stmt, sqlite3_finalize) {}
+  SQLiteStatement(sqlite3* db, sqlite3_stmt* stmt) : db_(db), stmt_(stmt, sqlite3_finalize) {}
 
   sqlite3* db_;
   std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)> stmt_;
+};
+
+// Unique ownership SQLite3 connection
+class SQLite3Guard {
+ public:
+  sqlite3* get() { return handle_.get(); }
+  int get_rc() { return rc_; }
+
+  SQLite3Guard(const char* path) : handle_(nullptr, sqlite3_close), rc_(0) {
+    sqlite3* h;
+    rc_ = sqlite3_open(path, &h);
+    handle_.reset(h);
+  }
+
+  template <typename... Types>
+  SQLiteStatement prepareStatement(const char* zSql, Types... args) {
+    return SQLiteStatement::prepare(handle_.get(), zSql, args...);
+  }
+
+ private:
+  std::unique_ptr<sqlite3, int (*)(sqlite3*)> handle_;
+  int rc_;
 };
 
 #endif  // SQL_UTILS_H_

@@ -744,9 +744,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    auto statement = SQLStatement::prepare<const char*, SQLZeroBlob>(
-        db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", filename_.c_str(),
-        SQLZeroBlob{expected_size_});
+    auto statement =
+        db_.prepareStatement<const char*, SQLZeroBlob>("INSERT INTO target_images (filename, image_data) VALUES (?, ?)",
+                                                       filename_.c_str(), SQLZeroBlob{expected_size_});
 
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
@@ -838,8 +838,8 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    auto statement = SQLStatement::prepare<const char*>(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?",
-                                                        filename.c_str());
+    auto statement =
+        db_.prepareStatement<const char*>("SELECT rowid FROM target_images WHERE filename = ?", filename.c_str());
 
     int err = statement.step();
     if (err == SQLITE_DONE) {
@@ -916,8 +916,7 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     return;
   }
 
-  auto statement =
-      SQLStatement::prepare<const char*>(db.get(), "DELETE FROM target_images WHERE filename=?", filename.c_str());
+  auto statement = db.prepareStatement<const char*>("DELETE FROM target_images WHERE filename=?", filename.c_str());
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
