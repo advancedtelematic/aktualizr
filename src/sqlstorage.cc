@@ -4,65 +4,8 @@
 #include <memory>
 
 #include "logging.h"
+#include "sql_utils.h"
 #include "utils.h"
-
-using SQLGuardedStatement = std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)>;
-
-template <typename T>
-static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, int v) {
-  if (sqlite3_bind_int(statement, cnt, v) != SQLITE_OK) {
-    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
-    throw std::runtime_error("SQLite bind error");
-  }
-}
-
-template <typename T>
-static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const char* v) {
-  if (sqlite3_bind_text(statement, cnt, v, -1, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
-    throw std::runtime_error("SQLite bind error");
-  }
-}
-
-struct SQLZeroBlob {
-  size_t size;
-};
-
-template <typename T>
-static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, SQLZeroBlob& blob) {
-  if (sqlite3_bind_zeroblob(statement, cnt, blob.size) != SQLITE_OK) {
-    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
-    throw std::runtime_error("SQLite bind error");
-  }
-}
-
-template <typename... Types>
-static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt) {
-  /* end of template specialization */
-  (void)db;
-  (void)statement;
-  (void)cnt;
-}
-
-template <typename T, typename... Types>
-static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, T& v, Types... args) {
-  bindArgument<T>(db, statement, cnt, v);
-  bindArguments<Types...>(db, statement, cnt + 1, args...);
-}
-
-template <typename... Types>
-static SQLGuardedStatement prepareStatement(sqlite3* db, const char* zSql, Types... args) {
-  sqlite3_stmt* statement;
-
-  if (sqlite3_prepare_v2(db, zSql, -1, &statement, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db);
-    throw std::runtime_error("SQLite fatal error");
-  }
-
-  bindArguments<Types...>(db, statement, 1, args...);
-
-  return std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)>(statement, sqlite3_finalize);
-}
 
 SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!boost::filesystem::is_directory(config.schemas_path)) {
@@ -801,11 +744,11 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    SQLGuardedStatement statement = prepareStatement<const char*, SQLZeroBlob>(
+    auto statement = SQLStatement::prepare<const char*, SQLZeroBlob>(
         db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", filename_.c_str(),
         SQLZeroBlob{expected_size_});
 
-    if (sqlite3_step(statement.get()) != SQLITE_DONE) {
+    if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
       throw exc;
     }
@@ -895,10 +838,10 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    SQLGuardedStatement statement = prepareStatement<const char*>(
-        db_.get(), "SELECT rowid FROM target_images WHERE filename = ?", filename.c_str());
+    auto statement = SQLStatement::prepare<const char*>(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?",
+                                                        filename.c_str());
 
-    int err = sqlite3_step(statement.get());
+    int err = statement.step();
     if (err == SQLITE_DONE) {
       LOG_ERROR << "No such file in db: " + filename_;
       throw exc;
@@ -973,10 +916,10 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     return;
   }
 
-  SQLGuardedStatement statement =
-      prepareStatement<const char*>(db.get(), "DELETE FROM target_images WHERE filename=?", filename.c_str());
+  auto statement =
+      SQLStatement::prepare<const char*>(db.get(), "DELETE FROM target_images WHERE filename=?", filename.c_str());
 
-  if (sqlite3_step(statement.get()) != SQLITE_DONE) {
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
     throw std::runtime_error("Could not remove target file");
   }
