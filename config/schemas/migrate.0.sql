@@ -1,3 +1,4 @@
+-- Don't modify this! Create a new migration instead--see docs/schema-migrations.adoc
 BEGIN TRANSACTION;
 
 CREATE TABLE version(version INTEGER);

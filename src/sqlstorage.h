@@ -10,6 +10,7 @@
 #include "config.h"
 #include "invstorage.h"
 
+// See docs/schema-migrations.adoc
 const int kSqlSchemaVersion = 2;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
