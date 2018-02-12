@@ -28,6 +28,9 @@ SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
     throw std::runtime_error("Aktualizr installation incorrect. Schemas directory " + config.schemas_path.string() +
                              " missing");
   }
+
+  boost::filesystem::create_directories(config.sqldb_path.parent_path());
+
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
@@ -990,9 +993,11 @@ bool SQLStorage::dbMigrate() {
     return true;
   }
 
-  for (; schema_version <= kSqlSchemaVersion; schema_version++) {
+  // hack here: getVersion() returns -1 if the database didn't exist, so 'migrate.0.sql' will be run in this case
+  for (; schema_version < kSqlSchemaVersion; schema_version++) {
     boost::filesystem::path migrate_script_path =
-        config_.schemas_path / (std::string("migrate.") + boost::lexical_cast<std::string>(schema_version) + ".sql");
+        config_.schemas_path /
+        (std::string("migrate.") + boost::lexical_cast<std::string>(schema_version + 1) + ".sql");
     std::string req = Utils::readFile(migrate_script_path.string());
 
     if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
