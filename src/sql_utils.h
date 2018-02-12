@@ -22,12 +22,30 @@ static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const ch
   }
 }
 
+template <typename T>
+static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const std::string& v) {
+  bindArgument<const char*>(db, statement, cnt, v.c_str());
+}
+
+struct SQLBlob {
+  const std::string& content;
+  SQLBlob(const std::string& str) : content(str) {}
+};
+
+template <typename T>
+static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const SQLBlob& blob) {
+  if (sqlite3_bind_blob(statement, cnt, blob.content.c_str(), blob.content.size(), NULL) != SQLITE_OK) {
+    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
+    throw std::runtime_error("SQLite bind error");
+  }
+}
+
 struct SQLZeroBlob {
   size_t size;
 };
 
 template <typename T>
-static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, SQLZeroBlob& blob) {
+static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const SQLZeroBlob& blob) {
   if (sqlite3_bind_zeroblob(statement, cnt, blob.size) != SQLITE_OK) {
     LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
     throw std::runtime_error("SQLite bind error");
@@ -43,9 +61,9 @@ static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt) {
 }
 
 template <typename T, typename... Types>
-static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, T& v, Types... args) {
-  bindArgument<T>(db, statement, cnt, v);
-  bindArguments<Types...>(db, statement, cnt + 1, args...);
+static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, const T& v, const Types&... args) {
+  bindArgument<const T&>(db, statement, cnt, v);
+  bindArguments<const Types&...>(db, statement, cnt + 1, args...);
 }
 
 class SQLiteStatement {
@@ -54,7 +72,7 @@ class SQLiteStatement {
   inline int step() const { return sqlite3_step(stmt_.get()); }
 
   template <typename... Types>
-  static SQLiteStatement prepare(sqlite3* db, const char* zSql, Types... args) {
+  static SQLiteStatement prepare(sqlite3* db, const char* zSql, const Types&... args) {
     sqlite3_stmt* statement;
 
     if (sqlite3_prepare_v2(db, zSql, -1, &statement, nullptr) != SQLITE_OK) {
@@ -87,13 +105,13 @@ class SQLite3Guard {
   }
 
   int exec(const char* sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
-    return sqlite3_exec(handle.get(), sql, callback, cb_arg, NULL);
+    return sqlite3_exec(handle_.get(), sql, callback, cb_arg, NULL);
   }
 
-  std::string errmsg() const { return sqlite3_errmsg(handle.get()); }
+  std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
 
   template <typename... Types>
-  SQLiteStatement prepareStatement(const char* zSql, Types... args) {
+  SQLiteStatement prepareStatement(const char* zSql, const Types&... args) {
     return SQLiteStatement::prepare(handle_.get(), zSql, args...);
   }
 

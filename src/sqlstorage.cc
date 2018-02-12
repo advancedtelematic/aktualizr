@@ -46,15 +46,14 @@ void SQLStorage::storePrimaryPublic(const std::string& public_key) {
     LOG_ERROR << "Can't get count of public key table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET public = '";
-    req += public_key + "';";
+    req = "UPDATE OR REPLACE primary_keys SET public = ?;";
   } else {
-    req = "INSERT INTO primary_keys(public) VALUES  ('";
-    req += public_key + "');";
+    req = "INSERT INTO primary_keys(public) VALUES (?);";
   }
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<std::string>(req, public_key);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set public key: " << db.errmsg();
     return;
   }
@@ -76,15 +75,14 @@ void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
     LOG_ERROR << "Can't get count of private key table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET private = '";
-    req += private_key + "';";
+    req = "UPDATE OR REPLACE primary_keys SET private = ?;";
   } else {
-    req = "INSERT INTO primary_keys(private) VALUES  ('";
-    req += private_key + "');";
+    req = "INSERT INTO primary_keys(private) VALUES (?);";
   }
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<std::string>(req, private_key);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set private key: " << db.errmsg();
     return;
   }
@@ -174,15 +172,14 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET ca_cert = '";
-    req += ca + "';";
+    req = "UPDATE OR REPLACE tls_creds SET ca_cert = ?;";
   } else {
-    req = "INSERT INTO tls_creds(ca_cert) VALUES  ('";
-    req += ca + "');";
+    req = "INSERT INTO tls_creds(ca_cert) VALUES (?);";
   }
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<SQLBlob>(req, ca);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
   }
@@ -204,15 +201,14 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET client_cert = '";
-    req += cert + "';";
+    req = "UPDATE OR REPLACE tls_creds SET client_cert = ?;";
   } else {
-    req = "INSERT INTO tls_creds(client_cert) VALUES  ('";
-    req += cert + "');";
+    req = "INSERT INTO tls_creds(client_cert) VALUES (?);";
   }
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<SQLBlob>(req, cert);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
   }
@@ -234,15 +230,14 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET client_pkey = '";
-    req += pkey + "';";
+    req = "UPDATE OR REPLACE tls_creds SET client_pkey = ?;";
   } else {
-    req = "INSERT INTO tls_creds(client_pkey) VALUES  ('";
-    req += pkey + "');";
+    req = "INSERT INTO tls_creds(client_pkey) VALUES (?);";
   }
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<SQLBlob>(req, pkey);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
   }
@@ -364,15 +359,18 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
 
   clearMetadata();
 
-  std::string req = "INSERT INTO meta VALUES  ('";
-  req += Json::FastWriter().write(metadata.director_root.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.director_targets.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_root.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_targets.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_timestamp.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_snapshot.toJson()) + "');";
+  std::vector<std::string> jsons;
+  jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_targets.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_root.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_targets.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.toJson()));
 
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
+      "INSERT INTO meta VALUES (?,?,?,?,?,?);", jsons[0], jsons[1], jsons[2], jsons[3], jsons[4], jsons[5]);
+
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
     return;
   }
@@ -434,9 +432,8 @@ void SQLStorage::storeDeviceId(const std::string& device_id) {
     return;
   }
 
-  std::string req = "UPDATE OR REPLACE device_info SET device_id = '";
-  req += device_id + "';";
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  auto statement = db.prepareStatement<std::string>("UPDATE OR REPLACE device_info SET device_id = ?;", device_id);
+  if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set device ID: " << db.errmsg();
     return;
   }
@@ -538,21 +535,20 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
       return;
     }
 
-    std::string req = "INSERT INTO ecu_serials VALUES  ('";
-    req += serials[0].first + "', '";
-    req += serials[0].second + "', 1);";
-    if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+    std::string serial = serials[0].first, hwid = serials[0].second;
+    auto statement =
+        db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
+    if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
       return;
     }
 
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
     for (it = serials.begin() + 1; it != serials.end(); it++) {
-      std::string req = "INSERT INTO ecu_serials VALUES  ('";
-      req += it->first + "', '";
-      req += it->second + "', 0);";
+      auto statement = db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,0);",
+                                                                     it->first, it->second);
 
-      if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+      if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
         return;
       }
@@ -610,12 +606,10 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
 
     std::vector<MisconfiguredEcu>::const_iterator it;
     for (it = ecus.begin(); it != ecus.end(); it++) {
-      std::string req = "INSERT INTO misconfigured_ecus VALUES  ('";
-      req += it->serial + "', '";
-      req += it->hardware_id + "', ";
-      req += Utils::intToString(it->state) + ");";
+      auto statement = db.prepareStatement<std::string, std::string, int>(
+          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial, it->hardware_id, it->state);
 
-      if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+      if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
         return;
       }
@@ -669,11 +663,11 @@ void SQLStorage::storeInstalledVersions(const std::map<std::string, InstalledVer
     clearInstalledVersions();
     std::map<std::string, InstalledVersion>::const_iterator it;
     for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-      std::string req = "INSERT INTO installed_versions VALUES  ('";
-      req += (*it).first + "', '";
-      req += (*it).second.first + "', '";
-      req += Utils::intToString((*it).second.second) + "');";
-      if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+      auto statement = db.prepareStatement<std::string, std::string, int>(
+          "INSERT INTO installed_versions VALUES (?,?,?);", (*it).first, (*it).second.first,
+          static_cast<int>((*it).second.second));
+
+      if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
         return;
       }
@@ -743,9 +737,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    auto statement =
-        db_.prepareStatement<const char*, SQLZeroBlob>("INSERT INTO target_images (filename, image_data) VALUES (?, ?)",
-                                                       filename_.c_str(), SQLZeroBlob{expected_size_});
+    auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
+        "INSERT INTO target_images (filename, image_data) VALUES (?, ?);", filename_, SQLZeroBlob{expected_size_});
 
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << db_.errmsg();
@@ -837,8 +830,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    auto statement =
-        db_.prepareStatement<const char*>("SELECT rowid FROM target_images WHERE filename = ?", filename.c_str());
+    auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
 
     int err = statement.step();
     if (err == SQLITE_DONE) {
@@ -915,7 +907,7 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
     return;
   }
 
-  auto statement = db.prepareStatement<const char*>("DELETE FROM target_images WHERE filename=?", filename.c_str());
+  auto statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", filename);
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Statement step failure: " << db.errmsg();
@@ -937,16 +929,15 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
     return "";
   }
 
-  request = kSqlGetSimple;
-  req_response.clear();
-  std::string req =
-      std::string("SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name='") + tablename + "' LIMIT 1;";
-  if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name=? LIMIT 1;", tablename);
+
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get schema of " << tablename << ": " << db.errmsg();
     return "";
   }
 
-  return req_response["result"] + ";";
+  return std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement.get(), 0))) + ";";
 }
 
 bool SQLStorage::dbMigrate() {
