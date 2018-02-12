@@ -10,6 +10,7 @@ option(BUILD_DEB "Set to ON to compile with debian packages support" OFF)
 option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
+option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -20,8 +21,14 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
 
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
+set(BOOST_COMPONENTS log_setup log filesystem thread program_options chrono random system)
+
+if(BUILD_OPCUA)
+    list(APPEND BOOST_COMPONENTS serialization)
+endif(BUILD_OPCUA)
+
 find_package(PkgConfig REQUIRED)
-find_package(Boost 1.57.0 COMPONENTS log_setup log filesystem thread program_options chrono random system REQUIRED)
+find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
@@ -60,6 +67,11 @@ if(BUILD_SOTA_TOOLS)
     find_package(GLIB2 REQUIRED)
     find_program(STRACE NAMES strace)
 endif(BUILD_SOTA_TOOLS)
+
+if(BUILD_OPCUA)
+    set(OPEN62541_IGNORED_WARNINGS
+        "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+endif(BUILD_OPCUA)
 
 # set symbols used when compiling
 #add_definitions(-DBOOST_LOG_DYN_LINK)
@@ -155,6 +167,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/open62541)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})

@@ -179,6 +179,18 @@ if(BUILD_OSTREE)
     endif(SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE)
 
+if(BUILD_OPCUA)
+    set_source_files_properties(opcuabridge_messaging.cc opcuabridge_server.cc
+                                PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
+    add_executable(opcuabridge-server opcuabridge_server.cc)
+    target_link_libraries(opcuabridge-server aktualizr_static_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    add_dependencies(build_tests opcuabridge-server)
+
+    add_aktualizr_test(NAME opcuabridge_messaging
+                       SOURCES opcuabridge_messaging.cc)
+    set(TEST_SOURCES ${TEST_SOURCES} opcuabridge_messaging.cc opcuabridge_server.cc)
+endif(BUILD_OPCUA)
+
 
 ###############################################################################
 # The test feature of cmake checks the return value when the program
