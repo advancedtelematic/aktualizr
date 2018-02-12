@@ -4,8 +4,6 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-#include "uptane/cryptokey.h"
-
 namespace data {
 
 typedef std::string UpdateRequestId;
@@ -99,19 +97,6 @@ struct UpdateReport {
   std::vector<data::OperationResult> operation_results;
   Json::Value toJson();
   static UpdateReport fromJson(const std::string& json_str);
-};
-
-class PackageManagerCredentials {
- public:
-  PackageManagerCredentials(const CryptoKey& cryptokey);
-  boost::filesystem::path ca_file() const;
-  boost::filesystem::path pkey_file() const;
-  boost::filesystem::path cert_file() const;
-
- private:
-  TemporaryFile tmp_ca_file;
-  TemporaryFile tmp_pkey_file;
-  TemporaryFile tmp_cert_file;
 };
 }
 

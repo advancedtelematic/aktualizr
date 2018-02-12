@@ -1,5 +1,8 @@
-#ifndef CRYPTOKEY_H_
-#define CRYPTOKEY_H_
+#ifndef KEYMANAGER_H_
+#define KEYMANAGER_H_
+
+#include <boost/move/unique_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "config.h"
 #include "httpinterface.h"
@@ -7,14 +10,18 @@
 #ifdef BUILD_P11
 #include "p11engine.h"
 #endif
-#include <boost/shared_ptr.hpp>
+#include "utils.h"
 
-class CryptoKey {
+class KeyManager {
  public:
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
-  CryptoKey(const boost::shared_ptr<INvStorage> &backend, const Config &config);
+  KeyManager(const boost::shared_ptr<INvStorage> &backend, const Config &config);
+  void loadKeys();
+  std::string getPkeyFile() const;
+  std::string getCertFile() const;
+  std::string getCaFile() const;
   std::string getPkey() const;
   std::string getCert() const;
   std::string getCa() const;
@@ -30,6 +37,9 @@ class CryptoKey {
 #ifdef BUILD_P11
   P11EngineGuard p11_;
 #endif
+  boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file;
+  boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file;
+  boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file;
 };
 
-#endif  // CRYPTOKEY_H_
+#endif  // KEYMANAGER_H_

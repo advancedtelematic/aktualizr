@@ -2,14 +2,15 @@
 #define UPTANE_REPOSITORY_H_
 
 #include <vector>
+
 #include "json/json.h"
 
 #include "config.h"
 #include "crypto.h"
 #include "httpinterface.h"
 #include "invstorage.h"
+#include "keymanager.h"
 #include "logging.h"
-#include "uptane/cryptokey.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/tufrepository.h"
 
@@ -52,9 +53,6 @@ class Repository {
 
   bool currentMeta(Uptane::MetaPack *meta) { return storage->loadMetadata(meta); }
 
-  std::string pkcs11_tls_keyname;
-  std::string pkcs11_tls_certname;
-
  private:
   const Config &config;
   TufRepository director;
@@ -62,7 +60,7 @@ class Repository {
   boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
 
-  CryptoKey keys_;
+  KeyManager keys_;
 
   Json::Value manifests;
 

@@ -8,7 +8,6 @@
 #include "config.h"
 #include "packagemanagerinterface.h"
 #include "types.h"
-#include "uptane/cryptokey.h"
 
 class DebianManager : public PackageManagerInterface {
  public:

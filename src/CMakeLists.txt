@@ -10,14 +10,15 @@ set(SOURCES aktualizr.cc
             crypto.cc
             events.cc
             eventsinterpreter.cc
-            invstorage.cc
             fsstorage.cc
-            sqlstorage.cc
             gatewaymanager.cc
             httpclient.cc
+            invstorage.cc
+            keymanager.cc
             logging.cc
             socketgateway.cc
             sotauptaneclient.cc
+            sqlstorage.cc
             timer.cc
             types.cc
             utils.cc
@@ -29,39 +30,37 @@ set(SOURCES aktualizr.cc
             uptane/tuf.cc
             uptane/tufrepository.cc
             uptane/uptanerepository.cc
-            uptane/virtualsecondary.cc
-            uptane/cryptokey.cc)
+            uptane/virtualsecondary.cc)
 
 # set headers used for clang format
-set(HEADERS
-            aktualizr.h
+set(HEADERS aktualizr.h
             bootstrap.h
             channel.h
             commands.h
             config.h
             crypto.h
+            deb.h
             events.h
             eventsinterpreter.h
+            exceptions.h
             fsstorage.h
-            sqlstorage.h
             gatewaymanager.h
             httpclient.h
             httpinterface.h
             invstorage.h
+            keymanager.h
             logging.h
             openssl_compat.h
             ostree.h
-            deb.h
             packagemanagerfactory.h
             packagemanagerfake.h
             packagemanagerinterface.h
             socketgateway.h
             sotauptaneclient.h
+            sqlstorage.h
             timer.h
             types.h
             utils.h
-            exceptions.h
-            uptane/cryptokey.h
             uptane/exceptions.h
             uptane/legacysecondary.h
             uptane/managedsecondary.h

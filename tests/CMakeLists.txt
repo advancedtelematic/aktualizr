@@ -119,6 +119,8 @@ add_aktualizr_test(NAME events SOURCES events_test.cc)
 
 add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
 
@@ -134,14 +136,10 @@ add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME types SOURCES types_test.cc PROJECT_WORKING_DIRECTORY)
-
 add_aktualizr_test(NAME utils SOURCES utils_test.cc)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
-
-add_aktualizr_test(NAME uptane_crypto SOURCES uptane_crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
 

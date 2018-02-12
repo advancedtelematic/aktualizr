@@ -6,9 +6,9 @@
 #include "json/json.h"
 
 #include "crypto.h"
+#include "keymanager.h"
 #include "logging.h"
 #include "packagemanagerfactory.h"
-#include "uptane/cryptokey.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
