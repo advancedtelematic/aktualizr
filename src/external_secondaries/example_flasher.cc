@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 
 #include <boost/filesystem.hpp>
@@ -9,9 +10,14 @@ std::string filename;
 std::string serial;
 
 ExampleFlasher::ExampleFlasher(const unsigned int loglevel) : loglevel_(loglevel) {
-  // Assume /var/sota is available on devices but not on hosts.
+  // Use /var/sota if it is available and accessible to the current user.
+  // Generally this is true for devices but not hosts.
   if (boost::filesystem::exists("/var/sota")) {
-    filename = "/var/sota/example_serial";
+    if (!access("/var/sota", R_OK & W_OK & X_OK)) {
+      filename = "/tmp/example_serial";
+    } else {
+      filename = "/var/sota/example_serial";
+    }
   } else {
     filename = "/tmp/example_serial";
   }
