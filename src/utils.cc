@@ -219,12 +219,6 @@ Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
   return Utils::parseJSON(content);
 }
 
-std::string Utils::intToString(unsigned int val) {
-  std::ostringstream ss;
-  ss << val;
-  return ss.str();
-}
-
 std::string Utils::genPrettyName() {
   boost::random::random_device urandom;
 

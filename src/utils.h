@@ -12,7 +12,6 @@ struct Utils {
   static void hex2bin(const std::string hexstring, unsigned char *binout);
   static Json::Value parseJSON(const std::string &json_str);
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
-  static std::string intToString(unsigned int val);
   static std::string genPrettyName();
   static std::string readFile(const boost::filesystem::path &filename);
   static void writeFile(const boost::filesystem::path &filename, const std::string &content,
