@@ -18,7 +18,9 @@
 
 class PackageManagerFactory {
  public:
-  static boost::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig) {
+  static boost::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig,
+                                                                       const boost::shared_ptr<INvStorage>& storage) {
+    (void)storage;
     switch (pconfig.type) {
       case kOstree:
 #ifdef BUILD_OSTREE
@@ -28,7 +30,7 @@ class PackageManagerFactory {
 #endif
       case kDebian:
 #ifdef BUILD_DEB
-        return boost::make_shared<DebianManager>(pconfig);
+        return boost::make_shared<DebianManager>(pconfig, storage);
 #else
         throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif

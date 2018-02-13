@@ -15,6 +15,8 @@ class SQLStorage;
 typedef void (INvStorage::*store_data_t)(const std::string& data);
 typedef bool (INvStorage::*load_data_t)(std::string* data);
 
+typedef std::pair<std::string, bool> InstalledVersion;
+
 enum EcuState { kOld = 0, kNotRegistered };
 struct MisconfiguredEcu {
   MisconfiguredEcu(const std::string& serial_in, const std::string hardware_id_in, EcuState state_in)
@@ -77,6 +79,7 @@ class StorageTargetRHandle {
 // possible
 class INvStorage {
  public:
+  INvStorage(const StorageConfig& config) : config_(config) {}
   virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual void storePrimaryPublic(const std::string& public_key) = 0;
@@ -116,8 +119,8 @@ class INvStorage {
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
 
-  virtual void storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) = 0;
-  virtual bool loadInstalledVersions(std::map<std::string, std::string>* installed_versions) = 0;
+  virtual void storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) = 0;
+  virtual bool loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
   // Incremental file API
@@ -130,6 +133,7 @@ class INvStorage {
 
   // Not purely virtual
   virtual void importData(const ImportConfig& import_config);
+  void saveInstalledVersion(const Uptane::Target& target);
 
   static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
                                                   const boost::filesystem::path& path = "/var/sota");
@@ -139,6 +143,9 @@ class INvStorage {
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
   void importUpdateSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
+
+ protected:
+  const StorageConfig& config_;
 };
 
 #endif  // INVSTORAGE_H_

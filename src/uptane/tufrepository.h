@@ -52,7 +52,6 @@ class TufRepository {
   const Uptane::Snapshot& snapshot() { return snapshot_; }
   void setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane::TimestampMeta* timestamp = NULL,
                Uptane::Snapshot* snapshot = NULL);
-  std::string getTargetPath(const Target& target);
 
  private:
   std::string name_;

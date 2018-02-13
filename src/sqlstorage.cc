@@ -23,7 +23,7 @@ static SQLGuardedStatement sqlite3_prepare_guarded(sqlite3* db, const char* zSql
   return std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)>(statement, sqlite3_finalize);
 }
 
-SQLStorage::SQLStorage(const StorageConfig& config) : config_(config) {
+SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!boost::filesystem::is_directory(config.schemas_path)) {
     throw std::runtime_error("Aktualizr installation incorrect. Schemas directory " + config.schemas_path.string() +
                              " missing");
@@ -679,18 +679,17 @@ void SQLStorage::clearMisconfiguredEcus() {
   }
 }
 
-void SQLStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
+void SQLStorage::storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) {
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     clearInstalledVersions();
-
-    std::map<std::string, std::string>::const_iterator it;
+    std::map<std::string, InstalledVersion>::const_iterator it;
     for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
       std::string req = "INSERT INTO installed_versions VALUES  ('";
-      req += it->first + "', '";
-      req += it->second + "');";
-
+      req += (*it).first + "', '";
+      req += (*it).second.first + "', '";
+      req += Utils::intToString((*it).second.second) + "');";
       if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
         LOG_ERROR << "Can't set installed_versions: " << sqlite3_errmsg(db.get());
         return;
@@ -699,7 +698,7 @@ void SQLStorage::storeInstalledVersions(const std::map<std::string, std::string>
   }
 }
 
-bool SQLStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
+bool SQLStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -717,7 +716,8 @@ bool SQLStorage::loadInstalledVersions(std::map<std::string, std::string>* insta
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    (*installed_versions)[(*it)["hash"]] = (*it)["name"];
+    (*installed_versions)[(*it)["hash"]].first = (*it)["name"];
+    (*installed_versions)[(*it)["hash"]].second = !!boost::lexical_cast<int>((*it)["is_current"]);
   }
 
   return true;

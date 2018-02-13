@@ -11,7 +11,7 @@
 #include "logging.h"
 #include "utils.h"
 
-FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
+FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
   boost::filesystem::create_directories(config_.path / "targets");
@@ -326,23 +326,34 @@ void FSStorage::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
-void FSStorage::storeInstalledVersions(const std::map<std::string, std::string>& installed_versions) {
+void FSStorage::storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) {
   Json::Value content;
-  std::map<std::string, std::string>::const_iterator it;
+  std::map<std::string, InstalledVersion>::const_iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    content[it->first] = it->second;
+    content[it->first]["name"] = it->second.first;
+    content[it->first]["is_current"] = it->second.second;
   }
-
   Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
 }
 
-bool FSStorage::loadInstalledVersions(std::map<std::string, std::string>* installed_versions) {
+bool FSStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return false;
-  Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
+  Json::Value installed_versions_json =
+      Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
 
-  for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
-    (*installed_versions)[it.key().asString()] = (*it).asString();
+  std::map<std::string, InstalledVersion> new_versions;
+  for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
+    if (!(*it).isObject()) {
+      // We loaded old format, migrate to new one.
+      new_versions[it.key().asString()].first = (*it).asString();
+      new_versions[it.key().asString()].second = false;
+    } else {
+      new_versions[it.key().asString()].first = (*it)["name"].asString();
+      new_versions[it.key().asString()].second = (*it)["is_current"].asBool();
+    }
+    *installed_versions = new_versions;
   }
+
   return true;
 }
 
@@ -359,7 +370,8 @@ class FSTargetWHandle : public StorageTargetWHandle {
     fp_ = open(storage_.targetFilepath(filename_).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
     if (fp_ == -1) {
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+      throw StorageTargetWHandle::WriteError("could not create file " + storage_.targetFilepath(filename_).string() +
+                                             " on disk");
     }
   }
 
@@ -392,7 +404,7 @@ class FSTargetWHandle : public StorageTargetWHandle {
     }
 
     if (close(fp_) == -1) {
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
+      throw StorageTargetWHandle::WriteError("could not close file " + filename_ + " on disk");
     }
   }
 

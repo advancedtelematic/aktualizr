@@ -39,9 +39,8 @@ class Repository {
   }
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
-  void saveInstalledVersion(const Target &target);
   std::string findInstalledVersion(const std::string &hash);
-  std::string getTargetPath(const Target &target);
+
   bool getMeta();
 
   // implemented in uptane/initialize.cc

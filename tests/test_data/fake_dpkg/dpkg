@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+if [[ "$2" == */good.deb ]]
+then
+    exit 0
+else
+    echo -ne "Error installing"
+    exit 1
+fi

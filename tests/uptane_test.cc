@@ -715,7 +715,8 @@ TEST(Uptane, ProvisionOnServer) {
 TEST(Uptane, CheckOldProvision) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path(), true);
-  system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
+  int result = system((std::string("cp -rf tests/test_data/oldprovdir/* ") + temp_dir.PathString()).c_str());
+  (void)result;
   Config config;
   config.tls.server = http.tls_server;
   config.uptane.director_server = http.tls_server + "/director";
@@ -731,7 +732,8 @@ TEST(Uptane, CheckOldProvision) {
 
 TEST(Uptane, fs_to_sql_full) {
   TemporaryDirectory temp_dir;
-  system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
+  int result = system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
+  (void)result;
   StorageConfig config;
   config.type = kSqlite;
   config.uptane_metadata_path = "metadata";
@@ -761,7 +763,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  std::map<std::string, std::string> installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -788,7 +790,6 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_serial")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
-
   boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
@@ -826,7 +827,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  std::map<std::string, std::string> sql_installed_versions;
+  std::map<std::string, InstalledVersion> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -884,7 +885,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  std::map<std::string, std::string> installed_versions;
+  std::map<std::string, InstalledVersion> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -915,7 +916,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  std::map<std::string, std::string> sql_installed_versions;
+  std::map<std::string, InstalledVersion> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -957,9 +958,10 @@ TEST(Uptane, SaveVersion) {
   target_json["length"] = 0;
 
   Uptane::Target t("target_name", target_json);
-  uptane.saveInstalledVersion(t);
+  storage->saveInstalledVersion(t);
   Json::Value result = Utils::parseJSONFile((config.storage.path / "installed_versions").string());
-  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].asString(), "target_name");
+  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"]["name"].asString(),
+            "target_name");
 }
 
 TEST(Uptane, LoadVersion) {
@@ -980,11 +982,11 @@ TEST(Uptane, LoadVersion) {
   target_json["length"] = 0;
 
   Uptane::Target t("target_name", target_json);
-  uptane.saveInstalledVersion(t);
+  storage->saveInstalledVersion(t);
 
-  std::map<std::string, std::string> versions;
+  std::map<std::string, InstalledVersion> versions;
   storage->loadInstalledVersions(&versions);
-  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"], "target_name");
+  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].first, "target_name");
 }
 
 #ifdef BUILD_P11
