@@ -121,6 +121,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
   int length = BIO_get_mem_data(mem, &pem_key);
   key_out->assign(pem_key, length);
 
+  EVP_PKEY_free(evp_key);
   BIO_free_all(mem);
   return true;
 }
