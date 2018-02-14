@@ -112,6 +112,17 @@ TEST(sqlstorage, MissingSchema) {
   EXPECT_THROW(SQLStorage storage(config), std::runtime_error);
 }
 
+TEST(sqlstorage, MigrationVersionCheck) {
+  TemporaryDirectory temp_dir;
+  StorageConfig config;
+  config.path = temp_dir.Path();
+  config.sqldb_path = temp_dir.Path() / "test.db";
+  config.schemas_path = "config/schemas";
+  SQLStorage storage(config);
+
+  EXPECT_EQ(storage.getVersion(), kSqlSchemaVersion);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

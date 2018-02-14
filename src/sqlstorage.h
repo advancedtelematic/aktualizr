@@ -82,6 +82,7 @@ class SQLStorage : public INvStorage {
 
   bool dbMigrate();
   bool dbInit();
+  int getVersion();  // non-negative integer on success or -1 on error
 
  private:
   // request info
@@ -91,7 +92,6 @@ class SQLStorage : public INvStorage {
   std::vector<std::map<std::string, std::string> > req_response_table;
 
   static int callback(void* instance_, int numcolumns, char** values, char** columns);
-  int getVersion();  // non-negative integer on success or -1 on error
 
   bool loadTlsCommon(std::string* data,
                      const boost::filesystem::path& path_in);  // TODO: delete after implementation is ready
