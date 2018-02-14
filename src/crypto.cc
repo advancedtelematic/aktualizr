@@ -257,11 +257,11 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
  *         false if key generation failed
  */
 bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_key) {
-  int bits = 4096;
+  int bits = 2048;
   int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
-  RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 4096 is a sensible value */
+  RSA *r = RSA_generate_key(bits,   /* number of bits for the key - 2048 is a sensible value */
                             RSA_F4, /* exponent - RSA_F4 is defined as 0x10001L */
                             NULL,   /* callback - can be NULL if we aren't displaying progress */
                             NULL    /* callback argument - not needed in this case */
@@ -274,7 +274,7 @@ bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_ke
     return false;
   }
   RSA *r = RSA_new();
-  ret = RSA_generate_key_ex(r, bits, /* number of bits for the key - 4096 is a sensible value */
+  ret = RSA_generate_key_ex(r, bits, /* number of bits for the key - 2048 is a sensible value */
                             bne,     /* exponent - RSA_F4 is defined as 0x10001L */
                             NULL     /* callback argument - not needed in this case */
                             );
