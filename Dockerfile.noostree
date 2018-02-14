@@ -1,5 +1,5 @@
-FROM ubuntu:16.04
-LABEL Description="Dockerfile for building non-OSTree version of Aktualizr for Ubuntu 16.04"
+FROM ubuntu:xenial
+LABEL Description="Dockerfile for building non-OSTree version of Aktualizr for Ubuntu xenial"
 
 ENV DEBIAN_FRONTEND noninteractive
 

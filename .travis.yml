@@ -12,7 +12,7 @@ env:
   DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"
 - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eBUILD_ONLY=1"
-- DOCKERFILE=Dockerfile.16.04 CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
+- DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
 services:
 - docker
 script:
@@ -44,6 +44,6 @@ deploy:
                   tags: true
                   all_branches: true
                   repo: advancedtelematic/aktualizr
-                  condition: $DOCKERFILE = Dockerfile.16.04
+                  condition: $DOCKERFILE = Dockerfile.noostree
           api_key:
                   secure: "Z9IEs+GbPW+pxxfYofmeT4Jwjz4OpXJ6WZbv8nyN0MOZV146QExKhZA64mJ7nuXRepS7M5wFgVd0QVlmE7lLa8oNVTKujn+DmQ6701HeP9bITwv6wcDyhNOULLRBwRD2YN5lR29vHGWsjMUm8R13Wtgr/XyOG4L8fcg021B0BMtvepO9HJD4kHSNqB8pJXWVSMd5+d77BRz8Yr72oP98iBMAm94XNd5Gd2RB77YBRKlR7XEV2DxW346C9xI48crMRAKAyp/35vTCTMT04In4FpSexSue0q5dGqfQZf2I5fpGtSbwwJIb3ct/T0CUcW8mDQL01LtG3Hm2qNXKn8aCse6MrVoktUWBTA+tn7DMGq6zY4XXkyC7OisBYg9eel8HacSPrCXDB9C80aJht9a7AZIHehLC4yUomhYmnQDotvHoc3JrJXMSq4HE31WwIBn0xmOpr4ts0nnAprl3bRCQcv10J4MU4zK+BEYET+sLs1stqeION/AYTr0OxWVfbUhRdVepAjDh/mNLYO7raDb/PTZb4upunjS5a1RK+U+aW8ct85RPamZ+8+ZTo8Ofj5VGQiVJmmmrlVkDyBzXwJL3WonnZwuU6QDaaYCFUuzyVqmEuYZNc3i6jNUs0Yptw2YjKww6ayV5msyGaA0QZ3vdGWRk9K7JQQhE7CII2N4yzvI="
