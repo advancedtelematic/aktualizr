@@ -30,6 +30,20 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager 
     return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
+  GHashTable *ref_list = NULL;
+  if (ostree_repo_list_commit_objects_starting_with(repo, refhash.c_str(), &ref_list, nullptr, &error)) {
+    guint length = g_hash_table_size(ref_list);
+    g_hash_table_destroy(ref_list);  // OSTree creates the table with destroy notifiers, so no memory leaks expected
+    // should never be greater than 1, but use >= for robustness
+    if (length >= 1) {
+      return data::InstallOutcome(data::ALREADY_PROCESSED, "Refhash was already pulled");
+    }
+  }
+  if (error) {
+    g_error_free(error);
+    error = NULL;
+  }
+
   if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, keys)) {
     g_object_unref(repo);
     return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
