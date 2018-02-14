@@ -2,8 +2,6 @@
 #define SQLSTORAGE_H_
 
 #include <boost/filesystem.hpp>
-#include <boost/move/unique_ptr.hpp>
-#include <boost/tokenizer.hpp>
 
 #include <sqlite3.h>
 
@@ -14,21 +12,6 @@
 const int kSqlSchemaVersion = 3;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
-
-typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
-
-class SQLite3Guard {
- public:
-  sqlite3* get() { return handler; }
-  int get_rc() { return rc; }
-
-  SQLite3Guard(const char* path) { rc = sqlite3_open(path, &handler); }
-  ~SQLite3Guard() { sqlite3_close(handler); }
-
- private:
-  sqlite3* handler;
-  int rc;
-};
 
 class SQLStorage : public INvStorage {
  public:

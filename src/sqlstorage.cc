@@ -3,25 +3,9 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/make_shared.hpp>
-#include <boost/move/make_unique.hpp>
-#include <boost/scoped_array.hpp>
-
 #include "logging.h"
+#include "sql_utils.h"
 #include "utils.h"
-
-typedef std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)> SQLGuardedStatement;
-
-static SQLGuardedStatement sqlite3_prepare_guarded(sqlite3* db, const char* zSql, int nByte) {
-  sqlite3_stmt* statement;
-
-  if (sqlite3_prepare_v2(db, zSql, nByte, &statement, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db);
-    throw std::runtime_error("SQLite fatal error");
-  }
-
-  return std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)>(statement, sqlite3_finalize);
-}
 
 SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!boost::filesystem::is_directory(config.schemas_path)) {
@@ -52,60 +36,54 @@ void SQLStorage::storePrimaryPublic(const std::string& public_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM primary_keys;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of public key table: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get count of public key table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET public = '";
-    req += public_key + "';";
+    req = "UPDATE OR REPLACE primary_keys SET public = ?;";
   } else {
-    req = "INSERT INTO primary_keys(public) VALUES  ('";
-    req += public_key + "');";
+    req = "INSERT INTO primary_keys(public) VALUES (?);";
   }
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set public key: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<std::string>(req, public_key);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set public key: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM primary_keys;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of private key table: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get count of private key table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET private = '";
-    req += private_key + "';";
+    req = "UPDATE OR REPLACE primary_keys SET private = ?;";
   } else {
-    req = "INSERT INTO primary_keys(private) VALUES  ('";
-    req += private_key + "');";
+    req = "INSERT INTO primary_keys(private) VALUES (?);";
   }
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set private key: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<std::string>(req, private_key);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set private key: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
@@ -116,14 +94,14 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT public FROM primary_keys LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get public key: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT public FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get public key: " << db.errmsg();
     return false;
   }
 
@@ -138,14 +116,14 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT private FROM primary_keys LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get private key: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT private FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get private key: " << db.errmsg();
     return false;
   }
 
@@ -160,12 +138,12 @@ void SQLStorage::clearPrimaryKeys() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM primary_keys;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear primary keys: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM primary_keys;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear primary keys: " << db.errmsg();
     return;
   }
 }
@@ -180,104 +158,95 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET ca_cert = '";
-    req += ca + "';";
+    req = "UPDATE OR REPLACE tls_creds SET ca_cert = ?;";
   } else {
-    req = "INSERT INTO tls_creds(ca_cert) VALUES  ('";
-    req += ca + "');";
+    req = "INSERT INTO tls_creds(ca_cert) VALUES (?);";
   }
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set ca_cert: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<SQLBlob>(req, ca);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storeTlsCert(const std::string& cert) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET client_cert = '";
-    req += cert + "';";
+    req = "UPDATE OR REPLACE tls_creds SET client_cert = ?;";
   } else {
-    req = "INSERT INTO tls_creds(client_cert) VALUES  ('";
-    req += cert + "');";
+    req = "INSERT INTO tls_creds(client_cert) VALUES (?);";
   }
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set client_cert: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<SQLBlob>(req, cert);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storeTlsPkey(const std::string& pkey) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM tls_creds;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of tls_creds table: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
-  std::string req;
+  const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE tls_creds SET client_pkey = '";
-    req += pkey + "';";
+    req = "UPDATE OR REPLACE tls_creds SET client_pkey = ?;";
   } else {
-    req = "INSERT INTO tls_creds(client_pkey) VALUES  ('";
-    req += pkey + "');";
+    req = "INSERT INTO tls_creds(client_pkey) VALUES (?);";
   }
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set client_pkey: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<SQLBlob>(req, pkey);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get tls_creds: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT * FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
     return false;
   }
 
@@ -299,12 +268,12 @@ void SQLStorage::clearTlsCreds() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM tls_creds;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear tls_creds: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM tls_creds;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear tls_creds: " << db.errmsg();
     return;
   }
 }
@@ -313,14 +282,14 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT ca_cert FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get device ID: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT ca_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
@@ -335,14 +304,14 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT client_cert FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get device ID: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT client_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
@@ -357,14 +326,14 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT client_pkey FROM tls_creds LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get client_pkey: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT client_pkey FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get client_pkey: " << db.errmsg();
     return false;
   }
 
@@ -380,34 +349,35 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
 
   clearMetadata();
 
-  std::string req = "INSERT INTO meta VALUES  ('";
-  req += Json::FastWriter().write(metadata.director_root.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.director_targets.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_root.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_targets.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_timestamp.toJson()) + "', '";
-  req += Json::FastWriter().write(metadata.image_snapshot.toJson()) + "');";
+  std::vector<std::string> jsons;
+  jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_targets.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_root.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_targets.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.toJson()));
 
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set metadata: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
+      "INSERT INTO meta VALUES (?,?,?,?,?,?);", jsons[0], jsons[1], jsons[2], jsons[3], jsons[4], jsons[5]);
+
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set metadata: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM meta;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get meta: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT * FROM meta;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get meta: " << db.errmsg();
     return false;
   }
   if (req_response_table.empty()) return false;
@@ -432,12 +402,12 @@ void SQLStorage::clearMetadata() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM meta;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear meta: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM meta;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear meta: " << db.errmsg();
     return;
   }
 }
@@ -446,14 +416,13 @@ void SQLStorage::storeDeviceId(const std::string& device_id) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  std::string req = "UPDATE OR REPLACE device_info SET device_id = '";
-  req += device_id + "';";
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set device ID: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<std::string>("UPDATE OR REPLACE device_info SET device_id = ?;", device_id);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set device ID: " << db.errmsg();
     return;
   }
 }
@@ -462,14 +431,14 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT device_id FROM device_info LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get device ID: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT device_id FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
@@ -484,12 +453,12 @@ void SQLStorage::clearDeviceId() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "UPDATE OR REPLACE device_info SET device_id = NULL;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear device ID: " << sqlite3_errmsg(db.get());
+  if (db.exec("UPDATE OR REPLACE device_info SET device_id = NULL;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear device ID: " << db.errmsg();
     return;
   }
 }
@@ -498,13 +467,13 @@ void SQLStorage::storeEcuRegistered() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   std::string req = "UPDATE OR REPLACE device_info SET is_registered = 1";
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set is_registered: " << sqlite3_errmsg(db.get());
+  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
   }
 }
@@ -513,14 +482,14 @@ bool SQLStorage::loadEcuRegistered() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT is_registered FROM device_info LIMIT 1;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get device ID: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT is_registered FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
@@ -533,13 +502,13 @@ void SQLStorage::clearEcuRegistered() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
   std::string req = "UPDATE OR REPLACE device_info SET is_registered = 0";
-  if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't set is_registered: " << sqlite3_errmsg(db.get());
+  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
   }
 }
@@ -550,26 +519,25 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+      LOG_ERROR << "Can't open database: " << db.errmsg();
       return;
     }
 
-    std::string req = "INSERT INTO ecu_serials VALUES  ('";
-    req += serials[0].first + "', '";
-    req += serials[0].second + "', 1);";
-    if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't set ecu_serial: " << sqlite3_errmsg(db.get());
+    std::string serial = serials[0].first, hwid = serials[0].second;
+    auto statement =
+        db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
       return;
     }
 
     std::vector<std::pair<std::string, std::string> >::const_iterator it;
     for (it = serials.begin() + 1; it != serials.end(); it++) {
-      std::string req = "INSERT INTO ecu_serials VALUES  ('";
-      req += it->first + "', '";
-      req += it->second + "', 0);";
+      auto statement = db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,0);",
+                                                                     it->first, it->second);
 
-      if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-        LOG_ERROR << "Can't set ecu_serial: " << sqlite3_errmsg(db.get());
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
         return;
       }
     }
@@ -580,15 +548,14 @@ bool SQLStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> 
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM ecu_serials ORDER BY is_primary DESC;", callback, this, NULL) !=
-      SQLITE_OK) {
-    LOG_ERROR << "Can't get ecu_serials: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT * FROM ecu_serials ORDER BY is_primary DESC;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get ecu_serials: " << db.errmsg();
     return false;
   }
   if (req_response_table.empty()) return false;
@@ -605,12 +572,12 @@ void SQLStorage::clearEcuSerials() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM ecu_serials;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear ecu_serials: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM ecu_serials;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
     return;
   }
 }
@@ -621,19 +588,17 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+      LOG_ERROR << "Can't open database: " << db.errmsg();
       return;
     }
 
     std::vector<MisconfiguredEcu>::const_iterator it;
     for (it = ecus.begin(); it != ecus.end(); it++) {
-      std::string req = "INSERT INTO misconfigured_ecus VALUES  ('";
-      req += it->serial + "', '";
-      req += it->hardware_id + "', ";
-      req += Utils::intToString(it->state) + ");";
+      auto statement = db.prepareStatement<std::string, std::string, int>(
+          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial, it->hardware_id, it->state);
 
-      if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-        LOG_ERROR << "Can't set misconfigured_ecus: " << sqlite3_errmsg(db.get());
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
         return;
       }
     }
@@ -644,14 +609,14 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM misconfigured_ecus;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get misconfigured_ecus: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT * FROM misconfigured_ecus;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get misconfigured_ecus: " << db.errmsg();
     return false;
   }
   if (req_response_table.empty()) return false;
@@ -669,12 +634,12 @@ void SQLStorage::clearMisconfiguredEcus() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM misconfigured_ecus;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear misconfigured_ecus: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM misconfigured_ecus;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
     return;
   }
 }
@@ -686,12 +651,12 @@ void SQLStorage::storeInstalledVersions(const std::map<std::string, InstalledVer
     clearInstalledVersions();
     std::map<std::string, InstalledVersion>::const_iterator it;
     for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-      std::string req = "INSERT INTO installed_versions VALUES  ('";
-      req += (*it).first + "', '";
-      req += (*it).second.first + "', '";
-      req += Utils::intToString((*it).second.second) + "');";
-      if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
-        LOG_ERROR << "Can't set installed_versions: " << sqlite3_errmsg(db.get());
+      auto statement = db.prepareStatement<std::string, std::string, int>(
+          "INSERT INTO installed_versions VALUES (?,?,?);", (*it).first, (*it).second.first,
+          static_cast<int>((*it).second.second));
+
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
         return;
       }
     }
@@ -702,14 +667,14 @@ bool SQLStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* 
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (sqlite3_exec(db.get(), "SELECT * FROM installed_versions;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get installed_versions: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT * FROM installed_versions;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
     return false;
   }
   if (req_response_table.empty()) return false;
@@ -727,12 +692,12 @@ void SQLStorage::clearInstalledVersions() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  if (sqlite3_exec(db.get(), "DELETE FROM installed_versions;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear installed_versions: " << sqlite3_errmsg(db.get());
+  if (db.exec("DELETE FROM installed_versions;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
     return;
   }
 }
@@ -750,29 +715,21 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     StorageTargetWHandle::WriteError exc("could not save file " + filename_ + " to sql storage");
 
     if (db_.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw exc;
     }
 
     // allocate a zero blob
-    if (sqlite3_exec(db_.get(), "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db_.get());
+    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
       throw exc;
     }
 
-    SQLGuardedStatement statement =
-        sqlite3_prepare_guarded(db_.get(), "INSERT INTO target_images (filename, image_data) VALUES (?, ?)", -1);
+    auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
+        "INSERT INTO target_images (filename, image_data) VALUES (?, ?);", filename_, SQLZeroBlob{expected_size_});
 
-    if (sqlite3_bind_text(statement.get(), 1, filename_.c_str(), -1, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
-      throw exc;
-    }
-    if (sqlite3_bind_zeroblob(statement.get(), 2, expected_size_) != SQLITE_OK) {
-      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
-      throw exc;
-    }
-    if (sqlite3_step(statement.get()) != SQLITE_DONE) {
-      LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Statement step failure: " << db_.errmsg();
       throw exc;
     }
 
@@ -780,7 +737,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     sqlite3_int64 row_id = sqlite3_last_insert_rowid(db_.get());
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 1, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob" << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Could not open blob" << db_.errmsg();
       throw exc;
     }
   }
@@ -794,7 +751,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
     if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), written_size_) != SQLITE_OK) {
-      LOG_ERROR << "Could not write in blob: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Could not write in blob: " << db_.errmsg();
       return 0;
     }
     written_size_ += size;
@@ -805,8 +762,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     closed_ = true;
     sqlite3_blob_close(blob_);
     blob_ = nullptr;
-    if (sqlite3_exec(db_.get(), "COMMIT TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << sqlite3_errmsg(db_.get());
+    if (db_.exec("COMMIT TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
       throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
     }
   }
@@ -817,8 +774,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
     }
-    if (sqlite3_exec(db_.get(), "ROLLBACK TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't rollback transaction: " << sqlite3_errmsg(db_.get());
+    if (db_.exec("ROLLBACK TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't rollback transaction: " << db_.errmsg();
     }
   }
 
@@ -852,41 +809,36 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     StorageTargetRHandle::ReadError exc("could not read file " + filename_ + " from sql storage");
 
     if (db_.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw exc;
     }
 
-    if (sqlite3_exec(db_.get(), "BEGIN TRANSACTION;", nullptr, nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db_.get());
+    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
       throw exc;
     }
 
-    SQLGuardedStatement statement =
-        sqlite3_prepare_guarded(db_.get(), "SELECT rowid FROM target_images WHERE filename = ?", -1);
+    auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
 
-    if (sqlite3_bind_text(statement.get(), 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_.get());
-      throw exc;
-    }
-    int err = sqlite3_step(statement.get());
+    int err = statement.step();
     if (err == SQLITE_DONE) {
       LOG_ERROR << "No such file in db: " + filename_;
       throw exc;
     } else if (err != SQLITE_ROW) {
-      LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Statement step failure: " << db_.errmsg();
       throw exc;
     }
 
     sqlite3_int64 row_id = sqlite3_column_int64(statement.get(), 0);
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Could not open blob: " << db_.errmsg();
       throw exc;
     }
     size_ = sqlite3_blob_bytes(blob_);
 
-    if (sqlite3_exec(db_.get(), "COMMIT TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << sqlite3_errmsg(db_.get());
+    if (db_.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
       throw exc;
     }
   }
@@ -908,7 +860,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     }
 
     if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), read_size_) != SQLITE_OK) {
-      LOG_ERROR << "Could not read from blob: " << sqlite3_errmsg(db_.get());
+      LOG_ERROR << "Could not read from blob: " << db_.errmsg();
       return 0;
     }
     read_size_ += size;
@@ -939,17 +891,14 @@ void SQLStorage::removeTargetFile(const std::string& filename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return;
   }
 
-  SQLGuardedStatement statement = sqlite3_prepare_guarded(db.get(), "DELETE FROM target_images WHERE filename=?", -1);
-  if (sqlite3_bind_text(statement.get(), 1, filename.c_str(), -1, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db.get());
-    throw std::runtime_error("Could not remove target file");
-  }
-  if (sqlite3_step(statement.get()) != SQLITE_DONE) {
-    LOG_ERROR << "Statement step failure: " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", filename);
+
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Statement step failure: " << db.errmsg();
     throw std::runtime_error("Could not remove target file");
   }
 
@@ -964,27 +913,26 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return "";
   }
 
-  request = kSqlGetSimple;
-  req_response.clear();
-  std::string req =
-      std::string("SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name='") + tablename + "' LIMIT 1;";
-  if (sqlite3_exec(db.get(), req.c_str(), callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get schema of " << tablename << ": " << sqlite3_errmsg(db.get());
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name=? LIMIT 1;", tablename);
+
+  if (statement.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get schema of " << tablename << ": " << db.errmsg();
     return "";
   }
 
-  return req_response["result"] + ";";
+  return std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement.get(), 0))) + ";";
 }
 
 bool SQLStorage::dbMigrate() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return false;
   }
 
@@ -1000,9 +948,9 @@ bool SQLStorage::dbMigrate() {
         (std::string("migrate.") + boost::lexical_cast<std::string>(schema_version + 1) + ".sql");
     std::string req = Utils::readFile(migrate_script_path.string());
 
-    if (sqlite3_exec(db.get(), req.c_str(), NULL, NULL, NULL) != SQLITE_OK) {
+    if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version" << (schema_version - 1) << " to version " << schema_version << ": "
-                << sqlite3_errmsg(db.get());
+                << db.errmsg();
       return false;
     }
   }
@@ -1013,27 +961,27 @@ bool SQLStorage::dbMigrate() {
 bool SQLStorage::dbInit() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  if (sqlite3_exec(db.get(), "BEGIN TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't begin transaction: " << sqlite3_errmsg(db.get());
+  if (db.exec("BEGIN TRANSACTION;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't begin transaction: " << db.errmsg();
     return false;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  if (sqlite3_exec(db.get(), "SELECT count(*) FROM device_info;", callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get number of rows in device_info: " << sqlite3_errmsg(db.get());
+  if (db.exec("SELECT count(*) FROM device_info;", callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get number of rows in device_info: " << db.errmsg();
     return false;
   }
 
   if (boost::lexical_cast<int>(req_response["result"]) < 1) {
-    if (sqlite3_exec(db.get(), "INSERT INTO device_info DEFAULT VALUES;", NULL, NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't set default values to device_info: " << sqlite3_errmsg(db.get());
+    if (db.exec("INSERT INTO device_info DEFAULT VALUES;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
       return false;
     }
   }
 
-  if (sqlite3_exec(db.get(), "COMMIT TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't commit transaction: " << sqlite3_errmsg(db.get());
+  if (db.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't commit transaction: " << db.errmsg();
     return false;
   }
   return true;
@@ -1043,15 +991,15 @@ int SQLStorage::getVersion() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << sqlite3_errmsg(db.get());
+    LOG_ERROR << "Can't open database: " << db.errmsg();
     return -1;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
   std::string req = std::string("SELECT version FROM version LIMIT 1;");
-  if (sqlite3_exec(db.get(), req.c_str(), callback, this, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't get database version: " << sqlite3_errmsg(db.get());
+  if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get database version: " << db.errmsg();
     return -1;
   }
 

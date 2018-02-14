@@ -1,3 +1,5 @@
+#include <boost/tokenizer.hpp>
+
 #include <gtest/gtest.h>
 
 #include "logging.h"
@@ -5,6 +7,8 @@
 #include "utils.h"
 
 boost::filesystem::path schemas_path;
+
+typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
 static std::map<std::string, std::string> parseSchema(int version) {
   boost::filesystem::path schema_file =
