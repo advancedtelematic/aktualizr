@@ -9,7 +9,7 @@
 #ifdef TEST_PKCS11_ENGINE_PATH
 #define kPkcs11Path TEST_PKCS11_ENGINE_PATH
 #else
-#define kPkcs11Path "/usr/lib/engines/libpkcs11.so"
+#define kPkcs11Path "/usr/lib/engines/pkcs11.so"
 #endif
 
 P11Engine* P11EngineGuard::instance = NULL;
