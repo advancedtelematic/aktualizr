@@ -11,8 +11,9 @@ RUN apt-get update && apt-get -y install \
   autoconf \
   automake \
   bison \
-  clang \
-  clang-format-3.8 \
+  clang-4.0 \
+  clang-tidy-4.0 \
+  clang-format-4.0 \
   cmake \
   curl \
   e2fslibs-dev \

@@ -98,9 +98,9 @@ add_dependencies(qa format)
 add_custom_target(build_tests)
 
 # clang-check and clang-format
-# The .clang-format file requires clang-format-3.8
 find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format)
-find_program(CLANG_CHECK NAMES clang-check-3.8 clang-check)
+find_program(CLANG_CHECK NAMES clang-check-6.0 clang-check-3.8 clang-check)
+find_program(CLANG_TIDY NAMES clang-tidy-6.0 clang-tidy-3.8 clang-tidy)
 
 if(CLANG_FORMAT)
     function(aktualizr_clang_format)
@@ -154,9 +154,43 @@ else()
     endfunction()
 endif()
 
+if(CLANG_TIDY)
+    add_custom_target(clang-tidy)
+    add_dependencies(qa clang-tidy)
+    function(aktualizr_clang_tidy)
+        file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+        foreach(FILE ${ARGN})
+            if(NOT ${FILE} MATCHES "\\.h")
+                string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
+                add_custom_target(${TARGETNAME}
+                    COMMAND ${CLANG_TIDY} -quiet --extra-arg-before=-Wno-unknown-warning-option -format-style=file -warnings-as-errors=* -p ${CMAKE_BINARY_DIR} ${FILE}
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    VERBATIM)
+                add_dependencies(clang-tidy ${TARGETNAME})
+            endif()
+        endforeach()
+    endfunction()
+else()
+    message(WARNING "clang-tidy not found, skipping")
+    function(aktualizr_clang_tidy)
+    endfunction()
+endif()
+
 function(aktualizr_source_file_checks)
     aktualizr_clang_check(${ARGN})
     aktualizr_clang_format(${ARGN})
+
+    # exclude test files from clang-tidy because false positives in googletest
+    # are hard to remove...
+    file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+    if(NOT ${SUBDIR} MATCHES "tests.*")
+        foreach(FILE ${ARGN})
+            if(NOT ${FILE} MATCHES ".*_test\\..*$")
+                list(APPEND filtered_files ${FILE})
+            endif()
+        endforeach()
+        aktualizr_clang_tidy(${filtered_files})
+    endif()
 endfunction()
 
 
