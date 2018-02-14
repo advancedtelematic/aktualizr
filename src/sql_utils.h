@@ -5,6 +5,8 @@
 
 #include <sqlite3.h>
 
+#include "logging.h"
+
 // Unique ownership SQLite3 statement creation
 template <typename T>
 static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, int v) {
@@ -34,7 +36,7 @@ struct SQLBlob {
 
 template <typename T>
 static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, const SQLBlob& blob) {
-  if (sqlite3_bind_blob(statement, cnt, blob.content.c_str(), blob.content.size(), NULL) != SQLITE_OK) {
+  if (sqlite3_bind_blob(statement, cnt, blob.content.c_str(), blob.content.size(), SQLITE_STATIC) != SQLITE_OK) {
     LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
     throw std::runtime_error("SQLite bind error");
   }
