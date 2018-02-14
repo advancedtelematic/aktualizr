@@ -57,8 +57,6 @@ void SQLStorage::storePrimaryPublic(const std::string& public_key) {
     LOG_ERROR << "Can't set public key: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
@@ -86,8 +84,6 @@ void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
     LOG_ERROR << "Can't set private key: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
@@ -183,8 +179,6 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storeTlsCert(const std::string& cert) {
@@ -212,8 +206,6 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 void SQLStorage::storeTlsPkey(const std::string& pkey) {
@@ -241,8 +233,6 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
@@ -374,8 +364,6 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
     return;
   }
-
-  sync();
 }
 
 bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
