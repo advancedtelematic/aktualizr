@@ -11,7 +11,7 @@ The process works as follows:
 3. The device unpacks the root CA certificate and client certificate from this bundle into the paths specified in the `[storage]` section of the config.
 3. The device uses this private key/certificate for all further communication with the server.
 
-## Configuration
+== Configuration
 
 The following items are relevant for automatic provisioning:
 

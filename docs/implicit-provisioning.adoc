@@ -1,20 +1,20 @@
-# Implicit Provisioning
+= Implicit Provisioning
 
 This document describes the current support for implicit provisioning in Aktualizr and meta-updater.
 
-## Background
+== Background
 
 In automatic provisioning, bootstrap credentials are downloaded and installed on devices to initiate the provisioning process. In implicit provisioning, devices shall be pre-loaded with the requisite provisioning credentials signed by a root CA certificate which shall be uploaded to the server. The server will thus be able to authenticate a client device by verifying that the client's certificate was signed by the uploaded root CA.
 
-## Configuration
+== Configuration
 
 The following items are relevant for implicit provisioning:
 
 [options=header]
 |===================
 | Configuration option         | Where it will come from/what it does
-| Server URL                   | Written into `sota.toml` during bitbake via `implicit_writer`.
-| Server Root CA cert          | Location of cert written into `sota.toml` during bitbake via `implicit_writer`. See `tls_cacert_path` option in `sota.toml`.
+| Server URL                   | Read from credentials archive
+| Server Root CA cert          | Read from credentials archive
 | Fleet Root CA cert           | Chain of trust for a device fleet; provided by the user. Must be uploaded by user to the server.
 | Fleet Root CA private key    | Key for signing device certs in the fleet; provided by user, but used only for signing. Not stored on device.
 | TLS device cert              | Pre-installed or manually installed; must be signed by Fleet Root CA private key
@@ -27,7 +27,7 @@ The following items are relevant for implicit provisioning:
 
 An example `.toml` configuration file can be found at `config/sota_implicit_prov.toml`. This is what is used as in input to `implicit_writer` during bitbaking with meta-updater.
 
-## Steps
+== Steps
 
 1. Generate a root CA private key and self-signed certificate.
 1. Upload the root CA certificate to the server.
@@ -39,7 +39,7 @@ An example `.toml` configuration file can be found at `config/sota_implicit_prov
 1. The server shall authenticate the client device by verifying that the client's certificate was signed by the your root CA private key. (The server uses the root CA certificate that it was given in step 2 to do so.)
 1. The client device authenticates the server by verifying that the server's certificate was signed by the server's internal root CA private key. (The client device uses the server's internal root CA certificate that it was given in step 7 to do so.)
 
-## Simulated implicit provisioning with `cert_provider`
+== Simulated implicit provisioning with `cert_provider`
 
 Implicit provisioning can be simulated with `cert_provider` without need for the user to create a root CA. `cert_provider` uses the existing autoprovisioning mechanisms to pre-install a certificate and key on the device.
 
@@ -50,7 +50,7 @@ Implicit provisioning can be simulated with `cert_provider` without need for the
 1. Load credentials onto the device, for example with `cert_provider` from the Aktualizr repo: `cert_provider -c credentials.zip -t <device> -d /var/sota`
 1. Verify that Aktualizr provisions correctly with the server using the expected Device ID.
 
-## Credentials format
+== Credentials format
 
 The provisioning credentials zip file format is specified in link:credentials.adoc[]. However, the only files in the archive used by `implicit_writer` are `autoprov.url` and `autoprov_credentials.p12`. Optionally, instead of including `autoprov_credentials.p12`, `implicit_writer` will also try looking for a file named `server_ca.pem` from which to read the server's root CA certificate. Note that `treehub.json` is required by `garage-sign`, and offline signing may require additional files.
 
