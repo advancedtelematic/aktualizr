@@ -16,6 +16,13 @@ You can pass any other command line arguments in this file, as well.
 
 For security reasons, we recommend creating the `/usr/lib/sota/sota.env` file even if you aren't going to use it. The file should be owned by root, with `600` permissions.
 
+=== Secondary ECUs
+
+The debian package ships with a default secondary ECU configured. This acts like a dummy device, dropping whatever file you send it into `/tmp/demo-virtual-secondary/firmware.bin`. If you want to override this default, you'll need to create `/usr/lib/sota/sota.env` and override `AKTUALIZR_SECONDARY_CONFIG` with a blank string, like so:
+
+----
+AKTUALIZR_SECONDARY_CONFIG=""
+----
 
 === Building the debian package
 
