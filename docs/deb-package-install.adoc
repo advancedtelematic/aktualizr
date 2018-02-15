@@ -1,0 +1,22 @@
+== Installing aktualizr via debian package
+
+Aktualizr makes .deb packages available via the https://github.com/advancedtelematic/aktualizr/releases[GitHub releases page].
+
+=== Setting up aktualizr
+
+The debian package will install, enable, and start an `aktualizr` systemd service immediately after it's installed. However, there are some configuration steps that should be taken before the service starts. To use aktualizr with a server (i.e. https://github.com/advancedtelematic/ota-community-edition/[OTA Community Edition] or https://docs.atsgarage.com[ATS Garage]), you will need to download the provisioning credentials file provided by the server and place it at `/var/sota/sota_provisioning_credentials.zip`.
+
+Additionally, if you wish to pass extra command line arguments to aktualizr, you can do so by creating `/usr/lib/sota/sota.env` to set the `AKTUALIZR_SECONDARY_CONFIG` environment variable. For example, to enable a secondary ECU with a config file at `/var/sota/sec_ecu.json`, the contents of the file would be:
+
+----
+AKTUALIZR_SECONDARY_CONFIG="--secondary-config /var/sota/sec_ecu.json"
+----
+
+You can pass any other command line arguments in this file, as well.
+
+For security reasons, we recommend creating the `/usr/lib/sota/sota.env` file even if you aren't going to use it. The file should be owned by root, with `600` permissions.
+
+
+=== Building the debian package
+
+After following the main build setup steps, just `make package` instead of `make` to create a debian package from your current branch.
