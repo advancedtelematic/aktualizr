@@ -39,7 +39,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("directory,d", bpo::value<boost::filesystem::path>()->default_value("/var/sota/token"), "directory on target to write credentials to")
       ("root-ca,r", "provide root CA")
       ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
-      ("config,g", bpo::value<boost::filesystem::path>(), "sota.toml configuration file from which to get file names");
+      ("config,g", bpo::value<boost::filesystem::path>(), "sota.toml configuration file from which to get file names")
+      ("skip-checks,s", "skip strict host key checking for ssh/scp commands");
   // clang-format on
 
   bpo::variables_map vm;
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("config") != 0) {
     config_path = commandline_map["config"].as<boost::filesystem::path>();
   }
+  bool skip_checks = commandline_map.count("skip-checks") != 0;
 
   boost::filesystem::path pkey_file = "pkey.pem";
   boost::filesystem::path cert_file = "client.pem";
@@ -190,6 +192,10 @@ int main(int argc, char *argv[]) {
     if (port) {
       ssh_prefix << "-p " << port << " ";
       scp_prefix << "-P " << port << " ";
+    }
+    if (skip_checks) {
+      ssh_prefix << "-o StrictHostKeyChecking=no ";
+      scp_prefix << "-o StrictHostKeyChecking=no ";
     }
 
     int ret = system((ssh_prefix.str() + target + " mkdir -p " + directory.string()).c_str());
