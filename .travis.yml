@@ -12,7 +12,6 @@ env:
   DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"
 - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eBUILD_ONLY=1"
-- DOCKERFILE=Dockerfile.gcc4 CACHE=latest SCRIPT=src/scripts/test.sh DARGS="-eBUILD_ONLY=1"
 - DOCKERFILE=Dockerfile.16.04 CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
 services:
 - docker
