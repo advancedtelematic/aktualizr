@@ -726,7 +726,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
-        "INSERT INTO target_images (filename, image_data) VALUES (?, ?);", filename_, SQLZeroBlob{expected_size_});
+        "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
+        SQLZeroBlob{expected_size_});
 
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Statement step failure: " << db_.errmsg();
@@ -737,7 +738,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     sqlite3_int64 row_id = sqlite3_last_insert_rowid(db_.get());
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 1, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob" << db_.errmsg();
+      LOG_ERROR << "Could not open blob " << db_.errmsg();
       throw exc;
     }
   }

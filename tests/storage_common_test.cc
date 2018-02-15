@@ -240,6 +240,15 @@ TEST(storage, store_target) {
     EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
   }
 
+  // write again
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    const uint8_t wb[] = "ab";
+    fhandle->wfeed(wb, 1);
+    fhandle->wfeed(wb + 1, 1);
+    fhandle->wcommit();
+  }
+
   // delete
   {
     storage->removeTargetFile("testfile");
