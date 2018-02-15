@@ -425,6 +425,8 @@ add_test(NAME aktualizr-info-images-target
 set_tests_properties(aktualizr-info-images-target PROPERTIES
     PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 
+# cert_provider test
+add_test(NAME certprovider-ca COMMAND ${PROJECT_SOURCE_DIR}/tests/run_certprovider_test.sh ${PROJECT_BINARY_DIR}/src/cert_provider/aktualizr_cert_provider ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip ${PROJECT_SOURCE_DIR}/tests/test_data/CAcert.pem ${PROJECT_SOURCE_DIR}/tests/test_data/CApkey.pem)
 
 list(REMOVE_DUPLICATES TEST_SOURCES)
 # message("${TEST_SOURCES}")

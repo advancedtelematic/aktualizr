@@ -162,7 +162,9 @@ void Config::postUpdateValues() {
   }
 
   if (tls.server.empty()) {
-    if (!provision.provision_path.empty()) {
+    if (!tls.server_url_path.empty()) {
+      tls.server = Utils::readFile(tls.server_url_path);
+    } else if (!provision.provision_path.empty()) {
       if (boost::filesystem::exists(provision.provision_path)) {
         tls.server = Bootstrap::readServerUrl(provision.provision_path);
       } else {
@@ -221,6 +223,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(p11.tls_clientcert_id, "p11.tls_clientcert_id", boost::log::trivial::warning, pt);
 
   CopyFromConfig(tls.server, "tls.server", boost::log::trivial::warning, pt);
+  CopyFromConfig(tls.server_url_path, "tls.server_url_path", boost::log::trivial::warning, pt);
 
   std::string tls_source = "file";
   CopyFromConfig(tls_source, "tls.ca_source", boost::log::trivial::warning, pt);
@@ -489,6 +492,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
 
   sink << "[tls]\n";
   writeOption(sink, tls.server, "server");
+  writeOption(sink, tls.server_url_path, "server_url_path");
   writeOption(sink, tls.ca_source, "ca_source");
   writeOption(sink, tls.pkey_source, "pkey_source");
   writeOption(sink, tls.cert_source, "cert_source");

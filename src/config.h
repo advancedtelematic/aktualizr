@@ -75,9 +75,10 @@ struct P11Config {
 
 class TlsConfig {
  public:
-  TlsConfig() : server(""), ca_source(kFile), pkey_source(kFile), cert_source(kFile) {}
+  TlsConfig() : server(""), server_url_path(""), ca_source(kFile), pkey_source(kFile), cert_source(kFile) {}
 
   std::string server;
+  boost::filesystem::path server_url_path;
   CryptoSource ca_source;
   CryptoSource pkey_source;
   CryptoSource cert_source;
