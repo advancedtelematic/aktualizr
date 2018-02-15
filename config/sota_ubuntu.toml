@@ -10,4 +10,4 @@ sqldb_path = "/var/sota/sql.db"
 schemas_path = "/usr/lib/sota/schemas"
 
 [pacman]
-type = "none"
+type = "debian"

@@ -29,6 +29,7 @@ Json::Value DebianManager::getInstalledPackages() {
 }
 
 data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
+  LOG_INFO << "Installing " << target.filename() << " as Debian package...";
   std::string cmd = "dpkg -i ";
   std::string output;
   TemporaryDirectory package_dir("deb_dir");
@@ -38,11 +39,14 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   Utils::writeFile(deb_path, sstr.str());
 
   int status = Utils::shell(cmd + deb_path.string(), &output, true);
-  if (status != 0) {
+  if (status == 0) {
+    LOG_INFO << "... Installation of Debian package successful";
+    storage_->saveInstalledVersion(target);
+    return data::InstallOutcome(data::OK, "Installing debian package was successful");
+  } else {
+    LOG_WARNING << "... Installation of Debian package failed";
     return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
-  storage_->saveInstalledVersion(target);
-  return data::InstallOutcome(data::OK, "Installing debian package was successful");
 }
 
 std::string DebianManager::getCurrent() {
