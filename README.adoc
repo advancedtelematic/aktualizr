@@ -105,6 +105,12 @@ You can then build the project from the `build` directory using Make:
 make
 ----
 
+You can also create a link:docs/deb-package-install.adoc[debian package]:
+
+----
+make package
+----
+
 === Linting
 
 Before checking in code, the code linting checks should be run:
