@@ -1,12 +1,12 @@
 {
   "secondary_type" : "virtual",
   "partial_verifying" : "false",
-  "ecu_hardware_id" : "test-virtual",
+  "ecu_hardware_id" : "demo-virtual",
 
-  "full_client_dir" : "/tmp/test-virtual-secondary",
+  "full_client_dir" : "/tmp/demo-virtual-secondary",
   "ecu_private_key" : "sec.private",
   "ecu_public_key" : "sec.public",
-  "firmware_path" : "/tmp/test-virtual-secondary/firmware.bin",
-  "target_name_path" : "/tmp/test-virtual-secondary/target_name",
-  "metadata_path" : "/tmp/test-virtual-secondary/metadata"
+  "firmware_path" : "/tmp/demo-virtual-secondary/firmware.bin",
+  "target_name_path" : "/tmp/demo-virtual-secondary/target_name",
+  "metadata_path" : "/tmp/demo-virtual-secondary/metadata"
 }
