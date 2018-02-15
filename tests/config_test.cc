@@ -102,7 +102,7 @@ TEST(config, secondary_config) {
   Config conf(conf_path_str, cmd);
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
   EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kVirtual);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "test-virtual");
+  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "demo-virtual");
   // If not provided, serial is not generated until SotaUptaneClient is initialized.
   EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
 }
