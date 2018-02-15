@@ -41,28 +41,6 @@ struct NetworkConfig {
   std::vector<std::string> socket_events;
 };
 
-struct RviConfig {
-  RviConfig()
-      : node_host("localhost"),
-        node_port("8810"),
-        device_key("device.key"),
-        device_cert("device.crt"),
-        ca_cert("ca.pem"),
-        cert_dir(""),
-        cred_dir(""),
-        packages_dir("/tmp/"),
-        uuid("123e4567-e89b-12d3-a456-426655440000") {}
-  std::string node_host;
-  std::string node_port;
-  std::string device_key;
-  std::string device_cert;
-  std::string ca_cert;
-  std::string cert_dir;
-  std::string cred_dir;
-  boost::filesystem::path packages_dir;
-  std::string uuid;
-};
-
 struct P11Config {
   P11Config() {}
   boost::filesystem::path module;
@@ -177,7 +155,6 @@ class Config {
   // config data structures
   GatewayConfig gateway;
   NetworkConfig network;
-  RviConfig rvi;
   P11Config p11;
   TlsConfig tls;
   ProvisionConfig provision;
