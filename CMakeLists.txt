@@ -77,13 +77,12 @@ endif(BUILD_OPCUA)
 #add_definitions(-DBOOST_LOG_DYN_LINK)
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Debug")
-    set(CMAKE_BUILD_TYPE Debug)
+    message(STATUS "No CMAKE_BUILD_TYPE specified, defaulting to Valgrind")
+    set(CMAKE_BUILD_TYPE Valgrind)
 endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
-SET(CMAKE_BUILD_TYPE Valgrind)
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1")
 SET(CMAKE_C_FLAGS_VALGRIND "-O1")
 
