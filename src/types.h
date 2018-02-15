@@ -4,6 +4,8 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
+enum KeyType { kED25519 = 0, kRSA2048, kRSA4096 };
+
 namespace data {
 
 typedef std::string UpdateRequestId;

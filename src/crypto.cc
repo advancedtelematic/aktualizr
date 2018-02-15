@@ -95,6 +95,22 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
   return retval;
 }
 
+std::string Crypto::Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &message) {
+  if (key_type == kED25519) {
+    std::cout << "PRIVKEY:" << private_key;
+    return Crypto::ED25519Sign(boost::algorithm::unhex(private_key), message);
+  } else {
+    return Crypto::RSAPSSSign(engine, private_key, message);
+  }
+}
+
+std::string Crypto::ED25519Sign(const std::string &private_key, const std::string &message) {
+  unsigned char sig[crypto_sign_BYTES];
+  crypto_sign_detached(sig, NULL, (const unsigned char *)message.c_str(), message.size(),
+                       (const unsigned char *)private_key.c_str());
+  return std::string((char *)sig, crypto_sign_BYTES);
+}
+
 std::string Crypto::getKeyId(const std::string &key) {
   std::string key_content = key;
 
@@ -256,8 +272,8 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
  * @return true if the keys are present at the end of this function (either they were created or existed already)
  *         false if key generation failed
  */
-bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_key) {
-  int bits = 2048;
+bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
+  int bits = (key_type == kRSA2048) ? 2048 : 4096;
   int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
@@ -330,4 +346,23 @@ bool Crypto::generateRSAKeyPair(std::string *public_key, std::string *private_ke
   BN_free(bne);
 #endif
   return true;
+}
+
+bool Crypto::generateEDKeyPair(std::string *public_key, std::string *private_key) {
+  unsigned char pk[crypto_sign_PUBLICKEYBYTES];
+  unsigned char sk[crypto_sign_SECRETKEYBYTES];
+  crypto_sign_keypair(pk, sk);
+  *public_key = boost::algorithm::hex(std::string((char *)pk, crypto_sign_PUBLICKEYBYTES));
+  // std::transform(public_key->begin(), public_key->end(), public_key->begin(), ::tolower);
+  *private_key = boost::algorithm::hex(std::string((char *)sk, crypto_sign_SECRETKEYBYTES));
+  // std::transform(private_key->begin(), private_key->end(), private_key->begin(), ::tolower);
+  return true;
+}
+
+bool Crypto::generateKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
+  if (key_type == kED25519) {
+    return Crypto::generateEDKeyPair(public_key, private_key);
+  } else {
+    return Crypto::generateRSAKeyPair(key_type, public_key, private_key);
+  }
 }

@@ -4,7 +4,6 @@
 #include <boost/filesystem.hpp>
 #include <memory>
 #include <string>
-#include "config.h"
 
 #include "uptane/tuf.h"
 

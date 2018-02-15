@@ -62,9 +62,9 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
 
-  std::map<std::string, std::pair<std::string, std::string> >::const_iterator it;
+  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); ++it) {
-    ecu_serials.push_back(std::pair<std::string, std::string>(it->first, it->second.first));
+    ecu_serials.push_back(std::pair<std::string, std::string>((*it)->getSerial(), (*it)->getHwId()));
   }
 
   storage->storeEcuSerials(ecu_serials);
@@ -173,18 +173,18 @@ InitRetCode Repository::initEcuRegister() {
     Json::Value primary_ecu;
     primary_ecu["hardware_identifier"] = ecu_serials[0].second;
     primary_ecu["ecu_serial"] = ecu_serials[0].first;
-    primary_ecu["clientKey"]["keytype"] = "RSA";
+    primary_ecu["clientKey"]["keytype"] = config.uptane.getKeyTypeString();
     primary_ecu["clientKey"]["keyval"]["public"] = primary_public;
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  std::map<std::string, std::pair<std::string, std::string> >::const_iterator it;
+  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); it++) {
     Json::Value ecu;
-    ecu["hardware_identifier"] = it->second.first;
-    ecu["ecu_serial"] = it->first;
-    ecu["clientKey"]["keytype"] = "RSA";  // TODO: add getKeyType() to SecondaryInterface
-    ecu["clientKey"]["keyval"]["public"] = it->second.second;
+    ecu["hardware_identifier"] = (*it)->getHwId();
+    ecu["ecu_serial"] = (*it)->getSerial();
+    ecu["clientKey"]["keytype"] = (*it)->getKeyType();
+    ecu["clientKey"]["keyval"]["public"] = (*it)->getPublicKey();
     all_ecus["ecus"].append(ecu);
   }
 

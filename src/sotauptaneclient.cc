@@ -220,7 +220,7 @@ void SotaUptaneClient::initSecondaries() {
       continue;
     }
     secondaries[sec_serial] = sec;
-    uptane_repo.addSecondary(sec_serial, sec->getHwId(), sec->getPublicKey());
+    uptane_repo.addSecondary(sec);
   }
 }
 

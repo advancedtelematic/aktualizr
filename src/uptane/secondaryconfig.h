@@ -4,6 +4,7 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
+#include "types.h"
 
 namespace Uptane {
 
@@ -22,6 +23,7 @@ class SecondaryConfig {
   bool partial_verifying;
   std::string ecu_private_key;
   std::string ecu_public_key;
+  KeyType key_type{kRSA2048};
 
   boost::filesystem::path full_client_dir;   // kVirtual, kLegacy
   boost::filesystem::path firmware_path;     // kVirtual, kLegacy

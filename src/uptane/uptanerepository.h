@@ -32,11 +32,8 @@ class Repository {
  public:
   Repository(const Config &config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
-  Json::Value signVersionManifest(const Json::Value &primary_version_manifest);
-  void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
-                    const std::string &public_key) {
-    secondary_info[ecu_serial] = std::make_pair(hardware_identifier, public_key);
-  }
+  Json::Value signVersionManifest(const Json::Value &primary_version_manifests);
+  void addSecondary(const boost::shared_ptr<Uptane::SecondaryInterface> &sec) { secondary_info.push_back(sec); }
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
   std::string findInstalledVersion(const std::string &hash);
@@ -66,8 +63,7 @@ class Repository {
   std::string primary_ecu_serial;
   std::string primary_hardware_id_;
 
-  // ECU serial => (ECU hardware ID, ECU public_key)
-  std::map<std::string, std::pair<std::string, std::string> > secondary_info;
+  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
 

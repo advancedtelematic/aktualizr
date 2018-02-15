@@ -31,6 +31,7 @@ class SecondaryInterface {
   virtual bool putRoot(Uptane::Root root, bool director) = 0;
 
   virtual bool sendFirmware(const std::string& data) = 0;
+  std::string getKeyType() const { return (sconfig.key_type == kED25519) ? "ED25519" : "RSA"; }
 
   const SecondaryConfig& sconfig;
 };

@@ -233,10 +233,28 @@ TEST(crypto, parsep12_FAIL) {
   EXPECT_EQ(result, false);
 }
 
-TEST(crypto, generateRSAKeyPair) {
+TEST(crypto, generateRSA2048KeyPair) {
   std::string public_key;
   std::string private_key;
-  EXPECT_TRUE(Crypto::generateRSAKeyPair(&public_key, &private_key));
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA2048, &public_key, &private_key));
+  EXPECT_NE(public_key.size(), 0);
+  EXPECT_NE(private_key.size(), 0);
+}
+
+TEST(crypto, generateRSA4096KeyPair) {
+  std::string public_key;
+  std::string private_key;
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA4096, &public_key, &private_key));
+  EXPECT_NE(public_key.size(), 0);
+  EXPECT_NE(private_key.size(), 0);
+}
+
+TEST(crypto, generateED25519KeyPair) {
+  std::string public_key;
+  std::string private_key;
+  EXPECT_TRUE(Crypto::generateEDKeyPair(&public_key, &private_key));
+  EXPECT_NE(public_key.size(), 0);
+  EXPECT_NE(private_key.size(), 0);
 }
 
 #ifndef __NO_MAIN__

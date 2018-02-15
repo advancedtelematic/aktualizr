@@ -20,6 +20,7 @@ TEST(KeyManager, SignTuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Config config;
+  config.uptane.key_type = kRSA2048;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
@@ -32,6 +33,29 @@ TEST(KeyManager, SignTuf) {
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
             "6a809c62b4f6c2ae11abfb260a6a9a57d205fc2887ab9c83bd6be0790293e187");
+  EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
+}
+
+TEST(KeyManager, SignED25519Tuf) {
+  std::string private_key =
+      "BD0A7539BD0365D7A9A3050390AD7B7C2033C58E354C5E0F42B9B611273BBA38BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3D"
+      "A93853388FDAC760";
+  std::string public_key = "BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3DA93853388FDAC760";
+  Config config;
+  config.uptane.key_type = kED25519;
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+
+  storage->storePrimaryKeys(public_key, private_key);
+  KeyManager keys(storage, config);
+
+  Json::Value tosign_json;
+  tosign_json["mykey"] = "value";
+  Json::Value signed_json = keys.signTuf(tosign_json);
+  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
+  EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),
+            "a6d0f6b52ae833175dd7724899507709231723037845715c7677670e0195f850");
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 

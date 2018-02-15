@@ -14,6 +14,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "logging.h"
+#include "types.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
@@ -80,7 +81,8 @@ struct UptaneConfig {
         primary_ecu_hardware_id(""),
         director_server(""),
         repo_server(""),
-        key_source(kFile) {}
+        key_source(kFile),
+        key_type(kRSA2048) {}
   bool polling;
   unsigned long long polling_sec;
   std::string device_id;
@@ -89,6 +91,8 @@ struct UptaneConfig {
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source;
+  KeyType key_type;
+  std::string getKeyTypeString() const { return (key_type == kED25519) ? "ED25519" : "RSA"; }
   std::vector<Uptane::SecondaryConfig> secondary_configs;
 };
 

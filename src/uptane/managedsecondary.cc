@@ -13,9 +13,8 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
   // TODO: FIX
   // loadMetadata(meta_pack);
   if (!loadKeys(&public_key, &private_key)) {
-    if (!Crypto::generateRSAKeyPair(&public_key, &private_key)) {
-      LOG_ERROR << "Could not generate rsa keys for secondary " << ManagedSecondary::getSerial() << "@"
-                << sconfig.ecu_hardware_id;
+    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key)) {
+      LOG_ERROR << "Could not generate rsa keys for secondary " << getSerial() << "@" << sconfig.ecu_hardware_id;
       throw std::runtime_error("Unable to generate secondary rsa keys");
     }
     storeKeys(public_key, private_key);
