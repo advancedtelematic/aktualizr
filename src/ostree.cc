@@ -146,7 +146,7 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
 
 OstreeManager::OstreeManager(const PackageConfig &pconfig) : config(pconfig) {
   try {
-    getCurrent();
+    OstreeManager::getCurrent();
   } catch (...) {
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
   }

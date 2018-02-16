@@ -843,7 +843,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
   ~SQLTargetRHandle() override {
     if (!closed_) {
-      this->rclose();
+      SQLTargetRHandle::rclose();
     }
   }
 

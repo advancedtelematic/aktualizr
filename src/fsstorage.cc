@@ -444,7 +444,7 @@ class FSTargetRHandle : public StorageTargetRHandle {
 
   ~FSTargetRHandle() override {
     if (!closed_) {
-      this->rclose();
+      FSTargetRHandle::rclose();
     }
   }
 
