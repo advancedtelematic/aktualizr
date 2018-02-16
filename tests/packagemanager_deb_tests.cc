@@ -26,12 +26,12 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
 
   Json::Value target_json_test;
   target_json_test["hashes"]["sha256"] = "hash_old";
-  target_json_test["length"] = 0;
+  target_json_test["length"] = 5;
   Uptane::Target target_test("test.deb", target_json_test);
   storage->saveInstalledVersion(target_test);
 
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "good.deb", 2);
-  std::stringstream("ab") >> *fhandle;
+  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "good.deb", 5);
+  std::stringstream("GOOD\n") >> *fhandle;
 
   EXPECT_EQ(pacman->install(target).first, data::OK);
   std::map<std::string, InstalledVersion> versions_loaded;
