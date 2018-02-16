@@ -27,8 +27,8 @@ class SotaUptaneClient {
  private:
   bool isInstalled(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
-  data::InstallOutcome PackageInstall(const Uptane::Target &package);
-  void PackageInstallSetResult(const Uptane::Target &package);
+  data::InstallOutcome PackageInstall(const Uptane::Target &target);
+  void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
   void run(command::Channel *commands_channel);

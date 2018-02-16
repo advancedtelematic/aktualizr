@@ -53,10 +53,10 @@ class Version {
  private:
   static const int ANY_VERSION = -1;
   int version_;
-  friend std::ostream &operator<<(std::ostream &os, const Version &t);
+  friend std::ostream &operator<<(std::ostream &os, const Version &v);
 };
 
-std::ostream &operator<<(std::ostream &os, const Version &t);
+std::ostream &operator<<(std::ostream &os, const Version &v);
 
 class TimeStamp {
  public:

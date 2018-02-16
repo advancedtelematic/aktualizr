@@ -24,14 +24,14 @@ class HttpClient : public HttpInterface {
  public:
   HttpClient();
   HttpClient(const HttpClient &);
-  virtual ~HttpClient();
-  virtual HttpResponse get(const std::string &url);
-  virtual HttpResponse post(const std::string &url, const Json::Value &data);
-  virtual HttpResponse put(const std::string &url, const Json::Value &data);
+  ~HttpClient() override;
+  HttpResponse get(const std::string &url) override;
+  HttpResponse post(const std::string &url, const Json::Value &data) override;
+  HttpResponse put(const std::string &url, const Json::Value &data) override;
 
-  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp);
-  virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
-                        CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source);
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) override;
+  void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
+                const std::string &pkey, CryptoSource pkey_source) override;
   long http_code;
 
  private:

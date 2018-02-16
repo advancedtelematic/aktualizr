@@ -28,7 +28,7 @@ long get_curlopt_verbose();
 
 void logger_init();
 
-void logger_set_threshold(boost::log::trivial::severity_level severity_level);
+void logger_set_threshold(boost::log::trivial::severity_level threshold);
 
 int loggerGetSeverity();
 

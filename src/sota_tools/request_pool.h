@@ -9,7 +9,7 @@ class RequestPool {
  public:
   typedef void (*requestCallBack)(RequestPool&, OSTreeObject::ptr);
 
-  RequestPool(const TreehubServer& server, int poolsize);
+  RequestPool(const TreehubServer& server, int max_requests);
   ~RequestPool();
   void AddQuery(OSTreeObject::ptr request);
   void AddUpload(OSTreeObject::ptr request);

@@ -378,7 +378,7 @@ class FSTargetWHandle : public StorageTargetWHandle {
   FSTargetWHandle(const FSTargetWHandle& other) = delete;
   FSTargetWHandle& operator=(const FSTargetWHandle& other) = delete;
 
-  ~FSTargetWHandle() {
+  ~FSTargetWHandle() override {
     if (!closed_) {
       LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
       this->wabort();
@@ -442,7 +442,7 @@ class FSTargetRHandle : public StorageTargetRHandle {
   FSTargetRHandle(const FSTargetRHandle& other) = delete;
   FSTargetRHandle& operator=(const FSTargetRHandle& other) = delete;
 
-  ~FSTargetRHandle() {
+  ~FSTargetRHandle() override {
     if (!closed_) {
       this->rclose();
     }

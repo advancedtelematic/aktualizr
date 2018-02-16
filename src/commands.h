@@ -54,7 +54,7 @@ class AbortDownload : public BaseCommand {
 
 class SendUpdateReport : public BaseCommand {
  public:
-  SendUpdateReport(const data::UpdateReport& update_report_in);
+  SendUpdateReport(const data::UpdateReport& ureport_in);
   data::UpdateReport update_report;
   std::string toJson();
   static SendUpdateReport fromJson(const std::string& json_str);

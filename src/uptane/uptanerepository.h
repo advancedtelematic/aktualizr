@@ -30,9 +30,9 @@ const int MaxInitializationAttempts = 3;
 
 class Repository {
  public:
-  Repository(const Config &config, boost::shared_ptr<INvStorage> storage, HttpInterface &http_client);
+  Repository(const Config &config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
-  Json::Value signVersionManifest(const Json::Value &version_manifests);
+  Json::Value signVersionManifest(const Json::Value &primary_version_manifest);
   void addSecondary(const std::string &ecu_serial, const std::string &hardware_identifier,
                     const std::string &public_key) {
     secondary_info[ecu_serial] = std::make_pair(hardware_identifier, public_key);
