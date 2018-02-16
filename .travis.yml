@@ -7,6 +7,7 @@ branches:
     - /^\d\d\d\d\.\d+$/
 env:
 - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
+- DOCKERFILE=Dockerfile.static-checks CACHE=latest CC=clang CXX=clang++ SCRIPT=src/scripts/static-checks.sh
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
 - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh
   DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"

@@ -1,5 +1,5 @@
 FROM debian:unstable
-LABEL Description="Aktualizr testing dockerfile for Debian Unstable with p11"
+LABEL Description="Aktualizr testing dockerfile for static checks"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -11,12 +11,14 @@ RUN apt-get update && apt-get -y install \
   autoconf \
   automake \
   bison \
+  clang-6.0 \
+  clang-tidy-6.0 \
+  clang-tools-6.0 \
+  clang-format-3.8 \
   cmake \
   curl \
   dpkg-dev \
   e2fslibs-dev \
-  g++ \
-  gcc \
   git \
   lcov \
   libarchive-dev \
@@ -55,6 +57,9 @@ RUN apt-get update && apt-get -y install \
   softhsm2 \
   valgrind \
   wget
+
+RUN ln -s clang-6.0 /usr/bin/clang && \
+    ln -s clang++-6.0 /usr/bin/clang++
 
 WORKDIR aktualizr
 ADD . src

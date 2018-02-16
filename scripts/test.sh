@@ -5,8 +5,6 @@ mkdir -p build-test
 cd build-test
 cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind ../src
 
-make check-format
-
 make -j8
 
 # Check that 'make install' works

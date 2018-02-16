@@ -60,12 +60,5 @@ RUN apt-get update && apt-get -y install \
   libp11-dev \
   softhsm2
 
-RUN echo "deb http://ftp.de.debian.org/debian unstable main" > /etc/apt/sources.list
-RUN apt-get update && apt-get -y install \
-  clang-6.0 \
-  clang-tidy-6.0 \
-  clang-tools-6.0 \
-  clang-format-6.0
-
 WORKDIR aktualizr
 ADD . src
