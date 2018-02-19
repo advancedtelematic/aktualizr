@@ -200,7 +200,6 @@ endif()
 
 # General packaging configuration
 set(CPACK_GENERATOR "DEB")
-set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "anton.gerasimov@here.com")
 set(CPACK_DEB_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_GROUPING ONE_PER_GROUP)
