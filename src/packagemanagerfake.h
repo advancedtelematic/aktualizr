@@ -20,7 +20,7 @@ class PackageManagerFake : public PackageManagerInterface {
     // tests have something to check for.
     refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
   }
-  virtual Json::Value getInstalledPackages() {
+  Json::Value getInstalledPackages() override {
     Json::Value packages(Json::arrayValue);
     Json::Value package;
     package["name"] = "fake-package";
@@ -29,9 +29,9 @@ class PackageManagerFake : public PackageManagerInterface {
     return packages;
   }
 
-  virtual std::string getCurrent() { return refhash_fake; }
+  std::string getCurrent() override { return refhash_fake; }
 
-  virtual data::InstallOutcome install(const Uptane::Target &target) const {
+  data::InstallOutcome install(const Uptane::Target &target) const override {
     (void)target;
     refhash_fake = target.sha256Hash();
     return data::InstallOutcome(data::OK, "Pulling ostree image was successful");

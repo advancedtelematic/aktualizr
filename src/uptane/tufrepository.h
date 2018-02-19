@@ -37,7 +37,7 @@ class TufRepository {
   bool checkTimestamp();
 
   Json::Value getJSON(const std::string& role);
-  Json::Value fetchAndCheckRole(Role role, Version fetch_version = Version(), Uptane::Root* root_used = NULL);
+  Json::Value fetchAndCheckRole(Role role, Version version = Version(), Uptane::Root* root_used = NULL);
   std::vector<Target> getTargets() { return targets_.targets; }
   // std::pair<uint32_t, std::vector<Target> > fetchTargets();
   void saveTarget(const Target& target);

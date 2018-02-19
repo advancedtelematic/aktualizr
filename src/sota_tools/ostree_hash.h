@@ -20,7 +20,7 @@ class OSTreeHash {
   std::string string() const;
 
   bool operator<(const OSTreeHash& other) const;
-  friend std::ostream& operator<<(std::ostream& os, const OSTreeHash& hash);
+  friend std::ostream& operator<<(std::ostream& os, const OSTreeHash& obj);
 
  private:
   uint8_t hash_[32];

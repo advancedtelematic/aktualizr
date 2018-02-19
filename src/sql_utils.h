@@ -84,13 +84,12 @@ class SQLiteStatement {
 
     bindArguments<Types...>(db, statement, 1, args...);
 
-    return SQLiteStatement(db, statement);
+    return SQLiteStatement(statement);
   }
 
  private:
-  SQLiteStatement(sqlite3* db, sqlite3_stmt* stmt) : db_(db), stmt_(stmt, sqlite3_finalize) {}
+  SQLiteStatement(sqlite3_stmt* stmt) : stmt_(stmt, sqlite3_finalize) {}
 
-  sqlite3* db_;
   std::unique_ptr<sqlite3_stmt, int (*)(sqlite3_stmt*)> stmt_;
 };
 

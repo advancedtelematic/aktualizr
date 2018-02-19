@@ -10,7 +10,7 @@
 
 class GatewayManager {
  public:
-  GatewayManager(const Config &config_in, command::Channel *commands_channel_in);
+  GatewayManager(const Config &config, command::Channel *commands_channel_in);
   void processEvents(const boost::shared_ptr<event::BaseEvent> &event);
 
  private:

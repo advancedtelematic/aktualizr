@@ -75,7 +75,7 @@ class P11Engine : public boost::noncopyable {
   std::string getTlsCacertId() const { return uri_prefix_ + config_.tls_cacert_id; }
   std::string getTlsPkeyId() const { return uri_prefix_ + config_.tls_pkey_id; }
   std::string getTlsCertId() const { return uri_prefix_ + config_.tls_clientcert_id; }
-  bool readUptanePublicKey(std::string *key);
+  bool readUptanePublicKey(std::string *key_out);
   bool readTlsCert(std::string *cert_out) const;
   bool generateUptaneKeyPair();
 

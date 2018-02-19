@@ -18,7 +18,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/random/random_device.hpp>
 #include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -331,13 +330,9 @@ class SafeTempRoot : private boost::noncopyable {
   // provide this as a static method so that we can use C++ static destructor
   // to remove the temp root
   static boost::filesystem::path &Get() {
-    {
-      // Ensure thread safety (uneeded in c++11)
-      boost::lock_guard<boost::mutex> lock(mutex);
-      static SafeTempRoot r;
+    static SafeTempRoot r;
 
-      return r.path;
-    }
+    return r.path;
   }
 
  private:
@@ -360,10 +355,7 @@ class SafeTempRoot : private boost::noncopyable {
   }
 
   boost::filesystem::path path;
-  static boost::mutex mutex;
 };
-
-boost::mutex SafeTempRoot::mutex;
 
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}

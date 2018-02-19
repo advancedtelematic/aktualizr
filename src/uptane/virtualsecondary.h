@@ -12,8 +12,8 @@ class VirtualSecondary : public ManagedSecondary {
   VirtualSecondary(const SecondaryConfig& sconfig_in);
 
  private:
-  virtual bool storeFirmware(const std::string& target_name, const std::string& content);
-  virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash);
+  bool storeFirmware(const std::string& target_name, const std::string& content) override;
+  bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) override;
 };
 }
 

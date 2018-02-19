@@ -17,9 +17,9 @@ const char remote[] = "aktualizr-remote";
 class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(const PackageConfig &pconfig);
-  virtual Json::Value getInstalledPackages();
-  virtual std::string getCurrent();
-  virtual data::InstallOutcome install(const Uptane::Target &target) const;
+  Json::Value getInstalledPackages() override;
+  std::string getCurrent() override;
+  data::InstallOutcome install(const Uptane::Target &target) const override;
 
   boost::shared_ptr<OstreeDeployment> getStagedDeployment();
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);

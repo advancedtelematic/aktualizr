@@ -21,20 +21,20 @@ class ManagedSecondary : public SecondaryInterface {
  public:
   ManagedSecondary(const SecondaryConfig& sconfig_in);
 
-  virtual std::string getSerial() {
+  std::string getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
       return sconfig.ecu_serial;
     } else {
       return public_key_id;
     }
   }
-  virtual std::string getPublicKey() { return public_key; }
-  virtual bool putMetadata(const MetaPack& meta_pack);
-  virtual int getRootVersion(const bool director);
-  virtual bool putRoot(Uptane::Root root, const bool director);
+  std::string getPublicKey() override { return public_key; }
+  bool putMetadata(const MetaPack& meta_pack) override;
+  int getRootVersion(const bool director) override;
+  bool putRoot(Uptane::Root root, const bool director) override;
 
-  virtual bool sendFirmware(const std::string& data);
-  virtual Json::Value getManifest();
+  bool sendFirmware(const std::string& data) override;
+  Json::Value getManifest() override;
 
   bool loadKeys(std::string* public_key, std::string* private_key);
 

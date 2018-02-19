@@ -15,9 +15,9 @@ class DebianManager : public PackageManagerInterface {
  public:
   DebianManager(const PackageConfig &pconfig, const boost::shared_ptr<INvStorage> &storage)
       : config_(pconfig), storage_(storage) {}
-  virtual Json::Value getInstalledPackages();
-  virtual std::string getCurrent();
-  virtual data::InstallOutcome install(const Uptane::Target &target) const;
+  Json::Value getInstalledPackages() override;
+  std::string getCurrent() override;
+  data::InstallOutcome install(const Uptane::Target &target) const override;
   PackageConfig config_;
   boost::shared_ptr<INvStorage> storage_;
 };

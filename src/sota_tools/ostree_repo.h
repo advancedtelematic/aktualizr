@@ -18,6 +18,7 @@ class OSTreeRepo : private boost::noncopyable {
  public:
   typedef boost::shared_ptr<OSTreeRepo> ptr;
 
+  virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;
   virtual OSTreeObject::ptr GetObject(const OSTreeHash hash) const = 0;
   virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const = 0;

@@ -14,8 +14,8 @@
 class SocketGateway : public Gateway, boost::noncopyable {
  public:
   SocketGateway(const Config &config_in, command::Channel *commands_channel_in);
-  virtual ~SocketGateway();
-  virtual void processEvent(const boost::shared_ptr<event::BaseEvent> &event);
+  ~SocketGateway() override;
+  void processEvent(const boost::shared_ptr<event::BaseEvent> &event) override;
 
  private:
   const Config &config;
@@ -30,7 +30,7 @@ class SocketGateway : public Gateway, boost::noncopyable {
 
   void eventsServer();
   void commandsServer();
-  void commandsWorker(int socket, command::Channel *commands_channel);
+  void commandsWorker(int socket, command::Channel *channel);
   void broadcast_event(const boost::shared_ptr<event::BaseEvent> &event);
 };
 

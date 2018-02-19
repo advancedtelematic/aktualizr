@@ -706,7 +706,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, const std::string& filename, size_t size)
       : db_(storage.config_.sqldb_path.c_str()),
-        storage_(storage),
         filename_(filename),
         expected_size_(size),
         written_size_(0),
@@ -743,7 +742,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
   }
 
-  ~SQLTargetWHandle() {
+  ~SQLTargetWHandle() override {
     if (!closed_) {
       LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
       this->wabort();
@@ -782,7 +781,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
  private:
   SQLite3Guard db_;
-  const SQLStorage& storage_;
   const std::string filename_;
   size_t expected_size_;
   size_t written_size_;
@@ -801,7 +799,6 @@ class SQLTargetRHandle : public StorageTargetRHandle {
  public:
   SQLTargetRHandle(const SQLStorage& storage, const std::string& filename)
       : db_(storage.config_.sqldb_path.c_str()),
-        storage_(storage),
         filename_(filename),
         size_(0),
         read_size_(0),
@@ -844,9 +841,9 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     }
   }
 
-  ~SQLTargetRHandle() {
+  ~SQLTargetRHandle() override {
     if (!closed_) {
-      this->rclose();
+      SQLTargetRHandle::rclose();
     }
   }
 
@@ -876,7 +873,6 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
  private:
   SQLite3Guard db_;
-  const SQLStorage& storage_;
   const std::string filename_;
   size_t size_;
   size_t read_size_;

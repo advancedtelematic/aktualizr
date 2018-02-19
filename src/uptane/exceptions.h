@@ -10,7 +10,7 @@ class Exception : public std::logic_error {
  public:
   Exception(const std::string reponame, const std::string &what_arg)
       : std::logic_error(what_arg.c_str()), reponame_(reponame) {}
-  virtual ~Exception() throw() {}
+  ~Exception() throw() override {}
   virtual std::string getName() { return reponame_; };
 
  protected:
@@ -20,74 +20,74 @@ class Exception : public std::logic_error {
 class SecurityException : public Exception {
  public:
   SecurityException(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
-  virtual ~SecurityException() throw() {}
+  ~SecurityException() throw() override {}
 };
 
 class TargetHashMismatch : public Exception {
  public:
   TargetHashMismatch(const std::string targetname)
       : Exception(targetname, "The target's calculated hash did not match the hash in the metadata.") {}
-  virtual ~TargetHashMismatch() throw() {}
+  ~TargetHashMismatch() throw() override {}
 };
 
 class OversizedTarget : public Exception {
  public:
   OversizedTarget(const std::string reponame)
       : Exception(reponame, "The target's size was greater than the size in the metadata.") {}
-  virtual ~OversizedTarget() throw() {}
+  ~OversizedTarget() throw() override {}
 };
 
 class IllegalThreshold : public Exception {
  public:
   IllegalThreshold(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
-  virtual ~IllegalThreshold() throw() {}
+  ~IllegalThreshold() throw() override {}
 };
 
 class MissingRepo : public Exception {
  public:
   MissingRepo(const std::string reponame) : Exception(reponame, "The " + reponame + " repo is missing.") {}
-  virtual ~MissingRepo() throw() {}
+  ~MissingRepo() throw() override {}
 };
 
 class UnmetThreshold : public Exception {
  public:
   UnmetThreshold(const std::string reponame, const std::string &role)
       : Exception(reponame, "The " + role + " metadata had an unmet threshold.") {}
-  virtual ~UnmetThreshold() throw() {}
+  ~UnmetThreshold() throw() override {}
 };
 
 class ExpiredMetadata : public Exception {
  public:
   ExpiredMetadata(const std::string reponame, const std::string &role)
       : Exception(reponame, "The " + role + " metadata was expired.") {}
-  virtual ~ExpiredMetadata() throw() {}
+  ~ExpiredMetadata() throw() override {}
 };
 
 class InvalidMetadata : public Exception {
  public:
   InvalidMetadata(const std::string reponame, const std::string &role, const std::string reason)
       : Exception(reponame, "The " + role + " metadata failed to parse:" + reason) {}
-  virtual ~InvalidMetadata() throw() {}
+  ~InvalidMetadata() throw() override {}
 };
 
 class IllegalRsaKeySize : public Exception {
  public:
   IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
-  virtual ~IllegalRsaKeySize() throw() {}
+  ~IllegalRsaKeySize() throw() override {}
 };
 
 class MissMatchTarget : public Exception {
  public:
   MissMatchTarget(const std::string reponame)
       : Exception(reponame, "The target missmatch between image and director.") {}
-  virtual ~MissMatchTarget() throw() {}
+  ~MissMatchTarget() throw() override {}
 };
 
 class NonUniqueSignatures : public Exception {
  public:
   NonUniqueSignatures(const std::string reponame, const std::string &role)
       : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
-  virtual ~NonUniqueSignatures() throw() {}
+  ~NonUniqueSignatures() throw() override {}
 };
 }
 

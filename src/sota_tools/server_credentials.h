@@ -23,7 +23,7 @@ class BadCredentialsArchive : public std::runtime_error {
 
 class ServerCredentials {
  public:
-  ServerCredentials(const boost::filesystem::path &creds);
+  ServerCredentials(const boost::filesystem::path &credentials_path);
   bool CanSignOffline() const;
   AuthMethod GetMethod() const { return method_; };
   std::string GetClientCert() const { return client_cert_; };

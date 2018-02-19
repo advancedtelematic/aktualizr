@@ -14,6 +14,7 @@ namespace event {
 
 class BaseEvent {
  public:
+  virtual ~BaseEvent() = default;
   std::string variant;
   Json::Value toBaseJson();
   virtual std::string toJson() = 0;
@@ -24,7 +25,7 @@ class Error : public BaseEvent {
  public:
   std::string message;
   Error(const std::string&);
-  virtual std::string toJson();
+  std::string toJson() override;
   static Error fromJson(const std::string&);
 };
 
@@ -32,7 +33,7 @@ class UpdateAvailable : public BaseEvent {
  public:
   data::UpdateAvailable update_vailable;
   UpdateAvailable(const data::UpdateAvailable& ua_in);
-  virtual std::string toJson();
+  std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
 };
 
@@ -40,26 +41,26 @@ class DownloadComplete : public BaseEvent {
  public:
   DownloadComplete(const data::DownloadComplete& dc_in);
   data::DownloadComplete download_complete;
-  virtual std::string toJson();
+  std::string toJson() override;
   static DownloadComplete fromJson(const std::string& json_str);
 };
 
 class InstalledSoftwareNeeded : public BaseEvent {
  public:
   InstalledSoftwareNeeded();
-  virtual std::string toJson();
+  std::string toJson() override;
 };
 
 class UptaneTimestampUpdated : public BaseEvent {
  public:
   UptaneTimestampUpdated();
-  virtual std::string toJson();
+  std::string toJson() override;
 };
 
 class UptaneTargetsUpdated : public BaseEvent {
  public:
   std::vector<Uptane::Target> packages;
-  virtual std::string toJson();
+  std::string toJson() override;
 
   UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
 };

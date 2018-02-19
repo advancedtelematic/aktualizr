@@ -16,7 +16,6 @@
 class OSTreeHttpRepo : public OSTreeRepo {
  public:
   explicit OSTreeHttpRepo(const TreehubServer* server) : server_(server) {}
-  ~OSTreeHttpRepo() {}
 
   bool LooksValid() const;
   OSTreeObject::ptr GetObject(const OSTreeHash hash) const;

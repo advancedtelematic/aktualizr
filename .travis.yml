@@ -11,7 +11,7 @@ env:
 - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh
   DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"
 - DOCKERFILE=Dockerfile.deb-unstable CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
-  DARGS="-eBUILD_ONLY=1"
+  DARGS="-eBUILD_ONLY=1 -eSTATIC_CHECKS=1"
 - DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
 services:
 - docker
