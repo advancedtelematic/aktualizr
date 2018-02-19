@@ -1,6 +1,7 @@
 #! /bin/bash
 set -e
 
+(
 mkdir -p build-test
 cd build-test
 cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind ../src
@@ -19,3 +20,16 @@ if [ -n "$BUILD_ONLY" ]; then
 else
   CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=4 make -j6 check-full
 fi
+)
+
+(
+if [ -n "$STATIC_CHECKS" ]; then
+  mkdir -p build-static-checks
+  cd build-static-checks
+  cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DBUILD_P11=ON ../src
+
+  make check-format -j8
+  make clang-tidy -j8
+  make clang-check -j8
+fi
+)
