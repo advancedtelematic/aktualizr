@@ -2,6 +2,7 @@
 #define UTILS_H_
 
 #include <boost/filesystem.hpp>
+#include <memory>
 #include <string>
 
 #include "json/json.h"
@@ -52,5 +53,12 @@ class TemporaryDirectory : boost::noncopyable {
  private:
   boost::filesystem::path tmp_name_;
 };
+
+// helper template for C (mostly openssl) data structured
+//   user should still take care about the order of destruction
+//   by instantiating StructGuard<> in a right order.
+//   BTW local variables are destructed in reverse order of instantiation
+template <typename T>
+using StructGuard = std::unique_ptr<T, void (*)(T *)>;
 
 #endif  // UTILS_H_

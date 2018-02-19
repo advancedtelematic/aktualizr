@@ -246,5 +246,5 @@ struct MetaPack {
   TimestampMeta image_timestamp;
   Snapshot image_snapshot;
 };
-};
+}
 #endif  // AKTUALIZR_UPTANE_TUF_H_

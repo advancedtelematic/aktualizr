@@ -24,6 +24,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <iostream>
 
+#include <openssl/ssl.h>
+
 #include "aktualizr.h"
 #include "config.h"
 #include "logging.h"
@@ -127,6 +129,9 @@ int main(int argc, char *argv[]) {
     if (boost::log::trivial::fatal < severity) {
       LOG_WARNING << "Invalid log level";
       severity = boost::log::trivial::fatal;
+    }
+    if (severity <= boost::log::trivial::debug) {
+      SSL_load_error_strings();
     }
     logger_set_threshold(severity);
   }

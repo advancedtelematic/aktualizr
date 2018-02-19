@@ -1,6 +1,8 @@
 # set the name of the executable
 add_executable(aktualizr_cert_provider main.cc)
 
+set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+
 target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
         ${Boost_LIBRARIES}
         ${CURL_LIBRARIES}
