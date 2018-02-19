@@ -97,7 +97,6 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
 
 std::string Crypto::Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &message) {
   if (key_type == kED25519) {
-    std::cout << "PRIVKEY:" << private_key;
     return Crypto::ED25519Sign(boost::algorithm::unhex(private_key), message);
   } else {
     return Crypto::RSAPSSSign(engine, private_key, message);

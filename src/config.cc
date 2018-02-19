@@ -65,6 +65,26 @@ std::ostream& operator<<(std::ostream& os, PackageManager pm) {
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, KeyType kt) {
+  std::string kt_str;
+  switch (kt) {
+    case kRSA2048:
+      kt_str = "RSA2048";
+      break;
+    case kRSA4096:
+      kt_str = "RSA4096";
+      break;
+    case kED25519:
+      kt_str = "ED25519";
+      break;
+    default:
+      kt_str = "unknown";
+      break;
+  }
+  os << '"' << kt_str << '"';
+  return os;
+}
+
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
@@ -267,6 +287,18 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     uptane.key_source = kFile;
 
+  std::string key_type;
+  CopyFromConfig(key_type, "uptane.key_type", boost::log::trivial::warning, pt);
+  if (key_type.size()) {
+    if (key_type == "RSA2048") {
+      uptane.key_type = kRSA2048;
+    } else if (key_type == "RSA4096") {
+      uptane.key_type = kRSA4096;
+    } else if (key_type == "ED25519") {
+      uptane.key_type = kED25519;
+    }
+  }
+
   // uptane.secondary_configs currently can only be set via command line.
 
   std::string package_manager = "ostree";
@@ -382,6 +414,16 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
     sconfig.flasher = "";
 
+    std::string key_type = config_json["key_type"].asString();
+    if (key_type.size()) {
+      if (key_type == "RSA2048") {
+        sconfig.key_type = kRSA2048;
+      } else if (key_type == "RSA4096") {
+        sconfig.key_type = kRSA4096;
+      } else if (key_type == "ED25519") {
+        sconfig.key_type = kED25519;
+      }
+    }
     uptane.secondary_configs.push_back(sconfig);
   }
 }
@@ -515,6 +557,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, uptane.director_server, "director_server");
   writeOption(sink, uptane.repo_server, "repo_server");
   writeOption(sink, uptane.key_source, "key_source");
+  writeOption(sink, uptane.key_type, "key_type");
   // uptane.secondary_configs currently can only be set via command line and is
   // not read from or written to the primary config file.
   sink << "\n";
