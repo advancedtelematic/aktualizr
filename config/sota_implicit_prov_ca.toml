@@ -7,6 +7,6 @@ sqldb_path = "/var/sota/sql.db"
 schemas_path = "/usr/lib/sota/schemas"
 
 [import]
-tls_cacert_path = "/var/sota/root.crt"
-tls_clientcert_path = "/var/sota/client.pem"
-tls_pkey_path = "/var/sota/pkey.pem"
+tls_cacert_path = "/var/sota/import_root.crt"
+tls_clientcert_path = "/var/sota/import_client.pem"
+tls_pkey_path = "/var/sota/import_pkey.pem"
