@@ -95,7 +95,13 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
 bool generate_and_sign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
                        std::string* cert, const bpo::variables_map& commandline_map) {
   int rsa_bits = 2048;
-  if (commandline_map.count("bits") != 0) rsa_bits = (commandline_map["bits"].as<int>());
+  if (commandline_map.count("bits") != 0) {
+    rsa_bits = (commandline_map["bits"].as<int>());
+    if (rsa_bits < 31) {  // sic!
+      std::cerr << "RSA key size can't be smaller than 31 bits" << std::endl;
+      return false;
+    }
+  }
 
   int cert_days = 365;
   if (commandline_map.count("days") != 0) cert_days = (commandline_map["days"].as<int>());
