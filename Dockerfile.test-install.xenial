@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
   libsodium18 \
   libsqlite3-0 \
   libssl1.0.0 \
-  libstdc++6
+  libstdc++6 \
+  lshw \
+  python3
 
-ENTRYPOINT dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb && aktualizr --version | grep `cat /persistent/aktualizr-version` && aktualizr-info
+ENTRYPOINT /persistent/test_aktualizr_deb_and_update.sh

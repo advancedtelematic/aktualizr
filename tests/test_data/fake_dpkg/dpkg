@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-if grep -q GOOD "${@: -1}"; then
+if [[ "$2" == */good.deb ]]
+then
     exit 0
 else
     echo -ne "Error installing"

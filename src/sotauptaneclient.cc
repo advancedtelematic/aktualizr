@@ -200,8 +200,10 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     } catch (Uptane::Exception e) {
       LOG_ERROR << e.what();
+      *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
     } catch (const std::exception &ex) {
       LOG_ERROR << "Unknown exception was thrown: " << ex.what();
+      *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
     }
   }
 }
