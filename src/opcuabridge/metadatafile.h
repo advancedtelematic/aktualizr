@@ -21,11 +21,21 @@ class MetadataFile {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&metadata_)                       // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&metadata_)                      // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFile>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFile>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   int GUID_;
   std::size_t fileNumber_;
   std::string filename_;
   std::vector<unsigned char> metadata_;
+
+  MessageOnBeforeReadCallback<MetadataFile>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<MetadataFile>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;

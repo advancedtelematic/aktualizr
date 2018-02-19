@@ -14,21 +14,13 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/bind.hpp>
 
+namespace tutils = opcuabridge_test_utils;
+
 TemporaryDirectory temp_dir("opcuabridge-messaging-test");
 
 template <typename MessageT>
-std::string GetMessageDumpFilePath() {
-  return (temp_dir / GetMessageFileName<MessageT>()).native();
-}
-
-template <typename MessageT>
-std::string GetMessageResponseFilePath() {
-  return (temp_dir / (GetMessageFileName<MessageT>() + ".response")).native();
-}
-
-template <typename MessageT>
 void LoadTransferCheck(UA_Client* client, const std::string& roottag) {
-  std::string msg_content = GetMessageDumpFilePath<MessageT>();
+  std::string msg_content = tutils::GetMessageDumpFilePath<MessageT>(temp_dir);
 
   MessageT m, m_response;
   {
@@ -44,7 +36,7 @@ void LoadTransferCheck(UA_Client* client, const std::string& roottag) {
   retval = m_response.ClientRead(client);
   EXPECT_EQ(retval, UA_STATUSCODE_GOOD);
 
-  std::string msg_response = GetMessageResponseFilePath<MessageT>();
+  std::string msg_response = tutils::GetMessageResponseFilePath<MessageT>(temp_dir);
   {
     std::ofstream file(msg_response.c_str());
 
@@ -60,56 +52,21 @@ void LoadTransferCheck(UA_Client* client, const std::string& roottag) {
 
 const std::string kHexValue = "00010203040506070809AABBCCDDEEFF";
 
-opcuabridge::Signature createSignature(const std::string& keyid, const opcuabridge::SignatureMethod& method,
-                                       const std::string& hash, const std::string& value) {
-  opcuabridge::Signature s;
-  s.setKeyid(keyid);
-  s.setMethod(method);
-  opcuabridge::Hash h;
-  h.setFunction(opcuabridge::HASH_FUN_SHA256);
-  h.setDigest(kHexValue);
-  s.setHash(h);
-  s.setValue(value);
-  return s;
-}
-
-opcuabridge::Signed createSigned(std::size_t n) {
-  opcuabridge::Signed s;
-  std::vector<int> tokens;
-  for (int i = 0; i < n; ++i) tokens.push_back(i);
-  s.setTokens(tokens);
-  s.setTimestamp(time(NULL));
-  return s;
-}
-
-template <typename MessageT>
-bool SerializeMessage(const std::string& roottag, const MessageT& m) {
-  std::string filename = GetMessageDumpFilePath<MessageT>();
-  std::ofstream file(filename.c_str());
-
-  try {
-    boost::archive::xml_oarchive oa(file);
-    oa << boost::serialization::make_nvp(roottag.c_str(), m);
-    file.flush();
-  } catch (...) {
-    return false;
-  }
-  return true;
-}
-
 TEST(opcuabridge, serialization) {
   boost::random::mt19937 gen;
   gen.seed(static_cast<unsigned int>(std::time(0))); 
   boost::random::uniform_int_distribution<uint8_t> random_byte(0x00,0xFF);
 
-  opcuabridge::Signature s1 = createSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
-  opcuabridge::Signature s2 = createSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
+  opcuabridge::Signature s1 =
+    tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
+  opcuabridge::Signature s2 =
+    tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
 
   std::vector<opcuabridge::Signature> signatures;
   signatures.push_back(s1);
   signatures.push_back(s2);
 
-  opcuabridge::Signed s = createSigned(10);
+  opcuabridge::Signed s = tutils::CreateSigned(10);
 
   // VersionReport
 
@@ -139,7 +96,7 @@ TEST(opcuabridge, serialization) {
   vr.setTokenForTimeServer(0);
   vr.setEcuVersionManifest(ecu_version_manifest);
 
-  EXPECT_TRUE(SerializeMessage("VersionReport", vr));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "VersionReport", vr));
 
   // CurrentTime
 
@@ -147,7 +104,7 @@ TEST(opcuabridge, serialization) {
   ct.setSignatures(signatures);
   ct.setSigned(s);
 
-  EXPECT_TRUE(SerializeMessage("CurrentTime", ct));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "CurrentTime", ct));
 
   // MetadataFiles
 
@@ -156,7 +113,7 @@ TEST(opcuabridge, serialization) {
   mds.setGUID(guid);
   mds.setNumberOfMetadataFiles(1);
 
-  EXPECT_TRUE(SerializeMessage("MetadataFiles", mds));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "MetadataFiles", mds));
 
   // MetadataFile
 
@@ -168,14 +125,14 @@ TEST(opcuabridge, serialization) {
   std::generate(metadata.begin(), metadata.end(), boost::bind(random_byte, boost::ref(gen)));
   md.setMetadata(metadata);
 
-  EXPECT_TRUE(SerializeMessage("MetadataFile", md));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "MetadataFile", md));
 
   // ImageRequest
 
   opcuabridge::ImageRequest ir;
   ir.setFilename("IMAGE_FILE.EXT");
 
-  EXPECT_TRUE(SerializeMessage("ImageRequest", ir));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "ImageRequest", ir));
 
   // ImageFile
 
@@ -184,7 +141,7 @@ TEST(opcuabridge, serialization) {
   img_file.setNumberOfBlocks(1);
   img_file.setBlockSize(1024);
 
-  EXPECT_TRUE(SerializeMessage("ImageFile", img_file));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "ImageFile", img_file));
 
   // ImageBlock
 
@@ -195,7 +152,7 @@ TEST(opcuabridge, serialization) {
   std::generate(block.begin(), block.end(), boost::bind(random_byte, boost::ref(gen)));
   img_block.setBlock(block);
 
-  EXPECT_TRUE(SerializeMessage("ImageBlock", img_block));
+  EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "ImageBlock", img_block));
 }
 
 TEST(opcuabridge, transfer_messages) {

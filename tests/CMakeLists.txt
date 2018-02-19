@@ -178,15 +178,26 @@ if(BUILD_OSTREE)
 endif(BUILD_OSTREE)
 
 if(BUILD_OPCUA)
-    set_source_files_properties(opcuabridge_messaging.cc opcuabridge_server.cc
+    set_source_files_properties(opcuabridge_test_utils.cc opcuabridge_messaging_test.cc opcuabridge_server.cc
+                                opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                                 PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
-    add_executable(opcuabridge-server opcuabridge_server.cc)
+    add_executable(opcuabridge-server opcuabridge_server.cc opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-server aktualizr_static_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     add_dependencies(build_tests opcuabridge-server)
 
     add_aktualizr_test(NAME opcuabridge_messaging
-                       SOURCES opcuabridge_messaging.cc)
-    set(TEST_SOURCES ${TEST_SOURCES} opcuabridge_messaging.cc opcuabridge_server.cc)
+                       SOURCES opcuabridge_messaging_test.cc opcuabridge_test_utils.cc)
+
+    add_executable(opcuabridge-secondary opcuabridge_secondary.cc opcuabridge_test_utils.cc)
+    target_link_libraries(opcuabridge-secondary aktualizr_static_lib
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${sodium_LIBRARY_RELEASE})
+    add_dependencies(build_tests opcuabridge-secondary)
+
+    add_aktualizr_test(NAME opcuabridge_secondary_update
+                       SOURCES opcuabridge_secondary_update_test.cc opcuabridge_test_utils.cc)
+    set(TEST_SOURCES ${TEST_SOURCES} opcuabridge_messaging_test.cc opcuabridge_server.cc
+                     opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
+                     opcuabridge_test_utils.cc)
 endif(BUILD_OPCUA)
 
 if(BUILD_DEB)

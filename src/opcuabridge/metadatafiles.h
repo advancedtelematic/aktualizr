@@ -19,9 +19,19 @@ class MetadataFiles {
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFiles>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFiles>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   int GUID_;
   std::size_t numberOfMetadataFiles_;
+
+  MessageOnBeforeReadCallback<MetadataFiles>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<MetadataFiles>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;

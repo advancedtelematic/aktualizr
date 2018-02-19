@@ -21,9 +21,19 @@ class CurrentTime {
   CLIENTREAD_FUNCTION_DEFINITION()                    // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                   // ClientWrite(UA_Client*)
 
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<CurrentTime>::type cb) {
+      on_before_read_cb_ = cb;
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<CurrentTime>::type cb) {
+      on_after_write_cb_ = cb;
+  }
+
  protected:
   std::vector<Signature> signatures_;
   Signed signed_;
+
+  MessageOnBeforeReadCallback<CurrentTime>::type on_before_read_cb_;
+  MessageOnAfterWriteCallback<CurrentTime>::type on_after_write_cb_;
 
  private:
   static const char* node_id_;

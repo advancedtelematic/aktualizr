@@ -1,21 +1,11 @@
 #include <open62541.h>
 
-#include "logging.h"
-
 #include "opcuabridge_test_utils.h"
+#include "logging.h"
 
 #include <signal.h>
 #include <cstdlib>
 #include <fstream>
-
-void BoostLog(UA_LogLevel level, UA_LogCategory category, const char* msg, va_list args) {
-    const std::size_t msg_buff_sz = 256; char msg_buff[msg_buff_sz];
-    vsnprintf(msg_buff, msg_buff_sz, msg, args);
-    BOOST_LOG_STREAM_WITH_PARAMS(
-      boost::log::trivial::logger::get(),
-      (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
-      << "server " << msg_buff;
-}
 
 UA_Boolean running = true;
 
@@ -42,7 +32,7 @@ int main(int argc, char *argv[]) {
   BOOST_PP_LIST_FOR_EACH(DEFINE_MESSAGE, _, OPCUABRIDGE_TEST_MESSAGES_DEFINITION)
 
   UA_ServerConfig *config = UA_ServerConfig_new_minimal(port, NULL);
-  config->logger = &BoostLog;
+  config->logger = &opcuabridge_test_utils::BoostLogServer;
 
   UA_Server *server = UA_Server_new(config);
 
