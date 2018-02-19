@@ -11,9 +11,9 @@ long get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::de
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;
-  logging::add_console_log(std::cout, boost::log::keywords::format = "%Message%");
+  logging::add_console_log(std::cout, boost::log::keywords::format = "%Message%",
+                           boost::log::keywords::auto_flush = true);
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
-  std::cout << std::unitbuf;  // Ensure that log messages are flushed to the journal
 }
 
 void logger_set_threshold(severity_level threshold) {
