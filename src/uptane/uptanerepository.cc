@@ -43,8 +43,8 @@ bool Repository::putManifest(const Json::Value &version_manifests) {
   return response.isOk();
 }
 
-Json::Value Repository::signVersionManifest(const Json::Value &primary_version_manifest) {
-  Json::Value ecu_version_signed = keys_.signTuf(primary_version_manifest);
+Json::Value Repository::signVersionManifest(const Json::Value &primary_version_manifests) {
+  Json::Value ecu_version_signed = keys_.signTuf(primary_version_manifests);
   return ecu_version_signed;
 }
 

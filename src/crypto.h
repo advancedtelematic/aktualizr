@@ -89,9 +89,9 @@ class Crypto {
  public:
   static std::string sha256digest(const std::string &text);
   static std::string sha512digest(const std::string &text);
-  static std::string RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &digest);
-  static std::string Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &digest);
-  static std::string ED25519Sign(const std::string &private_key, const std::string &digest);
+  static std::string RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &message);
+  static std::string Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &message);
+  static std::string ED25519Sign(const std::string &private_key, const std::string &message);
 
   static bool VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message);
   static bool parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
