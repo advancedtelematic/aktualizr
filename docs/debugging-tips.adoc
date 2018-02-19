@@ -97,3 +97,34 @@ Otherwise You could specify config file with `-c` commandline argument.
 == Valgrind and gdb
 
 If the target application or test is running under valgrind, then gdb can still be connected to the process without stopping it.  First run `vgdb --port=2159` in a different shell on the same machine, then connect to it using `target remote localhost:2159` in gdb
+
+==  Dumping SSL encrypted traffic
+
+First fetch and build sslkeylog from https://github.com/cajun-rat/sslkeylog
+
+Next copy aktualizr.service to /etc/systemd/system/aktualizr.service.
+This will override the packages default config.
+
+Now modify `/etc/systemd/system/aktualizr.service` and add the following lines:
+
+```
+Environment=SSLKEYLOGFILE=/var/sota/premaster.txt
+Environment=LD_PRELOAD=/usr/lib/libsslkeylog.so
+```
+
+Reload the config and restart
+
+```
+# systemctl daemon-reload
+# systemctl restart aktualizr
+```
+
+The symmetric SSL keys will be logged in `/var/sota/premaster.txt`
+
+Now capture a packet dump with tcpdump
+
+```
+sudo tcpdump tcp port 443 -w upload.pcap
+```
+
+Fetch both of these down. In wireshark preferences set ssl.keylog_file to point to premaster.txt. If your https traffic not on port 443, then add the port to http.ssl.port. Now open upload.pcap.
