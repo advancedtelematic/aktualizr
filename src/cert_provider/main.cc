@@ -47,7 +47,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
       ("certificate-cn", bpo::value<std::string>(), "value for CN field in certificate subject name")
       ("target,t", bpo::value<std::string>(), "target device to scp credentials to (or [user@]host)")
       ("port,p", bpo::value<int>(), "target port")
-      ("directory,d", bpo::value<boost::filesystem::path>()->default_value("/var/sota/token"), "directory on target to write credentials to")
+      ("directory,d", bpo::value<boost::filesystem::path>(), "directory on target to write credentials to (conflicts with -config)")
       ("root-ca,r", "provide root CA")
       ("server-url,u", "provide server url file")
       ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
@@ -282,7 +282,6 @@ int main(int argc, char* argv[]) {
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
-  boost::filesystem::path directory = commandline_map["directory"].as<boost::filesystem::path>();
   bool provide_ca = commandline_map.count("root-ca") != 0;
   bool provide_url = commandline_map.count("server-url") != 0;
   boost::filesystem::path local_dir;
@@ -310,6 +309,12 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  if (!commandline_map["directory"].empty() && !commandline_map["config"].empty()) {
+    std::cerr << "Directory (--directory) and config (--config) options cannot be used together" << std::endl;
+    return 1;
+  }
+
+  boost::filesystem::path directory = "/var/sota/token";
   boost::filesystem::path pkey_file = "pkey.pem";
   boost::filesystem::path cert_file = "client.pem";
   boost::filesystem::path ca_file = "root.crt";
@@ -319,6 +324,9 @@ int main(int argc, char* argv[]) {
     // Strip any relative directories. Assume everything belongs in one
     // directory for now.
     // TODO: provide path to root directory in `--local` parameter
+
+    if (!config.storage.path.empty()) directory = config.storage.path;
+
     if (!config.import.tls_pkey_path.empty())
       pkey_file = config.import.tls_pkey_path.filename();
     else
@@ -337,6 +345,10 @@ int main(int argc, char* argv[]) {
     if (provide_url) {
       url_file = config.tls.server_url_path.filename();
     }
+  }
+
+  if (!commandline_map["directory"].empty()) {
+    directory = commandline_map["directory"].as<boost::filesystem::path>();
   }
 
   TemporaryFile tmp_pkey_file(pkey_file.string());
