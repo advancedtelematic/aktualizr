@@ -439,6 +439,9 @@ set_tests_properties(aktualizr-info-images-target PROPERTIES
 # cert_provider test
 add_test(NAME certprovider-ca COMMAND ${PROJECT_SOURCE_DIR}/tests/run_certprovider_test.sh ${PROJECT_BINARY_DIR}/src/cert_provider/aktualizr_cert_provider ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip ${PROJECT_SOURCE_DIR}/tests/test_data/CAcert.pem ${PROJECT_SOURCE_DIR}/tests/test_data/CApkey.pem)
 
+# config file test for collisions between import and FS->SQL migration paths
+add_test(NAME config-import COMMAND ${PROJECT_SOURCE_DIR}/tests/run_import_clash_test.sh ${PROJECT_SOURCE_DIR}/config)
+
 list(REMOVE_DUPLICATES TEST_SOURCES)
 # message("${TEST_SOURCES}")
 aktualizr_source_file_checks(${TEST_SOURCES})
