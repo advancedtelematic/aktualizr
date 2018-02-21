@@ -9,7 +9,7 @@
 #include "invstorage.h"
 
 // See docs/schema-migrations.adoc
-const int kSqlSchemaVersion = 3;
+const int kSqlSchemaVersion = 4;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
 
@@ -51,8 +51,9 @@ class SQLStorage : public INvStorage {
   void storeEcuRegistered() override;
   bool loadEcuRegistered() override;
   void clearEcuRegistered() override;
-  void storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) override;
-  bool loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) override;
+  void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
+                              const std::string& current_hash) override;
+  std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) override;
   void clearInstalledVersions() override;
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                            size_t size) override;

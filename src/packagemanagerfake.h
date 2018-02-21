@@ -29,7 +29,12 @@ class PackageManagerFake : public PackageManagerInterface {
     return packages;
   }
 
-  std::string getCurrent() override { return refhash_fake; }
+  Uptane::Target getCurrent() override {
+    Json::Value t_json;
+    t_json["hashes"]["sha256"] = refhash_fake;
+    t_json["length"] = 0;
+    return Uptane::Target(std::string("unknown-") + refhash_fake, t_json);
+  }
 
   data::InstallOutcome install(const Uptane::Target &target) const override {
     (void)target;

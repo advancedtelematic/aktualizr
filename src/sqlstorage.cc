@@ -644,17 +644,20 @@ void SQLStorage::clearMisconfiguredEcus() {
   }
 }
 
-void SQLStorage::storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) {
+void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
+                                        const std::string& current_hash) {
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     clearInstalledVersions();
-    std::map<std::string, InstalledVersion>::const_iterator it;
-    for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-      auto statement = db.prepareStatement<std::string, std::string, int>(
-          "INSERT INTO installed_versions VALUES (?,?,?);", (*it).first, (*it).second.first,
-          static_cast<int>((*it).second.second));
-
+    std::vector<Uptane::Target>::const_iterator it;
+    for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++) {
+      std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
+      std::string hash = it->sha256Hash();
+      std::string filename = it->filename();
+      bool is_current = current_hash == it->sha256Hash();
+      int64_t size = it->length();
+      auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename, is_current, size);
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
         return;
@@ -663,29 +666,37 @@ void SQLStorage::storeInstalledVersions(const std::map<std::string, InstalledVer
   }
 }
 
-bool SQLStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) {
+std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
+  std::string current_hash;
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
-    return false;
+    return current_hash;
   }
 
   request = kSqlGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM installed_versions;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
-    return false;
+    return current_hash;
   }
-  if (req_response_table.empty()) return false;
+  if (req_response_table.empty()) return current_hash;
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    (*installed_versions)[(*it)["hash"]].first = (*it)["name"];
-    (*installed_versions)[(*it)["hash"]].second = !!boost::lexical_cast<int>((*it)["is_current"]);
+    Json::Value installed_version;
+    installed_version["hashes"]["sha256"] = (*it)["hash"];
+    installed_version["length"] = Json::UInt64(boost::lexical_cast<uint64_t>((*it)["length"]));
+    if (boost::lexical_cast<int>((*it)["is_current"])) {
+      current_hash = (*it)["hash"];
+    }
+    std::string filename = (*it)["name"];
+    Uptane::Target target(filename, installed_version);
+    installed_versions->push_back(target);
   }
 
-  return true;
+  return current_hash;
 }
 
 void SQLStorage::clearInstalledVersions() {

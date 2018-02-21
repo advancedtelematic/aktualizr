@@ -106,10 +106,4 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
 }
-
-std::string Repository::findInstalledVersion(const std::string &hash) {
-  std::map<std::string, InstalledVersion> versions;
-  storage->loadInstalledVersions(&versions);
-  return versions[boost::algorithm::to_lower_copy(hash)].first;
-}
 }

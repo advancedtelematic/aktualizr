@@ -9,8 +9,16 @@
 
 // Unique ownership SQLite3 statement creation
 template <typename T>
-static void bindArguments(sqlite3* db, sqlite3_stmt* statement, int cnt, int v) {
+static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, int v) {
   if (sqlite3_bind_int(statement, cnt, v) != SQLITE_OK) {
+    LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
+    throw std::runtime_error("SQLite bind error");
+  }
+}
+
+template <typename T>
+static void bindArgument(sqlite3* db, sqlite3_stmt* statement, int cnt, int64_t v) {
+  if (sqlite3_bind_int64(statement, cnt, v) != SQLITE_OK) {
     LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db);
     throw std::runtime_error("SQLite bind error");
   }
@@ -74,10 +82,10 @@ class SQLiteStatement {
   inline int step() const { return sqlite3_step(stmt_.get()); }
 
   template <typename... Types>
-  static SQLiteStatement prepare(sqlite3* db, const char* zSql, const Types&... args) {
+  static SQLiteStatement prepare(sqlite3* db, std::string zSql, const Types&... args) {
     sqlite3_stmt* statement;
 
-    if (sqlite3_prepare_v2(db, zSql, -1, &statement, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, zSql.c_str(), -1, &statement, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db);
       throw std::runtime_error("SQLite fatal error");
     }
@@ -112,7 +120,7 @@ class SQLite3Guard {
   std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
 
   template <typename... Types>
-  SQLiteStatement prepareStatement(const char* zSql, const Types&... args) {
+  SQLiteStatement prepareStatement(const std::string &zSql, const Types&... args) {
     return SQLiteStatement::prepare(handle_.get(), zSql, args...);
   }
 

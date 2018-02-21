@@ -326,35 +326,44 @@ void FSStorage::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
-void FSStorage::storeInstalledVersions(const std::map<std::string, InstalledVersion>& installed_versions) {
+void FSStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
+                                       const std::string& current_hash) {
   Json::Value content;
-  std::map<std::string, InstalledVersion>::const_iterator it;
+  std::vector<Uptane::Target>::const_iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    content[it->first]["name"] = it->second.first;
-    content[it->first]["is_current"] = it->second.second;
+    Json::Value installed_version;
+    installed_version["hashes"]["sha256"] = it->sha256Hash();
+    installed_version["length"] = Json::UInt64(it->length());
+    installed_version["is_current"] = (it->sha256Hash() == current_hash);
+    content[it->filename()] = installed_version;
   }
   Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
 }
 
-bool FSStorage::loadInstalledVersions(std::map<std::string, InstalledVersion>* installed_versions) {
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return false;
+std::string FSStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
+  std::string current_hash;
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return current_hash;
   Json::Value installed_versions_json =
       Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
-
-  std::map<std::string, InstalledVersion> new_versions;
+  std::vector<Uptane::Target> new_versions;
   for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
     if (!(*it).isObject()) {
       // We loaded old format, migrate to new one.
-      new_versions[it.key().asString()].first = (*it).asString();
-      new_versions[it.key().asString()].second = false;
+      Json::Value t_json;
+      t_json["hashes"]["sha256"] = it.key();
+      Uptane::Target t((*it).asString(), t_json);
+      new_versions.push_back(t);
     } else {
-      new_versions[it.key().asString()].first = (*it)["name"].asString();
-      new_versions[it.key().asString()].second = (*it)["is_current"].asBool();
+      if ((*it)["is_current"].asBool()) {
+        current_hash = (*it)["hashes"]["sha256"].asString();
+      }
+      Uptane::Target t(it.key().asString(), *it);
+      new_versions.push_back(t);
     }
-    *installed_versions = new_versions;
   }
+  *installed_versions = new_versions;
 
-  return true;
+  return current_hash;
 }
 
 void FSStorage::clearInstalledVersions() {

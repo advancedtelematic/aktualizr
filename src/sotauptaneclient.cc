@@ -35,7 +35,7 @@ void SotaUptaneClient::run(command::Channel *commands_channel) {
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
-    return target.sha256Hash() == pacman->getCurrent();
+    return target == pacman->getCurrent();
   } else {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
@@ -96,15 +96,12 @@ void SotaUptaneClient::reportInstalledPackages() {
 
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result = Json::arrayValue;
-  std::string hash = pacman->getCurrent();
-  std::string refname = uptane_repo.findInstalledVersion(hash);
-  if (refname.empty()) {
-    (refname += "unknown-") += hash;
-  }
+  Uptane::Target installed_target = pacman->getCurrent();
+
   Json::Value installed_image;
-  installed_image["filepath"] = refname;
-  installed_image["fileinfo"]["length"] = 0;
-  installed_image["fileinfo"]["hashes"]["sha256"] = hash;
+  installed_image["filepath"] = installed_target.filename();
+  installed_image["fileinfo"]["length"] = Json::UInt64(installed_target.length());
+  installed_image["fileinfo"]["hashes"]["sha256"] = installed_target.sha256Hash();
 
   Json::Value unsigned_ecu_version;
   unsigned_ecu_version["attacks_detected"] = "";

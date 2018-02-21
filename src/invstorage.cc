@@ -98,9 +98,10 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
     sql_storage->storeEcuRegistered();
   }
 
-  std::map<std::string, InstalledVersion> installed_versions;
-  if (fs_storage->loadInstalledVersions(&installed_versions)) {
-    sql_storage->storeInstalledVersions(installed_versions);
+  std::vector<Uptane::Target> installed_versions;
+  std::string current_hash = fs_storage->loadInstalledVersions(&installed_versions);
+  if (installed_versions.size()) {
+    sql_storage->storeInstalledVersions(installed_versions, current_hash);
   }
 
   Uptane::MetaPack metadata;
@@ -120,12 +121,11 @@ void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {
-  std::map<std::string, InstalledVersion> versions;
+  std::vector<Uptane::Target> versions;
+  std::string new_current_hash;
   loadInstalledVersions(&versions);
-  for (std::map<std::string, InstalledVersion>::iterator it = versions.begin(); it != versions.end(); it++) {
-    it->second.second = false;
+  if (std::find(versions.begin(), versions.end(), target) == versions.end()) {
+    versions.push_back(target);
   }
-  InstalledVersion version(target.filename(), true);
-  versions[target.sha256Hash()] = version;
-  storeInstalledVersions(versions);
+  storeInstalledVersions(versions, target.sha256Hash());
 }
