@@ -1,6 +1,10 @@
 == Installing aktualizr via debian package
 
-Aktualizr makes .deb packages available via the https://github.com/advancedtelematic/aktualizr/releases[GitHub releases page].
+Aktualizr makes .deb packages available via the https://github.com/advancedtelematic/aktualizr/releases[GitHub releases page]. Download and install the .deb package, for example:
+
+----
+sudo apt install ./aktualizr.deb
+----
 
 === Setting up aktualizr
 
@@ -26,4 +30,13 @@ AKTUALIZR_SECONDARY_CONFIG=""
 
 === Building the debian package
 
-After following the main build setup steps, just `make package` instead of `make` to create a debian package from your current branch.
+After following the main build setup steps, just `make package` instead of `make` to create a debian package from your current branch, for example:
+
+----
+git clone --recursive https://github.com/advancedtelematic/aktualizr
+cd aktualizr
+mkdir build
+cd build
+cmake  -DCMAKE_BUILD_TYPE=Debug -DBUILD_DEB=ON ..
+make package
+----
