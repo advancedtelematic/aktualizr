@@ -730,10 +730,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     // allocate a zero blob
-    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
-      throw exc;
-    }
+    if (!db_.beginTransaction()) throw exc;
 
     auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
         "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
@@ -773,8 +770,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     closed_ = true;
     sqlite3_blob_close(blob_);
     blob_ = nullptr;
-    if (db_.exec("COMMIT TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
+    if (!db_.commitTransaction()) {
       throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
     }
   }
@@ -785,9 +781,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
     }
-    if (db_.exec("ROLLBACK TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't rollback transaction: " << db_.errmsg();
-    }
+
+    db_.rollbackTransaction();
   }
 
  private:
@@ -822,10 +817,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
-      throw exc;
-    }
+    if (!db_.beginTransaction()) throw exc;
 
     auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
 
@@ -846,8 +838,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     }
     size_ = sqlite3_blob_bytes(blob_);
 
-    if (db_.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
+    if (!db_.commitTransaction()) {
       throw exc;
     }
   }
@@ -969,10 +960,7 @@ bool SQLStorage::dbMigrate() {
 bool SQLStorage::dbInit() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  if (db.exec("BEGIN TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't begin transaction: " << db.errmsg();
-    return false;
-  }
+  if (!db.beginTransaction()) return false;
 
   request = kSqlGetSimple;
   req_response.clear();
@@ -988,10 +976,8 @@ bool SQLStorage::dbInit() {
     }
   }
 
-  if (db.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't commit transaction: " << db.errmsg();
-    return false;
-  }
+  if (!db.commitTransaction()) return false;
+
   return true;
 }
 

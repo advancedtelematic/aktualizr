@@ -119,6 +119,30 @@ class SQLite3Guard {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, NULL);
   }
 
+  bool beginTransaction() {
+    int ret = exec("BEGIN TRANSACTION;", NULL, NULL);
+    if (ret != SQLITE_OK) {
+      LOG_ERROR << "Can't begin transaction: " << errmsg();
+    }
+    return ret == SQLITE_OK;
+  }
+
+  bool commitTransaction() {
+    int ret = exec("COMMIT TRANSACTION;", NULL, NULL);
+    if (ret != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << errmsg();
+    }
+    return ret == SQLITE_OK;
+  }
+
+  bool rollbackTransaction() {
+    int ret = exec("ROLLBACK TRANSACTION;", NULL, NULL);
+    if (ret != SQLITE_OK) {
+      LOG_ERROR << "Can't rollback transaction: " << errmsg();
+    }
+    return ret == SQLITE_OK;
+  }
+
   std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
 
   template <typename... Types>
