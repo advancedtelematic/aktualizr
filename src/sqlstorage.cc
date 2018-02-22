@@ -347,7 +347,17 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  clearMetadata();
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (!db.beginTransaction()) return;
+
+  if (db.exec("DELETE FROM meta;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear meta: " << db.errmsg();
+    return;
+  }
 
   std::vector<std::string> jsons;
   jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
@@ -364,6 +374,8 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
@@ -515,11 +527,17 @@ void SQLStorage::clearEcuRegistered() {
 
 void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
-    clearEcuSerials();
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (!db.beginTransaction()) return;
+
+    if (db.exec("DELETE FROM ecu_serials;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
       return;
     }
 
@@ -541,6 +559,8 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
@@ -584,11 +604,17 @@ void SQLStorage::clearEcuSerials() {
 
 void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
   if (ecus.size() >= 1) {
-    clearMisconfiguredEcus();
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (!db.beginTransaction()) return;
+
+    if (db.exec("DELETE FROM misconfigured_ecus;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
       return;
     }
 
@@ -602,6 +628,8 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
@@ -649,7 +677,18 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
-    clearInstalledVersions();
+    if (!db.beginTransaction()) return;
+
+    if (db.get_rc() != SQLITE_OK) {
+      LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (db.exec("DELETE FROM installed_versions;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
+      return;
+    }
+
     std::vector<Uptane::Target>::const_iterator it;
     for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++) {
       std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
@@ -658,11 +697,14 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
       auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename, is_current, size);
+
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
