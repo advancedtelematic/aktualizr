@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
+
 #include "treehub_server.h"
 #include "utils.h"
 
@@ -40,6 +42,8 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
     url += "/";
   else if (*url.rbegin() == '/' && *url_suffix.begin() == '/')
     url.erase(url.length() - 1);
+
+  boost::trim_if(url, boost::is_any_of(" \t\r\n"));
 
   curl_easy_setopt(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
 
