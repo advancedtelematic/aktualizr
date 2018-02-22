@@ -28,7 +28,6 @@ void FSStorage::storePrimaryKeys(const std::string& public_key, const std::strin
 
 void FSStorage::storePrimaryPublic(const std::string& public_key) {
   boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
-  boost::filesystem::remove(public_key_path);
   Utils::writeFile(public_key_path, public_key);
 
   sync();
@@ -36,7 +35,6 @@ void FSStorage::storePrimaryPublic(const std::string& public_key) {
 
 void FSStorage::storePrimaryPrivate(const std::string& private_key) {
   boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
-  boost::filesystem::remove(private_key_path);
   Utils::writeFile(private_key_path, private_key);
 
   sync();
@@ -79,21 +77,18 @@ void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, co
 
 void FSStorage::storeTlsCa(const std::string& ca) {
   boost::filesystem::path ca_path(Utils::absolutePath(config_.path, config_.tls_cacert_path));
-  boost::filesystem::remove(ca_path);
   Utils::writeFile(ca_path, ca);
   sync();
 }
 
 void FSStorage::storeTlsCert(const std::string& cert) {
   boost::filesystem::path cert_path(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
-  boost::filesystem::remove(cert_path);
   Utils::writeFile(cert_path, cert);
   sync();
 }
 
 void FSStorage::storeTlsPkey(const std::string& pkey) {
   boost::filesystem::path pkey_path(Utils::absolutePath(config_.path, config_.tls_pkey_path));
-  boost::filesystem::remove(pkey_path);
   Utils::writeFile(pkey_path, pkey);
   sync();
 }
