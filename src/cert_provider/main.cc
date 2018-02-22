@@ -266,6 +266,49 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
   return true;
 }
 
+class SSHRunner {
+ public:
+  SSHRunner(const std::string& target, bool skip_checks, int port = 22)
+      : target_(target), skip_checks_(skip_checks), port_(port) {}
+
+  void runCmd(const std::string& cmd) const {
+    std::ostringstream prefix;
+
+    prefix << "ssh ";
+    if (port_ != 22) prefix << "-p " << port_ << " ";
+    if (skip_checks_) prefix << "-o StrictHostKeyChecking=no ";
+    prefix << target_ << " ";
+
+    std::string fullCmd = prefix.str() + cmd;
+    std::cout << "Running " << fullCmd << std::endl;
+
+    int ret = system(fullCmd.c_str());
+    if (ret != 0) throw std::runtime_error("Error running command on " + target_ + ": " + std::to_string(ret));
+  }
+
+  void transferFile(const boost::filesystem::path& inFile, const boost::filesystem::path& targetPath) {
+    // create parent directory
+    runCmd("mkdir -p " + targetPath.parent_path().string());
+
+    std::ostringstream prefix;
+
+    prefix << "scp ";
+    if (port_ != 22) prefix << "-P " << port_ << " ";
+    if (skip_checks_) prefix << "-o StrictHostKeyChecking=no ";
+
+    std::string fullCmd = prefix.str() + inFile.string() + " " + target_ + ":" + targetPath.string();
+    std::cout << "Running " << fullCmd << std::endl;
+
+    int ret = system(fullCmd.c_str());
+    if (ret != 0) throw std::runtime_error("Error copying file on " + target_ + ": " + std::to_string(ret));
+  }
+
+ private:
+  std::string target_;
+  bool skip_checks_;
+  int port_;
+};
+
 int main(int argc, char* argv[]) {
   logger_init();
   SSL_load_error_strings();
@@ -278,7 +321,7 @@ int main(int argc, char* argv[]) {
   if (commandline_map.count("target") != 0) {
     target = commandline_map["target"].as<std::string>();
   }
-  int port = 0;
+  int port = 22;
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
@@ -321,29 +364,28 @@ int main(int argc, char* argv[]) {
   boost::filesystem::path url_file = "gateway.url";
   if (!config_path.empty()) {
     Config config(config_path);
-    // Strip any relative directories. Assume everything belongs in one
-    // directory for now.
     // TODO: provide path to root directory in `--local` parameter
 
     if (!config.storage.path.empty()) directory = config.storage.path;
 
     if (!config.import.tls_pkey_path.empty())
-      pkey_file = config.import.tls_pkey_path.filename();
+      pkey_file = config.import.tls_pkey_path;
     else
-      pkey_file = config.storage.tls_pkey_path.filename();
+      pkey_file = config.storage.tls_pkey_path;
 
     if (!config.import.tls_clientcert_path.empty())
-      cert_file = config.import.tls_clientcert_path.filename();
+      cert_file = config.import.tls_clientcert_path;
     else
-      cert_file = config.storage.tls_clientcert_path.filename();
+      cert_file = config.storage.tls_clientcert_path;
     if (provide_ca) {
-      if (!config.import.tls_cacert_path.empty())
-        ca_file = config.import.tls_cacert_path.filename();
-      else
-        ca_file = config.storage.tls_cacert_path.filename();
+      if (!config.import.tls_cacert_path.empty()) {
+        ca_file = config.import.tls_cacert_path;
+      } else {
+        ca_file = config.storage.tls_cacert_path;
+      }
     }
     if (provide_url) {
-      url_file = config.tls.server_url_path.filename();
+      url_file = config.tls.server_url_path;
     }
   }
 
@@ -351,10 +393,10 @@ int main(int argc, char* argv[]) {
     directory = commandline_map["directory"].as<boost::filesystem::path>();
   }
 
-  TemporaryFile tmp_pkey_file(pkey_file.string());
-  TemporaryFile tmp_cert_file(cert_file.string());
-  TemporaryFile tmp_ca_file(ca_file.string());
-  TemporaryFile tmp_url_file(url_file.string());
+  TemporaryFile tmp_pkey_file(pkey_file.filename().string());
+  TemporaryFile tmp_cert_file(cert_file.filename().string());
+  TemporaryFile tmp_ca_file(ca_file.filename().string());
+  TemporaryFile tmp_url_file(url_file.filename().string());
 
   std::string pkey;
   std::string cert;
@@ -443,53 +485,27 @@ int main(int argc, char* argv[]) {
       std::cout << " on port " << port;
     }
     std::cout << " ...\n";
-    std::ostringstream ssh_prefix;
-    std::ostringstream scp_prefix;
-    ssh_prefix << "ssh ";
-    scp_prefix << "scp ";
-    if (port) {
-      ssh_prefix << "-p " << port << " ";
-      scp_prefix << "-P " << port << " ";
-    }
-    if (skip_checks) {
-      ssh_prefix << "-o StrictHostKeyChecking=no ";
-      scp_prefix << "-o StrictHostKeyChecking=no ";
-    }
 
-    int ret = system((ssh_prefix.str() + target + " mkdir -p " + directory.string()).c_str());
-    if (ret != 0) {
-      std::cout << "Error connecting to target device: " << ret << "\n";
-      return -1;
-    }
+    SSHRunner ssh{target, skip_checks, port};
 
-    ret = system((scp_prefix.str() + tmp_pkey_file.PathString() + " " + target + ":" + (directory / pkey_file).string())
-                     .c_str());
-    if (ret != 0) {
-      std::cout << "Error copying files to target device: " << ret << "\n";
-    }
+    try {
+      ssh.runCmd("mkdir -p " + directory.string());
 
-    ret = system((scp_prefix.str() + tmp_cert_file.PathString() + " " + target + ":" + (directory / cert_file).string())
-                     .c_str());
-    if (ret != 0) {
-      std::cout << "Error copying files to target device: " << ret << "\n";
-    }
+      ssh.transferFile(tmp_pkey_file.Path(), directory / pkey_file);
 
-    if (provide_ca) {
-      ret = system(
-          (scp_prefix.str() + tmp_ca_file.PathString() + " " + target + ":" + (directory / ca_file).string()).c_str());
-      if (ret != 0) {
-        std::cout << "Error copying files to target device: " << ret << "\n";
+      ssh.transferFile(tmp_cert_file.Path(), directory / cert_file);
+
+      if (provide_ca) {
+        ssh.transferFile(tmp_ca_file.Path(), directory / ca_file);
       }
-    }
-    if (provide_url) {
-      ret = system((scp_prefix.str() + tmp_url_file.PathString() + " " + target + ":" + (directory / url_file).string())
-                       .c_str());
-      if (ret != 0) {
-        std::cout << "Error copying files to target device: " << ret << "\n";
+      if (provide_url) {
+        ssh.transferFile(tmp_url_file.Path(), directory / url_file);
       }
-    }
 
-    std::cout << "...success\n";
+      std::cout << "...success\n";
+    } catch (const std::runtime_error& exc) {
+      std::cout << exc.what() << std::endl;
+    }
   }
 
   ERR_free_strings();
