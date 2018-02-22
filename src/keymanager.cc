@@ -188,8 +188,8 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) {
   if (config_.uptane.key_source == kFile) {
     backend_->loadPrimaryPrivate(&private_key);
   }
-  std::string b64sig =
-      Utils::toBase64(Crypto::RSAPSSSign(crypto_engine, private_key, Json::FastWriter().write(in_data)));
+  std::string b64sig = Utils::toBase64(
+      Crypto::Sign(config_.uptane.key_type, crypto_engine, private_key, Json::FastWriter().write(in_data)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
@@ -227,7 +227,7 @@ std::string KeyManager::generateUptaneKeyPair() {
   if (config_.uptane.key_source == kFile) {
     std::string primary_private;
     if (!backend_->loadPrimaryKeys(&primary_public, &primary_private)) {
-      if (Crypto::generateRSAKeyPair(&primary_public, &primary_private)) {
+      if (Crypto::generateKeyPair(config_.uptane.key_type, &primary_public, &primary_private)) {
         backend_->storePrimaryKeys(primary_public, primary_private);
       }
     }
