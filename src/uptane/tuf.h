@@ -124,14 +124,21 @@ class Target {
   };
 
   bool operator==(const Target &t2) const {
-    if (filename_ == t2.filename_ && length_ == t2.length_) {
-      for (std::vector<Hash>::const_iterator it = hashes_.begin(); it != hashes_.end(); ++it) {
-        if (t2.MatchWith(*it)) {
-          return true;
-        }
+    if (type_ != t2.type_) return false;
+    if (filename_ != t2.filename_) return false;
+    if (length_ != t2.length_) return false;
+
+    // requirements:
+    // - all hashes of the same type should match
+    // - at least one pair of hashes should match
+    bool oneMatchingHash = false;
+    for (const Hash &hash : hashes_) {
+      for (const Hash &hash2 : t2.hashes_) {
+        if (hash.type() == hash2.type() && !(hash == hash2)) return false;
+        if (hash == hash2) oneMatchingHash = true;
       }
     }
-    return false;
+    return oneMatchingHash;
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
