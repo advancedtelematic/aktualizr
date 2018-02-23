@@ -57,6 +57,7 @@ bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
     image_target_it = std::find(meta.image_targets.targets.begin(), meta.image_targets.targets.end(), *it);
     if (image_target_it == meta.image_targets.targets.end()) {
       LOG_WARNING << "Target " << it->filename() << " in director repo not found in image repo.";
+      LOG_WARNING << it->toJson();
       return false;
     }
   }

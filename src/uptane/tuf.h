@@ -124,7 +124,7 @@ class Target {
   };
 
   bool operator==(const Target &t2) const {
-    if (type_ != t2.type_) return false;
+    // if (type_ != t2.type_) return false; // Director doesn't include targetFormat
     if (filename_ != t2.filename_) return false;
     if (length_ != t2.length_) return false;
 
