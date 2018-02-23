@@ -76,17 +76,21 @@ TEST(OstreeManager, InstallBadUri) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  OstreeManager ostree(config.pacman);
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  OstreeManager ostree(config.pacman, storage);
   data::InstallOutcome result = ostree.install(target);
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }
 
 TEST(OstreeManager, BadSysroot) {
+  TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = "sysroot-that-is-missing";
-  EXPECT_THROW(OstreeManager ostree(config.pacman), std::runtime_error);
+  config.storage.path = temp_dir.Path();
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  EXPECT_THROW(OstreeManager ostree(config.pacman, storage), std::runtime_error);
 }
 
 TEST(OstreeManager, ParseInstalledPackages) {
@@ -94,7 +98,9 @@ TEST(OstreeManager, ParseInstalledPackages) {
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
   config.pacman.packages_file = "tests/test_data/package.manifest";
-  OstreeManager ostree(config.pacman);
+
+  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  OstreeManager ostree(config.pacman, storage);
   Json::Value packages = ostree.getInstalledPackages();
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");

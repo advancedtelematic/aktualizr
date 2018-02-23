@@ -57,6 +57,7 @@ bool Repository::verifyMeta(const Uptane::MetaPack &meta) {
     image_target_it = std::find(meta.image_targets.targets.begin(), meta.image_targets.targets.end(), *it);
     if (image_target_it == meta.image_targets.targets.end()) {
       LOG_WARNING << "Target " << it->filename() << " in director repo not found in image repo.";
+      LOG_WARNING << it->toJson();
       return false;
     }
   }
@@ -105,11 +106,5 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
     }
   }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
-}
-
-std::string Repository::findInstalledVersion(const std::string &hash) {
-  std::map<std::string, InstalledVersion> versions;
-  storage->loadInstalledVersions(&versions);
-  return versions[boost::algorithm::to_lower_copy(hash)].first;
 }
 }

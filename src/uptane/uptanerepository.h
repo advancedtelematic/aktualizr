@@ -36,7 +36,6 @@ class Repository {
   void addSecondary(const boost::shared_ptr<Uptane::SecondaryInterface> &sec) { secondary_info.push_back(sec); }
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
-  std::string findInstalledVersion(const std::string &hash);
 
   bool getMeta();
 

@@ -25,7 +25,7 @@ class PackageManagerFactory {
     switch (pconfig.type) {
       case kOstree:
 #ifdef BUILD_OSTREE
-        return boost::make_shared<OstreeManager>(pconfig);
+        return boost::make_shared<OstreeManager>(pconfig, storage);
 #else
         throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif

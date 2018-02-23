@@ -763,7 +763,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  std::map<std::string, InstalledVersion> installed_versions;
+  std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -827,7 +827,7 @@ TEST(Uptane, fs_to_sql_full) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  std::map<std::string, InstalledVersion> sql_installed_versions;
+  std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -885,7 +885,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
 
-  std::map<std::string, InstalledVersion> installed_versions;
+  std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
   Uptane::MetaPack metadata;
@@ -916,7 +916,7 @@ TEST(Uptane, fs_to_sql_partial) {
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
 
-  std::map<std::string, InstalledVersion> sql_installed_versions;
+  std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
   Uptane::MetaPack sql_metadata;
@@ -955,13 +955,15 @@ TEST(Uptane, SaveVersion) {
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
-  target_json["length"] = 0;
+  target_json["length"] = 123;
 
   Uptane::Target t("target_name", target_json);
   storage->saveInstalledVersion(t);
   Json::Value result = Utils::parseJSONFile((config.storage.path / "installed_versions").string());
-  EXPECT_EQ(result["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"]["name"].asString(),
-            "target_name");
+
+  EXPECT_EQ(result["target_name"]["hashes"]["sha256"].asString(),
+            "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(result["target_name"]["length"].asInt(), 123);
 }
 
 TEST(Uptane, LoadVersion) {
@@ -984,9 +986,9 @@ TEST(Uptane, LoadVersion) {
   Uptane::Target t("target_name", target_json);
   storage->saveInstalledVersion(t);
 
-  std::map<std::string, InstalledVersion> versions;
+  std::vector<Uptane::Target> versions;
   storage->loadInstalledVersions(&versions);
-  EXPECT_EQ(versions["a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d"].first, "target_name");
+  EXPECT_EQ(t, versions[0]);
 }
 
 #ifdef BUILD_P11

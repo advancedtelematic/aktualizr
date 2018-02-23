@@ -34,10 +34,8 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   std::stringstream("ab") >> *fhandle;
 
   EXPECT_EQ(pacman->install(target).first, data::OK);
-  std::map<std::string, InstalledVersion> versions_loaded;
-  storage->loadInstalledVersions(&versions_loaded);
-  EXPECT_EQ(versions_loaded["hash"].second, true);
-  EXPECT_EQ(pacman->getCurrent(), std::string("hash"));
+  std::vector<Uptane::Target> versions_loaded;
+  EXPECT_EQ(pacman->getCurrent(), target);
 }
 
 TEST(PackageManagerFactory, Debian_Install_Bad) {

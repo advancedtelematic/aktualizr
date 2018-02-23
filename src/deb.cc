@@ -49,15 +49,15 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   }
 }
 
-std::string DebianManager::getCurrent() {
-  std::map<std::string, InstalledVersion> installed_versions;
-  storage_->loadInstalledVersions(&installed_versions);
+Uptane::Target DebianManager::getCurrent() {
+  std::vector<Uptane::Target> installed_versions;
+  std::string current_hash = storage_->loadInstalledVersions(&installed_versions);
 
-  std::map<std::string, InstalledVersion>::iterator it;
+  std::vector<Uptane::Target>::iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    if ((*it).second.second) {
-      return it->first;
+    if (it->sha256Hash() == current_hash) {
+      return *it;
     }
   }
-  return boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
+  return getUnknown();
 }

@@ -144,7 +144,8 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   return data::InstallOutcome(data::OK, "Installation successful");
 }
 
-OstreeManager::OstreeManager(const PackageConfig &pconfig) : config(pconfig) {
+OstreeManager::OstreeManager(const PackageConfig &pconfig, const boost::shared_ptr<INvStorage> &storage)
+    : config(pconfig), storage_(storage) {
   try {
     OstreeManager::getCurrent();
   } catch (...) {
@@ -173,12 +174,24 @@ Json::Value OstreeManager::getInstalledPackages() {
   return packages;
 }
 
-std::string OstreeManager::getCurrent() {
+Uptane::Target OstreeManager::getCurrent() {
   boost::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
   if (!staged_deployment) {
     throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
   }
-  return ostree_deployment_get_csum(staged_deployment.get());
+  std::string current_hash = ostree_deployment_get_csum(staged_deployment.get());
+
+  std::vector<Uptane::Target> installed_versions;
+  storage_->loadInstalledVersions(&installed_versions);
+
+  std::vector<Uptane::Target>::iterator it;
+  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+    if (it->sha256Hash() == current_hash) {
+      return *it;
+    }
+  }
+
+  return getUnknown();
 }
 
 boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
