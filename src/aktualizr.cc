@@ -19,7 +19,7 @@ Aktualizr::Aktualizr(const Config &config) : config_(config) {
     throw std::runtime_error("Unable to initialize libsodium");
   }
 
-  LOG_TRACE << "Seeding random number generator from /dev/random...";
+  LOG_TRACE << "Seeding random number generator from /dev/urandom...";
   Timer timer;
   unsigned int seed;
   std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
