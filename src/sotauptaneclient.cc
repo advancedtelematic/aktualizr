@@ -189,6 +189,16 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         // director.
         uptane_repo.putManifest(AssembleManifest());
 
+        boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+        if (boost::filesystem::exists(reboot_flag)) {
+          boost::filesystem::remove(reboot_flag);
+          if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
+            exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
+                                 // Systemd will start aktualizr automatically if it exit.
+          } else {               // Aktualizr runs from terminal
+            LOG_INFO << "Aktualizr has been updated and reqires restart to run new version.";
+          }
+        }
       } else if (command->variant == "Shutdown") {
         polling_thread.interrupt();
         polling_thread.join();
