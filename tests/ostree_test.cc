@@ -84,9 +84,11 @@ TEST(OstreeManager, InstallBadUri) {
 }
 
 TEST(OstreeManager, BadSysroot) {
+  TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = "sysroot-that-is-missing";
+  config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   EXPECT_THROW(OstreeManager ostree(config.pacman, storage), std::runtime_error);
 }
