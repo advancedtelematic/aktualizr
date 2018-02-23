@@ -489,17 +489,15 @@ int main(int argc, char* argv[]) {
     SSHRunner ssh{target, skip_checks, port};
 
     try {
-      ssh.runCmd("mkdir -p " + directory.string());
+      ssh.transferFile(tmp_pkey_file.Path(), Utils::absolutePath(directory, pkey_file));
 
-      ssh.transferFile(tmp_pkey_file.Path(), directory / pkey_file);
-
-      ssh.transferFile(tmp_cert_file.Path(), directory / cert_file);
+      ssh.transferFile(tmp_cert_file.Path(), Utils::absolutePath(directory, cert_file));
 
       if (provide_ca) {
-        ssh.transferFile(tmp_ca_file.Path(), directory / ca_file);
+        ssh.transferFile(tmp_ca_file.Path(), Utils::absolutePath(directory, ca_file));
       }
       if (provide_url) {
-        ssh.transferFile(tmp_url_file.Path(), directory / url_file);
+        ssh.transferFile(tmp_url_file.Path(), Utils::absolutePath(directory, url_file));
       }
 
       std::cout << "...success\n";
