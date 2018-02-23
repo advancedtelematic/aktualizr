@@ -119,7 +119,24 @@ class SQLite3Guard {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, NULL);
   }
 
+  template <typename... Types>
+  SQLiteStatement prepareStatement(const std::string& zSql, const Types&... args) {
+    return SQLiteStatement(handle_.get(), zSql, args...);
+  }
+
+  std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
+
+  // Transaction handling
+  //
+  // A transactional series of db operations should be realized between calls of
+  // `beginTranscation()` and `commitTransaction()`. If no commit is done before
+  // the destruction of the `SQLite3Guard` (and thus the SQLite connection) or
+  // if `rollbackTransaction()` is called explicitely, the changes will be
+  // rolled back
+
   bool beginTransaction() {
+    // Note: transaction cannot be nested and this will fail if another
+    // transaction was open on the same connection
     int ret = exec("BEGIN TRANSACTION;", NULL, NULL);
     if (ret != SQLITE_OK) {
       LOG_ERROR << "Can't begin transaction: " << errmsg();
@@ -141,13 +158,6 @@ class SQLite3Guard {
       LOG_ERROR << "Can't rollback transaction: " << errmsg();
     }
     return ret == SQLITE_OK;
-  }
-
-  std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
-
-  template <typename... Types>
-  SQLiteStatement prepareStatement(const std::string& zSql, const Types&... args) {
-    return SQLiteStatement(handle_.get(), zSql, args...);
   }
 
  private:
