@@ -16,7 +16,6 @@
 #include "utils.h"
 
 data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager &keys, const std::string &refhash) {
-  OstreeRepo *repo = NULL;
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = NULL;
   GError *error = NULL;
@@ -24,14 +23,15 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager 
   GVariant *options;
 
   boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
-  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
+  boost::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
+  if (error) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
   GHashTable *ref_list = NULL;
-  if (ostree_repo_list_commit_objects_starting_with(repo, refhash.c_str(), &ref_list, nullptr, &error)) {
+  if (ostree_repo_list_commit_objects_starting_with(repo.get(), refhash.c_str(), &ref_list, nullptr, &error)) {
     guint length = g_hash_table_size(ref_list);
     g_hash_table_destroy(ref_list);  // OSTree creates the table with destroy notifiers, so no memory leaks expected
     // should never be greater than 1, but use >= for robustness
@@ -44,8 +44,7 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager 
     error = NULL;
   }
 
-  if (!OstreeManager::addRemote(repo, config.pacman.ostree_server, keys)) {
-    g_object_unref(repo);
+  if (!OstreeManager::addRemote(repo.get(), config.pacman.ostree_server, keys)) {
     return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
   }
 
@@ -56,22 +55,19 @@ data::InstallOutcome OstreeManager::pull(const Config &config, const KeyManager 
 
   options = g_variant_builder_end(&builder);
 
-  if (!ostree_repo_pull_with_options(repo, remote, options, NULL, cancellable, &error)) {
+  if (!ostree_repo_pull_with_options(repo.get(), remote, options, NULL, cancellable, &error)) {
     LOG_ERROR << "Error of pulling image: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
-    g_object_unref(repo);
     g_variant_unref(options);
     return install_outcome;
   }
-  g_object_unref(repo);
   g_variant_unref(options);
   return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
 }
 
 data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const {
   const char *opt_osname = NULL;
-  OstreeRepo *repo = NULL;
   GCancellable *cancellable = NULL;
   GError *error = NULL;
   char *revision;
@@ -81,15 +77,16 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   }
 
   boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+  boost::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
 
-  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, cancellable, &error)) {
+  if (error) {
     LOG_ERROR << "could not get repo";
     g_error_free(error);
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
   GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str());
-  if (!ostree_repo_resolve_rev(repo, target.sha256Hash().c_str(), FALSE, &revision, &error)) {
+  if (!ostree_repo_resolve_rev(repo.get(), target.sha256Hash().c_str(), FALSE, &revision, &error)) {
     LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
@@ -231,6 +228,16 @@ boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesys
     throw std::runtime_error("could not load sysroot");
   }
   return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
+}
+
+boost::shared_ptr<OstreeRepo> OstreeManager::LoadRepo(boost::shared_ptr<OstreeSysroot> sysroot, GError **error) {
+  OstreeRepo *repo = NULL;
+
+  if (!ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, error)) {
+    return boost::shared_ptr<OstreeRepo>();
+  }
+
+  return boost::shared_ptr<OstreeRepo>(repo, g_object_unref);
 }
 
 bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys) {
