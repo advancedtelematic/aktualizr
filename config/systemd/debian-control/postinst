@@ -1,5 +1,19 @@
 #!/bin/bash
 
-systemctl enable aktualizr || true
-systemctl start aktualizr || true
+shell_pid=$(ps -o ppid=  -p $PPID)
+shell_pid=${shell_pid#" "}
+
+initiator_pid="$(ps -o ppid=  -p $shell_pid)"
+initiator_pid=${initiator_pid#" "}
+
+initiator_cmdline="$(tr -d '\0' </proc/$initiator_pid/cmdline)"
+
+# Start aktualizr only if we install this package not from itself.
+if [[ "$initiator_cmdline" != /usr/bin/aktualizr* ]]; then
+    systemctl enable aktualizr || true
+    systemctl start aktualizr || true
+else
+    touch "/tmp/aktualizr_reboot_flag"
+fi
+
 
