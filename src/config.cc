@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <iomanip>
 #include <sstream>
 
 #include <boost/algorithm/string/classification.hpp>
@@ -9,6 +10,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 
+#include "asn1-cer.h"
 #include "bootstrap.h"
 #include "exceptions.h"
 #include "utils.h"
@@ -588,4 +590,63 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, import.tls_pkey_path, "tls_pkey_path");
   writeOption(sink, import.tls_clientcert_path, "tls_clientcert_path");
   sink << "\n";
+}
+
+std::string TlsConfig::cer_serialize() {
+  std::string res;
+  res = cer_encode_sequence() + cer_encode_string(server, kAsn1Utf8String) +
+        cer_encode_string(server_url_path.string(), kAsn1Utf8String) + cer_encode_integer(ca_source, kAsn1Enum) +
+        cer_encode_integer(pkey_source, kAsn1Enum) + cer_encode_integer(cert_source, kAsn1Enum) + cer_encode_endcons();
+  return res;
+}
+
+void TlsConfig::cer_deserialize(const std::string& cer) {
+  std::string cer_local = cer;
+
+  int32_t sequence_length;
+  cer_local = cer_decode_except_crop(cer_local, &sequence_length, nullptr, kSequence);
+
+  if (sequence_length != -1) cer_local = cer_local.substr(0, sequence_length);
+
+  cer_local = cer_decode_except_crop(cer_local, nullptr, &server, kOctetString);
+
+  {
+    std::string url_path;
+    cer_local = cer_decode_except_crop(cer_local, nullptr, &url_path, kOctetString);
+    server_url_path = url_path;
+  }
+
+  cer_local = cer_decode_except_crop_enum(cer_local, &ca_source, kFile, kPkcs11);
+
+  cer_local = cer_decode_except_crop_enum(cer_local, &pkey_source, kFile, kPkcs11);
+
+  cer_local = cer_decode_except_crop_enum(cer_local, &cert_source, kFile, kPkcs11);
+
+  // Extra elements of the sequence are ignored
+  if (sequence_length == -1 && !cer_local.empty()) {
+    int nestedness = 0;
+    for (;;) {
+      int32_t endpos;
+      int32_t int_param;
+      int type = cer_decode_token(cer_local, &endpos, &int_param, nullptr);
+      cer_local = cer_local.substr(endpos);
+
+      switch (type) {
+        case kUnknown:
+          throw deserialization_error();
+
+        case kEndSequence:
+          if (nestedness == 0)
+            return;
+          else
+            --nestedness;
+          break;
+
+        case kSequence:
+          if (int_param == -1)  // indefinite length, matching 0000 should follow
+            ++nestedness;
+          break;
+      }
+    }
+  }
 }

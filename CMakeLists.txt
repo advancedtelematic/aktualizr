@@ -36,6 +36,7 @@ find_package(LibArchive REQUIRED)
 find_package(sodium REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Git)
+find_package(Asn1c REQUIRED)
 
 if(NOT AKTUALIZR_VERSION)
     if(GIT_EXECUTABLE)

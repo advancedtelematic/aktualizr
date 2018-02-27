@@ -61,6 +61,10 @@ class TlsConfig {
   CryptoSource ca_source;
   CryptoSource pkey_source;
   CryptoSource cert_source;
+
+  std::string cer_serialize();
+  void cer_deserialize(const std::string& cer);
+  TlsConfig(const std::string& cer) { cer_deserialize(cer); }
 };
 
 struct ProvisionConfig {

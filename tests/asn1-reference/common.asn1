@@ -1,0 +1,10 @@
+Common DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+  AKIdentifier ::= VisibleString (SIZE(1..32))
+
+  AKFilePath ::= UTF8String (SIZE(1..256))
+  AKFileName ::= UTF8String  (SIZE(1..128))
+  AKUrl ::= UTF8String (SIZE(1..256))
+
+END
+

@@ -4,6 +4,7 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES CO
 
 # set source files excluding main
 set(SOURCES aktualizr.cc
+            asn1-cer.cc
             bootstrap.cc
             commands.cc
             config.cc
