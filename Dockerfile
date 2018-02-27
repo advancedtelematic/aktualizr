@@ -35,7 +35,6 @@ RUN apt-get update && apt-get -y install \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
-  libjsoncpp-dev \
   liblzma-dev \
   libostree-dev \
   libsodium-dev \
