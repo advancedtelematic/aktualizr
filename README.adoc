@@ -163,7 +163,7 @@ Then use Make from the `build-coverage` directory to run the coverage report:
 make coverage
 ----
 
-The report will be output to the `coverage` folder in your `build-coverage` directory.
+The report will be output to the `tests/coverage` folder in your `build-coverage` directory.
 
 === Building with Docker
 
