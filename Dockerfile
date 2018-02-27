@@ -41,6 +41,7 @@ RUN apt-get update && apt-get -y install \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
+  libsystemd-dev \
   libtool \
   make \
   opensc \

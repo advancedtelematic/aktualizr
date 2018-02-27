@@ -2,6 +2,7 @@ set(AKTUALIZR_SECONDARY_SRC main.cc )
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary aktualizr_static_lib
+  socket_activation
   ${Boost_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${sodium_LIBRARY_RELEASE}
