@@ -149,15 +149,11 @@ int main(int argc, char *argv[]) {
 
   try {
     Config config(sota_config_path, commandline_map);
-    boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";
-    if (boost::filesystem::exists(saved_config_path)) {
-      struct stat info;
-      stat(saved_config_path.c_str(), &info);
-      if (geteuid() != info.st_uid) {
-        LOG_WARNING
-            << "\n\nAktualizr may not work properly because it runs within other user than it was run before!!!\n\n";
-      }
+    if (geteuid() != 0) {
+      LOG_WARNING << "\033[31mAktualizr is currently running as non-root and may not work as expected! Aktualizr "
+                     "should be ran as root for proper functionality.\033[0m\n";
     }
+    boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";
     Utils::writeFile(saved_config_path, boost::filesystem::absolute(sota_config_path).string());
     Aktualizr aktualizr(config);
     return aktualizr.run();
