@@ -2,9 +2,15 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include <openssl/ssl.h>
 
 #include "aktualizr_secondary_config.h"
+#include "socket_activation.h"
 
 #include "logging.h"
 
@@ -110,6 +116,35 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  // TODO: do something
+  try {
+    // socket activation
+    int socket_fd;
+    struct sockaddr_in6 sa;
+    int port = 6666;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sin6_family = AF_INET6;
+    sa.sin6_port = htons(port);
+    sa.sin6_addr = IN6ADDR_ANY_INIT;
+
+    if (socket_activation::listen_fds(0) == 1) {
+      socket_fd = socket_activation::listen_fds_start;
+    } else {
+      // TODO: get from the config
+      throw std::runtime_error("No socket found");
+    }
+
+    int v6only = 0;
+    setsockopt(socket_fd, SOL_SOCKET, IPV6_V6ONLY, &v6only, sizeof(int));
+
+    if (bind(socket_fd, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) == -1) {
+      throw std::runtime_error("bind failed");
+    }
+  } catch (std::runtime_error &exc) {
+    LOG_ERROR << "Error: " << exc.what();
+
+    return 1;
+  }
+
   return 0;
 }

@@ -10,6 +10,7 @@ add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
   aktualizr_secondary_static_lib
   aktualizr_static_lib
+  socket_activation
   ${Boost_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${sodium_LIBRARY_RELEASE}
