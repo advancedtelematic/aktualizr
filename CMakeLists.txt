@@ -209,7 +209,6 @@ include_directories(${PROJECT_SOURCE_DIR}/third_party/open62541)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
-include_directories(${LIBDBUS_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
 
 if (CMAKE_COMPILER_IS_GNUCXX)
