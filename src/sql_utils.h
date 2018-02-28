@@ -82,7 +82,7 @@ class SQLiteStatement {
   inline int step() const { return sqlite3_step(stmt_.get()); }
 
   template <typename... Types>
-  static SQLiteStatement prepare(sqlite3* db, std::string zSql, const Types&... args) {
+  static SQLiteStatement prepare(sqlite3* db, const std::string &zSql, const Types&... args) {
     sqlite3_stmt* statement;
 
     if (sqlite3_prepare_v2(db, zSql.c_str(), -1, &statement, nullptr) != SQLITE_OK) {
