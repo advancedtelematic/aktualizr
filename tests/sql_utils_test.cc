@@ -7,10 +7,12 @@ TEST(sql_utils, PrepareRvalue) {
   TemporaryDirectory temp_dir;
   SQLite3Guard db((temp_dir.Path() / "test.db").c_str());
 
-  db.exec("CREATE TABLE example(example TEXT);", NULL, NULL);
+  db.exec("CREATE TABLE example(ex1 TEXT, ex2 TEXT);", NULL, NULL);
   // the arguments used in prepareStatement should last for the subsequent
   // sqlite calls (eg: `.step()`)
-  auto statement = db.prepareStatement<std::string>("INSERT INTO example(example) VALUES (?);", temp_dir.PathString());
+  std::string s2 = "test";
+  auto statement =
+      db.prepareStatement<std::string>("INSERT INTO example(ex1, ex2) VALUES (?,?);", temp_dir.PathString(), s2);
   EXPECT_EQ(statement.step(), SQLITE_DONE);
 }
 
