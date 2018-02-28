@@ -19,12 +19,12 @@
  */
 
 /*****************************************************************************/
+#include <openssl/ssl.h>
+#include <sys/stat.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <iostream>
-
-#include <openssl/ssl.h>
 
 #include "aktualizr.h"
 #include "config.h"
@@ -149,7 +149,12 @@ int main(int argc, char *argv[]) {
 
   try {
     Config config(sota_config_path, commandline_map);
-    Utils::writeFile("/tmp/aktualizr_config_path", boost::filesystem::absolute(sota_config_path).string());
+    if (geteuid() != 0) {
+      LOG_WARNING << "\033[31mAktualizr is currently running as non-root and may not work as expected! Aktualizr "
+                     "should be ran as root for proper functionality.\033[0m\n";
+    }
+    boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";
+    Utils::writeFile(saved_config_path, boost::filesystem::absolute(sota_config_path).string());
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {
