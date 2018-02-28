@@ -1,8 +1,11 @@
 #ifndef SOTA_CLIENT_TOOLS_TREEHUB_SERVER_H_
 #define SOTA_CLIENT_TOOLS_TREEHUB_SERVER_H_
 
-#include <curl/curl.h>
 #include <string>
+
+#include <curl/curl.h>
+
+#include "server_credentials.h"
 #include "utils.h"
 
 class TreehubServer {
@@ -30,8 +33,7 @@ class TreehubServer {
   TemporaryFile root_cert_path_;
   TemporaryFile client_cert_path_;
   TemporaryFile client_key_path_;
-  bool using_oauth2_;
-  bool using_certs_;
+  AuthMethod method_;
   struct curl_slist auth_header_;
   // Don't modify auth_header_contents_ without updating the pointer in
   // auth_header_

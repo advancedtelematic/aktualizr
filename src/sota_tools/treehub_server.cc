@@ -1,14 +1,15 @@
+#include "treehub_server.h"
+
 #include <assert.h>
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
-#include "treehub_server.h"
 #include "utils.h"
 
 using std::string;
 
-TreehubServer::TreehubServer() : using_oauth2_(false), using_certs_(false) {
+TreehubServer::TreehubServer() : method_(AUTH_NONE) {
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
   auth_header_.next = &force_header_;
   force_header_contents_ = "x-ats-ostree-force: true";
@@ -22,12 +23,12 @@ void TreehubServer::SetToken(const string& token) {
 
   auth_header_contents_ = "Authorization: Bearer " + token;
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
-  using_oauth2_ = true;
+  method_ = OAUTH2;
 }
 
 void TreehubServer::SetCerts(const std::string& root_cert, const std::string& client_cert,
                              const std::string& client_key) {
-  using_certs_ = true;
+  method_ = CERT;
   root_cert_ = root_cert;
   client_cert_path_.PutContents(client_cert);
   client_key_path_.PutContents(client_key);
@@ -48,15 +49,16 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
   curl_easy_setopt(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
-  if (!using_oauth2_) {  // If we don't have a OAuth2 token fallback to legacy
-                         // username/password
+  // If we need authentication but don't have an OAuth2 token, fall back to
+  // legacy username/password.
+  if (method_ == AUTH_BASIC || method_ == CERT) {
     curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, username_.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
 
   std::string all_root_certs;
-  if (using_certs_) {
+  if (method_ == CERT) {
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
