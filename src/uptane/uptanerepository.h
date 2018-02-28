@@ -26,6 +26,14 @@ enum InitRetCode {
   INIT_RET_PKCS11_FAILURE
 };
 
+struct DownloadMetaStruct {
+  int64_t expected_length;
+  int64_t downloaded_length;
+  StorageTargetWHandle *fhandle;
+  MultiPartSHA256Hasher sha256_hasher;
+  MultiPartSHA512Hasher sha512_hasher;
+};
+
 const int MaxInitializationAttempts = 3;
 
 class Repository {
@@ -65,6 +73,10 @@ class Repository {
   std::vector<boost::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
+  void downloadTarget(Target target);
+  Json::Value getJSON(const std::string &url);
+  Json::Value fetchAndCheckRole(const Uptane::TufRepository &repo, Uptane::Role role, Version version = Version(),
+                                Uptane::Root *root_used = nullptr);
 
   // implemented in uptane/initialize.cc
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);

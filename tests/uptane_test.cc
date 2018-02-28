@@ -20,6 +20,7 @@
 #include "sotauptaneclient.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
+#include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
@@ -43,10 +44,9 @@ TEST(Uptane, Verify) {
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
-  repo.updateRoot(Uptane::Version());
-
-  repo.verifyRole(Uptane::Role::Root(), now, repo.getJSON("root.json"));
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
+  HttpResponse response = http.get(http.tls_server + "/director/root.json");
+  repo.verifyRole(Uptane::Role::Root(), response.getJson());
 }
 
 TEST(Uptane, VerifyDataBad) {
@@ -58,12 +58,12 @@ TEST(Uptane, VerifyDataBad) {
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
-  Json::Value data_json = repo.getJSON("root.json");
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json.removeMember("signatures");
 
   try {
-    repo.verifyRole(Uptane::Role::Root(), now, data_json);
+    repo.verifyRole(Uptane::Role::Root(), data_json);
     FAIL();
   } catch (Uptane::UnmetThreshold ex) {
   }
@@ -78,13 +78,13 @@ TEST(Uptane, VerifyDataUnknownType) {
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
-  Json::Value data_json = repo.getJSON("root.json");
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
 
   try {
-    repo.verifyRole(Uptane::Role::Root(), now, data_json);
+    repo.verifyRole(Uptane::Role::Root(), data_json);
     FAIL();
   } catch (Uptane::SecurityException ex) {
   }
@@ -99,12 +99,12 @@ TEST(Uptane, VerifyDataBadKeyId) {
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
-  Json::Value data_json = repo.getJSON("root.json");
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
   try {
-    repo.verifyRole(Uptane::Role::Root(), now, data_json);
+    repo.verifyRole(Uptane::Role::Root(), data_json);
     FAIL();
   } catch (Uptane::UnmetThreshold ex) {
   }
@@ -119,11 +119,11 @@ TEST(Uptane, VerifyDataBadThreshold) {
 
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
-  Json::Value data_json = repo.getJSON("root.json");
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
-    repo.verifyRole(Uptane::Role::Root(), now, data_json);
+    repo.verifyRole(Uptane::Role::Root(), data_json);
     FAIL();
   } catch (Uptane::IllegalThreshold ex) {
   } catch (Uptane::UnmetThreshold ex) {
@@ -358,27 +358,27 @@ TEST(Uptane, Expires) {
   config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
 
   // Check that we don't fail on good metadata.
   EXPECT_NO_THROW(
-      repo.verifyRole(Uptane::Role::Targets(), now, Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
+      repo.verifyRole(Uptane::Role::Targets(), Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
 
   Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json")["signed"]);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
-                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json")),
-               Uptane::ExpiredMetadata);
+  EXPECT_THROW(
+      repo.verifyRole(Uptane::Role::Root(), Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json")),
+      Uptane::ExpiredMetadata);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Targets(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Targets(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/targets_expired.json"), &root),
                Uptane::ExpiredMetadata);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Timestamp(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Timestamp(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/timestamp_expired.json"), &root),
                Uptane::ExpiredMetadata);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Snapshot(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Snapshot(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/snapshot_expired.json"), &root),
                Uptane::ExpiredMetadata);
 }
@@ -397,36 +397,36 @@ TEST(Uptane, Threshold) {
   config.storage.uptane_metadata_path = "metadata";
 
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage, http);
+  Uptane::TufRepository repo("director", http.tls_server + "/director", config, storage);
 
   // Check that we don't fail on good metadata.
   EXPECT_NO_THROW(
-      repo.verifyRole(Uptane::Role::Targets(), now, Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
+      repo.verifyRole(Uptane::Role::Targets(), Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
-                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json")),
-               Uptane::IllegalThreshold);
+  EXPECT_THROW(
+      repo.verifyRole(Uptane::Role::Root(), Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json")),
+      Uptane::IllegalThreshold);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-32768.json")),
                Uptane::IllegalThreshold);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-2147483648.json")),
                Uptane::IllegalThreshold);
 
   EXPECT_THROW(
-      repo.verifyRole(Uptane::Role::Root(), now,
+      repo.verifyRole(Uptane::Role::Root(),
                       Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-9223372036854775808.json")),
       std::runtime_error);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
+  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(),
                                Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.9.json")),
                Uptane::IllegalThreshold);
 
-  EXPECT_THROW(repo.verifyRole(Uptane::Role::Root(), now,
-                               Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.json")),
-               Uptane::IllegalThreshold);
+  EXPECT_THROW(
+      repo.verifyRole(Uptane::Role::Root(), Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.json")),
+      Uptane::IllegalThreshold);
 }
 
 TEST(Uptane, InitializeFail) {
