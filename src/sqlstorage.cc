@@ -28,11 +28,6 @@ SQLStorage::~SQLStorage() {
 }
 
 void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
-  storePrimaryPublic(public_key);
-  storePrimaryPrivate(private_key);
-}
-
-void SQLStorage::storePrimaryPublic(const std::string& public_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -43,45 +38,18 @@ void SQLStorage::storePrimaryPublic(const std::string& public_key) {
   request = kSqlGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of public key table: " << db.errmsg();
+    LOG_ERROR << "Can't get count of keys table: " << db.errmsg();
     return;
   }
   const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET public = ?;";
+    req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
   } else {
-    req = "INSERT INTO primary_keys(public) VALUES (?);";
+    req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
   }
-  auto statement = db.prepareStatement<std::string>(req, public_key);
+  auto statement = db.prepareStatement<std::string>(req, public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set public key: " << db.errmsg();
-    return;
-  }
-}
-
-void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
-  SQLite3Guard db(config_.sqldb_path.c_str());
-
-  if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << db.errmsg();
-    return;
-  }
-
-  request = kSqlGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of private key table: " << db.errmsg();
-    return;
-  }
-  const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET private = ?;";
-  } else {
-    req = "INSERT INTO primary_keys(private) VALUES (?);";
-  }
-  auto statement = db.prepareStatement<std::string>(req, private_key);
-  if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set private key: " << db.errmsg();
+    LOG_ERROR << "Can't set primary keys: " << db.errmsg();
     return;
   }
 }

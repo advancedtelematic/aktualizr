@@ -20,8 +20,6 @@ class SQLStorage : public INvStorage {
   SQLStorage(const StorageConfig& config);
   ~SQLStorage() override;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
-  void storePrimaryPublic(const std::string& public_key) override;
-  void storePrimaryPrivate(const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;
   bool loadPrimaryPublic(std::string* public_key) override;
   bool loadPrimaryPrivate(std::string* private_key) override;

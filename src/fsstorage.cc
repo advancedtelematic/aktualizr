@@ -22,18 +22,9 @@ FSStorage::~FSStorage() {
 }
 
 void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
-  storePrimaryPublic(public_key);
-  storePrimaryPrivate(private_key);
-}
-
-void FSStorage::storePrimaryPublic(const std::string& public_key) {
   boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
   Utils::writeFile(public_key_path, public_key);
 
-  sync();
-}
-
-void FSStorage::storePrimaryPrivate(const std::string& private_key) {
   boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
   Utils::writeFile(private_key_path, private_key);
 
