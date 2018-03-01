@@ -94,11 +94,12 @@ TEST(OstreeManager, BadSysroot) {
 }
 
 TEST(OstreeManager, ParseInstalledPackages) {
+  TemporaryDirectory temp_dir;
   Config config;
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
   config.pacman.packages_file = "tests/test_data/package.manifest";
-
+  config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);
   Json::Value packages = ostree.getInstalledPackages();
