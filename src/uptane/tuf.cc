@@ -156,17 +156,19 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
 }
 
 Uptane::Targets::Targets(const Json::Value &json) {
-  if (!json.isObject() || json["_type"] != "Targets")
+  Json::Value prepared_json = (json.isMember("signed")) ? json["signed"] : json;
+  if (!json.isObject() || prepared_json["_type"] != "Targets")
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
 
-  version = json["version"].asInt();
-  expiry = Uptane::TimeStamp(json["expires"].asString());
+  version = prepared_json["version"].asInt();
+  expiry = Uptane::TimeStamp(prepared_json["expires"].asString());
 
-  Json::Value target_list = json["targets"];
+  Json::Value target_list = prepared_json["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
   }
+  original_object = json;
 }
 
 Uptane::Targets::Targets() { version = -1; }

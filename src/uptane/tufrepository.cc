@@ -35,7 +35,6 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
   }
 }
 
-
 Json::Value TufRepository::verifyRole(Uptane::Role role, const Json::Value& content, Uptane::Root* root_used) const {
   TimeStamp now(TimeStamp::Now());
   if (!root_used) root_used = const_cast<Uptane::Root*>(&root_);

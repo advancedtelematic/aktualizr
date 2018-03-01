@@ -212,6 +212,7 @@ class Targets {
   Json::Value toJson() const;
   int version;
   TimeStamp expiry;
+  Json::Value original_object;
 
   std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {

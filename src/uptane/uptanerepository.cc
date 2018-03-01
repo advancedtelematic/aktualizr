@@ -117,13 +117,21 @@ bool Repository::getMeta() {
       Uptane::TimestampMeta(fetchAndCheckRole(image, Role::Timestamp(), Version(), &meta.image_root));
   if (meta.image_timestamp.version > image.timestampVersion()) {
     meta.image_snapshot = Uptane::Snapshot(fetchAndCheckRole(image, Role::Snapshot(), Version(), &meta.image_root));
-    meta.image_targets = Uptane::Targets(fetchAndCheckRole(image, Role::Targets(), Version(), &meta.image_root));
+
+    // special case for targets because it should contain the whole json object for signature verification on secondary
+    Json::Value content = getJSON(image.getBasUrl() + "/" + Version().RoleFileName(Role::Targets()));
+    image.verifyRole(Role::Targets(), content, &meta.image_root);
+    meta.image_targets = Uptane::Targets(content);
+    // meta.image_targets = Uptane::Targets(fetchAndCheckRole(image, Role::Targets(), Version(), &meta.image_root));
   } else {
     meta.image_snapshot = image.snapshot();
     meta.image_targets = image.targets();
   }
 
-  meta.director_targets = Uptane::Targets(fetchAndCheckRole(director, Role::Targets(), Version(), &meta.director_root));
+  // special case for targets because it should contain the whole json object for signature verification on secondary
+  Json::Value content = getJSON(director.getBasUrl() + "/" + Version().RoleFileName(Role::Targets()));
+  director.verifyRole(Role::Targets(), content, &meta.director_root);
+  meta.director_targets = Uptane::Targets(content);
 
   if (meta.director_root.version() > director.rootVersion() || meta.image_root.version() > image.rootVersion() ||
       meta.director_targets.version > director.targetsVersion() ||
