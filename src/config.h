@@ -27,8 +27,7 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // updateFromPropertyTree() in config.cc.
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), socket(false) {}
-  bool http;
+  GatewayConfig() : socket(false) {}
   bool socket;
 };
 

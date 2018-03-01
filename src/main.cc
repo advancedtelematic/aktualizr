@@ -54,7 +54,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr version")
       ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
-      ("gateway-http", bpo::value<bool>(), "enable the http gateway")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")

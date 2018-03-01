@@ -220,7 +220,6 @@ void Config::updateFromTomlString(const std::string& contents) {
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h and writeToFile().
 
-  CopyFromConfig(gateway.http, "gateway.http", boost::log::trivial::info, pt);
   CopyFromConfig(gateway.socket, "gateway.socket", boost::log::trivial::info, pt);
 
   CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
@@ -343,9 +342,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("poll-once") != 0) {
     uptane.polling = false;
-  }
-  if (cmd.count("gateway-http") != 0) {
-    gateway.http = cmd["gateway-http"].as<bool>();
   }
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
@@ -506,7 +502,6 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   sink << std::boolalpha;
 
   sink << "[gateway]\n";
-  writeOption(sink, gateway.http, "http");
   writeOption(sink, gateway.socket, "socket");
   sink << "\n";
 
