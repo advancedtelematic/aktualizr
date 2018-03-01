@@ -37,6 +37,8 @@ if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
 endif(BUILD_SOTA_TOOLS)
 
+add_dependencies(build_tests aktualizr-secondary)
+
 add_dependencies(build_tests aktualizr-info)
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
@@ -409,6 +411,10 @@ if((BUILD_SOTA_TOOLS))
         COMMAND garage-deploy --test )
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 endif((BUILD_SOTA_TOOLS))
+
+# aktualizr-secondary tests
+add_test(NAME aktualizr-secondary-help
+    COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
 
 # aktualizr-info tests
 add_test(NAME aktualizr-info-noarguments
