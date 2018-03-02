@@ -6,6 +6,9 @@
 namespace opcuabridge {
 class ImageBlock {
  public:
+
+  typedef std::vector<unsigned char>    block_type;
+
   ImageBlock() {}
   virtual ~ImageBlock() {}
 
@@ -13,8 +16,9 @@ class ImageBlock {
   void setFilename(const std::string& filename) { filename_ = filename; }
   const std::size_t& getBlockNumber() const { return blockNumber_; }
   void setBlockNumber(const std::size_t& blockNumber) { blockNumber_ = blockNumber; }
-  const std::vector<unsigned char>& getBlock() const { return block_; }
-  void setBlock(const std::vector<unsigned char>& block) { block_ = block; }
+  block_type& getBlock() { return block_; }
+  const block_type& getBlock() const { return block_; }
+  void setBlock(const block_type& block) { block_ = block; }
   INITSERVERNODESET_BIN_FUNCTION_DEFINITION(ImageBlock, &block_)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&block_)                     // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&block_)                    // ClientWrite(UA_Client*)
@@ -29,7 +33,7 @@ class ImageBlock {
  protected:
   std::string filename_;
   std::size_t blockNumber_;
-  std::vector<unsigned char> block_;
+  block_type  block_;
 
   MessageOnBeforeReadCallback<ImageBlock>::type on_before_read_cb_;
   MessageOnAfterWriteCallback<ImageBlock>::type on_after_write_cb_;

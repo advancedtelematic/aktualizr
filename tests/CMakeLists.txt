@@ -182,6 +182,8 @@ endif(BUILD_OSTREE)
 if(BUILD_OPCUA)
     set_source_files_properties(opcuabridge_test_utils.cc opcuabridge_messaging_test.cc opcuabridge_server.cc
                                 opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
+                                opcuabridge_ostree_repo_sync_client.cc
+                                opcuabridge_ostree_repo_sync_server.cc
                                 PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
     add_executable(opcuabridge-server opcuabridge_server.cc opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-server aktualizr_static_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
@@ -200,6 +202,16 @@ if(BUILD_OPCUA)
     set(TEST_SOURCES ${TEST_SOURCES} opcuabridge_messaging_test.cc opcuabridge_server.cc
                      opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                      opcuabridge_test_utils.cc)
+
+    add_executable(opcuabridge-ostree-repo-sync-client opcuabridge_ostree_repo_sync_client.cc)
+    target_link_libraries(opcuabridge-ostree-repo-sync-client aktualizr_static_lib
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
+    add_dependencies(build_tests opcuabridge-ostree-repo-sync-client)
+
+    add_executable(opcuabridge-ostree-repo-sync-server opcuabridge_ostree_repo_sync_server.cc)
+    target_link_libraries(opcuabridge-ostree-repo-sync-server aktualizr_static_lib
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
+    add_dependencies(build_tests opcuabridge-ostree-repo-sync-server)
 endif(BUILD_OPCUA)
 
 if(BUILD_DEB)

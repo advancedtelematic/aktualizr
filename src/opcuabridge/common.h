@@ -15,17 +15,29 @@
 #include <vector>
 #include <string>
 
+#define OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE   (8192)
+
+namespace boost { namespace filesystem { class path; } }
+
 #define INITSERVERNODESET_FUNCTION_DEFINITION(TYPE)                            \
   void InitServerNodeset(UA_Server *server) {                                  \
     opcuabridge::internal::AddDataSourceVariable<TYPE>(server, node_id_, this);\
   }
 
-#define INITSERVERNODESET_BIN_FUNCTION_DEFINITION(TYPE, BINDATA)               \
+#define INITSERVERNODESET_BIN_FUNCTION_DEFINITION(TYPE, BINDATA)                \
+  void InitServerNodeset(UA_Server *server) {                                   \
+    opcuabridge::internal::AddDataSourceVariable<TYPE>(server, node_id_, this); \
+    opcuabridge::internal::AddDataSourceVariable<opcuabridge::MessageBinaryData>\
+      (server, bin_node_id_, BINDATA,                                           \
+       UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id_)));               \
+  }
+
+#define INITSERVERNODESET_FILE_FUNCTION_DEFINITION(TYPE)                       \
   void InitServerNodeset(UA_Server *server) {                                  \
     opcuabridge::internal::AddDataSourceVariable<TYPE>(server, node_id_, this);\
-    opcuabridge::internal::AddDataSourceVariable<opcuabridge::BinaryData>      \
-      (server, bin_node_id_, BINDATA,                                          \
-       UA_NODEID_STRING(kNSindex, const_cast<char*>(node_id_)));               \
+    opcuabridge::internal::AddDataSourceVariable<opcuabridge::MessageFileData> \
+      (server, bin_node_id_, this,                                             \
+       UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id_)));              \
   }
 
 #define CLIENTWRITE_FUNCTION_DEFINITION()                                      \
@@ -36,6 +48,12 @@
 #define CLIENTWRITE_BIN_FUNCTION_DEFINITION(BINDATA)                           \
   UA_StatusCode ClientWrite(UA_Client *client) {                               \
     return opcuabridge::internal::ClientWrite(client, node_id_, this, BINDATA);\
+  }
+
+#define CLIENTWRITE_FILE_FUNCTION_DEFINITION()                                 \
+  UA_StatusCode ClientWriteFile(UA_Client *client,                             \
+                                const boost::filesystem::path& f) {            \
+    return opcuabridge::internal::ClientWriteFile(client, node_id_, this, f);  \
   }
 
 #define CLIENTREAD_FUNCTION_DEFINITION()                                       \
@@ -66,7 +84,9 @@
   friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(                \
       UA_Client *, const char *, TYPE *);                                      \
   friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(                \
-      UA_Client *, const char *, TYPE *, BinaryDataContainer*);
+      UA_Client *, const char *, TYPE *, BinaryDataContainer*);                \
+  friend UA_StatusCode opcuabridge::internal::ClientWriteFile<TYPE>(           \
+      UA_Client *, const char *, TYPE *, const boost::filesystem::path&);
 
 #define WRAPMESSAGE_FUCTION_DEFINITION(TYPE)                                   \
   static std::string wrapMessage(TYPE *obj) {                                  \
@@ -110,7 +130,10 @@ enum SignatureMethod {
     SIG_METHOD_ED25519
 };
 
-struct BinaryData {};
+struct MessageBinaryData {};
+struct MessageFileData {
+  virtual std::string getFullFilePath() const = 0;
+};
 typedef std::vector<unsigned char> BinaryDataContainer;
 
 template<typename T>
@@ -144,10 +167,16 @@ UA_StatusCode read(UA_Server *server, const UA_NodeId *sessionId,
 }
 
 template <>
-UA_StatusCode read<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
-                               void *sessionContext, const UA_NodeId *nodeId,
-                               void *nodeContext, UA_Boolean sourceTimeStamp,
-                               const UA_NumericRange *range, UA_DataValue *dataValue);
+UA_StatusCode read<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId,
+                                      void *sessionContext, const UA_NodeId *nodeId,
+                                      void *nodeContext, UA_Boolean sourceTimeStamp,
+                                      const UA_NumericRange *range, UA_DataValue *dataValue);
+
+template <>
+UA_StatusCode read<MessageFileData>(UA_Server *server, const UA_NodeId *sessionId,
+                                    void *sessionContext, const UA_NodeId *nodeId,
+                                    void *nodeContext, UA_Boolean sourceTimeStamp,
+                                    const UA_NumericRange *range, UA_DataValue *dataValue);
 
 template <typename T>
 UA_StatusCode write(UA_Server *server, const UA_NodeId *sessionId,
@@ -167,10 +196,16 @@ UA_StatusCode write(UA_Server *server, const UA_NodeId *sessionId,
 }
 
 template <>
-UA_StatusCode write<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
-                                void *sessionContext, const UA_NodeId *nodeId,
-                                void *nodeContext, const UA_NumericRange *range,
-                                const UA_DataValue *data);
+UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId,
+                                       void *sessionContext, const UA_NodeId *nodeId,
+                                       void *nodeContext, const UA_NumericRange *range,
+                                       const UA_DataValue *data);
+
+template <>
+UA_StatusCode write<MessageFileData>(UA_Server *server, const UA_NodeId *sessionId,
+                                     void *sessionContext, const UA_NodeId *nodeId,
+                                     void *nodeContext, const UA_NumericRange *range,
+                                     const UA_DataValue *data);
 
 namespace internal {
 
@@ -231,6 +266,18 @@ inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id,
         client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
     UA_Variant_delete(val);
   }
+  return retval;
+}
+
+UA_StatusCode ClientWriteFile(UA_Client*, const char*, const boost::filesystem::path&,
+                              const std::size_t block_size = OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE);
+
+template <typename MessageT>
+inline UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id, MessageT *obj,
+                                     const boost::filesystem::path& file_path) {
+  UA_StatusCode retval = ClientWrite<MessageT>(client, node_id, obj);
+  if (retval == UA_STATUSCODE_GOOD)
+    retval = ClientWriteFile(client, obj->bin_node_id_, file_path);
   return retval;
 }
 

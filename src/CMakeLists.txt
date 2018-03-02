@@ -52,6 +52,7 @@ set(HEADERS aktualizr.h
             logging.h
             openssl_compat.h
             ostree.h
+            ostreereposync.h
             packagemanagerfactory.h
             packagemanagerfake.h
             packagemanagerinterface.h
@@ -73,7 +74,7 @@ set(HEADERS aktualizr.h
             uptane/virtualsecondary.h)
 
 if(BUILD_OSTREE)
-    list(APPEND SOURCES ostree.cc)
+    list(APPEND SOURCES ostree.cc ostreereposync.cc)
 endif(BUILD_OSTREE)
 
 if(BUILD_DEB)
@@ -92,12 +93,14 @@ endif(BUILD_P11)
 
 if(BUILD_OPCUA)
     set(OPEN62541_SOURCES ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
-    set(OPCUABRIDGE_SOURCES opcuabridge/common.cc)
+    set(OPCUABRIDGE_SOURCES opcuabridge/common.cc opcuabridge/filelist.cc)
     set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                             opcuabridge/common.h
                             opcuabridge/currenttime.h
                             opcuabridge/ecuversionmanifest.h
                             opcuabridge/ecuversionmanifestsigned.h
+                            opcuabridge/filedata.h
+                            opcuabridge/filelist.h
                             opcuabridge/hash.h
                             opcuabridge/imageblock.h
                             opcuabridge/imagefile.h

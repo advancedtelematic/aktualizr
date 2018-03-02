@@ -24,7 +24,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(BOOST_COMPONENTS log_setup log filesystem thread program_options chrono random system)
 
 if(BUILD_OPCUA)
-    list(APPEND BOOST_COMPONENTS serialization)
+    list(APPEND BOOST_COMPONENTS serialization iostreams)
 endif(BUILD_OPCUA)
 
 find_package(PkgConfig REQUIRED)
