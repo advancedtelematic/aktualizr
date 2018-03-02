@@ -104,7 +104,7 @@ Json::Value Repository::getJSON(const std::string& url) {
 Json::Value Repository::fetchAndCheckRole(const Uptane::TufRepository& repo, Uptane::Role role, Version version,
                                           Uptane::Root* root_used) {
   // TODO: chain-loading root.json
-  Json::Value content = getJSON(repo.getBasUrl() + "/" + version.RoleFileName(role));
+  Json::Value content = getJSON(repo.getBaseUrl() + "/" + version.RoleFileName(role));
   return repo.verifyRole(role, content, root_used);
 }
 
@@ -119,7 +119,7 @@ bool Repository::getMeta() {
     meta.image_snapshot = Uptane::Snapshot(fetchAndCheckRole(image, Role::Snapshot(), Version(), &meta.image_root));
 
     // special case for targets because it should contain the whole json object for signature verification on secondary
-    Json::Value content = getJSON(image.getBasUrl() + "/" + Version().RoleFileName(Role::Targets()));
+    Json::Value content = getJSON(image.getBaseUrl() + "/" + Version().RoleFileName(Role::Targets()));
     image.verifyRole(Role::Targets(), content, &meta.image_root);
     meta.image_targets = Uptane::Targets(content);
     // meta.image_targets = Uptane::Targets(fetchAndCheckRole(image, Role::Targets(), Version(), &meta.image_root));
@@ -129,7 +129,7 @@ bool Repository::getMeta() {
   }
 
   // special case for targets because it should contain the whole json object for signature verification on secondary
-  Json::Value content = getJSON(director.getBasUrl() + "/" + Version().RoleFileName(Role::Targets()));
+  Json::Value content = getJSON(director.getBaseUrl() + "/" + Version().RoleFileName(Role::Targets()));
   director.verifyRole(Role::Targets(), content, &meta.director_root);
   meta.director_targets = Uptane::Targets(content);
 

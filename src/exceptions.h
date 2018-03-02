@@ -10,4 +10,10 @@ class FatalException : public std::logic_error {
   ~FatalException() throw() override {}
 };
 
+class NotImplementedException : public std::logic_error {
+ public:
+  NotImplementedException() : std::logic_error("Function not yet implemented.") {}
+  ~NotImplementedException() throw() override {}
+};
+
 #endif

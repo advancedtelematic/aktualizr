@@ -23,7 +23,7 @@ class TufRepository {
   TufRepository(const std::string& name, const std::string& base_url, const Config& config,
                 boost::shared_ptr<INvStorage>& storage);
   Json::Value verifyRole(Role role, const Json::Value&, Uptane::Root* root_used = NULL) const;
-  std::string getBasUrl() const { return base_url_; }
+  std::string getBaseUrl() const { return base_url_; }
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect
   bool checkTimestamp();

@@ -22,11 +22,11 @@ class PartialVerificationSecondary : public SecondaryInterface {
     if (!sconfig.ecu_serial.empty()) {
       return sconfig.ecu_serial;
     } else {
-      return public_key_id;
+      return public_key_id_;
     }
   }
-  std::string getPublicKey() override { return public_key; }
-  bool putMetadata(const MetaPack& meta_pack) override;
+  std::string getPublicKey() override { return public_key_; }
+  bool putMetadata(const MetaPack& meta) override;
   int getRootVersion(const bool director) override;
   bool putRoot(Uptane::Root root, const bool director) override;
 
@@ -34,9 +34,12 @@ class PartialVerificationSecondary : public SecondaryInterface {
   Json::Value getManifest() override;
 
  private:
-  std::string public_key;
-  std::string private_key;
-  std::string public_key_id;
+  void storeKeys(const std::string& public_key, const std::string& private_key);
+  bool loadKeys(std::string* public_key, std::string* private_key);
+
+  std::string public_key_;
+  std::string private_key_;
+  std::string public_key_id_;
 
   std::string detected_attack_;
   Uptane::Targets meta_targets_;
