@@ -16,7 +16,7 @@ EventsInterpreter::EventsInterpreter(const Config& config_in, event::Channel* ev
 EventsInterpreter::~EventsInterpreter() {
   events_channel->close();
   if (!thread.try_join_for(boost::chrono::seconds(10))) {
-    LOG_ERROR << "join()-ing DBusGateway thread timed out";
+    LOG_ERROR << "join()-ing EventsInterpreter thread timed out";
   }
 }
 

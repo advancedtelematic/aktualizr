@@ -19,7 +19,6 @@ set (TEST_LIBS
     ${sodium_LIBRARY_RELEASE}
     ${LIBOSTREE_LIBRARIES}
     ${SQLITE3_LIBRARIES}
-    ${LIBDBUS_LIBRARIES}
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${LIBDPKG_LIBRARIES}
@@ -131,6 +130,8 @@ add_aktualizr_test(NAME socket_gateway SOURCES socketgateway_test.cc
 
 add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc PROJECT_WORKING_DIRECTORY
                    ARGS ${PROJECT_SOURCE_DIR}/config/schemas)
+
+add_aktualizr_test(NAME sql_utils SOURCES sql_utils_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 

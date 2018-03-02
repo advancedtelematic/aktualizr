@@ -127,7 +127,6 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${CMAKE_THREAD_LIBS_INIT}
         ${sodium_LIBRARY_RELEASE}
         ${LIBOSTREE_LIBRARIES}
-        ${LIBDBUS_LIBRARIES}
         ${LIBP11_LIBRARIES}
         ${SQLITE3_LIBRARIES}
         ${LibArchive_LIBRARIES}
