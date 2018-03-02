@@ -42,10 +42,12 @@ TEST(asn1_config, tls_config) {
   conf.pkey_source = kPkcs11;
   conf.cert_source = kPkcs11;
 
-  std::string serialization = conf.cer_serialize();
+  asn1::Serializer ser;
+  ser << conf;
+  asn1::Deserializer des(ser.getResult());
 
   TlsConfig conf2;
-  EXPECT_NO_THROW(conf2.cer_deserialize(serialization));
+  EXPECT_NO_THROW(des >> conf2);
   EXPECT_EQ(conf.server, conf2.server);
   EXPECT_EQ(conf.server_url_path, conf2.server_url_path);
   EXPECT_EQ(conf.ca_source, conf2.ca_source);
@@ -74,7 +76,8 @@ TEST(asn1_config, tls_config_asn1cc_to_man) {
   EXPECT_NE(enc.encoded, -1);
 
   TlsConfig conf;
-  EXPECT_NO_THROW(conf.cer_deserialize(der));
+  asn1::Deserializer des(der);
+  EXPECT_NO_THROW(des >> conf);
   EXPECT_EQ(conf, cc_tls_conf);
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_AKTlsConfig, &cc_tls_conf);
 }
@@ -88,11 +91,13 @@ TEST(asn1_config, tls_config_man_to_asn1cc) {
   conf.pkey_source = kPkcs11;
   conf.cert_source = kPkcs11;
 
-  std::string serialization = conf.cer_serialize();
+  asn1::Serializer ser;
+
+  ser << conf;
 
   AKTlsConfig_t* cc_tls_conf = nullptr;
   asn_dec_rval_t ret =
-      ber_decode(0, &asn_DEF_AKTlsConfig, (void**)&cc_tls_conf, serialization.c_str(), serialization.length());
+      ber_decode(0, &asn_DEF_AKTlsConfig, (void**)&cc_tls_conf, ser.getResult().c_str(), ser.getResult().length());
   EXPECT_EQ(ret.code, RC_OK);
   EXPECT_EQ(*cc_tls_conf, conf);
   ASN_STRUCT_FREE(asn_DEF_AKTlsConfig, cc_tls_conf);

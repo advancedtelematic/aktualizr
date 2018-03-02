@@ -10,7 +10,6 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 
-#include "asn1-cer.h"
 #include "bootstrap.h"
 #include "exceptions.h"
 #include "utils.h"
@@ -592,61 +591,38 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   sink << "\n";
 }
 
-std::string TlsConfig::cer_serialize() {
-  std::string res;
-  res = cer_encode_sequence() + cer_encode_string(server, kAsn1Utf8String) +
-        cer_encode_string(server_url_path.string(), kAsn1Utf8String) + cer_encode_integer(ca_source, kAsn1Enum) +
-        cer_encode_integer(pkey_source, kAsn1Enum) + cer_encode_integer(cert_source, kAsn1Enum) + cer_encode_endcons();
-  return res;
+asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
+  ser << kAsn1Enum << static_cast<int32_t>(cs);
+
+  return ser;
 }
 
-void TlsConfig::cer_deserialize(const std::string& cer) {
-  std::string cer_local = cer;
+asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf) {
+  ser << asn1::seq << kAsn1Utf8String << tls_conf.server << kAsn1Utf8String << tls_conf.server_url_path.string()
+      << tls_conf.ca_source << tls_conf.pkey_source << tls_conf.cert_source << asn1::endseq;
+  return ser;
+}
 
-  int32_t sequence_length;
-  cer_local = cer_decode_except_crop(cer_local, &sequence_length, nullptr, kSequence);
+asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
+  int32_t cs_i;
+  des >> kAsn1Enum >> cs_i;
 
-  if (sequence_length != -1) cer_local = cer_local.substr(0, sequence_length);
+  if (cs_i < kFile || cs_i > kPkcs11) throw deserialization_error();
 
-  cer_local = cer_decode_except_crop(cer_local, nullptr, &server, kOctetString);
+  cs = static_cast<CryptoSource>(cs_i);
 
-  {
-    std::string url_path;
-    cer_local = cer_decode_except_crop(cer_local, nullptr, &url_path, kOctetString);
-    server_url_path = url_path;
-  }
+  return des;
+}
 
-  cer_local = cer_decode_except_crop_enum(cer_local, &ca_source, kFile, kPkcs11);
+asn1::Deserializer& operator>>(asn1::Deserializer& des, boost::filesystem::path& path) {
+  std::string path_string;
+  des >> kAsn1Utf8String >> path_string;
+  path = path_string;
+  return des;
+}
 
-  cer_local = cer_decode_except_crop_enum(cer_local, &pkey_source, kFile, kPkcs11);
-
-  cer_local = cer_decode_except_crop_enum(cer_local, &cert_source, kFile, kPkcs11);
-
-  // Extra elements of the sequence are ignored
-  if (sequence_length == -1 && !cer_local.empty()) {
-    int nestedness = 0;
-    for (;;) {
-      int32_t endpos;
-      int32_t int_param;
-      int type = cer_decode_token(cer_local, &endpos, &int_param, nullptr);
-      cer_local = cer_local.substr(endpos);
-
-      switch (type) {
-        case kUnknown:
-          throw deserialization_error();
-
-        case kEndSequence:
-          if (nestedness == 0)
-            return;
-          else
-            --nestedness;
-          break;
-
-        case kSequence:
-          if (int_param == -1)  // indefinite length, matching 0000 should follow
-            ++nestedness;
-          break;
-      }
-    }
-  }
+asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf) {
+  des >> asn1::seq >> kAsn1Utf8String >> tls_conf.server >> tls_conf.server_url_path >> tls_conf.ca_source >>
+      tls_conf.pkey_source >> tls_conf.cert_source >> asn1::restseq;
+  return des;
 }

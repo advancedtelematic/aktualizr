@@ -13,6 +13,7 @@
 #include <boost/uuid/uuid_generators.hpp>  // generators
 #include <boost/uuid/uuid_io.hpp>
 
+#include "asn1-cerstream.h"
 #include "logging.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
@@ -61,11 +62,10 @@ class TlsConfig {
   CryptoSource ca_source;
   CryptoSource pkey_source;
   CryptoSource cert_source;
-
-  std::string cer_serialize();
-  void cer_deserialize(const std::string& cer);
-  TlsConfig(const std::string& cer) { cer_deserialize(cer); }
 };
+
+asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf);
+asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf);
 
 struct ProvisionConfig {
   ProvisionConfig() : server(""), p12_password(""), expiry_days("36000"), provision_path(""), mode(kAutomatic) {}

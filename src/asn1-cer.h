@@ -13,6 +13,7 @@ enum ASN1_Class {
 };
 
 enum ASN1_UniversalTag {
+  kUnknown = 0xff,
   kAsn1EndSequence = 0x00,
   kAsn1Sequence = 0x10,
   kAsn1Integer = 0x02,
@@ -33,14 +34,6 @@ enum ASN1_UniversalTag {
   kAsn1BMPString = 0x1d,
 };
 
-enum ASN1_Token {
-  kUnknown,
-  kSequence,
-  kInteger,
-  kOctetString,
-  kEndSequence,
-};
-
 class deserialization_error : public std::exception {
   const char * what () const throw ()
   {
@@ -55,7 +48,7 @@ class deserialization_error : public std::exception {
 //    * string_param - string associated with token. Depends on token type.
 //  Return value: token type, or kUnknown in case of an error.
 
-ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param);
+ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param);
 
 // Decode token, check if its type matches what is expected and return the rest of the string
 //    * ber - serialization
@@ -64,7 +57,7 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
 //    * exp_type - expected token type.
 //  Return value: rest of the string to parse
 //  Throws: deserialization_error if type doesn't match
-std::string cer_decode_except_crop(const std::string& ber, int32_t* int_param, std::string* string_param, ASN1_Token exp_type);
+std::string cer_decode_except_crop(const std::string& ber, int32_t* int_param, std::string* string_param, ASN1_UniversalTag exp_type);
 
 // Decode enum token with boudary check and crop the string
 //    * ber - serialization
@@ -76,17 +69,16 @@ std::string cer_decode_except_crop(const std::string& ber, int32_t* int_param, s
 template<typename T>
 std::string cer_decode_except_crop_enum(const std::string& ber, T* value, int32_t min, int32_t max) {
   int32_t int_value;
-  std::string res = cer_decode_except_crop(ber, &int_value, nullptr, kInteger);
+  std::string res = cer_decode_except_crop(ber, &int_value, nullptr, kAsn1Enum);
   if(*value < min || *value > max)
     throw deserialization_error();
 
   *value = static_cast<T>(int_value);
   return res;
 }
-std::string cer_decode_except_crop_enum(const std::string& ber, int32_t* value, int32_t min, int32_t max);
 
 std::string cer_encode_endcons();
 std::string cer_encode_sequence();
 std::string cer_encode_length(int32_t len);
-std::string cer_encode_integer(int32_t number, ASN1_UniversalTag subtype);
+std::string cer_encode_integer(int32_t number);
 std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype);

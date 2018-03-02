@@ -44,7 +44,7 @@ std::string cer_encode_length(int32_t len) {
 // shifting signed integers right is UB, make sure it's filled with 1s
 constexpr int32_t shr8(int32_t arg) { return (arg >> 8) | ((arg < 0) ? 0xff000000 : 0x00000000); }
 
-std::string cer_encode_integer(int32_t number, ASN1_UniversalTag subtype) {
+std::string cer_encode_integer(int32_t number) {
   std::string res;
 
   do {
@@ -58,7 +58,6 @@ std::string cer_encode_integer(int32_t number, ASN1_UniversalTag subtype) {
     res.push_back(0xFF);
 
   res.push_back(res.length());
-  res.push_back(subtype);
   std::reverse(res.begin(), res.end());
   return res;
 }
@@ -67,7 +66,6 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag sub
   size_t len = contents.length();
 
   std::string res;
-  res.push_back(subtype);
 
   if (len <= CER_MAX_PRIMITIVESTRING) {
     res += cer_encode_length(len);
@@ -115,12 +113,13 @@ static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
   return res;
 }
 
-ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param) {
+ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param,
+                                   std::string* string_param) {
   *endpos = 0;
   if (ber.length() < 2) return kUnknown;
 
-  uint8_t type_class = (ber[0] >> 6) & 0x3;
-  uint8_t tag = ber[0] & 0x1F;
+  ASN1_Class type_class = static_cast<ASN1_Class>((ber[0] >> 6) & 0x3);
+  ASN1_UniversalTag tag = static_cast<ASN1_UniversalTag>(ber[0] & 0x1F);
   bool constructed = !!(ber[0] & 0x20);
   int32_t len_endpos;
   int32_t token_len = cer_decode_length(ber.substr(1), &len_endpos);
@@ -141,13 +140,13 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
 
         if (int_param) *int_param = token_len;
         *endpos = len_endpos + 1;
-        return kSequence;
+        return kAsn1Sequence;
 
       case kAsn1EndSequence:
         if (token_len != 0)
           return kUnknown;
         else
-          return kEndSequence;
+          return kAsn1Sequence;
 
       case kAsn1Integer:
       case kAsn1Enum: {
@@ -170,7 +169,7 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
 
         if (int_param) *int_param = res;
         *endpos = 1 + len_endpos + token_len;
-        return kInteger;
+        return tag;
       }
       case kAsn1OctetString:
       case kAsn1Utf8String:
@@ -194,13 +193,12 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
           if (string_param) *string_param = std::string();
           for (;;) {
             int32_t internal_endpos;
-            int32_t internal_int_param;
             std::string internal_string_param;
-            ASN1_Token token =
-                cer_decode_token(ber.substr(position), &internal_endpos, &internal_int_param, &internal_string_param);
-            if (token == kEndSequence) {
-              return kOctetString;
-            } else if (token != kOctetString || internal_int_param != type_class) {
+            ASN1_UniversalTag token =
+                cer_decode_token(ber.substr(position), &internal_endpos, nullptr, &internal_string_param);
+            if (token == kAsn1EndSequence) {
+              return tag;
+            } else if (token != tag) {
               return kUnknown;
             }
 
@@ -210,8 +208,7 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
           }
           *endpos = position;
         }
-        if (int_param) *int_param = type_class;
-        return kOctetString;
+        return tag;
       }
       default:
         return kUnknown;
@@ -219,12 +216,4 @@ ASN1_Token cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* in
   } else {
     return kUnknown;
   }
-}
-
-std::string cer_decode_except_crop(const std::string& ber, int32_t* int_param, std::string* string_param,
-                                   ASN1_Token exp_type) {
-  int32_t endpos = 0;
-  if (cer_decode_token(ber, &endpos, int_param, string_param) != exp_type) throw deserialization_error();
-
-  return ber.substr(endpos);
 }
