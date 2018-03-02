@@ -135,6 +135,8 @@ add_aktualizr_test(NAME sql_utils SOURCES sql_utils_test.cc PROJECT_WORKING_DIRE
 
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME storage_atomic SOURCES storage_atomic.cc PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME timer SOURCES timer_test.cc)
 
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
