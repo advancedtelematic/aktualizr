@@ -10,6 +10,7 @@ RUN echo "deb http://httpredir.debian.org/debian jessie-backports main contrib n
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install \
   autoconf \
+  asn1c \
   automake \
   bison \
   cmake \

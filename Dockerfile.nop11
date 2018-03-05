@@ -9,6 +9,7 @@ RUN echo "deb http://httpredir.debian.org/debian jessie-backports main contrib n
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install \
+  asn1c \
   autoconf \
   automake \
   bison \
