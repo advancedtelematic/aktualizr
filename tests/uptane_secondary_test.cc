@@ -81,7 +81,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_good) {
   Uptane::MetaPack metadata;
 
   Json::Value json_root = Utils::parseJSONFile("tests/test_data/repo/root.json");
-  metadata.director_root = Uptane::Root("director", json_root["signed"]);
+  metadata.director_root = Uptane::Root("director", json_root);
 
   Json::Value json_targets = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
   metadata.director_targets = Uptane::Targets(json_targets);
@@ -105,7 +105,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   Uptane::MetaPack metadata;
 
   Json::Value json_root = Utils::parseJSONFile("tests/test_data/repo/root.json");
-  metadata.director_root = Uptane::Root("director", json_root["signed"]);
+  metadata.director_root = Uptane::Root("director", json_root);
 
   Json::Value json_targets = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
   json_targets["signatures"][0]["sig"] = "Wrong signature";

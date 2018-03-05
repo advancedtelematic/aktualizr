@@ -34,8 +34,8 @@ bool PartialVerificationSecondary::putMetadata(const MetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
   Uptane::Root root = meta.director_root;
-  root.UnpackSignedObject(now, "director", Role::Targets(), meta.director_targets.original_object);
-  if (meta_targets_.version > meta.director_targets.version) {
+  root.UnpackSignedObject(now, "director", Role::Targets(), meta.director_targets.original());
+  if (meta_targets_.version() > meta.director_targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }

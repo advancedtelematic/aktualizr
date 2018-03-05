@@ -328,12 +328,12 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   }
 
   std::vector<std::string> jsons;
-  jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.director_targets.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_root.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_targets.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_root.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_targets.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_root.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_targets.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.original()));
 
   auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
       "INSERT INTO meta VALUES (?,?,?,?,?,?);", jsons[0], jsons[1], jsons[2], jsons[3], jsons[4], jsons[5]);

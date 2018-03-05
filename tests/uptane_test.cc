@@ -364,7 +364,7 @@ TEST(Uptane, Expires) {
   EXPECT_NO_THROW(
       repo.verifyRole(Uptane::Role::Targets(), Utils::parseJSONFile("tests/test_data/targets_noupdates.json")));
 
-  Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json")["signed"]);
+  Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json"));
 
   EXPECT_THROW(
       repo.verifyRole(Uptane::Role::Root(), Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json")),

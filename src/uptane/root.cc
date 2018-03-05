@@ -5,11 +5,11 @@
 
 using Uptane::Root;
 
-Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCheck) {
-  if (!json.isObject() || !json.isMember("keys") || !json.isMember("roles")) {
+Root::Root(const std::string &repository, const Json::Value &json) : BaseMeta(json), policy_(kCheck) {
+  if (!json.isObject() || !json["signed"].isMember("keys") || !json["signed"].isMember("roles")) {
     throw Uptane::InvalidMetadata(repository, "root", "missing keys/roles field");
   }
-  Json::Value keys = json["keys"];
+  Json::Value keys = json["signed"]["keys"];
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
     std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
@@ -20,7 +20,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
     keys_[keyid] = key;
   }
 
-  Json::Value roles = json["roles"];
+  Json::Value roles = json["signed"]["roles"];
   for (Json::ValueIterator it = roles.begin(); it != roles.end(); it++) {
     std::string role_name = it.key().asString();
     Role role = Role(role_name);
@@ -50,18 +50,15 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
       keys_for_role_.insert(std::make_pair(role, (*itk).asString()));
     }
   }
-  version_ = json["version"].asInt();
-  expiry_ = TimeStamp(json["expires"].asString());
 }
 
 Json::Value Root::toJson() const {
-  Json::Value res;
+  Json::Value res = BaseMeta::toJson();
 
   if (policy_ != kCheck) throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
 
   res["_type"] = "Root";
   res["consistent_snapshot"] = false;
-  res["expires"] = expiry_.ToString();
 
   res["keys"] = Json::objectValue;
   std::map<KeyId, PublicKey>::const_iterator key_it;
@@ -98,7 +95,7 @@ Json::Value Root::toJson() const {
 Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role role,
                                      const Json::Value &signed_object) {
   if (policy_ == kAcceptAll) {
-    return signed_object["signed"];
+    return signed_object;
   } else if (policy_ == kRejectAll) {
     throw SecurityException(repository, "Root policy is kRejectAll");
   }
@@ -152,22 +149,21 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
   if (valid_signatures < threshold) {
     throw UnmetThreshold(repository, role.ToString());
   }
-  Json::Value res = Utils::parseJSON(canonical);
 
   // TODO check _type matches role
   // TODO check timestamp
-  Uptane::TimeStamp expiry(Uptane::TimeStamp(res["expires"].asString()));
+  Uptane::TimeStamp expiry(Uptane::TimeStamp(signed_object["signed"]["expires"].asString()));
   if (expiry.IsExpiredAt(now)) {
     LOG_TRACE << "Metadata expired at:" << expiry;
     throw ExpiredMetadata(repository, role.ToString());
   }
 
-  Uptane::Role actual_role(Uptane::Role(res["_type"].asString()));
+  Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));
   if (role != actual_role) {
     LOG_WARNING << "Object was signed for a different role";
     LOG_TRACE << "  role:" << role;
     LOG_TRACE << "  actual_role:" << actual_role;
     throw SecurityException(repository, "Object was signed for a different role");
   }
-  return res;
+  return signed_object;
 }

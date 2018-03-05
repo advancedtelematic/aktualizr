@@ -155,81 +155,51 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   return os;
 }
 
-Uptane::Targets::Targets(const Json::Value &json) {
-  Json::Value prepared_json = (json.isMember("signed")) ? json["signed"] : json;
-  if (!json.isObject() || prepared_json["_type"] != "Targets")
+Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) {
+  if (!json.isObject() || json["signed"]["_type"] != "Targets")
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
 
-  version = prepared_json["version"].asInt();
-  expiry = Uptane::TimeStamp(prepared_json["expires"].asString());
-
-  Json::Value target_list = prepared_json["targets"];
+  Json::Value target_list = json["signed"]["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
   }
-  original_object = json;
 }
 
-Uptane::Targets::Targets() { version = -1; }
-
 Json::Value Uptane::Targets::toJson() const {
-  Json::Value res;
+  Json::Value res = BaseMeta::toJson();
   res["_type"] = "Targets";
-  res["expires"] = expiry.ToString();
 
   std::vector<Uptane::Target>::const_iterator it;
   for (it = targets.begin(); it != targets.end(); it++) {
     res["targets"][it->filename()] = it->toJson();
   }
-  res["version"] = version;
   return res;
 }
-
-Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) {
-  if (!json.isObject() || json["_type"] != "Timestamp")
-    throw Uptane::InvalidMetadata("", "timestamp", "invalid timestamp.json");
-
-  version = json["version"].asInt();
-  expiry = Uptane::TimeStamp(json["expires"].asString());
-
-  // TODO: METAFILES
-}
-
-Uptane::TimestampMeta::TimestampMeta() { version = -1; }
 
 Json::Value Uptane::TimestampMeta::toJson() const {
-  Json::Value res;
+  Json::Value res = BaseMeta::toJson();
   res["_type"] = "Timestamp";
-  res["expires"] = expiry.ToString();
-  res["version"] = version;
   // TODO: METAFILES
   return res;
 }
 
-Uptane::Snapshot::Snapshot(const Json::Value &json) {
-  if (!json.isObject() || json["_type"] != "Snapshot")
+Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) {
+  if (!json.isObject() || json["signed"]["_type"] != "Snapshot")
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
 
-  version = json["version"].asInt();
-  expiry = Uptane::TimeStamp(json["expires"].asString());
-
-  Json::Value meta_list = json["meta"];
+  Json::Value meta_list = json["signed"]["meta"];
   for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++)
     versions[m_it.key().asString()] = (*m_it)["version"].asInt();
 }
 
-Uptane::Snapshot::Snapshot() { version = -1; }
-
 Json::Value Uptane::Snapshot::toJson() const {
-  Json::Value res;
+  Json::Value res = BaseMeta::toJson();
   res["_type"] = "Snapshot";
-  res["expires"] = expiry.ToString();
 
   std::map<std::string, int>::const_iterator it;
   for (it = versions.begin(); it != versions.end(); it++) {
     res["meta"][it->first]["version"] = it->second;
   }
-  res["version"] = version;
   return res;
 }

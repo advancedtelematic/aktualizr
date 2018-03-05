@@ -7,6 +7,7 @@
 
 #include <ostream>
 #include <set>
+#include "uptane/exceptions.h"
 
 #include "crypto.h"
 
@@ -155,14 +156,44 @@ std::ostream &operator<<(std::ostream &os, const Target &t);
 
 /* Metadata objects */
 
+class BaseMeta {
+ public:
+  BaseMeta(){};
+  BaseMeta(const Json::Value &json) {
+    if (!json.isObject() || !json.isMember("signed")) {
+      throw Uptane::InvalidMetadata("", "", "invalid metadata json");
+    }
+
+    version_ = json["signed"]["version"].asInt();
+    expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
+    original_object_ = json;
+  }
+  int version() const { return version_; }
+  TimeStamp expiry() const { return expiry_; }
+  Json::Value original() const { return original_object_; }
+
+  bool operator==(const BaseMeta &rhs) const { return version_ == rhs.version() && expiry_ == rhs.expiry(); }
+  Json::Value toJson() const {
+    Json::Value res;
+    res["expires"] = expiry_.ToString();
+    res["version"] = version_;
+    return res;
+  }
+
+ protected:
+  int version_ = {-1};
+  TimeStamp expiry_;
+  Json::Value original_object_;
+};
+
 // Implemented in uptane/root.cc
-class Root {
+class Root : public BaseMeta {
  public:
   enum Policy { kRejectAll, kAcceptAll, kCheck };
   /**
    * An empty Root, that either accepts or rejects everything
    */
-  Root(Policy policy = kRejectAll) : policy_(policy), version_(0) {}
+  Root(Policy policy = kRejectAll) : policy_(policy) { version_ = 0; }
   /**
    * A 'real' root that implements TUF signature validation
    * @param repository - The name of the repository (only used to improve the error messages)
@@ -185,7 +216,6 @@ class Root {
    * @return
    */
   Json::Value UnpackSignedObject(TimeStamp now, std::string repository, Role role, const Json::Value &signed_object);
-  int version() const { return version_; }
   Json::Value toJson() const;
   bool operator==(const Root &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
@@ -198,51 +228,39 @@ class Root {
   static const int kMaxSignatures = 1000;
 
   Policy policy_;
-  int version_;
-  TimeStamp expiry_;
   std::map<KeyId, PublicKey> keys_;
   std::set<std::pair<Role, KeyId> > keys_for_role_;
   std::map<Role, int> thresholds_for_role_;
 };
 
-class Targets {
+class Targets : public BaseMeta {
  public:
   Targets(const Json::Value &json);
-  Targets();
+  Targets(){};
   Json::Value toJson() const;
-  int version;
-  TimeStamp expiry;
-  Json::Value original_object;
 
   std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {
-    return version == rhs.version && expiry == rhs.expiry && targets == rhs.targets;
+    return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
 };
 
-class TimestampMeta {
+class TimestampMeta : public BaseMeta {
  public:
-  int version;
-  TimeStamp expiry;
   // TODO: add METAFILES section
-
-  TimestampMeta(const Json::Value &json);
-  TimestampMeta();
+  TimestampMeta(const Json::Value &json) : BaseMeta(json){};
+  TimestampMeta(){};
   Json::Value toJson() const;
-  bool operator==(const TimestampMeta &rhs) const { return version == rhs.version && expiry == rhs.expiry; }
 };
 
-class Snapshot {
+class Snapshot : public BaseMeta {
  public:
-  int version;
-  TimeStamp expiry;
   std::map<std::string, int> versions;
-
   Snapshot(const Json::Value &json);
-  Snapshot();
+  Snapshot(){};
   Json::Value toJson() const;
   bool operator==(const Snapshot &rhs) const {
-    return version == rhs.version && expiry == rhs.expiry && versions == rhs.versions;
+    return version_ == rhs.version() && expiry_ == rhs.expiry() && versions == rhs.versions;
   }
 };
 

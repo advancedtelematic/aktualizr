@@ -30,8 +30,8 @@ class TufRepository {
 
   std::vector<Target> getTargets() { return targets_.targets; }
   int rootVersion() { return root_.version(); }
-  int targetsVersion() { return targets_.version; }
-  int timestampVersion() { return timestamp_.version; }
+  int targetsVersion() { return targets_.version(); }
+  int timestampVersion() { return timestamp_.version(); }
 
   const Uptane::Root& root() { return root_; }
   const Uptane::Targets& targets() { return targets_; }

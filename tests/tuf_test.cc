@@ -18,7 +18,7 @@ TEST(Root, RootValidates) {
   Uptane::Root root("director", i);
 
   Json::Value unpacked = root.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  EXPECT_EQ(unpacked, initial_root["signed"]);
+  EXPECT_EQ(unpacked, initial_root);
 }
 
 TEST(Root, RootJsonNoKeys) {
@@ -26,7 +26,7 @@ TEST(Root, RootJsonNoKeys) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOG_INFO << "Root is:" << initial_root;
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  i.removeMember("keys");
+  i["signed"].removeMember("keys");
   EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
 }
 
@@ -35,7 +35,7 @@ TEST(Root, RootJsonNoRoles) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOG_INFO << "Root is:" << initial_root;
   Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  i.removeMember("roles");
+  i["signed"].removeMember("roles");
   EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
 }
 
