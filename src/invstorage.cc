@@ -12,6 +12,7 @@ void INvStorage::importSimple(store_data_t store_func, load_data_t load_func,
   if (!(this->*load_func)(NULL) && !imported_data_path.empty()) {
     if (!boost::filesystem::exists(imported_data_path)) {
       LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
+      return;
     }
     std::string content = Utils::readFile(imported_data_path.string());
     (this->*store_func)(content);
@@ -35,16 +36,33 @@ void INvStorage::importUpdateSimple(store_data_t store_func, load_data_t load_fu
   if (update && !imported_data_path.empty()) {
     if (!boost::filesystem::exists(imported_data_path)) {
       LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
+      return;
     }
     if (content.empty()) content = Utils::readFile(imported_data_path.string());
     (this->*store_func)(content);
   }
 }
 
+void INvStorage::importPrimaryKeys(const boost::filesystem::path& import_pubkey_path,
+                                   const boost::filesystem::path& import_privkey_path) {
+  if (loadPrimaryKeys(NULL, NULL) || import_pubkey_path.empty() || import_privkey_path.empty()) {
+    return;
+  }
+  if (!boost::filesystem::exists(import_pubkey_path)) {
+    LOG_ERROR << "Couldn't import data: " << import_pubkey_path << " doesn't exist.";
+    return;
+  }
+  if (!boost::filesystem::exists(import_privkey_path)) {
+    LOG_ERROR << "Couldn't import data: " << import_privkey_path << " doesn't exist.";
+    return;
+  }
+  std::string pub_content = Utils::readFile(import_pubkey_path.string());
+  std::string priv_content = Utils::readFile(import_privkey_path.string());
+  storePrimaryKeys(pub_content, priv_content);
+}
+
 void INvStorage::importData(const ImportConfig& import_config) {
-  importSimple(&INvStorage::storePrimaryPublic, &INvStorage::loadPrimaryPublic, import_config.uptane_public_key_path);
-  importSimple(&INvStorage::storePrimaryPrivate, &INvStorage::loadPrimaryPrivate,
-               import_config.uptane_private_key_path);
+  importPrimaryKeys(import_config.uptane_public_key_path, import_config.uptane_private_key_path);
   // root CA certificate can be updated
   importUpdateSimple(&INvStorage::storeTlsCa, &INvStorage::loadTlsCa, import_config.tls_cacert_path);
   importSimple(&INvStorage::storeTlsCert, &INvStorage::loadTlsCert, import_config.tls_clientcert_path);

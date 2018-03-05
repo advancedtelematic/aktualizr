@@ -28,11 +28,6 @@ SQLStorage::~SQLStorage() {
 }
 
 void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
-  storePrimaryPublic(public_key);
-  storePrimaryPrivate(private_key);
-}
-
-void SQLStorage::storePrimaryPublic(const std::string& public_key) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -43,45 +38,18 @@ void SQLStorage::storePrimaryPublic(const std::string& public_key) {
   request = kSqlGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of public key table: " << db.errmsg();
+    LOG_ERROR << "Can't get count of keys table: " << db.errmsg();
     return;
   }
   const char* req;
   if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET public = ?;";
+    req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
   } else {
-    req = "INSERT INTO primary_keys(public) VALUES (?);";
+    req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
   }
-  auto statement = db.prepareStatement<std::string>(req, public_key);
+  auto statement = db.prepareStatement<std::string>(req, public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set public key: " << db.errmsg();
-    return;
-  }
-}
-
-void SQLStorage::storePrimaryPrivate(const std::string& private_key) {
-  SQLite3Guard db(config_.sqldb_path.c_str());
-
-  if (db.get_rc() != SQLITE_OK) {
-    LOG_ERROR << "Can't open database: " << db.errmsg();
-    return;
-  }
-
-  request = kSqlGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get count of private key table: " << db.errmsg();
-    return;
-  }
-  const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
-    req = "UPDATE OR REPLACE primary_keys SET private = ?;";
-  } else {
-    req = "INSERT INTO primary_keys(private) VALUES (?);";
-  }
-  auto statement = db.prepareStatement<std::string>(req, private_key);
-  if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set private key: " << db.errmsg();
+    LOG_ERROR << "Can't set primary keys: " << db.errmsg();
     return;
   }
 }
@@ -347,7 +315,17 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
 void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  clearMetadata();
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (!db.beginTransaction()) return;
+
+  if (db.exec("DELETE FROM meta;", NULL, NULL) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear meta: " << db.errmsg();
+    return;
+  }
 
   std::vector<std::string> jsons;
   jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
@@ -364,6 +342,8 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
@@ -515,11 +495,17 @@ void SQLStorage::clearEcuRegistered() {
 
 void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
   if (serials.size() >= 1) {
-    clearEcuSerials();
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (!db.beginTransaction()) return;
+
+    if (db.exec("DELETE FROM ecu_serials;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
       return;
     }
 
@@ -541,6 +527,8 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
@@ -584,11 +572,17 @@ void SQLStorage::clearEcuSerials() {
 
 void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
   if (ecus.size() >= 1) {
-    clearMisconfiguredEcus();
     SQLite3Guard db(config_.sqldb_path.c_str());
 
     if (db.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (!db.beginTransaction()) return;
+
+    if (db.exec("DELETE FROM misconfigured_ecus;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
       return;
     }
 
@@ -602,6 +596,8 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
@@ -649,7 +645,18 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
-    clearInstalledVersions();
+    if (!db.beginTransaction()) return;
+
+    if (db.get_rc() != SQLITE_OK) {
+      LOG_ERROR << "Can't open database: " << db.errmsg();
+      return;
+    }
+
+    if (db.exec("DELETE FROM installed_versions;", NULL, NULL) != SQLITE_OK) {
+      LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
+      return;
+    }
+
     std::vector<Uptane::Target>::const_iterator it;
     for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++) {
       std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
@@ -658,11 +665,14 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
       auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename, is_current, size);
+
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
         return;
       }
     }
+
+    db.commitTransaction();
   }
 }
 
@@ -730,10 +740,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     // allocate a zero blob
-    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
-      throw exc;
-    }
+    if (!db_.beginTransaction()) throw exc;
 
     auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
         "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
@@ -773,8 +780,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     closed_ = true;
     sqlite3_blob_close(blob_);
     blob_ = nullptr;
-    if (db_.exec("COMMIT TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
+    if (!db_.commitTransaction()) {
       throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
     }
   }
@@ -785,9 +791,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
     }
-    if (db_.exec("ROLLBACK TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't rollback transaction: " << db_.errmsg();
-    }
+
+    db_.rollbackTransaction();
   }
 
  private:
@@ -822,10 +827,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    if (db_.exec("BEGIN TRANSACTION;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << db_.errmsg();
-      throw exc;
-    }
+    if (!db_.beginTransaction()) throw exc;
 
     auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
 
@@ -846,8 +848,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     }
     size_ = sqlite3_blob_bytes(blob_);
 
-    if (db_.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << db_.errmsg();
+    if (!db_.commitTransaction()) {
       throw exc;
     }
   }
@@ -969,10 +970,7 @@ bool SQLStorage::dbMigrate() {
 bool SQLStorage::dbInit() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  if (db.exec("BEGIN TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't begin transaction: " << db.errmsg();
-    return false;
-  }
+  if (!db.beginTransaction()) return false;
 
   request = kSqlGetSimple;
   req_response.clear();
@@ -988,10 +986,8 @@ bool SQLStorage::dbInit() {
     }
   }
 
-  if (db.exec("COMMIT TRANSACTION;", NULL, NULL) != SQLITE_OK) {
-    LOG_ERROR << "Can't commit transaction: " << db.errmsg();
-    return false;
-  }
+  if (!db.commitTransaction()) return false;
+
   return true;
 }
 

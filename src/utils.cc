@@ -236,21 +236,35 @@ std::string Utils::genPrettyName() {
 }
 
 std::string Utils::readFile(const boost::filesystem::path &filename) {
+  boost::filesystem::path tmpFilename = filename;
+  tmpFilename += ".new";
+
+  if (boost::filesystem::exists(tmpFilename)) {
+    LOG_WARNING << tmpFilename << " was found on FS, removing";
+    boost::filesystem::remove(tmpFilename);
+  }
   std::ifstream path_stream(filename.c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return content;
 }
 
 void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
+  // also replace the target file atomically by creating filename.new and
+  // renaming it to the target file name
+  boost::filesystem::path tmpFilename = filename;
+  tmpFilename += ".new";
+
   if (create_directories) {
     boost::filesystem::create_directories(filename.parent_path());
   }
-  std::ofstream file(filename.c_str());
+  std::ofstream file(tmpFilename.c_str());
   if (!file.good()) {
-    throw std::runtime_error(std::string("Error opening file ") + filename.string());
+    throw std::runtime_error(std::string("Error opening file ") + tmpFilename.string());
   }
   file << content;
   file.close();
+
+  boost::filesystem::rename(tmpFilename, filename);
 }
 
 void Utils::writeFile(const boost::filesystem::path &filename, const Json::Value &content, bool create_directories) {

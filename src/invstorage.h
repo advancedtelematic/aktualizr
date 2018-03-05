@@ -81,8 +81,6 @@ class INvStorage {
   INvStorage(const StorageConfig& config) : config_(config) {}
   virtual ~INvStorage() {}
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
-  virtual void storePrimaryPublic(const std::string& public_key) = 0;
-  virtual void storePrimaryPrivate(const std::string& private_key) = 0;
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key) = 0;
   virtual bool loadPrimaryPublic(std::string* public_key) = 0;
   virtual bool loadPrimaryPrivate(std::string* private_key) = 0;
@@ -143,6 +141,8 @@ class INvStorage {
  private:
   void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
   void importUpdateSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
+  void importPrimaryKeys(const boost::filesystem::path& import_pubkey_path,
+                         const boost::filesystem::path& import_privkey_path);
 
  protected:
   const StorageConfig& config_;

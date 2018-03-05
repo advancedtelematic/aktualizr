@@ -4,7 +4,6 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
-#include <boost/move/make_unique.hpp>
 
 #include "fsstorage.h"
 #include "logging.h"
@@ -12,23 +11,27 @@
 #include "utils.h"
 
 boost::filesystem::path storage_test_dir;
-StorageConfig config;
+StorageConfig storage_test_config;
 
-boost::movelib::unique_ptr<INvStorage> Storage() {
+std::unique_ptr<INvStorage> Storage(const StorageConfig &config) {
   if (config.type == kFileSystem) {
-    return boost::movelib::unique_ptr<INvStorage>(new FSStorage(config));
+    return std::unique_ptr<INvStorage>(new FSStorage(config));
   } else if (config.type == kSqlite) {
-    return boost::movelib::unique_ptr<INvStorage>(new SQLStorage(config));
+    return std::unique_ptr<INvStorage>(new SQLStorage(config));
   } else {
     std::cout << "Invalid config type: " << config.type << "\n";
-    return boost::movelib::unique_ptr<INvStorage>(NULL);
+    return std::unique_ptr<INvStorage>(nullptr);
   }
 }
 
-void InitConfig(StorageType type) {
+std::unique_ptr<INvStorage> Storage() { return Storage(storage_test_config); }
+
+StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) {
+  StorageConfig config;
+
   config.type = type;
   if (type == kFileSystem) {
-    config.path = storage_test_dir;
+    config.path = storage_dir;
     config.uptane_metadata_path = "metadata";
     config.uptane_public_key_path = "test_primary.pub";
     config.uptane_private_key_path = "test_primary.priv";
@@ -36,16 +39,17 @@ void InitConfig(StorageType type) {
     config.tls_clientcert_path = "test_tls.cert";
     config.tls_cacert_path = "test_tls.ca";
   } else if (config.type == kSqlite) {
-    config.sqldb_path = storage_test_dir / "test.db";
+    config.sqldb_path = storage_dir / "test.db";
     config.schemas_path = "config/schemas";
   } else {
     std::cout << "Invalid config type: " << config.type << "\n";
   }
+  return config;
 }
 
 TEST(storage, load_store_primary_keys) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   storage->storePrimaryKeys("pr_public", "pr_private");
 
   std::string pubkey;
@@ -61,7 +65,7 @@ TEST(storage, load_store_primary_keys) {
 
 TEST(storage, load_store_tls) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
   std::string cert;
@@ -80,7 +84,7 @@ TEST(storage, load_store_tls) {
 
 TEST(storage, load_store_metadata) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   Uptane::MetaPack stored_meta;
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -149,7 +153,7 @@ TEST(storage, load_store_metadata) {
 
 TEST(storage, load_store_deviceid) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   storage->storeDeviceId("device_id");
 
   std::string device_id;
@@ -164,7 +168,7 @@ TEST(storage, load_store_deviceid) {
 
 TEST(storage, load_store_ecu_serials) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   std::vector<std::pair<std::string, std::string> > serials;
   serials.push_back(std::pair<std::string, std::string>("primary", "primary_hw"));
   serials.push_back(std::pair<std::string, std::string>("secondary_1", "secondary_hw"));
@@ -183,7 +187,7 @@ TEST(storage, load_store_ecu_serials) {
 
 TEST(storage, load_store_misconfigured_ecus) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   std::vector<MisconfiguredEcu> ecus;
   ecus.push_back(MisconfiguredEcu("primary", "primary_hw", kNotRegistered));
 
@@ -206,7 +210,7 @@ TEST(storage, load_store_misconfigured_ecus) {
 
 TEST(storage, load_store_ecu_registered) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
   storage->storeEcuRegistered();
 
   EXPECT_TRUE(storage->loadEcuRegistered());
@@ -218,7 +222,7 @@ TEST(storage, load_store_ecu_registered) {
 
 TEST(storage, store_target) {
   boost::filesystem::create_directories(storage_test_dir);
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
 
   // write
   {
@@ -278,7 +282,7 @@ TEST(storage, import_data) {
   boost::filesystem::create_directories(storage_test_dir);
   boost::filesystem::create_directories(storage_test_dir / "import");
 
-  boost::movelib::unique_ptr<INvStorage> storage = Storage();
+  std::unique_ptr<INvStorage> storage = Storage();
 
   ImportConfig import_config;
   import_config.uptane_private_key_path = storage_test_dir / "import" / "private";
@@ -353,13 +357,13 @@ int main(int argc, char **argv) {
   std::cout << "Running tests for FSStorage" << std::endl;
   TemporaryDirectory temp_dir1;
   storage_test_dir = temp_dir1.Path();
-  InitConfig(kFileSystem);
+  storage_test_config = MakeConfig(kFileSystem, storage_test_dir);
   int res_fs = RUN_ALL_TESTS();
 
   std::cout << "Running tests for SQLStorage" << std::endl;
   TemporaryDirectory temp_dir2;
   storage_test_dir = temp_dir2.Path();
-  InitConfig(kSqlite);
+  storage_test_config = MakeConfig(kSqlite, storage_test_dir);
   int res_sql = RUN_ALL_TESTS();
 
   return res_fs || res_sql;  // 0 indicates success
