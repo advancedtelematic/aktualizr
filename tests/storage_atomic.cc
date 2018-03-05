@@ -120,13 +120,17 @@ void atomic_test() {
   }
 }
 
-// does not work with fs storage
+// To run these tests:
+// ./build/tests/t_storage_atomic --gtest_also_run_disabled_tests
+
 TEST(DISABLED_storage_atomic, fs) {
+  // broken on FS storage: public and private parts are stored in two different files
   storage_test_type = kFileSystem;
   atomic_test();
 }
 
-TEST(storage_atomic, sql) {
+TEST(DISABLED_storage_atomic, sql) {
+  // disabled for now because it uses too much resources for CI
   storage_test_type = kSqlite;
   atomic_test();
 }
