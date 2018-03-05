@@ -112,7 +112,6 @@ struct ImportConfig {
 class Config {
  public:
   Config();
-  Config(const boost::property_tree::ptree& pt);
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
   Config(const boost::filesystem::path& filename);
 
@@ -132,17 +131,6 @@ class Config {
   ImportConfig import;
 
  private:
-  static std::string stripQuotes(const std::string& value);
-  static std::string addQuotes(const std::string& value);
-  template <typename T>
-  static T StripQuotesFromStrings(const T& value);
-  template <typename T>
-  static void CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
-                             const boost::property_tree::ptree& pt);
-  template <typename T>
-  static T addQuotesToStrings(const T& value);
-  template <typename T>
-  static void writeOption(std::ofstream& sink, const T& data, const std::string& option_name);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

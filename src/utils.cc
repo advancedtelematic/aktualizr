@@ -205,6 +205,16 @@ void Utils::hex2bin(const std::string hexstring, unsigned char *binout) {
   }
 }
 
+// Strip leading and trailing quotes
+std::string Utils::stripQuotes(const std::string &value) {
+  std::string res = value;
+  res.erase(std::remove(res.begin(), res.end(), '\"'), res.end());
+  return res;
+}
+
+// Add leading and trailing quotes
+std::string Utils::addQuotes(const std::string &value) { return "\"" + value + "\""; }
+
 Json::Value Utils::parseJSON(const std::string &json_str) {
   Json::Reader reader;
   Json::Value json_value;

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "config.h"
 #include "uptane/tuf.h"
 
 class INvStorage;

@@ -16,7 +16,7 @@
 
 #include <string>
 
-#include "config.h"
+#include "types.h"
 #include "utils.h"
 
 // some older versions of openssl have BIO_new_mem_buf defined with fisrt parameter of type (void*)

@@ -5,7 +5,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "config.h"
 #include "types.h"
 #include "uptane/tuf.h"
 

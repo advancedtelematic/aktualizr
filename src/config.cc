@@ -10,6 +10,8 @@
 #include <boost/filesystem.hpp>
 
 #include "bootstrap.h"
+#include "config.h"
+#include "config_utils.h"
 #include "exceptions.h"
 #include "utils.h"
 
@@ -95,69 +97,6 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
             << "\tPolling interval : " << cfg.uptane.polling_sec << std::endl;
 }
 
-// Strip leading and trailing quotes
-std::string Config::stripQuotes(const std::string& value) {
-  std::string res = value;
-  res.erase(std::remove(res.begin(), res.end(), '\"'), res.end());
-  return res;
-}
-
-// Add leading and trailing quotes
-std::string Config::addQuotes(const std::string& value) { return "\"" + value + "\""; }
-
-/*
- The following uses a small amount of template hackery to provide a nice
- interface to load the sota.toml config file. StripQuotesFromStrings is
- templated, and passes everything that isn't a string straight through.
- Strings in toml are always double-quoted, and we remove them by specializing
- StripQuotesFromStrings for std::string.
-
- The end result is that the sequence of calls in Config::updateFromToml are
- pretty much a direct expression of the required behaviour: load this variable
- from this config entry, and print a warning at the
-
- Note that default values are defined by Config's default constructor.
- */
-template <>
-std::string Config::StripQuotesFromStrings<std::string>(const std::string& value) {
-  return stripQuotes(value);
-}
-
-template <typename T>
-T Config::StripQuotesFromStrings(const T& value) {
-  return value;
-}
-
-template <typename T>
-void Config::CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
-                            const boost::property_tree::ptree& pt) {
-  boost::optional<T> value = pt.get_optional<T>(option_name);
-  if (value.is_initialized()) {
-    dest = StripQuotesFromStrings(value.get());
-  } else {
-    static boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger;
-    BOOST_LOG_SEV(logger, static_cast<boost::log::trivial::severity_level>(warning_level))
-        << option_name << " not in config file. Using default:" << dest;
-  }
-}
-
-template <>
-std::string Config::addQuotesToStrings<std::string>(const std::string& value) {
-  return addQuotes(value);
-}
-
-template <typename T>
-T Config::addQuotesToStrings(const T& value) {
-  return value;
-}
-
-template <typename T>
-void Config::writeOption(std::ofstream& sink, const T& data, const std::string& option_name) {
-  sink << option_name << " = " << addQuotesToStrings(data) << "\n";
-}
-
-// End template tricks
-
 Config::Config() { postUpdateValues(); }
 
 Config::Config(const boost::filesystem::path& filename) {
@@ -168,11 +107,6 @@ Config::Config(const boost::filesystem::path& filename) {
 Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
   updateFromCommandLine(cmd);
-  postUpdateValues();
-}
-
-Config::Config(const boost::property_tree::ptree& pt) {
-  updateFromPropertyTree(pt);
   postUpdateValues();
 }
 
@@ -227,7 +161,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
-    std::string e = stripQuotes(events_string.get());
+    std::string e = Utils::stripQuotes(events_string.get());
     network.socket_events.empty();
     boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
   } else {
