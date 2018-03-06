@@ -37,6 +37,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   void storeKeys(const std::string& public_key, const std::string& private_key);
   bool loadKeys(std::string* public_key, std::string* private_key);
 
+  Uptane::Root root_;
   std::string public_key_;
   std::string private_key_;
   std::string public_key_id_;

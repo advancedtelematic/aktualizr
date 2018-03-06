@@ -35,8 +35,8 @@ TufRepository::TufRepository(const std::string& name, const std::string& base_ur
   }
 }
 
-Json::Value TufRepository::verifyRole(Uptane::Role role, const Json::Value& content, Uptane::Root* root_used) const {
-  TimeStamp now(TimeStamp::Now());
+Json::Value TufRepository::verifyRole(Uptane::Role role, const TimeStamp& now, const Json::Value& content,
+                                      Uptane::Root* root_used) const {
   if (!root_used) root_used = const_cast<Uptane::Root*>(&root_);
   Json::Value result = root_used->UnpackSignedObject(now, name_, role, content);
   if (role == Role::Root()) {

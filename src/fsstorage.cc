@@ -151,22 +151,46 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
     return false;
 
   Json::Value json = Utils::parseJSONFile(director_path / "root.json");
-  metadata->director_root = Uptane::Root("director", json);
+  Json::Value fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;  // Old format contains only signed part.
+  }
+  metadata->director_root = Uptane::Root("director", fixed_json);
 
   json = Utils::parseJSONFile(director_path / "targets.json");
-  metadata->director_targets = Uptane::Targets(json);
+  fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;
+  }
+  metadata->director_targets = Uptane::Targets(fixed_json);
 
   json = Utils::parseJSONFile(image_path / "root.json");
-  metadata->image_root = Uptane::Root("image", json);
+  fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;
+  }
+  metadata->image_root = Uptane::Root("image", fixed_json);
 
   json = Utils::parseJSONFile(image_path / "targets.json");
-  metadata->image_targets = Uptane::Targets(json);
+  fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;
+  }
+  metadata->image_targets = Uptane::Targets(fixed_json);
 
   json = Utils::parseJSONFile(image_path / "timestamp.json");
-  metadata->image_timestamp = Uptane::TimestampMeta(json);
+  fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;
+  }
+  metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
 
   json = Utils::parseJSONFile(image_path / "snapshot.json");
-  metadata->image_snapshot = Uptane::Snapshot(json);
+  fixed_json = json;
+  if (!json.isMember("signed")) {
+    fixed_json["signed"] = json;
+  }
+  metadata->image_snapshot = Uptane::Snapshot(fixed_json);
 
   return true;
 }

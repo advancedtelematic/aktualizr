@@ -22,7 +22,7 @@ class TufRepository {
  public:
   TufRepository(const std::string& name, const std::string& base_url, const Config& config,
                 boost::shared_ptr<INvStorage>& storage);
-  Json::Value verifyRole(Role role, const Json::Value&, Uptane::Root* root_used = NULL) const;
+  Json::Value verifyRole(Role role, const TimeStamp& now, const Json::Value&, Uptane::Root* root_used = NULL) const;
   std::string getBaseUrl() const { return base_url_; }
 
   // all of the update* methods throw uptane::SecurityException if the signatures are incorrect

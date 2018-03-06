@@ -105,7 +105,8 @@ Json::Value Repository::fetchAndCheckRole(const Uptane::TufRepository& repo, Upt
                                           Uptane::Root* root_used) {
   // TODO: chain-loading root.json
   Json::Value content = getJSON(repo.getBaseUrl() + "/" + version.RoleFileName(role));
-  return repo.verifyRole(role, content, root_used);
+  TimeStamp now(TimeStamp::Now());
+  return repo.verifyRole(role, now, content, root_used);
 }
 
 bool Repository::getMeta() {

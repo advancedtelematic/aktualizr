@@ -15,7 +15,7 @@
 namespace Uptane {
 
 PartialVerificationSecondary::PartialVerificationSecondary(const SecondaryConfig &sconfig_in)
-    : SecondaryInterface(sconfig_in) {
+    : SecondaryInterface(sconfig_in), root_(Root::kAcceptAll) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
   // FIXME Probably we need to generate keys on the secondary
@@ -33,8 +33,10 @@ PartialVerificationSecondary::PartialVerificationSecondary(const SecondaryConfig
 bool PartialVerificationSecondary::putMetadata(const MetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
-  Uptane::Root root = meta.director_root;
-  root.UnpackSignedObject(now, "director", Role::Targets(), meta.director_targets.original());
+
+  root_.UnpackSignedObject(now, "director", Role::Root(), meta.director_root.original());
+  root_ = meta.director_root;
+  root_.UnpackSignedObject(now, "director", Role::Targets(), meta.director_targets.original());
   if (meta_targets_.version() > meta.director_targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
