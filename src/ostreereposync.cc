@@ -5,11 +5,16 @@
 #include <boost/filesystem.hpp>
 #include <boost/scope_exit.hpp>
 
-#if (defined(OSTREE_CHECK_VERSION) && (OSTREE_CHECK_VERSION(2017, 12)))
-namespace { const OstreeRepoMode kOstreeRepoModeArchive = OSTREE_REPO_MODE_ARCHIVE; }
+namespace {
+const OstreeRepoMode kOstreeRepoModeArchive =
+#if !defined(OSTREE_CHECK_VERSION)
+    OSTREE_REPO_MODE_ARCHIVE_Z2;
+#elif (OSTREE_CHECK_VERSION(2017, 12))
+    OSTREE_REPO_MODE_ARCHIVE;
 #else
-namespace { const OstreeRepoMode kOstreeRepoModeArchive = OSTREE_REPO_MODE_ARCHIVE_Z2; }
+    OSTREE_REPO_MODE_ARCHIVE_Z2;
 #endif
+}  // namespace
 
 namespace fs = boost::filesystem;
 
@@ -43,8 +48,7 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir) {
   OstreeRepo *src_repo = NULL, *dst_repo = NULL;
   GFile *src_repo_path = NULL, *dst_repo_path = NULL;
 
-  BOOST_SCOPE_EXIT(&error, &options, &refs, &refs_to_fetch,
-                   &src_repo_path, &src_repo, &dst_repo_path, &dst_repo) {
+  BOOST_SCOPE_EXIT(&error, &options, &refs, &refs_to_fetch, &src_repo_path, &src_repo, &dst_repo_path, &dst_repo) {
     if (error) g_error_free(error);
     g_variant_unref(options);
     g_object_unref(src_repo_path);
