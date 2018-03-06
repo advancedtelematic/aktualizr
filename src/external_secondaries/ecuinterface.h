@@ -11,7 +11,7 @@ class ECUInterface {
     InstallFailureNotModified,
     InstallFailureModified
   };
-  virtual ~ECUInterface(){};
+  virtual ~ECUInterface() {}
   virtual std::string apiVersion() = 0;
   virtual std::string listEcus() = 0;
   virtual InstallStatus installSoftware(const std::string &hardware_id, const std::string &ecu_id,

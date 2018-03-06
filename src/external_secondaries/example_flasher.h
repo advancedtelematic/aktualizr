@@ -5,7 +5,7 @@
 
 class ExampleFlasher : public ECUInterface {
  public:
-  virtual ~ExampleFlasher(){};
+  virtual ~ExampleFlasher() {}
   ExampleFlasher(const unsigned int loglevel);
   virtual std::string apiVersion();
   virtual std::string listEcus();

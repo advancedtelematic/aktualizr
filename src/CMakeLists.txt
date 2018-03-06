@@ -44,6 +44,7 @@ set(HEADERS aktualizr.h
             eventsinterpreter.h
             exceptions.h
             fsstorage.h
+            gateway.h
             gatewaymanager.h
             httpclient.h
             httpinterface.h
