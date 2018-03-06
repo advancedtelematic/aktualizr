@@ -17,12 +17,8 @@ if(ASN1C)
         endforeach()
 
         # clean previously generated files
-        set(ASN1_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/asn1)
-        if(IS_DIRECTORY ${ASN1_GEN_DIR})
-            file(REMOVE_RECURSE ${ASN1_GEN_DIR})
-        elseif(EXISTS ${ASN1_GEN_DIR})
-            message(FATAL_ERROR "${ASN1_GEN_DIR} not a directory")
-        endif(IS_DIRECTORY ${ASN1_GEN_DIR})
+	set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1)
+	message("ANS1_GEN_DIR is ${ASN1_GEN_DIR}")
         file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
 
         execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
