@@ -50,35 +50,5 @@ class deserialization_error : public std::exception {
 
 ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param);
 
-// Decode token, check if its type matches what is expected and return the rest of the string
-//    * ber - serialization
-//    * int_param - integer value associated with token. Depends on token type.
-//    * string_param - string associated with token. Depends on token type.
-//    * exp_type - expected token type.
-//  Return value: rest of the string to parse
-//  Throws: deserialization_error if type doesn't match
-std::string cer_decode_except_crop(const std::string& ber, int32_t* int_param, std::string* string_param, ASN1_UniversalTag exp_type);
-
-// Decode enum token with boudary check and crop the string
-//    * ber - serialization
-//    * value - enum value
-//    * min - lower boundary
-//    * max - higher boundary
-//  Return value: rest of the string to parse
-//  Throws: deserialization_error if type is not kInteger or boundary check was failed
-template<typename T>
-std::string cer_decode_except_crop_enum(const std::string& ber, T* value, int32_t min, int32_t max) {
-  int32_t int_value;
-  std::string res = cer_decode_except_crop(ber, &int_value, nullptr, kAsn1Enum);
-  if(*value < min || *value > max)
-    throw deserialization_error();
-
-  *value = static_cast<T>(int_value);
-  return res;
-}
-
-std::string cer_encode_endcons();
-std::string cer_encode_sequence();
-std::string cer_encode_length(int32_t len);
 std::string cer_encode_integer(int32_t number);
 std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype);
