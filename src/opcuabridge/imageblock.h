@@ -9,7 +9,7 @@ class ImageBlock {
 
   typedef std::vector<unsigned char>    block_type;
 
-  ImageBlock() {}
+  ImageBlock() : blockNumber_(0) {}
   virtual ~ImageBlock() {}
 
   const std::string& getFilename() const { return filename_; }

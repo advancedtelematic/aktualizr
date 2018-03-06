@@ -5,7 +5,7 @@ namespace boost { namespace filesystem { class path; } }
 
 namespace ostree_repo_sync {
 
-bool CreateTempArchiveRepo(const boost::filesystem::path& tmp_repo_dir);
+bool ArchiveModeRepo(const boost::filesystem::path& tmp_repo_dir);
 bool LocalPullRepo(const boost::filesystem::path& src_repo_dir,
                    const boost::filesystem::path& dst_repo_dir);
 

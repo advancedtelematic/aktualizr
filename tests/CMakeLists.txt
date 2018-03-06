@@ -203,15 +203,25 @@ if(BUILD_OPCUA)
                      opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                      opcuabridge_test_utils.cc)
 
-    add_executable(opcuabridge-ostree-repo-sync-client opcuabridge_ostree_repo_sync_client.cc)
+    add_executable(opcuabridge-ostree-repo-sync-client opcuabridge_ostree_repo_sync_client.cc
+                   opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-ostree-repo-sync-client aktualizr_static_lib
                           ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
     add_dependencies(build_tests opcuabridge-ostree-repo-sync-client)
 
-    add_executable(opcuabridge-ostree-repo-sync-server opcuabridge_ostree_repo_sync_server.cc)
+    add_executable(opcuabridge-ostree-repo-sync-server opcuabridge_ostree_repo_sync_server.cc
+                   opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-ostree-repo-sync-server aktualizr_static_lib
                           ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
     add_dependencies(build_tests opcuabridge-ostree-repo-sync-server)
+
+    add_test(NAME opcuabridge-ostree-repo-sync-test
+             COMMAND ${PROJECT_SOURCE_DIR}/tests/run_opcuabridge_ostree_repo_sync_test.sh
+             ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests)
+
+    add_test(NAME opcuabridge-ostree-repo-sync-valgrind-test
+             COMMAND ${PROJECT_SOURCE_DIR}/tests/run_opcuabridge_ostree_repo_sync_test.sh
+             ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests valgrind)
 endif(BUILD_OPCUA)
 
 if(BUILD_DEB)

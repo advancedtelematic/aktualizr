@@ -46,12 +46,11 @@ std::size_t UpdateFileList(FileList* filelist, const fs::path& repo_dir_path) {
 void UpdateFileUnorderedSet(FileUnorderedSet* file_unordered_set, const FileList& file_list) {
   if (!file_list.getBlock().empty()) {
     FileList::block_type::const_reverse_iterator
-      block_rev_it = file_list.getBlock().rbegin(), p = block_rev_it;
-    for (; block_rev_it != file_list.getBlock().rend(); p = block_rev_it) {
-      if ('\0' == *(++block_rev_it)) {
+      block_rev_it     = file_list.getBlock().rbegin(), p = block_rev_it,
+      block_rev_end_it = file_list.getBlock().rend();
+    for (; block_rev_it != block_rev_end_it; p = block_rev_it)
+      if ((block_rev_end_it == ++block_rev_it) || ('\0' == *(block_rev_it)))
         file_unordered_set->insert(&*p);
-      }
-    }
   }
 }
 
