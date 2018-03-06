@@ -1,23 +1,7 @@
 #include "asn1-cer.h"
 #include <algorithm>
 
-std::string cer_encode_sequence() {
-  std::string res;
-
-  res.push_back(0x30);
-  res.push_back(0x80);
-  return res;
-}
-
-std::string cer_encode_endcons() {
-  std::string res;
-
-  res.push_back(0x00);
-  res.push_back(0x00);
-  return res;
-}
-
-std::string cer_encode_length(int32_t len) {
+static std::string cer_encode_length(int32_t len) {
   if (len < 0) {
     throw std::runtime_error("Can't serialize negative length in ASN.1");
   }
@@ -81,7 +65,7 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag sub
     res += cer_encode_string(contents_copy.substr(0, chunk_size), subtype);
     contents_copy = contents_copy.substr(chunk_size);
   }
-  res += cer_encode_endcons();
+  res += "\0\0";  // end of sequence
   return res;
 }
 
