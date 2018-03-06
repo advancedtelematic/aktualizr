@@ -7,6 +7,7 @@ fi
 
 . venv/bin/activate
 
+pip install wheel
 pip install -r "$1/requirements.txt"
 
 PORT=`$1/../get_open_port.py`
