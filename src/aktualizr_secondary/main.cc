@@ -13,6 +13,7 @@
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_ipc.h"
 #include "socket_activation.h"
+#include "utils.h"
 
 #include "logging.h"
 
@@ -85,8 +86,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 
 void handle_follow_conn_messages(int con_fd, std::unique_ptr<sockaddr_storage> addr,
                                  SecondaryPacket::ChanType &channel) {
-  (void)addr;
-  LOG_INFO << "Opening connection with peer, fd " << con_fd;
+  std::string peer_name = Utils::ipDisplayName(*addr);
+  LOG_INFO << "Opening connection with " << peer_name;
   while (true) {
     uint8_t c;
     if (recv(con_fd, &c, 1, 0) != 1) {
@@ -97,7 +98,7 @@ void handle_follow_conn_messages(int con_fd, std::unique_ptr<sockaddr_storage> a
 
     channel << std::move(pkt);
   }
-  LOG_INFO << "Connection closed with peer";
+  LOG_INFO << "Connection closed with " << peer_name;
 }
 
 static int secondary_open_socket(const AktualizrSecondaryConfig &config) {
