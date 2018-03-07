@@ -4,6 +4,8 @@
 
 #include <openssl/ssl.h>
 
+#include "aktualizr_secondary_config.h"
+
 #include "logging.h"
 
 namespace bpo = boost::program_options;
@@ -26,7 +28,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-secondary version")
       ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
-      ("config,c", bpo::value<std::string>()->required(), "toml configuration file");
+      ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
+      ("server-port,p", bpo::value<int>(), "command server listening port");
   // clang-format on
 
   bpo::variables_map vm;
