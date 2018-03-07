@@ -10,7 +10,7 @@
 
 namespace bpo = boost::program_options;
 
-void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
+void check_secondary_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
     exit(EXIT_SUCCESS);
@@ -38,7 +38,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     bpo::basic_parsed_options<char> parsed_options =
         bpo::command_line_parser(argc, argv).options(description).allow_unregistered().run();
     bpo::store(parsed_options, vm);
-    check_info_options(description, vm);
+    check_secondary_options(description, vm);
     bpo::notify(vm);
     unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
@@ -58,7 +58,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       exit(EXIT_SUCCESS);
     }
   } catch (const bpo::error &ex) {
-    check_info_options(description, vm);
+    check_secondary_options(description, vm);
 
     // log boost error
     LOG_WARNING << "boost command line option error: " << ex.what();
