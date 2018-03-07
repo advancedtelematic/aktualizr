@@ -10,6 +10,7 @@ RUN echo "deb http://httpredir.debian.org/debian jessie-backports main contrib n
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install \
   autoconf \
+  asn1c \
   automake \
   bison \
   cmake \
@@ -32,6 +33,7 @@ RUN apt-get update && apt-get -y install \
   libdpkg-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
+  libffi-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
@@ -49,6 +51,7 @@ RUN apt-get update && apt-get -y install \
   python3-dev \
   python3-gi \
   python3-openssl \
+  python3-pip \
   python3-venv \
   valgrind \
   wget
