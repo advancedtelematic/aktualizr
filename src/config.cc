@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <iomanip>
 #include <sstream>
 
 #include <boost/algorithm/string/classification.hpp>
@@ -588,4 +589,40 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   writeOption(sink, import.tls_pkey_path, "tls_pkey_path");
   writeOption(sink, import.tls_clientcert_path, "tls_clientcert_path");
   sink << "\n";
+}
+
+asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
+  ser << kAsn1Enum << static_cast<int32_t>(cs);
+
+  return ser;
+}
+
+asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf) {
+  ser << asn1::seq << kAsn1Utf8String << tls_conf.server << kAsn1Utf8String << tls_conf.server_url_path.string()
+      << tls_conf.ca_source << tls_conf.pkey_source << tls_conf.cert_source << asn1::endseq;
+  return ser;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
+  int32_t cs_i;
+  des >> kAsn1Enum >> cs_i;
+
+  if (cs_i < kFile || cs_i > kPkcs11) throw deserialization_error();
+
+  cs = static_cast<CryptoSource>(cs_i);
+
+  return des;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, boost::filesystem::path& path) {
+  std::string path_string;
+  des >> kAsn1Utf8String >> path_string;
+  path = path_string;
+  return des;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf) {
+  des >> asn1::seq >> kAsn1Utf8String >> tls_conf.server >> tls_conf.server_url_path >> tls_conf.ca_source >>
+      tls_conf.pkey_source >> tls_conf.cert_source >> asn1::restseq;
+  return des;
 }
