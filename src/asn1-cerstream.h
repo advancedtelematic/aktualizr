@@ -17,6 +17,44 @@ const Token seq = Token(Token::seq_tok);
 const Token endseq = Token(Token::endseq_tok);
 const Token restseq = Token(Token::restseq_tok);
 
+template <ASN1_UniversalTag Tag, typename = void> class ImplicitC {
+};
+
+template <ASN1_UniversalTag Tag>
+class ImplicitC<Tag, int32_t&> {
+  public:
+    int32_t& data;
+    ImplicitC(int32_t& d) : data(d) {}
+  
+};
+
+template <ASN1_UniversalTag Tag>
+class ImplicitC<Tag, const int32_t&> {
+  public:
+    const int32_t& data;
+    ImplicitC(const int32_t& d) : data(d) {}
+  
+};
+
+template <ASN1_UniversalTag Tag>
+class ImplicitC<Tag, std::string&> {
+  public:
+    std::string& data;
+    ImplicitC(std::string& d) : data(d) {}
+  
+};
+
+template <ASN1_UniversalTag Tag>
+class ImplicitC<Tag, const std::string&> {
+  public:
+    const std::string& data;
+    ImplicitC(const std::string& d) : data(d) {}
+  
+};
+
+template <ASN1_UniversalTag Tag, typename T>
+ImplicitC<Tag, T&> implicit(T& data) { return ImplicitC<Tag, T&>(data); }
+
 class Serializer {
   public:
     const std::string& getResult() {return result;}
@@ -29,6 +67,12 @@ class Serializer {
     std::string result;
     ASN1_UniversalTag last_type;
 };
+
+template <ASN1_UniversalTag Tag, typename T>
+Serializer& operator << (Serializer& ser, ImplicitC<Tag, T> imp) {
+  ser << Tag << imp.data;
+  return ser;
+}
 
 class Deserializer {
   public:
@@ -46,5 +90,11 @@ class Deserializer {
     int32_t int_param;
     std::string string_param;
 };
+
+template <ASN1_UniversalTag Tag, typename T>
+Deserializer& operator >> (Deserializer& des, ImplicitC<Tag, T> imp) {
+  des >> Tag >> imp.data;
+  return des;
+}
 
 }

@@ -598,8 +598,9 @@ asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf) {
-  ser << asn1::seq << kAsn1Utf8String << tls_conf.server << kAsn1Utf8String << tls_conf.server_url_path.string()
-      << tls_conf.ca_source << tls_conf.pkey_source << tls_conf.cert_source << asn1::endseq;
+  ser << asn1::seq << asn1::implicit<kAsn1Utf8String>(tls_conf.server)
+      << asn1::implicit<kAsn1Utf8String>(tls_conf.server_url_path.string()) << tls_conf.ca_source
+      << tls_conf.pkey_source << tls_conf.cert_source << asn1::endseq;
   return ser;
 }
 
@@ -616,13 +617,13 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
 
 asn1::Deserializer& operator>>(asn1::Deserializer& des, boost::filesystem::path& path) {
   std::string path_string;
-  des >> kAsn1Utf8String >> path_string;
+  des >> asn1::implicit<kAsn1Utf8String>(path_string);
   path = path_string;
   return des;
 }
 
 asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf) {
-  des >> asn1::seq >> kAsn1Utf8String >> tls_conf.server >> tls_conf.server_url_path >> tls_conf.ca_source >>
-      tls_conf.pkey_source >> tls_conf.cert_source >> asn1::restseq;
+  des >> asn1::seq >> asn1::implicit<kAsn1Utf8String>(tls_conf.server) >> tls_conf.server_url_path >>
+      tls_conf.ca_source >> tls_conf.pkey_source >> tls_conf.cert_source >> asn1::restseq;
   return des;
 }
