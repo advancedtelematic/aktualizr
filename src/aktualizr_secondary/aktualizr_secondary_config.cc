@@ -18,11 +18,22 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
   if (cmd.count("server-port") != 0) {
     network.port = cmd["server-port"].as<int>();
   }
+  if (cmd.count("discovery-port") != 0) {
+    int p = cmd["discovery_port"].as<int>();
+    if (p == 0) {
+      network.discovery = false;
+    } else {
+      network.discovery = true;
+    }
+    network.discovery_port = p;
+  }
 }
 
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in secondary_config.h and writeToFile().
   CopyFromConfig(network.port, "network.port", boost::log::trivial::info, pt);
+  CopyFromConfig(network.discovery, "network.discovery", boost::log::trivial::info, pt);
+  CopyFromConfig(network.discovery_port, "network.discovery_port", boost::log::trivial::info, pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -43,5 +54,7 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
 
   sink << "[network]\n";
   writeOption(sink, network.port, "port");
+  writeOption(sink, network.discovery, "discovery");
+  writeOption(sink, network.discovery_port, "discovery_port");
   sink << "\n";
 }

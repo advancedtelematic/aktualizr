@@ -32,7 +32,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr-secondary version")
       ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
-      ("server-port,p", bpo::value<int>(), "command server listening port");
+      ("server-port,p", bpo::value<int>(), "command server listening port")
+      ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)");
   // clang-format on
 
   bpo::variables_map vm;

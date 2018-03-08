@@ -78,5 +78,4 @@ struct SocketCloser {
 
 using SocketHandle = std::unique_ptr<int, SocketCloser>;
 
-
 #endif  // UTILS_H_

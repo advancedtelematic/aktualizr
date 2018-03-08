@@ -3,6 +3,7 @@ set(AKTUALIZR_SECONDARY_SRC main.cc)
 set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary.cc
     aktualizr_secondary_config.cc
+    aktualizr_secondary_discovery.cc
     )
 
 add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
@@ -30,6 +31,7 @@ install(TARGETS aktualizr-secondary
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary.h
     aktualizr_secondary_config.h
+    aktualizr_secondary_discovery.h
     aktualizr_secondary_ipc.h
     )
 

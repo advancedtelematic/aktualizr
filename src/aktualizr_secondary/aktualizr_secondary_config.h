@@ -7,6 +7,8 @@
 
 struct AktualizrSecondaryNetConfig {
   int port{9030};
+  bool discovery{true};
+  int discovery_port{9031};
 };
 
 class AktualizrSecondaryConfig {
