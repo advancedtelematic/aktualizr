@@ -8,3 +8,4 @@ fixes:
 ignore:
   - "tests"
   - "third_party"
+  - "generated"

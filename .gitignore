@@ -3,6 +3,9 @@ build/
 /build-*
 /cmake-build-debug
 
+# generated data
+generated
+
 # clion
 /.idea
 
