@@ -40,10 +40,16 @@ add_dependencies(build_tests aktualizr-secondary)
 
 add_dependencies(build_tests aktualizr-info)
 
-add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-                  -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
-add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-                  -E test_uptane_vectors DEPENDS build_tests)
+add_custom_target(check COMMAND
+                    CTEST_OUTPUT_ON_FAILURE=1
+                    CTEST_PARALLEL_LEVEL=${TEST_JOBS}
+                    ${CMAKE_CTEST_COMMAND}
+                    -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
+add_custom_target(check-full COMMAND
+                    CTEST_OUTPUT_ON_FAILURE=1
+                    CTEST_PARALLEL_LEVEL=${TEST_JOBS}
+                    ${CMAKE_CTEST_COMMAND}
+                    -E test_uptane_vectors DEPENDS build_tests)
 
 # Reference asn1c libraries
 add_asn1c_lib(config asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
