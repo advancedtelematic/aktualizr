@@ -11,9 +11,7 @@
 #include "socket_activation.h"
 #include "utils.h"
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config) : config_(config) {
-  open_socket();
-}
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config) : config_(config) { open_socket(); }
 
 void AktualizrSecondary::open_socket() {
   if (socket_activation::listen_fds(0) == 1) {
@@ -53,9 +51,9 @@ void AktualizrSecondary::open_socket() {
     throw std::runtime_error("listen failed");
   }
 
-  LOG_INFO << "Listening on port " << config_.network.port;
-
   socket_hdl_ = std::move(hdl);
+
+  LOG_INFO << "Listening on port " << listening_port();
 }
 
 void AktualizrSecondary::run() {
@@ -81,9 +79,41 @@ void AktualizrSecondary::run() {
   std::shared_ptr<SecondaryPacket> pkt;
   while (channel_ >> pkt) {
     std::cout << "Got packet " << pkt->str() << std::endl;
+
+    if (pkt->msg->variant == "Stop") {
+      // Will cause `accept()` to fail and break the loop
+      shutdown(*socket_hdl_, SHUT_RDWR);
+    }
   }
 
   tcp_thread.join();
+}
+
+void AktualizrSecondary::stop() {
+  std::shared_ptr<SecondaryPacket> pkt = std::make_shared<SecondaryPacket>(new StopMessage{});
+
+  channel_ << pkt;
+}
+
+int AktualizrSecondary::listening_port() const {
+  sockaddr_storage ss;
+  socklen_t len = sizeof(ss);
+  in_port_t p;
+  if (getsockname(*socket_hdl_, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
+    return -1;
+  }
+
+  if (ss.ss_family == AF_INET) {
+    sockaddr_in *sa = reinterpret_cast<sockaddr_in *>(&ss);
+    p = sa->sin_port;
+  } else if (ss.ss_family == AF_INET6) {
+    sockaddr_in6 *sa = reinterpret_cast<sockaddr_in6 *>(&ss);
+    p = sa->sin6_port;
+  } else {
+    return -1;
+  }
+
+  return ntohs(p);
 }
 
 void AktualizrSecondary::handle_connection_msgs(int con_fd, std::unique_ptr<sockaddr_storage> addr) {

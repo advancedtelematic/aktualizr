@@ -8,7 +8,10 @@
 #include "channel.h"
 
 struct SocketCloser {
-  void operator()(int *ptr) const { close(*ptr); }
+  void operator()(int *ptr) const {
+    close(*ptr);
+    delete ptr;
+  }
 };
 
 using SocketHandle = std::unique_ptr<int, SocketCloser>;
@@ -17,6 +20,8 @@ class AktualizrSecondary {
  public:
   AktualizrSecondary(const AktualizrSecondaryConfig &config);
   void run();
+  void stop();
+  int listening_port() const;
 
  private:
   void handle_connection_msgs(int con_fd, std::unique_ptr<sockaddr_storage> addr);

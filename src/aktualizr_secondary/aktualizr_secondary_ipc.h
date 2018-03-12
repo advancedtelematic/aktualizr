@@ -9,18 +9,25 @@
 #include "channel.h"
 
 struct SecondaryMessage {
-  virtual std::string str() const = 0;
+  std::string variant;
 };
 
 struct GetVersionMessage : public SecondaryMessage {
-  std::string str() const override { return "GetVersion"; }
+  GetVersionMessage() { variant = "GetVersion"; }
+};
+
+struct StopMessage : public SecondaryMessage {
+  StopMessage() { variant = "Stop"; }
 };
 
 struct SecondaryPacket {
+  SecondaryPacket(SecondaryMessage *message) : msg(std::unique_ptr<SecondaryMessage>(message)) {
+    memset(&peer_addr, 0, sizeof(peer_addr));
+  }
   SecondaryPacket(sockaddr_storage peer, SecondaryMessage *message)
       : peer_addr(peer), msg(std::unique_ptr<SecondaryMessage>(message)) {}
 
-  std::string str() const { return "Packet: " + msg->str(); }
+  std::string str() const { return "Packet: " + msg->variant; }
 
   using ChanType = Channel<std::shared_ptr<SecondaryPacket>>;
 

@@ -7,21 +7,21 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
 
 add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
 target_link_libraries(aktualizr_secondary_static_lib
-  socket_activation
-  )
+    socket_activation)
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
-  aktualizr_secondary_static_lib
-  aktualizr_static_lib
-  ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${sodium_LIBRARY_RELEASE}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${CURL_LIBRARIES}
-  ${GLIB2_LIBRARIES}
-  ${LibArchive_LIBRARIES}
-  gcov)
+    aktualizr_secondary_static_lib
+    aktualizr_static_lib
+    ${Boost_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${sodium_LIBRARY_RELEASE}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${CURL_LIBRARIES}
+    ${GLIB2_LIBRARIES}
+    ${LibArchive_LIBRARIES}
+    gcov
+    )
 
 install(TARGETS aktualizr-secondary
         COMPONENT aktualizr
@@ -30,6 +30,7 @@ install(TARGETS aktualizr-secondary
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary.h
     aktualizr_secondary_config.h
+    aktualizr_secondary_ipc.h
     )
 
 aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_LIB_SRC} ${ALL_AKTUALIZR_SECONDARY_HEADERS})
