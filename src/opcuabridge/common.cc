@@ -1,6 +1,7 @@
 #include "currenttime.h"
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"
+#include "filedata.h"
 #include "hash.h"
 #include "image.h"
 #include "imageblock.h"
@@ -11,6 +12,13 @@
 #include "signature.h"
 #include "signed.h"
 #include "versionreport.h"
+
+#include <logging.h>
+
+#include <boost/filesystem.hpp>
+#include <boost/iostreams/device/mapped_file.hpp>
+
+namespace fs = boost::filesystem;
 
 namespace opcuabridge {
 const UA_UInt16 kNSindex                = 1;
@@ -25,15 +33,17 @@ const char* ImageRequest::node_id_      = "ImageRequest";
 const char* ImageFile::node_id_         = "ImageFile";
 const char* ImageBlock::node_id_        = "ImageBlock";
 const char* ImageBlock::bin_node_id_    = "ImageBlock_BinaryData";
+const char* FileData::node_id_          = "FileData";
+const char* FileData::bin_node_id_      = "FileData_BinaryData";
 }  // namespace opcua_bridge
 
 namespace opcuabridge {
 
 template <>
-UA_StatusCode read<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
-                               void *sessionContext, const UA_NodeId *nodeId,
-                               void *nodeContext, UA_Boolean sourceTimeStamp,
-                               const UA_NumericRange *range, UA_DataValue *dataValue) {
+UA_StatusCode read<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId,
+                                      void *sessionContext, const UA_NodeId *nodeId,
+                                      void *nodeContext, UA_Boolean sourceTimeStamp,
+                                      const UA_NumericRange *range, UA_DataValue *dataValue) {
 
   const BinaryDataContainer& bin_data =
     *static_cast<BinaryDataContainer*>(nodeContext);
@@ -46,10 +56,10 @@ UA_StatusCode read<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
 }
 
 template <>
-UA_StatusCode write<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
-                                void *sessionContext, const UA_NodeId *nodeId,
-                                void *nodeContext, const UA_NumericRange *range,
-                                const UA_DataValue *data) {
+UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId,
+                                       void *sessionContext, const UA_NodeId *nodeId,
+                                       void *nodeContext, const UA_NumericRange *range,
+                                       const UA_DataValue *data) {
 
   if (!UA_Variant_isEmpty(&data->value) &&
       UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
@@ -62,5 +72,72 @@ UA_StatusCode write<BinaryData>(UA_Server *server, const UA_NodeId *sessionId,
   }
   return UA_STATUSCODE_GOOD;
 }
+
+template <>
+UA_StatusCode read<MessageFileData>(UA_Server *server, const UA_NodeId *sessionId,
+                                    void *sessionContext, const UA_NodeId *nodeId,
+                                    void *nodeContext, UA_Boolean sourceTimeStamp,
+                                    const UA_NumericRange *range, UA_DataValue *dataValue) {
+  return UA_STATUSCODE_GOOD;
+}
+
+template <>
+UA_StatusCode write<MessageFileData>(UA_Server *server, const UA_NodeId *sessionId,
+                                     void *sessionContext, const UA_NodeId *nodeId,
+                                     void *nodeContext, const UA_NumericRange *range,
+                                     const UA_DataValue *data) {
+
+  if (!UA_Variant_isEmpty(&data->value) &&
+      UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
+    MessageFileData* mfd = static_cast<MessageFileData*>(nodeContext);
+
+    fs::path full_file_path = mfd->getFullFilePath();
+    if (!fs::exists(full_file_path)) {
+      fs::create_directories(full_file_path.parent_path());
+    }
+    std::ofstream ofs(full_file_path.c_str(), std::ios::binary | std::ios::app);
+    if (ofs) {
+      ofs.write(static_cast<const char*>(data->value.data), data->value.arrayLength);
+      if (!ofs) {
+        LOG_ERROR << "File write error: " << full_file_path.native();
+      }
+    } else {
+      LOG_ERROR << "File open error: " << full_file_path.native();
+    }
+  }
+  return UA_STATUSCODE_GOOD;
+}
+
+namespace internal {
+
+UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id,
+                              const boost::filesystem::path& file_path,
+                              const std::size_t block_size) {
+  UA_StatusCode retval;
+
+  boost::iostreams::mapped_file_source file(file_path.native());
+  boost::iostreams::mapped_file_source::iterator f_it = file.begin();
+
+  const std::size_t total_size = file.size();
+  std::size_t written_size = 0;
+  UA_Variant *val = UA_Variant_new();
+  while (f_it != file.end()) {
+    std::size_t current_block_size = std::min(block_size, (total_size - written_size));
+    UA_Variant_setArray(val, const_cast<char *>(&(*f_it)),
+                        current_block_size, &UA_TYPES[UA_TYPES_BYTE]);
+    val->storageType = UA_VARIANT_DATA_NODELETE;
+    retval = UA_Client_writeValueAttribute(
+        client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
+    if (retval != UA_STATUSCODE_GOOD)
+      return retval;
+    std::advance(f_it, current_block_size);
+    written_size += current_block_size;
+  }
+  UA_Variant_delete(val);
+
+  return UA_STATUSCODE_GOOD;
+}
+
+}  // namespace internal
 
 }  // namespace opcua_bridge

@@ -4,6 +4,8 @@
 #include "currenttime.h"
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"
+#include "filedata.h"
+#include "filelist.h"
 #include "hash.h"
 #include "image.h"
 #include "imageblock.h"
