@@ -32,18 +32,18 @@ void BoostLogServer(UA_LogLevel level, UA_LogCategory category, const char* msg,
   char msg_buff[log_msg_buff_size];
   vsnprintf(msg_buff, log_msg_buff_size, msg, args);
   BOOST_LOG_STREAM_WITH_PARAMS(
-    boost::log::trivial::logger::get(),
-    (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
-    << "server " << msg_buff;
+      boost::log::trivial::logger::get(),
+      (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
+      << "server " << msg_buff;
 }
 
 void BoostLogSecondary(UA_LogLevel level, UA_LogCategory category, const char* msg, va_list args) {
   char msg_buff[log_msg_buff_size];
   vsnprintf(msg_buff, log_msg_buff_size, msg, args);
   BOOST_LOG_STREAM_WITH_PARAMS(
-    boost::log::trivial::logger::get(),
-    (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
-    << "secondary " << msg_buff;
+      boost::log::trivial::logger::get(),
+      (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
+      << "secondary " << msg_buff;
 }
 
-} // namespace opcuabridge_test_utils
+}  // namespace opcuabridge_test_utils

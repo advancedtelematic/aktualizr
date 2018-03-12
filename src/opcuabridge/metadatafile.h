@@ -21,12 +21,8 @@ class MetadataFile {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&metadata_)                       // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&metadata_)                      // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFile>::type cb) {
-      on_before_read_cb_ = cb;
-  }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFile>::type cb) {
-      on_after_write_cb_ = cb;
-  }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFile>::type cb) { on_before_read_cb_ = cb; }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFile>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
   int GUID_;

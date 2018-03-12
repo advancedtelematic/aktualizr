@@ -15,12 +15,8 @@ class ImageRequest {
   CLIENTREAD_FUNCTION_DEFINITION()                     // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                    // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageRequest>::type cb) {
-      on_before_read_cb_ = cb;
-  }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageRequest>::type cb) {
-      on_after_write_cb_ = cb;
-  }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageRequest>::type cb) { on_before_read_cb_ = cb; }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageRequest>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
   std::string filename_;
@@ -47,9 +43,7 @@ class ImageRequest {
 #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION
   SERIALIZE_FUNCTION_FRIEND_DECLARATION
 
-  DEFINE_SERIALIZE_METHOD() {
-    SERIALIZE_FIELD(ar, "filename_", filename_);
-  }
+  DEFINE_SERIALIZE_METHOD() { SERIALIZE_FIELD(ar, "filename_", filename_); }
 #endif  // OPCUABRIDGE_ENABLE_SERIALIZATION
 };
 }  // namespace opcuabridge

@@ -14,19 +14,13 @@ class VersionReport {
   const int& getTokenForTimeServer() const { return tokenForTimeServer_; }
   void setTokenForTimeServer(const int& tokenForTimeServer) { tokenForTimeServer_ = tokenForTimeServer; }
   const ECUVersionManifest& getEcuVersionManifest() const { return ecuVersionManifest_; }
-  void setEcuVersionManifest(const ECUVersionManifest& ecuVersionManifest) {
-    ecuVersionManifest_ = ecuVersionManifest;
-  }
+  void setEcuVersionManifest(const ECUVersionManifest& ecuVersionManifest) { ecuVersionManifest_ = ecuVersionManifest; }
   INITSERVERNODESET_FUNCTION_DEFINITION(VersionReport)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<VersionReport>::type cb) {
-      on_before_read_cb_ = cb;
-  }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<VersionReport>::type cb) {
-      on_after_write_cb_ = cb;
-  }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<VersionReport>::type cb) { on_before_read_cb_ = cb; }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<VersionReport>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
   int tokenForTimeServer_;

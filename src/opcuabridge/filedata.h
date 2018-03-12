@@ -8,28 +8,20 @@
 namespace opcuabridge {
 class FileData : public MessageFileData {
  public:
-  FileData(const boost::filesystem::path& base_path)
-    : base_path_(base_path)
-    {}
+  FileData(const boost::filesystem::path& base_path) : base_path_(base_path) {}
   virtual ~FileData() {}
 
   const boost::filesystem::path& getBasePath() const { return base_path_; }
   const boost::filesystem::path& getFilePath() const { return file_path_; }
   void setFilePath(const boost::filesystem::path& file_path) { file_path_ = file_path; }
 
-  virtual std::string getFullFilePath() const override {
-    return (getBasePath() / getFilePath()).native();
-  }
+  virtual std::string getFullFilePath() const override { return (getBasePath() / getFilePath()).native(); }
 
-  INITSERVERNODESET_FILE_FUNCTION_DEFINITION(FileData) // InitServerNodeset(UA_Server*)
-  CLIENTWRITE_FILE_FUNCTION_DEFINITION()               // ClientWrite(UA_Client*)
+  INITSERVERNODESET_FILE_FUNCTION_DEFINITION(FileData)  // InitServerNodeset(UA_Server*)
+  CLIENTWRITE_FILE_FUNCTION_DEFINITION()                // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileData>::type cb) {
-      on_before_read_cb_ = cb;
-  }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileData>::type cb) {
-      on_after_write_cb_ = cb;
-  }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileData>::type cb) { on_before_read_cb_ = cb; }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileData>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
   boost::filesystem::path base_path_;
@@ -47,9 +39,7 @@ class FileData : public MessageFileData {
     v["filename"] = getFilePath().native();
     return v;
   }
-  void unwrapMessage(Json::Value v) {
-    setFilePath(v["filename"].asString());
-  }
+  void unwrapMessage(Json::Value v) { setFilePath(v["filename"].asString()); }
 
   WRAPMESSAGE_FUCTION_DEFINITION(FileData)
   UNWRAPMESSAGE_FUCTION_DEFINITION(FileData)

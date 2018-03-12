@@ -9,10 +9,10 @@
 #include "opcuabridge_test_utils.h"
 #include "test_utils.h"
 
-#include <fstream>
+#include <boost/bind.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
-#include <boost/bind.hpp>
+#include <fstream>
 
 namespace tutils = opcuabridge_test_utils;
 
@@ -54,13 +54,11 @@ const std::string kHexValue = "00010203040506070809AABBCCDDEEFF";
 
 TEST(opcuabridge, serialization) {
   boost::random::mt19937 gen;
-  gen.seed(static_cast<unsigned int>(std::time(0))); 
-  boost::random::uniform_int_distribution<uint8_t> random_byte(0x00,0xFF);
+  gen.seed(static_cast<unsigned int>(std::time(0)));
+  boost::random::uniform_int_distribution<uint8_t> random_byte(0x00, 0xFF);
 
-  opcuabridge::Signature s1 =
-    tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
-  opcuabridge::Signature s2 =
-    tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
+  opcuabridge::Signature s1 = tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
+  opcuabridge::Signature s2 = tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
 
   std::vector<opcuabridge::Signature> signatures;
   signatures.push_back(s1);
