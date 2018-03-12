@@ -82,7 +82,8 @@ class SQLiteStatement {
     }
   }
 
-  void bindArguments() { /* end of template specialization */ }
+  /* end of template specialization */
+  void bindArguments() {}
 
   template <typename T, typename... Types>
   void bindArguments(const T& v, const Types&... args) {
