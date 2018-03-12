@@ -1,7 +1,7 @@
 #include <open62541.h>
 
-#include "opcuabridge_test_utils.h"
 #include "logging.h"
+#include "opcuabridge_test_utils.h"
 
 #include <signal.h>
 #include <cstdlib>

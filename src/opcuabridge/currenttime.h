@@ -21,12 +21,8 @@ class CurrentTime {
   CLIENTREAD_FUNCTION_DEFINITION()                    // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                   // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<CurrentTime>::type cb) {
-      on_before_read_cb_ = cb;
-  }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<CurrentTime>::type cb) {
-      on_after_write_cb_ = cb;
-  }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<CurrentTime>::type cb) { on_before_read_cb_ = cb; }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<CurrentTime>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
   std::vector<Signature> signatures_;
@@ -46,7 +42,9 @@ class CurrentTime {
   }
   void unwrapMessage(Json::Value v) {
     setSignatures(convert_to::stdVector<Signature>(v["signatures"]));
-    Signed s; s.unwrapMessage(v["signed"]); setSigned(s);
+    Signed s;
+    s.unwrapMessage(v["signed"]);
+    setSigned(s);
   }
 
   WRAPMESSAGE_FUCTION_DEFINITION(CurrentTime)

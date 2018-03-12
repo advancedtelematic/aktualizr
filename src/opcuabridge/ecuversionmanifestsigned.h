@@ -36,7 +36,9 @@ class ECUVersionManifestSigned {
     setPreviousTime(v["previousTime"].asInt());
     setCurrentTime(v["currentTime"].asInt());
     setSecurityAttack(v["securityAttack"].asString());
-    Image i; i.unwrapMessage(v["installedImage"]); setInstalledImage(i);
+    Image i;
+    i.unwrapMessage(v["installedImage"]);
+    setInstalledImage(i);
   }
 
  protected:
