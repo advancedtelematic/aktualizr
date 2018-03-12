@@ -1,18 +1,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <future>
 #include <iostream>
-
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 #include <openssl/ssl.h>
 
+#include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_ipc.h"
-#include "socket_activation.h"
 #include "utils.h"
 
 #include "logging.h"
@@ -84,72 +78,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
-void handle_follow_conn_messages(int con_fd, std::unique_ptr<sockaddr_storage> addr,
-                                 SecondaryPacket::ChanType &channel) {
-  std::string peer_name = Utils::ipDisplayName(*addr);
-  LOG_INFO << "Opening connection with " << peer_name;
-  while (true) {
-    uint8_t c;
-    if (recv(con_fd, &c, 1, 0) != 1) {
-      break;
-    }
-    // TODO: parse packets
-    std::unique_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, new GetVersionMessage}};
-
-    channel << std::move(pkt);
-  }
-  LOG_INFO << "Connection closed with " << peer_name;
-}
-
-struct SocketCloser {
-  void operator()(int * ptr) const {
-    close(*ptr);
-  }
-};
-
-using SocketHandle = std::unique_ptr<int, SocketCloser>;
-
-static SocketHandle secondary_open_socket(const AktualizrSecondaryConfig &config) {
-  if (socket_activation::listen_fds(0) == 1) {
-    LOG_INFO << "Using socket activation";
-    SocketHandle hdl(new int(socket_activation::listen_fds_start));
-    return std::move(hdl);
-  }
-
-  // manual socket creation
-  int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
-  if (socket_fd < 0) {
-    throw std::runtime_error("socket creation failed");
-  }
-  SocketHandle hdl(new int(socket_fd));
-  sockaddr_in6 sa;
-
-  memset(&sa, 0, sizeof(sa));
-  sa.sin6_family = AF_INET6;
-  sa.sin6_port = htons(config.network.port);
-  sa.sin6_addr = IN6ADDR_ANY_INIT;
-
-  int v6only = 0;
-  if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
-    throw std::runtime_error("setsockopt(IPV6_V6ONLY) failed");
-  }
-
-  int reuseaddr = 1;
-  if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
-  }
-
-  if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
-    throw std::runtime_error("bind failed");
-  }
-
-  if (listen(*hdl, SOMAXCONN) < 0) {
-    throw std::runtime_error("listen failed");
-  }
-
-  return std::move(hdl);
-}
-
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
   logger_init();
@@ -187,37 +115,10 @@ int main(int argc, char *argv[]) {
 
   try {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
+    AktualizrSecondary secondary(config);
 
-    SocketHandle socket_fd = secondary_open_socket(config);
-    LOG_INFO << "Listening on port " << config.network.port;
+    secondary.run();
 
-    SecondaryPacket::ChanType channel;
-
-    // listen for TCP connections
-    std::thread tcp_thread = std::thread([&channel, &socket_fd]() {
-      while (true) {
-        std::unique_ptr<sockaddr_storage> peer_sa(new sockaddr_storage);
-        socklen_t other_sasize = sizeof(*peer_sa);
-        int con_fd;
-
-        if ((con_fd = accept(*socket_fd, reinterpret_cast<sockaddr *>(peer_sa.get()), &other_sasize)) == -1) {
-          break;
-        }
-
-        // One thread per connection
-        std::thread(handle_follow_conn_messages, con_fd, std::move(peer_sa), std::ref(channel)).detach();
-      }
-
-      channel.close();
-    });
-
-    // listen for messages
-    std::shared_ptr<SecondaryPacket> pkt;
-    while (channel >> pkt) {
-      std::cout << "Got packet " << pkt->str() << std::endl;
-    }
-
-    tcp_thread.join();
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();
 

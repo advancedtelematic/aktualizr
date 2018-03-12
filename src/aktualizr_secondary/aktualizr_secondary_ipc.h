@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#include <sys/socket.h>
+
 #include "channel.h"
 
 struct SecondaryMessage {

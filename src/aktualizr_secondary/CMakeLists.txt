@@ -1,16 +1,19 @@
 set(AKTUALIZR_SECONDARY_SRC main.cc)
 
 set(AKTUALIZR_SECONDARY_LIB_SRC
+    aktualizr_secondary.cc
     aktualizr_secondary_config.cc
     )
 
 add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
+target_link_libraries(aktualizr_secondary_static_lib
+  socket_activation
+  )
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
   aktualizr_secondary_static_lib
   aktualizr_static_lib
-  socket_activation
   ${Boost_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${sodium_LIBRARY_RELEASE}
@@ -25,6 +28,7 @@ install(TARGETS aktualizr-secondary
         RUNTIME DESTINATION bin)
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
+    aktualizr_secondary.h
     aktualizr_secondary_config.h
     )
 
