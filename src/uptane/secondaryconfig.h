@@ -32,6 +32,6 @@ class SecondaryConfig {
 
   boost::filesystem::path flasher;  // kLegacy
 };
-}
+}  // namespace Uptane
 
 #endif

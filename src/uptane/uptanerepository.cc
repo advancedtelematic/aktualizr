@@ -107,4 +107,4 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
 }
-}
+}  // namespace Uptane

@@ -1,4 +1,6 @@
 #include "asn1-cerstream.h"
+#include <iomanip>
+#include <iostream>
 
 namespace asn1 {
 
@@ -7,7 +9,12 @@ Serializer& Serializer::operator<<(int32_t val) {
   return *this;
 }
 
-Serializer& Serializer::operator<<(std::string val) {
+Serializer& Serializer::operator<<(bool val) {
+  result.append(cer_encode_integer(val));
+  return *this;
+}
+
+Serializer& Serializer::operator<<(const std::string& val) {
   result.append(cer_encode_string(val, last_type));
   return *this;
 }
@@ -18,16 +25,24 @@ Serializer& Serializer::operator<<(ASN1_UniversalTag tag) {
   return *this;
 }
 
-Serializer& Serializer::operator<<(Token tok) {
+Serializer& Serializer::operator<<(const Token& tok) {
   switch (tok.type) {
     case Token::seq_tok:
       result.push_back(0x30);
       result.push_back(0x80);
       break;
     case Token::endseq_tok:
+    case Token::endexpl_tok:
       result.push_back(0x00);
       result.push_back(0x00);
       break;
+    case Token::expl_tok: {
+      uint8_t full_tag =
+          dynamic_cast<const ExplicitToken&>(tok).tag | dynamic_cast<const ExplicitToken&>(tok).tag_class;
+      result.push_back(full_tag | 0x20);  // set 'constructed' bit
+      result.push_back(0x80);
+      break;
+    }
     default:
       throw std::runtime_error("Unknown token type in ASN1 serialization");
   }
@@ -35,18 +50,43 @@ Serializer& Serializer::operator<<(Token tok) {
 }
 
 Deserializer& Deserializer::operator>>(int32_t& val) {
-  val = int_param;
+  if (!opt_count || opt_present) {
+    val = int_param;
+  }
+  return *this;
+}
+
+Deserializer& Deserializer::operator>>(bool& val) {
+  if (!opt_count || opt_present) {
+    val = (int_param != 0);
+  }
   return *this;
 }
 
 Deserializer& Deserializer::operator>>(std::string& val) {
-  val = string_param;
+  if (!opt_count || opt_present) {
+    val = string_param;
+  }
   return *this;
 }
 
 Deserializer& Deserializer::operator>>(ASN1_UniversalTag tag) {
   int32_t endpos = 0;
-  if (tag != cer_decode_token(data, &endpos, &int_param, &string_param)) throw deserialization_error();
+  if (opt_count && !opt_present) return *this;
+
+  if (tag != cer_decode_token(data, &endpos, &int_param, &string_param)) {
+    // failed to read first tag from OPTIONAL => OPTIONAL not present
+    if (opt_count && opt_first) {
+      opt_present = false;
+      return *this;
+    }
+
+    throw deserialization_error();
+  }
+  if (opt_count && opt_first) {
+    opt_present = true;
+    opt_first = false;
+  }
   if (!seq_lengths.empty() && seq_lengths.top() > 0) {
     seq_consumed.top() += endpos;
     if (seq_consumed.top() > seq_lengths.top()) throw deserialization_error();
@@ -55,9 +95,18 @@ Deserializer& Deserializer::operator>>(ASN1_UniversalTag tag) {
   return *this;
 }
 
-Deserializer& Deserializer::operator>>(Token tok) {
+Deserializer& Deserializer::operator>>(const Token& tok) {
   int32_t endpos;
   int32_t seq_len;
+
+  if (opt_count && !opt_present) {
+    if (tok.type == Token::endopt_tok) {
+      --opt_count;
+      bool* result = dynamic_cast<const EndoptToken&>(tok).result_p;
+      if (result) *result = opt_present;
+    }
+    return *this;
+  }
 
   switch (tok.type) {
     case Token::seq_tok:
@@ -67,12 +116,15 @@ Deserializer& Deserializer::operator>>(Token tok) {
       seq_consumed.push(0);
       break;
 
-    case Token::endseq_tok: {
+    case Token::endseq_tok:
+    case Token::endexpl_tok: {
       int32_t len = seq_lengths.top();
       int32_t cons_len = seq_consumed.top();
       seq_lengths.pop();
       seq_consumed.pop();
-      if (len > 0) {
+      std::cout << "ENDSEQ LEN: " << std::dec << len << std::endl;
+      std::cout << "EXPECTED LEN: " << std::dec << cons_len << std::endl;
+      if (len >= 0) {
         if (cons_len != len) throw deserialization_error();
       } else {
         if (kAsn1EndSequence != cer_decode_token(data, &endpos, nullptr, nullptr)) throw deserialization_error();
@@ -81,19 +133,22 @@ Deserializer& Deserializer::operator>>(Token tok) {
       }
 
       // add total length of current sequence to consumed bytes of the parent sequence
-      if (!seq_lengths.empty()) seq_lengths.top() += cons_len + 2;
+      if (!seq_lengths.empty()) seq_consumed.top() += cons_len + 2;
+      break;
     }
 
-    case Token::restseq_tok:
-      break;
+    case Token::restseq_tok: {
       int32_t len = seq_lengths.top();
-      if (len > 0) {
-        while (len > seq_consumed.top()) {
+      int32_t cons_len = seq_consumed.top();
+      seq_lengths.pop();
+      seq_consumed.pop();
+      if (len >= 0) {
+        while (len > cons_len) {
           if (cer_decode_token(data, &endpos, nullptr, nullptr) == kUnknown) throw deserialization_error();
           data = data.substr(endpos);
-          seq_consumed.top() += endpos;
+          cons_len += endpos;
         }
-        if (seq_consumed.top() != len) throw deserialization_error();
+        if (cons_len != len) throw deserialization_error();
       } else {
         int nestedness = 0;
         int32_t int_param = 0;
@@ -101,12 +156,13 @@ Deserializer& Deserializer::operator>>(Token tok) {
         for (;;) {
           if (data.empty())  // end of data before end of sequence
             throw deserialization_error();
-          ASN1_UniversalTag ret = cer_decode_token(data, &endpos, &int_param, nullptr);
+          uint8_t ret = cer_decode_token(data, &endpos, &int_param, nullptr);
           data = data.substr(endpos);
+          cons_len += endpos;
 
           if (ret == kUnknown) {
             throw deserialization_error();
-          } else if (ret == kAsn1Sequence) {
+          } else if (ret == kAsn1Sequence) {  // TODO: explicit tags (constructed tokens in general)
             // indefininte length, expect an end of sequence marker
             if (int_param == -1) ++nestedness;
           } else if (ret == kAsn1EndSequence) {
@@ -117,9 +173,50 @@ Deserializer& Deserializer::operator>>(Token tok) {
           }
         }
       }
+      if (!seq_lengths.empty()) seq_consumed.top() += cons_len + 2;
+      break;
+    }
+
+    case Token::expl_tok: {
+      uint8_t full_tag =
+          dynamic_cast<const ExplicitToken&>(tok).tag | dynamic_cast<const ExplicitToken&>(tok).tag_class;
+      if (full_tag != cer_decode_token(data, &endpos, &seq_len, nullptr)) throw deserialization_error();
+      data = data.substr(endpos);
+      seq_lengths.push(seq_len);
+      seq_consumed.push(0);
+      break;
+    }
+
+    case Token::peekexpl_tok: {
+      std::cout << "BEFORE DECODE" << std::endl;
+      uint8_t full_tag = cer_decode_token(data, &endpos, &seq_len, nullptr);
+      std::cout << "AFTER DECODE " << std::setfill('0') << std::setw(2) << std::hex << (((int)full_tag) & 0xFF)
+                << std::dec << std::endl;
+      std::cout << "SEQ_LEN " << seq_len << std::endl;
+      if (full_tag == kUnknown) throw deserialization_error();
+      uint8_t* out_tag = dynamic_cast<const PeekExplicitToken&>(tok).tag;
+      ASN1_Class* out_tag_class = dynamic_cast<const PeekExplicitToken&>(tok).tag_class;
+      if (out_tag) *out_tag = full_tag & 0x1F;
+      if (out_tag_class) *out_tag_class = (ASN1_Class)(full_tag & 0xC0);
+      data = data.substr(endpos);
+      seq_lengths.push(seq_len);
+      seq_consumed.push(0);
+      break;
+    }
+
+    case Token::opt_tok:
+      ++opt_count;
+      opt_first = true;
+      break;
+
+    case Token::endopt_tok:
+      --opt_count;
+      bool* result = dynamic_cast<const EndoptToken&>(tok).result_p;
+      if (result) *result = opt_present;
+      break;
   }
-  seq_lengths.pop();
-  seq_consumed.pop();
+  // seq_lengths.pop();
+  // seq_consumed.pop();
   return *this;
 }
-}
+}  // namespace asn1

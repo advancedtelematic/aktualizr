@@ -31,6 +31,6 @@ class SecondaryFactory {
     }
   }
 };
-}
+}  // namespace Uptane
 
 #endif  // UPTANE_SECONDARYFACTORY_H_

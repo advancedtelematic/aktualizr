@@ -89,6 +89,6 @@ class NonUniqueSignatures : public Exception {
       : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
   ~NonUniqueSignatures() throw() override {}
 };
-}
+}  // namespace Uptane
 
 #endif

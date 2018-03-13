@@ -12,9 +12,9 @@
 #include "logging.h"
 
 using Uptane::Hash;
-using Uptane::Target;
-using Uptane::Root;
 using Uptane::Role;
+using Uptane::Root;
+using Uptane::Target;
 using Uptane::TimeStamp;
 using Uptane::Version;
 

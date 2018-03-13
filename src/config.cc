@@ -530,7 +530,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
-  ser << kAsn1Enum << static_cast<int32_t>(cs);
+  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(cs));
 
   return ser;
 }
@@ -544,7 +544,7 @@ asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf) {
 
 asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
   int32_t cs_i;
-  des >> kAsn1Enum >> cs_i;
+  des >> asn1::implicit<kAsn1Enum>(cs_i);
 
   if (cs_i < kFile || cs_i > kPkcs11) throw deserialization_error();
 
@@ -562,6 +562,6 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, boost::filesystem::path&
 
 asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf) {
   des >> asn1::seq >> asn1::implicit<kAsn1Utf8String>(tls_conf.server) >> tls_conf.server_url_path >>
-      tls_conf.ca_source >> tls_conf.pkey_source >> tls_conf.cert_source >> asn1::restseq;
+      tls_conf.ca_source >> tls_conf.pkey_source >> tls_conf.cert_source >> asn1::endseq;
   return des;
 }

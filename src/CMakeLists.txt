@@ -4,6 +4,7 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES CO
 
 # set source files excluding main
 set(SOURCES aktualizr.cc
+            aktualizr_secondary_ipc.cc
             asn1-cer.cc
             asn1-cerstream.cc
             bootstrap.cc
@@ -37,6 +38,7 @@ set(SOURCES aktualizr.cc
 
 # set headers used for clang format
 set(HEADERS aktualizr.h
+            aktualizr_secondary_ipc.h
             asn1-cer.h
             asn1-cerstream.h
             bootstrap.h

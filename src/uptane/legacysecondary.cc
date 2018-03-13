@@ -51,4 +51,4 @@ bool LegacySecondary::getFirmwareInfo(std::string* target_name, size_t& target_l
 
   return true;
 }
-}
+}  // namespace Uptane

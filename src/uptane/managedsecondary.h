@@ -59,6 +59,6 @@ class ManagedSecondary : public SecondaryInterface {
   void storeMetadata(const MetaPack& meta_pack) { (void)meta_pack; }
   bool loadMetadata(MetaPack* meta_pack);
 };
-}
+}  // namespace Uptane
 
 #endif  // UPTANE_MANAGEDSECONDARY_H_

@@ -87,12 +87,7 @@ void AktualizrSecondary::run() {
   // listen for messages
   std::shared_ptr<SecondaryPacket> pkt;
   while (channel_ >> pkt) {
-    std::cout << "Got packet " << pkt->str() << std::endl;
-
-    if (pkt->msg->variant == "Stop") {
-      // Will cause `accept()` to fail and break the loop
-      shutdown(*socket_hdl_, SHUT_RDWR);
-    }
+    // TODO: process message
   }
 
   discovery.stop();
@@ -101,24 +96,27 @@ void AktualizrSecondary::run() {
   discovery_thread.join();
 }
 
-void AktualizrSecondary::stop() {
-  std::shared_ptr<SecondaryPacket> pkt = std::make_shared<SecondaryPacket>(new StopMessage{});
-
-  channel_ << pkt;
-}
-
 int AktualizrSecondary::listening_port() const { return Utils::ipPort(Utils::ipGetSockaddr(*socket_hdl_)); }
 
 void AktualizrSecondary::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {
   std::string peer_name = Utils::ipDisplayName(*addr);
   LOG_INFO << "Opening connection with " << peer_name;
+  std::string message_content;
   while (true) {
     uint8_t c;
     if (recv(*con, &c, 1, 0) != 1) {
       break;
     }
-    // TODO: parse packets
-    std::unique_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, new GetVersionMessage}};
+    message_content.push_back(c);
+    asn1::Deserializer asn1_stream(message_content);
+    std::unique_ptr<SecondaryMessage> mes;
+    try {
+      asn1_stream >> mes;
+    } catch (deserialization_error) {
+      LOG_ERROR << "Unexpected message format";
+      continue;
+    }
+    std::unique_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, std::move(mes)}};
 
     channel_ << std::move(pkt);
   }

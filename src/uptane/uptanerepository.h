@@ -81,6 +81,6 @@ class Repository {
   bool loadSetTlsCreds();
   void setEcuSerialMembers(const std::pair<std::string, std::string> &ecu_serials);
 };
-}
+}  // namespace Uptane
 
 #endif

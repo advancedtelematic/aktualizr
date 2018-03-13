@@ -64,6 +64,6 @@ class UptaneTargetsUpdated : public BaseEvent {
 
   UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
 };
-}
+}  // namespace event
 
 #endif

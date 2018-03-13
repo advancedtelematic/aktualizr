@@ -21,7 +21,7 @@ namespace boost {
 namespace filesystem {
 class path;
 }
-}
+}  // namespace boost
 
 #define INITSERVERNODESET_FUNCTION_DEFINITION(TYPE)                             \
   void InitServerNodeset(UA_Server *server) {                                   \

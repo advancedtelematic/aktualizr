@@ -163,4 +163,4 @@ bool ManagedSecondary::loadKeys(std::string *public_key, std::string *private_ke
   *public_key = Utils::readFile(public_key_path.string());
   return true;
 }
-}
+}  // namespace Uptane

@@ -46,7 +46,7 @@ std::string cer_encode_integer(int32_t number) {
   return res;
 }
 
-std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype) {
+std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag tag) {
   size_t len = contents.length();
 
   std::string res;
@@ -62,7 +62,7 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag sub
   while (!contents_copy.empty()) {
     size_t chunk_size =
         (contents_copy.length() > CER_MAX_PRIMITIVESTRING) ? CER_MAX_PRIMITIVESTRING : contents.length();
-    res += cer_encode_string(contents_copy.substr(0, chunk_size), subtype);
+    res += cer_encode_string(contents_copy.substr(0, chunk_size), tag);
     contents_copy = contents_copy.substr(chunk_size);
   }
   res += "\0\0";  // end of sequence
@@ -97,12 +97,11 @@ static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
   return res;
 }
 
-ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param,
-                                   std::string* string_param) {
+uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param) {
   *endpos = 0;
   if (ber.length() < 2) return kUnknown;
 
-  ASN1_Class type_class = static_cast<ASN1_Class>((ber[0] >> 6) & 0x3);
+  ASN1_Class type_class = static_cast<ASN1_Class>(ber[0] & 0xC0);
   ASN1_UniversalTag tag = static_cast<ASN1_UniversalTag>(ber[0] & 0x1F);
   bool constructed = !!(ber[0] & 0x20);
   int32_t len_endpos;
@@ -130,7 +129,7 @@ ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int3
         if (token_len != 0)
           return kUnknown;
         else
-          return kAsn1Sequence;
+          return kAsn1EndSequence;
 
       case kAsn1Integer:
       case kAsn1Enum: {
@@ -178,8 +177,7 @@ ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int3
           for (;;) {
             int32_t internal_endpos;
             std::string internal_string_param;
-            ASN1_UniversalTag token =
-                cer_decode_token(ber.substr(position), &internal_endpos, nullptr, &internal_string_param);
+            uint8_t token = cer_decode_token(ber.substr(position), &internal_endpos, nullptr, &internal_string_param);
             if (token == kAsn1EndSequence) {
               return tag;
             } else if (token != tag) {
@@ -197,7 +195,12 @@ ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int3
       default:
         return kUnknown;
     }
-  } else {
-    return kUnknown;
+  } else {  // assume explicit tag, return full tag value except constructed bit
+    if (!constructed) return kUnknown;
+
+    if (int_param) *int_param = token_len;
+    *endpos = len_endpos + 1;
+
+    return tag | type_class;
   }
 }

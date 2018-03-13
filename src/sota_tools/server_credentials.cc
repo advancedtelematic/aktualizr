@@ -13,8 +13,8 @@
 #include <stdexcept>
 
 using boost::optional;
-using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
+using boost::property_tree::ptree;
 
 const std::string kBaseUrl = "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const std::string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
