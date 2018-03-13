@@ -12,6 +12,11 @@ option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
+option(MACHINE "Override the machine-id value derived from /etc/hostname" OFF)
+
+if(MACHINE)
+add_definitions(-DMACHINE="${MACHINE}")
+endif(MACHINE)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")

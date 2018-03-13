@@ -86,6 +86,9 @@ void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
 void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
+#ifdef MACHINE
+    hw_info["id"] = MACHINE;
+#endif
     http.put(config.tls.server + "/core/system_info", hw_info);
   }
 }
