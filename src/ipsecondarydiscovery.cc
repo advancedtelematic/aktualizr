@@ -9,27 +9,29 @@
 #include "logging.h"
 
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
+  std::vector<Uptane::SecondaryConfig> secondaries;
+
+  socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (socket_fd == -1) {
+    LOG_ERROR << "Error of creating socket: " << std::strerror(errno);
+    return secondaries;
+  }
+
+  struct sockaddr_in recv_addr {};
+  recv_addr.sin_family = AF_INET;
+  recv_addr.sin_port = htons(0);
+  recv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  if (bind(socket_fd, (struct sockaddr *)&recv_addr, sizeof recv_addr) < 0) {
+    LOG_ERROR << "Error of binding socket: " << std::strerror(errno);
+    return secondaries;
+  }
+
   sendRequest();
   return waitDevices();
 }
 
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   std::vector<Uptane::SecondaryConfig> secondaries;
-  int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (socket_fd == -1) {
-    perror("socket creation");
-  }
-
-  int reuse = 1;  // Neded for tests, because client and server runs on the same machine and bind the same port
-  setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
-
-  struct sockaddr_in recv_addr {};
-  recv_addr.sin_family = AF_INET;
-  recv_addr.sin_port = htons(config_.ipdiscovery_port);
-  recv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(socket_fd, (struct sockaddr *)&recv_addr, sizeof recv_addr) < 0) {
-    perror("bind");
-  }
 
   auto start_time = std::chrono::system_clock::now();
   struct timeval tv;
@@ -67,10 +69,6 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
 }
 
 void IpSecondaryDiscovery::sendRequest() {
-  int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (socket_fd == -1) {
-    LOG_ERROR << "Error of creating socket: " << std::strerror(errno);
-  }
   int broadcast = 1;
   if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
     LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
@@ -90,5 +88,4 @@ void IpSecondaryDiscovery::sendRequest() {
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
   }
-  close(socket_fd);
 }

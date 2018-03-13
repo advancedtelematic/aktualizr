@@ -12,12 +12,14 @@ const int AKT_DISCOVERY_RESP = 0x01;
 class IpSecondaryDiscovery {
  public:
   IpSecondaryDiscovery(const NetworkConfig &config) : config_(config){};
+  ~IpSecondaryDiscovery() { close(socket_fd); }
   std::vector<Uptane::SecondaryConfig> discover();
   std::vector<Uptane::SecondaryConfig> waitDevices();
   void sendRequest();
 
  private:
   NetworkConfig config_;
+  int socket_fd;
 };
 
 #endif  // IPSECONDARYDISCOVERY_H_
