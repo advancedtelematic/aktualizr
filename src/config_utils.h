@@ -54,9 +54,8 @@ inline void writeOption(std::ofstream& sink, const T& data, const std::string& o
 }
 
 template <typename T>
-inline void CopyFromConfig(T& dest, const std::string& option_name,
-                                  boost::log::trivial::severity_level warning_level,
-                                  const boost::property_tree::ptree& pt) {
+inline void CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
+                           const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());

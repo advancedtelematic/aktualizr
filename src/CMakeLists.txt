@@ -42,6 +42,7 @@ set(HEADERS aktualizr.h
             channel.h
             commands.h
             config.h
+            config_utils.h
             crypto.h
             deb.h
             events.h
