@@ -24,7 +24,7 @@ class AktualizrSecondary {
   int listening_port() const;
 
  private:
-  void handle_connection_msgs(int con_fd, std::unique_ptr<sockaddr_storage> addr);
+  void handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr);
   void open_socket();
   AktualizrSecondaryConfig config_;
   SocketHandle socket_hdl_;

@@ -69,7 +69,8 @@ void AktualizrSecondary::run() {
       }
 
       // One thread per connection
-      std::thread(&AktualizrSecondary::handle_connection_msgs, this, con_fd, std::move(peer_sa)).detach();
+      std::thread(&AktualizrSecondary::handle_connection_msgs, this, SocketHandle(new int(con_fd)), std::move(peer_sa))
+          .detach();
     }
 
     channel_.close();
@@ -116,12 +117,12 @@ int AktualizrSecondary::listening_port() const {
   return ntohs(p);
 }
 
-void AktualizrSecondary::handle_connection_msgs(int con_fd, std::unique_ptr<sockaddr_storage> addr) {
+void AktualizrSecondary::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {
   std::string peer_name = Utils::ipDisplayName(*addr);
   LOG_INFO << "Opening connection with " << peer_name;
   while (true) {
     uint8_t c;
-    if (recv(con_fd, &c, 1, 0) != 1) {
+    if (recv(*con, &c, 1, 0) != 1) {
       break;
     }
     // TODO: parse packets
