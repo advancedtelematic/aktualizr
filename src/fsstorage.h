@@ -2,7 +2,6 @@
 #define FSSTORAGE_H_
 
 #include <boost/filesystem.hpp>
-#include "config.h"
 #include "invstorage.h"
 
 class FSStorage : public INvStorage {

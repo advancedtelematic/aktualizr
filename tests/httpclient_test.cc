@@ -6,7 +6,6 @@
 
 #include "json/json.h"
 
-#include "config.h"
 #include "httpclient.h"
 #include "test_utils.h"
 #include "types.h"

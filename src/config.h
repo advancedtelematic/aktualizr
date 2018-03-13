@@ -28,23 +28,16 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // updateFromPropertyTree() in config.cc.
 
 struct GatewayConfig {
-  GatewayConfig() : http(true), socket(false) {}
-  bool http;
-  bool socket;
+  bool socket{false};
 };
 
 struct NetworkConfig {
-  NetworkConfig() : socket_commands_path("/tmp/sota-commands.socket"), socket_events_path("/tmp/sota-events.socket") {
-    socket_events.push_back("DownloadComplete");
-    socket_events.push_back("DownloadFailed");
-  }
-  std::string socket_commands_path;
-  std::string socket_events_path;
-  std::vector<std::string> socket_events;
+  std::string socket_commands_path{"/tmp/sota-commands.socket"};
+  std::string socket_events_path{"/tmp/sota-events.socket"};
+  std::vector<std::string> socket_events{"DownloadComplete", "DownloadFailed"};
 };
 
 struct P11Config {
-  P11Config() {}
   boost::filesystem::path module;
   std::string pass;
   std::string uptane_key_id;
@@ -53,96 +46,66 @@ struct P11Config {
   std::string tls_clientcert_id;
 };
 
-class TlsConfig {
- public:
-  TlsConfig() : server(""), server_url_path(""), ca_source(kFile), pkey_source(kFile), cert_source(kFile) {}
-
+struct TlsConfig {
   std::string server;
   boost::filesystem::path server_url_path;
-  CryptoSource ca_source;
-  CryptoSource pkey_source;
-  CryptoSource cert_source;
+  CryptoSource ca_source{kFile};
+  CryptoSource pkey_source{kFile};
+  CryptoSource cert_source{kFile};
 };
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf);
 asn1::Deserializer& operator>>(asn1::Deserializer& des, TlsConfig& tls_conf);
 
 struct ProvisionConfig {
-  ProvisionConfig() : server(""), p12_password(""), expiry_days("36000"), provision_path(""), mode(kAutomatic) {}
   std::string server;
   std::string p12_password;
-  std::string expiry_days;
+  std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
-  ProvisionMode mode;
+  ProvisionMode mode{kAutomatic};
 };
 
 struct UptaneConfig {
-  UptaneConfig()
-      : polling(true),
-        polling_sec(10u),
-        device_id(""),
-        primary_ecu_serial(""),
-        primary_ecu_hardware_id(""),
-        director_server(""),
-        repo_server(""),
-        key_source(kFile),
-        key_type(kRSA2048) {}
-  bool polling;
-  unsigned long long polling_sec;
+  bool polling{true};
+  unsigned long long polling_sec{10u};
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
   std::string director_server;
   std::string repo_server;
-  CryptoSource key_source;
-  KeyType key_type;
+  CryptoSource key_source{kFile};
+  KeyType key_type{kRSA2048};
+  std::vector<Uptane::SecondaryConfig> secondary_configs{};
+
   std::string getKeyTypeString() const { return (key_type == kED25519) ? "ED25519" : "RSA"; }
-  std::vector<Uptane::SecondaryConfig> secondary_configs;
 };
 
 struct PackageConfig {
-  PackageConfig() : type(kOstree), os(""), sysroot(""), ostree_server(""), packages_file("/usr/package.manifest") {}
-  PackageManager type;
+  PackageManager type{kOstree};
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
-  boost::filesystem::path packages_file;
+  boost::filesystem::path packages_file{"/usr/package.manifest"};
 };
 
 struct StorageConfig {
-  StorageConfig()
-      : type(kFileSystem),
-        path("/var/sota"),
-        sqldb_path("/var/sota/storage.db"),
-        uptane_metadata_path("metadata"),
-        uptane_private_key_path("ecukey.pem"),
-        uptane_public_key_path("ecukey.pub"),
-        tls_cacert_path("ca.pem"),
-        tls_pkey_path("pkey.pem"),
-        tls_clientcert_path("client.pem"),
-        schemas_path("/usr/lib/sota/schemas") {}
-  StorageType type;
-  boost::filesystem::path path;
-  boost::filesystem::path sqldb_path;  // TODO: merge with path once SQLStorage class is complete
+  StorageType type{kFileSystem};
+  boost::filesystem::path path{"/var/sota"};
+  // TODO: merge with path once SQLStorage class is complete
+  boost::filesystem::path sqldb_path{"/var/sota/storage.db"};
   // FS storage
-  boost::filesystem::path uptane_metadata_path;
-  boost::filesystem::path uptane_private_key_path;
-  boost::filesystem::path uptane_public_key_path;
-  boost::filesystem::path tls_cacert_path;
-  boost::filesystem::path tls_pkey_path;
-  boost::filesystem::path tls_clientcert_path;
+  boost::filesystem::path uptane_metadata_path{"metadata"};
+  boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
+  boost::filesystem::path uptane_public_key_path{"ecukey.pub"};
+  boost::filesystem::path tls_cacert_path{"ca.pem"};
+  boost::filesystem::path tls_pkey_path{"pkey.pem"};
+  boost::filesystem::path tls_clientcert_path{"client.pem"};
 
   // SQLite storage
-  boost::filesystem::path schemas_path;
+  boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
 };
 
 struct ImportConfig {
-  ImportConfig()
-      : uptane_private_key_path(""),
-        uptane_public_key_path(""),
-        tls_cacert_path(""),
-        tls_pkey_path(""),
-        tls_clientcert_path("") {}
   boost::filesystem::path uptane_private_key_path;
   boost::filesystem::path uptane_public_key_path;
   boost::filesystem::path tls_cacert_path;
@@ -153,7 +116,6 @@ struct ImportConfig {
 class Config {
  public:
   Config();
-  Config(const boost::property_tree::ptree& pt);
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
   Config(const boost::filesystem::path& filename);
 
@@ -173,17 +135,6 @@ class Config {
   ImportConfig import;
 
  private:
-  static std::string stripQuotes(const std::string& value);
-  static std::string addQuotes(const std::string& value);
-  template <typename T>
-  static T StripQuotesFromStrings(const T& value);
-  template <typename T>
-  static void CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
-                             const boost::property_tree::ptree& pt);
-  template <typename T>
-  static T addQuotesToStrings(const T& value);
-  template <typename T>
-  static void writeOption(std::ofstream& sink, const T& data, const std::string& option_name);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

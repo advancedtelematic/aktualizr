@@ -25,14 +25,11 @@ TEST(config, config_initialized_values) {
 
   EXPECT_EQ(conf.uptane.polling, true);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
-
-  EXPECT_EQ(conf.gateway.http, true);
 }
 
 TEST(config, config_toml_parsing) {
   Config conf("tests/config_tests.toml");
 
-  EXPECT_EQ(conf.gateway.http, false);
   EXPECT_EQ(conf.gateway.socket, true);
 }
 
@@ -42,18 +39,15 @@ TEST(config, config_toml_parsing_empty_file) {
 
   EXPECT_EQ(conf.uptane.polling, true);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
-
-  EXPECT_EQ(conf.gateway.http, true);
 }
 
 TEST(config, config_cmdl_parsing) {
-  int argc = 5;
-  const char *argv[] = {"./aktualizr", "--gateway-http", "off", "--gateway-socket", "on"};
+  constexpr int argc = 3;
+  const char *argv[argc] = {"./aktualizr", "--gateway-socket", "on"};
 
   bpo::options_description description("CommandLine Options");
   // clang-format off
   description.add_options()
-    ("gateway-http", bpo::value<bool>(), "on/off the http gateway")
     ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway");
   // clang-format on
 
@@ -61,7 +55,6 @@ TEST(config, config_cmdl_parsing) {
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
   Config conf("tests/config_tests.toml", vm);
 
-  EXPECT_FALSE(conf.gateway.http);
   EXPECT_TRUE(conf.gateway.socket);
 }
 

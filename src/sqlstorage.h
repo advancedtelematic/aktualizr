@@ -5,7 +5,6 @@
 
 #include <sqlite3.h>
 
-#include "config.h"
 #include "invstorage.h"
 
 // See docs/schema-migrations.adoc
