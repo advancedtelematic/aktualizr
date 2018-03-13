@@ -4,22 +4,93 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netdb.h>
+#include <boost/algorithm/hex.hpp>
+#include <chrono>
 
+#include "logging.h"
 
-int IpSecondaryDiscovery::discover(){
-    int discovered_ecus = 0;
-    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    struct addrinfo hints{};
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
-    hints.ai_protocol = 0;          /* Any protocol */
-    hints.ai_canonname = NULL;
-    hints.ai_addr = NULL;
-    hints.ai_next = NULL;
+std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
+  sendRequest();
+  return waitDevices();
+}
 
-    s = getaddrinfo(NULL, "", &hints, &result);
-    
-    return discovered_ecus;
+std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
+  std::vector<Uptane::SecondaryConfig> secondaries;
+  int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (socket_fd == -1) {
+    perror("socket creation");
+  }
+  struct sockaddr_in recv_addr {};
+  recv_addr.sin_family = AF_INET;
+  recv_addr.sin_port = htons(config_.ipdiscovery_port);
+  recv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  if (bind(socket_fd, (struct sockaddr *)&recv_addr, sizeof recv_addr) < 0) {
+    perror("bind");
+  }
+
+  auto start_time = std::chrono::system_clock::now();
+  struct timeval tv;
+  tv.tv_sec = config_.ipdiscovery_wait_seconds;
+  tv.tv_usec = 0;
+  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+
+  char rbuf[2000] = {};
+  int recieved = 0;
+  while ((recieved = recv(socket_fd, rbuf, sizeof(rbuf) - 1, 0)) != -1) {
+    std::string data(std::move(rbuf), recieved);
+    try {
+      asn1::Deserializer des(data);
+      int type;
+      des >> asn1::seq >> type;
+      if (type == AKT_DISCOVERY_RESP) {
+        Uptane::SecondaryConfig conf;
+        conf.secondary_type = Uptane::SecondaryType::kUptane;
+        des >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial);
+        des >> asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id);
+        des >> asn1::restseq;
+        secondaries.push_back(conf);
+      }
+    } catch (const deserialization_error ex) {
+      LOG_ERROR << ex.what();
+    }
+    auto now = std::chrono::system_clock::now();
+    int left_seconds =
+        config_.ipdiscovery_wait_seconds - std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
+    if (left_seconds > 0) {
+      tv.tv_sec = left_seconds;
+      setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+    } else {
+      break;
+    }
+  }
+  return secondaries;
+}
+
+void IpSecondaryDiscovery::sendRequest() {
+  int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  std::cout << "SOCKET: " << socket_fd << "\n";
+  if (socket_fd == -1) {
+    perror("socket creation");
+  }
+  int broadcast = 1;
+  if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
+    LOG_ERROR << "Could not setup socket for broadcast";
+    perror("set opt err:");
+    close(socket_fd);
+  }
+  struct sockaddr_in sendaddr {};
+  sendaddr.sin_family = AF_INET;
+  sendaddr.sin_port = htons(config_.ipdiscovery_port);
+  sendaddr.sin_addr.s_addr = inet_addr(config_.ipdiscovery_host.c_str());
+
+  asn1::Serializer ser;
+  ser << asn1::seq;
+  ser << AKT_DISCOVERY_REQ;
+  ser << asn1::endseq;
+  int numbytes = sendto(socket_fd, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
+                        sizeof sendaddr);
+  if (numbytes == -1) {
+    LOG_ERROR << "Could not send discovery request";
+  }
+  close(socket_fd);
 }

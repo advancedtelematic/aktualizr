@@ -35,6 +35,7 @@ enum ASN1_UniversalTag {
 };
 
 class deserialization_error : public std::exception {
+ public:
   const char* what() const throw() override { return "ASN.1 deserialization error"; }
 };
 

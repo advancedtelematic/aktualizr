@@ -16,6 +16,7 @@ set(SOURCES aktualizr.cc
             gatewaymanager.cc
             httpclient.cc
             invstorage.cc
+            ipsecondarydiscovery.cc
             keymanager.cc
             logging.cc
             socketgateway.cc
@@ -54,6 +55,7 @@ set(HEADERS aktualizr.h
             httpclient.h
             httpinterface.h
             invstorage.h
+            ipsecondarydiscovery.h
             keymanager.h
             logging.h
             openssl_compat.h

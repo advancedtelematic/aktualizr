@@ -160,6 +160,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
   CopyFromConfig(network.socket_events_path, "network.socket_events_path", boost::log::trivial::trace, pt);
 
+  CopyFromConfig(network.ipdiscovery_host, "network.ipdiscovery_host", boost::log::trivial::trace, pt);
+  CopyFromConfig(network.ipdiscovery_port, "network.ipdiscovery_port", boost::log::trivial::trace, pt);
+  CopyFromConfig(network.ipdiscovery_wait_seconds, "network.ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
+
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
     std::string e = Utils::stripQuotes(events_string.get());
