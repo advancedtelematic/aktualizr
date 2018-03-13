@@ -11,6 +11,7 @@ option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
+option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -73,6 +74,11 @@ if(BUILD_OPCUA)
     set(OPEN62541_IGNORED_WARNINGS
         "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
 endif(BUILD_OPCUA)
+
+if(BUILD_SYSTEMD)
+    find_package(Systemd REQUIRED)
+    add_definitions(-DBUILD_SYSTEMD)
+endif()
 
 # set symbols used when compiling
 #add_definitions(-DBOOST_LOG_DYN_LINK)
@@ -262,6 +268,7 @@ add_subdirectory("src")
 add_subdirectory("src/cert_provider")
 add_subdirectory("src/implicit_writer")
 add_subdirectory("src/external_secondaries")
+add_subdirectory("src/socket_activation")
 add_subdirectory("fuzz")
 add_subdirectory("config")
 

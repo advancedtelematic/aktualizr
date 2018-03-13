@@ -1,6 +1,7 @@
+#include "aktualizr_secondary_config.h"
+
 #include <sstream>
 
-#include "aktualizr_secondary_config.h"
 #include "config_utils.h"
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,

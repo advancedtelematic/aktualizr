@@ -95,6 +95,8 @@ if(BUILD_WITH_CODE_COVERAGE)
     setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND})
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
+    target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
+    target_compile_options(socket_activation PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
@@ -448,7 +450,10 @@ add_test(NAME aktualizr-secondary-help
     COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
 
 add_aktualizr_test(NAME aktualizr_secondary_config SOURCES aktualizr_secondary/config_test.cc PROJECT_WORKING_DIRECTORY)
-target_link_libraries(t_aktualizr_secondary_config aktualizr_secondary_static_lib)
+target_link_libraries(t_aktualizr_secondary_config aktualizr_secondary_static_lib aktualizr_static_lib)
+
+add_aktualizr_test(NAME aktualizr_secondary_protocol SOURCES aktualizr_secondary/protocol_test.cc PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
 
 # aktualizr-info tests
 add_test(NAME aktualizr-info-noarguments

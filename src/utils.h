@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+#include <netinet/in.h>
+
 #include "json/json.h"
 
 struct Utils {
@@ -25,6 +27,7 @@ struct Utils {
   static Json::Value getHardwareInfo();
   static std::string getHostname();
   static std::string randomUuid();
+  static std::string ipDisplayName(const sockaddr_storage &saddr);
   static int shell(const std::string &command, std::string *output, bool include_stderr = false);
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
 };

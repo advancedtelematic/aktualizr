@@ -9,7 +9,10 @@
 #include <stdexcept>
 #include <string>
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
@@ -320,6 +323,25 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
       copyDir(it->path(), to / it->path().filename());
     else
       boost::filesystem::copy_file(it->path(), to / it->path().filename());
+  }
+}
+
+std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
+  char ipstr[INET6_ADDRSTRLEN];
+
+  switch (saddr.ss_family) {
+    case AF_INET: {
+      const sockaddr_in *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
+      inet_ntop(AF_INET, &sa->sin_addr, ipstr, sizeof(ipstr));
+      return std::string(ipstr);
+    }
+    case AF_INET6: {
+      const sockaddr_in6 *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
+      inet_ntop(AF_INET6, &sa->sin6_addr, ipstr, sizeof(ipstr));
+      return std::string(ipstr);
+    }
+    default:
+      return "unknown";
   }
 }
 
