@@ -7,14 +7,15 @@ namespace utility {
 template <typename A, typename T>
 struct serialize_field {};
 
+// clang-format off
 #define SERIALIZE_FIELD_DECL_BEGIN(STREAM) \
   template <typename T>                    \
   struct serialize_field<STREAM, T> {      \
-  void operator()(STREAM &ar, const std::string &xml_tag, T &d)
+    void operator()(STREAM &ar, const std::string &xml_tag, T &d)
 
 #define SERIALIZE_FIELD_DECL_END \
-  }                              \
-  ;
+  };
+//clang-format on
 
 SERIALIZE_FIELD_DECL_BEGIN(DATA_SERIALIZATION_OUT_XML_STREAM) {
   ar &boost::serialization::make_nvp(xml_tag.c_str(), d);

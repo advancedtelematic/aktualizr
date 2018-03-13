@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
+cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
 
@@ -19,6 +20,8 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
+
+unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
@@ -184,6 +187,10 @@ else()
 endif()
 
 function(aktualizr_source_file_checks)
+    foreach(FILE ${ARGN})
+        file(RELATIVE_PATH FULL_FN ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${FILE})
+        set(AKTUALIZR_CHECKED_SRCS ${AKTUALIZR_CHECKED_SRCS} ${FULL_FN} CACHE INTERNAL "")
+    endforeach()
     aktualizr_clang_check(${ARGN})
     aktualizr_clang_format(${ARGN})
 
@@ -272,9 +279,7 @@ add_subdirectory("src/socket_activation")
 add_subdirectory("fuzz")
 add_subdirectory("config")
 
-if(BUILD_SOTA_TOOLS)
-    add_subdirectory("src/sota_tools")
-endif(BUILD_SOTA_TOOLS)
+add_subdirectory("src/sota_tools")
 
 add_subdirectory("src/aktualizr_secondary")
 
@@ -284,6 +289,19 @@ include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
 add_subdirectory("docs")
+
+# Check if some source files were not added sent to `aktualizr_source_file_checks`
+#
+# Note: does not check `tests` directory which depends too much on conditional
+# compilation
+file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
+    src/*.cc src/*.c src/*.h)
+foreach(FILE ${ALL_SOURCE_FILES})
+    list(FIND AKTUALIZR_CHECKED_SRCS ${FILE} INDEX)
+    if (${INDEX} EQUAL "-1")
+        message(FATAL_ERROR "${FILE} not checked")
+    endif ()
+endforeach()
 
 # Generate ctags
 set_source_files_properties(tags PROPERTIES GENERATED true)

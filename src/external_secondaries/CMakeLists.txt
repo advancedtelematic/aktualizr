@@ -25,17 +25,19 @@ aktualizr_source_file_checks(${MAIN_ECU_INTERFACE_SRC} ${ECU_INTERFACE_HEADERS}
 install(TARGETS example-interface RUNTIME DESTINATION bin)
 
 
+set(ISOTP_PATH_PREFIX ../../partial/extern/isotp-c/src)
+set(BITFIELD_PATH_PREFIX ../../partial/extern/isotp-c/deps/bitfield-c/src)
+set(ISOTP_SRC ${ISOTP_PATH_PREFIX}/isotp/isotp.c
+    ${ISOTP_PATH_PREFIX}/isotp/send.c
+    ${ISOTP_PATH_PREFIX}/isotp/receive.c
+    ${BITFIELD_PATH_PREFIX}/bitfield/8byte.c
+    ${BITFIELD_PATH_PREFIX}/bitfield/bitarray.c
+    ${BITFIELD_PATH_PREFIX}/bitfield/bitfield.c)
+set(ISOTP_TEST_SRC test_isotp_interface.cc isotp_allocate.cc isotp_protocol.cc )
+set(ISOTP_TEST_HEADERS test_isotp_interface.h)
+aktualizr_source_file_checks(${ISOTP_TEST_SRC} ${ISOTP_TEST_HEADERS})
+
 if(BUILD_ISOTP)
-    set(ISOTP_PATH_PREFIX ../../partial/extern/isotp-c/src)
-    set(BITFIELD_PATH_PREFIX ../../partial/extern/isotp-c/deps/bitfield-c/src)
-    set(ISOTP_SRC ${ISOTP_PATH_PREFIX}/isotp/isotp.c
-        ${ISOTP_PATH_PREFIX}/isotp/send.c
-        ${ISOTP_PATH_PREFIX}/isotp/receive.c
-        ${BITFIELD_PATH_PREFIX}/bitfield/8byte.c
-        ${BITFIELD_PATH_PREFIX}/bitfield/bitarray.c
-        ${BITFIELD_PATH_PREFIX}/bitfield/bitfield.c)
-    set(ISOTP_TEST_SRC test_isotp_interface.cc isotp_allocate.cc isotp_protocol.cc )
-    set(ISOTP_TEST_HEADERS test_isotp_interface.h)
 
     add_executable(isotp-test-interface ${MAIN_ECU_INTERFACE_SRC} ${ISOTP_TEST_SRC} ${ISOTP_SRC})
     target_link_libraries(isotp-test-interface
@@ -49,8 +51,6 @@ if(BUILD_ISOTP)
     if(BUILD_WITH_CODE_COVERAGE)
         target_link_libraries(isotp-test-interface gcov)
     endif(BUILD_WITH_CODE_COVERAGE)
-
-    aktualizr_source_file_checks(${ISOTP_TEST_SRC} ${ISOTP_TEST_HEADERS})
 
     install(TARGETS isotp-test-interface RUNTIME DESTINATION bin)
 endif(BUILD_ISOTP)

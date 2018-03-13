@@ -1,8 +1,8 @@
 #ifndef SQL_UTILS_H_
 #define SQL_UTILS_H_
 
-#include <memory>
 #include <list>
+#include <memory>
 
 #include <sqlite3.h>
 
@@ -55,7 +55,7 @@ class SQLiteStatement {
 
   void bindArgument(const std::string& v) {
     owned_data_.push_back(v);
-    const std::string &oe = owned_data_.back();
+    const std::string& oe = owned_data_.back();
 
     if (sqlite3_bind_text(stmt_.get(), bind_cnt_, oe.c_str(), -1, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
@@ -63,9 +63,7 @@ class SQLiteStatement {
     }
   }
 
-  void bindArgument(const char* v) {
-    bindArgument(std::string(v));
-  }
+  void bindArgument(const char* v) { bindArgument(std::string(v)); }
 
   void bindArgument(const SQLBlob& blob) {
     owned_data_.emplace_back(blob.content);
@@ -84,9 +82,8 @@ class SQLiteStatement {
     }
   }
 
-  void bindArguments() {
-    /* end of template specialization */
-  }
+  /* end of template specialization */
+  void bindArguments() {}
 
   template <typename T, typename... Types>
   void bindArguments(const T& v, const Types&... args) {

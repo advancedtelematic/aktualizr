@@ -1,12 +1,12 @@
-#include <string>
 #include <stdexcept>
+#include <string>
 
 // Limitations:
 //   - Maximal supported integer width of 32 bits
 //   - Maximal supported string length of 2**31 -1
 //   - Only type tags up to 30 are supported
 
-#define CER_MAX_PRIMITIVESTRING 1000 // defined in the standard
+#define CER_MAX_PRIMITIVESTRING 1000  // defined in the standard
 
 enum ASN1_Class {
   kAsn1Universal = 0x00,
@@ -35,20 +35,18 @@ enum ASN1_UniversalTag {
 };
 
 class deserialization_error : public std::exception {
-  const char * what () const throw ()
-  {
-    return "ASN.1 deserialization error";
-  }
+  const char* what() const throw() { return "ASN.1 deserialization error"; }
 };
 
-// Decode token. 
+// Decode token.
 //    * ber - serialization
 //    * endpos - next position in the string after what was deserialized
 //    * int_param - integer value associated with token. Depends on token type.
 //    * string_param - string associated with token. Depends on token type.
 //  Return value: token type, or kUnknown in case of an error.
 
-ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param);
+ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param,
+                                   std::string* string_param);
 
 std::string cer_encode_integer(int32_t number);
 std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype);
