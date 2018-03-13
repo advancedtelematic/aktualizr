@@ -1,23 +1,5 @@
 IpUptane DEFINITIONS ::= BEGIN
-        AKIpUptaneMessageType ::= ENUMERATED {
-		discoveryReq(0),
-		discoveryResp(128),
-		publicKeyReq(1),
-		publicKeyResp(129),
-		manifestReq(2),
-		manifestResp(130),
-		putMetaReq(3),
-		putMetaResp(131),
-		rootVersionReq(4),
-		rootVersionResp(132),
-		putRootReq(5),
-		putRootResp(133),
-		sendFirmwareReq(6),
-		sendFirmwareResp(134),
-		...
-        }
-
-	AKIpUptaneKeyType ::= ENUMERATED {
+       	AKIpUptaneKeyType ::= ENUMERATED {
 		rsa(0),
 		ecdsa(1),
 		...
@@ -29,84 +11,102 @@ IpUptane DEFINITIONS ::= BEGIN
 		...
 	}
 
-	AKDiscoveryReqPayload ::= SEQUENCE {
+	AKImageMeta ::= SEQUENCE {
+		imageTimestampFormat AKIpUptaneMetadataFormat,
+		imageTimestamp OCTET STRING,
+		imageSnapshotFormat AKIpUptaneMetadataFormat,
+		imageSnapshot OCTET STRING,
+		imageTargetsFormat AKIpUptaneMetadataFormat,
+		imageTargets OCTET STRING,
 		...
 	}
 
-	AKDiscoveryRespPayload ::= SEQUENCE {
+	AKDiscoveryReqMes ::= SEQUENCE {
+		...
+	}
+
+	AKDiscoveryRespMes ::= SEQUENCE {
 		hwId OCTET STRING,
 		ecuSerial OCTET STRING,
 		...
 	}
 
-	AKPublicKeyReqPayload ::= SEQUENCE {
+	AKPublicKeyReqMes ::= SEQUENCE {
 		...
 	}
 
-	AKPublicKeyRespPayload ::= SEQUENCE {
+	AKPublicKeyRespMes ::= SEQUENCE {
 		type AKIpUptaneKeyType,
 		key OCTET STRING,
 		...
 	}
 
-	AKManifestReqPayload ::= SEQUENCE {
+	AKManifestReqMes ::= SEQUENCE {
 		...
 	}
 
-	AKManifestRespPayload ::= SEQUENCE {
+	AKManifestRespMes ::= SEQUENCE {
 		format AKIpUptaneMetadataFormat,
-		manifest ANY DEFINED BY format -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		manifest OCTET STRING,
+		...
 	}
 	
-	AKImageMeta ::= SEQUENCE {
-		imageTimestampFormat AKIpUptaneMetadataFormat,
-		imageTimestamp ANY DEFINED BY imageTimestampFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
-		imageSnapshotFormat AKIpUptaneMetadataFormat,
-		imageSnapshot ANY DEFINED BY imageSnapshotFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
-		imageTargetsFormat AKIpUptaneMetadataFormat,
-		imageTargets ANY DEFINED BY imageTargetsFormat -- OCTET string for json of ASN.1 sequence (to be defined) for ber
-	}
 
-	AKPutMetaReqPayload ::= SEQUENCE {
+	AKPutMetaReqMes ::= SEQUENCE {
 		directorTargetsFormat AKIpUptaneMetadataFormat,
-		directorTargets ANY DEFINED BY directorTargetsFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		directorTargets OCTET STRING,
 		imageMeta AKImageMeta OPTIONAL
 	}
 
-	AKPutMetaRespPayload ::= SEQUENCE {
+	AKPutMetaRespMes ::= SEQUENCE {
 		result BOOLEAN DEFAULT TRUE
 	}
 	
-	AKRootVersionReqPayload ::= SEQUENCE {
+	AKRootVersionReqMes ::= SEQUENCE {
 		director BOOLEAN,
 		...
 	}
 
-	AKRootVersionRespPayload ::= SEQUENCE {
+	AKRootVersionRespMes ::= SEQUENCE {
 		version INTEGER,
 		...
 	}
 
-	AKPutRootReqPayload ::= SEQUENCE {
+	AKPutRootReqMes ::= SEQUENCE {
 		director BOOLEAN,
 		rootFormat AKIpUptaneMetadataFormat,
-		root ANY DEFINED BY rootFormat -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		root OCTET STRING,
+		...
 	}
 
-	AKPutRootRespPayload ::= SEQUENCE {
+	AKPutRootRespMes ::= SEQUENCE {
 		result BOOLEAN DEFAULT TRUE
 	}
 	
-	AKSendFirmwareReqPayload ::= SEQUENCE {
+	AKSendFirmwareReqMes ::= SEQUENCE {
 		firmware OCTET STRING
 	}
 	
-	AKSendFirmwareRespPayload ::= SEQUENCE {
+	AKSendFirmwareRespMes ::= SEQUENCE {
 		result BOOLEAN DEFAULT TRUE
 	}
 
-	AKIpUptane ::= SEQUENCE {
-		type AKIpUptaneMessageType,
-		payload ANY DEFINED BY type -- one of *Payload sequences
-        }
+	AKIpUptaneMes ::= CHOICE {
+		discoveryReq [0] AKDiscoveryReqMes,
+		discoveryResp [1] AKDiscoveryRespMes,
+		publicKeyReq [2] AKPublicKeyReqMes,
+		publicKeyResp [3] AKPublicKeyRespMes,
+		manifestReq [4] AKManifestReqMes,
+		manifestResp [5] AKManifestRespMes,
+		putMetaReq [6] AKPutMetaReqMes,
+		putMetaResp [7] AKPutMetaRespMes,
+		rootVersionReq [8] AKRootVersionReqMes,
+		rootVersionResp [9] AKRootVersionRespMes,
+		putRootReq [10] AKPutRootReqMes,
+		putRootResp [11] AKPutRootRespMes,
+		sendFirmwareReq [12] AKSendFirmwareReqMes,
+		sendFirmwareResp [13] AKSendFirmwareRespMes,
+		...
+	}
+
 END
