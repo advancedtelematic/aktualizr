@@ -1,0 +1,112 @@
+IpUptane DEFINITIONS ::= BEGIN
+        AKIpUptaneMessageType ::= ENUMERATED {
+		discoveryReq(0),
+		discoveryResp(128),
+		publicKeyReq(1),
+		publicKeyResp(129),
+		manifestReq(2),
+		manifestResp(130),
+		putMetaReq(3),
+		putMetaResp(131),
+		rootVersionReq(4),
+		rootVersionResp(132),
+		putRootReq(5),
+		putRootResp(133),
+		sendFirmwareReq(6),
+		sendFirmwareResp(134),
+		...
+        }
+
+	AKIpUptaneKeyType ::= ENUMERATED {
+		rsa(0),
+		ecdsa(1),
+		...
+	}
+	
+	AKIpUptaneMetadataFormat ::= ENUMERATED {
+		json(0),
+		ber(1),
+		...
+	}
+
+	AKDiscoveryReqPayload ::= SEQUENCE {
+		...
+	}
+
+	AKDiscoveryRespPayload ::= SEQUENCE {
+		hwId OCTET STRING,
+		ecuSerial OCTET STRING,
+		...
+	}
+
+	AKPublicKeyReqPayload ::= SEQUENCE {
+		...
+	}
+
+	AKPublicKeyRespPayload ::= SEQUENCE {
+		type AKIpUptaneKeyType,
+		key OCTET STRING,
+		...
+	}
+
+	AKManifestReqPayload ::= SEQUENCE {
+		...
+	}
+
+	AKManifestRespPayload ::= SEQUENCE {
+		format AKIpUptaneMetadataFormat,
+		manifest ANY DEFINED BY format -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+	}
+	
+	AKImageMeta ::= SEQUENCE {
+		imageTimestampFormat AKIpUptaneMetadataFormat,
+		imageTimestamp ANY DEFINED BY imageTimestampFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		imageSnapshotFormat AKIpUptaneMetadataFormat,
+		imageSnapshot ANY DEFINED BY imageSnapshotFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		imageTargetsFormat AKIpUptaneMetadataFormat,
+		imageTargets ANY DEFINED BY imageTargetsFormat -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+	}
+
+	AKPutMetaReqPayload ::= SEQUENCE {
+		directorTargetsFormat AKIpUptaneMetadataFormat,
+		directorTargets ANY DEFINED BY directorTargetsFormat, -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+		imageMeta AKImageMeta OPTIONAL
+	}
+
+	AKPutMetaRespPayload ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+	
+	AKRootVersionReqPayload ::= SEQUENCE {
+		director BOOLEAN,
+		...
+	}
+
+	AKRootVersionRespPayload ::= SEQUENCE {
+		version INTEGER,
+		...
+	}
+
+	AKPutRootReqPayload ::= SEQUENCE {
+		director BOOLEAN,
+		rootFormat AKIpUptaneMetadataFormat,
+		root ANY DEFINED BY rootFormat -- OCTET string for json of ASN.1 sequence (to be defined) for ber
+	}
+
+	AKPutRootRespPayload ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+	
+	AKSendFirmwareReqPayload ::= SEQUENCE {
+		firmware OCTET STRING
+	}
+	
+	AKSendFirmwareRespPayload ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+
+	AKIpUptane ::= SEQUENCE {
+		type AKIpUptaneMessageType,
+		payload ANY DEFINED BY type -- one of *Payload sequences
+        }
+END

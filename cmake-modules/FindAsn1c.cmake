@@ -17,7 +17,7 @@ if(ASN1C)
         endforeach()
 
         # clean previously generated files
-	set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1)
+	set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1/${lib_name})
 	message("ANS1_GEN_DIR is ${ASN1_GEN_DIR}")
         file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
 
@@ -33,6 +33,8 @@ if(ASN1C)
             WORKING_DIRECTORY ${ASN1_GEN_DIR}
             DEPENDS ${ASN1_FILES}
             )
+
+        list(REMOVE_ITEM ASN1_GENERATED ${ASN1_GEN_DIR}/converter-example.c ${ASN1_GEN_DIR}/converter-sample.c)
 
         # hardcoded list of common c files
         add_library(${lib_name}_asn1 STATIC ${ASN1_GENERATED})

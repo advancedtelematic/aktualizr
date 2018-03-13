@@ -47,7 +47,8 @@ add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COM
 
 # Reference asn1c libraries
 add_asn1c_lib(config asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
-list(APPEND TEST_LIBS config_asn1)
+add_asn1c_lib(ipuptane asn1-reference/common asn1-reference/uptane/ipuptane_message)
+list(APPEND TEST_LIBS config_asn1 ipuptane_asn1)
 
 # List of source files to run clang-format and clang-check on. Automatically
 # appended to by add_aktualizr_test, but anything that doesn't use that must be
