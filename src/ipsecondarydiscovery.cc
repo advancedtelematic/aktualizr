@@ -4,7 +4,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <boost/algorithm/hex.hpp>
 #include <chrono>
 
 #include "logging.h"
@@ -20,6 +19,10 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   if (socket_fd == -1) {
     perror("socket creation");
   }
+
+  int reuse = 1;  // Neded for tests, because client and server runs on the same machine and bind the same port
+  setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
+
   struct sockaddr_in recv_addr {};
   recv_addr.sin_family = AF_INET;
   recv_addr.sin_port = htons(config_.ipdiscovery_port);
@@ -32,22 +35,20 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   struct timeval tv;
   tv.tv_sec = config_.ipdiscovery_wait_seconds;
   tv.tv_usec = 0;
-  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
+  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
   char rbuf[2000] = {};
   int recieved = 0;
   while ((recieved = recv(socket_fd, rbuf, sizeof(rbuf) - 1, 0)) != -1) {
     std::string data(std::move(rbuf), recieved);
     try {
+      int type = 0;
+      Uptane::SecondaryConfig conf;
       asn1::Deserializer des(data);
-      int type;
-      des >> asn1::seq >> type;
+      des >> asn1::seq >> asn1::implicit<kAsn1Integer>(type) >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
+          asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::restseq;
       if (type == AKT_DISCOVERY_RESP) {
-        Uptane::SecondaryConfig conf;
         conf.secondary_type = Uptane::SecondaryType::kUptane;
-        des >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial);
-        des >> asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id);
-        des >> asn1::restseq;
         secondaries.push_back(conf);
       }
     } catch (const deserialization_error ex) {
@@ -56,26 +57,23 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     auto now = std::chrono::system_clock::now();
     int left_seconds =
         config_.ipdiscovery_wait_seconds - std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
-    if (left_seconds > 0) {
-      tv.tv_sec = left_seconds;
-      setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
-    } else {
+    if (left_seconds <= 0) {
       break;
     }
+    tv.tv_sec = left_seconds;
+    setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
   }
   return secondaries;
 }
 
 void IpSecondaryDiscovery::sendRequest() {
   int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-  std::cout << "SOCKET: " << socket_fd << "\n";
   if (socket_fd == -1) {
-    perror("socket creation");
+    LOG_ERROR << "Error of creating socket: " << std::strerror(errno);
   }
   int broadcast = 1;
   if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
-    LOG_ERROR << "Could not setup socket for broadcast";
-    perror("set opt err:");
+    LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
     close(socket_fd);
   }
   struct sockaddr_in sendaddr {};
@@ -85,12 +83,12 @@ void IpSecondaryDiscovery::sendRequest() {
 
   asn1::Serializer ser;
   ser << asn1::seq;
-  ser << AKT_DISCOVERY_REQ;
+  ser << asn1::implicit<kAsn1Integer>(AKT_DISCOVERY_REQ);
   ser << asn1::endseq;
   int numbytes = sendto(socket_fd, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
                         sizeof sendaddr);
   if (numbytes == -1) {
-    LOG_ERROR << "Could not send discovery request";
+    LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
   }
   close(socket_fd);
 }
