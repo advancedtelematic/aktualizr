@@ -8,6 +8,7 @@ RUN echo "deb http://ftp.de.debian.org/debian unstable main" > /etc/apt/sources.
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install \
+  apt-transport-https \
   asn1c \
   autoconf \
   automake \
