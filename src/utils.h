@@ -27,7 +27,9 @@ struct Utils {
   static Json::Value getHardwareInfo();
   static std::string getHostname();
   static std::string randomUuid();
+  static sockaddr_storage ipGetSockaddr(int fd);
   static std::string ipDisplayName(const sockaddr_storage &saddr);
+  static int ipPort(const sockaddr_storage &saddr);
   static int shell(const std::string &command, std::string *output, bool include_stderr = false);
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
 };
@@ -65,5 +67,16 @@ class TemporaryDirectory : boost::noncopyable {
 //   BTW local variables are destructed in reverse order of instantiation
 template <typename T>
 using StructGuard = std::unique_ptr<T, void (*)(T *)>;
+
+// helper object for RAII socket management
+struct SocketCloser {
+  void operator()(int *ptr) const {
+    close(*ptr);
+    delete ptr;
+  }
+};
+
+using SocketHandle = std::unique_ptr<int, SocketCloser>;
+
 
 #endif  // UTILS_H_

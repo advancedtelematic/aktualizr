@@ -14,9 +14,6 @@ TEST(aktualizr_secondary_protocol, run_and_stop) {
 
   std::thread th(&AktualizrSecondary::run, &as);
 
-  LOG_INFO << "port: " << as.listening_port();
-  ASSERT_NE(as.listening_port(), -1);
-
   as.stop();
 
   th.join();

@@ -52,13 +52,13 @@ void AktualizrSecondary::open_socket() {
   }
 
   socket_hdl_ = std::move(hdl);
-
-  LOG_INFO << "Listening on port " << listening_port();
 }
 
 void AktualizrSecondary::run() {
   // listen for TCP connections
   std::thread tcp_thread = std::thread([this]() {
+    LOG_INFO << "Listening on port " << listening_port();
+
     while (true) {
       std::unique_ptr<sockaddr_storage> peer_sa(new sockaddr_storage);
       socklen_t other_sasize = sizeof(*peer_sa);
@@ -96,26 +96,7 @@ void AktualizrSecondary::stop() {
   channel_ << pkt;
 }
 
-int AktualizrSecondary::listening_port() const {
-  sockaddr_storage ss;
-  socklen_t len = sizeof(ss);
-  in_port_t p;
-  if (getsockname(*socket_hdl_, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
-    return -1;
-  }
-
-  if (ss.ss_family == AF_INET) {
-    sockaddr_in *sa = reinterpret_cast<sockaddr_in *>(&ss);
-    p = sa->sin_port;
-  } else if (ss.ss_family == AF_INET6) {
-    sockaddr_in6 *sa = reinterpret_cast<sockaddr_in6 *>(&ss);
-    p = sa->sin6_port;
-  } else {
-    return -1;
-  }
-
-  return ntohs(p);
-}
+int AktualizrSecondary::listening_port() const { return Utils::ipPort(Utils::ipGetSockaddr(*socket_hdl_)); }
 
 void AktualizrSecondary::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {
   std::string peer_name = Utils::ipDisplayName(*addr);
