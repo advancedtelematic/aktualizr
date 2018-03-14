@@ -52,7 +52,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     if (ex.get_option_name() == "--config") {
       std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
                                            "file using toml format. See the example configuration file "
-                                           "in config/aktualizr_secondary/config.toml.example"
+                                           "in config/sota_secondary.toml"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
