@@ -10,21 +10,28 @@ if(ASN1C)
     # -fnative-types is required for compat with asn1c <= 0.9.24
     set(ASN1C_FLAGS ${ASN1C_FLAGS} -fskeletons-copy -fnative-types -pdu=all)
 
-    function(add_asn1c_lib lib_name)
+    define_property(GLOBAL PROPERTY ASN1_FILES_GLOBAL
+                    BRIEF_DOCS "List of all input files for asn1c"
+                    FULL_DOCS "List of all input files for asn1c")
+
+    function(add_asn1c_lib)
         set(ASN1_SRCS ${ARGN})
         foreach(MOD ${ASN1_SRCS})
-            list(APPEND ASN1_FILES ${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.asn1)
+	    set_property(GLOBAL APPEND PROPERTY ASN1_FILES_GLOBAL ${CMAKE_CURRENT_SOURCE_DIR}/${MOD}.asn1)
         endforeach()
+    endfunction()
 
+    function(compile_asn1_lib)
+	get_property(ASN1_FILES GLOBAL PROPERTY ASN1_FILES_GLOBAL)
         # clean previously generated files
-	set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1)
-	message("ANS1_GEN_DIR is ${ASN1_GEN_DIR}")
+        set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1/)
         file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
 
         execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
             WORKING_DIRECTORY ${ASN1_GEN_DIR}
             OUTPUT_QUIET
             )
+
         file(GLOB ASN1_GENERATED ${ASN1_GEN_DIR}/*.c)
 
         add_custom_command(
@@ -34,12 +41,14 @@ if(ASN1C)
             DEPENDS ${ASN1_FILES}
             )
 
-        # hardcoded list of common c files
-        add_library(${lib_name}_asn1 STATIC ${ASN1_GENERATED})
+        list(REMOVE_ITEM ASN1_GENERATED ${ASN1_GEN_DIR}/converter-example.c ${ASN1_GEN_DIR}/converter-sample.c)
 
-        target_include_directories(${lib_name}_asn1
+        # hardcoded list of common c files
+        add_library(asn1_lib STATIC ${ASN1_GENERATED})
+
+        target_include_directories(asn1_lib
             PUBLIC ${ASN1_GEN_DIR})
-        target_compile_options(${lib_name}_asn1
+        target_compile_options(asn1_lib
             PRIVATE "-Wno-error"
             PRIVATE "-w")
     endfunction()

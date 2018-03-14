@@ -1,0 +1,112 @@
+IpUptane DEFINITIONS ::= BEGIN
+       	AKIpUptaneKeyType ::= ENUMERATED {
+		rsa(0),
+		ecdsa(1),
+		...
+	}
+	
+	AKIpUptaneMetadataFormat ::= ENUMERATED {
+		json(0),
+		ber(1),
+		...
+	}
+
+	AKImageMeta ::= SEQUENCE {
+		imageTimestampFormat AKIpUptaneMetadataFormat,
+		imageTimestamp OCTET STRING,
+		imageSnapshotFormat AKIpUptaneMetadataFormat,
+		imageSnapshot OCTET STRING,
+		imageTargetsFormat AKIpUptaneMetadataFormat,
+		imageTargets OCTET STRING,
+		...
+	}
+
+	AKDiscoveryReqMes ::= SEQUENCE {
+		...
+	}
+
+	AKDiscoveryRespMes ::= SEQUENCE {
+		hwId OCTET STRING,
+		ecuSerial OCTET STRING,
+		...
+	}
+
+	AKPublicKeyReqMes ::= SEQUENCE {
+		...
+	}
+
+	AKPublicKeyRespMes ::= SEQUENCE {
+		type AKIpUptaneKeyType,
+		key OCTET STRING,
+		...
+	}
+
+	AKManifestReqMes ::= SEQUENCE {
+		...
+	}
+
+	AKManifestRespMes ::= SEQUENCE {
+		format AKIpUptaneMetadataFormat,
+		manifest OCTET STRING,
+		...
+	}
+	
+
+	AKPutMetaReqMes ::= SEQUENCE {
+		directorTargetsFormat AKIpUptaneMetadataFormat,
+		directorTargets OCTET STRING,
+		imageMeta AKImageMeta OPTIONAL
+	}
+
+	AKPutMetaRespMes ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+	
+	AKRootVersionReqMes ::= SEQUENCE {
+		director BOOLEAN,
+		...
+	}
+
+	AKRootVersionRespMes ::= SEQUENCE {
+		version INTEGER,
+		...
+	}
+
+	AKPutRootReqMes ::= SEQUENCE {
+		director BOOLEAN,
+		rootFormat AKIpUptaneMetadataFormat,
+		root OCTET STRING,
+		...
+	}
+
+	AKPutRootRespMes ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+	
+	AKSendFirmwareReqMes ::= SEQUENCE {
+		firmware OCTET STRING
+	}
+	
+	AKSendFirmwareRespMes ::= SEQUENCE {
+		result BOOLEAN DEFAULT TRUE
+	}
+
+	AKIpUptaneMes ::= CHOICE {
+		discoveryReq [0] AKDiscoveryReqMes,
+		discoveryResp [1] AKDiscoveryRespMes,
+		publicKeyReq [2] AKPublicKeyReqMes,
+		publicKeyResp [3] AKPublicKeyRespMes,
+		manifestReq [4] AKManifestReqMes,
+		manifestResp [5] AKManifestRespMes,
+		putMetaReq [6] AKPutMetaReqMes,
+		putMetaResp [7] AKPutMetaRespMes,
+		rootVersionReq [8] AKRootVersionReqMes,
+		rootVersionResp [9] AKRootVersionRespMes,
+		putRootReq [10] AKPutRootReqMes,
+		putRootResp [11] AKPutRootRespMes,
+		sendFirmwareReq [12] AKSendFirmwareReqMes,
+		sendFirmwareResp [13] AKSendFirmwareRespMes,
+		...
+	}
+
+END

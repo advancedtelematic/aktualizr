@@ -46,8 +46,10 @@ add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COM
                   -E test_uptane_vectors DEPENDS build_tests)
 
 # Reference asn1c libraries
-add_asn1c_lib(config asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
-list(APPEND TEST_LIBS config_asn1)
+add_asn1c_lib(asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
+add_asn1c_lib(asn1-reference/uptane/ipuptane_message)
+compile_asn1_lib()
+list(APPEND TEST_LIBS asn1_lib)
 
 # List of source files to run clang-format and clang-check on. Automatically
 # appended to by add_aktualizr_test, but anything that doesn't use that must be
