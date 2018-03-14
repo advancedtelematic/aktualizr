@@ -1,3 +1,6 @@
+#ifndef ASN1_CER_STREAM_H
+#define ASN1_CER_STREAM_H
+
 #include "asn1-cer.h"
 
 #include <stack>
@@ -95,3 +98,5 @@ Deserializer& operator>>(Deserializer& des, ImplicitC<Tag, T> imp) {
   return des;
 }
 }
+
+#endif  // ASN1_CER_STREAM_H

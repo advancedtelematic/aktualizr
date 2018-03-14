@@ -1,3 +1,6 @@
+#ifndef ASN1_CER_H
+#define ASN1_CER_H
+
 #include <stdexcept>
 #include <string>
 
@@ -51,3 +54,5 @@ ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int3
 
 std::string cer_encode_integer(int32_t number);
 std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype);
+
+#endif  // ASN1_CER_H
