@@ -6,6 +6,17 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary_discovery.cc
     )
 
+set(OPCUA_SECONDARY_SOURCES
+    opcuaserver_secondary_delegate.cc
+    aktualizr_secondary_opcua.cc
+    )
+
+if (BUILD_OPCUA)
+    set_source_files_properties(${OPCUA_SECONDARY_SOURCES}
+        PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
+    list(APPEND AKTUALIZR_SECONDARY_LIB_SRC ${OPCUA_SECONDARY_SOURCES})
+endif (BUILD_OPCUA)
+
 add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
 target_link_libraries(aktualizr_secondary_static_lib
     socket_activation)
@@ -34,6 +45,8 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary.h
     aktualizr_secondary_config.h
     aktualizr_secondary_discovery.h
+    aktualizr_secondary_opcua.h
+    opcuaserver_secondary_delegate.h
     )
 
 aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_LIB_SRC} ${ALL_AKTUALIZR_SECONDARY_HEADERS})
