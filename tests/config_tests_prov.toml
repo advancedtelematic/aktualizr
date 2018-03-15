@@ -3,8 +3,6 @@ http = false
 socket = true
 
 [network]
-http_server = "127.0.0.1:8888"
-websocket_server = "127.0.0.1:3012"
 socket_commands_path = "/tmp/sota-commands.socket"
 socket_events_path = "/tmp/sota-events.socket"
 socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
