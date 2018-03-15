@@ -47,13 +47,14 @@ This client, and the https://github.com/advancedtelematic/rvi_sota_server[GENIVI
 
 The following debian packages are used in the project:
 
+* asn1c
 * build-essential
 * clang (optional)
 * clang-format-3.8 (optional)
 * cmake (>= 3.5.1)
 * curl (>= 7.47)
 * doxygen (when building additional documentation)
-* graphiz (when building additional documentation)
+* graphviz (when building additional documentation)
 * lcov (when building for code coverage)
 * libarchive-dev
 * libboost-dev
