@@ -63,7 +63,7 @@ class Serializer {
 
  private:
   std::string result;
-  ASN1_UniversalTag last_type;
+  ASN1_UniversalTag last_type{kUnknown};
 };
 
 template <ASN1_UniversalTag Tag, typename T>
@@ -83,7 +83,6 @@ class Deserializer {
 
  private:
   std::string data;
-  ASN1_UniversalTag last_type;
   std::stack<int32_t> seq_lengths;
   std::stack<int32_t> seq_consumed;
   int32_t int_param;
