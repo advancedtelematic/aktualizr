@@ -20,15 +20,15 @@ class Image {
 
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["filename"] = getFilename();
-    v["length"] = static_cast<Json::Value::UInt>(getLength());
-    v["hashes"] = convert_to::jsonArray(getHashes());
+    v["filepath"] = getFilename();
+    v["fileinfo"]["length"] = static_cast<Json::Value::UInt>(getLength());
+    v["fileinfo"]["hashes"] = convert_to::jsonArray(getHashes());
     return v;
   }
   void unwrapMessage(Json::Value v) {
-    setFilename(v["filename"].asString());
-    setLength(v["length"].asUInt());
-    setHashes(convert_to::stdVector<Hash>(v["hashes"]));
+    setFilename(v["filepath"].asString());
+    setLength(v["fileinfo"]["length"].asUInt());
+    setHashes(convert_to::stdVector<Hash>(v["fileinfo"]["hashes"]));
   }
 
  protected:

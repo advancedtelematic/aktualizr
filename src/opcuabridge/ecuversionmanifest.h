@@ -22,13 +22,13 @@ class ECUVersionManifest {
   Json::Value wrapMessage() const {
     Json::Value v;
     v["signatures"] = convert_to::jsonArray(getSignatures());
-    v["ecuVersionManifestSigned"] = getEcuVersionManifestSigned().wrapMessage();
+    v["signed"] = getEcuVersionManifestSigned().wrapMessage();
     return v;
   }
   void unwrapMessage(Json::Value v) {
     setSignatures(convert_to::stdVector<Signature>(v["signatures"]));
     ECUVersionManifestSigned ms;
-    ms.unwrapMessage(v["ecuVersionManifestSigned"]);
+    ms.unwrapMessage(v["signed"]);
     setEcuVersionManifestSigned(ms);
   }
 

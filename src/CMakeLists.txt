@@ -107,9 +107,15 @@ if(BUILD_P11)
 endif(BUILD_P11)
 
 set(OPEN62541_SOURCES ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
-set(OPCUABRIDGE_SOURCES opcuabridge/common.cc opcuabridge/filelist.cc)
+set(OPCUABRIDGE_SOURCES ${OPEN62541_SOURCES}
+                        opcuabridge/common.cc
+                        opcuabridge/filelist.cc
+                        opcuabridge/opcuabridgeclient.cc
+                        opcuabridge/opcuabridgeserver.cc
+                        uptane/opcuasecondary.cc)
 set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/common.h
+                        opcuabridge/configuration.h
                         opcuabridge/currenttime.h
                         opcuabridge/ecuversionmanifest.h
                         opcuabridge/ecuversionmanifestsigned.h
@@ -123,11 +129,13 @@ set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/metadatafile.h
                         opcuabridge/metadatafiles.h
                         opcuabridge/opcuabridge.h
+                        opcuabridge/opcuabridgeclient.h
+                        opcuabridge/opcuabridgeserver.h
                         opcuabridge/signature.h
                         opcuabridge/signed.h
                         opcuabridge/utility.h
-                        opcuabridge/versionreport.h)
-
+                        opcuabridge/versionreport.h
+                        uptane/opcuasecondary.h)
 if (BUILD_OPCUA)
     set_source_files_properties(opcuabridge_messaging.cc ${OPEN62541_SOURCES} ${OPCUABRIDGE_SOURCES}
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})

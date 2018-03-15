@@ -1,3 +1,4 @@
+#include "configuration.h"
 #include "currenttime.h"
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"
@@ -25,6 +26,7 @@ const UA_UInt16 kNSindex = 1;
 const char *kLocale = "en-US";
 
 const char *VersionReport::node_id_ = "VersionReport";
+const char *Configuration::node_id_ = "Configuration";
 const char *CurrentTime::node_id_ = "CurrentTime";
 const char *MetadataFiles::node_id_ = "MetadataFiles";
 const char *MetadataFile::node_id_ = "MetadataFile";
@@ -38,6 +40,17 @@ const char *FileData::bin_node_id_ = "FileData_BinaryData";
 }  // namespace opcuabridge
 
 namespace opcuabridge {
+
+const std::size_t kLogMsgBuffSize = 256;
+
+void BoostLogOpcua(UA_LogLevel level, UA_LogCategory category, const char *msg, va_list args) {
+  char msg_buff[kLogMsgBuffSize];
+  vsnprintf(msg_buff, kLogMsgBuffSize, msg, args);
+  BOOST_LOG_STREAM_WITH_PARAMS(
+      boost::log::trivial::logger::get(),
+      (boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(level)))
+      << "OPC-UA " << msg_buff;
+}
 
 template <>
 UA_StatusCode read<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId, void *sessionContext,
