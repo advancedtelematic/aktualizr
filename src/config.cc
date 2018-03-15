@@ -160,10 +160,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
   CopyFromConfig(network.socket_events_path, "network.socket_events_path", boost::log::trivial::trace, pt);
 
-  CopyFromConfig(network.ipdiscovery_host, "network.ipdiscovery_host", boost::log::trivial::trace, pt);
-  CopyFromConfig(network.ipdiscovery_port, "network.ipdiscovery_port", boost::log::trivial::trace, pt);
-  CopyFromConfig(network.ipdiscovery_wait_seconds, "network.ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
-
   boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
   if (events_string.is_initialized()) {
     std::string e = Utils::stripQuotes(events_string.get());
@@ -172,6 +168,10 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   } else {
     LOG_TRACE << "network.socket_events not in config file. Using default";
   }
+
+  CopyFromConfig(network.ipdiscovery_host, "network.ipdiscovery_host", boost::log::trivial::trace, pt);
+  CopyFromConfig(network.ipdiscovery_port, "network.ipdiscovery_port", boost::log::trivial::trace, pt);
+  CopyFromConfig(network.ipdiscovery_wait_seconds, "network.ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
 
   CopyFromConfig(p11.module, "p11.module", boost::log::trivial::trace, pt);
   CopyFromConfig(p11.pass, "p11.pass", boost::log::trivial::trace, pt);
@@ -261,14 +261,14 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   else
     storage.type = kFileSystem;
 
+  CopyFromConfig(storage.path, "storage.path", boost::log::trivial::trace, pt);
+  CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", boost::log::trivial::trace, pt);
   CopyFromConfig(storage.uptane_metadata_path, "storage.uptane_metadata_path", boost::log::trivial::warning, pt);
   CopyFromConfig(storage.uptane_private_key_path, "storage.uptane_private_key_path", boost::log::trivial::warning, pt);
   CopyFromConfig(storage.uptane_public_key_path, "storage.uptane_public_key_path", boost::log::trivial::warning, pt);
   CopyFromConfig(storage.tls_cacert_path, "storage.tls_cacert_path", boost::log::trivial::warning, pt);
   CopyFromConfig(storage.tls_pkey_path, "storage.tls_pkey_path", boost::log::trivial::warning, pt);
   CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.path, "storage.path", boost::log::trivial::trace, pt);
-  CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", boost::log::trivial::trace, pt);
   CopyFromConfig(storage.schemas_path, "storage.schemas_path", boost::log::trivial::trace, pt);
 
   CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", boost::log::trivial::warning, pt);
@@ -455,6 +455,9 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
     }
   }
   writeOption(sink, socket_events, "socket_events");
+  writeOption(sink, network.ipdiscovery_host, "ipdiscovery_host");
+  writeOption(sink, network.ipdiscovery_port, "ipdiscovery_port");
+  writeOption(sink, network.ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
   sink << "\n";
 
   sink << "[p11]\n";
@@ -507,12 +510,14 @@ void Config::writeToFile(const boost::filesystem::path& filename) {
   sink << "[storage]\n";
   writeOption(sink, storage.type, "type");
   writeOption(sink, storage.path, "path");
+  writeOption(sink, storage.sqldb_path, "sqldb_path");
   writeOption(sink, storage.uptane_metadata_path, "uptane_metadata_path");
   writeOption(sink, storage.uptane_private_key_path, "uptane_private_key_path");
   writeOption(sink, storage.uptane_public_key_path, "uptane_public_key_path");
   writeOption(sink, storage.tls_cacert_path, "tls_cacert_path");
   writeOption(sink, storage.tls_pkey_path, "tls_pkey_path");
   writeOption(sink, storage.tls_clientcert_path, "tls_clientcert_path");
+  writeOption(sink, storage.schemas_path, "schemas_path");
   sink << "\n";
 
   sink << "[import]\n";
