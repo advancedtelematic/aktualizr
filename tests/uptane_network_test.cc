@@ -50,14 +50,19 @@ bool doInit(StorageType storage_type, const std::string &device_register_state, 
   }
   if (device_register_state != "noerrors" || conf.uptane.primary_ecu_serial != "noerrors") {
     EXPECT_FALSE(result);
+    LOG_INFO << "Reinit without error";
     conf.provision.server = good_url;
     conf.provision.expiry_days = "noerrors";
     conf.uptane.primary_ecu_serial = "noerrors";
 
-    std::vector<std::pair<std::string, std::string> > serials;
-    store->loadEcuSerials(&serials);
-    serials[0].first = conf.uptane.primary_ecu_serial;
-    store->storeEcuSerials(serials);
+    if (device_register_state == "noerrors" && ecu_register_state != "noerrors") {
+      // restore a "good" ecu serial in the ecu register fault injection case
+      // (the bad value has been cached in storage)
+      std::vector<std::pair<std::string, std::string> > serials;
+      store->loadEcuSerials(&serials);
+      serials[0].first = conf.uptane.primary_ecu_serial;
+      store->storeEcuSerials(serials);
+    }
 
     Uptane::Repository uptane = Uptane::Repository(conf, store, http);
     result = uptane.initialize();
