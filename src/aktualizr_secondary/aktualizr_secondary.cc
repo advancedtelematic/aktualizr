@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 
+#include "invstorage.h"
 #include "logging.h"
 #include "socket_activation.h"
 #include "utils.h"
@@ -14,6 +15,10 @@ AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config)
     : config_(config), conn_(config.network.port) {}
 
 void AktualizrSecondary::run() {
+  // storage (share class with primary)
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+
+  // discovery
   AktualizrSecondaryDiscovery discovery(config_.network);
   std::thread discovery_thread = std::thread(&AktualizrSecondaryDiscovery::run, &discovery);
 

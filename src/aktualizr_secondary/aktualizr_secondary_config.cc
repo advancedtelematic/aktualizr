@@ -34,6 +34,9 @@ void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree
   CopyFromConfig(network.port, "network.port", boost::log::trivial::info, pt);
   CopyFromConfig(network.discovery, "network.discovery", boost::log::trivial::info, pt);
   CopyFromConfig(network.discovery_port, "network.discovery_port", boost::log::trivial::info, pt);
+
+  // from aktualizr config
+  CopySubtreeFromConfig(storage, "storage", pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -57,4 +60,6 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   writeOption(sink, network.discovery, "discovery");
   writeOption(sink, network.discovery_port, "discovery_port");
   sink << "\n";
+
+  WriteSectionToStream(storage, "storage", sink);
 }

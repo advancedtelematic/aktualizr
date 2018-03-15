@@ -10,8 +10,8 @@
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
-#include "fsstorage.h"
 #include "httpclient.h"
+#include "invstorage.h"
 #include "sotauptaneclient.h"
 
 Aktualizr::Aktualizr(const Config &config) : config_(config) {

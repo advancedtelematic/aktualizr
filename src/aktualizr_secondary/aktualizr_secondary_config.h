@@ -5,10 +5,18 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
+// Uses StorageConfig from aktualizr
+#include "config.h"
+
 struct AktualizrSecondaryNetConfig {
   int port{9030};
   bool discovery{true};
   int discovery_port{9031};
+};
+
+struct AktualizrSecondaryUptaneConfig {
+  std::string ecu_serial;
+  std::string ecu_hardware_id;
 };
 
 class AktualizrSecondaryConfig {
@@ -20,6 +28,7 @@ class AktualizrSecondaryConfig {
   void writeToFile(const boost::filesystem::path& filename);
 
   AktualizrSecondaryNetConfig network;
+  StorageConfig storage;
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

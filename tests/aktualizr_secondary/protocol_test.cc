@@ -6,9 +6,14 @@
 
 #include "logging.h"
 
+AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
+
 TEST(aktualizr_secondary_protocol, run_and_stop) {
-  AktualizrSecondaryConfig config;
+  TemporaryFile db_file;
+  AktualizrSecondaryConfig config = conf;
   config.network.port = 0;  // random port
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = db_file.Path();
 
   AktualizrSecondary as{config};
 
