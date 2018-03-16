@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 if [ "$1" == "Dockerfile.noostree" ]; then
   echo "Building docker for testing aktualizr deb package inside it."

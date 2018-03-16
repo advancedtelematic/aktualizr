@@ -213,6 +213,19 @@ bool Repository::initialize() {
       LOG_ERROR << "Device ID generation failed, abort initialization";
       return false;
     }
+
+    InitRetCode ret_code = initTlsCreds(config.provision);
+    // if a device with the same ID has already been registered to the server,
+    // generate a new one
+    if (ret_code == INIT_RET_OCCUPIED) {
+      resetDeviceId();
+      LOG_INFO << "Device name is already registered, restart";
+      continue;
+    } else if (ret_code != INIT_RET_OK) {
+      LOG_ERROR << "Autoprovisioning failed, abort initialization";
+      return false;
+    }
+
     if (!initPrimaryEcuKeys()) {
       LOG_ERROR << "ECU key generation failed, abort initialization";
       return false;
@@ -222,22 +235,9 @@ bool Repository::initialize() {
       return false;
     }
 
-    InitRetCode ret_code = initTlsCreds(config.provision);
-    // if a device with the same ID has already been registered to the server, repeat the whole registration process
-    if (ret_code == INIT_RET_OCCUPIED) {
-      resetEcuKeys();
-      resetEcuSerials();
-      resetDeviceId();
-      LOG_INFO << "Device name is already registered, restart";
-      continue;
-    } else if (ret_code != INIT_RET_OK) {
-      LOG_ERROR << "Autoprovisioning failed, abort initialization";
-      return false;
-    }
-
     ret_code = initEcuRegister();
-    // if am ECU with the same ID has already been registered to the server, repeat the whole registration process
-    //   excluding the device registration
+    // if ECUs with same ID have been registered to the server, we don't have a
+    // clear remediation path right now, just ignore the error
     if (ret_code == INIT_RET_OCCUPIED) {
       LOG_INFO << "ECU serial is already registered";
     } else if (ret_code != INIT_RET_OK) {

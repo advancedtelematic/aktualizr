@@ -30,6 +30,10 @@ bool doInit(StorageType storage_type, const std::string &device_register_state, 
   TemporaryDirectory temp_dir;
   conf.storage.type = storage_type;
   conf.storage.path = temp_dir.Path();
+  if (storage_type == kSqlite) {
+    conf.storage.sqldb_path = temp_dir / "test.db";
+    conf.storage.schemas_path = "config/schemas";
+  }
   conf.provision.expiry_days = device_register_state;
   conf.uptane.primary_ecu_serial = ecu_register_state;
   std::string good_url = conf.provision.server;
@@ -39,23 +43,28 @@ bool doInit(StorageType storage_type, const std::string &device_register_state, 
 
   bool result;
   HttpClient http;
-  boost::shared_ptr<INvStorage> fs = boost::make_shared<FSStorage>(conf.storage);
+  boost::shared_ptr<INvStorage> store = INvStorage::newStorage(conf.storage, temp_dir.Path());
   {
-    Uptane::Repository uptane = Uptane::Repository(conf, fs, http);
+    Uptane::Repository uptane = Uptane::Repository(conf, store, http);
     result = uptane.initialize();
   }
   if (device_register_state != "noerrors" || conf.uptane.primary_ecu_serial != "noerrors") {
     EXPECT_FALSE(result);
+    LOG_INFO << "Reinit without error";
     conf.provision.server = good_url;
     conf.provision.expiry_days = "noerrors";
     conf.uptane.primary_ecu_serial = "noerrors";
 
-    std::vector<std::pair<std::string, std::string> > serials;
-    fs->loadEcuSerials(&serials);
-    serials[0].first = conf.uptane.primary_ecu_serial;
-    fs->storeEcuSerials(serials);
+    if (device_register_state == "noerrors" && ecu_register_state != "noerrors") {
+      // restore a "good" ecu serial in the ecu register fault injection case
+      // (the bad value has been cached in storage)
+      std::vector<std::pair<std::string, std::string> > serials;
+      store->loadEcuSerials(&serials);
+      serials[0].first = conf.uptane.primary_ecu_serial;
+      store->storeEcuSerials(serials);
+    }
 
-    Uptane::Repository uptane = Uptane::Repository(conf, fs, http);
+    Uptane::Repository uptane = Uptane::Repository(conf, store, http);
     result = uptane.initialize();
   }
 
