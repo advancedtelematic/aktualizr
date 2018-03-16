@@ -116,7 +116,11 @@ int main(int argc, char *argv[]) {
 
   try {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
-    AktualizrSecondary secondary(config);
+
+    // storage (share class with primary)
+    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+    AktualizrSecondary secondary(config, storage);
 
     secondary.run();
 

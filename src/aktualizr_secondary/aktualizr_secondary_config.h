@@ -5,18 +5,16 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-// Uses StorageConfig from aktualizr
 #include "config.h"
+#include "invstorage.h"
 
 struct AktualizrSecondaryNetConfig {
   int port{9030};
   bool discovery{true};
   int discovery_port{9031};
-};
 
-struct AktualizrSecondaryUptaneConfig {
-  std::string ecu_serial;
-  std::string ecu_hardware_id;
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 class AktualizrSecondaryConfig {
@@ -28,7 +26,11 @@ class AktualizrSecondaryConfig {
   void writeToFile(const boost::filesystem::path& filename);
 
   AktualizrSecondaryNetConfig network;
+
+  // from primary config
   StorageConfig storage;
+  P11Config p11;
+  UptaneConfig uptane;
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

@@ -9,13 +9,16 @@
 AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
 
 TEST(aktualizr_secondary_protocol, run_and_stop) {
-  TemporaryFile db_file;
+  TemporaryDirectory temp_dir;
   AktualizrSecondaryConfig config = conf;
   config.network.port = 0;  // random port
   config.storage.type = kSqlite;
-  config.storage.sqldb_path = db_file.Path();
+  config.storage.sqldb_path = temp_dir.Path() / "sql.db";
 
-  AktualizrSecondary as{config};
+  // storage (share class with primary)
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir.Path());
+
+  AktualizrSecondary as(config, storage);
 
   std::thread th(&AktualizrSecondary::run, &as);
 

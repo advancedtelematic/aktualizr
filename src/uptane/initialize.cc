@@ -58,6 +58,7 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
   std::string primary_ecu_hardware_id = uptane_config.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
+    if (primary_ecu_hardware_id == "") return false;
   }
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));

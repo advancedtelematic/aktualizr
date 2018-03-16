@@ -4,6 +4,18 @@
 
 #include "config_utils.h"
 
+void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(port, "port", boost::log::trivial::info, pt);
+  CopyFromConfig(discovery, "discovery", boost::log::trivial::info, pt);
+  CopyFromConfig(discovery_port, "discovery_port", boost::log::trivial::info, pt);
+}
+
+void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, port, "port");
+  writeOption(out_stream, discovery, "discovery");
+  writeOption(out_stream, discovery_port, "discovery_port");
+}
+
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
                                                    const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
@@ -31,12 +43,12 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in secondary_config.h and writeToFile().
-  CopyFromConfig(network.port, "network.port", boost::log::trivial::info, pt);
-  CopyFromConfig(network.discovery, "network.discovery", boost::log::trivial::info, pt);
-  CopyFromConfig(network.discovery_port, "network.discovery_port", boost::log::trivial::info, pt);
+  CopySubtreeFromConfig(network, "network", pt);
 
   // from aktualizr config
   CopySubtreeFromConfig(storage, "storage", pt);
+  CopySubtreeFromConfig(p11, "p11", pt);
+  CopySubtreeFromConfig(uptane, "uptane", pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -55,11 +67,10 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
-  sink << "[network]\n";
-  writeOption(sink, network.port, "port");
-  writeOption(sink, network.discovery, "discovery");
-  writeOption(sink, network.discovery_port, "discovery_port");
-  sink << "\n";
+  WriteSectionToStream(network, "network", sink);
 
+  // from aktualizr config
   WriteSectionToStream(storage, "storage", sink);
+  WriteSectionToStream(p11, "p11", sink);
+  WriteSectionToStream(uptane, "uptane", sink);
 }

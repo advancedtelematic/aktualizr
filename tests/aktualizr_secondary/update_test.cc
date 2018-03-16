@@ -31,9 +31,14 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
 
 TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   // secondary
+  TemporaryDirectory temp_dir_sec;
   AktualizrSecondaryConfig config;
   config.network.port = 0;
-  AktualizrSecondary as{config};
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = temp_dir_sec / "sql.db";
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
+
+  AktualizrSecondary as(config, storage);
 
   // secondary interface
   Uptane::SecondaryConfig config_iface;
