@@ -26,7 +26,9 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
     return secondaries;
   }
 
-  sendRequest();
+  if (!sendRequest()) {
+    return secondaries;
+  }
   return waitDevices();
 }
 
@@ -68,11 +70,12 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   return secondaries;
 }
 
-void IpSecondaryDiscovery::sendRequest() {
+bool IpSecondaryDiscovery::sendRequest() {
   int broadcast = 1;
   if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
     LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
     close(socket_fd);
+    return false;
   }
   struct sockaddr_in sendaddr {};
   sendaddr.sin_family = AF_INET;
@@ -87,5 +90,7 @@ void IpSecondaryDiscovery::sendRequest() {
                         sizeof sendaddr);
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
+    return false;
   }
+  return true;
 }

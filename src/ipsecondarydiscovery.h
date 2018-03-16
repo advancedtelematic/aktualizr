@@ -15,7 +15,7 @@ class IpSecondaryDiscovery {
   ~IpSecondaryDiscovery() { close(socket_fd); }
   std::vector<Uptane::SecondaryConfig> discover();
   std::vector<Uptane::SecondaryConfig> waitDevices();
-  void sendRequest();
+  bool sendRequest();
 
  private:
   NetworkConfig config_;
