@@ -12,12 +12,22 @@
 #endif
 #include "utils.h"
 
+// bundle some parts of the main config together
+struct KeyManagerConfig {
+  explicit KeyManagerConfig(const Config &config) : p11(config.p11), tls(config.tls), uptane(config.uptane) {}
+  KeyManagerConfig(const P11Config &p11_conf, const TlsConfig &tls_conf, const UptaneConfig &uptane_conf)
+      : p11(p11_conf), tls(tls_conf), uptane(uptane_conf) {}
+  const P11Config &p11;
+  const TlsConfig &tls;
+  const UptaneConfig &uptane;
+};
+
 class KeyManager {
  public:
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
-  KeyManager(const boost::shared_ptr<INvStorage> &backend, const Config &config);
+  KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config);
   void loadKeys();
   std::string getPkeyFile() const;
   std::string getCertFile() const;
@@ -33,7 +43,7 @@ class KeyManager {
 
  private:
   const boost::shared_ptr<INvStorage> &backend_;
-  Config config_;
+  KeyManagerConfig config_;
 #ifdef BUILD_P11
   P11EngineGuard p11_;
 #endif

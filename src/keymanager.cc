@@ -5,7 +5,7 @@
 #include <boost/move/make_unique.hpp>
 #include <boost/scoped_array.hpp>
 
-KeyManager::KeyManager(const boost::shared_ptr<INvStorage> &backend, const Config &config)
+KeyManager::KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config)
     : backend_(backend),
       config_(config)
 #ifdef BUILD_P11
