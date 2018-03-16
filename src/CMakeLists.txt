@@ -18,6 +18,7 @@ set(SOURCES aktualizr.cc
             httpclient.cc
             invstorage.cc
             ipsecondarydiscovery.cc
+            ipuptaneconnection.cc
             keymanager.cc
             logging.cc
             socketgateway.cc
@@ -58,6 +59,7 @@ set(HEADERS aktualizr.h
             httpinterface.h
             invstorage.h
             ipsecondarydiscovery.h
+            ipuptaneconnection.h
             keymanager.h
             logging.h
             openssl_compat.h
@@ -136,6 +138,7 @@ endif (BUILD_OPCUA)
 add_executable(aktualizr main.cc)
 add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
 target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
+target_link_libraries(aktualizr_static_lib socket_activation)
 
 target_link_libraries(aktualizr aktualizr_static_lib
         ${Boost_LIBRARIES}
