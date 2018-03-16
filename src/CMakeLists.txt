@@ -34,7 +34,6 @@ set(SOURCES aktualizr.cc
             uptane/role.cc
             uptane/root.cc
             uptane/tuf.cc
-            uptane/tufrepository.cc
             uptane/uptanerepository.cc
             uptane/virtualsecondary.cc)
 
@@ -85,7 +84,6 @@ set(HEADERS aktualizr.h
             uptane/secondaryfactory.h
             uptane/secondaryinterface.h
             uptane/tuf.h
-            uptane/tufrepository.h
             uptane/uptanerepository.h
             uptane/virtualsecondary.h)
 

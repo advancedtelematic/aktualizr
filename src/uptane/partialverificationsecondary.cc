@@ -7,10 +7,10 @@
 #include "json/json.h"
 
 #include "../exceptions.h"
+#include "logging.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 
 namespace Uptane {
 
@@ -34,14 +34,13 @@ bool PartialVerificationSecondary::putMetadata(const MetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
-  root_.UnpackSignedObject(now, "director", Role::Root(), meta.director_root.original());
-  root_ = meta.director_root;
-  root_.UnpackSignedObject(now, "director", Role::Targets(), meta.director_targets.original());
-  if (meta_targets_.version() > meta.director_targets.version()) {
+  root_ = Uptane::Root(now, "director", meta.director_root.original(), root_);
+  Uptane::Targets targets(now, "director", meta.director_targets.original(), root_);
+  if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }
-  meta_targets_ = meta.director_targets;
+  meta_targets_ = targets;
   std::vector<Uptane::Target>::const_iterator it;
   bool target_found = false;
   for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {

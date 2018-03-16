@@ -155,7 +155,28 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   return os;
 }
 
-Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) {
+void Uptane::BaseMeta::init(const Json::Value &json) {
+  if (!json.isObject() || !json.isMember("signed")) {
+    throw Uptane::InvalidMetadata("", "", "invalid metadata json");
+  }
+
+  version_ = json["signed"]["version"].asInt();
+  expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
+  original_object_ = json;
+}
+Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
+
+Uptane::BaseMeta::BaseMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root) {
+  if (!json.isObject() || !json.isMember("signed")) {
+    throw Uptane::InvalidMetadata("", "", "invalid metadata json");
+  }
+
+  root.UnpackSignedObject(now, repository, json);
+
+  init(json);
+}
+
+void Uptane::Targets::init(const Json::Value &json) {
   if (!json.isObject() || json["signed"]["_type"] != "Targets")
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
 
@@ -164,6 +185,13 @@ Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
   }
+}
+
+Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) { init(json); }
+
+Uptane::Targets::Targets(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
+    : BaseMeta(now, repository, json, root) {
+  init(json);
 }
 
 Json::Value Uptane::Targets::toJson() const {
@@ -184,13 +212,20 @@ Json::Value Uptane::TimestampMeta::toJson() const {
   return res;
 }
 
-Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) {
+void Uptane::Snapshot::init(const Json::Value &json) {
   if (!json.isObject() || json["signed"]["_type"] != "Snapshot")
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
 
   Json::Value meta_list = json["signed"]["meta"];
   for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++)
     versions[m_it.key().asString()] = (*m_it)["version"].asInt();
+}
+
+Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
+
+Uptane::Snapshot::Snapshot(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
+    : BaseMeta(now, repository, json, root) {
+  init(json);
 }
 
 Json::Value Uptane::Snapshot::toJson() const {

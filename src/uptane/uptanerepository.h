@@ -12,7 +12,6 @@
 #include "keymanager.h"
 #include "logging.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 
 namespace Uptane {
 
@@ -54,18 +53,17 @@ class Repository {
   void updateRoot(Version version = Version());
   // TODO: Receive and update time nonces.
 
-  bool currentMeta(Uptane::MetaPack *meta) { return storage->loadMetadata(meta); }
+  Uptane::MetaPack &currentMeta() { return meta_; }
 
  private:
   const Config &config;
-  TufRepository director;
-  TufRepository image;
   boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
 
   KeyManager keys_;
 
   Json::Value manifests;
+  MetaPack meta_;
 
   std::string primary_ecu_serial;
   std::string primary_hardware_id_;
@@ -75,8 +73,7 @@ class Repository {
   bool verifyMeta(const Uptane::MetaPack &meta);
   void downloadTarget(Target target);
   Json::Value getJSON(const std::string &url);
-  Json::Value fetchAndCheckRole(const Uptane::TufRepository &repo, Uptane::Role role, Version version = Version(),
-                                Uptane::Root *root_used = nullptr);
+  Json::Value fetchRole(const std::string &base_url, Uptane::Role role, Version version = Version());
 
   // implemented in uptane/initialize.cc
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);

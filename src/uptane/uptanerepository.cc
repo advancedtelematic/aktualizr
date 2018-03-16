@@ -39,19 +39,18 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 }
 
 Repository::Repository(const Config& config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
-    : config(config_in),
-      director("director", config.uptane.director_server, config, storage_in),
-      image("repo", config.uptane.repo_server, config, storage_in),
-      storage(storage_in),
-      http(http_client),
-      keys_(storage, config),
-      manifests(Json::arrayValue) {}
+    : config(config_in), storage(storage_in), http(http_client), keys_(storage, config), manifests(Json::arrayValue) {
+  if (!storage->loadMetadata(&meta_)) {
+    meta_.director_root = Root(Root::kAcceptAll);
+    meta_.image_root = Root(Root::kAcceptAll);
+  }
+}
 
 void Repository::updateRoot(Version version) {
-  Uptane::Root director_root("director", fetchAndCheckRole(director, Role::Root(), version));
-  director.setMeta(&director_root);
-  Uptane::Root image_root("image", fetchAndCheckRole(image, Role::Root(), version));
-  image.setMeta(&image_root);
+  Uptane::Root director_root("director", fetchRole(config.uptane.director_server, Role::Root(), version));
+  meta_.director_root = director_root;
+  Uptane::Root image_root("image", fetchRole(config.uptane.repo_server, Role::Root(), version));
+  meta_.image_root = image_root;
 }
 
 bool Repository::putManifest(const Json::Value& version_manifests) {
@@ -101,37 +100,42 @@ Json::Value Repository::getJSON(const std::string& url) {
  * @param root_used
  * @return The contents of the "signed" section
  */
-Json::Value Repository::fetchAndCheckRole(const Uptane::TufRepository& repo, Uptane::Role role, Version version,
-                                          Uptane::Root* root_used) {
+Json::Value Repository::fetchRole(const std::string& base_url, Uptane::Role role, Version version) {
   // TODO: chain-loading root.json
-  Json::Value content = getJSON(repo.getBaseUrl() + "/" + version.RoleFileName(role));
-  TimeStamp now(TimeStamp::Now());
-  return repo.verifyRole(role, now, content, root_used);
+  return getJSON(base_url + "/" + version.RoleFileName(role));
 }
 
 bool Repository::getMeta() {
-  Uptane::MetaPack meta;
-  meta.director_root = Uptane::Root("director", fetchAndCheckRole(director, Role::Root()));
-  meta.image_root = Uptane::Root("repo", fetchAndCheckRole(image, Role::Root()));
+  MetaPack meta;
+  TimeStamp now(TimeStamp::Now());
 
-  meta.image_timestamp =
-      Uptane::TimestampMeta(fetchAndCheckRole(image, Role::Timestamp(), Version(), &meta.image_root));
-  if (meta.image_timestamp.version() > image.timestampVersion()) {
-    meta.image_snapshot = Uptane::Snapshot(fetchAndCheckRole(image, Role::Snapshot(), Version(), &meta.image_root));
-    meta.image_targets = Uptane::Targets(fetchAndCheckRole(image, Role::Targets(), Version(), &meta.image_root));
+  meta.director_root =
+      Uptane::Root(now, "director", fetchRole(config.uptane.director_server, Role::Root()), meta_.director_root);
+  meta.image_root = Uptane::Root(now, "repo", fetchRole(config.uptane.repo_server, Role::Root()), meta_.image_root);
+
+  meta.image_timestamp = Uptane::TimestampMeta(
+      now, "repo", fetchRole(config.uptane.repo_server, Role::Timestamp(), Version()), meta_.image_root);
+  if (meta.image_timestamp.version() > meta_.image_timestamp.version()) {
+    meta.image_snapshot = Uptane::Snapshot(
+        now, "repo", fetchRole(config.uptane.repo_server, Role::Snapshot(), Version()), meta_.image_root);
+    meta.image_targets = Uptane::Targets(now, "repo", fetchRole(config.uptane.repo_server, Role::Targets(), Version()),
+                                         meta_.image_root);
   } else {
-    meta.image_snapshot = image.snapshot();
-    meta.image_targets = image.targets();
+    meta.image_snapshot = meta_.image_snapshot;
+    meta.image_targets = meta_.image_targets;
   }
 
-  meta.director_targets = Uptane::Targets(fetchAndCheckRole(director, Role::Targets(), Version(), &meta.director_root));
-  if (meta.director_root.version() > director.rootVersion() || meta.image_root.version() > image.rootVersion() ||
-      meta.director_targets.version() > director.targetsVersion() ||
-      meta.image_timestamp.version() > image.timestampVersion()) {
-    if (verifyMeta(meta)) {
-      storage->storeMetadata(meta);
-      image.setMeta(&meta.image_root, &meta.image_targets, &meta.image_timestamp, &meta.image_snapshot);
-      director.setMeta(&meta.director_root, &meta.director_targets);
+  meta.director_targets = Uptane::Targets(
+      now, "director", fetchRole(config.uptane.director_server, Role::Targets(), Version()), meta_.director_root);
+  if (meta.director_root.version() > meta_.director_root.version() ||
+      meta.image_root.version() > meta.image_root.version() ||
+      meta.director_targets.version() > meta_.director_targets.version() ||
+      meta.image_timestamp.version() > meta_.image_timestamp.version()) {
+    if (verifyMeta(meta_)) {
+      storage->storeMetadata(meta_);
+      meta_ = meta;
+      // image.setMeta(&meta_.image_root, &meta_.image_targets, &meta_.image_timestamp, &meta_.image_snapshot);
+      // director.setMeta(&meta_.director_root, &meta_.director_targets);
     } else {
       LOG_WARNING << "Metadata image/directory repo consistency check failed.";
       return false;
@@ -141,8 +145,8 @@ bool Repository::getMeta() {
 }
 
 std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
-  std::vector<Uptane::Target> director_targets = director.getTargets();
-  int version = director.targetsVersion();
+  std::vector<Uptane::Target> director_targets = meta_.director_targets.targets;
+  int version = meta_.director_targets.version();
 
   if (!director_targets.empty()) {
     for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {

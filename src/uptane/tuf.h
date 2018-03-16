@@ -155,19 +155,12 @@ class Target {
 std::ostream &operator<<(std::ostream &os, const Target &t);
 
 /* Metadata objects */
-
+class Root;
 class BaseMeta {
  public:
   BaseMeta(){};
-  BaseMeta(const Json::Value &json) {
-    if (!json.isObject() || !json.isMember("signed")) {
-      throw Uptane::InvalidMetadata("", "", "invalid metadata json");
-    }
-
-    version_ = json["signed"]["version"].asInt();
-    expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
-    original_object_ = json;
-  }
+  BaseMeta(const Json::Value &json);
+  BaseMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
   int version() const { return version_; }
   TimeStamp expiry() const { return expiry_; }
   Json::Value original() const { return original_object_; }
@@ -184,6 +177,9 @@ class BaseMeta {
   int version_ = {-1};
   TimeStamp expiry_;
   Json::Value original_object_;
+
+ private:
+  void init(const Json::Value &json);
 };
 
 // Implemented in uptane/root.cc
@@ -200,6 +196,8 @@ class Root : public BaseMeta {
    * @param json - The contents of the 'signed' portion
    */
   Root(const std::string &repository, const Json::Value &json);
+  Root(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
+
   /**
    * Take a JSON blob that contains a signatures/signed component that is supposedly for a given role, and check that is
    * suitably signed.
@@ -215,7 +213,7 @@ class Root : public BaseMeta {
    * @param signed_object
    * @return
    */
-  Json::Value UnpackSignedObject(TimeStamp now, std::string repository, Role role, const Json::Value &signed_object);
+  void UnpackSignedObject(TimeStamp now, std::string repository, const Json::Value &signed_object);
   Json::Value toJson() const;
   bool operator==(const Root &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
@@ -236,6 +234,7 @@ class Root : public BaseMeta {
 class Targets : public BaseMeta {
  public:
   Targets(const Json::Value &json);
+  Targets(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
   Targets(){};
   Json::Value toJson() const;
 
@@ -243,12 +242,17 @@ class Targets : public BaseMeta {
   bool operator==(const Targets &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
+
+ private:
+  void init(const Json::Value &json);
 };
 
 class TimestampMeta : public BaseMeta {
  public:
   // TODO: add METAFILES section
-  TimestampMeta(const Json::Value &json) : BaseMeta(json){};
+  TimestampMeta(const Json::Value &json) : BaseMeta(json) {}
+  TimestampMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
+      : BaseMeta(now, repository, json, root){};
   TimestampMeta(){};
   Json::Value toJson() const;
 };
@@ -257,11 +261,15 @@ class Snapshot : public BaseMeta {
  public:
   std::map<std::string, int> versions;
   Snapshot(const Json::Value &json);
+  Snapshot(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
   Snapshot(){};
   Json::Value toJson() const;
   bool operator==(const Snapshot &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && versions == rhs.versions;
   }
+
+ private:
+  void init(const Json::Value &json);
 };
 
 struct MetaPack {

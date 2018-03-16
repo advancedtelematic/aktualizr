@@ -55,11 +55,11 @@ TEST(SecondaryFactory, Uptane_get_key) {
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
   Uptane::PartialVerificationSecondary sec1(sconfig);
-  std::string key1 = sec1.getPublicKey();
+  std::pair<KeyType, std::string> key1 = sec1.getPublicKey();
   Uptane::PartialVerificationSecondary sec2(sconfig);
-  std::string key2 = sec2.getPublicKey();
-  EXPECT_FALSE(key1.empty());
-  EXPECT_FALSE(key2.empty());
+  std::pair<KeyType, std::string> key2 = sec2.getPublicKey();
+  EXPECT_FALSE(key1.second.empty());
+  EXPECT_FALSE(key2.second.empty());
   // Verify that we store keys
   EXPECT_EQ(key1, key2);
 }

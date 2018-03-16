@@ -5,10 +5,25 @@
 
 using Uptane::Root;
 
-Root::Root(const std::string &repository, const Json::Value &json) : BaseMeta(json), policy_(kCheck) {
+Root::Root(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
+    : Root(repository, json) {
+  root.UnpackSignedObject(now, repository, json);
+  this->UnpackSignedObject(now, repository, json);
+}
+
+Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCheck) {
+  if (!json.isObject() || !json.isMember("signed")) {
+    throw Uptane::InvalidMetadata("", "", "invalid metadata json");
+  }
+
+  version_ = json["signed"]["version"].asInt();
+  expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
+  original_object_ = json;
+
   if (!json.isObject() || !json["signed"].isMember("keys") || !json["signed"].isMember("roles")) {
     throw Uptane::InvalidMetadata(repository, "root", "missing keys/roles field");
   }
+
   Json::Value keys = json["signed"]["keys"];
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
     std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
@@ -31,7 +46,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : BaseMeta(js
       continue;
     }
     // Threshold
-    int requiredThreshold = (*it)["threshold"].asInt();
+    long long int requiredThreshold = (*it)["threshold"].asInt64();
     if (requiredThreshold < kMinSignatures) {
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
                 << (int)kMinSignatures;
@@ -92,10 +107,10 @@ Json::Value Root::toJson() const {
   return res;
 }
 
-Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role role,
-                                     const Json::Value &signed_object) {
+void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, const Json::Value &signed_object) {
+  Uptane::Role role(signed_object["signed"]["_type"].asString());
   if (policy_ == kAcceptAll) {
-    return signed_object;
+    return;
   } else if (policy_ == kRejectAll) {
     throw SecurityException(repository, "Root policy is kRejectAll");
   }
@@ -165,5 +180,5 @@ Json::Value Root::UnpackSignedObject(TimeStamp now, std::string repository, Role
     LOG_TRACE << "  actual_role:" << actual_role;
     throw SecurityException(repository, "Object was signed for a different role");
   }
-  return signed_object;
+  return;
 }

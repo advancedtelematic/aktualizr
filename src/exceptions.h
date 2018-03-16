@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <string>
+#include "logging.h"
 
 class FatalException : public std::logic_error {
  public:

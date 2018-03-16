@@ -10,7 +10,6 @@
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 
 namespace Uptane {
 
@@ -25,7 +24,8 @@ class PartialVerificationSecondary : public SecondaryInterface {
       return public_key_id_;
     }
   }
-  std::string getPublicKey() override { return public_key_; }
+  std::pair<KeyType, std::string> getPublicKey() override { return std::make_pair(sconfig.key_type, public_key_); }
+
   bool putMetadata(const MetaPack& meta) override;
   int getRootVersion(const bool director) override;
   bool putRoot(Uptane::Root root, const bool director) override;

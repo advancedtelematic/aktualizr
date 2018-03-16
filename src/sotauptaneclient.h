@@ -11,7 +11,6 @@
 #include "invstorage.h"
 #include "packagemanagerinterface.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 #include "uptane/uptanerepository.h"
 
 class SotaUptaneClient {

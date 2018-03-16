@@ -168,6 +168,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_repo.getPrimaryEcuSerial());
         //   6 - send metadata to all the ECUs
         sendMetadataToEcus(updates);
+
         //   7 - send images to ECUs (deploy for OSTree)
         if (primary_updates.size()) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
@@ -184,6 +185,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           }
           // TODO: other updates for primary
         }
+
         sendImagesToEcus(updates);
         // Not required for Uptane, but used to send a status code to the
         // director.
@@ -286,11 +288,8 @@ void SotaUptaneClient::verifySecondaries() {
 void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
   std::vector<Uptane::Target>::const_iterator it;
 
-  Uptane::MetaPack meta;
-  if (!uptane_repo.currentMeta(&meta)) {
-    // couldn't get current metadata package, can't proceed
-    return;
-  }
+  Uptane::MetaPack meta = uptane_repo.currentMeta();
+
   // target images should already have been downloaded to metadata_path/targets/
   for (it = targets.begin(); it != targets.end(); ++it) {
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
