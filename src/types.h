@@ -4,7 +4,8 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-enum KeyType { kED25519 = 0, kRSA2048, kRSA4096 };
+enum KeyType { kUnknownKey = 0xff, kED25519 = 0, kRSA2048, kRSA4096 };
+std::string keyTypeToString(KeyType type);
 
 namespace data {
 

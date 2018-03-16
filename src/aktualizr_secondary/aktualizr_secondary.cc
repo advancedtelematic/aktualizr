@@ -132,3 +132,47 @@ void AktualizrSecondary::handle_connection_msgs(SocketHandle con, std::unique_pt
   }
   LOG_INFO << "Connection closed with " << peer_name;
 }
+std::string AktualizrSecondary::getSerialResp() {
+  LOG_ERROR << "getSerialResp is not implemented yet";
+  return "";
+}
+
+std::string AktualizrSecondary::getHwIdResp() {
+  LOG_ERROR << "getHwIdResp is not implemented yet";
+  return "";
+}
+
+std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() {
+  LOG_ERROR << "getPublicKeyResp is not implemented yet";
+  return std::make_pair(kUnknownKey, "");
+}
+
+Json::Value AktualizrSecondary::getManifestResp() {
+  LOG_ERROR << "getManifestResp is not implemented yet";
+  return Json::Value();
+}
+
+bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
+  (void)meta_pack;
+  LOG_ERROR << "putMedatadatResp is not implemented yet";
+  return false;
+}
+
+int32_t AktualizrSecondary::getRootVersionResp(bool director) {
+  (void)director;
+  LOG_ERROR << "getRootVersionResp is not implemented yet";
+  return -1;
+}
+
+bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
+  (void)root;
+  (void)director;
+  LOG_ERROR << "putRootResp is not implemented yet";
+  return false;
+}
+
+bool AktualizrSecondary::sendFirmwareResp(const std::string &firmware) {
+  (void)firmware;
+  LOG_ERROR << "sendFirmwareResp is not implemented yet";
+  return false;
+}

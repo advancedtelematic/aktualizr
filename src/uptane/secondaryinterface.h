@@ -23,15 +23,14 @@ class SecondaryInterface {
   virtual ~SecondaryInterface() {}
   virtual std::string getSerial() { return sconfig.ecu_serial; }
   virtual std::string getHwId() { return sconfig.ecu_hardware_id; }
-  virtual std::string getPublicKey() = 0;
+  virtual std::pair<KeyType, std::string> getPublicKey() = 0;
 
   virtual Json::Value getManifest() = 0;
   virtual bool putMetadata(const MetaPack& meta_pack) = 0;
-  virtual int getRootVersion(bool director) = 0;
+  virtual int32_t getRootVersion(bool director) = 0;
   virtual bool putRoot(Uptane::Root root, bool director) = 0;
 
   virtual bool sendFirmware(const std::string& data) = 0;
-  std::string getKeyType() const { return (sconfig.key_type == kED25519) ? "ED25519" : "RSA"; }
 
   const SecondaryConfig& sconfig;
 };

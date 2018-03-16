@@ -183,8 +183,8 @@ InitRetCode Repository::initEcuRegister() {
     Json::Value ecu;
     ecu["hardware_identifier"] = (*it)->getHwId();
     ecu["ecu_serial"] = (*it)->getSerial();
-    ecu["clientKey"]["keytype"] = (*it)->getKeyType();
-    ecu["clientKey"]["keyval"]["public"] = (*it)->getPublicKey();
+    ecu["clientKey"]["keytype"] = keyTypeToString((*it)->getPublicKey().first);
+    ecu["clientKey"]["keyval"]["public"] = (*it)->getPublicKey().second;
     all_ecus["ecus"].append(ecu);
   }
 

@@ -77,7 +77,7 @@ struct UptaneConfig {
   KeyType key_type{kRSA2048};
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
-  std::string getKeyTypeString() const { return (key_type == kED25519) ? "ED25519" : "RSA"; }
+  std::string getKeyTypeString() const { return keyTypeToString(key_type); }
 };
 
 struct PackageConfig {

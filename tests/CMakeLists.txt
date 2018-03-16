@@ -457,6 +457,9 @@ target_link_libraries(t_aktualizr_secondary_config aktualizr_secondary_static_li
 add_aktualizr_test(NAME aktualizr_secondary_protocol SOURCES aktualizr_secondary/protocol_test.cc PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
 
+add_aktualizr_test(NAME aktualizr_secondary_update SOURCES aktualizr_secondary/update_test.cc PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
+
 # aktualizr-info tests
 add_test(NAME aktualizr-info-noarguments
     COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${PROJECT_BINARY_DIR}/src/aktualizr_info/aktualizr-info WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
