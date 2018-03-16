@@ -97,6 +97,7 @@ void AktualizrSecondary::run() {
 }
 
 int AktualizrSecondary::listening_port() const { return Utils::ipPort(Utils::ipGetSockaddr(*socket_hdl_)); }
+void AktualizrSecondary::stop() { shutdown(*socket_hdl_, SHUT_RDWR); }
 
 void AktualizrSecondary::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {
   std::string peer_name = Utils::ipDisplayName(*addr);
