@@ -5,8 +5,34 @@
 #include <memory>
 #include <string>
 
-#include "config.h"
 #include "uptane/tuf.h"
+
+enum StorageType { kFileSystem = 0, kSqlite };
+
+struct StorageConfig {
+  StorageType type{kFileSystem};
+  boost::filesystem::path path{"/var/sota"};
+  // TODO: merge with path once SQLStorage class is complete
+  boost::filesystem::path sqldb_path{"/var/sota/storage.db"};
+  // FS storage
+  boost::filesystem::path uptane_metadata_path{"metadata"};
+  boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
+  boost::filesystem::path uptane_public_key_path{"ecukey.pub"};
+  boost::filesystem::path tls_cacert_path{"ca.pem"};
+  boost::filesystem::path tls_pkey_path{"pkey.pem"};
+  boost::filesystem::path tls_clientcert_path{"client.pem"};
+
+  // SQLite storage
+  boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
+};
+
+struct ImportConfig {
+  boost::filesystem::path uptane_private_key_path;
+  boost::filesystem::path uptane_public_key_path;
+  boost::filesystem::path tls_cacert_path;
+  boost::filesystem::path tls_pkey_path;
+  boost::filesystem::path tls_clientcert_path;
+};
 
 class INvStorage;
 class FSStorage;

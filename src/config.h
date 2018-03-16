@@ -14,13 +14,13 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "asn1-cerstream.h"
+#include "invstorage.h"
 #include "logging.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 enum CryptoSource { kFile = 0, kPkcs11 };
-enum StorageType { kFileSystem = 0, kSqlite };
 enum PackageManager { kNone = 0, kOstree, kDebian };
 
 std::ostream& operator<<(std::ostream& os, CryptoSource cs);
@@ -90,31 +90,6 @@ struct PackageConfig {
   boost::filesystem::path sysroot;
   std::string ostree_server;
   boost::filesystem::path packages_file{"/usr/package.manifest"};
-};
-
-struct StorageConfig {
-  StorageType type{kFileSystem};
-  boost::filesystem::path path{"/var/sota"};
-  // TODO: merge with path once SQLStorage class is complete
-  boost::filesystem::path sqldb_path{"/var/sota/storage.db"};
-  // FS storage
-  boost::filesystem::path uptane_metadata_path{"metadata"};
-  boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
-  boost::filesystem::path uptane_public_key_path{"ecukey.pub"};
-  boost::filesystem::path tls_cacert_path{"ca.pem"};
-  boost::filesystem::path tls_pkey_path{"pkey.pem"};
-  boost::filesystem::path tls_clientcert_path{"client.pem"};
-
-  // SQLite storage
-  boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
-};
-
-struct ImportConfig {
-  boost::filesystem::path uptane_private_key_path;
-  boost::filesystem::path uptane_public_key_path;
-  boost::filesystem::path tls_cacert_path;
-  boost::filesystem::path tls_pkey_path;
-  boost::filesystem::path tls_clientcert_path;
 };
 
 class Config {
