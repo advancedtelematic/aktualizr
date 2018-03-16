@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 if [ "$1" == "Dockerfile.deb-stable" ]; then
   echo "Building docker for testing garage-deploy deb package inside it."

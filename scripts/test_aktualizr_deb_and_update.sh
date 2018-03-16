@@ -1,5 +1,5 @@
 #! /bin/bash
-set -e
+set -ex
 
 /persistent/selfupdate_server.py 8000&
 
