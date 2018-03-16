@@ -35,6 +35,10 @@ struct NetworkConfig {
   std::string socket_commands_path{"/tmp/sota-commands.socket"};
   std::string socket_events_path{"/tmp/sota-events.socket"};
   std::vector<std::string> socket_events{"DownloadComplete", "DownloadFailed"};
+
+  std::string ipdiscovery_host{"127.0.0.1"};
+  unsigned int ipdiscovery_port{12345};
+  unsigned int ipdiscovery_wait_seconds{10};
 };
 
 struct P11Config {
