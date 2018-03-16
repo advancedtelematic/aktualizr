@@ -28,7 +28,7 @@ class ManagedSecondary : public SecondaryInterface {
       return public_key_id;
     }
   }
-  std::string getPublicKey() override { return public_key; }
+  std::pair<KeyType, std::string> getPublicKey() override { return std::make_pair(sconfig.key_type, public_key); }
   bool putMetadata(const MetaPack& meta_pack) override;
   int getRootVersion(const bool director) override;
   bool putRoot(Uptane::Root root, const bool director) override;
