@@ -9,7 +9,6 @@ os = "myos"
 uptane_key_id = "01"
 
 [uptane]
-disable_keyid_validation = true
 primary_ecu_hardware_id = "master"
 key_source = "pkcs11"
 

@@ -8,15 +8,7 @@
 #include "channel.h"
 #include "types.h"
 #include "uptane/tuf.h"
-
-struct SocketCloser {
-  void operator()(int* ptr) const {
-    close(*ptr);
-    delete ptr;
-  }
-};
-
-using SocketHandle = std::unique_ptr<int, SocketCloser>;
+#include "utils.h"
 
 class AktualizrSecondary {
  public:

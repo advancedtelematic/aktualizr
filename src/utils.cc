@@ -326,6 +326,16 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
   }
 }
 
+sockaddr_storage Utils::ipGetSockaddr(int fd) {
+  sockaddr_storage ss;
+  socklen_t len = sizeof(ss);
+  if (getsockname(fd, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
+    throw std::runtime_error(std::string("Could not get sockaddr: ") + std::strerror(errno));
+  }
+
+  return ss;
+}
+
 std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
   char ipstr[INET6_ADDRSTRLEN];
 
@@ -343,6 +353,21 @@ std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
     default:
       return "unknown";
   }
+}
+
+int Utils::ipPort(const sockaddr_storage &saddr) {
+  in_port_t p;
+  if (saddr.ss_family == AF_INET) {
+    const sockaddr_in *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
+    p = sa->sin_port;
+  } else if (saddr.ss_family == AF_INET6) {
+    const sockaddr_in6 *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
+    p = sa->sin6_port;
+  } else {
+    return -1;
+  }
+
+  return ntohs(p);
 }
 
 int Utils::shell(const std::string &command, std::string *output, bool include_stderr) {

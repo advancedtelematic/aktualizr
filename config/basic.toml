@@ -6,7 +6,6 @@ sysroot = "sysroot"
 os = "myos"
 
 [uptane]
-disable_keyid_validation = true
 primary_ecu_hardware_id = "qemux86-64"
 
 [provision]
