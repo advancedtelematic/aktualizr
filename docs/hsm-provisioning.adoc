@@ -42,7 +42,7 @@ If you do not have your own CA certificate for signing device certificates, you 
 For example, you can use the scripts in link:https://github.com/advancedtelematic/ota-community-edition[`ota-community-edition`]:
 +
 ----
-git clone git@github.com:advancedtelematic/ota-community-edition.git
+git clone https://github.com/advancedtelematic/ota-community-edition.git
 cd ota-community-edition/
 ./scripts/genserver.sh
 ----
