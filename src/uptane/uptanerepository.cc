@@ -134,8 +134,6 @@ bool Repository::getMeta() {
     if (verifyMeta(meta_)) {
       storage->storeMetadata(meta_);
       meta_ = meta;
-      // image.setMeta(&meta_.image_root, &meta_.image_targets, &meta_.image_timestamp, &meta_.image_snapshot);
-      // director.setMeta(&meta_.director_root, &meta_.director_targets);
     } else {
       LOG_WARNING << "Metadata image/directory repo consistency check failed.";
       return false;

@@ -363,41 +363,53 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
   if (req_response_table.empty()) return false;
 
   Json::Value json = Utils::parseJSON(req_response_table[0]["director_root"]);
-  Json::Value fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;  // Old format contains only signed part.
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;  // Old format contains only signed part.
+    }
+    metadata->director_root = Uptane::Root("director", fixed_json);
   }
-  metadata->director_root = Uptane::Root("director", fixed_json);
   json = Utils::parseJSON(req_response_table[0]["director_targets"]);
-  fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->director_targets = Uptane::Targets(fixed_json);
   }
-  metadata->director_targets = Uptane::Targets(fixed_json);
   json = Utils::parseJSON(req_response_table[0]["image_root"]);
-  fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_root = Uptane::Root("image", fixed_json);
   }
-  metadata->image_root = Uptane::Root("image", fixed_json);
   json = Utils::parseJSON(req_response_table[0]["image_targets"]);
-  fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_targets = Uptane::Targets(fixed_json);
   }
-  metadata->image_targets = Uptane::Targets(fixed_json);
   json = Utils::parseJSON(req_response_table[0]["image_timestamp"]);
-  fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
   }
-  metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
   json = Utils::parseJSON(req_response_table[0]["image_snapshot"]);
-  fixed_json = json;
-  if (!json.isMember("signed")) {
-    fixed_json["signed"] = json;
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_snapshot = Uptane::Snapshot(fixed_json);
   }
-  metadata->image_snapshot = Uptane::Snapshot(fixed_json);
 
   return true;
 }
