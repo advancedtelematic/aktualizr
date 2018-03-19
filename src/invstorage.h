@@ -2,9 +2,11 @@
 #define INVSTORAGE_H_
 
 #include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
 #include <string>
 
+#include "config_utils.h"
 #include "uptane/tuf.h"
 
 enum StorageType { kFileSystem = 0, kSqlite };
@@ -24,6 +26,9 @@ struct StorageConfig {
 
   // SQLite storage
   boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct ImportConfig {
@@ -32,6 +37,9 @@ struct ImportConfig {
   boost::filesystem::path tls_cacert_path;
   boost::filesystem::path tls_pkey_path;
   boost::filesystem::path tls_clientcert_path;
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 class INvStorage;

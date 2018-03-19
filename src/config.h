@@ -29,6 +29,9 @@ std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 
 struct GatewayConfig {
   bool socket{false};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct NetworkConfig {
@@ -39,6 +42,9 @@ struct NetworkConfig {
   std::string ipdiscovery_host{"127.0.0.1"};
   unsigned int ipdiscovery_port{12345};
   unsigned int ipdiscovery_wait_seconds{10};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct P11Config {
@@ -48,6 +54,9 @@ struct P11Config {
   std::string tls_cacert_id;
   std::string tls_pkey_id;
   std::string tls_clientcert_id;
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct TlsConfig {
@@ -56,6 +65,9 @@ struct TlsConfig {
   CryptoSource ca_source{kFile};
   CryptoSource pkey_source{kFile};
   CryptoSource cert_source{kFile};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf);
@@ -67,6 +79,9 @@ struct ProvisionConfig {
   std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
   ProvisionMode mode{kAutomatic};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct UptaneConfig {
@@ -82,6 +97,9 @@ struct UptaneConfig {
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
   std::string getKeyTypeString() const { return keyTypeToString(key_type); }
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct PackageConfig {
@@ -90,6 +108,9 @@ struct PackageConfig {
   boost::filesystem::path sysroot;
   std::string ostree_server;
   boost::filesystem::path packages_file{"/usr/package.manifest"};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 class Config {
@@ -100,7 +121,7 @@ class Config {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
-  void writeToFile(const boost::filesystem::path& filename);
+  void writeToFile(const boost::filesystem::path& filename) const;
 
   // config data structures
   GatewayConfig gateway;

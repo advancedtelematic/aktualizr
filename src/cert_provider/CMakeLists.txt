@@ -9,6 +9,7 @@ target_link_libraries(aktualizr_cert_provider aktualizr_static_lib
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
         ${sodium_LIBRARY_RELEASE}
+        ${SQLITE3_LIBRARIES}
         ${LibArchive_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)

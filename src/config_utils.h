@@ -49,7 +49,7 @@ inline T addQuotesToStrings(const T& value) {
 }
 
 template <typename T>
-inline void writeOption(std::ofstream& sink, const T& data, const std::string& option_name) {
+inline void writeOption(std::ostream& sink, const T& data, const std::string& option_name) {
   sink << option_name << " = " << addQuotesToStrings(data) << "\n";
 }
 
@@ -64,6 +64,25 @@ inline void CopyFromConfig(T& dest, const std::string& option_name, boost::log::
     BOOST_LOG_SEV(logger, static_cast<boost::log::trivial::severity_level>(warning_level))
         << option_name << " not in config file. Using default:" << dest;
   }
+}
+
+template <typename T>
+inline void CopySubtreeFromConfig(T& dest, const std::string& subtree_name, const boost::property_tree::ptree& pt) {
+  auto subtree = pt.get_child_optional(subtree_name);
+  if (subtree.is_initialized()) {
+    dest.updateFromPropertyTree(subtree.get());
+  } else {
+    // call with empty tree so that default value warnings are preserved
+    dest.updateFromPropertyTree(boost::property_tree::ptree());
+  }
+}
+
+template <typename T>
+inline void WriteSectionToStream(T& sec, const std::string& section_name, std::ostream& os) {
+  os << std::boolalpha;
+  os << "[" << section_name << "]\n";
+  sec.writeToStream(os);
+  os << "\n";
 }
 
 #endif  // CONFIG_UTILS_H_
