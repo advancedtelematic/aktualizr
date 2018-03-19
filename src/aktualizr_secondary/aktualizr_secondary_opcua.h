@@ -3,10 +3,11 @@
 
 #include <memory>
 
-#include <opcuabridge/opcuabridgeserver.h>
-
 #include "aktualizr_secondary_config.h"
+
 #include "opcuaserver_secondary_delegate.h"
+
+#include <opcuabridge/opcuabridgeserver.h>
 
 class AktualizrSecondaryOpcua {
  public:

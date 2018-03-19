@@ -3,6 +3,7 @@
 void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerModel* model) {
   model->configuration_.setSerial("");  // sconfig.ecu_serial
   model->configuration_.setHwId("");    // sconfig.ecu_hardware_id
+  model->configuration_.setPublicKeyType(kRSA2048);
   model->configuration_.setPublicKey(
       "");  // Utils::readFile((sconfig.full_client_dir / sconfig.ecu_public_key).string()));
 }

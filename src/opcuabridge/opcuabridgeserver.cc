@@ -11,7 +11,7 @@
 
 namespace opcuabridge {
 
-void ServerModel::initialize(UA_Server* server) {
+ServerModel::ServerModel(UA_Server* server) {
 #define INIT_SERVER_NODESET(r, SERVER, e) e.InitServerNodeset(SERVER);
 
   BOOST_PP_LIST_FOR_EACH(INIT_SERVER_NODESET, server,
@@ -24,15 +24,17 @@ Server::Server(ServerDelegate* delegate, uint16_t port) : delegate_(delegate) {
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
   server_ = UA_Server_new(server_config_);
+  model_ = new ServerModel(server_);
 
-  model_.file_list_.setOnAfterWriteCallback(boost::bind(&Server::onFileListUpdated, this, _1));
-  model_.metadatafile_.setOnAfterWriteCallback(boost::bind(&Server::countReceivedMetadataFile, this, _1));
-  model_.version_report_.setOnBeforeReadCallback(boost::bind(&Server::onVersionReportRequested, this, _1));
+  model_->file_list_.setOnAfterWriteCallback(boost::bind(&Server::onFileListUpdated, this, _1));
+  model_->metadatafile_.setOnAfterWriteCallback(boost::bind(&Server::countReceivedMetadataFile, this, _1));
+  model_->version_report_.setOnBeforeReadCallback(boost::bind(&Server::onVersionReportRequested, this, _1));
 
-  if (delegate_) delegate_->handleServerInitialized(&model_);
+  if (delegate_) delegate_->handleServerInitialized(model_);
 }
 
 Server::~Server() {
+  delete model_;
   UA_Server_delete(server_);
   UA_ServerConfig_delete(server_config_);
 }
@@ -40,19 +42,19 @@ Server::~Server() {
 bool Server::run(volatile bool* running) { return (UA_STATUSCODE_GOOD == UA_Server_run(server_, running)); }
 
 void Server::onVersionReportRequested(VersionReport* version_report) {
-  if (delegate_) delegate_->handleVersionReportRequested(&model_);
+  if (delegate_) delegate_->handleVersionReportRequested(model_);
 }
 
 void Server::onFileListUpdated(FileList* file_list) {
   if (!file_list->getBlock().empty() && file_list->getBlock()[0] == '\0' && delegate_)
-    delegate_->handleDirectoryFilesSynchronized(&model_);
+    delegate_->handleDirectoryFilesSynchronized(model_);
 }
 
 void Server::countReceivedMetadataFile(MetadataFile* metadata_file) {
-  if (model_.metadatafiles_.getGUID() == metadata_file->getGUID()) ++model_.received_metadata_files_;
-  if (model_.metadatafiles_.getNumberOfMetadataFiles() == model_.received_metadata_files_ && delegate_) {
-    model_.received_metadata_files_ = 0;
-    delegate_->handleMetaDataFilesReceived(&model_);
+  if (model_->metadatafiles_.getGUID() == metadata_file->getGUID()) ++model_->received_metadata_files_;
+  if (model_->metadatafiles_.getNumberOfMetadataFiles() == model_->received_metadata_files_ && delegate_) {
+    model_->received_metadata_files_ = 0;
+    delegate_->handleMetaDataFilesReceived(model_);
   }
 }
 

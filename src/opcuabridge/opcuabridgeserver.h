@@ -8,7 +8,7 @@ namespace opcuabridge {
 class Server;
 
 struct ServerModel {
-  void initialize(UA_Server*);
+  explicit ServerModel(UA_Server*);
 
   Configuration configuration_;
 
@@ -50,7 +50,7 @@ class Server {
   void countReceivedMetadataFile(MetadataFile*);
   void onVersionReportRequested(VersionReport*);
 
-  ServerModel model_;
+  ServerModel* model_;
 
   ServerDelegate* delegate_;
 

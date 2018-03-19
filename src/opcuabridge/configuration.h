@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <types.h>
+
 namespace opcuabridge {
 class Configuration {
  public:
@@ -13,6 +15,8 @@ class Configuration {
   void setSerial(const std::string& serial) { serial_ = serial; }
   const std::string& getHwId() const { return hwid_; }
   void setHwId(const std::string& hwid) { hwid_ = hwid; }
+  const KeyType& getPublicKeyType() const { return public_key_type_; }
+  void setPublicKeyType(const KeyType& public_key_type) { public_key_type_ = public_key_type; }
   const std::string& getPublicKey() const { return public_key_; }
   void setPublicKey(const std::string& public_key) { public_key_ = public_key; }
 
@@ -24,6 +28,7 @@ class Configuration {
   void setOnAfterWriteCallback(MessageOnAfterWriteCallback<Configuration>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
+  KeyType public_key_type_;
   std::string hwid_;
   std::string public_key_;
   std::string serial_;
@@ -37,12 +42,14 @@ class Configuration {
   Json::Value wrapMessage() const {
     Json::Value v;
     v["hwid"] = getHwId();
+    v["public_key_type"] = getPublicKeyType();
     v["public_key"] = getPublicKey();
     v["serial"] = getSerial();
     return v;
   }
   void unwrapMessage(Json::Value v) {
     setHwId(v["hwid"].asString());
+    setPublicKeyType(static_cast<KeyType>(v["public_key_type"].asInt()));
     setPublicKey(v["public_key"].asString());
     setSerial(v["serial"].asString());
   }

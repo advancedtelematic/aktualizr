@@ -29,9 +29,9 @@ std::string OpcuaSecondary::getHwId() {
   opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
   return client.recvConfiguration().getHwId();
 }
-std::string OpcuaSecondary::getPublicKey() {
+std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
   opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
-  return client.recvConfiguration().getPublicKey();
+  return std::make_pair(client.recvConfiguration().getPublicKeyType(), client.recvConfiguration().getPublicKey());
 }
 
 Json::Value OpcuaSecondary::getManifest() {
@@ -85,6 +85,16 @@ opcuabridge::MetadataFile makeMetadataFile(const Target& target) {
   std::copy(file.begin(), file.end(), std::back_inserter(mf.getMetadata()));
 
   return mf;
+}
+
+int OpcuaSecondary::getRootVersion(bool director) {
+  LOG_ERROR << "OpcuaSecondary::getRootVersion is not implemented yet";
+  return 0;
+}
+
+bool OpcuaSecondary::putRoot(Uptane::Root root, bool director) {
+  LOG_ERROR << "OpcuaSecondary::putRoot is not implemented yet";
+  return false;
 }
 
 }  // namespace Uptane

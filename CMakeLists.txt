@@ -76,6 +76,7 @@ endif(BUILD_SOTA_TOOLS)
 if(BUILD_OPCUA)
     set(OPEN62541_IGNORED_WARNINGS
         "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+    add_definitions(-DOPCUA_SECONDARY_ENABLED)
 endif(BUILD_OPCUA)
 
 if(BUILD_SYSTEMD)
