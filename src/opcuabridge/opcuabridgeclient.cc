@@ -10,9 +10,7 @@ namespace fs = boost::filesystem;
 
 namespace opcuabridge {
 
-SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
-  uri = sconfig.opcua_lds_uri;
-}
+SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) { uri = sconfig.opcua_lds_uri; }
 
 Client::Client(const SelectEndPoint& selector) noexcept {
   UA_ClientConfig config = UA_ClientConfig_default;

@@ -6,10 +6,10 @@
 
 #include "logging.h"
 #include "uptane/legacysecondary.h"
+#include "uptane/opcuasecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/virtualsecondary.h"
-#include "uptane/opcuasecondary.h"
 
 namespace Uptane {
 
