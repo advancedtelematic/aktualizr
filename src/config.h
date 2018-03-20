@@ -15,15 +15,14 @@
 
 #include "asn1-cerstream.h"
 #include "invstorage.h"
+#include "keymanager.h"
 #include "logging.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
-enum CryptoSource { kFile = 0, kPkcs11 };
 enum PackageManager { kNone = 0, kOstree, kDebian };
 
-std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
 // updateFromPropertyTree() in config.cc.
 
@@ -118,6 +117,8 @@ class Config {
   Config();
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
   Config(const boost::filesystem::path& filename);
+
+  KeyManagerConfig keymanagerConfig() const;
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();

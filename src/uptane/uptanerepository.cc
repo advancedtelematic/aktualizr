@@ -39,7 +39,11 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 }
 
 Repository::Repository(const Config& config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
-    : config(config_in), storage(storage_in), http(http_client), keys_(storage, KeyManagerConfig(config)), manifests(Json::arrayValue) {
+    : config(config_in),
+      storage(storage_in),
+      http(http_client),
+      keys_(storage, config.keymanagerConfig()),
+      manifests(Json::arrayValue) {
   if (!storage->loadMetadata(&meta_)) {
     meta_.director_root = Root(Root::kAcceptAll);
     meta_.image_root = Root(Root::kAcceptAll);
@@ -183,7 +187,7 @@ void Repository::downloadTarget(Target target) {
     }
   } else if (target.format().empty() || target.format() == "OSTREE") {
 #ifdef BUILD_OSTREE
-    KeyManager keys(storage, KeyManagerConfig(config));
+    KeyManager keys(storage, config.keymanagerConfig());
     keys.loadKeys();
     OstreeManager::pull(config, keys, target.sha256Hash());
 #else

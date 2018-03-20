@@ -4,22 +4,23 @@
 #include <boost/move/unique_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "config.h"
 #include "httpinterface.h"
 #include "invstorage.h"
 #ifdef BUILD_P11
 #include "p11engine.h"
 #endif
+#include "types.h"
 #include "utils.h"
 
 // bundle some parts of the main config together
+// Should be derived by calling Config::keymanagerConfig()
 struct KeyManagerConfig {
-  explicit KeyManagerConfig(const Config &config) : p11(config.p11), tls(config.tls), uptane(config.uptane) {}
-  KeyManagerConfig(const P11Config &p11_conf, const TlsConfig &tls_conf, const UptaneConfig &uptane_conf)
-      : p11(p11_conf), tls(tls_conf), uptane(uptane_conf) {}
-  const P11Config &p11;
-  const TlsConfig &tls;
-  const UptaneConfig &uptane;
+  CryptoSource tls_ca_source;
+  CryptoSource tls_pkey_source;
+  CryptoSource tls_cert_source;
+  std::string p11_uptane_key_id;
+  KeyType uptane_key_type;
+  CryptoSource uptane_key_source;
 };
 
 class KeyManager {

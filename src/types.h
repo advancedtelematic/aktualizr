@@ -7,6 +7,25 @@
 enum KeyType { kUnknownKey = 0xff, kED25519 = 0, kRSA2048, kRSA4096 };
 std::string keyTypeToString(KeyType type);
 
+enum CryptoSource { kFile = 0, kPkcs11 };
+
+inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
+  std::string cs_str;
+  switch (cs) {
+    case kFile:
+      cs_str = "file";
+      break;
+    case kPkcs11:
+      cs_str = "pkcs11";
+      break;
+    default:
+      cs_str = "unknown";
+      break;
+  }
+  os << '"' << cs_str << '"';
+  return os;
+}
+
 namespace data {
 
 typedef std::string UpdateRequestId;

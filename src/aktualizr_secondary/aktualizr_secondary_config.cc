@@ -16,6 +16,38 @@ void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const 
   writeOption(out_stream, discovery_port, "discovery_port");
 }
 
+void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(ecu_serial, "ecu_serial", boost::log::trivial::info, pt);
+  CopyFromConfig(ecu_hardware_id, "ecu_hardware_id", boost::log::trivial::info, pt);
+
+  // TODO: de-duplicate this from config.cc
+  std::string ks = "file";
+  CopyFromConfig(ks, "key_source", boost::log::trivial::warning, pt);
+  if (ks == "pkcs11")
+    key_source = kPkcs11;
+  else
+    key_source = kFile;
+
+  std::string kt;
+  CopyFromConfig(kt, "key_type", boost::log::trivial::warning, pt);
+  if (kt.size()) {
+    if (kt == "RSA2048") {
+      key_type = kRSA2048;
+    } else if (kt == "RSA4096") {
+      key_type = kRSA4096;
+    } else if (kt == "ED25519") {
+      key_type = kED25519;
+    }
+  }
+}
+
+void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, ecu_serial, "ecu_serial");
+  writeOption(out_stream, ecu_hardware_id, "ecu_hardware_id");
+  writeOption(out_stream, key_source, "key_source");
+  writeOption(out_stream, key_type, "key_type");
+}
+
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
                                                    const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
@@ -24,6 +56,11 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename) {
   updateFromToml(filename);
+}
+
+KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
+  // Note: use dummy values for tls key sources
+  return KeyManagerConfig{kFile, kFile, kFile, p11.uptane_key_id, uptane.key_type, uptane.key_source};
 }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -44,11 +81,11 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in secondary_config.h and writeToFile().
   CopySubtreeFromConfig(network, "network", pt);
+  CopySubtreeFromConfig(uptane, "uptane", pt);
 
   // from aktualizr config
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
-  CopySubtreeFromConfig(uptane, "uptane", pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -68,9 +105,9 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   sink << std::boolalpha;
 
   WriteSectionToStream(network, "network", sink);
+  WriteSectionToStream(uptane, "uptane", sink);
 
   // from aktualizr config
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(p11, "p11", sink);
-  WriteSectionToStream(uptane, "uptane", sink);
 }

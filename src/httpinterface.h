@@ -6,7 +6,7 @@
 #include <curl/curl.h>
 #include "json/json.h"
 
-#include "config.h"
+#include "types.h"
 #include "utils.h"
 
 struct HttpResponse {

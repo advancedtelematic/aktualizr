@@ -16,23 +16,6 @@
 #include "exceptions.h"
 #include "utils.h"
 
-std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
-  std::string cs_str;
-  switch (cs) {
-    case kFile:
-      cs_str = "file";
-      break;
-    case kPkcs11:
-      cs_str = "pkcs11";
-      break;
-    default:
-      cs_str = "unknown";
-      break;
-  }
-  os << '"' << cs_str << '"';
-  return os;
-}
-
 std::ostream& operator<<(std::ostream& os, StorageType stype) {
   std::string stype_str;
   switch (stype) {
@@ -284,6 +267,11 @@ Config::Config(const boost::filesystem::path& filename, const boost::program_opt
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
+}
+
+KeyManagerConfig Config::keymanagerConfig() const {
+  return KeyManagerConfig{tls.ca_source,     tls.pkey_source, tls.cert_source,
+                          p11.uptane_key_id, uptane.key_type, uptane.key_source};
 }
 
 void Config::postUpdateValues() {
