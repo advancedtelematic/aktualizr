@@ -6,7 +6,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "config.h"
-#include "invstorage.h"
 
 struct AktualizrSecondaryNetConfig {
   int port{9030};
@@ -43,6 +42,7 @@ class AktualizrSecondaryConfig {
   // from primary config
   StorageConfig storage;
   P11Config p11;
+  PackageConfig pacman;
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
