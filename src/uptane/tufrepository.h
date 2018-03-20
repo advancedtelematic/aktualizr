@@ -66,6 +66,6 @@ class TufRepository {
   Uptane::TimestampMeta timestamp_;
   Uptane::Snapshot snapshot_;
 };
-}
+}  // namespace Uptane
 
 #endif

@@ -65,5 +65,5 @@ class UptaneInstall : public BaseCommand {
   UptaneInstall(std::vector<Uptane::Target>);
   std::vector<Uptane::Target> packages;
 };
-}
+}  // namespace command
 #endif

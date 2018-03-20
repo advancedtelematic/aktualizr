@@ -35,7 +35,7 @@ const char *ImageBlock::node_id_ = "ImageBlock";
 const char *ImageBlock::bin_node_id_ = "ImageBlock_BinaryData";
 const char *FileData::node_id_ = "FileData";
 const char *FileData::bin_node_id_ = "FileData_BinaryData";
-}  // namespace opcua_bridge
+}  // namespace opcuabridge
 
 namespace opcuabridge {
 
@@ -123,4 +123,4 @@ UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id, const boos
 
 }  // namespace internal
 
-}  // namespace opcua_bridge
+}  // namespace opcuabridge

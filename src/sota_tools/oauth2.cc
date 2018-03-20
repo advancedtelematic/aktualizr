@@ -8,8 +8,8 @@
 #include "logging.h"
 #include "oauth2.h"
 
-using boost::property_tree::ptree;
 using boost::property_tree::json_parser::json_parser_error;
+using boost::property_tree::ptree;
 using std::stringstream;
 
 /**

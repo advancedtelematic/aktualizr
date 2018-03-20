@@ -31,4 +31,4 @@ bool VirtualSecondary::getFirmwareInfo(std::string* target_name, size_t& target_
 
   return true;
 }
-}
+}  // namespace Uptane

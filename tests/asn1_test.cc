@@ -9,11 +9,22 @@
 
 #include <boost/program_options.hpp>
 
+#include "AKIpUptaneMes.h"
 #include "AKTlsConfig.h"
+#include "aktualizr_secondary_ipc.h"
 #include "config.h"
 
 namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
+
+void printStringHex(const std::string& s) {
+  for (char c : s) {
+    std::cerr << std::setfill('0') << std::setw(2) << std::hex << (((unsigned int)c) & 0xFF);
+    std::cerr << ' ';
+  }
+
+  std::cerr << std::dec << std::endl;
+}
 
 std::string CCString(OCTET_STRING_t par) { return std::string((const char*)par.buf, (size_t)par.size); }
 bool operator==(const AKTlsConfig& cc_config, const TlsConfig& config) {
@@ -101,6 +112,52 @@ TEST(asn1_config, tls_config_man_to_asn1cc) {
   EXPECT_EQ(ret.code, RC_OK);
   EXPECT_EQ(*cc_tls_conf, conf);
   ASN_STRUCT_FREE(asn_DEF_AKTlsConfig, cc_tls_conf);
+}
+
+TEST(asn1_uptane_ip, public_key_req) {
+  SecondaryPublicKeyReq mes;
+  SecondaryMessage& mes_r = mes;
+
+  asn1::Serializer ser;
+  ser << mes_r;
+  asn1::Deserializer des(ser.getResult());
+
+  std::unique_ptr<SecondaryMessage> mes2;
+  EXPECT_NO_THROW(des >> mes2);
+  EXPECT_EQ(mes2->mes_type, mes_r.mes_type);
+}
+
+TEST(asn1_uptane_ip, public_key_req_asn1cc_to_man) {
+  AKIpUptaneMes_t cc_mes;
+  memset(&cc_mes, 0, sizeof(cc_mes));
+
+  asn_enc_rval_t enc;
+  std::string der;
+
+  cc_mes.present = AKIpUptaneMes_PR_publicKeyReq;
+  enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, write_out, &der);
+  EXPECT_NE(enc.encoded, -1);
+
+  std::unique_ptr<SecondaryMessage> mes;
+  asn1::Deserializer des(der);
+  EXPECT_NO_THROW(des >> mes);
+  EXPECT_EQ(mes->mes_type, kSecondaryMesPublicKeyReqTag);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_AKIpUptaneMes, &mes);
+}
+
+TEST(asn1_uptane_ip, public_key_req_man_to_asn1cc) {
+  SecondaryPublicKeyReq mes;
+  SecondaryMessage& mes_r = mes;
+
+  asn1::Serializer ser;
+  ser << mes_r;
+
+  AKIpUptaneMes_t* cc_mes = nullptr;
+  asn_dec_rval_t ret =
+      ber_decode(0, &asn_DEF_AKIpUptaneMes, (void**)&cc_mes, ser.getResult().c_str(), ser.getResult().length());
+  EXPECT_EQ(ret.code, RC_OK);
+  EXPECT_EQ(cc_mes->present, AKIpUptaneMes_PR_publicKeyReq);
+  ASN_STRUCT_FREE(asn_DEF_AKIpUptaneMes, cc_mes);
 }
 
 #ifndef __NO_MAIN__

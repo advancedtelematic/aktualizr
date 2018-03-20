@@ -13,12 +13,16 @@
 
 enum ASN1_Class {
   kAsn1Universal = 0x00,
+  kAsn1Application = 0x40,
+  kAsn1Context = 0x80,
+  kAsn1Private = 0xC0,
 };
 
 enum ASN1_UniversalTag {
   kUnknown = 0xff,
   kAsn1EndSequence = 0x00,
   kAsn1Sequence = 0x10,
+  kAsn1Boolean = 0x01,
   kAsn1Integer = 0x02,
   kAsn1OctetString = 0x04,
   kAsn1Enum = 0x0a,
@@ -49,10 +53,9 @@ class deserialization_error : public std::exception {
 //    * string_param - string associated with token. Depends on token type.
 //  Return value: token type, or kUnknown in case of an error.
 
-ASN1_UniversalTag cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param,
-                                   std::string* string_param);
+uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_param, std::string* string_param);
 
 std::string cer_encode_integer(int32_t number);
-std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag subtype);
+std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag tag);
 
 #endif  // ASN1_CER_H

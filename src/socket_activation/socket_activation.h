@@ -9,6 +9,6 @@ extern int listen_fds_start;
 
 int listen_fds(int unset_environment);
 int listen_fds_with_names(int unset_environment, char*** names);
-};
+};  // namespace socket_activation
 
 #endif  // SOCKET_ACTIVATION_H_

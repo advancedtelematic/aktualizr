@@ -253,5 +253,5 @@ struct MetaPack {
   TimestampMeta image_timestamp;
   Snapshot image_snapshot;
 };
-}
+}  // namespace Uptane
 #endif  // AKTUALIZR_UPTANE_TUF_H_

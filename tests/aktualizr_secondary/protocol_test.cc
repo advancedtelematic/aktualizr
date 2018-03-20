@@ -15,7 +15,6 @@ TEST(aktualizr_secondary_protocol, run_and_stop) {
   std::thread th(&AktualizrSecondary::run, &as);
 
   as.stop();
-
   th.join();
 }
 

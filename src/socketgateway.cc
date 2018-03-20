@@ -9,8 +9,8 @@
 
 #include "logging.h"
 
-using boost::shared_ptr;
 using boost::make_shared;
+using boost::shared_ptr;
 
 SocketGateway::SocketGateway(const Config &config_in, command::Channel *commands_channel_in)
     : config(config_in), commands_channel(commands_channel_in) {

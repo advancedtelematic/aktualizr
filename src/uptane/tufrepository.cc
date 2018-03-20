@@ -146,4 +146,4 @@ void TufRepository::setMeta(Uptane::Root* root, Uptane::Targets* targets, Uptane
   if (timestamp) timestamp_ = *timestamp;
   if (snapshot) snapshot_ = *snapshot;
 }
-}
+}  // namespace Uptane

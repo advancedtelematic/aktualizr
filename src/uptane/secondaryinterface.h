@@ -34,6 +34,6 @@ class SecondaryInterface {
 
   const SecondaryConfig& sconfig;
 };
-}
+}  // namespace Uptane
 
 #endif  // UPTANE_SECONDARYINTERFACE_H

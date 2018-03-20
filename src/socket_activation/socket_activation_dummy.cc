@@ -16,4 +16,4 @@ int listen_fds_with_names(int unset_environment, char*** names) {
 
   return 0;
 }
-};
+};  // namespace socket_activation

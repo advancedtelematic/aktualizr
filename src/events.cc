@@ -69,4 +69,4 @@ UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_
 }
 
 std::string UptaneTargetsUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
-}
+}  // namespace event

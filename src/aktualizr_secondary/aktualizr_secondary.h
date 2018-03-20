@@ -6,6 +6,7 @@
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
+#include "ipuptaneconnection.h"
 #include "types.h"
 #include "uptane/tuf.h"
 #include "utils.h"
@@ -15,7 +16,6 @@ class AktualizrSecondary {
   AktualizrSecondary(const AktualizrSecondaryConfig& config);
   void run();
   void stop();
-  int listening_port() const;
 
   // implementation of primary's SecondaryInterface
   std::string getSerialResp();
@@ -28,11 +28,8 @@ class AktualizrSecondary {
   bool sendFirmwareResp(const std::string& firmware);
 
  private:
-  void handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr);
-  void open_socket();
   AktualizrSecondaryConfig config_;
-  SocketHandle socket_hdl_;
-  SecondaryPacket::ChanType channel_;
+  IpUptaneConnection conn_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

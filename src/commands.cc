@@ -90,4 +90,4 @@ SendUpdateReport SendUpdateReport::fromJson(const std::string& json_str) {
 UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
   variant = "UptaneInstall";
 }
-}
+}  // namespace command

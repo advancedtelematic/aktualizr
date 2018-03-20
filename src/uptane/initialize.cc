@@ -260,4 +260,4 @@ void Repository::initReset() {
   resetEcuSerials();
   resetDeviceId();
 }
-}
+}  // namespace Uptane
