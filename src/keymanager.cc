@@ -202,7 +202,7 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) {
   return out_data;
 }
 
-std::string KeyManager::getUptanePublicKey() {
+std::string KeyManager::getUptanePublicKey() const {
   std::string primary_public;
   if (config_.uptane.key_source == kFile) {
     if (!backend_->loadPrimaryPublic(&primary_public)) {

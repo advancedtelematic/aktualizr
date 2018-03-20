@@ -10,7 +10,9 @@
 #include "socket_activation.h"
 #include "utils.h"
 
-AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config) : config_(config) {
+AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config,
+                                                         const AktualizrSecondary &akt_secondary)
+    : config_(config), akt_secondary_(akt_secondary) {
   if (!config_.discovery) {
     return;
   }
@@ -86,9 +88,8 @@ void AktualizrSecondaryDiscovery::run() {
         LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer);
         std::string smsg;
         asn1::Serializer ser;
-        // FIXME: real serial and hardware id
-        std::string hwid = "hardware";
-        std::string serialid = "serial";
+        std::string hwid = akt_secondary_.getHwIdResp();
+        std::string serialid = akt_secondary_.getSerialResp();
         ser << asn1::seq << asn1::implicit<kAsn1Integer>(AKT_DISCOVERY_RESP)
             << asn1::implicit<kAsn1Utf8String>(serialid) << asn1::implicit<kAsn1Utf8String>(hwid) << asn1::endseq;
 

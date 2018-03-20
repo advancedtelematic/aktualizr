@@ -20,12 +20,12 @@ class AktualizrSecondary {
   void stop();
 
   // implementation of primary's SecondaryInterface
-  std::string getSerialResp();
-  std::string getHwIdResp();
-  std::pair<KeyType, std::string> getPublicKeyResp();
-  Json::Value getManifestResp();
+  std::string getSerialResp() const;
+  std::string getHwIdResp() const;
+  std::pair<KeyType, std::string> getPublicKeyResp() const;
+  Json::Value getManifestResp() const;
   bool putMetadataResp(const Uptane::MetaPack& meta_pack);
-  int32_t getRootVersionResp(bool director);
+  int32_t getRootVersionResp(bool director) const;
   bool putRootResp(Uptane::Root root, bool director);
   bool sendFirmwareResp(const std::string& firmware);
 

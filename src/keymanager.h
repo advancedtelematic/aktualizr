@@ -38,7 +38,7 @@ class KeyManager {
   std::string getCN() const;
   bool isOk() const { return (getPkey().size() && getCert().size() && getCa().size()); }
   std::string generateUptaneKeyPair();
-  std::string getUptanePublicKey();
+  std::string getUptanePublicKey() const;
   Json::Value signTuf(const Json::Value &in_data);
 
  private:

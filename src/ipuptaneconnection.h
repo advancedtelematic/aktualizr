@@ -8,11 +8,13 @@
 #include "aktualizr_secondary_ipc.h"
 #include "utils.h"
 
-using SocketHandle = std::unique_ptr<int, SocketCloser>;
-
 class IpUptaneConnection {
  public:
   IpUptaneConnection(int in_port);
+  ~IpUptaneConnection();
+  IpUptaneConnection(const IpUptaneConnection&) = delete;
+  IpUptaneConnection& operator=(const IpUptaneConnection&) = delete;
+
   SecondaryPacket::ChanType in_channel_;
   SecondaryPacket::ChanType out_channel_;
   int listening_port() const;

@@ -14,8 +14,7 @@ TEST(aktualizr_secondary_protocol, run_and_stop) {
   config.network.port = 0;  // random port
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir.Path() / "sql.db";
-
-  // storage (share class with primary)
+  config.storage.schemas_path = "config/schemas";
   boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
   AktualizrSecondary as(config, storage);
