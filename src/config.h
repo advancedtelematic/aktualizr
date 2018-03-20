@@ -42,6 +42,7 @@ struct NetworkConfig {
   std::string ipdiscovery_host{"127.0.0.1"};
   unsigned int ipdiscovery_port{12345};
   unsigned int ipdiscovery_wait_seconds{10};
+  unsigned int ipuptane_port{12345};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

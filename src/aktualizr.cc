@@ -14,7 +14,7 @@
 #include "invstorage.h"
 #include "sotauptaneclient.h"
 
-Aktualizr::Aktualizr(const Config &config) : config_(config) {
+Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }

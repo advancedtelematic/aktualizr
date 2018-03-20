@@ -76,7 +76,49 @@ IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
     in_channel_.close();
   });
 
-  // TODO: out_thread
+  out_thread_ = std::thread([this]() {
+    std::shared_ptr<SecondaryPacket> pkt;
+    while (out_channel_ >> pkt) {
+      int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
+      if (socket_fd < 0) {
+        throw std::runtime_error("socket creation failed");
+      }
+      SocketHandle hdl(new int(socket_fd));
+
+      socklen_t addr_len;
+      if (pkt->peer_addr.ss_family == AF_INET) {
+        addr_len = sizeof(sockaddr_in);
+      } else if (pkt->peer_addr.ss_family == AF_INET6) {
+        addr_len = sizeof(sockaddr_in6);
+      } else {
+        throw std::runtime_error("Unexpected ip address family");
+      }
+
+      if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
+        LOG_ERROR << "Couldn't connect to a secondary, skipping packet";
+        continue;
+      }
+
+      asn1::Serializer asn1_ser;
+      asn1_ser << *pkt->msg;
+      const std::string &result = asn1_ser.getResult();
+      const char *data = result.c_str();
+      size_t len = result.length();
+      size_t pos = 0;
+
+      while (len > 0) {
+        ssize_t written = write(*hdl, data + pos, len);
+        if (written < 0) {
+          LOG_ERROR << "Error while writing to socket, closing";
+          shutdown(*hdl, SHUT_RDWR);
+          break;
+        }
+        len -= written;
+        pos += written;
+      }
+      shutdown(*hdl, SHUT_RDWR);
+    }
+  });
 }
 
 IpUptaneConnection::~IpUptaneConnection() {
@@ -102,22 +144,22 @@ void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_pt
       break;
     }
     message_content.push_back(c);
-    asn1::Deserializer asn1_stream(message_content);
-    std::unique_ptr<SecondaryMessage> mes;
-    try {
-      asn1_stream >> mes;
-    } catch (deserialization_error) {
-      LOG_ERROR << "Unexpected message format";
-      continue;
-    }
-    std::unique_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, std::move(mes)}};
-
-    in_channel_ << std::move(pkt);
   }
+  asn1::Deserializer asn1_stream(message_content);
+  std::unique_ptr<SecondaryMessage> mes;
+  try {
+    asn1_stream >> mes;
+  } catch (deserialization_error) {
+    LOG_ERROR << "Unexpected message format";
+    return;
+  }
+  std::shared_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, std::move(mes)}};
+
+  in_channel_ << pkt;
   LOG_INFO << "Connection closed with " << peer_name;
 }
 
-int IpUptaneConnection::listening_port() const {
+in_port_t IpUptaneConnection::listening_port() const {
   sockaddr_storage ss;
   socklen_t len = sizeof(ss);
   in_port_t p;
@@ -136,4 +178,14 @@ int IpUptaneConnection::listening_port() const {
   }
 
   return ntohs(p);
+}
+
+sockaddr_storage IpUptaneConnection::listening_address() const {
+  sockaddr_storage ss;
+  socklen_t len = sizeof(ss);
+  if (getsockname(*socket_hdl_, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
+    throw std::system_error(errno, std::system_category(), "getsockname");
+  }
+
+  return ss;
 }

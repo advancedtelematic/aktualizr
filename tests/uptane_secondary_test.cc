@@ -44,7 +44,7 @@ TEST(SecondaryFactory, Legacy) {
 TEST(SecondaryFactory, Uptane_get_key) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::kUptane;
+  sconfig.secondary_type = Uptane::kVirtualUptane;
   sconfig.partial_verifying = true;
   sconfig.full_client_dir = temp_dir.Path();
   sconfig.ecu_serial = "";
@@ -67,7 +67,7 @@ TEST(SecondaryFactory, Uptane_get_key) {
 TEST(SecondaryFactory, Uptane_putMetadata_good) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::kUptane;
+  sconfig.secondary_type = Uptane::kVirtualUptane;
   sconfig.partial_verifying = true;
   sconfig.full_client_dir = temp_dir.Path();
   sconfig.ecu_serial = "";
@@ -91,7 +91,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_good) {
 TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = Uptane::kUptane;
+  sconfig.secondary_type = Uptane::kVirtualUptane;
   sconfig.partial_verifying = true;
   sconfig.full_client_dir = temp_dir.Path();
   sconfig.ecu_serial = "";

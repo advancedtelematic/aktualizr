@@ -1,6 +1,4 @@
 #include "asn1-cerstream.h"
-#include <iomanip>
-#include <iostream>
 
 namespace asn1 {
 
@@ -122,8 +120,6 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
       int32_t cons_len = seq_consumed.top();
       seq_lengths.pop();
       seq_consumed.pop();
-      std::cout << "ENDSEQ LEN: " << std::dec << len << std::endl;
-      std::cout << "EXPECTED LEN: " << std::dec << cons_len << std::endl;
       if (len >= 0) {
         if (cons_len != len) throw deserialization_error();
       } else {
@@ -188,16 +184,14 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
     }
 
     case Token::peekexpl_tok: {
-      std::cout << "BEFORE DECODE" << std::endl;
       uint8_t full_tag = cer_decode_token(data, &endpos, &seq_len, nullptr);
-      std::cout << "AFTER DECODE " << std::setfill('0') << std::setw(2) << std::hex << (((int)full_tag) & 0xFF)
-                << std::dec << std::endl;
-      std::cout << "SEQ_LEN " << seq_len << std::endl;
       if (full_tag == kUnknown) throw deserialization_error();
+
       uint8_t* out_tag = dynamic_cast<const PeekExplicitToken&>(tok).tag;
       ASN1_Class* out_tag_class = dynamic_cast<const PeekExplicitToken&>(tok).tag_class;
       if (out_tag) *out_tag = full_tag & 0x1F;
       if (out_tag_class) *out_tag_class = (ASN1_Class)(full_tag & 0xC0);
+
       data = data.substr(endpos);
       seq_lengths.push(seq_len);
       seq_consumed.push(0);

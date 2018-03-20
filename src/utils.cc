@@ -357,9 +357,13 @@ void Utils::writeFile(const boost::filesystem::path &filename, const std::string
 }
 
 void Utils::writeFile(const boost::filesystem::path &filename, const Json::Value &content, bool create_directories) {
+  Utils::writeFile(filename, jsonToStr(content), create_directories);
+}
+
+std::string Utils::jsonToStr(const Json::Value &json) {
   std::stringstream ss;
-  ss << content;
-  Utils::writeFile(filename, ss.str(), create_directories);
+  ss << json;
+  return ss.str();
 }
 
 Json::Value Utils::getHardwareInfo() {

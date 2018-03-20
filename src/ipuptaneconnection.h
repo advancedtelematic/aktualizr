@@ -17,7 +17,8 @@ class IpUptaneConnection {
 
   SecondaryPacket::ChanType in_channel_;
   SecondaryPacket::ChanType out_channel_;
-  int listening_port() const;
+  in_port_t listening_port() const;
+  sockaddr_storage listening_address() const;
   void stop();
 
  private:
@@ -25,7 +26,8 @@ class IpUptaneConnection {
   void open_socket();
   SocketHandle socket_hdl_;
   std::thread in_thread_;
-  int in_port_;
+  std::thread out_thread_;
+  in_port_t in_port_;
 };
 
 #endif  // IP_UPTANE_CONNECTION_H_

@@ -19,6 +19,7 @@ set(SOURCES aktualizr.cc
             invstorage.cc
             ipsecondarydiscovery.cc
             ipuptaneconnection.cc
+            ipuptaneconnectionsplitter.cc
             keymanager.cc
             logging.cc
             socketgateway.cc
@@ -28,6 +29,7 @@ set(SOURCES aktualizr.cc
             types.cc
             utils.cc
             uptane/initialize.cc
+            uptane/ipuptanesecondary.cc
             uptane/legacysecondary.cc
             uptane/managedsecondary.cc
             uptane/partialverificationsecondary.cc
@@ -60,6 +62,7 @@ set(HEADERS aktualizr.h
             invstorage.h
             ipsecondarydiscovery.h
             ipuptaneconnection.h
+            ipuptaneconnectionsplitter.h
             keymanager.h
             logging.h
             openssl_compat.h
@@ -77,6 +80,7 @@ set(HEADERS aktualizr.h
             types.h
             utils.h
             uptane/exceptions.h
+            uptane/ipuptanesecondary.h
             uptane/legacysecondary.h
             uptane/managedsecondary.h
             uptane/partialverificationsecondary.h

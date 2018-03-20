@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "logging.h"
+#include "uptane/ipuptanesecondary.h"
 #include "uptane/legacysecondary.h"
 #include "uptane/opcuasecondary.h"
 #include "uptane/secondaryconfig.h"
@@ -23,9 +24,8 @@ class SecondaryFactory {
       case kLegacy:
         return boost::make_shared<LegacySecondary>(sconfig);
         break;
-      case kUptane:
-        LOG_ERROR << "Uptane secondaries are not currently supported.";
-        return boost::shared_ptr<SecondaryInterface>();  // NULL-equivalent
+      case kIpUptane:
+        return boost::make_shared<IpUptaneSecondary>(sconfig);
       case kOpcua:
 #ifdef OPCUA_SECONDARY_ENABLED
         return boost::make_shared<OpcuaSecondary>(sconfig);
@@ -33,7 +33,6 @@ class SecondaryFactory {
         LOG_ERROR << "Built with no OPC-UA secondary support";
         return boost::shared_ptr<SecondaryInterface>();  // NULL-equivalent
 #endif
-        break;
       default:
         LOG_ERROR << "Unrecognized secondary type: " << sconfig.secondary_type;
         return boost::shared_ptr<SecondaryInterface>();  // NULL-equivalent
