@@ -60,7 +60,7 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
 
 KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   // Note: use dummy values for tls key sources
-  return KeyManagerConfig{kFile, kFile, kFile, p11.uptane_key_id, uptane.key_type, uptane.key_source};
+  return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {

@@ -182,7 +182,7 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) {
 #ifdef BUILD_P11
   if (config_.uptane_key_source == kPkcs11) {
     crypto_engine = p11_->getEngine();
-    private_key = config_.p11_uptane_key_id;
+    private_key = config_.p11.uptane_key_id;
   }
 #endif
   if (config_.uptane_key_source == kFile) {

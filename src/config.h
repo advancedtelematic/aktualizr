@@ -17,6 +17,7 @@
 #include "invstorage.h"
 #include "keymanager.h"
 #include "logging.h"
+#include "p11engine.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 
@@ -41,18 +42,6 @@ struct NetworkConfig {
   std::string ipdiscovery_host{"127.0.0.1"};
   unsigned int ipdiscovery_port{12345};
   unsigned int ipdiscovery_wait_seconds{10};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
-struct P11Config {
-  boost::filesystem::path module;
-  std::string pass;
-  std::string uptane_key_id;
-  std::string tls_cacert_id;
-  std::string tls_pkey_id;
-  std::string tls_clientcert_id;
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

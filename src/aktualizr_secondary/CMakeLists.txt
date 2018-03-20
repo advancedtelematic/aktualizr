@@ -22,6 +22,7 @@ target_link_libraries(aktualizr-secondary
     ${GLIB2_LIBRARIES}
     ${LibArchive_LIBRARIES}
     ${SQLITE3_LIBRARIES}
+    ${LIBP11_LIBRARIES}
     gcov
     )
 

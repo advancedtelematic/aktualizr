@@ -111,24 +111,6 @@ void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
 }
 
-void P11Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(module, "module", boost::log::trivial::trace, pt);
-  CopyFromConfig(pass, "pass", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane_key_id, "uptane_key_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(tls_cacert_id, "tls_cacert_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(tls_pkey_id, "tls_pkey_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", boost::log::trivial::warning, pt);
-}
-
-void P11Config::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, module, "module");
-  writeOption(out_stream, pass, "pass");
-  writeOption(out_stream, uptane_key_id, "uptane_key_id");
-  writeOption(out_stream, tls_cacert_id, "tls_ca_id");
-  writeOption(out_stream, tls_pkey_id, "tls_pkey_id");
-  writeOption(out_stream, tls_clientcert_id, "tls_clientcert_id");
-}
-
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(server, "server", boost::log::trivial::warning, pt);
   CopyFromConfig(server_url_path, "server_url_path", boost::log::trivial::warning, pt);
@@ -270,8 +252,7 @@ Config::Config(const boost::filesystem::path& filename, const boost::program_opt
 }
 
 KeyManagerConfig Config::keymanagerConfig() const {
-  return KeyManagerConfig{tls.ca_source,     tls.pkey_source, tls.cert_source,
-                          p11.uptane_key_id, uptane.key_type, uptane.key_source};
+  return KeyManagerConfig{p11, tls.ca_source, tls.pkey_source, tls.cert_source, uptane.key_type, uptane.key_source};
 }
 
 void Config::postUpdateValues() {

@@ -1,67 +1,66 @@
 #ifndef P11ENGINE_H_
 #define P11ENGINE_H_
 
-#include <libp11.h>
 #include <openssl/engine.h>
 #include <openssl/err.h>
 #include <boost/filesystem.hpp>
 #include <boost/move/make_unique.hpp>
 #include <boost/move/unique_ptr.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
-#include "config.h"
+#include "config_utils.h"
 #include "logging.h"
+
+// declare p11 types as incomplete so that the header can be used without libp11
+struct PKCS11_ctx_st;
+struct PKCS11_slot_st;
+
+struct P11Config {
+  boost::filesystem::path module;
+  std::string pass;
+  std::string uptane_key_id;
+  std::string tls_cacert_id;
+  std::string tls_pkey_id;
+  std::string tls_clientcert_id;
+
+  void updateFromPropertyTree(const boost::property_tree::ptree &pt) {
+    CopyFromConfig(module, "module", boost::log::trivial::trace, pt);
+    CopyFromConfig(pass, "pass", boost::log::trivial::trace, pt);
+    CopyFromConfig(uptane_key_id, "uptane_key_id", boost::log::trivial::warning, pt);
+    CopyFromConfig(tls_cacert_id, "tls_cacert_id", boost::log::trivial::warning, pt);
+    CopyFromConfig(tls_pkey_id, "tls_pkey_id", boost::log::trivial::warning, pt);
+    CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", boost::log::trivial::warning, pt);
+  }
+  void writeToStream(std::ostream &out_stream) const {
+    writeOption(out_stream, module, "module");
+    writeOption(out_stream, pass, "pass");
+    writeOption(out_stream, uptane_key_id, "uptane_key_id");
+    writeOption(out_stream, tls_cacert_id, "tls_ca_id");
+    writeOption(out_stream, tls_pkey_id, "tls_pkey_id");
+    writeOption(out_stream, tls_clientcert_id, "tls_clientcert_id");
+  }
+};
 
 class P11ContextWrapper {
  public:
-  P11ContextWrapper(const boost::filesystem::path &module) {
-    if (module.empty()) {
-      ctx = NULL;
-      return;
-    }
-    // never returns NULL
-    ctx = PKCS11_CTX_new();
-    if (PKCS11_CTX_load(ctx, module.c_str())) {
-      PKCS11_CTX_free(ctx);
-      LOG_ERROR << "Couldn't load PKCS11 module " << module.string() << ": " << ERR_error_string(ERR_get_error(), NULL);
-      throw std::runtime_error("PKCS11 error");
-    }
-  }
-  ~P11ContextWrapper() {
-    if (ctx) {
-      PKCS11_CTX_unload(ctx);
-      PKCS11_CTX_free(ctx);
-    }
-  }
-  PKCS11_CTX *get() const { return ctx; }
+  P11ContextWrapper(const boost::filesystem::path &module);
+  ~P11ContextWrapper();
+  PKCS11_ctx_st *get() const { return ctx; }
 
  private:
-  PKCS11_CTX *ctx;
+  PKCS11_ctx_st *ctx;
 };
 
 class P11SlotsWrapper {
  public:
-  P11SlotsWrapper(PKCS11_CTX *ctx_in) {
-    ctx = ctx_in;
-    if (!ctx) {
-      slots = NULL;
-      nslots = 0;
-      return;
-    }
-    if (PKCS11_enumerate_slots(ctx, &slots, &nslots)) {
-      LOG_ERROR << "Couldn't enumerate slots"
-                << ": " << ERR_error_string(ERR_get_error(), NULL);
-      throw std::runtime_error("PKCS11 error");
-    }
-  }
-  ~P11SlotsWrapper() {
-    if (slots && nslots) PKCS11_release_all_slots(ctx, slots, nslots);
-  }
-  PKCS11_SLOT *get_slots() const { return slots; }
+  P11SlotsWrapper(PKCS11_ctx_st *ctx_in);
+  ~P11SlotsWrapper();
+  PKCS11_slot_st *get_slots() const { return slots; }
   unsigned int get_nslots() const { return nslots; }
 
  private:
-  PKCS11_CTX *ctx;
-  PKCS11_SLOT *slots;
+  PKCS11_ctx_st *ctx;
+  PKCS11_slot_st *slots;
   unsigned int nslots;
 };
 
@@ -86,7 +85,7 @@ class P11Engine : public boost::noncopyable {
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
 
-  PKCS11_SLOT *findTokenSlot() const;
+  PKCS11_slot_st *findTokenSlot() const;
 
   P11Engine(const P11Config &config);
 
