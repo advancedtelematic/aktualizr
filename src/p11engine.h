@@ -31,6 +31,7 @@ struct P11Config {
     CopyFromConfig(tls_pkey_id, "tls_pkey_id", boost::log::trivial::warning, pt);
     CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", boost::log::trivial::warning, pt);
   }
+
   void writeToStream(std::ostream &out_stream) const {
     writeOption(out_stream, module, "module");
     writeOption(out_stream, pass, "pass");
@@ -79,7 +80,7 @@ class P11Engine : public boost::noncopyable {
   bool generateUptaneKeyPair();
 
  private:
-  const P11Config &config_;
+  const P11Config config_;
   std::string uri_prefix_;
   ENGINE *ssl_engine_;
   P11ContextWrapper ctx_;
