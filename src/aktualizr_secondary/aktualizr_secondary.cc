@@ -9,8 +9,9 @@
 #include "socket_activation.h"
 #include "utils.h"
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config, boost::shared_ptr<INvStorage> &storage)
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config, const boost::shared_ptr<INvStorage> &storage)
     : config_(config), conn_(config.network.port), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
+  pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
   // note: we don't use TlsConfig here and supply the default to
   // KeyManagerConf. Maybe we should figure a cleaner way to do that
   // (split KeyManager?)
@@ -74,9 +75,8 @@ std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
   return std::make_pair(config_.uptane.key_type, keys_.getUptanePublicKey());
 }
 
-Json::Value AktualizrSecondary::getManifestResp() const {
-  LOG_ERROR << "getManifestResp is not implemented yet";
-  return Json::Value();
+Json::Value AktualizrSecondary::getManifestResp() const{
+  return pacman->getManifest(getSerialResp());
 }
 
 bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
