@@ -6,12 +6,14 @@
 
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", boost::log::trivial::info, pt);
+  CopyFromConfig(remote_port, "remote_port", boost::log::trivial::info, pt);
   CopyFromConfig(discovery, "discovery", boost::log::trivial::info, pt);
   CopyFromConfig(discovery_port, "discovery_port", boost::log::trivial::info, pt);
 }
 
 void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, port, "port");
+  writeOption(out_stream, remote_port, "remote_port");
   writeOption(out_stream, discovery, "discovery");
   writeOption(out_stream, discovery_port, "discovery_port");
 }

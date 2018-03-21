@@ -536,3 +536,10 @@ boost::filesystem::path TemporaryDirectory::operator/(const boost::filesystem::p
 }
 
 std::string TemporaryDirectory::PathString() const { return Path().string(); }
+
+void Utils::setSocketPort(sockaddr_storage *addr, in_port_t port) {
+  if (addr->ss_family == AF_INET)
+    reinterpret_cast<sockaddr_in *>(addr)->sin_port = port;
+  else if (addr->ss_family == AF_INET6)
+    reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port = port;
+}
