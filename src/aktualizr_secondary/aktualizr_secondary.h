@@ -14,7 +14,6 @@
 #include "packagemanagerinterface.h"
 #include "types.h"
 #include "uptane/tuf.h"
-#include "uptane/tuf.h"
 #include "utils.h"
 
 class AktualizrSecondary {
@@ -40,12 +39,16 @@ class AktualizrSecondary {
   IpUptaneConnection conn_;
 
   boost::shared_ptr<INvStorage> storage_;
-  KeyManager keys_;
   std::string ecu_serial_;
   std::string hardware_id_;
+
   boost::shared_ptr<PackageManagerInterface> pacman;
+  KeyManager keys_;
+  std::string treehub_server_;
+
   Uptane::Root root_;
   Uptane::Targets meta_targets_;
+  std::unique_ptr<Uptane::Target> target_;
   std::string detected_attack_;
 };
 

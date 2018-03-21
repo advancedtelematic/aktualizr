@@ -102,6 +102,7 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
     }
   }
   if (target_found) {
+    target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*target));
     if (target->format().empty() || target->format() == "OSTREE") {
 #ifdef BUILD_OSTREE
       OstreeManager::pull(config_.pacman.sysroot, config_.pacman.ostree_server, keys_, target->sha256Hash());
@@ -128,7 +129,59 @@ bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
 }
 
 bool AktualizrSecondary::sendFirmwareResp(const std::string &firmware) {
-  (void)firmware;
-  LOG_ERROR << "sendFirmwareResp is not implemented yet";
-  return false;
+  // "firmware" is a zip containing the information necessary to get the update
+  // from TreeHub: server url, tls creds
+  TemporaryFile temp_file;
+  temp_file.PutContents(firmware);
+
+  try {
+    std::string ca, cert, pkey, server_url;
+
+    {
+      std::stringstream as(firmware);
+      ca = Utils::readFileFromArchive(as, "ca.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      cert = Utils::readFileFromArchive(as, "client.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      pkey = Utils::readFileFromArchive(as, "pkey.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      server_url = Utils::readFileFromArchive(as, "server.url");
+    }
+
+    keys_.loadKeys(ca, cert, pkey);
+    boost::trim(server_url);
+    treehub_server_ = server_url;
+  } catch (std::runtime_error &exc) {
+    LOG_ERROR << exc.what();
+
+    return false;
+  }
+
+  if (target_ == nullptr) {
+    LOG_ERROR << "No valid installation target found";
+    return false;
+  }
+
+  if (target_->format().empty() || target_->format() == "OSTREE") {
+#ifdef BUILD_OSTREE
+    OstreeManager::pull(config_.pacman.sysroot, treehub_server_, keys_, target_->sha256Hash());
+#else
+    LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
+    return false;
+#endif
+  }
+
+  data::InstallOutcome ret = pacman->install(*target_);
+  if (ret.first != data::UpdateResultCode::OK) {
+    LOG_ERROR << "Installation failed (" << ret.first << "): " << ret.second;
+    return false;
+  }
+
+  return true;
 }
