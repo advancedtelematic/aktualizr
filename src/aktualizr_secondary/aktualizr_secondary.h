@@ -9,13 +9,16 @@
 #include "invstorage.h"
 #include "ipuptaneconnection.h"
 #include "keymanager.h"
+#include "packagemanagerfactory.h"
+#include "packagemanagerinterface.h"
+#include "invstorage.h"
 #include "types.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 
 class AktualizrSecondary {
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, boost::shared_ptr<INvStorage>& storage);
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, const boost::shared_ptr<INvStorage> &storage);
   void run();
   void stop();
 
@@ -39,6 +42,7 @@ class AktualizrSecondary {
   KeyManager keys_;
   std::string ecu_serial_;
   std::string hardware_id_;
+  boost::shared_ptr<PackageManagerInterface> pacman;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H
