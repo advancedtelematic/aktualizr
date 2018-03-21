@@ -55,9 +55,10 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     }
   } catch (const bpo::required_option &ex) {
     if (ex.get_option_name() == "--config") {
-      std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
-                                           "file using toml format. See the example configuration file "
-                                           "in config/sota_secondary.toml"
+      std::cout << ex.get_option_name()
+                << " is missing.\nYou have to provide a valid configuration "
+                   "file using toml format. See the example configuration file "
+                   "in config/sota_secondary.toml"
                 << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -128,15 +129,15 @@ int main(int argc, char *argv[]) {
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
 #ifdef OPCUA_SECONDARY_ENABLED
+    // OPC-UA bridge server has integrated discovery
     AktualizrSecondaryOpcua secondary(config);
 #else
     AktualizrSecondary secondary(config, storage);
-#endif
 
     // discovery service
     discovery.reset(new AktualizrSecondaryDiscovery(config.network, secondary));
     discovery_thread = std::thread(&AktualizrSecondaryDiscovery::run, discovery.get());
-
+#endif
 
     secondary.run();
 
