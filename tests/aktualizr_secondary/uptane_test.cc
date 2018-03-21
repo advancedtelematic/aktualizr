@@ -5,20 +5,24 @@
 
 boost::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
+std::string sysroot;
 
 TEST(aktualizr_secondary_uptane, getSerial) {
+  config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
 
   EXPECT_NE(as.getSerialResp(), "");
 }
 
 TEST(aktualizr_secondary_uptane, getHwId) {
+  config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
 
   EXPECT_NE(as.getHwIdResp(), "");
 }
 
 TEST(aktualizr_secondary_uptane, getPublicKey) {
+  config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
 
   KeyType type;
@@ -40,6 +44,11 @@ int main(int argc, char **argv) {
   config.storage.schemas_path = "config/schemas";
   storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

@@ -9,6 +9,7 @@
 #include "config.h"
 #include "fsstorage.h"
 #include "utils.h"
+std::string sysroot;
 
 class ShortCircuitSecondary : public Uptane::SecondaryInterface {
  public:
@@ -36,6 +37,8 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   config.network.port = 0;
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir_sec / "sql.db";
+  config.storage.schemas_path = "config/schemas/";
+  config.pacman.sysroot = sysroot;
   boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
 
   AktualizrSecondary as(config, storage);
@@ -46,7 +49,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
 
   // storage
   TemporaryDirectory temp_dir;
-  int ret = system((std::string("cp -rf test/test_data/secondary_meta/* ") + temp_dir.PathString()).c_str());
+  int ret = system((std::string("cp -rf tests/test_data/secondary_meta/* ") + temp_dir.PathString()).c_str());
   (void)ret;
   StorageConfig fs_config;
   fs_config.type = kFileSystem;
@@ -70,7 +73,11 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

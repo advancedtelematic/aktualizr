@@ -27,7 +27,8 @@ class KeyManager {
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
   KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config);
-  void loadKeys();
+  void loadKeys(const std::string *pkey_content = nullptr, const std::string *cert_content = nullptr,
+                const std::string *ca_content = nullptr);
   std::string getPkeyFile() const;
   std::string getCertFile() const;
   std::string getCaFile() const;

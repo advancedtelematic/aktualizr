@@ -189,7 +189,7 @@ void Repository::downloadTarget(Target target) {
 #ifdef BUILD_OSTREE
     KeyManager keys(storage, config.keymanagerConfig());
     keys.loadKeys();
-    OstreeManager::pull(config, keys, target.sha256Hash());
+    OstreeManager::pull(config.pacman, keys, target.sha256Hash());
 #else
     LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
 #endif
