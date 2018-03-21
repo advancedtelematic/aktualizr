@@ -57,7 +57,6 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-
   CopyFromConfig(packages_file, "packages_file", boost::log::trivial::warning, pt);
 
   std::string package_manager = "ostree";
