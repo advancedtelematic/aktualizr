@@ -34,20 +34,20 @@ void IpUptaneConnection::open_socket() {
 
   int v6only = 0;
   if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
-    throw std::runtime_error("setsockopt(IPV6_V6ONLY) failed");
+    throw std::system_error(errno, std::system_category(), "setsockopt(IPV6_V6ONLY)");
   }
 
   int reuseaddr = 1;
   if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
+    throw std::system_error(errno, std::system_category(), "setsockopt(SO_REUSEADDR)");
   }
 
   if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
-    throw std::runtime_error("bind failed");
+    throw std::system_error(errno, std::system_category(), "bind");
   }
 
   if (listen(*hdl, SOMAXCONN) < 0) {
-    throw std::runtime_error("listen failed");
+    throw std::system_error(errno, std::system_category(), "listen");
   }
 
   socket_hdl_ = std::move(hdl);
@@ -81,7 +81,7 @@ IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
     while (out_channel_ >> pkt) {
       int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
       if (socket_fd < 0) {
-        throw std::runtime_error("socket creation failed");
+        throw std::system_error(errno, std::system_category(), "socket");
       }
       SocketHandle hdl(new int(socket_fd));
 
@@ -95,7 +95,7 @@ IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
       }
 
       if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
-        LOG_ERROR << "Couldn't connect to a secondary, skipping packet";
+        LOG_ERROR << "connect: " << std::strerror(errno);
         continue;
       }
 
@@ -109,7 +109,7 @@ IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
       while (len > 0) {
         ssize_t written = write(*hdl, data + pos, len);
         if (written < 0) {
-          LOG_ERROR << "Error while writing to socket, closing";
+          LOG_ERROR << "write: " << std::strerror(errno);
           shutdown(*hdl, SHUT_RDWR);
           break;
         }
@@ -132,6 +132,8 @@ IpUptaneConnection::~IpUptaneConnection() {
 void IpUptaneConnection::stop() {
   shutdown(*socket_hdl_, SHUT_RDWR);
   in_thread_.join();
+  out_channel_.close();
+  out_thread_.join();
 }
 
 void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {

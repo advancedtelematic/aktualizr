@@ -32,18 +32,18 @@ void AktualizrSecondaryDiscovery::open_socket() {
 
   int socket_fd = socket(AF_INET6, SOCK_DGRAM, 0);
   if (socket_fd < 0) {
-    throw std::runtime_error("socket creation failed");
+    throw std::system_error(errno, std::system_category(), "socket");
   }
   SocketHandle hdl(new int(socket_fd));
 
   int v6only = 0;
   if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
-    throw std::runtime_error("setsockopt(IPV6_V6ONLY) failed");
+    throw std::system_error(errno, std::system_category(), "setsockopt(IPV6_V6ONLY)");
   }
 
   int reuseaddr = 1;
   if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
-    throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
+    throw std::system_error(errno, std::system_category(), "setsockopt(SO_REUSEADDR)");
   }
 
   sockaddr_in6 sa{};
@@ -53,7 +53,7 @@ void AktualizrSecondaryDiscovery::open_socket() {
   sa.sin6_addr = IN6ADDR_ANY_INIT;
 
   if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
-    throw std::runtime_error("bind failed");
+    throw std::system_error(errno, std::system_category(), "bind");
   }
 
   socket_hdl_ = std::move(hdl);
