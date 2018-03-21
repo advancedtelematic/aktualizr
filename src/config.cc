@@ -16,23 +16,6 @@
 #include "exceptions.h"
 #include "utils.h"
 
-std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
-  std::string cs_str;
-  switch (cs) {
-    case kFile:
-      cs_str = "file";
-      break;
-    case kPkcs11:
-      cs_str = "pkcs11";
-      break;
-    default:
-      cs_str = "unknown";
-      break;
-  }
-  os << '"' << cs_str << '"';
-  return os;
-}
-
 std::ostream& operator<<(std::ostream& os, StorageType stype) {
   std::string stype_str;
   switch (stype) {
@@ -88,6 +71,163 @@ std::ostream& operator<<(std::ostream& os, KeyType kt) {
   return os;
 }
 
+void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(socket, "socket", boost::log::trivial::info, pt);
+}
+
+void GatewayConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, socket, "socket"); }
+
+void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(socket_commands_path, "socket_commands_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(socket_events_path, "socket_events_path", boost::log::trivial::trace, pt);
+
+  boost::optional<std::string> events_string = pt.get_optional<std::string>("socket_events");
+  if (events_string.is_initialized()) {
+    std::string e = Utils::stripQuotes(events_string.get());
+    socket_events.empty();
+    boost::split(socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
+  } else {
+    LOG_TRACE << "network.socket_events not in config file. Using default";
+  }
+
+  CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", boost::log::trivial::trace, pt);
+  CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", boost::log::trivial::trace, pt);
+  CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
+}
+
+void NetworkConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, socket_commands_path, "socket_commands_path");
+  writeOption(out_stream, socket_events_path, "socket_events_path");
+  std::string events_str = "";
+  for (auto it = socket_events.begin(); it != socket_events.end(); ++it) {
+    events_str += *it;
+    if (it != --socket_events.end()) {
+      events_str += ", ";
+    }
+  }
+  writeOption(out_stream, events_str, "socket_events");
+  writeOption(out_stream, ipdiscovery_host, "ipdiscovery_host");
+  writeOption(out_stream, ipdiscovery_port, "ipdiscovery_port");
+  writeOption(out_stream, ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
+}
+
+void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(server, "server", boost::log::trivial::warning, pt);
+  CopyFromConfig(server_url_path, "server_url_path", boost::log::trivial::warning, pt);
+
+  std::string tls_source = "file";
+  CopyFromConfig(tls_source, "ca_source", boost::log::trivial::warning, pt);
+  if (tls_source == "pkcs11")
+    ca_source = kPkcs11;
+  else
+    ca_source = kFile;
+
+  tls_source = "file";
+  CopyFromConfig(tls_source, "cert_source", boost::log::trivial::warning, pt);
+  if (tls_source == "pkcs11")
+    cert_source = kPkcs11;
+  else
+    cert_source = kFile;
+
+  tls_source = "file";
+  CopyFromConfig(tls_source, "pkey_source", boost::log::trivial::warning, pt);
+  if (tls_source == "pkcs11")
+    pkey_source = kPkcs11;
+  else
+    pkey_source = kFile;
+}
+
+void TlsConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, server, "server");
+  writeOption(out_stream, server_url_path, "server_url_path");
+  writeOption(out_stream, ca_source, "ca_source");
+  writeOption(out_stream, pkey_source, "pkey_source");
+  writeOption(out_stream, cert_source, "cert_source");
+}
+
+void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(server, "server", boost::log::trivial::warning, pt);
+  CopyFromConfig(p12_password, "p12_password", boost::log::trivial::warning, pt);
+  CopyFromConfig(expiry_days, "expiry_days", boost::log::trivial::warning, pt);
+  CopyFromConfig(provision_path, "provision_path", boost::log::trivial::warning, pt);
+  // provision.mode is set in postUpdateValues.
+}
+
+void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, server, "server");
+  writeOption(out_stream, p12_password, "p12_password");
+  writeOption(out_stream, expiry_days, "expiry_days");
+  writeOption(out_stream, provision_path, "provision_path");
+}
+
+void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(polling, "polling", boost::log::trivial::trace, pt);
+  CopyFromConfig(polling_sec, "polling_sec", boost::log::trivial::trace, pt);
+  CopyFromConfig(device_id, "device_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::warning, pt);
+  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::warning, pt);
+  CopyFromConfig(director_server, "director_server", boost::log::trivial::warning, pt);
+  CopyFromConfig(repo_server, "repo_server", boost::log::trivial::warning, pt);
+
+  std::string ks = "file";
+  CopyFromConfig(ks, "key_source", boost::log::trivial::warning, pt);
+  if (ks == "pkcs11")
+    key_source = kPkcs11;
+  else
+    key_source = kFile;
+
+  std::string kt;
+  CopyFromConfig(kt, "key_type", boost::log::trivial::warning, pt);
+  if (kt.size()) {
+    if (kt == "RSA2048") {
+      key_type = kRSA2048;
+    } else if (kt == "RSA4096") {
+      key_type = kRSA4096;
+    } else if (kt == "ED25519") {
+      key_type = kED25519;
+    }
+  }
+
+  // uptane.secondary_configs currently can only be set via command line.
+}
+
+void UptaneConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, polling, "polling");
+  writeOption(out_stream, polling_sec, "polling_sec");
+  writeOption(out_stream, device_id, "device_id");
+  writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
+  writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
+  writeOption(out_stream, director_server, "director_server");
+  writeOption(out_stream, repo_server, "repo_server");
+  writeOption(out_stream, key_source, "key_source");
+  writeOption(out_stream, key_type, "key_type");
+}
+
+void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  std::string pm_type = "ostree";
+  CopyFromConfig(pm_type, "type", boost::log::trivial::warning, pt);
+  if (pm_type == "ostree") {
+    type = kOstree;
+  } else if (pm_type == "debian") {
+    type = kDebian;
+  } else {
+    type = kNone;
+  }
+
+  CopyFromConfig(os, "os", boost::log::trivial::warning, pt);
+  CopyFromConfig(sysroot, "sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree_server, "ostree_server", boost::log::trivial::warning, pt);
+  CopyFromConfig(packages_file, "packages_file", boost::log::trivial::warning, pt);
+}
+
+void PackageConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, type, "type");
+  writeOption(out_stream, os, "os");
+  writeOption(out_stream, sysroot, "sysroot");
+  writeOption(out_stream, ostree_server, "ostree_server");
+  writeOption(out_stream, packages_file, "packages_file");
+}
+
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
@@ -109,6 +249,10 @@ Config::Config(const boost::filesystem::path& filename, const boost::program_opt
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
+}
+
+KeyManagerConfig Config::keymanagerConfig() const {
+  return KeyManagerConfig{p11, tls.ca_source, tls.pkey_source, tls.cert_source, uptane.key_type, uptane.key_source};
 }
 
 void Config::postUpdateValues() {
@@ -154,128 +298,15 @@ void Config::updateFromTomlString(const std::string& contents) {
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h and writeToFile().
-
-  CopyFromConfig(gateway.socket, "gateway.socket", boost::log::trivial::info, pt);
-
-  CopyFromConfig(network.socket_commands_path, "network.socket_commands_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(network.socket_events_path, "network.socket_events_path", boost::log::trivial::trace, pt);
-
-  boost::optional<std::string> events_string = pt.get_optional<std::string>("network.socket_events");
-  if (events_string.is_initialized()) {
-    std::string e = Utils::stripQuotes(events_string.get());
-    network.socket_events.empty();
-    boost::split(network.socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
-  } else {
-    LOG_TRACE << "network.socket_events not in config file. Using default";
-  }
-
-  CopyFromConfig(network.ipdiscovery_host, "network.ipdiscovery_host", boost::log::trivial::trace, pt);
-  CopyFromConfig(network.ipdiscovery_port, "network.ipdiscovery_port", boost::log::trivial::trace, pt);
-  CopyFromConfig(network.ipdiscovery_wait_seconds, "network.ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
-
-  CopyFromConfig(p11.module, "p11.module", boost::log::trivial::trace, pt);
-  CopyFromConfig(p11.pass, "p11.pass", boost::log::trivial::trace, pt);
-  CopyFromConfig(p11.uptane_key_id, "p11.uptane_key_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(p11.tls_cacert_id, "p11.tls_cacert_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(p11.tls_pkey_id, "p11.tls_pkey_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(p11.tls_clientcert_id, "p11.tls_clientcert_id", boost::log::trivial::warning, pt);
-
-  CopyFromConfig(tls.server, "tls.server", boost::log::trivial::warning, pt);
-  CopyFromConfig(tls.server_url_path, "tls.server_url_path", boost::log::trivial::warning, pt);
-
-  std::string tls_source = "file";
-  CopyFromConfig(tls_source, "tls.ca_source", boost::log::trivial::warning, pt);
-  if (tls_source == "pkcs11")
-    tls.ca_source = kPkcs11;
-  else
-    tls.ca_source = kFile;
-
-  tls_source = "file";
-  CopyFromConfig(tls_source, "tls.cert_source", boost::log::trivial::warning, pt);
-  if (tls_source == "pkcs11")
-    tls.cert_source = kPkcs11;
-  else
-    tls.cert_source = kFile;
-
-  tls_source = "file";
-  CopyFromConfig(tls_source, "tls.pkey_source", boost::log::trivial::warning, pt);
-  if (tls_source == "pkcs11")
-    tls.pkey_source = kPkcs11;
-  else
-    tls.pkey_source = kFile;
-
-  CopyFromConfig(provision.server, "provision.server", boost::log::trivial::warning, pt);
-  CopyFromConfig(provision.p12_password, "provision.p12_password", boost::log::trivial::warning, pt);
-  CopyFromConfig(provision.expiry_days, "provision.expiry_days", boost::log::trivial::warning, pt);
-  CopyFromConfig(provision.provision_path, "provision.provision_path", boost::log::trivial::warning, pt);
-  // provision.mode is set in postUpdateValues.
-
-  CopyFromConfig(uptane.polling, "uptane.polling", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane.polling_sec, "uptane.polling_sec", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane.device_id, "uptane.device_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(uptane.primary_ecu_serial, "uptane.primary_ecu_serial", boost::log::trivial::warning, pt);
-  CopyFromConfig(uptane.primary_ecu_hardware_id, "uptane.primary_ecu_hardware_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(uptane.director_server, "uptane.director_server", boost::log::trivial::warning, pt);
-  CopyFromConfig(uptane.repo_server, "uptane.repo_server", boost::log::trivial::warning, pt);
-
-  std::string key_source = "file";
-  CopyFromConfig(key_source, "uptane.key_source", boost::log::trivial::warning, pt);
-  if (key_source == "pkcs11")
-    uptane.key_source = kPkcs11;
-  else
-    uptane.key_source = kFile;
-
-  std::string key_type;
-  CopyFromConfig(key_type, "uptane.key_type", boost::log::trivial::warning, pt);
-  if (key_type.size()) {
-    if (key_type == "RSA2048") {
-      uptane.key_type = kRSA2048;
-    } else if (key_type == "RSA4096") {
-      uptane.key_type = kRSA4096;
-    } else if (key_type == "ED25519") {
-      uptane.key_type = kED25519;
-    }
-  }
-
-  // uptane.secondary_configs currently can only be set via command line.
-
-  std::string package_manager = "ostree";
-  CopyFromConfig(package_manager, "pacman.type", boost::log::trivial::warning, pt);
-  if (package_manager == "ostree") {
-    pacman.type = kOstree;
-  } else if (package_manager == "debian") {
-    pacman.type = kDebian;
-  } else {
-    pacman.type = kNone;
-  }
-
-  CopyFromConfig(pacman.os, "pacman.os", boost::log::trivial::warning, pt);
-  CopyFromConfig(pacman.sysroot, "pacman.sysroot", boost::log::trivial::warning, pt);
-  CopyFromConfig(pacman.ostree_server, "pacman.ostree_server", boost::log::trivial::warning, pt);
-  CopyFromConfig(pacman.packages_file, "pacman.packages_file", boost::log::trivial::warning, pt);
-
-  std::string storage_type = "filesystem";
-  CopyFromConfig(storage_type, "storage.type", boost::log::trivial::warning, pt);
-  if (storage_type == "sqlite")
-    storage.type = kSqlite;
-  else
-    storage.type = kFileSystem;
-
-  CopyFromConfig(storage.path, "storage.path", boost::log::trivial::trace, pt);
-  CopyFromConfig(storage.sqldb_path, "storage.sqldb_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(storage.uptane_metadata_path, "storage.uptane_metadata_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.uptane_private_key_path, "storage.uptane_private_key_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.uptane_public_key_path, "storage.uptane_public_key_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.tls_cacert_path, "storage.tls_cacert_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.tls_pkey_path, "storage.tls_pkey_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.tls_clientcert_path, "storage.tls_clientcert_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(storage.schemas_path, "storage.schemas_path", boost::log::trivial::trace, pt);
-
-  CopyFromConfig(import.uptane_private_key_path, "import.uptane_private_key_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(import.uptane_public_key_path, "import.uptane_public_key_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(import.tls_cacert_path, "import.tls_cacert_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(import.tls_pkey_path, "import.tls_pkey_path", boost::log::trivial::warning, pt);
-  CopyFromConfig(import.tls_clientcert_path, "import.tls_clientcert_path", boost::log::trivial::warning, pt);
+  CopySubtreeFromConfig(gateway, "gateway", pt);
+  CopySubtreeFromConfig(network, "network", pt);
+  CopySubtreeFromConfig(p11, "p11", pt);
+  CopySubtreeFromConfig(tls, "tls", pt);
+  CopySubtreeFromConfig(provision, "provision", pt);
+  CopySubtreeFromConfig(uptane, "uptane", pt);
+  CopySubtreeFromConfig(pacman, "pacman", pt);
+  CopySubtreeFromConfig(storage, "storage", pt);
+  CopySubtreeFromConfig(import, "import", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -434,99 +465,19 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
 // environment. However, if we were to want to simplify the output file, we
 // could skip blank strings or compare values against a freshly built instance
 // to detect and skip default values.
-void Config::writeToFile(const boost::filesystem::path& filename) {
+void Config::writeToFile(const boost::filesystem::path& filename) const {
   // Keep this order the same as in config.h and updateFromPropertyTree().
-
   std::ofstream sink(filename.c_str(), std::ofstream::out);
-  sink << std::boolalpha;
 
-  sink << "[gateway]\n";
-  writeOption(sink, gateway.socket, "socket");
-  sink << "\n";
-
-  sink << "[network]\n";
-  writeOption(sink, network.socket_commands_path, "socket_commands_path");
-  writeOption(sink, network.socket_events_path, "socket_events_path");
-  std::string socket_events = "";
-  for (std::vector<std::string>::iterator it = network.socket_events.begin(); it != network.socket_events.end(); ++it) {
-    socket_events += *it;
-    if (it != --network.socket_events.end()) {
-      socket_events += ", ";
-    }
-  }
-  writeOption(sink, socket_events, "socket_events");
-  writeOption(sink, network.ipdiscovery_host, "ipdiscovery_host");
-  writeOption(sink, network.ipdiscovery_port, "ipdiscovery_port");
-  writeOption(sink, network.ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
-  sink << "\n";
-
-  sink << "[p11]\n";
-  writeOption(sink, p11.module, "module");
-  writeOption(sink, p11.pass, "pass");
-  writeOption(sink, p11.uptane_key_id, "uptane_key_id");
-  writeOption(sink, p11.tls_cacert_id, "tls_ca_id");
-  writeOption(sink, p11.tls_pkey_id, "tls_pkey_id");
-  writeOption(sink, p11.tls_clientcert_id, "tls_clientcert_id");
-  sink << "\n";
-
-  sink << "[tls]\n";
-  writeOption(sink, tls.server, "server");
-  writeOption(sink, tls.server_url_path, "server_url_path");
-  writeOption(sink, tls.ca_source, "ca_source");
-  writeOption(sink, tls.pkey_source, "pkey_source");
-  writeOption(sink, tls.cert_source, "cert_source");
-  sink << "\n";
-
-  sink << "[provision]\n";
-  writeOption(sink, provision.server, "server");
-  writeOption(sink, provision.p12_password, "p12_password");
-  writeOption(sink, provision.expiry_days, "expiry_days");
-  writeOption(sink, provision.provision_path, "provision_path");
-  // mode is not set directly, so don't write it out.
-  sink << "\n";
-
-  sink << "[uptane]\n";
-  writeOption(sink, uptane.polling, "polling");
-  writeOption(sink, uptane.polling_sec, "polling_sec");
-  writeOption(sink, uptane.device_id, "device_id");
-  writeOption(sink, uptane.primary_ecu_serial, "primary_ecu_serial");
-  writeOption(sink, uptane.primary_ecu_hardware_id, "primary_ecu_hardware_id");
-  writeOption(sink, uptane.director_server, "director_server");
-  writeOption(sink, uptane.repo_server, "repo_server");
-  writeOption(sink, uptane.key_source, "key_source");
-  writeOption(sink, uptane.key_type, "key_type");
-  // uptane.secondary_configs currently can only be set via command line and is
-  // not read from or written to the primary config file.
-  sink << "\n";
-
-  sink << "[pacman]\n";
-  writeOption(sink, pacman.type, "type");
-  writeOption(sink, pacman.os, "os");
-  writeOption(sink, pacman.sysroot, "sysroot");
-  writeOption(sink, pacman.ostree_server, "ostree_server");
-  writeOption(sink, pacman.packages_file, "packages_file");
-  sink << "\n";
-
-  sink << "[storage]\n";
-  writeOption(sink, storage.type, "type");
-  writeOption(sink, storage.path, "path");
-  writeOption(sink, storage.sqldb_path, "sqldb_path");
-  writeOption(sink, storage.uptane_metadata_path, "uptane_metadata_path");
-  writeOption(sink, storage.uptane_private_key_path, "uptane_private_key_path");
-  writeOption(sink, storage.uptane_public_key_path, "uptane_public_key_path");
-  writeOption(sink, storage.tls_cacert_path, "tls_cacert_path");
-  writeOption(sink, storage.tls_pkey_path, "tls_pkey_path");
-  writeOption(sink, storage.tls_clientcert_path, "tls_clientcert_path");
-  writeOption(sink, storage.schemas_path, "schemas_path");
-  sink << "\n";
-
-  sink << "[import]\n";
-  writeOption(sink, import.uptane_private_key_path, "uptane_private_key_path");
-  writeOption(sink, import.uptane_public_key_path, "uptane_public_key_path");
-  writeOption(sink, import.tls_cacert_path, "tls_cacert_path");
-  writeOption(sink, import.tls_pkey_path, "tls_pkey_path");
-  writeOption(sink, import.tls_clientcert_path, "tls_clientcert_path");
-  sink << "\n";
+  WriteSectionToStream(gateway, "gateway", sink);
+  WriteSectionToStream(network, "network", sink);
+  WriteSectionToStream(p11, "p11", sink);
+  WriteSectionToStream(tls, "tls", sink);
+  WriteSectionToStream(provision, "provision", sink);
+  WriteSectionToStream(uptane, "uptane", sink);
+  WriteSectionToStream(pacman, "pacman", sink);
+  WriteSectionToStream(storage, "storage", sink);
+  WriteSectionToStream(import, "import", sink);
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {

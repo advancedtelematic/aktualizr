@@ -22,7 +22,7 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
     if (provision_config.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
     } else if (provision_config.mode == kImplicit) {
-      device_id = KeyManager(storage, config).getCN();
+      device_id = KeyManager(storage, config.keymanagerConfig()).getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
       return false;
@@ -58,6 +58,7 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
   std::string primary_ecu_hardware_id = uptane_config.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
+    if (primary_ecu_hardware_id == "") return false;
   }
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
@@ -83,7 +84,7 @@ bool Repository::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().siz
 void Repository::resetEcuKeys() { storage->clearPrimaryKeys(); }
 
 bool Repository::loadSetTlsCreds() {
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
   keys.copyCertsToCurl(&http);
   return keys.isOk();
 }

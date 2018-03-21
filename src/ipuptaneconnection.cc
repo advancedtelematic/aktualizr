@@ -76,6 +76,14 @@ IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
   // TODO: out_thread
 }
 
+IpUptaneConnection::~IpUptaneConnection() {
+  try {
+    stop();
+  } catch (...) {
+    // ignore exceptions
+  }
+}
+
 void IpUptaneConnection::stop() {
   shutdown(*socket_hdl_, SHUT_RDWR);
   in_thread_.join();

@@ -1,2 +1,6 @@
 [network]
 port = 9031
+
+[storage]
+type = "sqlite"
+schemas_path = "config/schemas"

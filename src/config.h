@@ -14,21 +14,24 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "asn1-cerstream.h"
+#include "invstorage.h"
+#include "keymanager.h"
 #include "logging.h"
+#include "p11engine.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
-enum CryptoSource { kFile = 0, kPkcs11 };
-enum StorageType { kFileSystem = 0, kSqlite };
 enum PackageManager { kNone = 0, kOstree, kDebian };
 
-std::ostream& operator<<(std::ostream& os, CryptoSource cs);
 // Keep the order of config options the same as in writeToFile() and
 // updateFromPropertyTree() in config.cc.
 
 struct GatewayConfig {
   bool socket{false};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct NetworkConfig {
@@ -39,15 +42,9 @@ struct NetworkConfig {
   std::string ipdiscovery_host{"127.0.0.1"};
   unsigned int ipdiscovery_port{12345};
   unsigned int ipdiscovery_wait_seconds{10};
-};
 
-struct P11Config {
-  boost::filesystem::path module;
-  std::string pass;
-  std::string uptane_key_id;
-  std::string tls_cacert_id;
-  std::string tls_pkey_id;
-  std::string tls_clientcert_id;
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct TlsConfig {
@@ -56,6 +53,9 @@ struct TlsConfig {
   CryptoSource ca_source{kFile};
   CryptoSource pkey_source{kFile};
   CryptoSource cert_source{kFile};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, const TlsConfig& tls_conf);
@@ -67,6 +67,9 @@ struct ProvisionConfig {
   std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
   ProvisionMode mode{kAutomatic};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct UptaneConfig {
@@ -82,6 +85,9 @@ struct UptaneConfig {
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
   std::string getKeyTypeString() const { return keyTypeToString(key_type); }
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 struct PackageConfig {
@@ -90,31 +96,9 @@ struct PackageConfig {
   boost::filesystem::path sysroot;
   std::string ostree_server;
   boost::filesystem::path packages_file{"/usr/package.manifest"};
-};
 
-struct StorageConfig {
-  StorageType type{kFileSystem};
-  boost::filesystem::path path{"/var/sota"};
-  // TODO: merge with path once SQLStorage class is complete
-  boost::filesystem::path sqldb_path{"/var/sota/storage.db"};
-  // FS storage
-  boost::filesystem::path uptane_metadata_path{"metadata"};
-  boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
-  boost::filesystem::path uptane_public_key_path{"ecukey.pub"};
-  boost::filesystem::path tls_cacert_path{"ca.pem"};
-  boost::filesystem::path tls_pkey_path{"pkey.pem"};
-  boost::filesystem::path tls_clientcert_path{"client.pem"};
-
-  // SQLite storage
-  boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
-};
-
-struct ImportConfig {
-  boost::filesystem::path uptane_private_key_path;
-  boost::filesystem::path uptane_public_key_path;
-  boost::filesystem::path tls_cacert_path;
-  boost::filesystem::path tls_pkey_path;
-  boost::filesystem::path tls_clientcert_path;
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
 };
 
 class Config {
@@ -123,9 +107,11 @@ class Config {
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
   Config(const boost::filesystem::path& filename);
 
+  KeyManagerConfig keymanagerConfig() const;
+
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
-  void writeToFile(const boost::filesystem::path& filename);
+  void writeToFile(const boost::filesystem::path& filename) const;
 
   // config data structures
   GatewayConfig gateway;

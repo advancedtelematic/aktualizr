@@ -6,6 +6,7 @@
 
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_discovery.h"
 #include "aktualizr_secondary_ipc.h"
 #include "utils.h"
 
@@ -114,17 +115,38 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  int ret = 0;
+  std::thread discovery_thread;
+  std::unique_ptr<AktualizrSecondaryDiscovery> discovery;
   try {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
-    AktualizrSecondary secondary(config);
+
+    // storage (share class with primary)
+    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+
+    AktualizrSecondary secondary(config, storage);
+
+    // discovery service
+    discovery.reset(new AktualizrSecondaryDiscovery(config.network, secondary));
+    discovery_thread = std::thread(&AktualizrSecondaryDiscovery::run, discovery.get());
 
     secondary.run();
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();
 
-    return 1;
+    ret = 1;
   }
 
-  return 0;
+  if (discovery != nullptr) {
+    try {
+      discovery->stop();
+      discovery_thread.join();
+    } catch (std::runtime_error &exc) {
+      LOG_ERROR << "Error: " << exc.what();
+      ret = 1;
+    }
+  }
+
+  return ret;
 }

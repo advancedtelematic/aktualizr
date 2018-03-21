@@ -6,11 +6,18 @@
 
 #include "logging.h"
 
-TEST(aktualizr_secondary_protocol, run_and_stop) {
-  AktualizrSecondaryConfig config;
-  config.network.port = 0;  // random port
+AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
 
-  AktualizrSecondary as{config};
+TEST(aktualizr_secondary_protocol, run_and_stop) {
+  TemporaryDirectory temp_dir;
+  AktualizrSecondaryConfig config = conf;
+  config.network.port = 0;  // random port
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = temp_dir.Path() / "sql.db";
+  config.storage.schemas_path = "config/schemas";
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir.Path());
+
+  AktualizrSecondary as(config, storage);
 
   std::thread th(&AktualizrSecondary::run, &as);
 

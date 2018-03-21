@@ -1,2 +1,5 @@
 [network]
 port = 9030
+
+[storage]
+path = "sota-prov"

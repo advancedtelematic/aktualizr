@@ -8,10 +8,12 @@
 
 #include "logging.h"
 
-AktualizrSecondaryNetConfig config;
+boost::shared_ptr<INvStorage> storage;
+AktualizrSecondaryConfig config;
 
 TEST(aktualizr_secondary_discovery, run_and_stop) {
-  AktualizrSecondaryDiscovery disc{config};
+  AktualizrSecondary as(config, storage);
+  AktualizrSecondaryDiscovery disc{config.network, as};
 
   std::thread th(&AktualizrSecondaryDiscovery::run, &disc);
 
@@ -21,7 +23,8 @@ TEST(aktualizr_secondary_discovery, run_and_stop) {
 }
 
 TEST(aktualizr_secondary_discovery, request_response) {
-  AktualizrSecondaryDiscovery disc{config};
+  AktualizrSecondary as(config, storage);
+  AktualizrSecondaryDiscovery disc{config.network, as};
 
   NetworkConfig primary_netconf;
   primary_netconf.ipdiscovery_wait_seconds = 1;
@@ -44,8 +47,12 @@ TEST(aktualizr_secondary_discovery, request_response) {
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
-  // random port
-  config.port = 0;
+  TemporaryDirectory temp_dir;
+  config.network.port = 0;  // random port
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = temp_dir.Path() / "sql.db";
+  config.storage.schemas_path = "config/schemas";
+  storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
   return RUN_ALL_TESTS();
 }

@@ -11,8 +11,7 @@ boost::filesystem::path schemas_path;
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
 static std::map<std::string, std::string> parseSchema(int version) {
-  boost::filesystem::path schema_file =
-      schemas_path / (std::string("schema.") + boost::lexical_cast<std::string>(version) + ".sql");
+  boost::filesystem::path schema_file = schemas_path / (std::string("schema.") + std::to_string(version) + ".sql");
   std::string schema = Utils::readFile(schema_file.string());
   std::map<std::string, std::string> result;
   std::vector<std::string> tokens;

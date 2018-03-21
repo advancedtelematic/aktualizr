@@ -1,9 +1,11 @@
 #include "p11engine.h"
 
+#include <libp11.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <boost/scoped_array.hpp>
 
+#include "config_utils.h"
 #include "utils.h"
 
 #ifdef TEST_PKCS11_ENGINE_PATH
@@ -14,6 +16,45 @@
 
 P11Engine* P11EngineGuard::instance = NULL;
 int P11EngineGuard::ref_counter = 0;
+
+P11ContextWrapper::P11ContextWrapper(const boost::filesystem::path& module) {
+  if (module.empty()) {
+    ctx = NULL;
+    return;
+  }
+  // never returns NULL
+  ctx = PKCS11_CTX_new();
+  if (PKCS11_CTX_load(ctx, module.c_str())) {
+    PKCS11_CTX_free(ctx);
+    LOG_ERROR << "Couldn't load PKCS11 module " << module.string() << ": " << ERR_error_string(ERR_get_error(), NULL);
+    throw std::runtime_error("PKCS11 error");
+  }
+}
+
+P11ContextWrapper::~P11ContextWrapper() {
+  if (ctx) {
+    PKCS11_CTX_unload(ctx);
+    PKCS11_CTX_free(ctx);
+  }
+}
+
+P11SlotsWrapper::P11SlotsWrapper(PKCS11_ctx_st* ctx_in) {
+  ctx = ctx_in;
+  if (!ctx) {
+    slots = NULL;
+    nslots = 0;
+    return;
+  }
+  if (PKCS11_enumerate_slots(ctx, &slots, &nslots)) {
+    LOG_ERROR << "Couldn't enumerate slots"
+              << ": " << ERR_error_string(ERR_get_error(), NULL);
+    throw std::runtime_error("PKCS11 error");
+  }
+}
+
+P11SlotsWrapper::~P11SlotsWrapper() {
+  if (slots && nslots) PKCS11_release_all_slots(ctx, slots, nslots);
+}
 
 P11Engine::P11Engine(const P11Config& config) : config_(config), ctx_(config_.module), slots_(ctx_.get()) {
   if (config_.module.empty()) return;

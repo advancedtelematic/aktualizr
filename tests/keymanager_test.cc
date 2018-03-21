@@ -25,7 +25,7 @@ TEST(KeyManager, SignTuf) {
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -48,7 +48,7 @@ TEST(KeyManager, SignED25519Tuf) {
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
 
   storage->storePrimaryKeys(public_key, private_key);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -64,7 +64,7 @@ TEST(KeyManager, InitFileEmpty) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getCaFile().empty());
   EXPECT_TRUE(keys.getPkeyFile().empty());
@@ -86,7 +86,7 @@ TEST(KeyManager, InitFileValid) {
   storage->storeTlsCa(ca);
   storage->storeTlsPkey(pkey);
   storage->storeTlsCert(cert);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getCaFile().empty());
   EXPECT_TRUE(keys.getPkeyFile().empty());
@@ -123,7 +123,7 @@ TEST(KeyManager, SignTufPkcs11) {
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getUptanePublicKey().size());
   Json::Value signed_json = keys.signTuf(tosign_json);
@@ -151,7 +151,7 @@ TEST(KeyManager, InitPkcs11Valid) {
   // Getting the CA from the HSM is not currently supported.
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   storage->storeTlsCa(ca);
-  KeyManager keys(storage, config);
+  KeyManager keys(storage, config.keymanagerConfig());
   EXPECT_TRUE(keys.getCaFile().empty());
   EXPECT_FALSE(keys.getPkeyFile().empty());
   EXPECT_FALSE(keys.getCertFile().empty());
