@@ -106,9 +106,7 @@ if(BUILD_P11)
     endif(TEST_PKCS11_MODULE_PATH)
 endif(BUILD_P11)
 
-set(OPEN62541_SOURCES ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
-set(OPCUABRIDGE_SOURCES ${OPEN62541_SOURCES}
-                        opcuabridge/common.cc
+set(OPCUABRIDGE_SOURCES opcuabridge/common.cc
                         opcuabridge/filelist.cc
                         opcuabridge/opcuabridgeclient.cc
                         opcuabridge/opcuabridgeserver.cc
@@ -137,14 +135,15 @@ set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/versionreport.h
                         uptane/opcuasecondary.h)
 if (BUILD_OPCUA)
-    set_source_files_properties(opcuabridge_messaging.cc ${OPEN62541_SOURCES} ${OPCUABRIDGE_SOURCES}
+    set(OPEN62541_SOURCES ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
+    set_source_files_properties(${OPEN62541_SOURCES} ${OPCUABRIDGE_SOURCES}
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
     list(APPEND SOURCES ${OPCUABRIDGE_SOURCES})
 endif (BUILD_OPCUA)
 
 # set the name of the executable
 add_executable(aktualizr main.cc)
-add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
+add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp ${OPEN62541_SOURCES})
 target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
 target_link_libraries(aktualizr_static_lib socket_activation)
 
