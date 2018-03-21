@@ -12,7 +12,6 @@
 #include "keymanager.h"
 #include "logging.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 
 namespace Uptane {
 
@@ -24,6 +23,14 @@ enum InitRetCode {
   INIT_RET_SECONDARY_FAILURE,
   INIT_RET_BAD_P12,
   INIT_RET_PKCS11_FAILURE
+};
+
+struct DownloadMetaStruct {
+  int64_t expected_length;
+  int64_t downloaded_length;
+  StorageTargetWHandle *fhandle;
+  MultiPartSHA256Hasher sha256_hasher;
+  MultiPartSHA512Hasher sha512_hasher;
 };
 
 const int MaxInitializationAttempts = 3;
@@ -46,18 +53,17 @@ class Repository {
   void updateRoot(Version version = Version());
   // TODO: Receive and update time nonces.
 
-  bool currentMeta(Uptane::MetaPack *meta) { return storage->loadMetadata(meta); }
+  Uptane::MetaPack &currentMeta() { return meta_; }
 
  private:
   const Config &config;
-  TufRepository director;
-  TufRepository image;
   boost::shared_ptr<INvStorage> storage;
   HttpInterface &http;
 
   KeyManager keys_;
 
   Json::Value manifests;
+  MetaPack meta_;
 
   std::string primary_ecu_serial;
   std::string primary_hardware_id_;
@@ -65,6 +71,9 @@ class Repository {
   std::vector<boost::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
+  void downloadTarget(Target target);
+  Json::Value getJSON(const std::string &url);
+  Json::Value fetchRole(const std::string &base_url, Uptane::Role role, Version version = Version());
 
   // implemented in uptane/initialize.cc
   bool initDeviceId(const ProvisionConfig &provision_config, const UptaneConfig &uptane_config);

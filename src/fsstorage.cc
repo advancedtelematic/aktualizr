@@ -130,12 +130,12 @@ void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
-  Utils::writeFile((director_path / "root.json"), metadata.director_root.toJson());
-  Utils::writeFile((director_path / "targets.json"), metadata.director_targets.toJson());
-  Utils::writeFile((image_path / "root.json"), metadata.image_root.toJson());
-  Utils::writeFile((image_path / "targets.json"), metadata.image_targets.toJson());
-  Utils::writeFile((image_path / "timestamp.json"), metadata.image_timestamp.toJson());
-  Utils::writeFile((image_path / "snapshot.json"), metadata.image_snapshot.toJson());
+  Utils::writeFile((director_path / "root.json"), metadata.director_root.original());
+  Utils::writeFile((director_path / "targets.json"), metadata.director_targets.original());
+  Utils::writeFile((image_path / "root.json"), metadata.image_root.original());
+  Utils::writeFile((image_path / "targets.json"), metadata.image_targets.original());
+  Utils::writeFile((image_path / "timestamp.json"), metadata.image_timestamp.original());
+  Utils::writeFile((image_path / "snapshot.json"), metadata.image_snapshot.original());
   sync();
 }
 
@@ -151,34 +151,58 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
     return false;
 
   Json::Value json = Utils::parseJSONFile(director_path / "root.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->director_root = Uptane::Root("director", json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;  // Old format contains only signed part.
+    }
+    metadata->director_root = Uptane::Root("director", fixed_json);
+  }
 
   json = Utils::parseJSONFile(director_path / "targets.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->director_targets = Uptane::Targets(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->director_targets = Uptane::Targets(fixed_json);
+  }
 
   json = Utils::parseJSONFile(image_path / "root.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->image_root = Uptane::Root("image", json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_root = Uptane::Root("image", fixed_json);
+  }
 
   json = Utils::parseJSONFile(image_path / "targets.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->image_targets = Uptane::Targets(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_targets = Uptane::Targets(fixed_json);
+  }
 
   json = Utils::parseJSONFile(image_path / "timestamp.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->image_timestamp = Uptane::TimestampMeta(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
+  }
 
   json = Utils::parseJSONFile(image_path / "snapshot.json");
-  // compatibility with old clients, which store the whole metadata, not just the signed part
-  if (json.isMember("signed") && json.isMember("signatures")) json = json["signed"];
-  metadata->image_snapshot = Uptane::Snapshot(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_snapshot = Uptane::Snapshot(fixed_json);
+  }
 
   return true;
 }

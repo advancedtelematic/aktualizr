@@ -328,12 +328,12 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   }
 
   std::vector<std::string> jsons;
-  jsons.push_back(Json::FastWriter().write(metadata.director_root.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.director_targets.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_root.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_targets.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.toJson()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.toJson()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_root.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.director_targets.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_root.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_targets.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.original()));
+  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.original()));
 
   auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
       "INSERT INTO meta VALUES (?,?,?,?,?,?);", jsons[0], jsons[1], jsons[2], jsons[3], jsons[4], jsons[5]);
@@ -363,17 +363,53 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
   if (req_response_table.empty()) return false;
 
   Json::Value json = Utils::parseJSON(req_response_table[0]["director_root"]);
-  metadata->director_root = Uptane::Root("director", json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;  // Old format contains only signed part.
+    }
+    metadata->director_root = Uptane::Root("director", fixed_json);
+  }
   json = Utils::parseJSON(req_response_table[0]["director_targets"]);
-  metadata->director_targets = Uptane::Targets(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->director_targets = Uptane::Targets(fixed_json);
+  }
   json = Utils::parseJSON(req_response_table[0]["image_root"]);
-  metadata->image_root = Uptane::Root("image", json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_root = Uptane::Root("image", fixed_json);
+  }
   json = Utils::parseJSON(req_response_table[0]["image_targets"]);
-  metadata->image_targets = Uptane::Targets(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_targets = Uptane::Targets(fixed_json);
+  }
   json = Utils::parseJSON(req_response_table[0]["image_timestamp"]);
-  metadata->image_timestamp = Uptane::TimestampMeta(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
+  }
   json = Utils::parseJSON(req_response_table[0]["image_snapshot"]);
-  metadata->image_snapshot = Uptane::Snapshot(json);
+  if (json != Json::nullValue) {
+    Json::Value fixed_json = json;
+    if (!json.isMember("signed")) {
+      fixed_json["signed"] = json;
+    }
+    metadata->image_snapshot = Uptane::Snapshot(fixed_json);
+  }
 
   return true;
 }

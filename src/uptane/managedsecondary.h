@@ -10,7 +10,6 @@
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
-#include "uptane/tufrepository.h"
 
 namespace Uptane {
 

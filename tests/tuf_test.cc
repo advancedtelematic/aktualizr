@@ -14,29 +14,23 @@ TEST(Root, RootValidates) {
   LOG_INFO << "Root is:" << initial_root;
 
   Uptane::Root root1(Uptane::Root::kAcceptAll);
-  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  Uptane::Root root("director", i);
+  Uptane::Root root(now, "director", initial_root, root1);
 
-  Json::Value unpacked = root.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  EXPECT_EQ(unpacked, initial_root["signed"]);
+  EXPECT_NO_THROW(Uptane::Root(now, "director", initial_root, root));
 }
 
 TEST(Root, RootJsonNoKeys) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
-  LOG_INFO << "Root is:" << initial_root;
-  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  i.removeMember("keys");
-  EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
+  initial_root["signed"].removeMember("keys");
+  EXPECT_THROW(Uptane::Root(now, "director", initial_root, root1), Uptane::InvalidMetadata);
 }
 
 TEST(Root, RootJsonNoRoles) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
-  LOG_INFO << "Root is:" << initial_root;
-  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  i.removeMember("roles");
-  EXPECT_THROW(Uptane::Root("director", i), Uptane::InvalidMetadata);
+  initial_root["signed"].removeMember("roles");
+  EXPECT_THROW(Uptane::Root(now, "director", initial_root, root1), Uptane::InvalidMetadata);
 }
 
 /**
@@ -47,15 +41,9 @@ TEST(Root, RootJsonRsassaPssSha256) {
   Uptane::Root root1(Uptane::Root::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/rsassa-pss-sha256/root.json");
   LOG_INFO << "Root is:" << initial_root;
-  Json::Value i = root1.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-  try {
-    Uptane::Root root("director", i);
-    root.UnpackSignedObject(now, "director", Uptane::Role::Root(), initial_root);
-    EXPECT_TRUE(1);
-  } catch (Uptane::InvalidMetadata& err) {
-    EXPECT_STREQ("", err.what());
-    FAIL();
-  }
+
+  Uptane::Root root(now, "director", initial_root, root1);
+  EXPECT_NO_THROW(Uptane::Root(now, "director", initial_root, root));
 }
 
 TEST(TimeStamp, Parsing) {
