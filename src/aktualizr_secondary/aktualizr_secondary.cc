@@ -202,7 +202,7 @@ bool AktualizrSecondary::sendFirmwareOstreResp(const std::string& cert, const st
   KeyManagerConfig keysconfig;  // by default keysource is kFile, for now it is ok.
   KeyManager keys(storage_, keysconfig);
   keys.loadKeys(&pkey, &cert, &ca);
-  OstreeManager::pull(config_.pacman, keys, target->sha256Hash());
+  OstreeManager::pull(config_.pacman.sysroot, config_.pacman.ostree_server, keys, target->sha256Hash());
   return (pacman->install(*target).first == data::UpdateResultCode::OK);
 }
 #endif
