@@ -8,6 +8,7 @@ target_link_libraries(example-interface
                       ${Boost_SYSTEM_LIBRARIES}
                       aktualizr_static_lib
                       ${Boost_LIBRARIES}
+                      ${LibArchive_LIBRARIES}
                       ${CMAKE_THREAD_LIBS_INIT})
 target_compile_options(example-interface PUBLIC -DECUFLASHER_EXAMPLE)
 

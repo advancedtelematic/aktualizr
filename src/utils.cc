@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <archive.h>
+#include <archive_entry.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
@@ -259,6 +261,80 @@ std::string Utils::readFile(const boost::filesystem::path &filename) {
   std::ifstream path_stream(filename.c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
   return content;
+}
+
+static constexpr size_t BSIZE = 20 * 512;
+
+struct archive_state {
+  std::istream &is;
+  std::array<char, BSIZE> buf;
+};
+
+static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer) {
+  auto s = reinterpret_cast<archive_state *>(client_data);
+  if (s->is.fail()) {
+    archive_set_error(a, -1, "unable to read from stream");
+    return 0;
+  }
+  if (s->is.eof()) {
+    return 0;
+  }
+  s->is.read(s->buf.data(), BSIZE);
+  if (!s->is.eof() && s->is.fail()) {
+    archive_set_error(a, -1, "unable to read from stream");
+    return 0;
+  }
+  *buffer = s->buf.data();
+
+  return s->is.gcount();
+}
+
+std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename) {
+  struct archive *a = archive_read_new();
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  archive_state state = {as, {}};
+  int r = archive_read_open(a, reinterpret_cast<void *>(&state), nullptr, read_cb, nullptr);
+  if (r != ARCHIVE_OK) {
+    LOG_ERROR << "archive error: " << archive_error_string(a);
+    throw std::runtime_error("archive error");
+  }
+
+  bool found = false;
+  std::stringstream out_stream;
+  struct archive_entry *entry;
+  while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+    if (filename != archive_entry_pathname(entry)) {
+      archive_read_data_skip(a);
+      continue;
+    }
+
+    const char *buff;
+    size_t size;
+    int64_t offset;
+
+    for (;;) {
+      r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
+      if (r == ARCHIVE_EOF) {
+        found = true;
+        break;
+      } else if (r != ARCHIVE_OK) {
+        LOG_ERROR << "archive error: " << archive_error_string(a);
+        break;
+      } else if (size > 0 && buff != NULL) {
+        out_stream.write(buff, size);
+      }
+    }
+  }
+
+  r = archive_read_free(a);
+  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
+
+  if (!found) {
+    throw std::runtime_error("could not extract " + filename + " from archive");
+  }
+
+  return out_stream.str();
 }
 
 void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
