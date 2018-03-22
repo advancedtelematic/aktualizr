@@ -122,11 +122,7 @@ Serializer& operator<<(Serializer& ser, ImplicitC<Tag, T> imp) {
 
 class Deserializer {
  public:
-  Deserializer(const std::string& d) {
-    data = d;
-    opt_count = 0;
-    opt_first = opt_present = false;
-  };
+  Deserializer(const std::string& d) : data(d){};
 
   Deserializer& operator>>(int32_t& val);
   Deserializer& operator>>(bool& val);
@@ -140,12 +136,12 @@ class Deserializer {
   std::string data;
   std::stack<int32_t> seq_lengths;
   std::stack<int32_t> seq_consumed;
-  int32_t int_param;
+  int32_t int_param{0};
   std::string string_param;
 
-  int32_t opt_count;  // counter of tested asn1::optional
-  bool opt_first;
-  bool opt_present;
+  int32_t opt_count{0};  // counter of tested asn1::optional
+  bool opt_first{false};
+  bool opt_present{false};
 };
 
 template <ASN1_UniversalTag Tag, typename T>

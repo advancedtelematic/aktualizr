@@ -70,12 +70,13 @@ Deserializer& Deserializer::operator>>(std::string& val) {
 
 Deserializer& Deserializer::operator>>(ASN1_UniversalTag tag) {
   int32_t endpos = 0;
-  if (opt_count && !opt_present) return *this;
+  if (opt_count && !opt_present && !opt_first) return *this;
 
   if (tag != cer_decode_token(data, &endpos, &int_param, &string_param)) {
     // failed to read first tag from OPTIONAL => OPTIONAL not present
     if (opt_count && opt_first) {
       opt_present = false;
+      opt_first = false;
       return *this;
     }
 
@@ -97,7 +98,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
   int32_t endpos;
   int32_t seq_len;
 
-  if (opt_count && !opt_present) {
+  if (opt_count && !opt_present && !opt_first) {
     if (tok.type == Token::endopt_tok) {
       --opt_count;
       bool* result = dynamic_cast<const EndoptToken&>(tok).result_p;
@@ -108,7 +109,20 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
 
   switch (tok.type) {
     case Token::seq_tok:
-      if (kAsn1Sequence != cer_decode_token(data, &endpos, &seq_len, nullptr)) throw deserialization_error();
+      if (kAsn1Sequence != cer_decode_token(data, &endpos, &seq_len, nullptr)) {
+        if (opt_count && opt_first) {
+          opt_present = false;
+          opt_first = false;
+          break;
+        }
+
+        throw deserialization_error();
+      }
+      if (opt_count && opt_first) {
+        opt_present = true;
+        opt_first = false;
+      }
+
       data = data.substr(endpos);
       seq_lengths.push(seq_len);
       seq_consumed.push(0);
@@ -176,7 +190,19 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
     case Token::expl_tok: {
       uint8_t full_tag =
           dynamic_cast<const ExplicitToken&>(tok).tag | dynamic_cast<const ExplicitToken&>(tok).tag_class;
-      if (full_tag != cer_decode_token(data, &endpos, &seq_len, nullptr)) throw deserialization_error();
+      if (full_tag != cer_decode_token(data, &endpos, &seq_len, nullptr)) {
+        if (opt_count && opt_first) {
+          opt_present = false;
+          opt_first = false;
+          break;
+        }
+        throw deserialization_error();
+      }
+      if (opt_count && opt_first) {
+        opt_present = true;
+        opt_first = false;
+      }
+
       data = data.substr(endpos);
       seq_lengths.push(seq_len);
       seq_consumed.push(0);
@@ -186,6 +212,10 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
     case Token::peekexpl_tok: {
       uint8_t full_tag = cer_decode_token(data, &endpos, &seq_len, nullptr);
       if (full_tag == kUnknown) throw deserialization_error();
+      if (opt_count && opt_first) {
+        opt_present = true;
+        opt_first = false;
+      }
 
       uint8_t* out_tag = dynamic_cast<const PeekExplicitToken&>(tok).tag;
       ASN1_Class* out_tag_class = dynamic_cast<const PeekExplicitToken&>(tok).tag_class;

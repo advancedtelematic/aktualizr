@@ -132,6 +132,7 @@ uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_p
           return kAsn1EndSequence;
 
       case kAsn1Integer:
+      case kAsn1Boolean:
       case kAsn1Enum: {
         if (constructed || token_len == -1) return kUnknown;
 
