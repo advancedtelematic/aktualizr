@@ -24,20 +24,20 @@ class ECUVersionManifestSigned {
 
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["ecuIdentifier"] = getEcuIdentifier();
-    v["previousTime"] = getPreviousTime();
-    v["currentTime"] = getCurrentTime();
-    v["securityAttack"] = getSecurityAttack();
-    v["installedImage"] = getInstalledImage().wrapMessage();
+    v["ecu_serial"] = getEcuIdentifier();
+    v["previous_timeserver_time"] = getPreviousTime();
+    v["timeserver_time"] = getCurrentTime();
+    v["attacks_detected"] = getSecurityAttack();
+    v["installed_image"] = getInstalledImage().wrapMessage();
     return v;
   }
   void unwrapMessage(Json::Value v) {
-    setEcuIdentifier(v["ecuIdentifier"].asString());
-    setPreviousTime(v["previousTime"].asInt());
-    setCurrentTime(v["currentTime"].asInt());
-    setSecurityAttack(v["securityAttack"].asString());
+    setEcuIdentifier(v["ecu_serial"].asString());
+    setPreviousTime(v["previous_timeserver_time"].asInt());
+    setCurrentTime(v["timeserver_time"].asInt());
+    setSecurityAttack(v["attacks_detected"].asString());
     Image i;
-    i.unwrapMessage(v["installedImage"]);
+    i.unwrapMessage(v["installed_image"]);
     setInstalledImage(i);
   }
 

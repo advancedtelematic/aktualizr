@@ -25,7 +25,7 @@ class Signature {
     v["keyid"] = getKeyid();
     v["method"] = static_cast<Json::Value::Int>(getMethod());
     v["hash"] = getHash().wrapMessage();
-    v["value"] = getValue();
+    v["sig"] = getValue();
     return v;
   }
   void unwrapMessage(Json::Value v) {
@@ -34,7 +34,7 @@ class Signature {
     Hash h;
     h.unwrapMessage(v["hash"]);
     setHash(h);
-    setValue(v["value"].asString());
+    setValue(v["sig"].asString());
   }
 
  protected:

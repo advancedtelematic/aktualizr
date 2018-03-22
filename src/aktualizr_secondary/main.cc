@@ -8,6 +8,9 @@
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_discovery.h"
 #include "aktualizr_secondary_ipc.h"
+#ifdef OPCUA_SECONDARY_ENABLED
+#include "aktualizr_secondary_opcua.h"
+#endif
 #include "utils.h"
 
 #include "logging.h"
@@ -124,11 +127,16 @@ int main(int argc, char *argv[]) {
     // storage (share class with primary)
     boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
+#ifdef OPCUA_SECONDARY_ENABLED
+    // OPC-UA bridge server has integrated discovery
+    AktualizrSecondaryOpcua secondary(config);
+#else
     AktualizrSecondary secondary(config, storage);
 
     // discovery service
     discovery.reset(new AktualizrSecondaryDiscovery(config.network, secondary));
     discovery_thread = std::thread(&AktualizrSecondaryDiscovery::run, discovery.get());
+#endif
 
     secondary.run();
 

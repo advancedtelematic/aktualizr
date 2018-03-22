@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#define OPCUABRIDGE_CLIENT_SYNC_RESPONSE_TIMEOUT (5000)  // ms
 #define OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE (8192)
 
 namespace boost {
@@ -110,6 +111,8 @@ namespace opcuabridge {
 extern const UA_UInt16 kNSindex;
 
 extern const char *kLocale;
+
+extern void BoostLogOpcua(UA_LogLevel, UA_LogCategory, const char *, va_list);
 
 enum HashFunction { HASH_FUN_SHA224, HASH_FUN_SHA256, HASH_FUN_SHA384 };
 

@@ -8,10 +8,12 @@
 namespace opcuabridge {
 class FileData : public MessageFileData {
  public:
+  FileData() {}
   FileData(const boost::filesystem::path& base_path) : base_path_(base_path) {}
   virtual ~FileData() {}
 
   const boost::filesystem::path& getBasePath() const { return base_path_; }
+  void setBasePath(const boost::filesystem::path& base_path) { base_path_ = base_path; }
   const boost::filesystem::path& getFilePath() const { return file_path_; }
   void setFilePath(const boost::filesystem::path& file_path) { file_path_ = file_path; }
 

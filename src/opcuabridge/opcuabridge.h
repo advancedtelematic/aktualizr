@@ -1,6 +1,7 @@
 #ifndef OPCUABRIDGE_H_
 #define OPCUABRIDGE_H_
 
+#include "configuration.h"
 #include "currenttime.h"
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"

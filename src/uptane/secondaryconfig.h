@@ -12,6 +12,7 @@ enum SecondaryType {
   kVirtual,  // Virtual secondary (in-process fake implementation).
   kLegacy,   // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an
              // external firmware loader via shell.
+  kOpcua,    // Use OPC-UA protocol to interact with secondary
   kUptane,   // UPTANE-compliant secondary (UDS, DoIP, et cetera).
 };
 
@@ -24,6 +25,8 @@ class SecondaryConfig {
   std::string ecu_private_key;
   std::string ecu_public_key;
   KeyType key_type{kRSA2048};
+
+  std::string opcua_lds_uri;
 
   boost::filesystem::path full_client_dir;   // kVirtual, kLegacy
   boost::filesystem::path firmware_path;     // kVirtual, kLegacy

@@ -15,6 +15,7 @@ class MetadataFile {
   void setFileNumber(const std::size_t& fileNumber) { fileNumber_ = fileNumber; }
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
+  std::vector<unsigned char>& getMetadata() { return metadata_; }
   const std::vector<unsigned char>& getMetadata() const { return metadata_; }
   void setMetadata(const std::vector<unsigned char>& metadata) { metadata_ = metadata; }
   INITSERVERNODESET_BIN_FUNCTION_DEFINITION(MetadataFile, &metadata_)  // InitServerNodeset(UA_Server*)
