@@ -10,7 +10,7 @@
 
 class IpUptaneConnection {
  public:
-  IpUptaneConnection(int in_port);
+  IpUptaneConnection(in_port_t in_port);
   ~IpUptaneConnection();
   IpUptaneConnection(const IpUptaneConnection&) = delete;
   IpUptaneConnection& operator=(const IpUptaneConnection&) = delete;

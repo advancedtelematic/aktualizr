@@ -47,9 +47,8 @@ class SotaUptaneClient {
   HttpInterface &http;
   int last_targets_version;
   Json::Value operation_result;
-  IpSecondaryDiscovery ip_uptane_discovery;
-  IpUptaneConnection ip_uptane_connection;
-  IpUptaneConnectionSplitter ip_uptane_splitter;
+  std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
+  std::unique_ptr<IpUptaneConnectionSplitter> ip_uptane_splitter;
 };
 
 class SerialCompare {

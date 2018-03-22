@@ -55,7 +55,7 @@ void IpUptaneConnection::open_socket() {
   LOG_INFO << "Listening on port " << listening_port();
 }
 
-IpUptaneConnection::IpUptaneConnection(int in_port) : in_port_(in_port) {
+IpUptaneConnection::IpUptaneConnection(in_port_t in_port) : in_port_(in_port) {
   open_socket();
 
   in_thread_ = std::thread([this]() {

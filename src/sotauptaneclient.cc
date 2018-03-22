@@ -22,14 +22,18 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_cha
       uptane_repo(repo),
       storage(storage_in),
       http(http_client),
-      last_targets_version(-1),
-      ip_uptane_discovery(config.network),
-      ip_uptane_connection(config.network.ipuptane_port),
-      ip_uptane_splitter(ip_uptane_connection) {
+      last_targets_version(-1) {
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
-  auto ipuptane_secs = ip_uptane_discovery.discover();
-  config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
-                                         ipuptane_secs.end());
+
+  if (config.discovery.ipuptane) {
+    IpSecondaryDiscovery ip_uptane_discovery{config.network};
+    auto ipuptane_secs = ip_uptane_discovery.discover();
+    config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
+                                           ipuptane_secs.end());
+    ip_uptane_connection = std::unique_ptr<IpUptaneConnection>{new IpUptaneConnection{config.network.ipuptane_port}};
+    ip_uptane_splitter =
+        std::unique_ptr<IpUptaneConnectionSplitter>{new IpUptaneConnectionSplitter{*ip_uptane_connection}};
+  }
   initSecondaries();
 }
 
@@ -218,7 +222,7 @@ void SotaUptaneClient::initSecondaries() {
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
     if (it->secondary_type == Uptane::kIpUptane)
-      dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec))->connect(&ip_uptane_splitter);
+      dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec))->connect(&(*ip_uptane_splitter));
 
     std::string sec_serial = sec->getSerial();
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =

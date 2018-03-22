@@ -205,6 +205,12 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, key_type, "key_type");
 }
 
+void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(ipuptane, "ipuptane", boost::log::trivial::trace, pt);
+}
+
+void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
+
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string pm_type = "ostree";
   CopyFromConfig(pm_type, "type", boost::log::trivial::warning, pt);
@@ -306,6 +312,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(tls, "tls", pt);
   CopySubtreeFromConfig(provision, "provision", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
+  CopySubtreeFromConfig(discovery, "discovery", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
@@ -477,6 +484,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) const {
   WriteSectionToStream(tls, "tls", sink);
   WriteSectionToStream(provision, "provision", sink);
   WriteSectionToStream(uptane, "uptane", sink);
+  WriteSectionToStream(discovery, "discovery", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);
