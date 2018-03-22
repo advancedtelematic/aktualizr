@@ -7,15 +7,18 @@
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
 #include "invstorage.h"
+#include "invstorage.h"
 #include "ipuptaneconnection.h"
 #include "keymanager.h"
+#include "packagemanagerfactory.h"
+#include "packagemanagerinterface.h"
 #include "types.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 
 class AktualizrSecondary {
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, boost::shared_ptr<INvStorage>& storage);
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, const boost::shared_ptr<INvStorage>& storage);
   void run();
   void stop();
 
@@ -36,9 +39,17 @@ class AktualizrSecondary {
   IpUptaneConnection conn_;
 
   boost::shared_ptr<INvStorage> storage_;
-  KeyManager keys_;
   std::string ecu_serial_;
   std::string hardware_id_;
+
+  boost::shared_ptr<PackageManagerInterface> pacman;
+  KeyManager keys_;
+  std::string treehub_server_;
+
+  Uptane::Root root_;
+  Uptane::Targets meta_targets_;
+  std::unique_ptr<Uptane::Target> target_;
+  std::string detected_attack_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

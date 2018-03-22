@@ -48,6 +48,30 @@ void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) con
   writeOption(out_stream, key_type, "key_type");
 }
 
+void PackageConfig::writeToStream(std::ostream& out_stream) const {
+  writeOption(out_stream, type, "type");
+  writeOption(out_stream, os, "os");
+  writeOption(out_stream, sysroot, "sysroot");
+  writeOption(out_stream, ostree_server, "ostree_server");
+  writeOption(out_stream, packages_file, "packages_file");
+}
+
+void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(packages_file, "packages_file", boost::log::trivial::warning, pt);
+
+  std::string package_manager = "ostree";
+  CopyFromConfig(package_manager, "type", boost::log::trivial::warning, pt);
+  if (package_manager == "ostree") {
+    type = kOstree;
+  } else {
+    type = kNone;
+  }
+
+  CopyFromConfig(os, "os", boost::log::trivial::warning, pt);
+  CopyFromConfig(sysroot, "sysroot", boost::log::trivial::warning, pt);
+  CopyFromConfig(ostree_server, "ostree_server", boost::log::trivial::warning, pt);
+}
+
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
                                                    const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
@@ -86,6 +110,8 @@ void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree
   // from aktualizr config
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
+  CopySubtreeFromConfig(network, "network", pt);
+  CopySubtreeFromConfig(pacman, "pacman", pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -99,6 +125,21 @@ void AktualizrSecondaryConfig::updateFromToml(const boost::filesystem::path& fil
   LOG_TRACE << "config read from " << filename << " :\n" << (*this);
 }
 
+std::ostream& operator<<(std::ostream& os, PackageManager pm) {
+  std::string pm_str;
+  switch (pm) {
+    case kOstree:
+      pm_str = "ostree";
+      break;
+    case kNone:
+    default:
+      pm_str = "none";
+      break;
+  }
+  os << '"' << pm_str << '"';
+  return os;
+}
+
 void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filename) {
   // Keep this order the same as in secondary_config.h and updateFromPropertyTree().
   std::ofstream sink(filename.c_str(), std::ofstream::out);
@@ -110,4 +151,5 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   // from aktualizr config
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(p11, "p11", sink);
+  WriteSectionToStream(pacman, "pacman", sink);
 }

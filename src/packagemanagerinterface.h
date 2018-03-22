@@ -20,6 +20,21 @@ class PackageManagerInterface {
     t_json["length"] = 0;
     return Uptane::Target("unknown", t_json);
   }
+  Json::Value getManifest(const std::string &ecu_serial) {
+    Uptane::Target installed_target = getCurrent();
+    Json::Value installed_image;
+    installed_image["filepath"] = installed_target.filename();
+    installed_image["fileinfo"]["length"] = Json::UInt64(installed_target.length());
+    installed_image["fileinfo"]["hashes"]["sha256"] = installed_target.sha256Hash();
+
+    Json::Value unsigned_ecu_version;
+    unsigned_ecu_version["attacks_detected"] = "";
+    unsigned_ecu_version["installed_image"] = installed_image;
+    unsigned_ecu_version["ecu_serial"] = ecu_serial;
+    unsigned_ecu_version["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
+    unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
+    return unsigned_ecu_version;
+  }
 };
 
 #endif  // PACKAGEMANAGERINTERFACE_H_

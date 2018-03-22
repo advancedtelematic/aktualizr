@@ -19,6 +19,7 @@ struct Utils {
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
   static std::string genPrettyName();
   static std::string readFile(const boost::filesystem::path &filename);
+  static std::string readFileFromArchive(std::istream &as, const std::string &filename);
   static void writeFile(const boost::filesystem::path &filename, const std::string &content,
                         bool create_directories = true);
   static void writeFile(const boost::filesystem::path &filename, const Json::Value &content,

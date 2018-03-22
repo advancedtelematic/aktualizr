@@ -25,7 +25,8 @@ class OstreeManager : public PackageManagerInterface {
   static boost::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
   static boost::shared_ptr<OstreeRepo> LoadRepo(boost::shared_ptr<OstreeSysroot> sysroot, GError **error);
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
-  static data::InstallOutcome pull(const Config &config, const KeyManager &keys, const std::string &refhash);
+  static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
+                                   const KeyManager &keys, const std::string &refhash);
 
  private:
   PackageConfig config;

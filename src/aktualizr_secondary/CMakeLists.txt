@@ -6,6 +6,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary_discovery.cc
     )
 
+
 add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
 target_link_libraries(aktualizr_secondary_static_lib
     socket_activation)
@@ -21,8 +22,9 @@ target_link_libraries(aktualizr-secondary
     ${CURL_LIBRARIES}
     ${GLIB2_LIBRARIES}
     ${LibArchive_LIBRARIES}
+    ${LIBOSTREE_LIBRARIES}
     ${SQLITE3_LIBRARIES}
-    ${LIBP11_LIBRARIES}
+    ${LIBDPKG_LIBRARIES}
     gcov
     )
 
