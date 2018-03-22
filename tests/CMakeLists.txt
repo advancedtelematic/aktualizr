@@ -167,6 +167,7 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
                    PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptane_connection_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
