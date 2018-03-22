@@ -15,15 +15,15 @@
 #include "logging.h"
 #include "utils.h"
 
-data::InstallOutcome OstreeManager::pull(const PackageConfig &config, const KeyManager &keys,
-                                         const std::string &refhash) {
+data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
+                                         const KeyManager &keys, const std::string &refhash) {
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = NULL;
   GError *error = NULL;
   GVariantBuilder builder;
   GVariant *options;
 
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_path);
   boost::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
   if (error) {
     LOG_ERROR << "Could not get OSTree repo";
@@ -45,7 +45,7 @@ data::InstallOutcome OstreeManager::pull(const PackageConfig &config, const KeyM
     error = NULL;
   }
 
-  if (!OstreeManager::addRemote(repo.get(), config.ostree_server, keys)) {
+  if (!OstreeManager::addRemote(repo.get(), ostree_server, keys)) {
     return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
   }
 

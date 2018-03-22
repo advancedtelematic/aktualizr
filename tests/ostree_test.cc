@@ -30,7 +30,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
-  data::InstallOutcome result = OstreeManager::pull(config.pacman, keys, "hash");
+  data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
@@ -56,7 +56,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   storage->storeTlsCert(cert);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
-  data::InstallOutcome result = OstreeManager::pull(config.pacman, keys, "hash");
+  data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");

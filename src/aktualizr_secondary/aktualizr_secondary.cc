@@ -104,7 +104,7 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
   if (target_found) {
     if (target->format().empty() || target->format() == "OSTREE") {
 #ifdef BUILD_OSTREE
-      OstreeManager::pull(config_.pacman, keys_, target->sha256Hash());
+      OstreeManager::pull(config_.pacman.sysroot, config_.pacman.ostree_server, keys_, target->sha256Hash());
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
 #endif
