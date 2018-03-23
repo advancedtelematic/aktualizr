@@ -97,6 +97,24 @@ TEST(Utils, Base64RoundTrip) {
   }
 }
 
+TEST(Utils, ArchiveRead) {
+  const std::string archive_path = "tests/test_data/credentials.zip";
+
+  {
+    std::ifstream as(archive_path, std::ios::binary | std::ios::in);
+    EXPECT_FALSE(as.fail());
+    EXPECT_THROW(Utils::readFileFromArchive(as, "bogus_filename"), std::runtime_error);
+  }
+
+  {
+    std::ifstream as(archive_path, std::ios::binary | std::ios::in);
+    EXPECT_FALSE(as.fail());
+
+    std::string url = Utils::readFileFromArchive(as, "autoprov.url");
+    EXPECT_EQ(url.rfind("https://", 0), 0);
+  }
+}
+
 TEST(Utils, TemporaryDirectory) {
   boost::filesystem::path p;
   {
