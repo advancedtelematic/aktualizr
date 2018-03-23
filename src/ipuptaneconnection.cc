@@ -79,20 +79,21 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port) : in_port_(in_port) {
   out_thread_ = std::thread([this]() {
     std::shared_ptr<SecondaryPacket> pkt;
     while (out_channel_ >> pkt) {
-      int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
-      if (socket_fd < 0) {
-        throw std::system_error(errno, std::system_category(), "socket");
-      }
-      SocketHandle hdl(new int(socket_fd));
-
       socklen_t addr_len;
+      int socket_fd;
       if (pkt->peer_addr.ss_family == AF_INET) {
         addr_len = sizeof(sockaddr_in);
+        socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
       } else if (pkt->peer_addr.ss_family == AF_INET6) {
         addr_len = sizeof(sockaddr_in6);
+        socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
+        if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
       } else {
         throw std::runtime_error("Unexpected ip address family");
       }
+
+      SocketHandle hdl(new int(socket_fd));
 
       if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
         LOG_ERROR << "connect: " << std::strerror(errno);

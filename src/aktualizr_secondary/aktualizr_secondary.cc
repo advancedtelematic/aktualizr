@@ -8,7 +8,8 @@
 #include "socket_activation.h"
 #include "utils.h"
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config, boost::shared_ptr<INvStorage>& storage)
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
+                                       const boost::shared_ptr<INvStorage>& storage)
     : config_(config), conn_(config.network.port), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
   // note: we don't use TlsConfig here and supply the default to
@@ -165,7 +166,7 @@ std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
 
 Json::Value AktualizrSecondary::getManifestResp() const { return pacman->getManifest(getSerialResp()); }
 
-bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
+bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   detected_attack_.clear();
 
@@ -191,8 +192,8 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
   return true;
 }
 #ifdef BUILD_OSTREE
-bool AktualizrSecondary::sendFirmwareOstreResp(const std::string &cert, const std::string &pkey,
-                                               const std::string &ca) {
+bool AktualizrSecondary::sendFirmwareOstreResp(const std::string& cert, const std::string& pkey,
+                                               const std::string& ca) {
   KeyManagerConfig keysconfig;  // by default keysource is kFile, for now it is ok.
   KeyManager keys(storage_, keysconfig);
   keys.loadKeys(&pkey, &cert, &ca);
