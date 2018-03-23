@@ -156,6 +156,20 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondarySendFirmwareReq
   return des;
 }
 
+asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondarySendFirmwareOstreeReq& data) {
+  ser << asn1::seq << asn1::implicit<kAsn1OctetString>(data.cert_file)
+      << asn1::implicit<kAsn1OctetString>(data.pkey_file) << asn1::implicit<kAsn1OctetString>(data.ca_file)
+      << asn1::endseq;
+  return ser;
+}
+
+asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondarySendFirmwareOstreeReq& data) {
+  des >> asn1::seq >> asn1::implicit<kAsn1OctetString>(data.cert_file) >>
+      asn1::implicit<kAsn1OctetString>(data.pkey_file) >> asn1::implicit<kAsn1OctetString>(data.ca_file) >>
+      asn1::endseq;
+  return des;
+}
+
 asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondarySendFirmwareResp& data) {
   ser << asn1::seq << asn1::implicit<kAsn1Boolean>(data.result) << asn1::endseq;
   return ser;
@@ -235,6 +249,12 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, std::unique_ptr<Secondar
     }
     case kAsn1Context | kSecondaryMesSendFirmwareReqTag: {
       SecondarySendFirmwareReq* data_concrete = new SecondarySendFirmwareReq;
+      des >> *data_concrete;
+      data = std::unique_ptr<SecondaryMessage>(data_concrete);
+      break;
+    }
+    case kAsn1Context | kSecondaryMesSendFirmwareOstreeReqTag: {
+      SecondarySendFirmwareOstreeReq* data_concrete = new SecondarySendFirmwareOstreeReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;

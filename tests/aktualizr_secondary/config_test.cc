@@ -13,6 +13,12 @@ TEST(aktualizr_secondary_config, config_toml_parsing) {
   AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
 
   EXPECT_EQ(conf.network.port, 9031);
+
+  EXPECT_EQ(conf.pacman.type, PackageManager::kOstree);
+  EXPECT_EQ(conf.pacman.os, std::string("testos"));
+  EXPECT_TRUE(conf.pacman.sysroot == boost::filesystem::path("testsysroot"));
+  EXPECT_EQ(conf.pacman.ostree_server, std::string("test_server"));
+  EXPECT_TRUE(conf.pacman.packages_file == boost::filesystem::path("/test_packages"));
 }
 
 TEST(aktualizr_secondary_config, consistent_toml_empty) {

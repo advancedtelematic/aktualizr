@@ -23,6 +23,7 @@ enum SecondaryMesTypeTag {
   kSecondaryMesPutRootRespTag = 0x0b,
   kSecondaryMesSendFirmwareReqTag = 0x0c,
   kSecondaryMesSendFirmwareRespTag = 0x0d,
+  kSecondaryMesSendFirmwareOstreeReqTag = 0x0e
 };
 
 struct SecondaryMessage {
@@ -127,6 +128,17 @@ struct SecondaryPutRootResp : public SecondaryMessage {
   friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondaryPutRootResp& data);
   friend asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondaryPutRootResp& data);
   bool result = true;
+};
+
+struct SecondarySendFirmwareOstreeReq : public SecondaryMessage {
+  SecondarySendFirmwareOstreeReq() { mes_type = kSecondaryMesSendFirmwareOstreeReqTag; }
+  virtual void serialize(asn1::Serializer& ser) const { ser << *this; }
+  friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondarySendFirmwareOstreeReq& data);
+  friend asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondarySendFirmwareOstreeReq& data);
+
+  std::string cert_file;
+  std::string pkey_file;
+  std::string ca_file;
 };
 
 struct SecondarySendFirmwareReq : public SecondaryMessage {

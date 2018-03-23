@@ -1,16 +1,17 @@
 #include "aktualizr_secondary.h"
 
-#include <future>
-
 #include <sys/types.h>
+#include <future>
 
 #include "invstorage.h"
 #include "logging.h"
 #include "socket_activation.h"
 #include "utils.h"
 
-AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config, boost::shared_ptr<INvStorage> &storage)
+AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig &config,
+                                       const boost::shared_ptr<INvStorage> &storage)
     : config_(config), conn_(config.network.port), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
+  pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
   // note: we don't use TlsConfig here and supply the default to
   // KeyManagerConf. Maybe we should figure a cleaner way to do that
   // (split KeyManager?)
@@ -74,16 +75,43 @@ std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
   return std::make_pair(config_.uptane.key_type, keys_.getUptanePublicKey());
 }
 
-Json::Value AktualizrSecondary::getManifestResp() const {
-  LOG_ERROR << "getManifestResp is not implemented yet";
-  return Json::Value();
-}
+Json::Value AktualizrSecondary::getManifestResp() const { return pacman->getManifest(getSerialResp()); }
 
 bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack &meta_pack) {
-  (void)meta_pack;
-  LOG_ERROR << "putMedatadatResp is not implemented yet";
-  return false;
+  Uptane::TimeStamp now(Uptane::TimeStamp::Now());
+  detected_attack_.clear();
+
+  root_ = Uptane::Root(now, "director", meta_pack.director_root.original(), root_);
+  Uptane::Targets targets(now, "director", meta_pack.director_targets.original(), root_);
+  if (meta_targets_.version() > targets.version()) {
+    detected_attack_ = "Rollback attack detected";
+    return true;
+  }
+  meta_targets_ = targets;
+  std::vector<Uptane::Target>::const_iterator it;
+  bool target_found = false;
+  for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {
+    if (it->IsForSecondary(getSerialResp())) {
+      if (target_found) {
+        detected_attack_ = "Duplicate entry for this ECU";
+        break;
+      }
+      target_found = true;
+      target = boost::movelib::make_unique<Uptane::Target>(*it);
+    }
+  }
+  return true;
 }
+#ifdef BUILD_OSTREE
+bool AktualizrSecondary::sendFirmwareOstreResp(const std::string &cert, const std::string &pkey,
+                                               const std::string &ca) {
+  KeyManagerConfig keysconfig;  // by default keysource is kFile, for now it is ok.
+  KeyManager keys(storage_, keysconfig);
+  keys.loadKeys(&pkey, &cert, &ca);
+  OstreeManager::pull(config_.pacman, keys, target->sha256Hash());
+  return (pacman->install(*target).first == data::UpdateResultCode::OK);
+}
+#endif
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   (void)director;

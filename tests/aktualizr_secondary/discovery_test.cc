@@ -10,8 +10,10 @@
 
 boost::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
+std::string sysroot;
 
 TEST(aktualizr_secondary_discovery, run_and_stop) {
+  config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
   AktualizrSecondaryDiscovery disc{config.network, as};
 
@@ -23,6 +25,7 @@ TEST(aktualizr_secondary_discovery, run_and_stop) {
 }
 
 TEST(aktualizr_secondary_discovery, request_response) {
+  config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
   AktualizrSecondaryDiscovery disc{config.network, as};
 
@@ -54,6 +57,12 @@ int main(int argc, char **argv) {
   config.storage.schemas_path = "config/schemas";
   storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    return EXIT_FAILURE;
+  }
+  sysroot = argv[1];
+  std::cout << "SYSROOT: " << sysroot << "\n";
   return RUN_ALL_TESTS();
 }
 #endif

@@ -15,10 +15,15 @@ KeyManager::KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyMa
 {
 }
 
-void KeyManager::loadKeys() {
+void KeyManager::loadKeys(const std::string *pkey_content, const std::string *cert_content,
+                          const std::string *ca_content) {
   if (config_.tls_pkey_source == kFile) {
     std::string pkey;
-    backend_->loadTlsPkey(&pkey);
+    if (pkey_content != nullptr) {
+      pkey = *pkey_content;
+    } else {
+      backend_->loadTlsPkey(&pkey);
+    }
     if (!pkey.empty()) {
       if (tmp_pkey_file == nullptr) {
         tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
@@ -28,7 +33,11 @@ void KeyManager::loadKeys() {
   }
   if (config_.tls_cert_source == kFile) {
     std::string cert;
-    backend_->loadTlsCert(&cert);
+    if (cert_content != nullptr) {
+      cert = *cert_content;
+    } else {
+      backend_->loadTlsCert(&cert);
+    }
     if (!cert.empty()) {
       if (tmp_cert_file == nullptr) {
         tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
@@ -38,7 +47,11 @@ void KeyManager::loadKeys() {
   }
   if (config_.tls_ca_source == kFile) {
     std::string ca;
-    backend_->loadTlsCa(&ca);
+    if (ca_content != nullptr) {
+      ca = *ca_content;
+    } else {
+      backend_->loadTlsCa(&ca);
+    }
     if (!ca.empty()) {
       if (tmp_ca_file == nullptr) {
         tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
