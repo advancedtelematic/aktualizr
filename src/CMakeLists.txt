@@ -114,6 +114,8 @@ set(OPCUABRIDGE_SOURCES opcuabridge/common.cc
                         opcuabridge/filelist.cc
                         opcuabridge/opcuabridgeclient.cc
                         opcuabridge/opcuabridgeserver.cc
+                        opcuabridge/opcuabridgediscoveryclient.cc
+                        opcuabridge/opcuabridgediscoveryserver.cc
                         uptane/opcuasecondary.cc)
 set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/common.h
@@ -132,6 +134,10 @@ set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/metadatafiles.h
                         opcuabridge/opcuabridge.h
                         opcuabridge/opcuabridgeclient.h
+                        opcuabridge/opcuabridgeconfig.h
+                        opcuabridge/opcuabridgediscoveryclient.h
+                        opcuabridge/opcuabridgediscoveryserver.h
+                        opcuabridge/opcuabridgediscoverytypes.h
                         opcuabridge/opcuabridgeserver.h
                         opcuabridge/signature.h
                         opcuabridge/signed.h

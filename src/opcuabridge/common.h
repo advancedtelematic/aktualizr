@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-#define OPCUABRIDGE_CLIENT_SYNC_RESPONSE_TIMEOUT (5000)  // ms
-#define OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE (8192)
+#include "opcuabridgeconfig.h"
 
 namespace boost {
 namespace filesystem {

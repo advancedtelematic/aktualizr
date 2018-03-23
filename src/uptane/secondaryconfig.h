@@ -28,7 +28,7 @@ class SecondaryConfig {
   std::string ecu_public_key;
   KeyType key_type{kRSA2048};
 
-  std::string opcua_lds_uri;
+  std::string opcua_lds_url;
 
   boost::filesystem::path full_client_dir;   // kVirtual, kLegacy
   boost::filesystem::path firmware_path;     // kVirtual, kLegacy

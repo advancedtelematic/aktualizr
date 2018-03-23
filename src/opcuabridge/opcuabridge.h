@@ -14,6 +14,7 @@
 #include "imagerequest.h"
 #include "metadatafile.h"
 #include "metadatafiles.h"
+#include "opcuabridgeconfig.h"
 #include "signature.h"
 #include "signed.h"
 #include "versionreport.h"

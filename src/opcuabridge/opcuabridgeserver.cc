@@ -1,4 +1,5 @@
 #include "opcuabridgeserver.h"
+#include "opcuabridgediscoveryserver.h"
 
 #include <open62541.h>
 
@@ -8,6 +9,8 @@
 #include <boost/bind.hpp>
 #include <boost/preprocessor/array/to_list.hpp>
 #include <boost/preprocessor/list/for_each.hpp>
+
+#include <boost/thread/scoped_thread.hpp>
 
 namespace opcuabridge {
 
@@ -39,7 +42,15 @@ Server::~Server() {
   UA_ServerConfig_delete(server_config_);
 }
 
-bool Server::run(volatile bool* running) { return (UA_STATUSCODE_GOOD == UA_Server_run(server_, running)); }
+bool Server::run(volatile bool* running) {
+  boost::scoped_thread<boost::interrupt_and_join_if_joinable> discovery(
+      [](volatile bool* server_running, ServerDelegate* delegate) {
+        discovery::Server discovery_server(delegate->getServiceType(), delegate->getDiscoveryPort());
+        discovery_server.run(server_running);
+      },
+      running, delegate_);
+  return (UA_STATUSCODE_GOOD == UA_Server_run(server_, running));
+}
 
 void Server::onVersionReportRequested(VersionReport* version_report) {
   if (delegate_) delegate_->handleVersionReportRequested(model_);
