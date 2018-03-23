@@ -3,19 +3,18 @@
 
 #include <memory>
 
+#include "aktualizr_secondary_common.h"
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
 #include "invstorage.h"
 #include "ipuptaneconnection.h"
 #include "keymanager.h"
-#include "packagemanagerfactory.h"
-#include "packagemanagerinterface.h"
 #include "types.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 
-class AktualizrSecondary {
+class AktualizrSecondary : private AktualizrSecondaryCommon {
  public:
   AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage);
   void run();
@@ -39,22 +38,7 @@ class AktualizrSecondary {
                                         std::string* pkey, std::string* treehub_server);
 
  private:
-  bool uptaneInitialize();
-
-  AktualizrSecondaryConfig config_;
   IpUptaneConnection conn_;
-
-  std::shared_ptr<INvStorage> storage_;
-  KeyManager keys_;
-  std::string ecu_serial_;
-  std::string hardware_id_;
-  std::shared_ptr<PackageManagerInterface> pacman;
-  Uptane::Root root_;
-  Uptane::Targets meta_targets_;
-  std::string detected_attack_;
-  std::unique_ptr<Uptane::Target> target_;
-  std::mutex primaries_mutex;
-  std::map<sockaddr_storage, in_port_t> primaries_map;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

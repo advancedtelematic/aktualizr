@@ -3,21 +3,22 @@
 
 #include <memory>
 
+#include "aktualizr_secondary_common.h"
 #include "aktualizr_secondary_config.h"
-
 #include "opcuaserver_secondary_delegate.h"
 
 #include <opcuabridge/opcuabridgeserver.h>
 
-class AktualizrSecondaryOpcua {
+#include <boost/shared_ptr.hpp>
+
+class AktualizrSecondaryOpcua : private AktualizrSecondaryCommon {
  public:
-  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig &config);
+  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&, boost::shared_ptr<INvStorage>&);
   void run();
   void stop();
 
  private:
   bool running_;
-  AktualizrSecondaryConfig config_;
   OpcuaServerSecondaryDelegate delegate_;
   std::unique_ptr<opcuabridge::Server> server_;
 };
