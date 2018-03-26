@@ -30,7 +30,7 @@ void IpUptaneConnection::open_socket() {
   memset(&sa, 0, sizeof(sa));
   sa.sin6_family = AF_INET6;
   sa.sin6_port = htons(in_port_);
-  sa.sin6_addr = IN6ADDR_ANY_INIT;
+  sa.sin6_addr = in_addr_;
 
   int v6only = 0;
   if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
@@ -52,10 +52,12 @@ void IpUptaneConnection::open_socket() {
 
   socket_hdl_ = std::move(hdl);
 
-  LOG_INFO << "Listening on port " << listening_port();
+  std::string addr_string = Utils::ipDisplayName(*(reinterpret_cast<sockaddr_storage *>(&sa)));
+  LOG_INFO << "Listening on " << addr_string << ":" << listening_port();
 }
 
-IpUptaneConnection::IpUptaneConnection(in_port_t in_port) : in_port_(in_port) {
+IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_addr)
+    : in_port_(in_port), in_addr_(in_addr) {
   open_socket();
 
   in_thread_ = std::thread([this]() {
@@ -82,18 +84,23 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port) : in_port_(in_port) {
       socklen_t addr_len;
       int socket_fd;
       if (pkt->peer_addr.ss_family == AF_INET) {
-        addr_len = sizeof(sockaddr_in);
-        socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
-      } else if (pkt->peer_addr.ss_family == AF_INET6) {
-        addr_len = sizeof(sockaddr_in6);
-        socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
-        if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
-      } else {
-        throw std::runtime_error("Unexpected ip address family");
-      }
+        std::runtime_error("IPv4 is not supported");
+      };
+      addr_len = sizeof(sockaddr_in6);
+      socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
+      if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
 
       SocketHandle hdl(new int(socket_fd));
+      sockaddr_in6 sa;
+
+      memset(&sa, 0, sizeof(sa));
+      sa.sin6_family = AF_INET6;
+      sa.sin6_port = 0;
+      sa.sin6_addr = in_addr_;
+
+      if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
+        throw std::system_error(errno, std::system_category(), "bind");
+      }
 
       if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
         LOG_ERROR << "connect: " << std::strerror(errno);

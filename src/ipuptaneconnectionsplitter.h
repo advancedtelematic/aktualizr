@@ -9,11 +9,15 @@ namespace Uptane {
 class IpUptaneSecondary;
 }
 
-bool operator<(const sockaddr_storage& left, const sockaddr_storage right);
+bool operator<(const sockaddr_storage& left, const sockaddr_storage& right);
 
 class IpUptaneConnectionSplitter {
  public:
   IpUptaneConnectionSplitter(IpUptaneConnection& conn);
+  ~IpUptaneConnectionSplitter() {
+    stopped = true;
+    split_thread.join();
+  }
   void registerSecondary(Uptane::IpUptaneSecondary& sec);
   void send(std::shared_ptr<SecondaryPacket> pack);
 
@@ -22,5 +26,6 @@ class IpUptaneConnectionSplitter {
   IpUptaneConnection& connection;
 
   std::thread split_thread;
+  bool stopped{false};
 };
 #endif  // IP_UPTANE_CONNECTION_SPLITTER_H_
