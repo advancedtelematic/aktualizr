@@ -28,7 +28,7 @@ TestIsotpInterface::TestIsotpInterface(const unsigned int loglevel, uint32_t can
   setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
 
   struct ifreq ifr;
-  strcpy(ifr.ifr_name, canIface.c_str());
+  strncpy(ifr.ifr_name, canIface.c_str(), IFNAMSIZ);
 
   if (ioctl(can_socket, SIOCGIFINDEX, &ifr)) {
     throw std::runtime_error("Unable to get interface index");
