@@ -40,9 +40,9 @@ struct NetworkConfig {
   std::vector<std::string> socket_events{"DownloadComplete", "DownloadFailed"};
 
   std::string ipdiscovery_host{"127.0.0.1"};
-  in_port_t ipdiscovery_port{12345};
+  in_port_t ipdiscovery_port{9031};
   uint32_t ipdiscovery_wait_seconds{10};
-  in_port_t ipuptane_port{12345};
+  in_port_t ipuptane_port{9030};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

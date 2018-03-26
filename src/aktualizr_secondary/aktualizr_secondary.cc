@@ -61,8 +61,13 @@ void AktualizrSecondary::run() {
   // listen for messages
   std::shared_ptr<SecondaryPacket> pkt;
   while (conn_.in_channel_ >> pkt) {
+    std::unique_lock<std::mutex> lock(primaries_mutex);
+
     sockaddr_storage& peer_addr = pkt->peer_addr;
-    Utils::setSocketPort(&peer_addr, config_.network.remote_port);
+    auto peer_port = primaries_map.find(peer_addr);
+    if (peer_port == primaries_map.end()) continue;
+
+    Utils::setSocketPort(&peer_addr, peer_port->second);
 
     std::unique_ptr<SecondaryMessage> out_msg;
     switch (pkt->msg->mes_type) {

@@ -12,7 +12,8 @@
 struct Utils {
   static std::string fromBase64(std::string);
   static std::string toBase64(const std::string &);
-  static void hex2bin(const std::string hexstring, unsigned char *binout);
+  static void hex2bin(const std::string &hexstring, unsigned char *binout);
+  static std::string bin2hex(const std::string &bindata);
   static std::string stripQuotes(const std::string &value);
   static std::string addQuotes(const std::string &value);
   static Json::Value parseJSON(const std::string &json_str);
@@ -80,5 +81,6 @@ struct SocketCloser {
 };
 
 using SocketHandle = std::unique_ptr<int, SocketCloser>;
+bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  // required by std::map
 
 #endif  // UTILS_H_

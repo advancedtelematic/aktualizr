@@ -48,19 +48,29 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
 
   char rbuf[2000] = {};
   int recieved = 0;
-  while ((recieved = recv(*socket_hdl, rbuf, sizeof(rbuf) - 1, 0)) != -1) {
+  struct sockaddr_storage sec_address;
+  socklen_t sec_addr_len = sizeof(sec_address);
+
+  memset(&sec_address, 0, sizeof(sockaddr_storage));
+
+  while ((recieved = recvfrom(*socket_hdl, rbuf, sizeof(rbuf) - 1, 0, reinterpret_cast<struct sockaddr *>(&sec_address),
+                              &sec_addr_len)) != -1) {
     std::string data(std::move(rbuf), recieved);
     try {
-      int type = 0;
       Uptane::SecondaryConfig conf;
+
+      int32_t sec_port;
       asn1::Deserializer des(data);
-      des >> asn1::seq >> asn1::implicit<kAsn1Integer>(type) >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
-          asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::restseq;
-      if (type == AKT_DISCOVERY_RESP) {
-        LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
-        conf.secondary_type = Uptane::SecondaryType::kIpUptane;
-        secondaries.push_back(conf);
-      }
+
+      des >> asn1::expl(AKT_DISCOVERY_RESP) >> asn1::seq >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
+          asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::implicit<kAsn1Integer>(sec_port) >>
+          asn1::restseq >> asn1::endexpl;
+
+      LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
+      conf.secondary_type = Uptane::SecondaryType::kIpUptane;
+      conf.ip_addr = sec_address;
+      reinterpret_cast<sockaddr_in6 *>(&conf.ip_addr)->sin6_port = htons(sec_port);
+      secondaries.push_back(conf);
     } catch (const deserialization_error ex) {
       LOG_ERROR << ex.what();
     }
@@ -89,10 +99,11 @@ bool IpSecondaryDiscovery::sendRequest() {
   sendaddr.sin_port = htons(config_.ipdiscovery_port);
   sendaddr.sin_addr.s_addr = inet_addr(config_.ipdiscovery_host.c_str());
 
+  int32_t port_32 = 0;
   asn1::Serializer ser;
-  ser << asn1::seq;
-  ser << asn1::implicit<kAsn1Integer>(AKT_DISCOVERY_REQ);
-  ser << asn1::endseq;
+  ser << asn1::expl(AKT_DISCOVERY_REQ) << asn1::seq << asn1::implicit<kAsn1Integer>(port_32) << asn1::endseq
+      << asn1::endexpl;
+  config_.ipuptane_port = port_32 & 0xffff;
   int numbytes = sendto(*socket_hdl, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
                         sizeof sendaddr);
   if (numbytes == -1) {
