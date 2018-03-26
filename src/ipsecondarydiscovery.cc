@@ -11,17 +11,21 @@
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
   std::vector<Uptane::SecondaryConfig> secondaries;
 
-  socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-  if (socket_fd == -1) {
-    LOG_ERROR << "Error of creating socket: " << std::strerror(errno);
-    return secondaries;
+  {
+    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socket_fd == -1) {
+      LOG_ERROR << "Error of creating socket: " << std::strerror(errno);
+      return secondaries;
+    }
+    SocketHandle hdl(new int(socket_fd));
+    socket_hdl = std::move(hdl);
   }
 
   struct sockaddr_in recv_addr {};
   recv_addr.sin_family = AF_INET;
   recv_addr.sin_port = htons(0);
   recv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(socket_fd, (struct sockaddr *)&recv_addr, sizeof recv_addr) < 0) {
+  if (bind(*socket_hdl, (struct sockaddr *)&recv_addr, sizeof recv_addr) < 0) {
     LOG_ERROR << "Error of binding socket: " << std::strerror(errno);
     return secondaries;
   }
@@ -39,11 +43,11 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   struct timeval tv;
   tv.tv_sec = config_.ipdiscovery_wait_seconds;
   tv.tv_usec = 0;
-  setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+  setsockopt(*socket_hdl, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
   char rbuf[2000] = {};
   int recieved = 0;
-  while ((recieved = recv(socket_fd, rbuf, sizeof(rbuf) - 1, 0)) != -1) {
+  while ((recieved = recv(*socket_hdl, rbuf, sizeof(rbuf) - 1, 0)) != -1) {
     std::string data(std::move(rbuf), recieved);
     try {
       int type = 0;
@@ -52,7 +56,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
       des >> asn1::seq >> asn1::implicit<kAsn1Integer>(type) >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
           asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::restseq;
       if (type == AKT_DISCOVERY_RESP) {
-        conf.secondary_type = Uptane::SecondaryType::kUptane;
+        conf.secondary_type = Uptane::SecondaryType::kIpUptane;
         secondaries.push_back(conf);
       }
     } catch (const deserialization_error ex) {
@@ -65,16 +69,15 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
       break;
     }
     tv.tv_sec = left_seconds;
-    setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+    setsockopt(*socket_hdl, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
   }
   return secondaries;
 }
 
 bool IpSecondaryDiscovery::sendRequest() {
   int broadcast = 1;
-  if (setsockopt(socket_fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
+  if (setsockopt(*socket_hdl, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
     LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
-    close(socket_fd);
     return false;
   }
   struct sockaddr_in sendaddr {};
@@ -86,7 +89,7 @@ bool IpSecondaryDiscovery::sendRequest() {
   ser << asn1::seq;
   ser << asn1::implicit<kAsn1Integer>(AKT_DISCOVERY_REQ);
   ser << asn1::endseq;
-  int numbytes = sendto(socket_fd, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
+  int numbytes = sendto(*socket_hdl, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
                         sizeof sendaddr);
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);

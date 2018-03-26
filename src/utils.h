@@ -17,6 +17,7 @@ struct Utils {
   static std::string addQuotes(const std::string &value);
   static Json::Value parseJSON(const std::string &json_str);
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
+  static std::string jsonToStr(const Json::Value &json);
   static std::string genPrettyName();
   static std::string readFile(const boost::filesystem::path &filename);
   static std::string readFileFromArchive(std::istream &as, const std::string &filename);
@@ -33,6 +34,7 @@ struct Utils {
   static int ipPort(const sockaddr_storage &saddr);
   static int shell(const std::string &command, std::string *output, bool include_stderr = false);
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
+  static void setSocketPort(sockaddr_storage *addr, in_port_t port);
 };
 
 /**

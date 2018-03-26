@@ -1,6 +1,7 @@
 #include "sotauptaneclient.h"
 
 #include <unistd.h>
+#include <boost/thread/thread.hpp>
 
 #include <boost/make_shared.hpp>
 #include "json/json.h"
@@ -14,7 +15,7 @@
 #include "uptane/secondaryfactory.h"
 #include "utils.h"
 
-SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
                                    const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
     : config(config_in),
       events_channel(events_channel_in),
@@ -23,6 +24,16 @@ SotaUptaneClient::SotaUptaneClient(const Config &config_in, event::Channel *even
       http(http_client),
       last_targets_version(-1) {
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+
+  if (config.discovery.ipuptane) {
+    IpSecondaryDiscovery ip_uptane_discovery{config.network};
+    auto ipuptane_secs = ip_uptane_discovery.discover();
+    config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
+                                           ipuptane_secs.end());
+    ip_uptane_connection = std::unique_ptr<IpUptaneConnection>{new IpUptaneConnection{config.network.ipuptane_port}};
+    ip_uptane_splitter =
+        std::unique_ptr<IpUptaneConnectionSplitter>{new IpUptaneConnectionSplitter{*ip_uptane_connection}};
+  }
   initSecondaries();
 }
 
@@ -210,6 +221,9 @@ void SotaUptaneClient::initSecondaries() {
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+    if (it->secondary_type == Uptane::kIpUptane)
+      dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec))->connect(&(*ip_uptane_splitter));
+
     std::string sec_serial = sec->getSerial();
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(sec_serial);

@@ -22,7 +22,7 @@ asn1::Serializer& operator<<(asn1::Serializer& ser, SerializationFormat fmt) {
   return ser;
 }
 asn1::Deserializer& operator>>(asn1::Deserializer& des, SerializationFormat& fmt) {
-  int32_t fmt_i;
+  int32_t fmt_i = -1;
 
   des >> asn1::implicit<kAsn1Enum>(fmt_i);
 
@@ -38,10 +38,8 @@ asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondaryPublicKeyReq&
   ser << asn1::seq << asn1::endseq;
   return ser;
 }
-void printStringHex(const std::string& s);
 asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondaryPublicKeyReq& data) {
   (void)data;
-
   des >> asn1::seq >> asn1::endseq;
   return des;
 }
@@ -85,6 +83,7 @@ asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondaryPutMetaReq& d
   ser << asn1::endseq;
   return ser;
 }
+
 asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondaryPutMetaReq& data) {
   des >> asn1::seq >> data.director_targets_format >> asn1::implicit<kAsn1OctetString>(data.director_targets) >>
       asn1::optional >> asn1::seq >> data.image_snapshot_format >>

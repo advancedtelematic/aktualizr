@@ -93,6 +93,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", boost::log::trivial::trace, pt);
   CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", boost::log::trivial::trace, pt);
   CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
+  CopyFromConfig(ipuptane_port, "network.ipuptane_port", boost::log::trivial::trace, pt);
 }
 
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
@@ -109,6 +110,7 @@ void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, ipdiscovery_host, "ipdiscovery_host");
   writeOption(out_stream, ipdiscovery_port, "ipdiscovery_port");
   writeOption(out_stream, ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");
+  writeOption(out_stream, ipuptane_port, "ipuptane_port");
 }
 
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -202,6 +204,12 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
 }
+
+void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(ipuptane, "ipuptane", boost::log::trivial::trace, pt);
+}
+
+void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
 
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string pm_type = "ostree";
@@ -304,6 +312,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(tls, "tls", pt);
   CopySubtreeFromConfig(provision, "provision", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
+  CopySubtreeFromConfig(discovery, "discovery", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
@@ -362,8 +371,8 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     } else if (stype == "legacy") {
       LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
-    } else if (stype == "uptane") {
-      sconfig.secondary_type = Uptane::kUptane;
+    } else if (stype == "ip_uptane") {
+      sconfig.secondary_type = Uptane::kIpUptane;
     } else {
       LOG_ERROR << "Unrecognized secondary type: " << stype;
       continue;
@@ -475,6 +484,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) const {
   WriteSectionToStream(tls, "tls", sink);
   WriteSectionToStream(provision, "provision", sink);
   WriteSectionToStream(uptane, "uptane", sink);
+  WriteSectionToStream(discovery, "discovery", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);

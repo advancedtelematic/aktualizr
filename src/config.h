@@ -40,8 +40,9 @@ struct NetworkConfig {
   std::vector<std::string> socket_events{"DownloadComplete", "DownloadFailed"};
 
   std::string ipdiscovery_host{"127.0.0.1"};
-  unsigned int ipdiscovery_port{12345};
-  unsigned int ipdiscovery_wait_seconds{10};
+  in_port_t ipdiscovery_port{12345};
+  uint32_t ipdiscovery_wait_seconds{10};
+  in_port_t ipuptane_port{12345};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -90,6 +91,13 @@ struct UptaneConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
+struct DiscoveryConfig {
+  bool ipuptane{false};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
 struct PackageConfig {
   PackageManager type{kOstree};
   std::string os;
@@ -120,6 +128,7 @@ class Config {
   TlsConfig tls;
   ProvisionConfig provision;
   UptaneConfig uptane;
+  DiscoveryConfig discovery;
   PackageConfig pacman;
   StorageConfig storage;
   ImportConfig import;

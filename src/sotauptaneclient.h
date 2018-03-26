@@ -1,4 +1,5 @@
 #include <map>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -9,13 +10,16 @@
 #include "events.h"
 #include "httpclient.h"
 #include "invstorage.h"
+#include "ipsecondarydiscovery.h"
+#include "ipuptaneconnection.h"
+#include "ipuptaneconnectionsplitter.h"
 #include "packagemanagerinterface.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
 
 class SotaUptaneClient {
  public:
-  SotaUptaneClient(const Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+  SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
                    const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   void runForever(command::Channel *commands_channel);
   Json::Value AssembleManifest();
@@ -35,7 +39,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
-  const Config &config;
+  Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
   const boost::shared_ptr<INvStorage> storage;
@@ -43,6 +47,8 @@ class SotaUptaneClient {
   HttpInterface &http;
   int last_targets_version;
   Json::Value operation_result;
+  std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
+  std::unique_ptr<IpUptaneConnectionSplitter> ip_uptane_splitter;
 };
 
 class SerialCompare {

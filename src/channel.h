@@ -1,10 +1,10 @@
 #ifndef CHANNEL_H_
 #define CHANNEL_H_
 
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/thread.hpp>
+#include <condition_variable>
+#include <mutex>
 #include <queue>
+#include <thread>
 
 /**
  * A thread-safe channel, similar to Go.
@@ -15,12 +15,12 @@ class Channel {
   /**
    * Initialise a new channel that can have at most `max_in_flight` unread entries.
    */
-  Channel() : max_in_flight(100), closed(false) {}
+  Channel() : max_in_flight(100), closed(false), timeout(std::chrono::milliseconds::max()) {}
   /**
    * Indicate there will never be more data in the channel. Future reads will fail.
    */
   void close() {
-    boost::unique_lock<boost::mutex> lock(m);
+    std::unique_lock<std::mutex> lock(m);
     closed = true;
     drain_cv.notify_one();
   }
@@ -28,15 +28,16 @@ class Channel {
   bool hasSpace() { return q.size() < max_in_flight; }
 
   bool hasValues() { return !q.empty() || closed; }
+  bool isClosed() { return closed; }
   /**
    * Write a value to an open channel.
    *
    * If the channel is full, the write will block. If it is closed, it will throw.
    */
   void operator<<(const T &target) {
-    boost::unique_lock<boost::mutex> lock(m);
+    std::unique_lock<std::mutex> lock(m);
     if (closed) throw std::logic_error("Attempt to write to closed channel.");
-    fill_cv.wait(lock, boost::bind(&Channel::hasSpace, this));
+    fill_cv.wait(lock, [this]() { return hasSpace(); });
     q.push(target);
     drain_cv.notify_one();
   }
@@ -47,8 +48,14 @@ class Channel {
    * channel is closed. This makes it easy to use as the condition in a `while` loop.
    */
   bool operator>>(T &target) {
-    boost::unique_lock<boost::mutex> lock(m);
-    drain_cv.wait(lock, boost::bind(&Channel::hasValues, this));
+    std::unique_lock<std::mutex> lock(m);
+    if (timeout == std::chrono::milliseconds::max())
+      drain_cv.wait(lock, [this]() { return hasValues(); });
+    else
+      drain_cv.wait_for(lock, timeout, [this]() { return hasValues(); });
+
+    if (q.empty()) return false;
+
     if (q.size() >= max_in_flight) {
       fill_cv.notify_one();
     }
@@ -60,13 +67,22 @@ class Channel {
     return false;
   }
 
+  void clear() {
+    std::unique_lock<std::mutex> lock(m);
+    std::queue<T> empty;
+    std::swap(q, empty);
+  }
+
+  void setTimeout(std::chrono::milliseconds to) { timeout = to; }
+
  private:
   size_t max_in_flight;
   bool closed;
   std::queue<T> q;
-  boost::mutex m;
-  boost::condition_variable fill_cv;
-  boost::condition_variable drain_cv;
+  std::mutex m;
+  std::condition_variable fill_cv;
+  std::condition_variable drain_cv;
+  std::chrono::milliseconds timeout;
 };
 
 #endif
