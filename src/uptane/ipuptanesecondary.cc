@@ -67,9 +67,10 @@ bool IpUptaneSecondary::putRoot(Uptane::Root root, const bool director) {
 }
 
 bool IpUptaneSecondary::sendFirmware(const std::string& data) {
+  (void)data;  // Note: we just ignore firmware data, the secondary should pull the image from OSTree itself
   std::shared_ptr<SecondaryPacket> resp;
   std::unique_ptr<SecondarySendFirmwareReq> req{new SecondarySendFirmwareReq()};
-  req->firmware = data;
+  req->firmware = "";  // TODO
 
   return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesSendFirmwareRespTag) &&
          dynamic_cast<SecondarySendFirmwareResp&>(*resp->msg).result;
