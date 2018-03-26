@@ -4,7 +4,7 @@ set -e
 (
 mkdir -p build-test
 cd build-test
-cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind ../src
+cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind ../src
 
 make -j8
 
@@ -26,7 +26,7 @@ fi
 if [ -n "$STATIC_CHECKS" ]; then
   mkdir -p build-static-checks
   cd build-static-checks
-  cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DBUILD_P11=ON ../src
+  cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DBUILD_P11=ON ../src
 
   make check-format -j8
   make clang-tidy -j8
