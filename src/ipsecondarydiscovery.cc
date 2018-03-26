@@ -37,6 +37,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
 }
 
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
+  LOG_INFO << "Waiting " << config_.ipdiscovery_wait_seconds << "s for discovery responses...";
   std::vector<Uptane::SecondaryConfig> secondaries;
 
   auto start_time = std::chrono::system_clock::now();
@@ -56,6 +57,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
       des >> asn1::seq >> asn1::implicit<kAsn1Integer>(type) >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
           asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::restseq;
       if (type == AKT_DISCOVERY_RESP) {
+        LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
         conf.secondary_type = Uptane::SecondaryType::kIpUptane;
         secondaries.push_back(conf);
       }
@@ -75,6 +77,8 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
 }
 
 bool IpSecondaryDiscovery::sendRequest() {
+  LOG_INFO << "Sending UDP discovery packet to " << config_.ipdiscovery_host << ":" << config_.ipdiscovery_port;
+
   int broadcast = 1;
   if (setsockopt(*socket_hdl, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
     LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
