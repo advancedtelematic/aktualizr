@@ -10,11 +10,14 @@
 #include "utils.h"
 
 void IpUptaneConnection::open_socket() {
-  if (socket_activation::listen_fds(0) == 1) {
-    LOG_INFO << "Using socket activation";
+  if (socket_activation::listen_fds(0) >= 1) {
+    LOG_INFO << "Using socket activation for main service";
     socket_hdl_ = SocketHandle(new int(socket_activation::listen_fds_start));
     return;
   }
+
+  LOG_INFO << "Received " << socket_activation::listen_fds(0)
+           << " sockets, not using socket activation for main service";
 
   // manual socket creation
   int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);

@@ -27,6 +27,9 @@ void AktualizrSecondaryDiscovery::open_socket() {
     return;
   }
 
+  LOG_INFO << "Received " << socket_activation::listen_fds(0)
+           << " sockets, not using socket activation for discovery service";
+
   int socket_fd = socket(AF_INET6, SOCK_DGRAM, 0);
   if (socket_fd < 0) {
     throw std::runtime_error("socket creation failed");
