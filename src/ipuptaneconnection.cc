@@ -91,16 +91,6 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
       if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
 
       SocketHandle hdl(new int(socket_fd));
-      sockaddr_in6 sa;
-
-      memset(&sa, 0, sizeof(sa));
-      sa.sin6_family = AF_INET6;
-      sa.sin6_port = 0;
-      sa.sin6_addr = in_addr_;
-
-      if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
-        throw std::system_error(errno, std::system_category(), "bind");
-      }
 
       if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
         LOG_ERROR << "connect: " << std::strerror(errno);
@@ -118,13 +108,13 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
         ssize_t written = write(*hdl, data + pos, len);
         if (written < 0) {
           LOG_ERROR << "write: " << std::strerror(errno);
-          shutdown(*hdl, SHUT_RDWR);
+          close(*hdl);
           break;
         }
         len -= written;
         pos += written;
       }
-      shutdown(*hdl, SHUT_RDWR);
+      close(*hdl);
     }
   });
 }
