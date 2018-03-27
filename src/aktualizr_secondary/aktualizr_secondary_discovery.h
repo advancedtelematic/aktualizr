@@ -8,7 +8,7 @@
 
 class AktualizrSecondaryDiscovery {
  public:
-  AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config, const AktualizrSecondary &akt_secondary);
+  AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config, AktualizrSecondary &akt_secondary);
 
   int listening_port() const;
   void run();
@@ -18,7 +18,7 @@ class AktualizrSecondaryDiscovery {
   void open_socket();
 
   const AktualizrSecondaryNetConfig &config_;
-  const AktualizrSecondary &akt_secondary_;
+  AktualizrSecondary &akt_secondary_;
   SocketHandle socket_hdl_;
 };
 

@@ -35,6 +35,11 @@ class AktualizrSecondary {
 #ifdef BUILD_OSTREE
   bool sendFirmwareOstreResp(const std::string& cert, const std::string& pkey, const std::string& ca);
 #endif
+  void addPrimary(sockaddr_storage& addr, in_port_t port) {
+    std::unique_lock<std::mutex> lock(primaries_mutex);
+
+    primaries_map[addr] = port;
+  }
 
  private:
   bool uptaneInitialize();
@@ -51,6 +56,8 @@ class AktualizrSecondary {
   Uptane::Targets meta_targets_;
   std::string detected_attack_;
   boost::movelib::unique_ptr<Uptane::Target> target;
+  std::mutex primaries_mutex;
+  std::map<sockaddr_storage, in_port_t> primaries_map;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

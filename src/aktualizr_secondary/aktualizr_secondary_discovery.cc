@@ -11,7 +11,7 @@
 #include "utils.h"
 
 AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config,
-                                                         const AktualizrSecondary &akt_secondary)
+                                                         AktualizrSecondary &akt_secondary)
     : config_(config), akt_secondary_(akt_secondary) {
   if (!config_.discovery) {
     return;
@@ -83,24 +83,26 @@ void AktualizrSecondaryDiscovery::run() {
 
     std::string msg(buf, received);
     try {
+      int32_t primary_port;
       asn1::Deserializer des(msg);
-      int type = 0;
-      des >> asn1::seq >> asn1::implicit<kAsn1Integer>(type) >> asn1::restseq;
+      des >> asn1::expl(AKT_DISCOVERY_REQ) >> asn1::seq >> asn1::implicit<kAsn1Integer>(primary_port) >>
+          asn1::restseq >> asn1::endexpl;
 
-      if (type == AKT_DISCOVERY_REQ) {
-        LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer);
-        std::string smsg;
-        asn1::Serializer ser;
-        std::string hwid = akt_secondary_.getHwIdResp();
-        std::string serialid = akt_secondary_.getSerialResp();
-        ser << asn1::seq << asn1::implicit<kAsn1Integer>(AKT_DISCOVERY_RESP)
-            << asn1::implicit<kAsn1Utf8String>(serialid) << asn1::implicit<kAsn1Utf8String>(hwid) << asn1::endseq;
+      LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer);
+      std::string smsg;
+      asn1::Serializer ser;
+      std::string hwid = akt_secondary_.getHwIdResp();
+      std::string serialid = akt_secondary_.getSerialResp();
+      int32_t port_32 = config_.port;
+      ser << asn1::expl(AKT_DISCOVERY_RESP) << asn1::seq << asn1::implicit<kAsn1Utf8String>(serialid)
+          << asn1::implicit<kAsn1Utf8String>(hwid) << asn1::implicit<kAsn1Integer>(port_32) << asn1::endseq
+          << asn1::endexpl;
 
-        if (sendto(*socket_hdl_, ser.getResult().c_str(), ser.getResult().size(), 0,
-                   reinterpret_cast<sockaddr *>(&peer), sa_size) < 0) {
-          LOG_ERROR << "send failed: " << std::strerror(errno);
-        }
+      if (sendto(*socket_hdl_, ser.getResult().c_str(), ser.getResult().size(), 0, reinterpret_cast<sockaddr *>(&peer),
+                 sa_size) < 0) {
+        LOG_ERROR << "send failed: " << std::strerror(errno);
       }
+      akt_secondary_.addPrimary(peer, primary_port);
     } catch (const deserialization_error &exc) {
       LOG_ERROR << exc.what() << " from " << Utils::ipDisplayName(peer);
     }

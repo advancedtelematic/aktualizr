@@ -9,7 +9,6 @@
 
 struct AktualizrSecondaryNetConfig {
   in_port_t port{9030};
-  in_port_t remote_port{9030};
   bool discovery{true};
   in_port_t discovery_port{9031};
 

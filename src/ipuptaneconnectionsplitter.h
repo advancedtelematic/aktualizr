@@ -9,8 +9,6 @@ namespace Uptane {
 class IpUptaneSecondary;
 }
 
-bool operator<(const sockaddr_storage& left, const sockaddr_storage& right);
-
 class IpUptaneConnectionSplitter {
  public:
   IpUptaneConnectionSplitter(IpUptaneConnection& conn);

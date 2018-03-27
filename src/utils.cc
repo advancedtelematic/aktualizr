@@ -200,7 +200,7 @@ std::string Utils::toBase64(const std::string &tob64) {
   return b64sig;
 }
 
-void Utils::hex2bin(const std::string hexstring, unsigned char *binout) {
+void Utils::hex2bin(const std::string &hexstring, unsigned char *binout) {
   for (int i = 0; i < hexstring.length(); i += 2) {
     char hex_byte[3];
     hex_byte[0] = hexstring[i];
@@ -208,6 +208,13 @@ void Utils::hex2bin(const std::string hexstring, unsigned char *binout) {
     hex_byte[2] = 0;
     binout[i / 2] = strtol(hex_byte, NULL, 16);
   }
+}
+
+std::string Utils::bin2hex(const std::string &bindata) {
+  std::stringstream hexstr;
+  for (auto c : bindata) hexstr << std::hex << std::setw(2) << std::setfill('0') << (((int)c) & 0xFF) << ' ';
+
+  return hexstr.str();
 }
 
 // Strip leading and trailing quotes
@@ -542,4 +549,16 @@ void Utils::setSocketPort(sockaddr_storage *addr, in_port_t port) {
     reinterpret_cast<sockaddr_in *>(addr)->sin_port = port;
   else if (addr->ss_family == AF_INET6)
     reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port = port;
+}
+
+bool operator<(const sockaddr_storage &left, const sockaddr_storage &right) {
+  if (left.ss_family == AF_INET) {
+    throw std::runtime_error("IPv4 addresses are not supported");
+  } else {
+    const unsigned char *left_addr = reinterpret_cast<const sockaddr_in6 *>(&left)->sin6_addr.s6_addr;
+    const unsigned char *right_addr = reinterpret_cast<const sockaddr_in6 *>(&right)->sin6_addr.s6_addr;
+    int res = memcmp(left_addr, right_addr, 16);
+
+    return (res < 0);
+  }
 }
