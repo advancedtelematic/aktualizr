@@ -286,6 +286,8 @@ add_subdirectory("src/aktualizr_secondary")
 
 add_subdirectory("src/aktualizr_info")
 
+add_subdirectory("src/aktualizr_check_discovery")
+
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
