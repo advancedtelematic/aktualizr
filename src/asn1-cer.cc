@@ -60,12 +60,14 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag tag
   res.push_back(0x80);
   std::string contents_copy = contents;
   while (!contents_copy.empty()) {
+    res.push_back(tag);
     size_t chunk_size =
-        (contents_copy.length() > CER_MAX_PRIMITIVESTRING) ? CER_MAX_PRIMITIVESTRING : contents.length();
+        (contents_copy.length() > CER_MAX_PRIMITIVESTRING) ? CER_MAX_PRIMITIVESTRING : contents_copy.length();
     res += cer_encode_string(contents_copy.substr(0, chunk_size), tag);
     contents_copy = contents_copy.substr(chunk_size);
   }
-  res += "\0\0";  // end of sequence
+  res.push_back(0x00);
+  res.push_back(0x00);
   return res;
 }
 
@@ -87,7 +89,7 @@ static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
   int32_t res = 0;
   for (int i = 0; i < len_len; i++) {
     res <<= 8;
-    res |= (content[i] & 0xFF);
+    res |= (content[i + 1] & 0xFF);
   }
 
   // In case of overflow number can accidentially take a 'special' value (only -1 now). Make sure it is interpreted as
