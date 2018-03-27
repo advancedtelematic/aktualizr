@@ -23,6 +23,7 @@ class SotaUptaneClient {
                    const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   void runForever(command::Channel *commands_channel);
   Json::Value AssembleManifest();
+  std::string secondaryTreehubCredentials() const;
 
   // ecu_serial => secondary*
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
@@ -39,7 +40,6 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
-  std::string secondaryTreehubCredentials();
 
   Config &config;
   event::Channel *events_channel;

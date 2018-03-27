@@ -7,13 +7,11 @@
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
 #include "invstorage.h"
-#include "invstorage.h"
 #include "ipuptaneconnection.h"
 #include "keymanager.h"
 #include "packagemanagerfactory.h"
 #include "packagemanagerinterface.h"
 #include "types.h"
-#include "uptane/tuf.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 
@@ -37,6 +35,8 @@ class AktualizrSecondary {
 
     primaries_map[addr] = port;
   }
+  static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
+                                        std::string* pkey, std::string* treehub_server);
 
  private:
   bool uptaneInitialize();

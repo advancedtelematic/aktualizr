@@ -332,7 +332,7 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
   }
 }
 
-std::string SotaUptaneClient::secondaryTreehubCredentials() {
+std::string SotaUptaneClient::secondaryTreehubCredentials() const {
   if (config.tls.pkey_source != kFile || config.tls.cert_source != kFile || config.tls.ca_source != kFile) {
     LOG_ERROR << "Cannot send OSTree update to a secondary when not using file as credential sources";
     return "";
@@ -347,8 +347,13 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() {
   std::map<std::string, std::string> archive_map = {
       {"ca.pem", ca}, {"client.pem", cert}, {"pkey.pem", pkey}, {"server.url", treehub_url}};
 
-  std::stringstream as;
-  Utils::writeArchive(archive_map, as);
+  try {
+    std::stringstream as;
+    Utils::writeArchive(archive_map, as);
 
-  return as.str();
+    return as.str();
+  } catch (std::runtime_error &exc) {
+    LOG_ERROR << "Could not create credentials archive: " << exc.what();
+    return "";
+  }
 }

@@ -219,24 +219,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
   std::string treehub_server;
   try {
     std::string ca, cert, pkey, server_url;
-
-    {
-      std::stringstream as(firmware);
-      ca = Utils::readFileFromArchive(as, "ca.pem");
-    }
-    {
-      std::stringstream as(firmware);
-      cert = Utils::readFileFromArchive(as, "client.pem");
-    }
-    {
-      std::stringstream as(firmware);
-      pkey = Utils::readFileFromArchive(as, "pkey.pem");
-    }
-    {
-      std::stringstream as(firmware);
-      treehub_server = Utils::readFileFromArchive(as, "server.url");
-    }
-
+    extractCredentialsArchive(firmware, &ca, &cert, &pkey, &treehub_server);
     keys_.loadKeys(&ca, &cert, &pkey);
     boost::trim(server_url);
     treehub_server = server_url;
@@ -271,4 +254,24 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
   }
 
   return true;
+}
+
+void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
+                                                   std::string* pkey, std::string* treehub_server) {
+  {
+    std::stringstream as(archive);
+    *ca = Utils::readFileFromArchive(as, "ca.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *cert = Utils::readFileFromArchive(as, "client.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *pkey = Utils::readFileFromArchive(as, "pkey.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *treehub_server = Utils::readFileFromArchive(as, "server.url");
+  }
 }
