@@ -88,7 +88,7 @@ void AktualizrSecondaryDiscovery::run() {
       des >> asn1::expl(AKT_DISCOVERY_REQ) >> asn1::seq >> asn1::implicit<kAsn1Integer>(primary_port) >>
           asn1::restseq >> asn1::endexpl;
 
-      LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer);
+      LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer) << ":" << primary_port;
       std::string smsg;
       asn1::Serializer ser;
       std::string hwid = akt_secondary_.getHwIdResp();

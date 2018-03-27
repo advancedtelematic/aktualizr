@@ -17,8 +17,9 @@ std::pair<KeyType, std::string> IpUptaneSecondary::getPublicKey() {
   std::shared_ptr<SecondaryPacket> resp;
 
   if (!sendRecv(std::unique_ptr<SecondaryPublicKeyReq>(new SecondaryPublicKeyReq{}), resp) ||
-      (resp->msg->mes_type != kSecondaryMesPublicKeyRespTag))
+      (resp->msg->mes_type != kSecondaryMesPublicKeyRespTag)) {
     return std::make_pair(kUnknownKey, "");
+  }
 
   SecondaryPublicKeyResp& pkey_resp = dynamic_cast<SecondaryPublicKeyResp&>(*resp->msg);
 

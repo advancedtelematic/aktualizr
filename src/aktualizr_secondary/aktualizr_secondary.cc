@@ -67,7 +67,7 @@ void AktualizrSecondary::run() {
     auto peer_port = primaries_map.find(peer_addr);
     if (peer_port == primaries_map.end()) continue;
 
-    Utils::setSocketPort(&peer_addr, peer_port->second);
+    Utils::setSocketPort(&peer_addr, htons(peer_port->second));
 
     std::unique_ptr<SecondaryMessage> out_msg;
     switch (pkt->msg->mes_type) {

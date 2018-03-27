@@ -70,24 +70,24 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag tag
 }
 
 static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
-  if ((uint8_t)content[0] == 0x80) {
+  if (((uint8_t)content[0]) == 0x80) {
     *endpos = 1;
     return -1;
   }
 
-  if (!((uint8_t)content[0] & 0x80)) {
+  if (!(((uint8_t)content[0]) & 0x80)) {
     *endpos = 1;
     return content[0];
   }
 
-  int len_len = content[0] & 0x7F;
+  int len_len = ((uint8_t)content[0]) & 0x7F;
   *endpos = len_len + 1;
   if (len_len > 4) return -2;
 
   int32_t res = 0;
   for (int i = 0; i < len_len; i++) {
     res <<= 8;
-    res |= content[i];
+    res |= (content[i] & 0xFF);
   }
 
   // In case of overflow number can accidentially take a 'special' value (only -1 now). Make sure it is interpreted as

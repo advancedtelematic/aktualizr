@@ -102,6 +102,8 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
         throw std::system_error(errno, std::system_category(), "bind");
       }
 
+      LOG_INFO << "Outstanding connection to" << Utils::ipDisplayName(pkt->peer_addr) << ":"
+               << Utils::ipPort(pkt->peer_addr);
       if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
         LOG_ERROR << "connect: " << std::strerror(errno);
         continue;
@@ -146,7 +148,7 @@ void IpUptaneConnection::stop() {
 
 void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_ptr<sockaddr_storage> addr) {
   std::string peer_name = Utils::ipDisplayName(*addr);
-  LOG_INFO << "Opening connection with " << peer_name;
+  LOG_INFO << "Incoming connection from " << peer_name << ":" << Utils::ipPort(*addr);
   std::string message_content;
   while (true) {
     uint8_t c;

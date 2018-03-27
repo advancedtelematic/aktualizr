@@ -99,11 +99,10 @@ bool IpSecondaryDiscovery::sendRequest() {
   sendaddr.sin6_port = htons(config_.ipdiscovery_port);
   inet_pton(AF_INET6, config_.ipdiscovery_host.c_str(), &sendaddr.sin6_addr);
 
-  int32_t port_32 = 0;
   asn1::Serializer ser;
+  int32_t port_32 = config_.ipuptane_port;
   ser << asn1::expl(AKT_DISCOVERY_REQ) << asn1::seq << asn1::implicit<kAsn1Integer>(port_32) << asn1::endseq
       << asn1::endexpl;
-  config_.ipuptane_port = port_32 & 0xffff;
   int numbytes = sendto(*socket_hdl, ser.getResult().c_str(), ser.getResult().size(), 0, (struct sockaddr *)&sendaddr,
                         sizeof sendaddr);
   if (numbytes == -1) {
