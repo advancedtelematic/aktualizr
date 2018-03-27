@@ -211,14 +211,40 @@ bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
 }
 
 bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
-  // TODO
-  // keys_.loadKeys(&pkey, &cert, &ca);
-  (void)firmware;
   if (target_ == nullptr) {
     LOG_ERROR << "No valid installation target found";
     return false;
   }
-  std::string treehub_server;  // TODO
+
+  std::string treehub_server;
+  try {
+    std::string ca, cert, pkey, server_url;
+
+    {
+      std::stringstream as(firmware);
+      ca = Utils::readFileFromArchive(as, "ca.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      cert = Utils::readFileFromArchive(as, "client.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      pkey = Utils::readFileFromArchive(as, "pkey.pem");
+    }
+    {
+      std::stringstream as(firmware);
+      treehub_server = Utils::readFileFromArchive(as, "server.url");
+    }
+
+    keys_.loadKeys(&ca, &cert, &pkey);
+    boost::trim(server_url);
+    treehub_server = server_url;
+  } catch (std::runtime_error& exc) {
+    LOG_ERROR << exc.what();
+
+    return false;
+  }
 
   data::UpdateResultCode res_code;
   std::string message;

@@ -39,6 +39,8 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
+  std::string secondaryTreehubCredentials();
+
   Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
