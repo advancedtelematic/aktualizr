@@ -66,6 +66,7 @@ function(add_aktualizr_test)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     add_executable(t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_SOURCES})
     target_link_libraries(t_${AKTUALIZR_TEST_NAME} aktualizr_static_lib ${TEST_LIBS})
+    target_include_directories(t_${AKTUALIZR_TEST_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/tests)
     if(AKTUALIZR_TEST_PROJECT_WORKING_DIRECTORY)
         set(WD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     else()
@@ -365,8 +366,7 @@ if((BUILD_SOTA_TOOLS))
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
     target_include_directories(t_sota_tools_auth_test
-                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools
-                               ${PROJECT_SOURCE_DIR}/tests ${GLIB2_INCLUDE_DIRS})
+                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
 
     add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc)
     target_link_libraries(t_ostree_hash sota_tools_static_lib)

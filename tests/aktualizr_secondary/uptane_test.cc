@@ -3,8 +3,8 @@
 #include "aktualizr_secondary/aktualizr_secondary.h"
 #include "sotauptaneclient.h"
 
-#include "../httpfake.h"
 #include "config.h"
+#include "httpfake.h"
 
 boost::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
