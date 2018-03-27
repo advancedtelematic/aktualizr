@@ -1,0 +1,13 @@
+[provision]
+provision_path = "/var/sota/sota_provisioning_credentials.zip"
+
+[storage]
+type = "sqlite"
+sqldb_path = "/var/sota/sql.db"
+schemas_path = "/usr/lib/sota/schemas"
+
+[discovery]
+ipuptane = true
+
+[network]
+ipdiscovery_host = "::ffff:10.0.3.255"
