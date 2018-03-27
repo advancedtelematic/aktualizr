@@ -34,6 +34,12 @@ void TreehubServer::SetCerts(const std::string& root_cert, const std::string& cl
   client_key_path_.PutContents(client_key);
 }
 
+void TreehubServer::SetAuthBasic(const std::string& username, const std::string& password) {
+  method_ = AUTH_BASIC;
+  username_ = username;
+  password_ = password;
+}
+
 // Note that this method creates a reference from curl_handle to this.  Keep
 // this TreehubServer object alive until the curl request has been completed
 void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, bool tufrepo) const {

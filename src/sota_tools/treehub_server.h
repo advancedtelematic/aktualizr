@@ -13,6 +13,7 @@ class TreehubServer {
   TreehubServer();
   void SetToken(const std::string &token);
   void SetCerts(const std::string &root_cert, const std::string &client_cert, const std::string &client_key);
+  void SetAuthBasic(const std::string &username, const std::string &password);
 
   void InjectIntoCurl(const std::string &url_suffix, CURL *curl_handle, bool tufrepo = false) const;
 
@@ -20,8 +21,6 @@ class TreehubServer {
   void root_url(const std::string &_root_url);
   void repo_url(const std::string &_repo_url);
   std::string root_url() { return root_url_; };
-  void username(const std::string &_username) { username_ = _username; }
-  void password(const std::string &_password) { password_ = _password; }
 
  private:
   std::string ca_certs_;
