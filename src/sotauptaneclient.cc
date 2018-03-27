@@ -7,6 +7,7 @@
 #include "json/json.h"
 
 #include "crypto.h"
+#include "ipsecondarydiscovery.h"
 #include "keymanager.h"
 #include "logging.h"
 #include "packagemanagerfactory.h"
@@ -219,6 +220,12 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
 void SotaUptaneClient::initSecondaries() {
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
+  if (config.network.ipdiscovery_wait_seconds) {
+    IpSecondaryDiscovery discoverer(config.network);
+    std::vector<Uptane::SecondaryConfig> secondary_configs = discoverer.discover();
+    config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), secondary_configs.begin(),
+                                           secondary_configs.end());
+  }
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
     if (it->secondary_type == Uptane::kIpUptane)
