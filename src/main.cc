@@ -60,7 +60,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
-      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware id of primary ecu")
+      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("poll-once", "Check for updates only once and exit")
       ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
       ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")

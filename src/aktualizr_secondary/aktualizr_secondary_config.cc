@@ -76,6 +76,12 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
     }
     network.discovery_port = p;
   }
+  if (cmd.count("ecu-serial") != 0) {
+    uptane.ecu_serial = cmd["ecu-serial"].as<std::string>();
+  }
+  if (cmd.count("ecu-hardware-id") != 0) {
+    uptane.ecu_hardware_id = cmd["ecu-hardware-id"].as<std::string>();
+  }
 }
 
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
