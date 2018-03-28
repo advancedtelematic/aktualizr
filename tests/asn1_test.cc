@@ -160,6 +160,75 @@ TEST(asn1_uptane_ip, public_key_req_man_to_asn1cc) {
   ASN_STRUCT_FREE(asn_DEF_AKIpUptaneMes, cc_mes);
 }
 
+TEST(asn1_common, longstring) {
+  std::string in =
+      "-----BEGIN PUBLIC KEY-----\
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\
+OB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\
+IEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\
+rvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\
+FMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\
+GSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\
+zQIDAQAB\
+-----END PUBLIC KEY-----";
+
+  asn1::Serializer ser;
+  ser << asn1::implicit<kAsn1OctetString>(in);
+  asn1::Deserializer des(ser.getResult());
+
+  std::string out;
+  EXPECT_NO_THROW(des >> asn1::implicit<kAsn1OctetString>(out));
+  EXPECT_EQ(in, out);
+}
+
+TEST(asn1_common, longlongstring) {
+  std::string in =
+      "-----BEGIN PUBLIC KEY-----\
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\
+OB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\
+IEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\
+rvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\
+FMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\
+GSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\
+zQIDAQAB\
+-----END PUBLIC KEY-----\
+-----BEGIN PUBLIC KEY-----\
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\
+OB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\
+IEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\
+rvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\
+FMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\
+GSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\
+zQIDAQAB\
+-----END PUBLIC KEY-----\
+-----BEGIN PUBLIC KEY-----\
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\
+OB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\
+IEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\
+rvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\
+FMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\
+GSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\
+zQIDAQAB\
+-----END PUBLIC KEY-----\
+-----BEGIN PUBLIC KEY-----\
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAumdoILJANzcKUn0IZi1B\
+OB6jj0uE5XrZPTbUuQT8jsA+rYNet1VF1Y0X8/hftShHzL8M+X9rlEwvnAhzdWKd\
+IEQUjfuiJIOLBtAGZZNYdTTXx7sFQ/UQwKo8mU6vSMqsbOdzidp6SpRRiEHpWH4m\
+rvurn/jWPAVY2vwD0VxUBl1ps/C4qYGqeRQz7o7SAgV3NPDZLPbKVz9+YH+tkVR+\
+FMsH9/YebTpaiL8uQsf24WdeVUc7WCJLzOTvPh+FnNB2y78ye29sIwHpbiivmfrO\
+GSdjzMzSMr0UATqOXcaONhPKGNDQ3jhTCayi/lryYBgpRyvSLRpaIlaS0dLtp7Zp\
+zQIDAQAB\
+-----END PUBLIC KEY-----";
+
+  asn1::Serializer ser;
+  ser << asn1::implicit<kAsn1OctetString>(in);
+  asn1::Deserializer des(ser.getResult());
+
+  std::string out;
+  EXPECT_NO_THROW(des >> asn1::implicit<kAsn1OctetString>(out));
+  EXPECT_EQ(in, out);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

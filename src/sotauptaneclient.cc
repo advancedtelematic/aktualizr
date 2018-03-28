@@ -222,7 +222,7 @@ void SotaUptaneClient::initSecondaries() {
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
     if (it->secondary_type == Uptane::kIpUptane)
-      dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec))->connect(&(*ip_uptane_splitter));
+      ip_uptane_splitter->registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
 
     std::string sec_serial = sec->getSerial();
     std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
