@@ -72,6 +72,7 @@ The following debian packages are used in the project:
 * libsodium-dev
 * libsqlite3-dev
 * libssl-dev
+* libsystemd-dev (when building with systemd support)
 * libyaml-cpp-dev (>=0.5.2)
 * python3-dev (when building tests)
 * python3-openssl (when building tests)
