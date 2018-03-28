@@ -194,13 +194,22 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
       target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
     }
   }
+  storage_->storeMetadata(meta_pack);
   return true;
 }
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
-  (void)director;
-  LOG_ERROR << "getRootVersionResp is not implemented yet";
-  return -1;
+  Uptane::MetaPack metapack;
+  if (!storage_->loadMetadata(&metapack)) {
+    LOG_ERROR << "Could not load metadata";
+    return -1;
+  }
+
+  if (director) {
+    return metapack.director_root.version();
+  } else {
+    return metapack.image_root.version();
+  }
 }
 
 bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
