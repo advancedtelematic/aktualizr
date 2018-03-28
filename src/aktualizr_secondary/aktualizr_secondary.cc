@@ -169,7 +169,11 @@ std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
   return std::make_pair(config_.uptane.key_type, keys_.getUptanePublicKey());
 }
 
-Json::Value AktualizrSecondary::getManifestResp() const { return pacman->getManifest(getSerialResp()); }
+Json::Value AktualizrSecondary::getManifestResp() const {
+  Json::Value manifest = pacman->getManifest(getSerialResp());
+
+  return keys_.signTuf(manifest);
+}
 
 bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());

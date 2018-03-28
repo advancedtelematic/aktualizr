@@ -39,7 +39,7 @@ class KeyManager {
   bool isOk() const { return (getPkey().size() && getCert().size() && getCa().size()); }
   std::string generateUptaneKeyPair();
   std::string getUptanePublicKey() const;
-  Json::Value signTuf(const Json::Value &in_data);
+  Json::Value signTuf(const Json::Value &in_data) const;
 
  private:
   const boost::shared_ptr<INvStorage> &backend_;

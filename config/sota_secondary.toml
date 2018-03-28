@@ -2,4 +2,6 @@
 port = 9030
 
 [storage]
-path = "sota-prov"
+type = "sqlite"
+sqldb_path = "/var/sota/secondary.db"
+schemas_path = "/usr/lib/sota/schemas"

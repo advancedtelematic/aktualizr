@@ -189,7 +189,7 @@ void KeyManager::copyCertsToCurl(HttpInterface *http) {
   }
 }
 
-Json::Value KeyManager::signTuf(const Json::Value &in_data) {
+Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
   ENGINE *crypto_engine = NULL;
   std::string private_key;
 #ifdef BUILD_P11
