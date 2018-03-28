@@ -182,10 +182,11 @@ InitRetCode Repository::initEcuRegister() {
   std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); it++) {
     Json::Value ecu;
+    auto public_key = (*it)->getPublicKey();
     ecu["hardware_identifier"] = (*it)->getHwId();
     ecu["ecu_serial"] = (*it)->getSerial();
-    ecu["clientKey"]["keytype"] = keyTypeToString((*it)->getPublicKey().first);
-    ecu["clientKey"]["keyval"]["public"] = (*it)->getPublicKey().second;
+    ecu["clientKey"]["keytype"] = keyTypeToString(public_key.first);
+    ecu["clientKey"]["keyval"]["public"] = public_key.second;
     all_ecus["ecus"].append(ecu);
   }
 
