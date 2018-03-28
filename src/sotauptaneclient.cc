@@ -106,18 +106,20 @@ void SotaUptaneClient::reportInstalledPackages() {
 }
 
 Json::Value SotaUptaneClient::AssembleManifest() {
-  Json::Value result = Json::arrayValue;
+  Json::Value result;
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_repo.getPrimaryEcuSerial());
 
   if (operation_result != Json::nullValue) {
     unsigned_ecu_version["custom"] = operation_result;
   }
 
-  result.append(uptane_repo.signVersionManifest(unsigned_ecu_version));
+  result[uptane_repo.getPrimaryEcuSerial()] = uptane_repo.signVersionManifest(unsigned_ecu_version);
   std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
-    if (secmanifest != Json::nullValue) result.append(secmanifest);
+    if (secmanifest != Json::nullValue) {
+      result[it->first] = secmanifest;
+    }
   }
   return result;
 }

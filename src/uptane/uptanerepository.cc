@@ -60,7 +60,7 @@ void Repository::updateRoot(Version version) {
 bool Repository::putManifest(const Json::Value& version_manifests) {
   Json::Value manifest;
   manifest["primary_ecu_serial"] = primary_ecu_serial;
-  manifest["ecu_version_manifest"] = version_manifests;
+  manifest["ecu_version_manifests"] = version_manifests;
 
   Json::Value tuf_signed = keys_.signTuf(manifest);
   HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
