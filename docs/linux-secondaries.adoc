@@ -15,17 +15,30 @@ Add `SOTA_CLIENT_FEATURES = "secondary-network"` to local.conf. This will config
 
 Build the primary and secondary images with `bitbake primary-image secondary-image`.
 
-Start the secondary image first with:
+First start the secondary image with:
 
      ../meta-updater/scripts/run-qemu-ota --no-gui --machine qemux86-64 --secondary-network secondary-image
 
 The `--secondary-network` option enables a second virtual network interface.
 
-Then start the primary:
+Once the secondary is booted, start the primary:
 
      ../meta-updater/scripts/run-qemu-ota --no-gui --machine qemux86-64 --secondary-network primary-image
 
-Starting aktualizr on the primary will take some time, because of a IPv6 bug in systemd.
+Starting aktualizr on the primary will take some time, because of a (suspected) IPv6 bug in systemd.
+
+To check that it is working, run `aktualizr-info` on the primary, and a secondary ECU should be present:
+
+    root@qemux86-64:~# aktualizr-info
+    Storage backend: Sqlite
+    Device ID: smooth-kuerbissuppe-526
+    Primary ecu serial ID: 5552578ec14089cbcc9e6c40e6eb1b88a0618726c44af901bbe5ce7aa3c51f79
+    Primary ecu hardware ID: qemux86-64
+    Secondaries:
+    1) serial ID: 856ea8f3c07bb62813a5352a2005f361d7c1018639367d203cd26c2a06e38af2
+    hardware ID: qemux86-64
+    Provisioned on server: yes
+    Fetched metadata: yes
 
 == When things go wrong
 
