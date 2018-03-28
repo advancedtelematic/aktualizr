@@ -157,12 +157,13 @@ void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_pt
     }
     message_content.push_back(c);
   }
+  LOG_TRACE << "Received message: " << Utils::toBase64(message_content);
   asn1::Deserializer asn1_stream(message_content);
   std::unique_ptr<SecondaryMessage> mes;
   try {
     asn1_stream >> mes;
   } catch (deserialization_error) {
-    LOG_ERROR << "Unexpected message format";
+    LOG_ERROR << "Failed to parse message: " << Utils::toBase64(message_content);
     return;
   }
   std::shared_ptr<SecondaryPacket> pkt{new SecondaryPacket{*addr, std::move(mes)}};
