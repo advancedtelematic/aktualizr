@@ -296,54 +296,6 @@ static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer
   return s->is.gcount();
 }
 
-std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename) {
-  struct archive *a = archive_read_new();
-  archive_read_support_filter_all(a);
-  archive_read_support_format_all(a);
-  archive_state state = {as, {}};
-  int r = archive_read_open(a, reinterpret_cast<void *>(&state), nullptr, read_cb, nullptr);
-  if (r != ARCHIVE_OK) {
-    LOG_ERROR << "archive error: " << archive_error_string(a);
-    throw std::runtime_error("archive error");
-  }
-
-  bool found = false;
-  std::stringstream out_stream;
-  struct archive_entry *entry;
-  while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-    if (filename != archive_entry_pathname(entry)) {
-      archive_read_data_skip(a);
-      continue;
-    }
-
-    const char *buff;
-    size_t size;
-    int64_t offset;
-
-    for (;;) {
-      r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
-      if (r == ARCHIVE_EOF) {
-        found = true;
-        break;
-      } else if (r != ARCHIVE_OK) {
-        LOG_ERROR << "archive error: " << archive_error_string(a);
-        break;
-      } else if (size > 0 && buff != NULL) {
-        out_stream.write(buff, size);
-      }
-    }
-  }
-
-  r = archive_read_free(a);
-  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
-
-  if (!found) {
-    throw std::runtime_error("could not extract " + filename + " from archive");
-  }
-
-  return out_stream.str();
-}
-
 void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
   // also replace the target file atomically by creating filename.new and
   // renaming it to the target file name
@@ -411,6 +363,111 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
     else
       boost::filesystem::copy_file(it->path(), to / it->path().filename());
   }
+}
+
+std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename) {
+  struct archive *a = archive_read_new();
+  if (!a) {
+    LOG_ERROR << "archive error: could not initialize archive object";
+    throw std::runtime_error("archive error");
+  }
+  archive_read_support_filter_all(a);
+  archive_read_support_format_all(a);
+  archive_state state = {as, {}};
+  int r = archive_read_open(a, reinterpret_cast<void *>(&state), nullptr, read_cb, nullptr);
+  if (r != ARCHIVE_OK) {
+    LOG_ERROR << "archive error: " << archive_error_string(a);
+    archive_read_free(a);
+    throw std::runtime_error("archive error");
+  }
+
+  bool found = false;
+  std::stringstream out_stream;
+  struct archive_entry *entry;
+  while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
+    if (filename != archive_entry_pathname(entry)) {
+      archive_read_data_skip(a);
+      continue;
+    }
+
+    const char *buff;
+    size_t size;
+    int64_t offset;
+
+    for (;;) {
+      r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
+      if (r == ARCHIVE_EOF) {
+        found = true;
+        break;
+      } else if (r != ARCHIVE_OK) {
+        LOG_ERROR << "archive error: " << archive_error_string(a);
+        break;
+      } else if (size > 0 && buff != NULL) {
+        out_stream.write(buff, size);
+      }
+    }
+  }
+
+  r = archive_read_free(a);
+  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
+
+  if (!found) {
+    throw std::runtime_error("could not extract " + filename + " from archive");
+  }
+
+  return out_stream.str();
+}
+
+static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer, size_t length) {
+  auto s = reinterpret_cast<std::ostream *>(client_data);
+  s->write(reinterpret_cast<const char *>(buffer), length);
+  if (s->fail()) {
+    archive_set_error(a, -1, "unable to write in stream");
+    return -1;
+  }
+
+  return length;
+}
+
+void Utils::writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as) {
+  struct archive *a = archive_write_new();
+  if (!a) {
+    LOG_ERROR << "archive error: could not initialize archive object";
+    throw std::runtime_error("archive error");
+  }
+  archive_write_set_format_pax(a);
+  archive_write_add_filter_gzip(a);
+
+  int r = archive_write_open(a, reinterpret_cast<void *>(&as), nullptr, write_cb, nullptr);
+  if (r != ARCHIVE_OK) {
+    LOG_ERROR << "archive error: " << archive_error_string(a);
+    archive_write_free(a);
+    throw std::runtime_error("archive error");
+  }
+
+  struct archive_entry *entry = archive_entry_new();
+  for (const auto el : entries) {
+    archive_entry_clear(entry);
+    archive_entry_set_filetype(entry, AE_IFREG);
+    archive_entry_set_perm(entry, S_IRWXU | S_IRWXG | S_IRWXO);
+    archive_entry_set_size(entry, el.second.size());
+    archive_entry_set_pathname(entry, el.first.c_str());
+    if (archive_write_header(a, entry)) {
+      LOG_ERROR << "archive error: " << archive_error_string(a);
+      archive_entry_free(entry);
+      archive_write_free(a);
+      throw std::runtime_error("archive error");
+    }
+    if (archive_write_data(a, el.second.c_str(), el.second.size()) < 0) {
+      LOG_ERROR << "archive error: " << archive_error_string(a);
+      archive_entry_free(entry);
+      archive_write_free(a);
+      throw std::runtime_error("archive error");
+    }
+  }
+  archive_entry_free(entry);
+  r = archive_write_free(a);
+  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
 }
 
 sockaddr_storage Utils::ipGetSockaddr(int fd) {

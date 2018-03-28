@@ -191,21 +191,11 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
         break;
       }
       target_found = true;
-      target = boost::movelib::make_unique<Uptane::Target>(*it);
+      target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
     }
   }
   return true;
 }
-#ifdef BUILD_OSTREE
-bool AktualizrSecondary::sendFirmwareOstreResp(const std::string& cert, const std::string& pkey,
-                                               const std::string& ca) {
-  KeyManagerConfig keysconfig;  // by default keysource is kFile, for now it is ok.
-  KeyManager keys(storage_, keysconfig);
-  keys.loadKeys(&pkey, &cert, &ca);
-  OstreeManager::pull(config_.pacman, keys, target->sha256Hash());
-  return (pacman->install(*target).first == data::UpdateResultCode::OK);
-}
-#endif
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   (void)director;
@@ -221,7 +211,67 @@ bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
 }
 
 bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
-  (void)firmware;
-  LOG_ERROR << "sendFirmwareResp is not implemented yet";
-  return false;
+  if (target_ == nullptr) {
+    LOG_ERROR << "No valid installation target found";
+    return false;
+  }
+
+  std::string treehub_server;
+  try {
+    std::string ca, cert, pkey, server_url;
+    extractCredentialsArchive(firmware, &ca, &cert, &pkey, &treehub_server);
+    keys_.loadKeys(&ca, &cert, &pkey);
+    boost::trim(server_url);
+    treehub_server = server_url;
+  } catch (std::runtime_error& exc) {
+    LOG_ERROR << exc.what();
+
+    return false;
+  }
+
+  data::UpdateResultCode res_code;
+  std::string message;
+
+  if (target_->format().empty() || target_->format() == "OSTREE") {
+#ifdef BUILD_OSTREE
+    std::tie(res_code, message) =
+        OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_->sha256Hash());
+
+    if (res_code != data::UpdateResultCode::OK) {
+      LOG_ERROR << "Could not pull from OSTree (" << res_code << "): " << message;
+      return false;
+    }
+#else
+    LOG_ERROR << "Could not pull from OSTree. Aktualizr was built without OSTree support!";
+    return false;
+#endif
+  }
+
+  std::tie(res_code, message) = pacman->install(*target_);
+  if (res_code != data::UpdateResultCode::OK) {
+    LOG_ERROR << "Could not install target (" << res_code << "): " << message;
+    return false;
+  }
+
+  return true;
+}
+
+void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
+                                                   std::string* pkey, std::string* treehub_server) {
+  {
+    std::stringstream as(archive);
+    *ca = Utils::readFileFromArchive(as, "ca.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *cert = Utils::readFileFromArchive(as, "client.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *pkey = Utils::readFileFromArchive(as, "pkey.pem");
+  }
+  {
+    std::stringstream as(archive);
+    *treehub_server = Utils::readFileFromArchive(as, "server.url");
+  }
 }

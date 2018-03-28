@@ -310,12 +310,50 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
   std::vector<Uptane::Target>::const_iterator it;
   // target images should already have been downloaded to metadata_path/targets/
   for (it = targets.begin(); it != targets.end(); ++it) {
-    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
-        secondaries.find(it->ecu_identifier());
-    if (sec != secondaries.end()) {
-      std::stringstream sstr;
-      sstr << *storage->openTargetFile(it->filename());
-      sec->second->sendFirmware(sstr.str());
+    auto sec = secondaries.find(it->ecu_identifier());
+    if (sec == secondaries.end()) {
+      continue;
     }
+
+    std::stringstream sstr;
+    sstr << *storage->openTargetFile(it->filename());
+    std::string fw = sstr.str();
+
+    if (fw.empty()) {
+      // empty firmware means OSTree secondaries: pack credentials instead
+      std::string creds_archive = secondaryTreehubCredentials();
+      if (creds_archive.empty()) {
+        continue;
+      }
+      sec->second->sendFirmware(creds_archive);
+    } else {
+      sec->second->sendFirmware(fw);
+    }
+  }
+}
+
+std::string SotaUptaneClient::secondaryTreehubCredentials() const {
+  if (config.tls.pkey_source != kFile || config.tls.cert_source != kFile || config.tls.ca_source != kFile) {
+    LOG_ERROR << "Cannot send OSTree update to a secondary when not using file as credential sources";
+    return "";
+  }
+  std::string ca, cert, pkey;
+  if (!storage->loadTlsCreds(&ca, &cert, &pkey)) {
+    LOG_ERROR << "Could not load tls credentials from storage";
+    return "";
+  }
+
+  std::string treehub_url = config.pacman.ostree_server;
+  std::map<std::string, std::string> archive_map = {
+      {"ca.pem", ca}, {"client.pem", cert}, {"pkey.pem", pkey}, {"server.url", treehub_url}};
+
+  try {
+    std::stringstream as;
+    Utils::writeArchive(archive_map, as);
+
+    return as.str();
+  } catch (std::runtime_error &exc) {
+    LOG_ERROR << "Could not create credentials archive: " << exc.what();
+    return "";
   }
 }

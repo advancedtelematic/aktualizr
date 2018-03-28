@@ -6,6 +6,7 @@
 
 #include <sys/stat.h>
 #include <fstream>
+#include <map>
 #include <set>
 
 #include <boost/random/mersenne_twister.hpp>
@@ -112,6 +113,21 @@ TEST(Utils, ArchiveRead) {
 
     std::string url = Utils::readFileFromArchive(as, "autoprov.url");
     EXPECT_EQ(url.rfind("https://", 0), 0);
+  }
+}
+
+TEST(Utils, ArchiveWrite) {
+  std::string archive_bytes;
+  {
+    std::map<std::string, std::string> fm{{"test", "A"}};
+    std::stringstream as;
+    Utils::writeArchive(fm, as);
+    archive_bytes = as.str();
+  }
+
+  {
+    std::stringstream as(archive_bytes);
+    EXPECT_EQ(Utils::readFileFromArchive(as, "test"), "A");
   }
 }
 

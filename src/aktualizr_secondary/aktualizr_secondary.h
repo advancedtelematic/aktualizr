@@ -7,13 +7,11 @@
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
 #include "invstorage.h"
-#include "invstorage.h"
 #include "ipuptaneconnection.h"
 #include "keymanager.h"
 #include "packagemanagerfactory.h"
 #include "packagemanagerinterface.h"
 #include "types.h"
-#include "uptane/tuf.h"
 #include "uptane/tuf.h"
 #include "utils.h"
 
@@ -32,14 +30,13 @@ class AktualizrSecondary {
   int32_t getRootVersionResp(bool director) const;
   bool putRootResp(Uptane::Root root, bool director);
   bool sendFirmwareResp(const std::string& firmware);
-#ifdef BUILD_OSTREE
-  bool sendFirmwareOstreResp(const std::string& cert, const std::string& pkey, const std::string& ca);
-#endif
   void addPrimary(sockaddr_storage& addr, in_port_t port) {
     std::unique_lock<std::mutex> lock(primaries_mutex);
 
     primaries_map[addr] = port;
   }
+  static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
+                                        std::string* pkey, std::string* treehub_server);
 
  private:
   bool uptaneInitialize();
@@ -55,7 +52,7 @@ class AktualizrSecondary {
   Uptane::Root root_;
   Uptane::Targets meta_targets_;
   std::string detected_attack_;
-  boost::movelib::unique_ptr<Uptane::Target> target;
+  std::unique_ptr<Uptane::Target> target_;
   std::mutex primaries_mutex;
   std::map<sockaddr_storage, in_port_t> primaries_map;
 };

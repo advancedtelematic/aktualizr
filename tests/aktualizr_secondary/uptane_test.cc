@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 
 #include "aktualizr_secondary/aktualizr_secondary.h"
+#include "sotauptaneclient.h"
+
 #include "config.h"
+#include "httpfake.h"
 
 boost::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
@@ -31,6 +34,32 @@ TEST(aktualizr_secondary_uptane, getPublicKey) {
 
   EXPECT_NE(type, kUnknownKey);
   EXPECT_NE(key, "");
+}
+
+TEST(aktualizr_secondary_uptane, credentialsPassing) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_public_key_path = "public.key";
+  boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
+  config.provision.provision_path = temp_dir / "cred.zip";
+  config.provision.mode = kAutomatic;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.uptane.primary_ecu_serial = "testecuserial";
+  config.pacman.type = kNone;
+
+  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  Uptane::Repository uptane(config, storage, http);
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  EXPECT_TRUE(uptane.initialize());
+
+  std::string arch = sota_client.secondaryTreehubCredentials();
+  std::string ca, cert, pkey, server_url;
+  EXPECT_NO_THROW(AktualizrSecondary::extractCredentialsArchive(arch, &ca, &cert, &pkey, &server_url));
 }
 
 #ifndef __NO_MAIN__
