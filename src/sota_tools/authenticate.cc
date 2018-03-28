@@ -9,8 +9,7 @@ using std::string;
 int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubServer &treehub) {
   switch (creds.GetMethod()) {
     case AUTH_BASIC: {
-      treehub.username(creds.GetAuthUser());
-      treehub.password(creds.GetAuthPassword());
+      treehub.SetAuthBasic(creds.GetAuthUser(), creds.GetAuthPassword());
       break;
     }
 
