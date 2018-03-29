@@ -373,6 +373,8 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
       continue;
     } else if (stype == "ip_uptane") {
       sconfig.secondary_type = Uptane::kIpUptane;
+    } else if (stype == "opcua_uptane") {
+      sconfig.secondary_type = Uptane::kOpcuaUptane;
     } else {
       LOG_ERROR << "Unrecognized secondary type: " << stype;
       continue;

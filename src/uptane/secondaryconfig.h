@@ -10,11 +10,11 @@
 namespace Uptane {
 
 enum SecondaryType {
-  kVirtual,   // Virtual secondary (in-process fake implementation).
-  kLegacy,    // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an
-              // external firmware loader via shell.
-  kOpcua,     // Use OPC-UA protocol to interact with secondary
-  kIpUptane,  // Custom Uptane protocol over TCP/IP network
+  kVirtual,      // Virtual secondary (in-process fake implementation).
+  kLegacy,       // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an
+                 // external firmware loader via shell.
+  kOpcuaUptane,  // Uptane protocol over OPC-UA
+  kIpUptane,     // Custom Uptane protocol over TCP/IP network
   kVirtualUptane,  // Partial UPTANE secondary implemented inside primary
 };
 

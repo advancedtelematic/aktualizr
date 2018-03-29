@@ -66,7 +66,7 @@ bool SelectEndPoint::endPointConfirmed(const std::string& opcua_server_url,
 }
 
 std::string SelectEndPoint::makeOpcuaServerUri(const std::string& address) const {
-  return "opc.tcp://" + address + ":" + std::to_string(OPCUABRIDGE_PORT);
+  return "opc.tcp://[" + address + "]:" + std::to_string(OPCUABRIDGE_PORT);
 }
 
 void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds_url) {

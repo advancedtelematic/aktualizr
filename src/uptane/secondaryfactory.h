@@ -23,7 +23,7 @@ class SecondaryFactory {
         break;
       case kIpUptane:
         return std::make_shared<IpUptaneSecondary>(sconfig);
-      case kOpcua:
+      case kOpcuaUptane:
 #ifdef OPCUA_SECONDARY_ENABLED
         return std::make_shared<OpcuaSecondary>(sconfig);
 #else
