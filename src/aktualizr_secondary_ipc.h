@@ -194,7 +194,8 @@ struct SecondaryPutRootResp : public SecondaryMessage {
 
 struct SecondarySendFirmwareOstreeReq : public SecondaryMessage {
   SecondarySendFirmwareOstreeReq() { mes_type = kSecondaryMesSendFirmwareOstreeReqTag; }
-  virtual void serialize(asn1::Serializer& ser) const { ser << *this; }
+  ~SecondarySendFirmwareOstreeReq() override {}
+  void serialize(asn1::Serializer& ser) const override { ser << *this; }
   friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondarySendFirmwareOstreeReq& data);
   friend asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondarySendFirmwareOstreeReq& data);
 
