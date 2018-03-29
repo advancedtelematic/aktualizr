@@ -20,7 +20,7 @@ script:
 - docker build --cache-from advancedtelematic/aktualizr:$CACHE -t advancedtelematic/aktualizr
   -f ${DOCKERFILE} .
 - ci_env=`bash <(curl -s https://codecov.io/env)`
-- docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
+- travis_wait 15 docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
   ${SCRIPT}
 - "./scripts/test_garage_deploy_deb.sh ${DOCKERFILE}"
 - "./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}"
