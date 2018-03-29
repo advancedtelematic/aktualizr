@@ -19,14 +19,14 @@ class Token {
 class EndoptToken : public Token {
  public:
   EndoptToken(bool* result = nullptr) : Token(endopt_tok), result_p(result) {}
-  virtual ~EndoptToken() = default;
+  ~EndoptToken() override = default;
   bool* result_p;
 };
 
 class ExplicitToken : public Token {
  public:
   ExplicitToken(uint8_t tag, ASN1_Class tag_class = kAsn1Context) : Token(expl_tok), tag(tag), tag_class(tag_class) {}
-  virtual ~ExplicitToken() = default;
+  ~ExplicitToken() override = default;
   uint8_t tag;
   ASN1_Class tag_class;
 };
@@ -35,7 +35,7 @@ class PeekExplicitToken : public Token {
  public:
   PeekExplicitToken(uint8_t* tag = nullptr, ASN1_Class* tag_class = nullptr)
       : Token(peekexpl_tok), tag(tag), tag_class(tag_class) {}
-  virtual ~PeekExplicitToken() = default;
+  ~PeekExplicitToken() override = default;
   uint8_t* tag;
   ASN1_Class* tag_class;
 };
