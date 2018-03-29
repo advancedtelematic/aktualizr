@@ -5,7 +5,9 @@
 
 #include "invstorage.h"
 #include "logging.h"
+#ifdef BUILD_OSTREE
 #include "ostree.h"
+#endif
 #include "socket_activation.h"
 #include "utils.h"
 
