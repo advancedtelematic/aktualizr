@@ -46,6 +46,7 @@ RUN apt-get update && apt-get -y install \
   libsystemd-dev \
   libtool \
   make \
+  ninja-build \
   opensc \
   ostree \
   pkg-config \
