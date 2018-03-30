@@ -201,8 +201,14 @@ std::string Utils::toBase64(const std::string &tob64) {
 }
 
 void Utils::hex2bin(const std::string &hexstring, unsigned char *binout) {
+  if (hexstring.length() % 2 != 0) {
+    throw std::length_error("Hex string length should be even");
+  }
   for (int i = 0; i < hexstring.length(); i += 2) {
     char hex_byte[3];
+    if (!isxdigit(hexstring[i]) || !isxdigit(hexstring[i + 1])) {
+      throw std::range_error("Hex string is invalid");
+    }
     hex_byte[0] = hexstring[i];
     hex_byte[1] = hexstring[i + 1];
     hex_byte[2] = 0;
