@@ -51,6 +51,7 @@ class ServerDelegate {
 class Server {
  public:
   Server(ServerDelegate*, uint16_t port = OPCUABRIDGE_PORT);
+  Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd, uint16_t port = OPCUABRIDGE_PORT);
   ~Server();
 
   Server(const Server&) = delete;
@@ -59,6 +60,7 @@ class Server {
   bool run(volatile bool*);
 
  private:
+  void initializeModel();
   void onFileListUpdated(FileList*);
   void countReceivedMetadataFile(MetadataFile*);
   void onVersionReportRequested(VersionReport*);
@@ -69,6 +71,9 @@ class Server {
 
   UA_Server* server_;
   UA_ServerConfig* server_config_;
+
+  int discovery_socket_fd_;
+  bool use_socket_activation_ = false;
 };
 
 }  // namespace opcuabridge
