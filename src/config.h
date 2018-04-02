@@ -114,6 +114,10 @@ class Config {
   Config();
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
   Config(const boost::filesystem::path& filename);
+  Config(const std::vector<boost::filesystem::path>& config_dirs) {
+    config_dirs_ = config_dirs;
+    updateFromDirs();
+  }
 
   KeyManagerConfig keymanagerConfig() const;
 
@@ -134,6 +138,8 @@ class Config {
   ImportConfig import;
 
  private:
+  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
+  void updateFromDirs();
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

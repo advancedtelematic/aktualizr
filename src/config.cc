@@ -249,11 +249,13 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
 Config::Config() { postUpdateValues(); }
 
 Config::Config(const boost::filesystem::path& filename) {
+  updateFromDirs();
   updateFromToml(filename);
   postUpdateValues();
 }
 
 Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
+  updateFromDirs();
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
@@ -287,6 +289,14 @@ void Config::postUpdateValues() {
   if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
   if (pacman.ostree_server.empty()) pacman.ostree_server = tls.server + "/treehub";
+}
+
+void Config::updateFromDirs() {
+  for (auto dir : config_dirs_) {
+    for (auto config : Utils::glob((dir / "*.conf").string())) {
+      updateFromToml(config);
+    }
+  }
 }
 
 void Config::updateFromToml(const boost::filesystem::path& filename) {

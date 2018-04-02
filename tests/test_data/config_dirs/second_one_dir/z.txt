@@ -1,0 +1,2 @@
+[storage]
+path = "this is path from text file"
