@@ -39,7 +39,8 @@ class ServerDelegate {
   virtual ~ServerDelegate() {}
   virtual void handleServerInitialized(ServerModel*) = 0;
   virtual void handleVersionReportRequested(ServerModel*) = 0;      // on requested by the client
-  virtual void handleMetaDataFilesReceived(ServerModel*) = 0;       // after all metadata files recv.
+  virtual void handleMetaDataFileReceived(ServerModel*) = 0;        // on after each metadata file recv.
+  virtual void handleAllMetaDataFilesReceived(ServerModel*) = 0;    // after all metadata files recv.
   virtual void handleDirectoryFilesSynchronized(ServerModel*) = 0;  // when dir. sync. finished
 
  private:

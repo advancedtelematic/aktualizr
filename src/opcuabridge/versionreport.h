@@ -13,6 +13,7 @@ class VersionReport {
 
   const int& getTokenForTimeServer() const { return tokenForTimeServer_; }
   void setTokenForTimeServer(const int& tokenForTimeServer) { tokenForTimeServer_ = tokenForTimeServer; }
+  ECUVersionManifest& getEcuVersionManifest() { return ecuVersionManifest_; }
   const ECUVersionManifest& getEcuVersionManifest() const { return ecuVersionManifest_; }
   void setEcuVersionManifest(const ECUVersionManifest& ecuVersionManifest) { ecuVersionManifest_ = ecuVersionManifest; }
   INITSERVERNODESET_FUNCTION_DEFINITION(VersionReport)  // InitServerNodeset(UA_Server*)

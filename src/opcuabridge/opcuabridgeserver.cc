@@ -64,10 +64,13 @@ void Server::onFileListUpdated(FileList* file_list) {
 }
 
 void Server::countReceivedMetadataFile(MetadataFile* metadata_file) {
-  if (model_->metadatafiles_.getGUID() == metadata_file->getGUID()) ++model_->received_metadata_files_;
+  if (model_->metadatafiles_.getGUID() == metadata_file->getGUID()) {
+    ++model_->received_metadata_files_;
+    if (delegate_) delegate_->handleMetaDataFileReceived(model_);
+  }
   if (model_->metadatafiles_.getNumberOfMetadataFiles() == model_->received_metadata_files_ && delegate_) {
     model_->received_metadata_files_ = 0;
-    delegate_->handleMetaDataFilesReceived(model_);
+    delegate_->handleAllMetaDataFilesReceived(model_);
   }
 }
 

@@ -39,19 +39,19 @@ Json::Value OpcuaSecondary::getManifest() {
   return client.recvVersionReport().getEcuVersionManifest().wrapMessage();
 }
 
-opcuabridge::MetadataFile makeMetadataFile(const Target& target);
-
 bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
-  const auto& director_targets = meta_pack.director_targets.targets;
-  const auto& image_targets = meta_pack.image_targets.targets;
-
   std::vector<opcuabridge::MetadataFile> metadatafiles;
-  metadatafiles.reserve(director_targets.size() + image_targets.size());
-
-  std::transform(director_targets.begin(), director_targets.end(), std::back_inserter(metadatafiles), makeMetadataFile);
-  std::transform(image_targets.begin(), image_targets.end(), std::back_inserter(metadatafiles), makeMetadataFile);
-
-  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
+  {
+    opcuabridge::MetadataFile mf;
+    mf.setMetadata(meta_pack.director_root.original());
+    metadatafiles.push_back(mf);
+  }
+  {
+    opcuabridge::MetadataFile mf;
+    mf.setMetadata(meta_pack.director_targets.original());
+    metadatafiles.push_back(mf);
+  }
+  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
   return client.sendMetadataFiles(metadatafiles);
 }
 
@@ -75,16 +75,6 @@ bool OpcuaSecondary::sendFirmware(const std::string& data) {
     retval = client.syncDirectoryFiles(working_repo_dir_path);
   }
   return retval;
-}
-
-opcuabridge::MetadataFile makeMetadataFile(const Target& target) {
-  opcuabridge::MetadataFile mf;
-  mf.setFilename(target.filename());
-
-  io::mapped_file_source file(mf.getFilename());
-  std::copy(file.begin(), file.end(), std::back_inserter(mf.getMetadata()));
-
-  return mf;
 }
 
 int OpcuaSecondary::getRootVersion(bool director) {

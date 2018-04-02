@@ -18,6 +18,11 @@ class MetadataFile {
   std::vector<unsigned char>& getMetadata() { return metadata_; }
   const std::vector<unsigned char>& getMetadata() const { return metadata_; }
   void setMetadata(const std::vector<unsigned char>& metadata) { metadata_ = metadata; }
+  void setMetadata(const Json::Value& metadata) {
+    Json::FastWriter fw;
+    std::string s = fw.write(metadata);
+    metadata_ = std::vector<unsigned char>(s.begin(), s.end());
+  }
   INITSERVERNODESET_BIN_FUNCTION_DEFINITION(MetadataFile, &metadata_)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&metadata_)                       // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&metadata_)                      // ClientWrite(UA_Client*)
