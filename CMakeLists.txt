@@ -172,6 +172,9 @@ if(CLANG_TIDY)
         file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
         foreach(FILE ${ARGN})
             if(${FILE} MATCHES "\\.h")
+                # do not run clang-tidy directly on header files, since it
+                # ignores them. headers will be checked if they are included by
+                # a checked source file
                 continue()
             endif()
             string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
