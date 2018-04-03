@@ -23,8 +23,8 @@ class MetadataFiles {
   void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFiles>::type cb) { on_after_write_cb_ = cb; }
 
  protected:
-  int GUID_;
-  std::size_t numberOfMetadataFiles_;
+  int GUID_{-1};
+  std::size_t numberOfMetadataFiles_{0};
 
   MessageOnBeforeReadCallback<MetadataFiles>::type on_before_read_cb_;
   MessageOnAfterWriteCallback<MetadataFiles>::type on_after_write_cb_;

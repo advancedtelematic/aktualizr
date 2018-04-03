@@ -400,7 +400,7 @@ class FSTargetWHandle : public StorageTargetWHandle {
   ~FSTargetWHandle() override {
     if (!closed_) {
       LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
-      this->wabort();
+      FSTargetWHandle::wabort();
     }
   }
 

@@ -8,25 +8,25 @@
 
 namespace Uptane {
 
-class MetaPack;
+struct MetaPack;
 class SecondaryConfig;
 
 class OpcuaSecondary : public SecondaryInterface {
  public:
   OpcuaSecondary(const SecondaryConfig&);
-  virtual ~OpcuaSecondary();
+  ~OpcuaSecondary() override;
 
-  virtual std::string getSerial() override;
-  virtual std::string getHwId() override;
-  virtual std::pair<KeyType, std::string> getPublicKey() override;
+  std::string getSerial() override;
+  std::string getHwId() override;
+  std::pair<KeyType, std::string> getPublicKey() override;
 
-  virtual Json::Value getManifest() override;
-  virtual bool putMetadata(const MetaPack& meta_pack) override;
+  Json::Value getManifest() override;
+  bool putMetadata(const MetaPack& meta_pack) override;
 
-  virtual bool sendFirmware(const std::string& data) override;
+  bool sendFirmware(const std::string& data) override;
 
-  virtual int getRootVersion(bool director) override;
-  virtual bool putRoot(Uptane::Root root, bool director) override;
+  int getRootVersion(bool director) override;
+  bool putRoot(Uptane::Root root, bool director) override;
 };
 
 }  // namespace Uptane

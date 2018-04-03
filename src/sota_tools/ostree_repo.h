@@ -34,7 +34,7 @@ class OSTreeObjectMissing : std::exception {
  public:
   OSTreeObjectMissing(const OSTreeHash _missing_object) : missing_object_(_missing_object) {}
 
-  virtual const char* what() const noexcept { return "OSTree repository is missing an object"; }
+  const char* what() const noexcept override { return "OSTree repository is missing an object"; }
 
   OSTreeHash missing_object() const { return missing_object_; }
 

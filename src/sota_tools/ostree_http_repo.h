@@ -17,12 +17,12 @@ class OSTreeHttpRepo : public OSTreeRepo {
  public:
   explicit OSTreeHttpRepo(const TreehubServer* server) : server_(server) {}
 
-  bool LooksValid() const;
-  OSTreeObject::ptr GetObject(const OSTreeHash hash) const;
-  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const;
-  OSTreeRef GetRef(const std::string& refname) const;
+  bool LooksValid() const override;
+  OSTreeObject::ptr GetObject(const OSTreeHash hash) const override;
+  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
+  OSTreeRef GetRef(const std::string& refname) const override;
 
-  const boost::filesystem::path root() const { return root_.PathString(); }
+  const boost::filesystem::path root() const override { return root_.PathString(); }
 
  private:
   bool Get(const boost::filesystem::path& path) const;

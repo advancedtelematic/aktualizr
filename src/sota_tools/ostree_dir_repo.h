@@ -16,12 +16,12 @@ class OSTreeDirRepo : public OSTreeRepo {
  public:
   explicit OSTreeDirRepo(const boost::filesystem::path &root_path) : root_(root_path) {}
 
-  bool LooksValid() const;
-  OSTreeObject::ptr GetObject(const OSTreeHash hash) const;
-  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const;
-  OSTreeRef GetRef(const std::string &refname) const;
+  bool LooksValid() const override;
+  OSTreeObject::ptr GetObject(const OSTreeHash hash) const override;
+  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
+  OSTreeRef GetRef(const std::string &refname) const override;
 
-  const boost::filesystem::path root() const { return root_; }
+  const boost::filesystem::path root() const override { return root_; }
 
  private:
   typedef std::map<OSTreeHash, OSTreeObject::ptr> otable;
