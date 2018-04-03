@@ -65,7 +65,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     } else {
       // print the error and append the default commandline option description
       std::cout << ex.what() << std::endl << description;
-      exit(EXIT_SUCCESS);
+      exit(EXIT_FAILURE);
     }
   } catch (const bpo::error &ex) {
     check_secondary_options(description, vm);
