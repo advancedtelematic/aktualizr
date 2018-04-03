@@ -256,6 +256,16 @@ TEST(Utils, hex2bin) {
   EXPECT_EQ(bin[2], 0xb4);
 }
 
+TEST(Utils, hex2bin_not_even) {
+  unsigned char bin[3];
+  EXPECT_THROW(Utils::hex2bin("01aeb", bin), std::length_error);
+}
+
+TEST(Utils, hex2bin_invalid) {
+  unsigned char bin[3];
+  EXPECT_THROW(Utils::hex2bin("01aqbr", bin), std::range_error);
+}
+
 TEST(Utils, ipUtils) {
   int fd = socket(AF_INET6, SOCK_STREAM, 0);
 
