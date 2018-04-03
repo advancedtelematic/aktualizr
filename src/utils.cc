@@ -576,6 +576,7 @@ TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
 void TemporaryFile::PutContents(const std::string &contents) {
   std::ofstream out(Path().c_str());
+  chmod(tmp_name_.c_str(), S_IRUSR | S_IWUSR);
   out << contents;
 }
 
@@ -586,6 +587,7 @@ std::string TemporaryFile::PathString() const { return Path().string(); }
 TemporaryDirectory::TemporaryDirectory(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {
   boost::filesystem::create_directories(tmp_name_);
+  chmod(tmp_name_.c_str(), S_IRWXU);
 }
 
 TemporaryDirectory::~TemporaryDirectory() { boost::filesystem::remove_all(tmp_name_); }

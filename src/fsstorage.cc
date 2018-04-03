@@ -12,6 +12,11 @@
 #include "utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
+  struct stat st;
+  stat(config_.path.c_str(), &st);
+  if ((st.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
+    throw std::runtime_error("Storage directory has unsafe permissions");
+  }
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
   boost::filesystem::create_directories(config_.path / "targets");
