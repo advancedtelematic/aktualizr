@@ -1,7 +1,6 @@
 ---
 Checks:          'clang-analyzer-*,modernize-use-override,readability-inconsistent-declaration-parameter-name'
 WarningsAsErrors: ''
-HeaderFilterRegex: '\.\./src/.*'
 AnalyzeTemporaryDtors: false
 User:            lbonn
 CheckOptions:    
