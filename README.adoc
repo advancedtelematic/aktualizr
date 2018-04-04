@@ -69,6 +69,7 @@ The following debian packages are used in the project:
 * libyaml-cpp-dev (>=0.5.2)
 * python3-dev (when building tests)
 * python3-openssl (when building tests)
+* python3-requests (when building sota_tools)
 * python3-venv (when building tests)
 * valgrind
 
