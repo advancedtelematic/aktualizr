@@ -43,7 +43,7 @@ def main():
     path = args.output.joinpath(name)
     md5_hash = versions[name][1]
     m = hashlib.md5()
-    if not os.path.isfile(path) or not check_md5(name, path, m, md5_hash):
+    if not path.is_file() or not check_md5(name, path, m, md5_hash):
         print('Downloading ' + name + ' from server...')
         if download(name, path, m, md5_hash):
             print(name + ' successfully downloaded and validated.')
@@ -55,11 +55,11 @@ def main():
     # Remove anything leftover inside the extracted directory.
     extract_path = args.output.joinpath('garage-sign')
     if extract_path.exists():
-        for f in os.listdir(extract_path):
-            shutil.rmtree(extract_path.joinpath(f))
+        for f in os.listdir(str(extract_path)):
+            shutil.rmtree(str(extract_path.joinpath(f)))
     # Always extract everything.
-    t = tarfile.open(path)
-    t.extractall(path=args.output)
+    t = tarfile.open(str(path))
+    t.extractall(path=str(args.output))
     return 0
 
 
@@ -68,16 +68,16 @@ def download(name, path, m, md5_hash):
     if r2.status_code != 200:
         print('Error: unable to request file!')
         return False
-    with open(path, mode='wb') as f:
+    with path.open(mode='wb') as f:
         shutil.copyfileobj(r2.raw, f)
     return check_md5(name, path, m, md5_hash)
 
 
 def check_md5(name, path, m, md5_hash):
-    if not tarfile.is_tarfile(path):
+    if not tarfile.is_tarfile(str(path)):
         print('Error: ' + name + ' is not a valid tar archive!')
         return False
-    with open(path, mode='rb') as f:
+    with path.open(mode='rb') as f:
         m.update(f.read())
     if m.hexdigest() == md5_hash:
         return True
