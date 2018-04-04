@@ -1,5 +1,9 @@
+:toc: macro
+:toc-title:
+
 https://opensource.org/licenses/MPL-2.0[image:https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg[License: MPL 2.0]] https://travis-ci.org/advancedtelematic/aktualizr[image:https://travis-ci.org/advancedtelematic/aktualizr.svg?branch=master[TravisCI Build Status]] https://codecov.io/gh/advancedtelematic/aktualizr[image:https://codecov.io/gh/advancedtelematic/aktualizr/branch/master/graph/badge.svg[codecov]] https://bestpractices.coreinfrastructure.org/projects/674[image:https://bestpractices.coreinfrastructure.org/projects/674/badge[CII Best Practices]] https://github.com/RichardLitt/standard-readme[image:https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat[standard-readme compliant]]
 
+[discrete]
 = aktualizr
 
 ====
@@ -21,21 +25,10 @@ The client is responsible for:
 
 The client maintains the integrity and confidentiality of the OTA update in transit, communicating with the server over a TLS link. The client can run either as a system service, periodically checking for updates, or can by triggered by other system interactions (for example on user request, or on receipt of a wake-up message from the OTA server).
 
+[discrete]
 == Table of Contents
 
-* <<Security>>
-* <<Install>>
-** <<Dependencies>>
-** <<Building>>
-** <<Linting>>
-** <<Testing>>
-** <<Code Coverage>>
-** <<Building with Docker>>
-** <<Developing against an OpenEmbedded system>>
-* <<Usage>>
-* <<Maintainers>>
-* <<Contribute>>
-* <<License>>
+toc::[]
 
 == Security
 
