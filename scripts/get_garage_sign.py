@@ -6,6 +6,7 @@ import os.path
 import requests
 import shutil
 import sys
+import tarfile
 import xml.etree.ElementTree as ET
 
 from pathlib import Path
@@ -42,31 +43,47 @@ def main():
     path = args.output.joinpath(name)
     md5_hash = versions[name][1]
     m = hashlib.md5()
-    if os.path.isfile(path):
-        if check_md5(path, m, md5_hash):
-            print(name + ' already present with valid md5 hash.')
-            return 0
+    if not os.path.isfile(path) or not check_md5(name, path, m, md5_hash):
+        print('Downloading ' + name + ' from server...')
+        if download(name, path, m, md5_hash):
+            print(name + ' successfully downloaded and validated.')
         else:
-            print('md5 hash of local ' + name + ' doesn\'t match expected value, downloading from server...')
+            return 1
+    else:
+        print(name + ' already present with valid md5 hash.')
 
+    # Remove anything leftover inside the extracted directory.
+    extract_path = args.output.joinpath('garage-sign')
+    if extract_path.exists():
+        for f in os.listdir(extract_path):
+            shutil.rmtree(extract_path.joinpath(f))
+    # Always extract everything.
+    t = tarfile.open(path)
+    t.extractall(path=args.output)
+    return 0
+
+
+def download(name, path, m, md5_hash):
     r2 = requests.get('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/' + name, stream=True)
     if r2.status_code != 200:
         print('Error: unable to request file!')
-        return 1
+        return False
     with open(path, mode='wb') as f:
         shutil.copyfileobj(r2.raw, f)
-    if not check_md5(path, m, md5_hash):
-        print('Error: md5 hash of ' + name + ' does not match expected value!')
-        return 1
-    else:
-        print(name + ' successfully downloaded with valid md5 hash.')
-        return 0
+    return check_md5(name, path, m, md5_hash)
 
 
-def check_md5(path, m, md5_hash):
+def check_md5(name, path, m, md5_hash):
+    if not tarfile.is_tarfile(path):
+        print('Error: ' + name + ' is not a valid tar archive!')
+        return False
     with open(path, mode='rb') as f:
         m.update(f.read())
-    return m.hexdigest() == md5_hash
+    if m.hexdigest() == md5_hash:
+        return True
+    else:
+        print('Error: md5 hash of ' + name + ' does not match expected value!')
+        return False
 
 
 if __name__ == '__main__':

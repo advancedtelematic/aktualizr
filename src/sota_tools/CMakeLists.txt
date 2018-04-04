@@ -88,18 +88,21 @@ if (BUILD_SOTA_TOOLS)
 
   add_dependencies(build_tests garage-deploy)
 
-
   install(TARGETS garage-deploy RUNTIME DESTINATION bin COMPONENT garage_deploy)
 
-  include(ExternalProject)
-  ExternalProject_Add(garage-sign DEPENDS garage-deploy
-                      URL https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/cli-0.2.0-134-ge27cd8a.tgz
-                      URL_HASH SHA256=6c00814dc49566dffb703ffe873a7e1d87a7bc345b7830737d0712bf88a85ffd
-                      CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND "")
-  ExternalProject_Get_Property(garage-sign SOURCE_DIR)
 
-  install(PROGRAMS ${SOURCE_DIR}/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
-  install(DIRECTORY ${SOURCE_DIR}/lib DESTINATION . COMPONENT garage_deploy)
+  ### garage-sign targets
+
+  if(GARAGE_SIGN_VERSION)
+    set(GARAGE_SIGN_VERSION_ARG "--name" ${GARAGE_SIGN_VERSION})
+  endif(GARAGE_SIGN_VERSION)
+  add_custom_target(garage-sign
+                    COMMAND ${PROJECT_SOURCE_DIR}/scripts/get_garage_sign.py
+                    --output ${CMAKE_CURRENT_BINARY_DIR} ${GARAGE_SIGN_VERSION_ARG})
+  add_dependencies(garage-deploy garage-sign)
+
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib DESTINATION . COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
 
