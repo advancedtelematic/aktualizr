@@ -106,10 +106,12 @@ class HttpFake : public HttpInterface {
       } else {
         hash = "tst149_ecu_serial";
       }
-      EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["filepath"].asString(),
-                "unknown-" + hash);
-      EXPECT_EQ(data["signed"]["ecu_version_manifest"][0]["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"]
+      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["filepath"]
                     .asString(),
+                "unknown-" + hash);
+      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["fileinfo"]
+                    ["hashes"]["sha256"]
+                        .asString(),
                 hash);
     }
 

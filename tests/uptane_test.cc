@@ -491,9 +491,11 @@ TEST(Uptane, PutManifest) {
 
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 2u);
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["ecu_serial"], "secondary_ecu_serial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"][1]["signed"]["installed_image"]["filepath"], "test-package");
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"].size(), 2u);
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["ecu_serial"],
+            "secondary_ecu_serial");
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"],
+            "test-package");
 }
 
 TEST(Uptane, RunForeverNoUpdates) {
@@ -633,7 +635,7 @@ TEST(Uptane, RunForeverInstall) {
   reader.parse(mnfst_str, json);
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifest"].size(), 1u);
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"].size(), 1u);
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
