@@ -96,9 +96,13 @@ if (BUILD_SOTA_TOOLS)
   if(GARAGE_SIGN_VERSION)
     set(GARAGE_SIGN_VERSION_ARG "--name" ${GARAGE_SIGN_VERSION})
   endif(GARAGE_SIGN_VERSION)
+  if(GARAGE_SIGN_SHA256)
+    set(GARAGE_SIGN_SHA256_ARG "--sha256" ${GARAGE_SIGN_SHA256})
+  endif(GARAGE_SIGN_SHA256)
   add_custom_target(garage-sign
                     COMMAND ${PROJECT_SOURCE_DIR}/scripts/get_garage_sign.py
-                    --output ${CMAKE_CURRENT_BINARY_DIR} ${GARAGE_SIGN_VERSION_ARG})
+                    --output ${CMAKE_CURRENT_BINARY_DIR}
+                    ${GARAGE_SIGN_VERSION_ARG} ${GARAGE_SIGN_SHA256_ARG})
   add_dependencies(garage-deploy garage-sign)
 
   install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/bin/garage-sign DESTINATION bin COMPONENT garage_deploy)
