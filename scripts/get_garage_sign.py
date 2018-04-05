@@ -36,8 +36,13 @@ def main():
     if args.name:
         name = args.name
         if name not in versions:
-            print('Error: ' + name + ' not found in tuf-cli releases.')
-            return 1
+            # Try adding tgz in case it wasn't included.
+            name_ext = name + '.tgz'
+            if name_ext not in versions:
+                print('Error: ' + name + ' not found in tuf-cli releases.')
+                return 1
+            else:
+                name = name_ext
     else:
         name = sorted(versions)[-1]
     path = args.output.joinpath(name)
