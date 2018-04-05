@@ -5,6 +5,8 @@
 #include <uptane/tuf.h>
 #include <utils.h>
 
+#include <boost/filesystem/path.hpp>
+
 class AktualizrSecondaryCommon;
 
 class OpcuaServerSecondaryDelegate : public opcuabridge::ServerDelegate {
@@ -16,8 +18,12 @@ class OpcuaServerSecondaryDelegate : public opcuabridge::ServerDelegate {
   void handleMetaDataFileReceived(opcuabridge::ServerModel*) override;
   void handleAllMetaDataFilesReceived(opcuabridge::ServerModel*) override;
   void handleDirectoryFilesSynchronized(opcuabridge::ServerModel*) override;
+  void handleOriginalManifestRequested(opcuabridge::ServerModel*) override;
+  void handleDirectoryFileListRequested(opcuabridge::ServerModel*) override;
 
  private:
+  boost::filesystem::path getOstreeRepoPath(const boost::filesystem::path& ostree_sysroot_path) const;
+
   AktualizrSecondaryCommon* secondary_;
   Uptane::MetaPack received_meta_pack_;
   TemporaryDirectory ostree_sync_working_repo_dir_;

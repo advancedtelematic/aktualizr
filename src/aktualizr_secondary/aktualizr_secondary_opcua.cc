@@ -8,10 +8,8 @@ AktualizrSecondaryOpcua::AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&
     : AktualizrSecondaryCommon(config, storage), running_(true), delegate_(this) {
   if (socket_activation::listen_fds(0) >= 1) {
     LOG_INFO << "Use socket activation";
-    server_ = boost::make_unique<opcuabridge::Server>(&delegate_,
-                                                      socket_activation::listen_fds_start + 0,
-                                                      socket_activation::listen_fds_start + 1,
-                                                      config_.network.port);
+    server_ = boost::make_unique<opcuabridge::Server>(&delegate_, socket_activation::listen_fds_start + 0,
+                                                      socket_activation::listen_fds_start + 1, config_.network.port);
   } else {
     server_ = boost::make_unique<opcuabridge::Server>(&delegate_, config_.network.port);
   }

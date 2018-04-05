@@ -10,6 +10,7 @@
 #include "imagerequest.h"
 #include "metadatafile.h"
 #include "metadatafiles.h"
+#include "originalmanifest.h"
 #include "signature.h"
 #include "signed.h"
 #include "versionreport.h"
@@ -37,6 +38,8 @@ const char *ImageBlock::node_id_ = "ImageBlock";
 const char *ImageBlock::bin_node_id_ = "ImageBlock_BinaryData";
 const char *FileData::node_id_ = "FileData";
 const char *FileData::bin_node_id_ = "FileData_BinaryData";
+const char *OriginalManifest::node_id_ = "OriginalManifest";
+const char *OriginalManifest::bin_node_id_ = "OriginalManifest_BinaryData";
 }  // namespace opcuabridge
 
 namespace opcuabridge {

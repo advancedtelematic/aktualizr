@@ -5,6 +5,7 @@
 
 #include <logging.h>
 #include <ostreereposync.h>
+#include <utils.h>
 
 #include <algorithm>
 #include <iterator>
@@ -35,8 +36,9 @@ std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
 }
 
 Json::Value OpcuaSecondary::getManifest() {
-  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
-  return client.recvVersionReport().getEcuVersionManifest().wrapMessage();
+  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  auto original_manifest = client.recvOriginalManifest().getBlock();
+  return Utils::parseJSON(std::string(original_manifest.begin(), original_manifest.end()));
 }
 
 bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {

@@ -20,7 +20,7 @@ ServerModel::ServerModel(UA_Server* server) {
 
   BOOST_PP_LIST_FOR_EACH(INIT_SERVER_NODESET, server,
                          BOOST_PP_ARRAY_TO_LIST((6, (configuration_, version_report_, metadatafiles_, metadatafile_,
-                                                     file_list_, file_data_))));
+                                                     file_list_, file_data_, original_manifest_))));
 }
 
 Server::Server(ServerDelegate* delegate, uint16_t port) : delegate_(delegate) {
@@ -39,8 +39,7 @@ Server::Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd,
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
   server_config_->networkLayers[0].deleteMembers(&server_config_->networkLayers[0]);
-  server_config_->networkLayers[0] =
-    UA_ServerNetworkLayerTCPSocketActivation(UA_ConnectionConfig_default, socket_fd);
+  server_config_->networkLayers[0] = UA_ServerNetworkLayerTCPSocketActivation(UA_ConnectionConfig_default, socket_fd);
   server_config_->networkLayersSize = 1;
 
   discovery_socket_fd_ = discovery_socket_fd;
@@ -58,9 +57,11 @@ void Server::initializeModel() {
 
   model_ = new ServerModel(server_);
 
+  model_->file_list_.setOnBeforeReadCallback(std::bind(&Server::onFileListRequested, this, _1));
   model_->file_list_.setOnAfterWriteCallback(std::bind(&Server::onFileListUpdated, this, _1));
   model_->metadatafile_.setOnAfterWriteCallback(std::bind(&Server::countReceivedMetadataFile, this, _1));
   model_->version_report_.setOnBeforeReadCallback(std::bind(&Server::onVersionReportRequested, this, _1));
+  model_->original_manifest_.setOnBeforeReadCallback(std::bind(&Server::onOriginalManifestRequested, this, _1));
 }
 
 Server::~Server() {
@@ -74,9 +75,11 @@ bool Server::run(volatile bool* running) {
       [](bool use_socket_activation, int socket_fd, volatile bool* server_running, ServerDelegate* delegate) {
         std::unique_ptr<discovery::Server> discovery_server;
         if (use_socket_activation)
-          discovery_server = boost::make_unique<discovery::Server>(delegate->getServiceType(), socket_fd, delegate->getDiscoveryPort());
+          discovery_server = boost::make_unique<discovery::Server>(delegate->getServiceType(), socket_fd,
+                                                                   delegate->getDiscoveryPort());
         else
-          discovery_server = boost::make_unique<discovery::Server>(delegate->getServiceType(), delegate->getDiscoveryPort());
+          discovery_server =
+              boost::make_unique<discovery::Server>(delegate->getServiceType(), delegate->getDiscoveryPort());
         discovery_server->run(server_running);
       },
       use_socket_activation_, discovery_socket_fd_, running, delegate_);
@@ -87,6 +90,14 @@ void Server::onVersionReportRequested(VersionReport* version_report) {
   if (delegate_) delegate_->handleVersionReportRequested(model_);
 }
 
+void Server::onOriginalManifestRequested(OriginalManifest* version_report) {
+  if (delegate_) delegate_->handleOriginalManifestRequested(model_);
+}
+
+void Server::onFileListRequested(FileList* file_list) {
+  if (delegate_) delegate_->handleDirectoryFileListRequested(model_);
+}
+
 void Server::onFileListUpdated(FileList* file_list) {
   if (!file_list->getBlock().empty() && file_list->getBlock()[0] == '\0' && delegate_)
     delegate_->handleDirectoryFilesSynchronized(model_);
@@ -95,8 +106,7 @@ void Server::onFileListUpdated(FileList* file_list) {
 void Server::countReceivedMetadataFile(MetadataFile* metadata_file) {
   if (model_->metadatafiles_.getGUID() == metadata_file->getGUID()) {
     ++model_->received_metadata_files_;
-    if (delegate_)
-      delegate_->handleMetaDataFileReceived(model_);
+    if (delegate_) delegate_->handleMetaDataFileReceived(model_);
   }
   if (model_->metadatafiles_.getNumberOfMetadataFiles() == model_->received_metadata_files_ && delegate_) {
     model_->received_metadata_files_ = 0;

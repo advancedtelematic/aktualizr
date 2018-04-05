@@ -27,8 +27,8 @@ bool ArchiveModeRepo(const fs::path& repo_dir) {
 
   BOOST_SCOPE_EXIT(&error, &repo_path, &repo) {
     if (error) g_error_free(error);
-    g_object_unref(repo_path);
-    g_object_unref(repo);
+    if (repo_path) g_object_unref(repo_path);
+    if (repo) g_object_unref(repo);
   }
   BOOST_SCOPE_EXIT_END
 
@@ -50,12 +50,12 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir) {
 
   BOOST_SCOPE_EXIT(&error, &options, &refs, &refs_to_fetch, &src_repo_path, &src_repo, &dst_repo_path, &dst_repo) {
     if (error) g_error_free(error);
-    g_variant_unref(options);
-    g_object_unref(src_repo_path);
-    g_object_unref(src_repo);
-    g_object_unref(dst_repo_path);
-    g_object_unref(dst_repo);
-    g_hash_table_unref(refs);
+    if (options) g_variant_unref(options);
+    if (src_repo_path) g_object_unref(src_repo_path);
+    if (src_repo) g_object_unref(src_repo);
+    if (dst_repo_path) g_object_unref(dst_repo_path);
+    if (dst_repo) g_object_unref(dst_repo);
+    if (refs) g_hash_table_unref(refs);
     g_ptr_array_unref(refs_to_fetch);
   }
   BOOST_SCOPE_EXIT_END

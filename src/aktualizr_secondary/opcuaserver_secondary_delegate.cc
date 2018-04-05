@@ -5,6 +5,8 @@
 #include <ostreereposync.h>
 #include <utils.h>
 
+namespace fs = boost::filesystem;
+
 OpcuaServerSecondaryDelegate::OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon* secondary)
     : secondary_(secondary), ostree_sync_working_repo_dir_("opcuabridge-ostree-sync-working-repo") {}
 
@@ -15,27 +17,27 @@ void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerMo
     model->configuration_.setPublicKeyType(secondary_->config_.uptane.key_type);
     model->configuration_.setPublicKey(secondary_->keys_.getUptanePublicKey());
 
-    if (ostree_repo_sync::ArchiveModeRepo(secondary_->config_.pacman.sysroot)) {
-      model->file_data_.setBasePath(secondary_->config_.pacman.sysroot);
+    fs::path ostree_source_repo = getOstreeRepoPath(secondary_->config_.pacman.sysroot);
+
+    if (ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
+      model->file_data_.setBasePath(ostree_source_repo);
     } else {
       model->file_data_.setBasePath(ostree_sync_working_repo_dir_.Path());
-      if (!ostree_repo_sync::LocalPullRepo(secondary_->config_.pacman.sysroot, ostree_sync_working_repo_dir_.Path())) {
-        LOG_ERROR << "OSTree repo sync failed: unable to local pull from " << secondary_->config_.pacman.sysroot;
-        return;
-      }
+      if (!ostree_repo_sync::LocalPullRepo(ostree_source_repo, ostree_sync_working_repo_dir_.Path()))
+        LOG_ERROR << "OSTree repo sync failed: unable to local pull from " << ostree_source_repo.string();
     }
-    opcuabridge::UpdateFileList(&model->file_list_, model->file_data_.getBasePath());
   } else {
     LOG_ERROR << "Secondary: failed to initialize";
   }
 }
 
-void OpcuaServerSecondaryDelegate::handleVersionReportRequested(opcuabridge::ServerModel* model) {
-  opcuabridge::ECUVersionManifest manifest;
-  manifest.unwrapMessage(secondary_->keys_.signTuf(secondary_->pacman->getManifest(secondary_->ecu_serial_)));
-  model->version_report_.setEcuVersionManifest(manifest);
-  model->version_report_.getEcuVersionManifest().getEcuVersionManifestSigned().setSecurityAttack(
-      secondary_->detected_attack_);
+void OpcuaServerSecondaryDelegate::handleVersionReportRequested(opcuabridge::ServerModel* model) {}
+
+void OpcuaServerSecondaryDelegate::handleOriginalManifestRequested(opcuabridge::ServerModel* model) {
+  auto manifest_signed =
+      Utils::jsonToStr(secondary_->keys_.signTuf(secondary_->pacman->getManifest(secondary_->ecu_serial_)));
+  model->original_manifest_.getBlock().resize(manifest_signed.size());
+  std::copy(manifest_signed.begin(), manifest_signed.end(), model->original_manifest_.getBlock().begin());
 }
 
 void OpcuaServerSecondaryDelegate::handleMetaDataFileReceived(opcuabridge::ServerModel* model) {
@@ -77,8 +79,9 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
 }
 
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {
-  if (!ostree_repo_sync::ArchiveModeRepo(secondary_->config_.pacman.sysroot)) {
-    if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), secondary_->config_.pacman.sysroot)) {
+  fs::path ostree_source_repo = getOstreeRepoPath(secondary_->config_.pacman.sysroot);
+  if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
+    if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), ostree_source_repo)) {
       LOG_ERROR << "OSTree repo sync failed: unable to local pull from "
                 << ostree_sync_working_repo_dir_.Path().string();
       return;
@@ -93,4 +96,12 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
   } else {
     LOG_ERROR << "No valid installation target found";
   }
+}
+
+void OpcuaServerSecondaryDelegate::handleDirectoryFileListRequested(opcuabridge::ServerModel* model) {
+  opcuabridge::UpdateFileList(&model->file_list_, model->file_data_.getBasePath());
+}
+
+fs::path OpcuaServerSecondaryDelegate::getOstreeRepoPath(const fs::path& ostree_sysroot_path) const {
+  return (ostree_sysroot_path / "ostree" / "repo");
 }

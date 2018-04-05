@@ -163,6 +163,14 @@ VersionReport Client::recvVersionReport() const {
   return version_report;
 }
 
+OriginalManifest Client::recvOriginalManifest() const {
+  OriginalManifest original_manifest;
+  if (UA_Client_getState(client_) != UA_CLIENTSTATE_DISCONNECTED) {
+    original_manifest.ClientRead(client_);
+  }
+  return original_manifest;
+}
+
 bool Client::sendMetadataFiles(std::vector<MetadataFile>& files) const {
   MetadataFiles metadatafiles;
   bool retval = true;

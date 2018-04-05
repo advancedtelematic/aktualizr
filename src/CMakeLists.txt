@@ -147,6 +147,7 @@ set(OPCUABRIDGE_HEADERS opcuabridge/boostarch.h
                         opcuabridge/opcuabridgediscoveryserver.h
                         opcuabridge/opcuabridgediscoverytypes.h
                         opcuabridge/opcuabridgeserver.h
+                        opcuabridge/originalmanifest.h
                         opcuabridge/signature.h
                         opcuabridge/signed.h
                         opcuabridge/utility.h

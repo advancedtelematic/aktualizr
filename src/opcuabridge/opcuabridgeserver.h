@@ -22,6 +22,8 @@ struct ServerModel {
   FileList file_list_;
   FileData file_data_;
 
+  OriginalManifest original_manifest_;
+
   friend class Server;
 
  private:
@@ -38,10 +40,12 @@ class ServerDelegate {
 
   virtual ~ServerDelegate() {}
   virtual void handleServerInitialized(ServerModel*) = 0;
-  virtual void handleVersionReportRequested(ServerModel*) = 0;      // on requested by the client
+  virtual void handleVersionReportRequested(ServerModel*) = 0;      // on version report is requested
+  virtual void handleOriginalManifestRequested(ServerModel*) = 0;   // on original manifest is requested
   virtual void handleMetaDataFileReceived(ServerModel*) = 0;        // on after each metadata file recv.
   virtual void handleAllMetaDataFilesReceived(ServerModel*) = 0;    // after all metadata files recv.
   virtual void handleDirectoryFilesSynchronized(ServerModel*) = 0;  // when dir. sync. finished
+  virtual void handleDirectoryFileListRequested(ServerModel*) = 0;  // on dir. file list is requested
 
  private:
   discovery::EndPointServiceType service_type_ = discovery::kNoLDS;
@@ -62,8 +66,10 @@ class Server {
  private:
   void initializeModel();
   void onFileListUpdated(FileList*);
+  void onFileListRequested(FileList*);
   void countReceivedMetadataFile(MetadataFile*);
   void onVersionReportRequested(VersionReport*);
+  void onOriginalManifestRequested(OriginalManifest*);
 
   ServerModel* model_;
 
