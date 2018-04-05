@@ -3,7 +3,6 @@
 
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
-#include <boost/noncopyable.hpp>
 #include <sstream>
 
 #include "ostree_hash.h"

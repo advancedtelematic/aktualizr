@@ -2,11 +2,11 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 #include "config.h"
 #include "fsstorage.h"
@@ -27,7 +27,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
@@ -47,7 +47,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
   std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
@@ -76,7 +76,7 @@ TEST(OstreeManager, InstallBadUri) {
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_private_key_path = "public.key";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);
   data::InstallOutcome result = ostree.install(target);
   EXPECT_EQ(result.first, data::INSTALL_FAILED);
@@ -89,7 +89,7 @@ TEST(OstreeManager, BadSysroot) {
   config.pacman.type = kOstree;
   config.pacman.sysroot = "sysroot-that-is-missing";
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   EXPECT_THROW(OstreeManager ostree(config.pacman, storage), std::runtime_error);
 }
 
@@ -101,7 +101,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
   config.pacman.packages_file = "tests/test_data/package.manifest";
   config.storage.path = temp_dir.Path();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);
   Json::Value packages = ostree.getInstalledPackages();
   EXPECT_EQ(packages[0]["name"], "vim");
@@ -119,13 +119,13 @@ TEST(OstreeManager, AddRemoteNoCreds) {
   config.pacman.sysroot = sysroot;
   config.storage.path = temp_dir.Path();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
 
   OstreeRepo *repo = NULL;
   GError *error = NULL;
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  std::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
   EXPECT_TRUE(ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, &error));
   EXPECT_TRUE(OstreeManager::addRemote(repo, config.pacman.ostree_server, keys));
 
@@ -158,7 +158,7 @@ TEST(OstreeManager, AddRemoteWithCreds) {
   config.pacman.sysroot = sysroot;
   config.storage.path = temp_dir.Path();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
   std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
@@ -170,7 +170,7 @@ TEST(OstreeManager, AddRemoteWithCreds) {
 
   OstreeRepo *repo = NULL;
   GError *error = NULL;
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
+  std::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.pacman.sysroot);
   EXPECT_TRUE(ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, &error));
   EXPECT_TRUE(OstreeManager::addRemote(repo, config.pacman.ostree_server, keys));
 

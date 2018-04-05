@@ -30,7 +30,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.postUpdateValues();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(uptane.initialize());
@@ -49,7 +49,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
 
@@ -101,7 +101,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_TRUE(uptane.initialize());

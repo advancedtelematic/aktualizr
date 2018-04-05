@@ -3,7 +3,6 @@
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/noncopyable.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -25,10 +24,12 @@ enum CurrentOp {
   OSTREE_OBJECT_PRESENCE_CHECK,
 };
 
-class OSTreeObject : private boost::noncopyable {
+class OSTreeObject {
  public:
   typedef boost::intrusive_ptr<OSTreeObject> ptr;
   OSTreeObject(const OSTreeRepo& repo, const std::string object_name);
+  OSTreeObject(const OSTreeObject&) = delete;
+  OSTreeObject operator=(const OSTreeObject&) = delete;
 
   ~OSTreeObject();
 

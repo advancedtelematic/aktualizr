@@ -6,7 +6,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace bpo = boost::program_options;
 

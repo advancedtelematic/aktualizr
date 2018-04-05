@@ -63,7 +63,7 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
 
   ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
 
-  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); ++it) {
     ecu_serials.push_back(std::pair<std::string, std::string>((*it)->getSerial(), (*it)->getHwId()));
   }
@@ -179,7 +179,7 @@ InitRetCode Repository::initEcuRegister() {
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); it++) {
     Json::Value ecu;
     ecu["hardware_identifier"] = (*it)->getHwId();

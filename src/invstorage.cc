@@ -2,8 +2,6 @@
 #include "fsstorage.h"
 #include "sqlstorage.h"
 
-#include <boost/smart_ptr/make_shared.hpp>
-
 #include "logging.h"
 #include "utils.h"
 
@@ -117,7 +115,7 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importSimple(&INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey, import_config.tls_pkey_path);
 }
 
-boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
   switch (config.type) {
     case kSqlite:
       if (!boost::filesystem::exists(config.sqldb_path)) {
@@ -131,20 +129,19 @@ boost::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config
         old_config.tls_pkey_path = "pkey.pem";
         old_config.tls_clientcert_path = "client.pem";
 
-        boost::shared_ptr<INvStorage> sql_storage = boost::make_shared<SQLStorage>(config);
-        boost::shared_ptr<INvStorage> fs_storage = boost::make_shared<FSStorage>(old_config);
+        std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
+        std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config);
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
       }
-      return boost::make_shared<SQLStorage>(config);
+      return std::make_shared<SQLStorage>(config);
     case kFileSystem:
     default:
-      return boost::make_shared<FSStorage>(config);
+      return std::make_shared<FSStorage>(config);
   }
 }
 
-void INvStorage::FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage,
-                           boost::shared_ptr<INvStorage>& sql_storage) {
+void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage) {
   std::string public_key;
   std::string private_key;
   if (fs_storage->loadPrimaryKeys(&public_key, &private_key)) sql_storage->storePrimaryKeys(public_key, private_key);

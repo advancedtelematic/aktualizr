@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     }
     Config config(sota_config_path.string());
 
-    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
 
     Uptane::MetaPack pack;

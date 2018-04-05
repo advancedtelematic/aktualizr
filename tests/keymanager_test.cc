@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
+#include <memory>
 
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 #include "json/json.h"
 
 #include "config.h"
@@ -23,7 +22,7 @@ TEST(KeyManager, SignTuf) {
   config.uptane.key_type = kRSA2048;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
   KeyManager keys(storage, config.keymanagerConfig());
 
@@ -45,7 +44,7 @@ TEST(KeyManager, SignED25519Tuf) {
   config.uptane.key_type = kED25519;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
 
   storage->storePrimaryKeys(public_key, private_key);
   KeyManager keys(storage, config.keymanagerConfig());
@@ -63,7 +62,7 @@ TEST(KeyManager, InitFileEmpty) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getCaFile().empty());
@@ -79,7 +78,7 @@ TEST(KeyManager, InitFileValid) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
   std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
@@ -122,7 +121,7 @@ TEST(KeyManager, SignTufPkcs11) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getUptanePublicKey().size());
@@ -147,7 +146,7 @@ TEST(KeyManager, InitPkcs11Valid) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   // Getting the CA from the HSM is not currently supported.
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   storage->storeTlsCa(ca);

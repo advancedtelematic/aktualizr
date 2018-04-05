@@ -9,7 +9,7 @@
 #include "utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
-                                       const boost::shared_ptr<INvStorage>& storage)
+                                       const std::shared_ptr<INvStorage>& storage)
     : config_(config), conn_(config.network.port), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
   // note: we don't use TlsConfig here and supply the default to

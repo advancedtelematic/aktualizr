@@ -1,9 +1,6 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include <boost/move/unique_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-
 #include "httpinterface.h"
 #include "invstorage.h"
 #include "p11engine.h"
@@ -26,7 +23,7 @@ class KeyManager {
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
-  KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config);
+  KeyManager(const std::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config);
   void loadKeys(const std::string *pkey_content = nullptr, const std::string *cert_content = nullptr,
                 const std::string *ca_content = nullptr);
   std::string getPkeyFile() const;
@@ -42,14 +39,14 @@ class KeyManager {
   Json::Value signTuf(const Json::Value &in_data) const;
 
  private:
-  const boost::shared_ptr<INvStorage> &backend_;
+  const std::shared_ptr<INvStorage> &backend_;
   KeyManagerConfig config_;
 #ifdef BUILD_P11
   P11EngineGuard p11_;
 #endif
-  boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file;
-  boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file;
-  boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file;
+  std::unique_ptr<TemporaryFile> tmp_pkey_file;
+  std::unique_ptr<TemporaryFile> tmp_cert_file;
+  std::unique_ptr<TemporaryFile> tmp_ca_file;
 };
 
 #endif  // KEYMANAGER_H_

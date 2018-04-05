@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <fstream>
+#include <iterator>
 #include <open62541.h>
 
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
@@ -11,12 +14,10 @@
 
 #include <crypto.h>
 
-#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
-#include <fstream>
-#include <iterator>
+
 
 namespace tutils = opcuabridge_test_utils;
 namespace fs = boost::filesystem;
@@ -43,7 +44,7 @@ TEST(opcuabridge, prepare_update) {
   MultiPartSHA256Hasher hasher;
   std::size_t size = 0;
   while (size < kUpdateImageSize) {
-    std::generate(block.begin(), block.end(), boost::bind(random_byte, boost::ref(gen)));
+    std::generate(block.begin(), block.end(), std::bind(random_byte, std::ref(gen)));
     hasher.update(&block[0], block.size());
     std::copy(block.begin(), block.end(), std::ostreambuf_iterator<char>(imagefile.rdbuf()));
     size += std::min(block.size(), kUpdateImageSize - size);

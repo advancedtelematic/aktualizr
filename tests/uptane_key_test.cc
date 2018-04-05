@@ -5,13 +5,12 @@
 #include <gtest/gtest.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 
 #include "fsstorage.h"
 #include "httpfake.h"
@@ -61,7 +60,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   config.uptane.secondary_configs.push_back(ecu_config2);
 }
 
-void checkKeyTests(boost::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_client) {
+void checkKeyTests(std::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_client) {
   std::string ca;
   std::string cert;
   std::string pkey;
@@ -82,13 +81,13 @@ void checkKeyTests(boost::shared_ptr<INvStorage>& storage, SotaUptaneClient& sot
 
   std::vector<std::string> public_keys;
   std::vector<std::string> private_keys;
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
     if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
         it->second->sconfig.secondary_type != Uptane::kLegacy) {
       continue;
     }
-    boost::shared_ptr<Uptane::ManagedSecondary> managed =
+    std::shared_ptr<Uptane::ManagedSecondary> managed =
         boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
     std::string public_key;
     std::string private_key;
@@ -117,7 +116,7 @@ TEST(UptaneKey, CheckAllKeys) {
   Uptane::SecondaryConfig ecu_config2;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -138,7 +137,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
   {
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -150,7 +149,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     storage->clearTlsCreds();
   }
   {
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -168,7 +167,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
 
   {
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);

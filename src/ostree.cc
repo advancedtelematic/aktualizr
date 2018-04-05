@@ -10,7 +10,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 #include "logging.h"
 #include "utils.h"
@@ -23,8 +22,8 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   GVariantBuilder builder;
   GVariant *options;
 
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_path);
-  boost::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
+  std::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_path);
+  std::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
   if (error) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
@@ -77,8 +76,8 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
     opt_osname = config.os.c_str();
   }
 
-  boost::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
-  boost::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
+  std::shared_ptr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+  std::shared_ptr<OstreeRepo> repo = LoadRepo(sysroot, &error);
 
   if (error) {
     LOG_ERROR << "could not get repo";
@@ -142,7 +141,7 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   return data::InstallOutcome(data::OK, "Installation successful");
 }
 
-OstreeManager::OstreeManager(const PackageConfig &pconfig, const boost::shared_ptr<INvStorage> &storage)
+OstreeManager::OstreeManager(const PackageConfig &pconfig, const std::shared_ptr<INvStorage> &storage)
     : config(pconfig), storage_(storage) {
   try {
     OstreeManager::getCurrent();
@@ -173,7 +172,7 @@ Json::Value OstreeManager::getInstalledPackages() {
 }
 
 Uptane::Target OstreeManager::getCurrent() {
-  boost::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
+  std::shared_ptr<OstreeDeployment> staged_deployment = getStagedDeployment();
   if (!staged_deployment) {
     throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
   }
@@ -192,25 +191,25 @@ Uptane::Target OstreeManager::getCurrent() {
   return getUnknown();
 }
 
-boost::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
-  boost::shared_ptr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+std::shared_ptr<OstreeDeployment> OstreeManager::getStagedDeployment() {
+  std::shared_ptr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
   GPtrArray *deployments = NULL;
-  boost::shared_ptr<OstreeDeployment> res;
+  std::shared_ptr<OstreeDeployment> res;
 
   deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
 
   if (deployments->len > 0) {
     OstreeDeployment *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
     OstreeDeployment *d2 = static_cast<OstreeDeployment *>(g_object_ref(d));
-    res = boost::shared_ptr<OstreeDeployment>(d2, g_object_unref);
+    res = std::shared_ptr<OstreeDeployment>(d2, g_object_unref);
   }
 
   g_ptr_array_unref(deployments);
   return res;
 }
 
-boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
+std::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
   OstreeSysroot *sysroot = NULL;
 
   if (!path.empty()) {
@@ -228,17 +227,17 @@ boost::shared_ptr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesys
     g_object_unref(sysroot);
     throw std::runtime_error("could not load sysroot");
   }
-  return boost::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
+  return std::shared_ptr<OstreeSysroot>(sysroot, g_object_unref);
 }
 
-boost::shared_ptr<OstreeRepo> OstreeManager::LoadRepo(boost::shared_ptr<OstreeSysroot> sysroot, GError **error) {
+std::shared_ptr<OstreeRepo> OstreeManager::LoadRepo(std::shared_ptr<OstreeSysroot> sysroot, GError **error) {
   OstreeRepo *repo = NULL;
 
   if (!ostree_sysroot_get_repo(sysroot.get(), &repo, NULL, error)) {
-    return boost::shared_ptr<OstreeRepo>();
+    return std::shared_ptr<OstreeRepo>();
   }
 
-  return boost::shared_ptr<OstreeRepo>(repo, g_object_unref);
+  return std::shared_ptr<OstreeRepo>(repo, g_object_unref);
 }
 
 bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys) {

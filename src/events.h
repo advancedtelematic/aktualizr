@@ -1,7 +1,6 @@
 #ifndef EVENTS_H_
 #define EVENTS_H_
 
-#include <boost/shared_ptr.hpp>
 #include <map>
 
 #include <json/json.h>
@@ -19,7 +18,7 @@ class BaseEvent {
   Json::Value toBaseJson();
   virtual std::string toJson() = 0;
 };
-typedef Channel<boost::shared_ptr<BaseEvent> > Channel;
+typedef Channel<std::shared_ptr<BaseEvent> > Channel;
 
 class Error : public BaseEvent {
  public:

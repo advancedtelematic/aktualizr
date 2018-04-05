@@ -2,10 +2,9 @@
 
 #include <stdexcept>
 
-#include <boost/move/make_unique.hpp>
 #include <boost/scoped_array.hpp>
 
-KeyManager::KeyManager(const boost::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config)
+KeyManager::KeyManager(const std::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config)
     : backend_(backend),
       config_(config)
 #ifdef BUILD_P11
@@ -26,7 +25,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!pkey.empty()) {
       if (tmp_pkey_file == nullptr) {
-        tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+        tmp_pkey_file = std::make_unique<TemporaryFile>("tls-pkey");
       }
       tmp_pkey_file->PutContents(pkey);
     }
@@ -40,7 +39,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!cert.empty()) {
       if (tmp_cert_file == nullptr) {
-        tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
+        tmp_cert_file = std::make_unique<TemporaryFile>("tls-cert");
       }
       tmp_cert_file->PutContents(cert);
     }
@@ -54,7 +53,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!ca.empty()) {
       if (tmp_ca_file == nullptr) {
-        tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+        tmp_ca_file = std::make_unique<TemporaryFile>("tls-ca");
       }
       tmp_ca_file->PutContents(ca);
     }

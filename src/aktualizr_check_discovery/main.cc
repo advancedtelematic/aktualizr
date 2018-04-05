@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
       std::vector<Uptane::SecondaryConfig>::const_iterator it;
       for (it = discovered.begin(); it != discovered.end(); ++it) {
-        boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+        std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
         if (it->secondary_type == Uptane::kIpUptane) {
           ip_uptane_splitter.registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
           auto public_key = sec->getPublicKey();

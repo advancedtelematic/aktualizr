@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <iomanip>
 #include <iostream>
@@ -71,7 +70,7 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
   std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   std::string objpath = hash.string().insert(2, 1, '/');
 
-  BOOST_FOREACH (std::string ext, exts) {
+  for (std::string ext : exts) {
     if (Get(std::string("objects/") + objpath + ext)) {
       OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
       ObjectTable[hash] = obj;

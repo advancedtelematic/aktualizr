@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include <boost/shared_ptr.hpp>
-
 #include "types.h"
 #include "uptane/tuf.h"
 

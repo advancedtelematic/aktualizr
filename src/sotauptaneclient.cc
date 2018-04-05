@@ -1,9 +1,7 @@
 #include "sotauptaneclient.h"
 
 #include <unistd.h>
-#include <boost/thread/thread.hpp>
-
-#include <boost/make_shared.hpp>
+#include <chrono>
 #include "json/json.h"
 
 #include "crypto.h"
@@ -16,7 +14,7 @@
 #include "utils.h"
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
-                                   const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
+                                   const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
     : config(config_in),
       events_channel(events_channel_in),
       uptane_repo(repo),
@@ -39,8 +37,9 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_cha
 
 void SotaUptaneClient::run(command::Channel *commands_channel) {
   while (true) {
-    *commands_channel << boost::make_shared<command::GetUpdateRequests>();
-    boost::this_thread::sleep_for(boost::chrono::seconds(config.uptane.polling_sec));
+    *commands_channel << std::make_shared<command::GetUpdateRequests>();
+    std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
+    if (shutdown) return;
   }
 }
 
@@ -48,7 +47,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target == pacman->getCurrent();
   } else {
-    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(target.ecu_identifier());
     if (map_it != secondaries.end()) {
       // TODO: compare version
@@ -114,7 +113,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   }
 
   result[uptane_repo.getPrimaryEcuSerial()] = uptane_repo.signVersionManifest(unsigned_ecu_version);
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
     if (secmanifest != Json::nullValue) {
@@ -135,9 +134,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   reportHwInfo();
   reportInstalledPackages();
 
-  boost::thread polling_thread(boost::bind(&SotaUptaneClient::run, this, commands_channel));
+  std::thread polling_thread(std::bind(&SotaUptaneClient::run, this, commands_channel));
 
-  boost::shared_ptr<command::BaseCommand> command;
+  std::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOG_INFO << "got " + command->variant + " command";
 
@@ -149,7 +148,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         // Uptane step 3 (download metadata)
         if (!uptane_repo.getMeta()) {
           LOG_ERROR << "could not retrieve metadata";
-          *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+          *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
           continue;
         }
         // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
@@ -157,11 +156,11 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
         if (updates.second.size() && updates.first > last_targets_version) {
           LOG_INFO << "got new updates";
-          *events_channel << boost::make_shared<event::UptaneTargetsUpdated>(updates.second);
+          *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
           last_targets_version = updates.first;  // TODO: What if we fail install targets?
         } else {
           LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
-          *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+          *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
         }
       } else if (command->variant == "UptaneInstall") {
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
@@ -204,17 +203,17 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
           }
         }
       } else if (command->variant == "Shutdown") {
-        polling_thread.interrupt();
+        shutdown = true;
         polling_thread.join();
         return;
       }
 
     } catch (Uptane::Exception e) {
       LOG_ERROR << e.what();
-      *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+      *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
     } catch (const std::exception &ex) {
       LOG_ERROR << "Unknown exception was thrown: " << ex.what();
-      *events_channel << boost::make_shared<event::UptaneTimestampUpdated>();
+      *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
     }
   }
 }
@@ -222,12 +221,12 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 void SotaUptaneClient::initSecondaries() {
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
-    boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+    std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
     if (it->secondary_type == Uptane::kIpUptane)
       ip_uptane_splitter->registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
 
     std::string sec_serial = sec->getSerial();
-    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(sec_serial);
     if (map_it != secondaries.end()) {
       LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
@@ -250,29 +249,28 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<MisconfiguredEcu> misconfigured_ecus;
   std::vector<bool> found(serials.size(), false);
   SerialCompare primary_comp(uptane_repo.getPrimaryEcuSerial());
-  // Should be a const_iterator but we need C++11 for cbegin.
-  std::vector<std::pair<std::string, std::string> >::iterator store_it;
+  std::vector<std::pair<std::string, std::string> >::const_iterator store_it;
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
     misconfigured_ecus.push_back(MisconfiguredEcu(store_it->first, store_it->second, kOld));
   } else {
-    found[std::distance(serials.begin(), store_it)] = true;
+    found[std::distance(serials.cbegin(), store_it)] = true;
   }
 
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
-  for (it = secondaries.begin(); it != secondaries.end(); ++it) {
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
     if (store_it == serials.end()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
       misconfigured_ecus.push_back(MisconfiguredEcu(it->second->getSerial(), it->second->getHwId(), kNotRegistered));
-    } else if (found[std::distance(serials.begin(), store_it)] == true) {
+    } else if (found[std::distance(serials.cbegin(), store_it)] == true) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
     } else {
-      found[std::distance(serials.begin(), store_it)] = true;
+      found[std::distance(serials.cbegin(), store_it)] = true;
     }
   }
 
@@ -297,7 +295,7 @@ void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
 
   // target images should already have been downloaded to metadata_path/targets/
   for (it = targets.begin(); it != targets.end(); ++it) {
-    std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
+    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
         secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
       if (!sec->second->putMetadata(meta)) {

@@ -2,10 +2,9 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <memory>
 
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -34,7 +33,7 @@ TEST(EventsTest, broadcasted) {
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
+  gateway.processEvent(std::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
   sleep(1);
   std::ifstream file_stream((temp_dir.Path() / "sota-events.socket.txt").c_str());
   std::string content;
@@ -58,7 +57,7 @@ TEST(EventsTest, not_broadcasted) {
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(boost::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
+  gateway.processEvent(std::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
   sleep(1);
   std::ifstream file_stream((temp_dir.Path() / "sota-events.socket.txt").c_str());
   std::string content;
@@ -81,7 +80,7 @@ TEST(CommandsTest, recieved) {
       (socket_path / "commands.py").string() + " " + (temp_dir.Path() / "sota-commands.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  boost::shared_ptr<command::BaseCommand> command;
+  std::shared_ptr<command::BaseCommand> command;
   chan >> command;
 
   EXPECT_EQ(command->variant, "Shutdown");

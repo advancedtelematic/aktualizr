@@ -8,7 +8,7 @@
 
 #include "logging.h"
 
-boost::shared_ptr<INvStorage> storage;
+std::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
 std::string sysroot;
 

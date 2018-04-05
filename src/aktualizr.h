@@ -3,9 +3,11 @@
 
 #include "config.h"
 
-class Aktualizr : public boost::noncopyable {
+class Aktualizr {
  public:
   Aktualizr(Config& config);
+  Aktualizr(const Aktualizr&) = delete;
+  Aktualizr& operator=(const Aktualizr&) = delete;
 
   int run();
 

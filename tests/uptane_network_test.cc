@@ -14,8 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/smart_ptr/make_shared.hpp>
-
 #include "fsstorage.h"
 #include "httpclient.h"
 #include "logging.h"
@@ -43,7 +41,7 @@ bool doInit(StorageType storage_type, const std::string &device_register_state, 
 
   bool result;
   HttpClient http;
-  boost::shared_ptr<INvStorage> store = INvStorage::newStorage(conf.storage, temp_dir.Path());
+  std::shared_ptr<INvStorage> store = INvStorage::newStorage(conf.storage, temp_dir.Path());
   {
     Uptane::Repository uptane = Uptane::Repository(conf, store, http);
     result = uptane.initialize();

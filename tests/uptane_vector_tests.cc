@@ -4,9 +4,8 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
-
-#include <boost/smart_ptr/make_shared.hpp>
 
 #include "config.h"
 #include "fsstorage.h"
@@ -40,7 +39,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.pacman.sysroot = "./sysroot";
 
   try {
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));

@@ -1,4 +1,3 @@
-#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
@@ -86,7 +85,7 @@ int main(int argc, char **argv) {
     LOG_FATAL << "Authentication failed";
     return EXIT_FAILURE;
   }
-  OSTreeRepo::ptr src_repo = boost::make_shared<OSTreeHttpRepo>(&fetch_server);
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&fetch_server);
 
   try {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));

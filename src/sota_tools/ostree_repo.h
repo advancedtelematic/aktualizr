@@ -2,8 +2,6 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 
 #include <boost/filesystem.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "ostree_hash.h"
 #include "ostree_object.h"
@@ -14,9 +12,11 @@ class OSTreeRef;
  * A source repository to read OSTree objects from. This can be either a directory
  * on disk, or a URL in the garage-deploy case.
  */
-class OSTreeRepo : private boost::noncopyable {
+class OSTreeRepo {
  public:
-  typedef boost::shared_ptr<OSTreeRepo> ptr;
+  typedef std::shared_ptr<OSTreeRepo> ptr;
+  // OSTreeRepo(const OSTreeRepo&) = delete;
+  OSTreeRepo& operator=(const OSTreeRepo&) = delete;
 
   virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;

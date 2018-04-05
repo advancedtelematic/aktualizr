@@ -8,7 +8,6 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/make_shared.hpp>
 
 #include "bootstrap.h"
 #include "crypto.h"
@@ -38,7 +37,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return written_size;
 }
 
-Repository::Repository(const Config& config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
+Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
     : config(config_in),
       storage(storage_in),
       http(http_client),

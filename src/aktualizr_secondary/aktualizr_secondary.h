@@ -17,7 +17,7 @@
 
 class AktualizrSecondary {
  public:
-  AktualizrSecondary(const AktualizrSecondaryConfig& config, const boost::shared_ptr<INvStorage>& storage);
+  AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage);
   void run();
   void stop();
 
@@ -44,11 +44,11 @@ class AktualizrSecondary {
   AktualizrSecondaryConfig config_;
   IpUptaneConnection conn_;
 
-  boost::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<INvStorage> storage_;
   KeyManager keys_;
   std::string ecu_serial_;
   std::string hardware_id_;
-  boost::shared_ptr<PackageManagerInterface> pacman;
+  std::shared_ptr<PackageManagerInterface> pacman;
   Uptane::Root root_;
   Uptane::Targets meta_targets_;
   std::string detected_attack_;

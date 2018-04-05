@@ -38,7 +38,7 @@ int Aktualizr::run() {
   // run events interpreter in background
   events_interpreter.interpret();
 
-  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
   HttpClient http;
   Uptane::Repository repo(config_, storage, http);

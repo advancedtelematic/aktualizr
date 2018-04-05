@@ -1,6 +1,5 @@
 
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 #include <iomanip>
 #include <iostream>
@@ -92,7 +91,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  OSTreeRepo::ptr src_repo = boost::make_shared<OSTreeDirRepo>(repo_path);
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
 
   if (!src_repo->LooksValid()) {
     LOG_FATAL << "The OSTree src repository does not appear to contain a valid OSTree repository";
