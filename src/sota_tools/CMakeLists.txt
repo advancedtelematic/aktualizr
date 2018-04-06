@@ -40,7 +40,7 @@ if (BUILD_SOTA_TOOLS)
     target_link_libraries(garage-push gcov)
   endif(BUILD_WITH_CODE_COVERAGE)
 
-  install(TARGETS garage-push RUNTIME DESTINATION bin)
+  install(TARGETS garage-push RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
 ##### garage-check targets
@@ -62,7 +62,7 @@ if (BUILD_SOTA_TOOLS)
     target_link_libraries(garage-check gcov)
   endif(BUILD_WITH_CODE_COVERAGE)
 
-  install(TARGETS garage-check RUNTIME DESTINATION bin)
+  install(TARGETS garage-check RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
 ##### garage-deploy targets
