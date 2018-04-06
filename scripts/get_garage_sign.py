@@ -36,7 +36,8 @@ def main():
     ns = '{http://s3.amazonaws.com/doc/2006-03-01/}'
     items = tree.findall(ns + 'Contents')
     versions = dict()
-    for i in (i for i in items if i.find(ns + 'Key').text[0:4] == 'cli-'):
+    cli_items = [i for i in items if i.find(ns + 'Key').text.startswith('cli-')]
+    for i in cli_items:
         # ETag is md5sum.
         versions[i.find(ns + 'Key').text] = (i.find(ns + 'LastModified').text, i.find(ns + 'ETag').text[1:-1])
     if args.name:
