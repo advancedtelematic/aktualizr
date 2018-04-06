@@ -22,20 +22,20 @@ OpcuaSecondary::OpcuaSecondary(const SecondaryConfig& sconfig) : SecondaryInterf
 OpcuaSecondary::~OpcuaSecondary() {}
 
 std::string OpcuaSecondary::getSerial() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.recvConfiguration().getSerial();
 }
 std::string OpcuaSecondary::getHwId() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.recvConfiguration().getHwId();
 }
 std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return std::make_pair(client.recvConfiguration().getPublicKeyType(), client.recvConfiguration().getPublicKey());
 }
 
 Json::Value OpcuaSecondary::getManifest() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.recvVersionReport().getEcuVersionManifest().wrapMessage();
 }
 
@@ -51,14 +51,14 @@ bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
   std::transform(director_targets.begin(), director_targets.end(), std::back_inserter(metadatafiles), makeMetadataFile);
   std::transform(image_targets.begin(), image_targets.end(), std::back_inserter(metadatafiles), makeMetadataFile);
 
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.sendMetadataFiles(metadatafiles);
 }
 
 bool OpcuaSecondary::sendFirmware(const std::string& data) {
   const fs::path source_repo_dir_path(data);
 
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   if (!client) return false;
 
   bool retval = true;

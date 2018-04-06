@@ -15,9 +15,10 @@ const std::string kDefaultCanIf = "can0";
 class TestIsotpInterface : public ECUInterface {
  public:
   TestIsotpInterface(unsigned int loglevel, uint32_t canid = kDefaultCanId, const std::string& canif = kDefaultCanIf);
-  std::string apiVersion();
-  std::string listEcus();
-  InstallStatus installSoftware(const std::string& hardware_id, const std::string& ecu_id, const std::string& firmware);
+  std::string apiVersion() override;
+  std::string listEcus() override;
+  InstallStatus installSoftware(const std::string& hardware_id, const std::string& ecu_id,
+                                const std::string& firmware) override;
 
  private:
   // (hardware_id, ecu_serial) -> CAN address

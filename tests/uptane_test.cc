@@ -20,7 +20,6 @@
 #include "sotauptaneclient.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
-#include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 

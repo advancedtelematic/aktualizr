@@ -40,42 +40,42 @@ class accumulator_type : public boost::program_options::value_semantic {
     return this;
   }
 
-  virtual std::string name() const { return std::string(); }
+  virtual std::string name() const { return std::string(); }  // NOLINT
 
   /// There are no tokens for an accumulator_type
-  virtual unsigned min_tokens() const { return 0; }
-  virtual unsigned max_tokens() const { return 0; }
+  virtual unsigned min_tokens() const { return 0; }  // NOLINT
+  virtual unsigned max_tokens() const { return 0; }  // NOLINT
 
-  virtual bool adjacent_tokens_only() const { return false; }
+  virtual bool adjacent_tokens_only() const { return false; }  // NOLINT
 
   /// Accumulating from different sources is silly.
-  virtual bool is_composing() const { return false; }
+  virtual bool is_composing() const { return false; }  // NOLINT
 
   /// Requiring one or more appearances is unlikely.
-  virtual bool is_required() const { return false; }
+  virtual bool is_required() const { return false; }  // NOLINT
 
   /// Every appearance of the option simply increments the value
   //
   /// There should never be any tokens.
-  virtual void parse(boost::any& value_store, const std::vector<std::string>&, bool /*utf8*/) const {
+  virtual void parse(boost::any& value_store, const std::vector<std::string>&, bool /*utf8*/) const {  // NOLINT
     if (value_store.empty()) value_store = T();
     boost::any_cast<T&>(value_store) += _interval;
   }
 
   /// If the option doesn't appear, this is the default value.
-  virtual bool apply_default(boost::any& value_store) const {
+  virtual bool apply_default(boost::any& value_store) const {  // NOLINT
     value_store = _default;
     return true;
   }
 
   /// Notify the user function with the value of the value store.
-  virtual void notify(const boost::any& value_store) const {
+  virtual void notify(const boost::any& value_store) const {  // NOLINT
     const T* val = boost::any_cast<T>(&value_store);
     if (_store) *_store = *val;
     if (_notifier) _notifier(*val);
   }
 
-  virtual ~accumulator_type() {}
+  virtual ~accumulator_type() {}  // NOLINT
 
  private:
   T* _store;

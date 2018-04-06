@@ -30,7 +30,7 @@ class OSTreeCommitParseError : std::exception {
  public:
   OSTreeCommitParseError(const std::string bad_hash) : bad_hash_(bad_hash) {}
 
-  virtual const char* what() const noexcept { return "Could not parse OSTree commit"; }
+  const char* what() const noexcept override { return "Could not parse OSTree commit"; }
 
   std::string bad_hash() const { return bad_hash_; }
 

@@ -171,14 +171,18 @@ if(CLANG_TIDY)
     function(aktualizr_clang_tidy)
         file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
         foreach(FILE ${ARGN})
-            if(NOT ${FILE} MATCHES "\\.h")
-                string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
-                add_custom_target(${TARGETNAME}
-                    COMMAND ${CLANG_TIDY} -quiet --extra-arg-before=-Wno-unknown-warning-option -format-style=file -warnings-as-errors=* -p ${CMAKE_BINARY_DIR} ${FILE}
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    VERBATIM)
-                add_dependencies(clang-tidy ${TARGETNAME})
+            if(${FILE} MATCHES "\\.h")
+                # do not run clang-tidy directly on header files, since it
+                # ignores them. headers will be checked if they are included by
+                # a checked source file
+                continue()
             endif()
+            string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
+            add_custom_target(${TARGETNAME}
+                COMMAND ${CLANG_TIDY} -quiet -header-filter=\(${CMAKE_SOURCE_DIR}|\\.\\.\)/src/.* --extra-arg-before=-Wno-unknown-warning-option -format-style=file -warnings-as-errors=* -p ${CMAKE_BINARY_DIR} ${FILE}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                VERBATIM)
+            add_dependencies(clang-tidy ${TARGETNAME})
         endforeach()
     endfunction()
 else()

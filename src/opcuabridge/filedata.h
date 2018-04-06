@@ -17,7 +17,7 @@ class FileData : public MessageFileData {
   const boost::filesystem::path& getFilePath() const { return file_path_; }
   void setFilePath(const boost::filesystem::path& file_path) { file_path_ = file_path; }
 
-  virtual std::string getFullFilePath() const override { return (getBasePath() / getFilePath()).native(); }
+  std::string getFullFilePath() const override { return (getBasePath() / getFilePath()).native(); }
 
   INITSERVERNODESET_FILE_FUNCTION_DEFINITION(FileData)  // InitServerNodeset(UA_Server*)
   CLIENTWRITE_FILE_FUNCTION_DEFINITION()                // ClientWrite(UA_Client*)
