@@ -5,7 +5,6 @@
 
 #include <assert.h>
 #include <glib.h>
-#include <boost/foreach.hpp>
 #include <iostream>
 
 using std::string;
@@ -38,7 +37,7 @@ void OSTreeObject::ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it) 
 void OSTreeObject::NotifyParents(RequestPool &pool) {
   assert(is_on_server_ == OBJECT_PRESENT);
 
-  BOOST_FOREACH (parentref parent, parents_) {
+  for (parentref parent : parents_) {
     parent.first->ChildNotify(parent.second);
     if (parent.first->children_ready()) pool.AddUpload(parent.first);
   }
@@ -147,7 +146,7 @@ void OSTreeObject::PopulateChildren() {
 }
 
 void OSTreeObject::QueryChildren(RequestPool &pool) {
-  BOOST_FOREACH (OSTreeObject::ptr child, children_) {
+  for (OSTreeObject::ptr child : children_) {
     if (child->is_on_server() == OBJECT_STATE_UNKNOWN) pool.AddQuery(child);
   }
 }

@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <iostream>
+#include <random>
 #include <sstream>
 #include <string>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <boost/random/random_device.hpp>
 
 #include <openssl/ssl.h>
 #include "json/json.h"
@@ -168,8 +168,8 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
   X509_set_version(certificate.get(), 2);  // X509v3
 
   {
-    boost::random::random_device urandom;
-    boost::random::uniform_int_distribution<> serial_dist(0, (1UL << 20) - 1);
+    std::random_device urandom;
+    std::uniform_int_distribution<> serial_dist(0, (1UL << 20) - 1);
     ASN1_INTEGER_set(X509_get_serialNumber(certificate.get()), serial_dist(urandom));
   }
 

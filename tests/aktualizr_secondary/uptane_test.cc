@@ -6,7 +6,7 @@
 #include "config.h"
 #include "httpfake.h"
 
-boost::shared_ptr<INvStorage> storage;
+std::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
 std::string sysroot;
 
@@ -52,7 +52,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   config.uptane.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
-  boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());

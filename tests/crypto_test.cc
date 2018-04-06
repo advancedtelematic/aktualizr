@@ -2,12 +2,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include <json/json.h>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 #include "crypto.h"
 #include "fsstorage.h"

@@ -1,4 +1,5 @@
 #include "httpclient.h"
+#include "utils.h"
 
 #include <assert.h>
 #include <openssl/crypto.h>
@@ -10,8 +11,6 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
-#include <boost/move/make_unique.hpp>
-#include <boost/move/utility.hpp>
 
 #include "logging.h"
 #include "openssl_compat.h"
@@ -96,21 +95,21 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
   if (ca_source == kPkcs11) {
     throw std::runtime_error("Accessing CA certificate on PKCS11 devices isn't currently supported");
   } else {  // ca_source =kFile
-    boost::movelib::unique_ptr<TemporaryFile> tmp_ca_file = boost::movelib::make_unique<TemporaryFile>("tls-ca");
+    std::unique_ptr<TemporaryFile> tmp_ca_file = std::make_unique<TemporaryFile>("tls-ca");
     tmp_ca_file->PutContents(ca);
     curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
-    tls_ca_file = boost::move_if_noexcept(tmp_ca_file);
+    tls_ca_file = std::move_if_noexcept(tmp_ca_file);
   }
 
   if (cert_source == kPkcs11) {
     curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
   } else {  // cert_source =kFile
-    boost::movelib::unique_ptr<TemporaryFile> tmp_cert_file = boost::movelib::make_unique<TemporaryFile>("tls-cert");
+    std::unique_ptr<TemporaryFile> tmp_cert_file = std::make_unique<TemporaryFile>("tls-cert");
     tmp_cert_file->PutContents(cert);
     curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
-    tls_cert_file = boost::move_if_noexcept(tmp_cert_file);
+    tls_cert_file = std::move_if_noexcept(tmp_cert_file);
   }
   pkcs11_cert = (cert_source == kPkcs11);
 
@@ -120,11 +119,11 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
   } else {  // pkey_source =kFile
-    boost::movelib::unique_ptr<TemporaryFile> tmp_pkey_file = boost::movelib::make_unique<TemporaryFile>("tls-pkey");
+    std::unique_ptr<TemporaryFile> tmp_pkey_file = std::make_unique<TemporaryFile>("tls-pkey");
     tmp_pkey_file->PutContents(pkey);
     curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
-    tls_pkey_file = boost::move_if_noexcept(tmp_pkey_file);
+    tls_pkey_file = std::move_if_noexcept(tmp_pkey_file);
   }
   pkcs11_key = (pkey_source == kPkcs11);
 }

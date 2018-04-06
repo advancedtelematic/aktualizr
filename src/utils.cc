@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -21,8 +23,6 @@
 #include <boost/archive/iterators/remove_whitespace.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/random/random_device.hpp>
-#include <boost/thread.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -247,11 +247,11 @@ Json::Value Utils::parseJSONFile(const boost::filesystem::path &filename) {
 }
 
 std::string Utils::genPrettyName() {
-  boost::random::random_device urandom;
+  std::random_device urandom;
 
-  boost::random::uniform_int_distribution<> adverbs_dist(0, (sizeof(adverbs) / sizeof(char *)) - 1);
-  boost::random::uniform_int_distribution<> nouns_dist(0, (sizeof(names) / sizeof(char *)) - 1);
-  boost::random::uniform_int_distribution<> digits(0, 999);
+  std::uniform_int_distribution<> adverbs_dist(0, (sizeof(adverbs) / sizeof(char *)) - 1);
+  std::uniform_int_distribution<> nouns_dist(0, (sizeof(names) / sizeof(char *)) - 1);
+  std::uniform_int_distribution<> digits(0, 999);
   std::stringstream pretty_name;
   pretty_name << adverbs[adverbs_dist(urandom)];
   pretty_name << "-";
@@ -352,8 +352,8 @@ std::string Utils::getHostname() {
 }
 
 std::string Utils::randomUuid() {
-  boost::random::random_device urandom;
-  boost::uuids::basic_random_generator<boost::random::random_device> uuid_gen(urandom);
+  std::random_device urandom;
+  boost::uuids::basic_random_generator<std::random_device> uuid_gen(urandom);
   return boost::uuids::to_string(uuid_gen());
 }
 
@@ -546,8 +546,10 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
   }
 }
 
-class SafeTempRoot : private boost::noncopyable {
+class SafeTempRoot {
  public:
+  SafeTempRoot(const SafeTempRoot &) = delete;
+  SafeTempRoot operator=(const SafeTempRoot &) = delete;
   // provide this as a static method so that we can use C++ static destructor
   // to remove the temp root
   static boost::filesystem::path &Get() {

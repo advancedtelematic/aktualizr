@@ -5,11 +5,11 @@
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
 
 #include "utils.h"
+#include <functional>
 
 #include "opcuabridge_test_utils.h"
 #include "test_utils.h"
 
-#include <boost/bind.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <fstream>
@@ -120,7 +120,7 @@ TEST(opcuabridge, serialization) {
   md.setFileNumber(1);
   md.setFilename("METADATA.EXT");
   std::vector<unsigned char> metadata(1024);
-  std::generate(metadata.begin(), metadata.end(), boost::bind(random_byte, boost::ref(gen)));
+  std::generate(metadata.begin(), metadata.end(), std::bind(random_byte, std::ref(gen)));
   md.setMetadata(metadata);
 
   EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "MetadataFile", md));
@@ -147,7 +147,7 @@ TEST(opcuabridge, serialization) {
   img_block.setFilename("IMAGE_FILE.EXT");
   img_block.setBlockNumber(1);
   std::vector<unsigned char> block(1024);
-  std::generate(block.begin(), block.end(), boost::bind(random_byte, boost::ref(gen)));
+  std::generate(block.begin(), block.end(), std::bind(random_byte, std::ref(gen)));
   img_block.setBlock(block);
 
   EXPECT_TRUE(tutils::SerializeMessage(temp_dir, "ImageBlock", img_block));

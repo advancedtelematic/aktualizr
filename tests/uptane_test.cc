@@ -7,12 +7,11 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "fsstorage.h"
 #include "httpfake.h"
@@ -42,7 +41,7 @@ TEST(Uptane, Verify) {
   config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpResponse response = http.get(http.tls_server + "/director/root.json");
   Uptane::Root root(Uptane::Root::kAcceptAll);
   Uptane::Root(now, "director", response.getJson(), root);
@@ -56,7 +55,7 @@ TEST(Uptane, VerifyDataBad) {
   config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json.removeMember("signatures");
 
@@ -72,7 +71,7 @@ TEST(Uptane, VerifyDataUnknownType) {
   config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
@@ -89,7 +88,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
   config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
@@ -106,7 +105,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
   config.uptane.repo_server = http.tls_server + "/repo";
 
   config.storage.path = temp_dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
@@ -143,7 +142,7 @@ TEST(Uptane, Initialize) {
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   std::string pkey;
   std::string cert;
   std::string ca;
@@ -181,7 +180,7 @@ TEST(Uptane, InitializeTwice) {
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   std::string pkey1;
   std::string cert1;
   std::string ca1;
@@ -236,7 +235,7 @@ TEST(Uptane, PetNameProvided) {
   conf.storage.uptane_public_key_path = "public.key";
   conf.uptane.primary_ecu_serial = "testecuserial";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(conf, storage, http);
   EXPECT_TRUE(uptane.initialize());
@@ -272,7 +271,7 @@ TEST(Uptane, PetNameCreation) {
 
   std::string test_name1, test_name2;
   {
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
@@ -290,7 +289,7 @@ TEST(Uptane, PetNameCreation) {
     boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
     conf.uptane.device_id = "";
 
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
@@ -304,7 +303,7 @@ TEST(Uptane, PetNameCreation) {
   // re-initializing the config should still read the device_id from file.
   {
     conf.uptane.device_id = "";
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
@@ -322,7 +321,7 @@ TEST(Uptane, PetNameCreation) {
     boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
     conf.uptane.device_id = test_name2;
 
-    boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     EXPECT_TRUE(uptane.initialize());
@@ -345,7 +344,7 @@ TEST(Uptane, Expires) {
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
 
   Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json"));
 
@@ -383,7 +382,7 @@ TEST(Uptane, Threshold) {
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
 
   Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json"));
 
@@ -439,7 +438,7 @@ TEST(Uptane, InitializeFail) {
 
   conf.uptane.primary_ecu_serial = "testecuserial";
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   Uptane::Repository uptane(conf, storage, http);
 
   http.provisioningResponse = ProvisionFailure;
@@ -479,7 +478,7 @@ TEST(Uptane, PutManifest) {
   ecu_config.metadata_path = temp_dir / "secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
@@ -515,17 +514,17 @@ TEST(Uptane, RunForeverNoUpdates) {
   event::Channel events_channel;
   command::Channel commands_channel;
 
-  commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  commands_channel << boost::make_shared<command::Shutdown>();
+  commands_channel << std::make_shared<command::GetUpdateRequests>();
+  commands_channel << std::make_shared<command::GetUpdateRequests>();
+  commands_channel << std::make_shared<command::GetUpdateRequests>();
+  commands_channel << std::make_shared<command::Shutdown>();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
-  boost::shared_ptr<event::BaseEvent> event;
+  std::shared_ptr<event::BaseEvent> event;
 
   EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
@@ -571,14 +570,14 @@ TEST(Uptane, RunForeverHasUpdates) {
   event::Channel events_channel;
   command::Channel commands_channel;
 
-  commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  commands_channel << boost::make_shared<command::Shutdown>();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  commands_channel << std::make_shared<command::GetUpdateRequests>();
+  commands_channel << std::make_shared<command::Shutdown>();
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
 
-  boost::shared_ptr<event::BaseEvent> event;
+  std::shared_ptr<event::BaseEvent> event;
   EXPECT_TRUE(events_channel.hasValues());
   events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
@@ -617,9 +616,9 @@ TEST(Uptane, RunForeverInstall) {
   command::Channel commands_channel;
 
   std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
-  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
-  commands_channel << boost::make_shared<command::Shutdown>();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(conf.storage);
+  commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
+  commands_channel << std::make_shared<command::Shutdown>();
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
@@ -666,7 +665,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   ecu_config.metadata_path = temp_dir / "secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -699,12 +698,12 @@ TEST(Uptane, ProvisionOnServer) {
 
   event::Channel events_channel;
   command::Channel commands_channel;
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   std::vector<Uptane::Target> packages_to_install = makePackage(config.uptane.primary_ecu_serial);
-  commands_channel << boost::make_shared<command::GetUpdateRequests>();
-  commands_channel << boost::make_shared<command::UptaneInstall>(packages_to_install);
-  commands_channel << boost::make_shared<command::Shutdown>();
+  commands_channel << std::make_shared<command::GetUpdateRequests>();
+  commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
+  commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient up(config, &events_channel, repo, storage, http);
   up.runForever(&commands_channel);
@@ -721,7 +720,7 @@ TEST(Uptane, CheckOldProvision) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.path = temp_dir.Path();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(storage->loadEcuRegistered());
   EXPECT_TRUE(uptane.initialize());
@@ -788,7 +787,7 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_serial")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_hardware_id")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "secondaries_list")));
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
+  std::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -892,7 +891,7 @@ TEST(Uptane, fs_to_sql_partial) {
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
 
-  boost::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
+  std::shared_ptr<INvStorage> sql_storage = INvStorage::newStorage(config, temp_dir.Path());
 
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_FALSE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -947,7 +946,7 @@ TEST(Uptane, SaveVersion) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
 
@@ -973,7 +972,7 @@ TEST(Uptane, LoadVersion) {
   config.storage.tls_pkey_path = "pkey.pem";
   config.uptane.device_id = "device_id";
   config.postUpdateValues();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
 
@@ -1005,7 +1004,7 @@ TEST(Uptane, Pkcs11Provision) {
   config.storage.tls_cacert_path = "ca.pem";
   config.postUpdateValues();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpFake http(temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
   EXPECT_TRUE(uptane.initialize());

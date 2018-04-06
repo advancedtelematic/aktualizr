@@ -1,9 +1,9 @@
 #include "server_credentials.h"
 
+#include "utils.h"
+
 #include <archive.h>
 #include <archive_entry.h>
-#include <boost/move/make_unique.hpp>
-#include <boost/move/unique_ptr.hpp>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -19,10 +19,10 @@ using boost::property_tree::ptree;
 const std::string kBaseUrl = "https://treehub-staging.gw.prod01.advancedtelematic.com/api/v1/";
 const std::string kPassword = "quochai1ech5oot5gaeJaifooqu6Saew";
 
-boost::movelib::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
+std::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
   int r;
   const char *buff = nullptr;
-  boost::movelib::unique_ptr<std::stringstream> result = boost::movelib::make_unique<std::stringstream>();
+  std::unique_ptr<std::stringstream> result = std::make_unique<std::stringstream>();
   size_t size;
   int64_t offset;
   for (;;) {
@@ -43,7 +43,7 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     : method_(AUTH_NONE), credentials_path_(credentials_path) {
   bool found_config = false;
 
-  boost::movelib::unique_ptr<std::stringstream> json_stream;
+  std::unique_ptr<std::stringstream> json_stream;
 
   struct archive *a;
   struct archive_entry *entry;

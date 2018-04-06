@@ -1,5 +1,4 @@
 #include "commands.h"
-#include <boost/make_shared.hpp>
 
 namespace command {
 
@@ -10,23 +9,23 @@ Json::Value BaseCommand::toJson() {
   return json;
 }
 
-boost::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& json) {
+std::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& json) {
   std::string variant = json.get("variant").to_str();
   std::string data = json.serialize(false);
   if (variant == "Shutdown") {
-    return boost::make_shared<Shutdown>();
+    return std::make_shared<Shutdown>();
   } else if (variant == "GetUpdateRequests") {
-    return boost::make_shared<GetUpdateRequests>();
+    return std::make_shared<GetUpdateRequests>();
   } else if (variant == "StartDownload") {
-    return boost::make_shared<StartDownload>(StartDownload::fromJson(data));
+    return std::make_shared<StartDownload>(StartDownload::fromJson(data));
   } else if (variant == "AbortDownload") {
-    return boost::make_shared<AbortDownload>(AbortDownload::fromJson(data));
+    return std::make_shared<AbortDownload>(AbortDownload::fromJson(data));
   } else if (variant == "SendUpdateReport") {
-    return boost::make_shared<SendUpdateReport>(SendUpdateReport::fromJson(data));
+    return std::make_shared<SendUpdateReport>(SendUpdateReport::fromJson(data));
   } else {
     throw std::runtime_error("wrong command variant = " + variant);
   }
-  return boost::make_shared<BaseCommand>();
+  return std::make_shared<BaseCommand>();
 }
 
 Shutdown::Shutdown() { variant = "Shutdown"; }

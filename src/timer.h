@@ -1,20 +1,22 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
-#include <boost/chrono.hpp>
+#include <chrono>
 #include <iostream>
 
 /**
  * Elapsed time measurement
  */
-class Timer : public boost::noncopyable {
+class Timer {
  public:
   Timer();
+  Timer(const Timer&) = delete;
+  Timer& operator=(const Timer&) = delete;
   bool RunningMoreThan(double seconds) const;
   friend std::ostream& operator<<(std::ostream& os, const Timer&);
 
  private:
-  typedef boost::chrono::steady_clock Clock;
+  typedef std::chrono::steady_clock Clock;
 
   Clock::time_point start_;
 };

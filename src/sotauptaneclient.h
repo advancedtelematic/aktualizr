@@ -1,8 +1,7 @@
+#include <atomic>
 #include <map>
 #include <string>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
 
 #include "commands.h"
 #include "config.h"
@@ -19,13 +18,13 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
-                   const boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
+                   const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   void runForever(command::Channel *commands_channel);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
 
   // ecu_serial => secondary*
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> > secondaries;
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
 
  private:
   bool isInstalled(const Uptane::Target &target);
@@ -43,13 +42,14 @@ class SotaUptaneClient {
   Config &config;
   event::Channel *events_channel;
   Uptane::Repository &uptane_repo;
-  const boost::shared_ptr<INvStorage> storage;
-  boost::shared_ptr<PackageManagerInterface> pacman;
+  const std::shared_ptr<INvStorage> storage;
+  std::shared_ptr<PackageManagerInterface> pacman;
   HttpInterface &http;
   int last_targets_version;
   Json::Value operation_result;
   std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
   std::unique_ptr<IpUptaneConnectionSplitter> ip_uptane_splitter;
+  std::atomic<bool> shutdown = {false};
 };
 
 class SerialCompare {

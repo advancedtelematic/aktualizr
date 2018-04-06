@@ -2,11 +2,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "fsstorage.h"
 #include "httpclient.h"
@@ -32,7 +31,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   pt.put("pacman.type", "ostree");
   pt.put("pacman.sysroot", sysroot);
   Config config(pt);
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
@@ -66,7 +65,7 @@ TEST(UptaneCI, CheckKeys) {
   ecu_config.metadata_path = (temp_dir / "secondary_metadata").string();
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
@@ -86,13 +85,13 @@ TEST(UptaneCI, CheckKeys) {
   EXPECT_TRUE(primary_public.size() > 0);
   EXPECT_TRUE(primary_private.size() > 0);
 
-  std::map<std::string, boost::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
     if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
         it->second->sconfig.secondary_type != Uptane::kLegacy) {
       continue;
     }
-    boost::shared_ptr<Uptane::ManagedSecondary> managed =
+    std::shared_ptr<Uptane::ManagedSecondary> managed =
         boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
     std::string public_key;
     std::string private_key;

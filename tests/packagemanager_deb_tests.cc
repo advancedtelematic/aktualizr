@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <config.h>
 #include <packagemanagerfactory.h>
@@ -16,8 +16,8 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
@@ -43,8 +43,8 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   config.pacman.type = kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  boost::shared_ptr<INvStorage> storage = boost::make_shared<FSStorage>(config.storage);
-  boost::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";

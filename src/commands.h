@@ -5,7 +5,6 @@
 
 #include <json/json.h>
 #include <picojson.h>
-#include <boost/shared_ptr.hpp>
 
 #include "channel.h"
 #include "types.h"
@@ -16,13 +15,13 @@ namespace command {
 struct BaseCommand {
   std::string variant;
   Json::Value toJson();
-  static boost::shared_ptr<BaseCommand> fromPicoJson(const picojson::value& json);
+  static std::shared_ptr<BaseCommand> fromPicoJson(const picojson::value& json);
   template <typename T>
   T* toChild() {
     return (T*)this;
   }
 };
-typedef Channel<boost::shared_ptr<BaseCommand> > Channel;
+typedef Channel<std::shared_ptr<BaseCommand> > Channel;
 
 class Shutdown : public BaseCommand {
  public:

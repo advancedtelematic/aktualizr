@@ -168,9 +168,9 @@ class INvStorage {
   virtual void importData(const ImportConfig& import_config);
   void saveInstalledVersion(const Uptane::Target& target);
 
-  static boost::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
-                                                  const boost::filesystem::path& path = "/var/sota");
-  static void FSSToSQLS(const boost::shared_ptr<INvStorage>& fs_storage, boost::shared_ptr<INvStorage>& sql_storage);
+  static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
+                                                const boost::filesystem::path& path = "/var/sota");
+  static void FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage);
   virtual StorageType type() = 0;
 
  private:

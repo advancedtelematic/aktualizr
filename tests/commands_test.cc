@@ -114,7 +114,7 @@ TEST(command, SendUpdateReport_command_from_pico_json) {
 
   picojson::value val;
   picojson::parse(val, json);
-  boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+  std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
   EXPECT_EQ(comand->variant, "SendUpdateReport");
 }
@@ -126,7 +126,7 @@ TEST(command, AbortDownload_command_from_pico_json) {
 
   picojson::value val;
   picojson::parse(val, json);
-  boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+  std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
   EXPECT_EQ(comand->variant, "AbortDownload");
 }
@@ -138,7 +138,7 @@ TEST(command, StartDownload_command_from_pico_json) {
 
   picojson::value val;
   picojson::parse(val, json);
-  boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+  std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
   EXPECT_EQ(comand->variant, "StartDownload");
 }
@@ -150,7 +150,7 @@ TEST(command, Shutdown_command_from_pico_json) {
 
   picojson::value val;
   picojson::parse(val, json);
-  boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+  std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
 
   EXPECT_EQ(comand->variant, "Shutdown");
 }
@@ -163,7 +163,7 @@ TEST(command, Nonexistent_command_from_pico_json) {
   picojson::value val;
   picojson::parse(val, json);
   try {
-    boost::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+    std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
   } catch (std::runtime_error e) {
     ASSERT_STREQ(e.what(), "wrong command variant = Nonexistent");
   }

@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
 
     // storage (share class with primary)
-    boost::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
 #ifdef OPCUA_SECONDARY_ENABLED
     // OPC-UA bridge server has integrated discovery

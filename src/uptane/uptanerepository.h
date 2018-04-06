@@ -37,10 +37,10 @@ const int MaxInitializationAttempts = 3;
 
 class Repository {
  public:
-  Repository(const Config &config_in, boost::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
+  Repository(const Config &config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   bool putManifest(const Json::Value &version_manifests);
   Json::Value signVersionManifest(const Json::Value &primary_version_manifests);
-  void addSecondary(const boost::shared_ptr<Uptane::SecondaryInterface> &sec) { secondary_info.push_back(sec); }
+  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) { secondary_info.push_back(sec); }
   std::pair<int, std::vector<Uptane::Target> > getTargets();
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
 
@@ -57,7 +57,7 @@ class Repository {
 
  private:
   const Config &config;
-  boost::shared_ptr<INvStorage> storage;
+  std::shared_ptr<INvStorage> storage;
   HttpInterface &http;
 
   KeyManager keys_;
@@ -68,7 +68,7 @@ class Repository {
   std::string primary_ecu_serial;
   std::string primary_hardware_id_;
 
-  std::vector<boost::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
+  std::vector<std::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
   bool verifyMeta(const Uptane::MetaPack &meta);
   void downloadTarget(Target target);

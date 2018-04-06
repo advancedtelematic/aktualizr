@@ -1,7 +1,7 @@
 #ifndef EVENTSINTERPRETER_H_
 #define EVENTSINTERPRETER_H_
 
-#include "boost/thread.hpp"
+#include <thread>
 #include "commands.h"
 #include "config.h"
 #include "events.h"
@@ -17,7 +17,7 @@ class EventsInterpreter {
 
  private:
   const Config &config;
-  boost::thread thread;
+  std::thread thread;
   event::Channel *events_channel;
   command::Channel *commands_channel;
   GatewayManager gateway_manager;

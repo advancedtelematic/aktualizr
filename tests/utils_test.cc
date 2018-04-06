@@ -7,10 +7,9 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <map>
+#include <random>
 #include <set>
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_smallint.hpp>
 
 #include "utils.h"
@@ -81,7 +80,7 @@ TEST(Utils, FromBase64) {
 }
 
 TEST(Utils, Base64RoundTrip) {
-  boost::mt19937 gen;
+  std::mt19937 gen;
   boost::random::uniform_smallint<char> chars(std::numeric_limits<char>::min(), std::numeric_limits<char>::max());
 
   boost::random::uniform_smallint<int> length(0, 20);

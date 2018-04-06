@@ -5,7 +5,6 @@
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/make_shared.hpp>
 
 #include "authenticate.h"
 #include "logging.h"

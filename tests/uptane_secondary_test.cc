@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include "uptane/partialverificationsecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
@@ -20,7 +18,7 @@ TEST(SecondaryFactory, Virtual) {
   sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
-  boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
+  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
   EXPECT_TRUE(sec);
 }
 
@@ -37,7 +35,7 @@ TEST(SecondaryFactory, Legacy) {
   sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
-  boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
+  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
   EXPECT_TRUE(sec);
 }
 
@@ -116,7 +114,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_bad) {
 TEST(SecondaryFactory, Bad) {
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = (Uptane::SecondaryType)-1;
-  boost::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
+  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
   EXPECT_FALSE(sec);
 }
 
