@@ -17,9 +17,8 @@ if (BUILD_OPCUA)
     list(APPEND AKTUALIZR_SECONDARY_LIB_SRC ${OPCUA_SECONDARY_SRC})
 endif (BUILD_OPCUA)
 
-add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC})
-target_link_libraries(aktualizr_secondary_static_lib
-    socket_activation)
+add_library(aktualizr_secondary_static_lib STATIC ${AKTUALIZR_SECONDARY_LIB_SRC} $<TARGET_OBJECTS:socket_activation>)
+target_include_directories(aktualizr_secondary_static_lib PUBLIC $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
@@ -36,6 +35,7 @@ target_link_libraries(aktualizr-secondary
     ${SQLITE3_LIBRARIES}
     ${LIBDPKG_LIBRARIES}
     ${LIBP11_LIBRARIES}
+    ${SYSTEMD_LIBRARY}
     gcov
     )
 

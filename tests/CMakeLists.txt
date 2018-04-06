@@ -22,6 +22,7 @@ set (TEST_LIBS
     ${LibArchive_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${LIBDPKG_LIBRARIES}
+    ${SYSTEMD_LIBRARY}
     testutilities
     gtest gmock)
 
@@ -99,7 +100,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
-    target_compile_options(socket_activation PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 
