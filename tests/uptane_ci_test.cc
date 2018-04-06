@@ -23,14 +23,13 @@ boost::filesystem::path sysroot;
 
 TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
-  boost::property_tree::ptree pt;
-  boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
-  pt.put("provision.provision_path", credentials);
-  pt.put("storage.path", temp_dir.Path());
-  pt.put("uptane.metadata_path", temp_dir.Path());
-  pt.put("pacman.type", "ostree");
-  pt.put("pacman.sysroot", sysroot);
-  Config config(pt);
+  Config config("tests/config_tests.toml");
+  config.provision.provision_path = credentials;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = temp_dir.Path();
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
+
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
@@ -43,13 +42,11 @@ TEST(UptaneCI, OneCycleUpdate) {
 
 TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
-  boost::property_tree::ptree pt;
-  boost::property_tree::ini_parser::read_ini("tests/config_tests.toml", pt);
-  pt.put("provision.provision_path", credentials);
-  pt.put("storage.path", temp_dir.Path());
-  pt.put("pacman.type", "ostree");
-  pt.put("pacman.sysroot", sysroot);
-  Config config(pt);
+  Config config("tests/config_tests.toml");
+  config.provision.provision_path = credentials;
+  config.storage.path = temp_dir.Path();
+  config.pacman.type = kOstree;
+  config.pacman.sysroot = sysroot;
   boost::filesystem::remove_all(config.storage.path);
 
   Uptane::SecondaryConfig ecu_config;
