@@ -6,9 +6,9 @@
 #include <uptane/secondaryconfig.h>
 #include <utils.h>
 
-#include <boost/bind.hpp>
 #include <boost/preprocessor/array/to_list.hpp>
 #include <boost/preprocessor/list/for_each.hpp>
+#include <functional>
 
 #include <boost/thread/scoped_thread.hpp>
 
@@ -23,15 +23,17 @@ ServerModel::ServerModel(UA_Server* server) {
 }
 
 Server::Server(ServerDelegate* delegate, uint16_t port) : delegate_(delegate) {
+  using std::placeholders::_1;
+
   server_config_ = UA_ServerConfig_new_minimal(port, NULL);
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
   server_ = UA_Server_new(server_config_);
   model_ = new ServerModel(server_);
 
-  model_->file_list_.setOnAfterWriteCallback(boost::bind(&Server::onFileListUpdated, this, _1));
-  model_->metadatafile_.setOnAfterWriteCallback(boost::bind(&Server::countReceivedMetadataFile, this, _1));
-  model_->version_report_.setOnBeforeReadCallback(boost::bind(&Server::onVersionReportRequested, this, _1));
+  model_->file_list_.setOnAfterWriteCallback(std::bind(&Server::onFileListUpdated, this, _1));
+  model_->metadatafile_.setOnAfterWriteCallback(std::bind(&Server::countReceivedMetadataFile, this, _1));
+  model_->version_report_.setOnBeforeReadCallback(std::bind(&Server::onVersionReportRequested, this, _1));
 
   if (delegate_) delegate_->handleServerInitialized(model_);
 }

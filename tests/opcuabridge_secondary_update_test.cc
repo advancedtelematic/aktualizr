@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <functional>
-#include <fstream>
-#include <iterator>
 #include <open62541.h>
+#include <fstream>
+#include <functional>
+#include <iterator>
 
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
 
@@ -17,7 +17,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
-
 
 namespace tutils = opcuabridge_test_utils;
 namespace fs = boost::filesystem;

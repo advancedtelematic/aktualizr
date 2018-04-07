@@ -10,21 +10,19 @@
 #include "keymanager.h"
 #include "packagemanagerinterface.h"
 
-#include <boost/shared_ptr.hpp>
-
 class AktualizrSecondaryCommon {
  public:
-  AktualizrSecondaryCommon(const AktualizrSecondaryConfig&, const boost::shared_ptr<INvStorage>&);
+  AktualizrSecondaryCommon(const AktualizrSecondaryConfig&, const std::shared_ptr<INvStorage>&);
 
   bool uptaneInitialize();
 
   AktualizrSecondaryConfig config_;
 
-  boost::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<INvStorage> storage_;
   KeyManager keys_;
   std::string ecu_serial_;
   std::string hardware_id_;
-  boost::shared_ptr<PackageManagerInterface> pacman;
+  std::shared_ptr<PackageManagerInterface> pacman;
   Uptane::Root root_;
   Uptane::Targets meta_targets_;
   std::string detected_attack_;

@@ -5,8 +5,6 @@
 
 #include "opcuabridge.h"
 
-#include <boost/thread/tss.hpp>
-
 struct UA_Client;
 
 namespace boost {
@@ -55,7 +53,7 @@ class SelectEndPoint {
   std::string makeOpcuaServerUri(const std::string& address) const;
   void considerLdsRegisteredEndPoints(const std::string& opcua_lds_url);
 
-  static boost::thread_specific_ptr<DiscoveredEndPointCache> discovered_end_points_cache_;
+  thread_local static DiscoveredEndPointCache discovered_end_points_cache_;
 
   std::string url_;
 };

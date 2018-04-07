@@ -30,11 +30,10 @@ bool SelectEndPoint::DiscoveredEndPointCacheEntryEqual::operator()(
   return (lhs.serial == rhs.serial && lhs.hwid == rhs.hwid);
 }
 
-boost::thread_specific_ptr<SelectEndPoint::DiscoveredEndPointCache> SelectEndPoint::discovered_end_points_cache_;
+thread_local SelectEndPoint::DiscoveredEndPointCache SelectEndPoint::discovered_end_points_cache_;
 
 SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
-  if (discovered_end_points_cache_.get() == nullptr) {
-    discovered_end_points_cache_.reset(new DiscoveredEndPointCache);
+  if (discovered_end_points_cache_.empty()) {
     if (!sconfig.opcua_lds_url.empty()) {
       considerLdsRegisteredEndPoints(sconfig.opcua_lds_url);
     } else {
@@ -45,7 +44,7 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
         } else if (ep.type == discovery::kNoLDS) {
           std::string opcua_server_url = makeOpcuaServerUri(ep.address);
           if (endPointConfirmed(opcua_server_url, sconfig))
-            discovered_end_points_cache_->insert(
+            discovered_end_points_cache_.insert(
                 DiscoveredEndPointCacheEntry{sconfig.ecu_serial, sconfig.ecu_hardware_id, opcua_server_url});
         } else {
           LOG_INFO << "OPC-UA discover secondary: unsupported response from " << ep.address;
@@ -53,9 +52,9 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
       }
     }
   }
-  auto ep_it = discovered_end_points_cache_->find(
+  auto ep_it = discovered_end_points_cache_.find(
       DiscoveredEndPointCacheEntry{sconfig.ecu_serial, sconfig.ecu_hardware_id, std::string()});
-  if (ep_it != discovered_end_points_cache_->end()) url_ = ep_it->opcua_server_url;
+  if (ep_it != discovered_end_points_cache_.end()) url_ = ep_it->opcua_server_url;
 }
 
 bool SelectEndPoint::endPointConfirmed(const std::string& opcua_server_url,
@@ -121,7 +120,7 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
       UA_EndpointDescription* endpoint = &endpointArray[j];
       std::string opcua_server_url = std::string((char*)endpoint->endpointUrl.data, endpoint->endpointUrl.length);
       auto opcua_server_config = Client(opcua_server_url).recvConfiguration();
-      discovered_end_points_cache_->insert(DiscoveredEndPointCacheEntry{
+      discovered_end_points_cache_.insert(DiscoveredEndPointCacheEntry{
           opcua_server_config.getSerial(), opcua_server_config.getHwId(), opcua_server_url});
     }
     UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);

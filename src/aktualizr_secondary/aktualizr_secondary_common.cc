@@ -3,7 +3,7 @@
 #include "utils.h"
 
 AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfig &config,
-                                                   const boost::shared_ptr<INvStorage> &storage)
+                                                   const std::shared_ptr<INvStorage> &storage)
     : config_(config), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
 }

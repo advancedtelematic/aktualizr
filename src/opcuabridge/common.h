@@ -6,7 +6,7 @@
 #include "utility.h"
 #endif
 
-#include <boost/function.hpp>
+#include <functional>
 
 #include <open62541.h>
 #include "json/json.h"
@@ -125,12 +125,12 @@ typedef std::vector<unsigned char> BinaryDataContainer;
 
 template <typename T>
 struct MessageOnBeforeReadCallback {
-  typedef boost::function<void(T *)> type;
+  typedef std::function<void(T *)> type;
 };
 
 template <typename T>
 struct MessageOnAfterWriteCallback {
-  typedef boost::function<void(T *)> type;
+  typedef std::function<void(T *)> type;
 };
 
 template <typename T>

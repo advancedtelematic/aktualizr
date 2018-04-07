@@ -13,7 +13,7 @@
 
 class AktualizrSecondaryOpcua : private AktualizrSecondaryCommon {
  public:
-  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&, boost::shared_ptr<INvStorage>&);
+  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&, std::shared_ptr<INvStorage>&);
   void run();
   void stop();
 

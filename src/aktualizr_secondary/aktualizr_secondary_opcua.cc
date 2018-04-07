@@ -1,5 +1,7 @@
 #include "aktualizr_secondary_opcua.h"
 
+#include <boost/make_unique.hpp>
+
 AktualizrSecondaryOpcua::AktualizrSecondaryOpcua(const AktualizrSecondaryConfig& config,
                                                  std::shared_ptr<INvStorage>& storage)
     : AktualizrSecondaryCommon(config, storage), running_(true), delegate_(this) {
