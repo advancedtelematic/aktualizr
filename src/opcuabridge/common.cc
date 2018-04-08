@@ -3,6 +3,7 @@
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"
 #include "filedata.h"
+#include "filelist.h"
 #include "hash.h"
 #include "image.h"
 #include "imageblock.h"
@@ -38,6 +39,8 @@ const char *ImageBlock::node_id_ = "ImageBlock";
 const char *ImageBlock::bin_node_id_ = "ImageBlock_BinaryData";
 const char *FileData::node_id_ = "FileData";
 const char *FileData::bin_node_id_ = "FileData_BinaryData";
+const char *FileList::node_id_ = "FileList";
+const char *FileList::bin_node_id_ = "FileList_BinaryData";
 const char *OriginalManifest::node_id_ = "OriginalManifest";
 const char *OriginalManifest::bin_node_id_ = "OriginalManifest_BinaryData";
 }  // namespace opcuabridge
