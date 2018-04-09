@@ -1,5 +1,4 @@
 [gateway]
-http = false
 socket = true
 
 [network]

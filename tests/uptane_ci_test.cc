@@ -25,12 +25,14 @@ TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
   Config config("tests/config_tests.toml");
   config.provision.provision_path = credentials;
+  config.provision.mode = kAutomatic;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = temp_dir.Path();
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
+  config.postUpdateValues();  // re-run copy of urls
 
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
@@ -44,9 +46,11 @@ TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
   Config config("tests/config_tests.toml");
   config.provision.provision_path = credentials;
+  config.provision.mode = kAutomatic;
   config.storage.path = temp_dir.Path();
   config.pacman.type = kOstree;
   config.pacman.sysroot = sysroot;
+  config.postUpdateValues();  // re-run copy of urls
   boost::filesystem::remove_all(config.storage.path);
 
   Uptane::SecondaryConfig ecu_config;
@@ -62,7 +66,7 @@ TEST(UptaneCI, CheckKeys) {
   ecu_config.metadata_path = (temp_dir / "secondary_metadata").string();
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
