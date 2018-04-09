@@ -280,13 +280,15 @@ void Config::postUpdateValues() {
     }
   }
 
-  if (provision.server.empty()) provision.server = tls.server;
+  if (!tls.server.empty()) {
+    if (provision.server.empty()) provision.server = tls.server;
 
-  if (uptane.repo_server.empty()) uptane.repo_server = tls.server + "/repo";
+    if (uptane.repo_server.empty()) uptane.repo_server = tls.server + "/repo";
 
-  if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
+    if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
 
-  if (pacman.ostree_server.empty()) pacman.ostree_server = tls.server + "/treehub";
+    if (pacman.ostree_server.empty()) pacman.ostree_server = tls.server + "/treehub";
+  }
 }
 
 void Config::updateFromToml(const boost::filesystem::path& filename) {
