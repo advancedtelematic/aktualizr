@@ -10,9 +10,8 @@
 #include "opcuabridge_test_utils.h"
 #include "test_utils.h"
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
 #include <fstream>
+#include <random>
 
 namespace tutils = opcuabridge_test_utils;
 
@@ -53,9 +52,9 @@ void LoadTransferCheck(UA_Client* client, const std::string& roottag) {
 const std::string kHexValue = "00010203040506070809AABBCCDDEEFF";
 
 TEST(opcuabridge, serialization) {
-  boost::random::mt19937 gen;
+  std::mt19937 gen;
   gen.seed(static_cast<unsigned int>(std::time(0)));
-  boost::random::uniform_int_distribution<uint8_t> random_byte(0x00, 0xFF);
+  std::uniform_int_distribution<uint8_t> random_byte(0x00, 0xFF);
 
   opcuabridge::Signature s1 = tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);
   opcuabridge::Signature s2 = tutils::CreateSignature(kHexValue, opcuabridge::SIG_METHOD_ED25519, kHexValue, kHexValue);

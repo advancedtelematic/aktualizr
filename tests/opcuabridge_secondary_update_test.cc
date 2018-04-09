@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <random>
 
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
 
@@ -15,8 +16,6 @@
 #include <crypto.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
 
 namespace tutils = opcuabridge_test_utils;
 namespace fs = boost::filesystem;
@@ -34,9 +33,9 @@ fs::path kImageFilePath = temp_dir / kUpdateImageFileName;
 fs::path kMetadataFilePath = temp_dir / kMetadataFileName;
 
 TEST(opcuabridge, prepare_update) {
-  boost::random::mt19937 gen;
+  std::mt19937 gen;
   gen.seed(static_cast<unsigned int>(std::time(0)));
-  boost::random::uniform_int_distribution<uint8_t> random_byte(0x00, 0xFF);
+  std::uniform_int_distribution<uint8_t> random_byte(0x00, 0xFF);
 
   std::vector<unsigned char> block(kUpdateImageBlockSize);
   std::ofstream imagefile(kImageFilePath.c_str(), std::ios::binary | std::ios::app);
