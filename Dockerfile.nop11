@@ -54,5 +54,8 @@ RUN apt-get update && apt-get -y install \
   valgrind \
   wget
 
+RUN useradd testuser
 WORKDIR aktualizr
-ADD . src
+RUN chown -R testuser:testuser .
+ADD --chown=testuser:testuser . src
+USER testuser:testuser

@@ -63,6 +63,7 @@ RUN apt-get update && apt-get -y install \
   libp11-2 \
   libp11-dev \
   softhsm2
+RUN useradd testuser
 
 WORKDIR aktualizr
 ADD . src

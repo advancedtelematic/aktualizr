@@ -67,5 +67,6 @@ RUN apt-get update && apt-get -y install \
 RUN ln -s clang-6.0 /usr/bin/clang && \
     ln -s clang++-6.0 /usr/bin/clang++
 
+RUN useradd testuser
 WORKDIR aktualizr
 ADD . src

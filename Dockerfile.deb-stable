@@ -54,6 +54,7 @@ RUN apt-get update && apt-get -y install \
   psmisc \
   softhsm2 \
   wget
-
+  
+RUN useradd testuser
 WORKDIR aktualizr
 ADD . src
