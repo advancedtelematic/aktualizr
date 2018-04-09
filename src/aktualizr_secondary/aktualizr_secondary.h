@@ -5,6 +5,7 @@
 
 #include "aktualizr_secondary_common.h"
 #include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_interface.h"
 #include "aktualizr_secondary_ipc.h"
 #include "channel.h"
 #include "invstorage.h"
@@ -14,11 +15,11 @@
 #include "uptane/tuf.h"
 #include "utils.h"
 
-class AktualizrSecondary : private AktualizrSecondaryCommon {
+class AktualizrSecondary : public AktualizrSecondaryInterface, private AktualizrSecondaryCommon {
  public:
   AktualizrSecondary(const AktualizrSecondaryConfig& config, const std::shared_ptr<INvStorage>& storage);
-  void run();
-  void stop();
+  void run() override;
+  void stop() override;
 
   // implementation of primary's SecondaryInterface
   std::string getSerialResp() const;

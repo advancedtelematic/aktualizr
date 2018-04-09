@@ -5,17 +5,18 @@
 
 #include "aktualizr_secondary_common.h"
 #include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_interface.h"
 #include "opcuaserver_secondary_delegate.h"
 
 #include <opcuabridge/opcuabridgeserver.h>
 
 #include <boost/shared_ptr.hpp>
 
-class AktualizrSecondaryOpcua : private AktualizrSecondaryCommon {
+class AktualizrSecondaryOpcua : public AktualizrSecondaryInterface, private AktualizrSecondaryCommon {
  public:
   AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&, std::shared_ptr<INvStorage>&);
-  void run();
-  void stop();
+  void run() override;
+  void stop() override;
 
  private:
   bool running_;

@@ -55,6 +55,7 @@ install(TARGETS aktualizr-secondary
 
 set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary.h
+    aktualizr_secondary_interface.h
     aktualizr_secondary_config.h
     aktualizr_secondary_common.h
     aktualizr_secondary_discovery.h
