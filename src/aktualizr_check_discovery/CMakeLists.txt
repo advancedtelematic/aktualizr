@@ -11,6 +11,7 @@ target_link_libraries(aktualizr-check-discovery aktualizr_static_lib
   ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES}
   ${SQLITE3_LIBRARIES}
+  ${SYSTEMD_LIBRARY}
   gcov)
 
 install(TARGETS aktualizr-check-discovery

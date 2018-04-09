@@ -147,9 +147,8 @@ endif (BUILD_OPCUA)
 
 # set the name of the executable
 add_executable(aktualizr main.cc)
-add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp ${OPEN62541_SOURCES})
-target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
-target_link_libraries(aktualizr_static_lib socket_activation)
+add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp ${OPEN62541_SOURCES} $<TARGET_OBJECTS:socket_activation>)
+target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS} $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
 target_link_libraries(aktualizr aktualizr_static_lib
         ${Boost_LIBRARIES}
@@ -161,6 +160,7 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${LIBP11_LIBRARIES}
         ${SQLITE3_LIBRARIES}
         ${LibArchive_LIBRARIES}
+        ${SYSTEMD_LIBRARY}
         ${LIBDPKG_LIBRARIES})
 
 if(BUILD_WITH_CODE_COVERAGE)
