@@ -3,7 +3,9 @@
 #include <libp11.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+#include <boost/algorithm/hex.hpp>
 #include <boost/scoped_array.hpp>
+#include <vector>
 
 #include "config_utils.h"
 #include "utils.h"
@@ -139,12 +141,12 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
   }
   PKCS11_KEY* key = NULL;
   {
-    boost::scoped_array<unsigned char> id_hex(new unsigned char[config_.uptane_key_id.length() / 2]);
-    Utils::hex2bin(config_.uptane_key_id, id_hex.get());
+    std::vector<unsigned char> id_hex;
+    boost::algorithm::unhex(config_.uptane_key_id, std::back_inserter(id_hex));
 
     for (int i = 0; i < nkeys; i++) {
       if ((keys[i].id_len == config_.uptane_key_id.length() / 2) &&
-          !memcmp(keys[i].id, id_hex.get(), config_.uptane_key_id.length() / 2)) {
+          !memcmp(keys[i].id, id_hex.data(), config_.uptane_key_id.length() / 2)) {
         key = &keys[i];
         break;
       }
@@ -171,10 +173,10 @@ bool P11Engine::generateUptaneKeyPair() {
   PKCS11_SLOT* slot = findTokenSlot();
   if (!slot) return false;
 
-  boost::scoped_array<unsigned char> id_hex(new unsigned char[config_.uptane_key_id.length() / 2]);
-  Utils::hex2bin(config_.uptane_key_id, id_hex.get());
+  std::vector<unsigned char> id_hex;
+  boost::algorithm::unhex(config_.uptane_key_id, std::back_inserter(id_hex));
 
-  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.get(), (config_.uptane_key_id.length() / 2))) {
+  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, NULL, id_hex.data(), (config_.uptane_key_id.length() / 2))) {
     LOG_ERROR << "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), NULL);
 
     return false;
@@ -202,11 +204,11 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
 
   PKCS11_CERT* cert = NULL;
   {
-    boost::scoped_array<unsigned char> id_hex(new unsigned char[id.length() / 2]);
-    Utils::hex2bin(id, id_hex.get());
+    std::vector<unsigned char> id_hex;
+    boost::algorithm::unhex(id, std::back_inserter(id_hex));
 
     for (int i = 0; i < ncerts; i++) {
-      if ((certs[i].id_len == id.length() / 2) && !memcmp(certs[i].id, id_hex.get(), id.length() / 2)) {
+      if ((certs[i].id_len == id.length() / 2) && !memcmp(certs[i].id, id_hex.data(), id.length() / 2)) {
         cert = &certs[i];
         break;
       }

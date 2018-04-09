@@ -10,6 +10,7 @@
 #include <random>
 #include <set>
 
+#include <boost/algorithm/hex.hpp>
 #include <boost/random/uniform_smallint.hpp>
 
 #include "utils.h"
@@ -244,25 +245,6 @@ TEST(Utils, writeFileJson) {
   Utils::writeFile(temp_dir.Path() / "1/foo", val);
   Json::Value result_json = Utils::parseJSONFile(temp_dir.Path() / "1/foo");
   EXPECT_EQ(result_json["key"].asString(), val["key"].asString());
-}
-
-TEST(Utils, hex2bin) {
-  unsigned char bin[3];
-
-  Utils::hex2bin("01aeb4", bin);
-  EXPECT_EQ(bin[0], 0x01);
-  EXPECT_EQ(bin[1], 0xae);
-  EXPECT_EQ(bin[2], 0xb4);
-}
-
-TEST(Utils, hex2bin_not_even) {
-  unsigned char bin[3];
-  EXPECT_THROW(Utils::hex2bin("01aeb", bin), std::length_error);
-}
-
-TEST(Utils, hex2bin_invalid) {
-  unsigned char bin[3];
-  EXPECT_THROW(Utils::hex2bin("01aqbr", bin), std::range_error);
 }
 
 TEST(Utils, ipUtils) {
