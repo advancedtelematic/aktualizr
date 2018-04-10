@@ -595,7 +595,7 @@ std::vector<Uptane::Target> makePackage(const std::string& serial) {
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 0;
   ot_json["hashes"]["sha256"] = serial;
-  packages_to_install.push_back(Uptane::Target(std::string("unknown-") + serial, ot_json));
+  packages_to_install.push_back(Uptane::Target(serial, ot_json));
   return packages_to_install;
 }
 

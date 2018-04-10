@@ -101,14 +101,14 @@ class HttpFake : public HttpInterface {
       std::string hash;
       if (manifest_count == 0) {
         // Check for default initial value of packagemanagerfake.
-        hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
+        hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
         ++manifest_count;
       } else {
         hash = "tst149_ecu_serial";
       }
       EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["filepath"]
                     .asString(),
-                "unknown-" + hash);
+                (hash == "tst149_ecu_serial") ? hash : "unknown");
       EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["fileinfo"]
                     ["hashes"]["sha256"]
                         .asString(),

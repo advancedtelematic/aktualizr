@@ -1,23 +1,15 @@
 #ifndef PACKAGEMANAGERFAKE_H_
 #define PACKAGEMANAGERFAKE_H_
 
+#include <memory>
 #include <string>
-
-#include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string.hpp>
 
 #include "crypto.h"
 #include "packagemanagerinterface.h"
 
-static std::string refhash_fake;
-
 class PackageManagerFake : public PackageManagerInterface {
  public:
-  PackageManagerFake() {
-    // Default to a dummy hash so that we can send something to the server and
-    // tests have something to check for.
-    refhash_fake = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("0")));
-  }
+  PackageManagerFake(const std::shared_ptr<INvStorage> &storage) : storage_(storage) {}
   Json::Value getInstalledPackages() override {
     Json::Value packages(Json::arrayValue);
     Json::Value package;
@@ -28,17 +20,25 @@ class PackageManagerFake : public PackageManagerInterface {
   }
 
   Uptane::Target getCurrent() override {
-    Json::Value t_json;
-    t_json["hashes"]["sha256"] = refhash_fake;
-    t_json["length"] = 0;
-    return Uptane::Target(std::string("unknown-") + refhash_fake, t_json);
+    std::vector<Uptane::Target> installed_versions;
+    std::string current_hash = storage_->loadInstalledVersions(&installed_versions);
+
+    std::vector<Uptane::Target>::iterator it;
+    for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
+      if (it->sha256Hash() == current_hash) {
+        return *it;
+      }
+    }
+    return getUnknown();
   }
 
   data::InstallOutcome install(const Uptane::Target &target) const override {
-    (void)target;
-    refhash_fake = target.sha256Hash();
-    return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
+    storage_->saveInstalledVersion(target);
+    return data::InstallOutcome(data::OK, "Installing fake package was successful");
   };
+
+ private:
+  const std::shared_ptr<INvStorage> &storage_;
 };
 
 #endif  // PACKAGEMANAGERFAKE_H_
