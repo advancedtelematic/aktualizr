@@ -39,7 +39,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   config.storage.sqldb_path = temp_dir_sec / "sql.db";
   config.storage.schemas_path = "config/schemas/";
   config.pacman.sysroot = sysroot;
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
+  auto storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
 
   AktualizrSecondary as(config, storage);
 

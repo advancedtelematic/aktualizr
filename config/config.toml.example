@@ -6,7 +6,6 @@ certificates_directory = "/tmp/aktualizr/"
 system_info = "system_info.sh"
 
 [gateway]
-http = true
 socket = false
 
 [network]

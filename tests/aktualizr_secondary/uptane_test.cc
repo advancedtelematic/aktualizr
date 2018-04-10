@@ -52,7 +52,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   config.uptane.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
