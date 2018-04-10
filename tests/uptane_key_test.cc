@@ -116,7 +116,7 @@ TEST(UptaneKey, CheckAllKeys) {
   Uptane::SecondaryConfig ecu_config2;
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   event::Channel events_channel;
   SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -137,7 +137,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
   {
-    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+    auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -149,7 +149,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     storage->clearTlsCreds();
   }
   {
-    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+    auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
@@ -167,7 +167,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   boost::filesystem::remove(ecu_config2.full_client_dir / ecu_config2.ecu_private_key);
 
   {
-    std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+    auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
     event::Channel events_channel;
     SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);

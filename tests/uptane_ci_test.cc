@@ -66,7 +66,7 @@ TEST(UptaneCI, CheckKeys) {
   ecu_config.metadata_path = (temp_dir / "secondary_metadata").string();
   config.uptane.secondary_configs.push_back(ecu_config);
 
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);

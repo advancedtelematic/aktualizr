@@ -41,7 +41,7 @@ bool doInit(StorageType storage_type, const std::string &device_register_state, 
 
   bool result;
   HttpClient http;
-  std::shared_ptr<INvStorage> store = INvStorage::newStorage(conf.storage, temp_dir.Path());
+  auto store = INvStorage::newStorage(conf.storage, temp_dir.Path());
   {
     Uptane::Repository uptane = Uptane::Repository(conf, store, http);
     result = uptane.initialize();

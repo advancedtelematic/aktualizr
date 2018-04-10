@@ -22,7 +22,7 @@ TEST(KeyManager, SignTuf) {
   config.uptane.key_type = kRSA2048;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   storage->storePrimaryKeys(public_key, private_key);
   KeyManager keys(storage, config.keymanagerConfig());
 
@@ -44,7 +44,7 @@ TEST(KeyManager, SignED25519Tuf) {
   config.uptane.key_type = kED25519;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
 
   storage->storePrimaryKeys(public_key, private_key);
   KeyManager keys(storage, config.keymanagerConfig());
