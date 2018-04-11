@@ -64,6 +64,21 @@ int main(int argc, char **argv) {
           ip_uptane_splitter.registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
           auto public_key = sec->getPublicKey();
           LOG_INFO << "Got public key from secondary: " << public_key.second;
+          auto manifest = sec->getManifest();
+          LOG_INFO << "Got manifest: " << manifest;
+          if (manifest.isMember("signatures") && manifest.isMember("signed")) {
+            PublicKey public_key_object(public_key.second, keyTypeToString(public_key.first));
+            std::string canonical = Json::FastWriter().write(manifest["signed"]);
+            bool verified =
+                Crypto::VerifySignature(public_key_object, manifest["signatures"][0]["sig"].asString(), canonical);
+            if (verified) {
+              LOG_INFO << "Manifest has been successfully verified";
+            } else {
+              LOG_INFO << "Manifest verification failed";
+            }
+          } else {
+            LOG_INFO << "Manifest is corrupted or not signed";
+          }
         }
       }
       exit(EXIT_SUCCESS);

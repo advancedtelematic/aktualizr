@@ -447,6 +447,93 @@ TEST(Uptane, InitializeFail) {
   EXPECT_FALSE(result);
 }
 
+TEST(Uptane, AssembleManifestGood) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_public_key_path = "public.key";
+  boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
+  boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
+  boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
+  config.provision.provision_path = temp_dir / "cred.zip";
+  config.provision.mode = kAutomatic;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.uptane.primary_ecu_serial = "testecuserial";
+  config.pacman.type = kNone;
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  config.uptane.secondary_configs.push_back(ecu_config);
+
+  auto storage = std::make_shared<FSStorage>(config.storage);
+  Uptane::Repository uptane(config, storage, http);
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  EXPECT_TRUE(uptane.initialize());
+
+  Json::Value manifest = sota_client.AssembleManifest();
+  EXPECT_EQ(manifest.size(), 2);
+}
+
+TEST(Uptane, AssembleManifestBad) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.storage.path = temp_dir.Path();
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_public_key_path = "public.key";
+  boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
+  boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
+  boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
+  config.provision.provision_path = temp_dir / "cred.zip";
+  config.provision.mode = kAutomatic;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.uptane.primary_ecu_serial = "testecuserial";
+  config.pacman.type = kNone;
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  config.uptane.secondary_configs.push_back(ecu_config);
+
+  std::string private_key, public_key;
+  Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key);
+  Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_private_key, private_key);
+  public_key = Utils::readFile("tests/test_data/public.key");
+  Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
+
+  auto storage = std::make_shared<FSStorage>(config.storage);
+  Uptane::Repository uptane(config, storage, http);
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  EXPECT_TRUE(uptane.initialize());
+
+  Json::Value manifest = sota_client.AssembleManifest();
+  EXPECT_EQ(manifest.size(), 1);
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"], config.uptane.primary_ecu_serial);
+}
+
 TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
