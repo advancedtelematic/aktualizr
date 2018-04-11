@@ -988,6 +988,48 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
+TEST(Uptane, krejectallTest) {
+  TemporaryDirectory temp_dir;
+  boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = temp_dir / "db.sqlite";
+  config.storage.schemas_path = "config/schemas";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage);
+  Uptane::Repository uptane(config, storage, http);
+  EXPECT_TRUE(uptane.getMeta());
+}
+
+TEST(Uptane, LoadVersion) {
+  TemporaryDirectory temp_dir;
+  Config config;
+  config.storage.path = temp_dir.Path();
+  config.storage.tls_cacert_path = "ca.pem";
+  config.storage.tls_clientcert_path = "client.pem";
+  config.storage.tls_pkey_path = "pkey.pem";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage);
+  HttpFake http(temp_dir.Path());
+  Uptane::Repository uptane(config, storage, http);
+
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
+  target_json["length"] = 0;
+
+  Uptane::Target t("target_name", target_json);
+  storage->saveInstalledVersion(t);
+
+  std::vector<Uptane::Target> versions;
+  storage->loadInstalledVersions(&versions);
+  EXPECT_EQ(t, versions[0]);
+}
+
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {
   Config config;
