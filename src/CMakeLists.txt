@@ -1,43 +1,21 @@
 set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
+add_subdirectory("uptane")
 
-# set source files excluding main
-set(SOURCES aktualizr.cc
-            aktualizr_secondary_ipc.cc
-            asn1-cer.cc
-            asn1-cerstream.cc
+# set main aktualizr source files
+set(AKTUALIZR_SOURCES aktualizr.cc
             bootstrap.cc
             commands.cc
             config.cc
-            crypto.cc
             events.cc
             eventsinterpreter.cc
-            fsstorage.cc
             gatewaymanager.cc
-            httpclient.cc
-            invstorage.cc
             ipsecondarydiscovery.cc
-            ipuptaneconnection.cc
-            ipuptaneconnectionsplitter.cc
-            keymanager.cc
-            logging.cc
             socketgateway.cc
             sotauptaneclient.cc
-            sqlstorage.cc
             timer.cc
-            types.cc
-            utils.cc
-            uptane/initialize.cc
-            uptane/ipuptanesecondary.cc
-            uptane/legacysecondary.cc
-            uptane/managedsecondary.cc
-            uptane/partialverificationsecondary.cc
-            uptane/role.cc
-            uptane/root.cc
-            uptane/tuf.cc
-            uptane/uptanerepository.cc
-            uptane/virtualsecondary.cc)
+            )
 
 # set headers used for clang format
 set(HEADERS aktualizr.h
@@ -78,37 +56,66 @@ set(HEADERS aktualizr.h
             sql_utils.h
             timer.h
             types.h
-            utils.h
-            uptane/exceptions.h
-            uptane/ipuptanesecondary.h
-            uptane/legacysecondary.h
-            uptane/managedsecondary.h
-            uptane/partialverificationsecondary.h
-            uptane/secondaryconfig.h
-            uptane/secondaryfactory.h
-            uptane/secondaryinterface.h
-            uptane/tuf.h
-            uptane/uptanerepository.h
-            uptane/virtualsecondary.h)
+            utils.h)
 
-list(APPEND OSTREE_SOURCES ostree.cc ostreereposync.cc)
-if(BUILD_OSTREE)
-    list(APPEND SOURCES ${OSTREE_SOURCES})
-endif(BUILD_OSTREE)
+set(AKTUALIZR_SECONDARY_IPC_SOURCES
+    aktualizr_secondary_ipc.cc
+    asn1-cer.cc
+    asn1-cerstream.cc
+    ipuptaneconnection.cc
+    ipuptaneconnectionsplitter.cc)
+add_library(aktualizr_secondary_ipc OBJECT ${AKTUALIZR_SECONDARY_IPC_SOURCES})
+target_include_directories(aktualizr_secondary_ipc PUBLIC
+    $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
-list(APPEND DEB_SOURCES deb.cc)
+set(COMMON_UTILITIES_SOURCES
+    crypto.cc
+    httpclient.cc
+    keymanager.cc
+    types.cc
+    logging.cc
+    utils.cc)
+add_library(common_utilities OBJECT ${COMMON_UTILITIES_SOURCES})
+
+set(PACMAN_FAKE_SOURCES packagemanagerfake.cc)
+add_library(pacman OBJECT ${PACMAN_FAKE_SOURCES})
+set(DEB_SOURCES deb.cc)
 if(BUILD_DEB)
-    list(APPEND SOURCES ${DEB_SOURCES})
+    target_sources(pacman PUBLIC ${DEB_SOURCES})
 endif(BUILD_DEB)
 
-list(APPEND P11_SOURCES p11engine.cc)
+set(OSTREE_SOURCES ostree.cc ostreereposync.cc)
+if(BUILD_OSTREE)
+    target_sources(pacman PUBLIC ${OSTREE_SOURCES})
+    target_include_directories(pacman PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
+endif(BUILD_OSTREE)
+
+set(P11_SOURCES p11engine.cc)
 if(BUILD_P11)
-    list(APPEND SOURCES ${P11_SOURCES})
+    target_sources(common_utilities PUBLIC ${P11_SOURCES})
 
     if(TEST_PKCS11_MODULE_PATH)
         add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
     endif(TEST_PKCS11_MODULE_PATH)
 endif(BUILD_P11)
+
+set(STORAGE_SOURCES fsstorage.cc sqlstorage.cc invstorage.cc)
+add_library(storage OBJECT ${STORAGE_SOURCES})
+
+add_library(jsoncpp OBJECT ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
+
+# set the name of the executable
+add_library(aktualizr_static_lib STATIC
+    ${AKTUALIZR_SOURCES}
+    $<TARGET_OBJECTS:jsoncpp>
+    $<TARGET_OBJECTS:pacman>
+    $<TARGET_OBJECTS:common_utilities>
+    $<TARGET_OBJECTS:aktualizr_secondary_ipc>
+    $<TARGET_OBJECTS:storage>
+    $<TARGET_OBJECTS:uptane>
+    $<TARGET_OBJECTS:socket_activation>)
+target_include_directories(aktualizr_static_lib PUBLIC
+    $<TARGET_PROPERTY:pacman,INCLUDE_DIRECTORIES>)
 
 set(OPCUABRIDGE_SOURCES opcuabridge/common.cc
                         opcuabridge/filelist.cc
@@ -148,14 +155,11 @@ if (BUILD_OPCUA)
     set(OPEN62541_SOURCES ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
     set_source_files_properties(${OPEN62541_SOURCES} ${OPCUABRIDGE_SOURCES}
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
-    list(APPEND SOURCES ${OPCUABRIDGE_SOURCES})
+    add_library(opcua_bridge OBJECT ${OPCUABRIDGE_SOURCES} ${OPEN62541_SOURCES})
+    target_sources(aktualizr_static_lib PUBLIC $<TARGET_OBJECTS:opcua_bridge>)
 endif (BUILD_OPCUA)
 
-# set the name of the executable
 add_executable(aktualizr main.cc)
-add_library(aktualizr_static_lib STATIC ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp ${OPEN62541_SOURCES} $<TARGET_OBJECTS:socket_activation>)
-target_include_directories(aktualizr_static_lib PUBLIC ${LIBOSTREE_INCLUDE_DIRS} $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
-
 target_link_libraries(aktualizr aktualizr_static_lib
         ${Boost_LIBRARIES}
         ${CURL_LIBRARIES}
@@ -174,8 +178,18 @@ if(BUILD_WITH_CODE_COVERAGE)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 ################ QA RULES
-set(ALL_CHECKS main.cc ${SOURCES} ${HEADERS} ${OPCUABRIDGE_SOURCES} ${OPCUABRIDGE_HEADERS}
-    ${DEB_SOURCES} ${OSTREE_SOURCES} ${P11_SOURCES})
+
+set(ALL_CHECKS main.cc
+    ${AKTUALIZR_SOURCES}
+    ${AKTUALIZR_SECONDARY_IPC_SOURCES}
+    ${COMMON_UTILITIES_SOURCES}
+    ${DEB_SOURCES}
+    ${OSTREE_SOURCES}
+    ${P11_SOURCES}
+    ${PACMAN_FAKE_SOURCES}
+    ${STORAGE_SOURCES}
+    ${OPCUABRIDGE_SOURCES} ${OPCUABRIDGE_HEADERS}
+    ${HEADERS})
 list(REMOVE_DUPLICATES ALL_CHECKS)
 aktualizr_source_file_checks(${ALL_CHECKS})
 

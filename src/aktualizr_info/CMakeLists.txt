@@ -10,6 +10,7 @@ target_link_libraries(aktualizr-info aktualizr_static_lib
   ${CURL_LIBRARIES}
   ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES}
+  ${LIBOSTREE_LIBRARIES}
   ${SQLITE3_LIBRARIES}
   gcov)
 
