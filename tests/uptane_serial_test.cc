@@ -31,10 +31,11 @@ boost::filesystem::path build_dir;
  */
 TEST(Uptane, RandomSerial) {
   TemporaryDirectory temp_dir1, temp_dir2;
-  Config conf_1("tests/config_tests_prov.toml");
+  Config conf_1("tests/config/basic.toml");
   conf_1.storage.path = temp_dir1.Path();
-  Config conf_2("tests/config_tests_prov.toml");
+  Config conf_2("tests/config/basic.toml");
   conf_2.storage.path = temp_dir2.Path();
+
 
   conf_1.uptane.primary_ecu_serial = "";
   conf_1.storage.uptane_private_key_path = "private.key";
@@ -116,7 +117,7 @@ TEST(Uptane, ReloadSerial) {
 
   // Initialize and store serials.
   {
-    Config conf("tests/config_tests_prov.toml");
+    Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
@@ -136,7 +137,7 @@ TEST(Uptane, ReloadSerial) {
 
   // Initialize new objects and load serials.
   {
-    Config conf("tests/config_tests_prov.toml");
+    Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
@@ -163,7 +164,7 @@ TEST(Uptane, ReloadSerial) {
 TEST(Uptane, LegacySerial) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
-  TestUtils::writePathToConfig("tests/config_tests_prov.toml", conf_path_str, temp_dir.Path());
+  TestUtils::writePathToConfig("tests/config/basic.toml", conf_path_str, temp_dir.Path());
 
   bpo::variables_map cmd;
   bpo::options_description description("some text");

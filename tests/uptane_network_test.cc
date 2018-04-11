@@ -21,7 +21,7 @@
 #include "uptane/uptanerepository.h"
 #include "utils.h"
 
-Config conf("tests/config_tests_prov.toml");
+Config conf("tests/config/basic.toml");
 std::string port;
 
 bool doInit(StorageType storage_type, const std::string &device_register_state, const std::string &ecu_register_state) {

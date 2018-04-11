@@ -6,7 +6,7 @@
 
 #include "logging.h"
 
-AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
+AktualizrSecondaryConfig conf("tests/config/aktualizr_secondary.toml");
 std::string sysroot;
 
 TEST(aktualizr_secondary_protocol, run_and_stop) {
