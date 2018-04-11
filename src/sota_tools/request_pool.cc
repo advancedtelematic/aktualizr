@@ -42,8 +42,12 @@ void RequestPool::LoopLaunch(const bool dryrun) {
     if (query_queue_.empty()) {
       cur = upload_queue_.front();
       upload_queue_.pop_front();
-      if (!dryrun) {
-        cur->Upload(server_, multi_);
+      cur->Upload(server_, multi_, dryrun);
+      if (dryrun) {
+        // Don't send an actual upload message, just skip to the part where we
+        // acknowledge that the object has been uploaded. This is mostly
+        // necessary to make sure NotifyParents gets called.
+        upload_cb_(*this, cur);
       }
     } else {
       cur = query_queue_.front();

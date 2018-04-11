@@ -172,9 +172,16 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   refcount_++;  // Because curl now has a reference to us
 }
 
-void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle) {
-  LOG_INFO << "Uploading " << object_name_;
+void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const bool dryrun) {
+  if (!dryrun) {
+    LOG_INFO << "Uploading " << object_name_;
+  } else {
+    LOG_INFO << "Would upload " << object_name_;
+    is_on_server_ = OBJECT_PRESENT;
+    return;
+  }
   assert(!curl_handle_);
+
   curl_handle_ = curl_easy_init();
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = OSTREE_OBJECT_UPLOADING;

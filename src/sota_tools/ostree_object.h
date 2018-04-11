@@ -40,7 +40,7 @@ class OSTreeObject {
 
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
-  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle);
+  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, const bool dryrun);
 
   void AddParent(OSTreeObject* parent, std::list<OSTreeObject::ptr>::iterator parent_it);
   bool children_ready() { return children_.empty(); }

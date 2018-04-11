@@ -23,6 +23,7 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   switch (h->is_on_server()) {
     case OBJECT_MISSING:
       try {
+        // Check for children before uploading the parent.
         h->PopulateChildren();
         if (h->children_ready()) {
           p.AddUpload(h);
@@ -102,13 +103,13 @@ bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &pu
     request_pool.Loop(dryrun);
   } while (root_object->is_on_server() != OBJECT_PRESENT && !request_pool.is_stopped());
 
-  if (dryrun) {
-    LOG_INFO << "Dry run. No objects uploaded. Exiting.";
-    return true;
+  if (!dryrun) {
+    LOG_INFO << "Uploaded " << uploaded << " objects";
+    LOG_INFO << "Already present " << present_already << " objects";
+  } else {
+    LOG_INFO << "Dry run. No objects uploaded.";
   }
 
-  LOG_INFO << "Uploaded " << uploaded << " objects";
-  LOG_INFO << "Already present " << present_already << " objects";
   if (errors) {
     LOG_ERROR << "One or more errors while pushing";
     return false;
