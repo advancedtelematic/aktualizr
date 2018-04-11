@@ -988,6 +988,23 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
+TEST(Uptane, krejectallTest) {
+  TemporaryDirectory temp_dir;
+  boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.storage.type = kSqlite;
+  config.storage.sqldb_path = temp_dir / "db.sqlite";
+  config.storage.schemas_path = "config/schemas";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage);
+  Uptane::Repository uptane(config, storage, http);
+  EXPECT_TRUE(uptane.getMeta());
+}
+
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {
   Config config;
