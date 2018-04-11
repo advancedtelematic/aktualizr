@@ -1,7 +1,6 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_HTTP_REPO_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_HTTP_REPO_H_
 
-#include <boost/array.hpp>
 #include <boost/filesystem.hpp>
 #include <list>
 #include <map>

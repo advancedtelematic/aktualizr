@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <sys/prctl.h>
 #include <fstream>
-#include <sstream>
+#include <string>
 
 #include <boost/filesystem.hpp>
 
@@ -30,9 +30,7 @@ std::string TestUtils::getFreePort() {
     throw std::runtime_error("getsockname failed");
   }
   close(s);
-  std::ostringstream ss;
-  ss << ntohs(sa.sin_port);
-  return ss.str();
+  return std::to_string(ntohs(sa.sin_port));
 }
 
 void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const boost::filesystem::path &toml_out,

@@ -69,9 +69,8 @@ bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
   if (root.version() == prev_root.version() + 1) {
     prev_root = root;
   } else {
-    std::ostringstream out;
-    out << "Tried to update root version " << prev_root.version() << " with version " << root.version();
-    detected_attack = out.str();
+    detected_attack = "Tried to update root version " + std::to_string(prev_root.version()) + " with version " +
+                      std::to_string(root.version());
   }
 
   storeMetadata(current_meta);
