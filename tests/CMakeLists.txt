@@ -176,11 +176,11 @@ add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
 set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
-#add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-#         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
+add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
+         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
 #add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
 #         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
-#add_dependencies(build_tests aktualizr_uptane_vector_tests)
+add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
 if(BUILD_OSTREE)
     add_custom_target(make_ostree_sysroot
