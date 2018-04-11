@@ -9,9 +9,7 @@
 
 #include "logging.h"
 
-using std::ifstream;
 using std::string;
-using std::stringstream;
 
 OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string &ref_name) : ref_name_(ref_name) {
   if (boost::filesystem::is_regular_file(repo.root() / "/refs/heads/" / ref_name)) {

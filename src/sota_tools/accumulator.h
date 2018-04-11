@@ -8,8 +8,8 @@
 #define PROGRAM_OPTIONS_ACCUMULATOR_HPP
 
 #include <boost/any.hpp>
-#include <boost/function.hpp>
 #include <boost/program_options/value_semantic.hpp>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -20,7 +20,7 @@ class accumulator_type : public boost::program_options::value_semantic {
   accumulator_type(T* store) : _store(store), _interval(1), _default(0) {}
 
   /// Set the notifier function.
-  accumulator_type* notifier(boost::function1<void, const T&> f) {
+  accumulator_type* notifier(std::function<void(const T&)> f) {
     _notifier = f;
     return this;
   }
@@ -79,7 +79,7 @@ class accumulator_type : public boost::program_options::value_semantic {
 
  private:
   T* _store;
-  boost::function1<void, const T&> _notifier;
+  std::function<void(const T&)> _notifier;
   T _interval;
   T _default;
 };

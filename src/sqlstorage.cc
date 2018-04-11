@@ -1,10 +1,8 @@
 #include "sqlstorage.h"
 
-#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <memory>
-
-#include <boost/lexical_cast.hpp>
+#include <string>
 
 #include "logging.h"
 #include "sql_utils.h"
@@ -45,7 +43,7 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
     return;
   }
   const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
+  if (std::stoi(req_response["result"])) {
     req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
   } else {
     req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
@@ -140,7 +138,7 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     return;
   }
   const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
+  if (std::stoi(req_response["result"])) {
     req = "UPDATE OR REPLACE tls_creds SET ca_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(ca_cert) VALUES (?);";
@@ -167,7 +165,7 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     return;
   }
   const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
+  if (std::stoi(req_response["result"])) {
     req = "UPDATE OR REPLACE tls_creds SET client_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_cert) VALUES (?);";
@@ -194,7 +192,7 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     return;
   }
   const char* req;
-  if (boost::lexical_cast<int>(req_response["result"])) {
+  if (std::stoi(req_response["result"])) {
     req = "UPDATE OR REPLACE tls_creds SET client_pkey = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_pkey) VALUES (?);";
@@ -523,7 +521,7 @@ bool SQLStorage::loadEcuRegistered() {
 
   if (req_response.find("result") == req_response.end()) return false;
 
-  return boost::lexical_cast<int>(req_response["result"]);
+  return std::stoi(req_response["result"]);
 }
 
 void SQLStorage::clearEcuRegistered() {
@@ -667,8 +665,8 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    ecus->push_back(MisconfiguredEcu((*it)["serial"], (*it)["hardware_id"],
-                                     static_cast<EcuState>(boost::lexical_cast<int>((*it)["state"]))));
+    ecus->push_back(
+        MisconfiguredEcu((*it)["serial"], (*it)["hardware_id"], static_cast<EcuState>(std::stoi((*it)["state"]))));
   }
 
   return true;
@@ -745,8 +743,8 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
     Json::Value installed_version;
     installed_version["hashes"]["sha256"] = (*it)["hash"];
-    installed_version["length"] = Json::UInt64(boost::lexical_cast<uint64_t>((*it)["length"]));
-    if (boost::lexical_cast<int>((*it)["is_current"])) {
+    installed_version["length"] = Json::UInt64(std::stoll((*it)["length"]));
+    if (std::stoi((*it)["is_current"])) {
       current_hash = (*it)["hash"];
     }
     std::string filename = (*it)["name"];
@@ -1001,8 +999,7 @@ bool SQLStorage::dbMigrate() {
   // hack here: getVersion() returns -1 if the database didn't exist, so 'migrate.0.sql' will be run in this case
   for (; schema_version < kSqlSchemaVersion; schema_version++) {
     boost::filesystem::path migrate_script_path =
-        config_.schemas_path /
-        (std::string("migrate.") + boost::lexical_cast<std::string>(schema_version + 1) + ".sql");
+        config_.schemas_path / (std::string("migrate.") + std::to_string(schema_version + 1) + ".sql");
     std::string req = Utils::readFile(migrate_script_path.string());
 
     if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
@@ -1027,7 +1024,7 @@ bool SQLStorage::dbInit() {
     return false;
   }
 
-  if (boost::lexical_cast<int>(req_response["result"]) < 1) {
+  if (std::stoi(req_response["result"]) < 1) {
     if (db.exec("INSERT INTO device_info DEFAULT VALUES;", NULL, NULL) != SQLITE_OK) {
       LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
       return false;
@@ -1056,8 +1053,8 @@ int SQLStorage::getVersion() {
   }
 
   try {
-    return boost::lexical_cast<int>(req_response["result"]);
-  } catch (const boost::bad_lexical_cast&) {
+    return std::stoi(req_response["result"]);
+  } catch (const std::exception&) {
     return -1;
   }
 }

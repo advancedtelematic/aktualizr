@@ -10,14 +10,14 @@
 #include "utils.h"
 
 struct HttpResponse {
-  HttpResponse(const std::string &body_in, unsigned int http_status_code_in, CURLcode curl_code_in,
+  HttpResponse(const std::string &body_in, const long http_status_code_in, CURLcode curl_code_in,
                const std::string &error_message_in)
       : body(body_in),
         http_status_code(http_status_code_in),
         curl_code(curl_code_in),
         error_message(error_message_in) {}
   std::string body;
-  unsigned int http_status_code;
+  long http_status_code;
   CURLcode curl_code;
   std::string error_message;
   bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 205); }
