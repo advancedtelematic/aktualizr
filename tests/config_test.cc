@@ -12,10 +12,12 @@
 #include <boost/program_options.hpp>
 
 #include "bootstrap.h"
-#include "config.h"
+
 #include "crypto.h"
 #include "test_utils.h"
 #include "utils.h"
+
+#include "config.h"
 
 namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
@@ -160,6 +162,18 @@ TEST(config, consistent_toml_nonempty) {
   std::string conf_str1 = Utils::readFile((temp_dir / "output1.toml").string());
   std::string conf_str2 = Utils::readFile((temp_dir / "output2.toml").string());
   EXPECT_EQ(conf_str1, conf_str2);
+}
+
+TEST(config, config_dirs_one_dir) {
+  Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
+  EXPECT_EQ(config.storage.path, "/z_path");
+}
+
+TEST(config, config_dirs_two_dirs) {
+  std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
+                                                   "tests/test_data/config_dirs/second_one_dir"};
+  Config config(config_dirs);
+  EXPECT_EQ(config.storage.path, "/latest_path");
 }
 
 #ifndef __NO_MAIN__

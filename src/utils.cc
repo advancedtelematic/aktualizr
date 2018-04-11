@@ -523,6 +523,18 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
   }
 }
 
+std::vector<boost::filesystem::path> Utils::glob(const std::string &pat) {
+  glob_t glob_result;
+  ::glob(pat.c_str(), GLOB_TILDE, NULL, &glob_result);
+  std::vector<boost::filesystem::path> ret;
+  for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+    ret.push_back(boost::filesystem::path(glob_result.gl_pathv[i]));
+  }
+  globfree(&glob_result);
+  std::sort(ret.begin(), ret.end());
+  return ret;
+}
+
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
