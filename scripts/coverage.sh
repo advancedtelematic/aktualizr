@@ -1,7 +1,7 @@
 #! /bin/bash
 set -e
 
-./src/scripts/setup_hsm.sh
+./scripts/setup_hsm.sh
 
 mkdir -p build-coverage
 cd build-coverage
