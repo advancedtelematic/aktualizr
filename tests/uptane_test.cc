@@ -504,6 +504,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
@@ -547,6 +548,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
@@ -606,6 +608,7 @@ TEST(Uptane, RunForeverInstall) {
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
+  conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
@@ -694,6 +697,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.uptane.device_id = "tst149_device_id";
   config.uptane.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.uptane.primary_ecu_serial = "tst149_ecu_serial";
+  config.uptane.polling_sec = 1;
   config.storage.path = temp_dir.Path();
 
   event::Channel events_channel;
