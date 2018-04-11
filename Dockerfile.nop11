@@ -44,6 +44,7 @@ RUN apt-get update && apt-get -y install \
   libsystemd-dev \
   libtool \
   make \
+  ninja-build \
   ostree \
   pkg-config \
   psmisc \
