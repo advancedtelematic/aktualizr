@@ -27,8 +27,8 @@ void AktualizrSecondaryDiscovery::open_socket() {
     return;
   }
 
-  LOG_INFO << "Received " << socket_activation::listen_fds(0)
-           << " sockets, not using socket activation for discovery service";
+  LOG_TRACE << "Received " << socket_activation::listen_fds(0)
+            << " sockets, not using socket activation for discovery service";
 
   int socket_fd = socket(AF_INET6, SOCK_DGRAM, 0);
   if (socket_fd < 0) {
@@ -88,7 +88,7 @@ void AktualizrSecondaryDiscovery::run() {
       des >> asn1::expl(AKT_DISCOVERY_REQ) >> asn1::seq >> asn1::implicit<kAsn1Integer>(primary_port) >>
           asn1::restseq >> asn1::endexpl;
 
-      LOG_INFO << "Got discovery request from " << Utils::ipDisplayName(peer) << ":" << primary_port;
+      LOG_TRACE << "Got discovery request from " << Utils::ipDisplayName(peer) << ":" << primary_port;
       std::string smsg;
       asn1::Serializer ser;
       std::string hwid = akt_secondary_.getHwIdResp();

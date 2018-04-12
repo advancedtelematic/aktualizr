@@ -72,7 +72,7 @@ std::ostream& operator<<(std::ostream& os, KeyType kt) {
 }
 
 void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(socket, "socket", boost::log::trivial::info, pt);
+  CopyFromConfig(socket, "socket", boost::log::trivial::trace, pt);
 }
 
 void GatewayConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, socket, "socket"); }
@@ -114,25 +114,25 @@ void NetworkConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(server, "server", boost::log::trivial::warning, pt);
-  CopyFromConfig(server_url_path, "server_url_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(server, "server", boost::log::trivial::trace, pt);
+  CopyFromConfig(server_url_path, "server_url_path", boost::log::trivial::trace, pt);
 
   std::string tls_source = "file";
-  CopyFromConfig(tls_source, "ca_source", boost::log::trivial::warning, pt);
+  CopyFromConfig(tls_source, "ca_source", boost::log::trivial::trace, pt);
   if (tls_source == "pkcs11")
     ca_source = kPkcs11;
   else
     ca_source = kFile;
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "cert_source", boost::log::trivial::warning, pt);
+  CopyFromConfig(tls_source, "cert_source", boost::log::trivial::trace, pt);
   if (tls_source == "pkcs11")
     cert_source = kPkcs11;
   else
     cert_source = kFile;
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "pkey_source", boost::log::trivial::warning, pt);
+  CopyFromConfig(tls_source, "pkey_source", boost::log::trivial::trace, pt);
   if (tls_source == "pkcs11")
     pkey_source = kPkcs11;
   else
@@ -148,10 +148,10 @@ void TlsConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(server, "server", boost::log::trivial::warning, pt);
-  CopyFromConfig(p12_password, "p12_password", boost::log::trivial::warning, pt);
-  CopyFromConfig(expiry_days, "expiry_days", boost::log::trivial::warning, pt);
-  CopyFromConfig(provision_path, "provision_path", boost::log::trivial::warning, pt);
+  CopyFromConfig(server, "server", boost::log::trivial::trace, pt);
+  CopyFromConfig(p12_password, "p12_password", boost::log::trivial::trace, pt);
+  CopyFromConfig(expiry_days, "expiry_days", boost::log::trivial::trace, pt);
+  CopyFromConfig(provision_path, "provision_path", boost::log::trivial::trace, pt);
   // provision.mode is set in postUpdateValues.
 }
 
@@ -165,21 +165,21 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(polling, "polling", boost::log::trivial::trace, pt);
   CopyFromConfig(polling_sec, "polling_sec", boost::log::trivial::trace, pt);
-  CopyFromConfig(device_id, "device_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::warning, pt);
-  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::warning, pt);
-  CopyFromConfig(director_server, "director_server", boost::log::trivial::warning, pt);
-  CopyFromConfig(repo_server, "repo_server", boost::log::trivial::warning, pt);
+  CopyFromConfig(device_id, "device_id", boost::log::trivial::trace, pt);
+  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::trace, pt);
+  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::trace, pt);
+  CopyFromConfig(director_server, "director_server", boost::log::trivial::trace, pt);
+  CopyFromConfig(repo_server, "repo_server", boost::log::trivial::trace, pt);
 
   std::string ks = "file";
-  CopyFromConfig(ks, "key_source", boost::log::trivial::warning, pt);
+  CopyFromConfig(ks, "key_source", boost::log::trivial::trace, pt);
   if (ks == "pkcs11")
     key_source = kPkcs11;
   else
     key_source = kFile;
 
   std::string kt;
-  CopyFromConfig(kt, "key_type", boost::log::trivial::warning, pt);
+  CopyFromConfig(kt, "key_type", boost::log::trivial::trace, pt);
   if (kt.size()) {
     if (kt == "RSA2048") {
       key_type = kRSA2048;
@@ -213,7 +213,7 @@ void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOptio
 
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string pm_type = "ostree";
-  CopyFromConfig(pm_type, "type", boost::log::trivial::warning, pt);
+  CopyFromConfig(pm_type, "type", boost::log::trivial::trace, pt);
   if (pm_type == "ostree") {
     type = kOstree;
   } else if (pm_type == "debian") {
@@ -222,10 +222,10 @@ void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
     type = kNone;
   }
 
-  CopyFromConfig(os, "os", boost::log::trivial::warning, pt);
-  CopyFromConfig(sysroot, "sysroot", boost::log::trivial::warning, pt);
-  CopyFromConfig(ostree_server, "ostree_server", boost::log::trivial::warning, pt);
-  CopyFromConfig(packages_file, "packages_file", boost::log::trivial::warning, pt);
+  CopyFromConfig(os, "os", boost::log::trivial::trace, pt);
+  CopyFromConfig(sysroot, "sysroot", boost::log::trivial::trace, pt);
+  CopyFromConfig(ostree_server, "ostree_server", boost::log::trivial::trace, pt);
+  CopyFromConfig(packages_file, "packages_file", boost::log::trivial::trace, pt);
 }
 
 void PackageConfig::writeToStream(std::ostream& out_stream) const {

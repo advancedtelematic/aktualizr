@@ -44,7 +44,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
     storage_->saveInstalledVersion(target);
     return data::InstallOutcome(data::OK, "Installing debian package was successful");
   } else {
-    LOG_WARNING << "... Installation of Debian package failed";
+    LOG_ERROR << "... Installation of Debian package failed";
     return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
 }

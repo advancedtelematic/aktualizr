@@ -96,7 +96,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
     check_info_options(description, vm);
 
     // log boost error
-    LOG_WARNING << "boost command line option error: " << ex.what();
+    LOG_ERROR << "boost command line option error: " << ex.what();
 
     // print the error message to the standard output too, as the user provided
     // a non-supported commandline option

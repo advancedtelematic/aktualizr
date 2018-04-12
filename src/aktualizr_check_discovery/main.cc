@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     LOG_INFO << "Discovering finished";
     LOG_INFO << "Found " << discovered.size() << " devices";
     if (discovered.size()) {
-      LOG_INFO << "Trying to connect with founded devices and get public key";
+      LOG_TRACE << "Trying to connect with founded devices and get public key";
       IpUptaneConnection ip_uptane_connection(config.network.ipuptane_port);
       IpUptaneConnectionSplitter ip_uptane_splitter(ip_uptane_connection);
 
