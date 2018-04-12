@@ -37,6 +37,7 @@ struct Utils {
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
   static void setSocketPort(sockaddr_storage *addr, in_port_t port);
   static std::vector<boost::filesystem::path> glob(const std::string &pat);
+  static void createDirectories(const boost::filesystem::path &path, mode_t mode);
 };
 
 /**
