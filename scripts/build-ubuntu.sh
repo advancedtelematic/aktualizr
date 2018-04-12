@@ -15,4 +15,5 @@ cp -f ../src/scripts/test_aktualizr_deb_and_update.sh /persistent/test_aktualizr
 cp -rf ../src/tests/test_data/fake_root /persistent/
 
 
+git -C ../src fetch --unshallow
 git -C ../src describe > /persistent/aktualizr-version
