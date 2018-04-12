@@ -109,34 +109,34 @@ Json::Value Repository::fetchRole(const std::string& base_url, Uptane::Role role
 }
 
 bool Repository::getMeta() {
-  MetaPack meta;
+  MetaPack new_meta;
   TimeStamp now(TimeStamp::Now());
 
-  meta.director_root =
+  new_meta.director_root =
       Uptane::Root(now, "director", fetchRole(config.uptane.director_server, Role::Root()), meta_.director_root);
-  meta.image_root = Uptane::Root(now, "repo", fetchRole(config.uptane.repo_server, Role::Root()), meta_.image_root);
+  new_meta.image_root = Uptane::Root(now, "repo", fetchRole(config.uptane.repo_server, Role::Root()), meta_.image_root);
 
-  meta.image_timestamp = Uptane::TimestampMeta(
+  new_meta.image_timestamp = Uptane::TimestampMeta(
       now, "repo", fetchRole(config.uptane.repo_server, Role::Timestamp(), Version()), meta_.image_root);
-  if (meta.image_timestamp.version() > meta_.image_timestamp.version()) {
-    meta.image_snapshot = Uptane::Snapshot(
+  if (new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
+    new_meta.image_snapshot = Uptane::Snapshot(
         now, "repo", fetchRole(config.uptane.repo_server, Role::Snapshot(), Version()), meta_.image_root);
-    meta.image_targets = Uptane::Targets(now, "repo", fetchRole(config.uptane.repo_server, Role::Targets(), Version()),
-                                         meta_.image_root);
+    new_meta.image_targets = Uptane::Targets(
+        now, "repo", fetchRole(config.uptane.repo_server, Role::Targets(), Version()), meta_.image_root);
   } else {
-    meta.image_snapshot = meta_.image_snapshot;
-    meta.image_targets = meta_.image_targets;
+    new_meta.image_snapshot = meta_.image_snapshot;
+    new_meta.image_targets = meta_.image_targets;
   }
 
-  meta.director_targets = Uptane::Targets(
+  new_meta.director_targets = Uptane::Targets(
       now, "director", fetchRole(config.uptane.director_server, Role::Targets(), Version()), meta_.director_root);
-  if (meta.director_root.version() > meta_.director_root.version() ||
-      meta.image_root.version() > meta.image_root.version() ||
-      meta.director_targets.version() > meta_.director_targets.version() ||
-      meta.image_timestamp.version() > meta_.image_timestamp.version()) {
-    if (verifyMeta(meta_)) {
-      storage->storeMetadata(meta_);
-      meta_ = meta;
+  if (new_meta.director_root.version() > meta_.director_root.version() ||
+      new_meta.image_root.version() > meta_.image_root.version() ||
+      new_meta.director_targets.version() > meta_.director_targets.version() ||
+      new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
+    if (verifyMeta(new_meta)) {
+      storage->storeMetadata(new_meta);
+      meta_ = new_meta;
     } else {
       LOG_WARNING << "Metadata image/directory repo consistency check failed.";
       return false;
