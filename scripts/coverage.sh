@@ -3,9 +3,16 @@ set -e
 
 GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
 
-./scripts/setup_hsm.sh
+export SOFTHSM2_CONF="$PWD/build-coverage/softhsm2.conf"
+export TOKEN_DIR="$PWD/build-coverage/softhsm2-tokens"
 
 mkdir -p build-coverage
+rm -rf "${TOKEN_DIR}"
+mkdir -p "${TOKEN_DIR}"
+cp "$GITREPO_ROOT/tests/test_data/softhsm2.conf" "${SOFTHSM2_CONF}"
+
+./scripts/setup_hsm.sh
+
 (
 cd build-coverage
 cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_DEB=ON -DBUILD_P11=ON -DBUILD_WITH_CODE_COVERAGE=ON -DTEST_PKCS11_ENGINE_PATH="/usr/lib/engines/engine_pkcs11.so" -DTEST_PKCS11_MODULE_PATH="/usr/lib/softhsm/libsofthsm2.so" "${GITREPO_ROOT}"
