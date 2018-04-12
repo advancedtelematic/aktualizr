@@ -1079,6 +1079,28 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
+TEST(Uptane, getMetaCorrectStorage) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config;
+  config.uptane.director_server = http.tls_server + "/director";
+  config.uptane.repo_server = http.tls_server + "/repo";
+  config.storage.type = kSqlite;
+  config.storage.path = temp_dir.Path();
+  config.storage.sqldb_path = temp_dir / "db.sqlite";
+  config.storage.schemas_path = "config/schemas";
+  config.uptane.device_id = "device_id";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
+  Uptane::Repository uptane(config, storage, http);
+  EXPECT_TRUE(uptane.getMeta());
+
+  // check that we indeed have stored the new metadata
+  Uptane::MetaPack new_meta;
+  storage->loadMetadata(&new_meta);
+  EXPECT_EQ(new_meta.director_root.version(), 1);
+}
+
 TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
