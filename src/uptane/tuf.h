@@ -108,12 +108,13 @@ class Target {
  public:
   Target(const std::string &filename, const Json::Value &content);
 
-  // TODO: ECU HW ID
   std::string ecu_identifier() const { return ecu_identifier_; }
   std::string filename() const { return filename_; }
   std::string format() const { return type_; }
   std::string sha256Hash() const;
   std::vector<Hash> hashes() const { return hashes_; };
+
+  bool IsForHardwareId(std::string hardware_id) const { return hardware_id == hardware_id_; }
 
   bool MatchWith(const Hash &hash) const;
 
@@ -128,6 +129,7 @@ class Target {
     // if (type_ != t2.type_) return false; // Director doesn't include targetFormat
     if (filename_ != t2.filename_) return false;
     if (length_ != t2.length_) return false;
+    if (hardware_id_ != t2.hardware_id_) return false;
 
     // requirements:
     // - all hashes of the same type should match
@@ -150,6 +152,8 @@ class Target {
   std::string ecu_identifier_;
   std::vector<Hash> hashes_;
   int64_t length_;
+
+  std::string hardware_id_;
 };
 
 std::ostream &operator<<(std::ostream &os, const Target &t);

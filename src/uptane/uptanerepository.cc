@@ -83,6 +83,35 @@ bool Repository::verifyMeta(const Uptane::MetaPack& meta) {
       LOG_WARNING << it->toJson();
       return false;
     }
+
+    if (it->ecu_identifier() == config.uptane.primary_ecu_serial) {
+      if (!image_target_it->IsForHardwareId(config.uptane.primary_ecu_hardware_id)) {
+        LOG_WARNING << "Target " << it->filename()
+                    << " in director is for our ecu, but the image repo doesn't approve it for this hardware_id";
+        LOG_WARNING << "Director target:" << it->toJson();
+        LOG_WARNING << "Image target: " << image_target_it->toJson();
+        return false;
+      }
+    } else {
+      bool matched = false;
+      for (auto& secondary : config.uptane.secondary_configs) {
+        if (it->ecu_identifier() == secondary.ecu_hardware_id) {
+          matched = true;
+          if (!it->IsForHardwareId(secondary.ecu_hardware_id)) {
+            LOG_WARNING
+                << "Target " << it->filename()
+                << " in director is for a secondary ECU, but the image repo doesn't approve it for this hardware_id";
+            LOG_WARNING << "Director target:" << it->toJson();
+            LOG_WARNING << "Image target: " << image_target_it->toJson();
+            return false;
+          }
+        }
+      }
+      if (!matched) {
+        LOG_WARNING << "Target " << it->filename() << " in director is not for a ECU serial number we know about";
+        return false;
+      }
+    }
   }
   return true;
 }

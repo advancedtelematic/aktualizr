@@ -17,7 +17,7 @@ PORT=`$1/../get_open_port.py`
 
 $1/server.py -t uptane --signature-encoding base64 -P $PORT \
     --cjson json-subset \
-    --hardware-id FIXME --ecu-identifier FIXMETOO &
+    --hardware-id hardwareid1 --ecu-identifier serial1 &
 
 while ! curl "localhost:$PORT"; do
     sleep 0.1

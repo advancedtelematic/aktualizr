@@ -37,33 +37,45 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.storage.uptane_metadata_path = port + "/aktualizr_repos";
   config.pacman.os = "myos";
   config.pacman.sysroot = "./sysroot";
+  config.uptane.primary_ecu_hardware_id = "hardwareid1";
+  config.uptane.primary_ecu_serial = "serial1";
 
+  bool metadata_consistent;
   try {
     auto storage = INvStorage::newStorage(config.storage);
     HttpClient http;
     Uptane::Repository repo(config, storage, http);
     repo.updateRoot(Uptane::Version(1));
-    repo.getMeta();
-    repo.getTargets();
-
+    metadata_consistent = repo.getMeta();
+    if (metadata_consistent) {
+      repo.getTargets();
+    }
   } catch (Uptane::Exception e) {
+    std::cout << test_name << ":"
+              << "threw " << e.what() << " checking error was expected...\n";
     return match_error(vector, &e);
   } catch (const std::exception& ex) {
     std::cout << "Undefined exception: " << ex.what() << "\n";
     return false;
   }
 
+  bool expected_metadata_consistent = true;
   if (vector["director"]["update"]["is_success"].asBool() && vector["image_repo"]["update"]["is_success"].asBool()) {
     for (Json::ValueConstIterator it = vector["director"]["targets"].begin(); it != vector["director"]["targets"].end();
          ++it) {
-      if (!(*it)["is_success"].asBool()) return false;
+      expected_metadata_consistent &= (*it)["is_success"].asBool();
     }
     for (Json::ValueConstIterator it = vector["image_repo"]["targets"].begin();
          it != vector["image_repo"]["targets"].end(); ++it) {
-      if (!(*it)["is_success"].asBool()) return false;
+      expected_metadata_consistent &= (*it)["is_success"].asBool();
     }
-
-    return true;
+    if (expected_metadata_consistent != metadata_consistent) {
+      std::cout << "repo.getMeta() returned " << metadata_consistent << " but expected " << expected_metadata_consistent
+                << "\n";
+      return false;
+    } else {
+      return true;
+    }
   } else {
     std::cout << "No exceptions happen, but expects ";
     if (!vector["director"]["update"]["is_success"].asBool()) {
@@ -73,7 +85,6 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
       std::cout << "exception from image_repo: '" << vector["image_repo"]["update"]["err"]
                 << " with message: " << vector["image_repo"]["update"]["err_msg"] << "\n";
     }
-
     return false;
   }
 }
