@@ -71,16 +71,38 @@ Json::Value Repository::signVersionManifest(const Json::Value& primary_version_m
   return ecu_version_signed;
 }
 
+bool comapreForConsistency(const Uptane::Target& director_target, const Uptane::Target& image_target) {
+  if (director_target.length() > image_target.length()) return false;
+  if (director_target.filename() != image_target.filename()) return false;
+  if (director_target.hashes().size() != image_target.hashes().size()) return false;
+  // TODO: hardware_identifier and release_counter?
+  for (auto director_hash : director_target.hashes()) {
+    // FIXME std:find doesn't work here, can't understand why.
+    // auto found = std::find(image_target.hashes().begin(),
+    //                        image_target.hashes().end(), director_hash);
+    // if (found == image_target.hashes().end()) return false;
+
+    bool found = false;
+    for (auto imh : image_target.hashes()) {
+      if (director_hash == imh) {
+        found = true;
+        break;
+      };
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
 // Check for consistency, signatures are already checked
-bool Repository::verifyMeta(const Uptane::MetaPack& meta) {
+bool Repository::verifyMetaTargets(const Uptane::Targets& director_targets, const Uptane::Targets& image_targets) {
   // verify that director and image targets are consistent
-  for (std::vector<Uptane::Target>::const_iterator it = meta.director_targets.targets.begin();
-       it != meta.director_targets.targets.end(); ++it) {
-    std::vector<Uptane::Target>::const_iterator image_target_it;
-    image_target_it = std::find(meta.image_targets.targets.begin(), meta.image_targets.targets.end(), *it);
-    if (image_target_it == meta.image_targets.targets.end()) {
-      LOG_WARNING << "Target " << it->filename() << " in director repo not found in image repo.";
-      LOG_DEBUG << it->toJson();
+  for (auto director_target : director_targets.targets) {
+    auto image_target_it = std::find_if(image_targets.targets.begin(), image_targets.targets.end(),
+                                        std::bind(comapreForConsistency, director_target, std::placeholders::_1));
+    if (image_target_it == image_targets.targets.end()) {
+      LOG_WARNING << "Target " << director_target.filename() << " in director repo not found in image repo.";
+      LOG_DEBUG << director_target.toJson();
       return false;
     }
   }
@@ -134,7 +156,7 @@ bool Repository::getMeta() {
       new_meta.image_root.version() > meta_.image_root.version() ||
       new_meta.director_targets.version() > meta_.director_targets.version() ||
       new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
-    if (verifyMeta(new_meta)) {
+    if (verifyMetaTargets(new_meta.director_targets, new_meta.image_targets)) {
       storage->storeMetadata(new_meta);
       meta_ = new_meta;
     } else {

@@ -54,6 +54,7 @@ class Repository {
   // TODO: Receive and update time nonces.
 
   Uptane::MetaPack &currentMeta() { return meta_; }
+  bool verifyMetaTargets(const Uptane::Targets &director_targets, const Uptane::Targets &image_targets);
 
  private:
   const Config &config;
@@ -70,7 +71,6 @@ class Repository {
 
   std::vector<std::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
-  bool verifyMeta(const Uptane::MetaPack &meta);
   void downloadTarget(Target target);
   Json::Value getJSON(const std::string &url);
   Json::Value fetchRole(const std::string &base_url, Uptane::Role role, Version version = Version());
