@@ -29,7 +29,7 @@ if(ASN1C)
 
         execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
             WORKING_DIRECTORY ${ASN1_GEN_DIR}
-            OUTPUT_QUIET
+            OUTPUT_QUIET ERROR_QUIET
             )
 
         file(GLOB ASN1_GENERATED ${ASN1_GEN_DIR}/*.c)
