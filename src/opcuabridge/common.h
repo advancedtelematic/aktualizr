@@ -6,7 +6,7 @@
 #include "utility.h"
 #endif
 
-#include <boost/function.hpp>
+#include <functional>
 
 #include <open62541.h>
 #include "json/json.h"
@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-#define OPCUABRIDGE_CLIENT_SYNC_RESPONSE_TIMEOUT (5000)  // ms
-#define OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE (8192)
+#include "opcuabridgeconfig.h"
 
 namespace boost {
 namespace filesystem {
@@ -126,12 +125,12 @@ typedef std::vector<unsigned char> BinaryDataContainer;
 
 template <typename T>
 struct MessageOnBeforeReadCallback {
-  typedef boost::function<void(T *)> type;
+  typedef std::function<void(T *)> type;
 };
 
 template <typename T>
 struct MessageOnAfterWriteCallback {
-  typedef boost::function<void(T *)> type;
+  typedef std::function<void(T *)> type;
 };
 
 template <typename T>

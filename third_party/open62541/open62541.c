@@ -36335,9 +36335,17 @@ UA_ClientConnectionTCP(UA_ConnectionConfig conf,
                        "Server url is invalid: %s", endpointUrl);
         return connection;
     }
-    memcpy(hostname, hostnameString.data, hostnameString.length);
-    hostname[hostnameString.length] = 0;
-
+    bool hostnameIpv6NumericAddr = false;
+    if (hostnameString.length > 2 && hostnameString.data[0] == '['
+        && hostnameString.data[hostnameString.length - 1] == ']') {
+        size_t hostnameLength = hostnameString.length - 2;
+        memcpy(hostname, &hostnameString.data[1], hostnameLength);
+        hostname[hostnameLength] = 0;
+        hostnameIpv6NumericAddr = true;
+    } else {
+        memcpy(hostname, hostnameString.data, hostnameString.length);
+        hostname[hostnameString.length] = 0;
+    }
     if(port == 0) {
         port = 4840;
         UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_NETWORK,
@@ -36346,6 +36354,8 @@ UA_ClientConnectionTCP(UA_ConnectionConfig conf,
 
     struct addrinfo hints, *server;
     memset(&hints, 0, sizeof(hints));
+    if (hostnameIpv6NumericAddr)
+        hints.ai_flags = AI_NUMERICHOST;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     char portStr[6];

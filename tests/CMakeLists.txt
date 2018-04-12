@@ -212,7 +212,7 @@ if(BUILD_OPCUA)
 
     add_executable(opcuabridge-secondary opcuabridge_secondary.cc opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-secondary aktualizr_static_lib
-                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${sodium_LIBRARY_RELEASE})
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${sodium_LIBRARY_RELEASE} ${LibArchive_LIBRARIES})
     add_dependencies(build_tests opcuabridge-secondary)
 
     add_aktualizr_test(NAME opcuabridge_secondary_update
@@ -224,13 +224,13 @@ if(BUILD_OPCUA)
     add_executable(opcuabridge-ostree-repo-sync-client opcuabridge_ostree_repo_sync_client.cc
                    opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-ostree-repo-sync-client aktualizr_static_lib
-                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES} ${LibArchive_LIBRARIES})
     add_dependencies(build_tests opcuabridge-ostree-repo-sync-client)
 
     add_executable(opcuabridge-ostree-repo-sync-server opcuabridge_ostree_repo_sync_server.cc
                    opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-ostree-repo-sync-server aktualizr_static_lib
-                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES})
+                          ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBOSTREE_LIBRARIES} ${LibArchive_LIBRARIES})
     add_dependencies(build_tests opcuabridge-ostree-repo-sync-server)
 
     add_test(NAME opcuabridge-ostree-repo-sync-test

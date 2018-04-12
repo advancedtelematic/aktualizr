@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef OPCUA_SECONDARY_ENABLED
     // OPC-UA bridge server has integrated discovery
-    AktualizrSecondaryOpcua secondary(config);
+    AktualizrSecondaryOpcua secondary(config, storage);
 #else
     AktualizrSecondary secondary(config, storage);
 

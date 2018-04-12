@@ -1,11 +1,20 @@
 #include "opcuaserver_secondary_delegate.h"
+#include "aktualizr_secondary_common.h"
+
+#include <logging.h>
+
+OpcuaServerSecondaryDelegate::OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon* secondary)
+    : secondary_(secondary) {}
 
 void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerModel* model) {
-  model->configuration_.setSerial("");  // sconfig.ecu_serial
-  model->configuration_.setHwId("");    // sconfig.ecu_hardware_id
-  model->configuration_.setPublicKeyType(kRSA2048);
-  model->configuration_.setPublicKey(
-      "");  // Utils::readFile((sconfig.full_client_dir / sconfig.ecu_public_key).string()));
+  if (!secondary_->uptaneInitialize()) {
+    LOG_ERROR << "Secondary: failed to initialize";
+    return;
+  }
+  model->configuration_.setSerial(secondary_->ecu_serial_);
+  model->configuration_.setHwId(secondary_->hardware_id_);
+  model->configuration_.setPublicKeyType(secondary_->config_.uptane.key_type);
+  model->configuration_.setPublicKey(secondary_->keys_.getUptanePublicKey());
 }
 
 void OpcuaServerSecondaryDelegate::handleVersionReportRequested(opcuabridge::ServerModel* model) {
