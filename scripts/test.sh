@@ -1,10 +1,12 @@
 #! /bin/bash
 set -e
 
+GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
+
 (
 mkdir -p build-test
 cd build-test
-cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind ../src
+cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DCMAKE_BUILD_TYPE=Valgrind "${GITREPO_ROOT}"
 
 make -j8
 
@@ -26,7 +28,7 @@ fi
 if [ -n "$STATIC_CHECKS" ]; then
   mkdir -p build-static-checks
   cd build-static-checks
-  cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DBUILD_P11=ON ../src
+  cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -DBUILD_P11=ON "${GITREPO_ROOT}"
 
   make check-format -j8
   make clang-tidy -j8
