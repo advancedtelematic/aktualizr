@@ -11,8 +11,16 @@ pipeline {
                 }
             }
             steps {
-                sh 'echo $JENKINS_RUN'
                 sh 'scripts/coverage.sh'
+            }
+            post {
+                always {
+                    step([$class: 'XUnitBuilder',
+                        thresholds: [
+                            [$class: 'SkippedThreshold', failureThreshold: '0'],
+                            [$class: 'FailedThreshold', failureThreshold: '0']],
+                        tools: [[$class: 'CTestType', pattern: 'build-coverage/**/Test.xml']]])
+                }
             }
         }
     }

@@ -41,10 +41,12 @@ add_dependencies(build_tests aktualizr-secondary)
 
 add_dependencies(build_tests aktualizr-info)
 
-add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
+set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
+
+add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
                   -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
-add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
-                  -E test_uptane_vectors DEPENDS build_tests)
+add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
+    -E test_uptane_vectors DEPENDS build_tests)
 
 # Reference asn1c libraries
 add_asn1c_lib(asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
@@ -96,7 +98,7 @@ add_library(testutilities test_utils.cc)
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
-    setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND})
+    setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
     add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
