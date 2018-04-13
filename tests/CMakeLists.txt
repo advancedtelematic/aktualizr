@@ -182,6 +182,13 @@ add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector
 #         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
 
+if(SOTA_PACKED_CREDENTIALS)
+    add_test(NAME test_prov COMMAND ${PROJECT_SOURCE_DIR}/tests/prov_test.py
+             --build-dir ${PROJECT_BINARY_DIR}
+             --src-dir ${PROJECT_SOURCE_DIR}
+             --credentials ${SOTA_PACKED_CREDENTIALS})
+endif(SOTA_PACKED_CREDENTIALS)
+
 if(BUILD_OSTREE)
     add_custom_target(make_ostree_sysroot
                       COMMAND ${PROJECT_SOURCE_DIR}/scripts/make_ostree_sysroot.sh

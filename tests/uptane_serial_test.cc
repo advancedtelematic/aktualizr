@@ -36,7 +36,6 @@ TEST(Uptane, RandomSerial) {
   Config conf_2("tests/config/basic.toml");
   conf_2.storage.path = temp_dir2.Path();
 
-
   conf_1.uptane.primary_ecu_serial = "";
   conf_1.storage.uptane_private_key_path = "private.key";
   conf_1.storage.uptane_public_key_path = "public.key";
