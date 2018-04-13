@@ -11,7 +11,7 @@ rm -rf "${TOKEN_DIR}"
 mkdir -p "${TOKEN_DIR}"
 cp "$GITREPO_ROOT/tests/test_data/softhsm2.conf" "${SOFTHSM2_CONF}"
 
-./scripts/setup_hsm.sh
+"$GITREPO_ROOT/scripts/setup_hsm.sh"
 
 (
 cd build-coverage
