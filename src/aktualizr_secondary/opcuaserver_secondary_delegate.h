@@ -22,8 +22,6 @@ class OpcuaServerSecondaryDelegate : public opcuabridge::ServerDelegate {
   void handleDirectoryFileListRequested(opcuabridge::ServerModel*) override;
 
  private:
-  boost::filesystem::path getOstreeRepoPath(const boost::filesystem::path& ostree_sysroot_path) const;
-
   AktualizrSecondaryCommon* secondary_;
   Uptane::MetaPack received_meta_pack_;
   TemporaryDirectory ostree_sync_working_repo_dir_;

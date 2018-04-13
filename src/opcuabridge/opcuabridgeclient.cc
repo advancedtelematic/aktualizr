@@ -7,6 +7,8 @@
 
 #include <open62541.h>
 
+#include <cstdlib>
+#include <ctime>
 #include <unordered_set>
 
 #include <boost/filesystem.hpp>
@@ -175,10 +177,13 @@ bool Client::sendMetadataFiles(std::vector<MetadataFile>& files) const {
   MetadataFiles metadatafiles;
   bool retval = true;
   if (UA_Client_getState(client_) != UA_CLIENTSTATE_DISCONNECTED) {
+    std::srand(std::time(nullptr));
+    metadatafiles.setGUID(std::rand());
     metadatafiles.setNumberOfMetadataFiles(files.size());
     metadatafiles.ClientWrite(client_);
 
     for (auto f_it = files.begin(); f_it != files.end(); ++f_it) {
+      f_it->setGUID(metadatafiles.getGUID());
       if (UA_STATUSCODE_GOOD != f_it->ClientWrite(client_)) {
         retval = false;
         break;

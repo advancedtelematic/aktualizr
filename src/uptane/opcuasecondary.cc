@@ -58,7 +58,9 @@ bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
 }
 
 bool OpcuaSecondary::sendFirmware(const std::string& data) {
-  const fs::path source_repo_dir_path(data);
+  Json::Value data_json = Utils::parseJSON(data);
+
+  const fs::path source_repo_dir_path(ostree_repo_sync::GetOstreeRepoPath(data_json["sysroot_path"].asString()));
 
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   if (!client) return false;
@@ -70,7 +72,8 @@ bool OpcuaSecondary::sendFirmware(const std::string& data) {
     TemporaryDirectory temp_dir("opcuabridge-ostree-sync-working-repo");
     const fs::path working_repo_dir_path = temp_dir.Path();
 
-    if (!ostree_repo_sync::LocalPullRepo(source_repo_dir_path, working_repo_dir_path)) {
+    if (!ostree_repo_sync::LocalPullRepo(source_repo_dir_path, working_repo_dir_path,
+                                         data_json["ref_hash"].asString())) {
       LOG_ERROR << "OSTree repo sync failed: unable to local pull from " << source_repo_dir_path.native();
       return false;
     }

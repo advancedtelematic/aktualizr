@@ -17,7 +17,7 @@ void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerMo
     model->configuration_.setPublicKeyType(secondary_->config_.uptane.key_type);
     model->configuration_.setPublicKey(secondary_->keys_.getUptanePublicKey());
 
-    fs::path ostree_source_repo = getOstreeRepoPath(secondary_->config_.pacman.sysroot);
+    fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
 
     if (ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
       model->file_data_.setBasePath(ostree_source_repo);
@@ -56,43 +56,58 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   secondary_->detected_attack_.clear();
 
-  secondary_->root_ = Uptane::Root(now, "director", received_meta_pack_.director_root.original(), secondary_->root_);
-  Uptane::Targets targets(now, "director", received_meta_pack_.director_targets.original(), secondary_->root_);
-  if (secondary_->meta_targets_.version() > targets.version()) {
-    secondary_->detected_attack_ = "Rollback attack detected";
-    return;
+  secondary_->root_ = Uptane::Root(Uptane::Root::kAcceptAll);
+  Uptane::MetaPack meta;
+  if (secondary_->storage_->loadMetadata(&meta)) {
+    secondary_->root_ = meta.director_root;
+    secondary_->meta_targets_ = meta.director_targets;
   }
-  secondary_->meta_targets_ = targets;
-  std::vector<Uptane::Target>::const_iterator it;
-  bool target_found = false;
-  for (it = secondary_->meta_targets_.targets.begin(); it != secondary_->meta_targets_.targets.end(); ++it) {
-    if (it->IsForSecondary(secondary_->ecu_serial_)) {
-      if (target_found) {
-        secondary_->detected_attack_ = "Duplicate entry for this ECU";
-        break;
-      }
-      target_found = true;
-      secondary_->target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
+
+  try {
+    secondary_->root_ = Uptane::Root(now, "director", received_meta_pack_.director_root.original(), secondary_->root_);
+    Uptane::Targets targets(now, "director", received_meta_pack_.director_targets.original(), secondary_->root_);
+    if (secondary_->meta_targets_.version() > targets.version()) {
+      secondary_->detected_attack_ = "Rollback attack detected";
+      LOG_ERROR << "Uptane security check: " << secondary_->detected_attack_;
+      return;
     }
+    bool target_found = false;
+    secondary_->meta_targets_ = targets;
+    for (auto it = secondary_->meta_targets_.targets.begin(); it != secondary_->meta_targets_.targets.end(); ++it) {
+      if (it->ecu_identifier() == secondary_->ecu_serial_) {
+        if (target_found) {
+          secondary_->detected_attack_ = "Duplicate entry for this ECU";
+          break;
+        }
+        target_found = true;
+        secondary_->target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
+      }
+    }
+  } catch (const Uptane::SecurityException& ex) {
+    LOG_ERROR << "Uptane security check: " << ex.what();
+    return;
   }
   secondary_->storage_->storeMetadata(received_meta_pack_);
 }
 
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {
-  fs::path ostree_source_repo = getOstreeRepoPath(secondary_->config_.pacman.sysroot);
-  if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
-    if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), ostree_source_repo)) {
-      LOG_ERROR << "OSTree repo sync failed: unable to local pull from "
-                << ostree_sync_working_repo_dir_.Path().string();
-      return;
+  if (secondary_->target_) {
+    fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
+    if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
+      if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), ostree_source_repo,
+                                           secondary_->target_->sha256Hash())) {
+        LOG_ERROR << "OSTree repo sync failed: unable to local pull from "
+                  << ostree_sync_working_repo_dir_.Path().string();
+        return;
+      }
     }
-  }
-  if (secondary_->target_ != nullptr) {
     data::UpdateResultCode res_code;
     std::string message;
     std::tie(res_code, message) = secondary_->pacman->install(*secondary_->target_);
     if (res_code != data::UpdateResultCode::OK)
       LOG_ERROR << "Could not install target (" << res_code << "): " << message;
+    else
+      secondary_->storage_->saveInstalledVersion(*secondary_->target_);
   } else {
     LOG_ERROR << "No valid installation target found";
   }
@@ -100,8 +115,4 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
 
 void OpcuaServerSecondaryDelegate::handleDirectoryFileListRequested(opcuabridge::ServerModel* model) {
   opcuabridge::UpdateFileList(&model->file_list_, model->file_data_.getBasePath());
-}
-
-fs::path OpcuaServerSecondaryDelegate::getOstreeRepoPath(const fs::path& ostree_sysroot_path) const {
-  return (ostree_sysroot_path / "ostree" / "repo");
 }

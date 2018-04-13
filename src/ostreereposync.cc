@@ -2,6 +2,8 @@
 
 #include <ostree.h>
 
+#include <cstring>
+
 #include <boost/filesystem.hpp>
 #include <boost/scope_exit.hpp>
 
@@ -40,7 +42,7 @@ bool ArchiveModeRepo(const fs::path& repo_dir) {
   return (open_succeed && (ostree_repo_get_mode(repo) == kOstreeRepoModeArchive));
 }
 
-bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir) {
+bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir, const std::string& ref_hash) {
   GError* error = NULL;
   GVariant* options = NULL;
   GHashTable* refs = NULL;
@@ -96,11 +98,15 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir) {
   g_ptr_array_add(refs_to_fetch, NULL);
 
   // pull from source repo
+  const char* const refs_to_fetch_list[] = {ref_hash.c_str()};
   GVariantBuilder builder;
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
   g_variant_builder_add(&builder, "{s@v}", "flags", g_variant_new_variant(g_variant_new_int32(0)));
-  g_variant_builder_add(&builder, "{s@v}", "refs",
-                        g_variant_new_variant(g_variant_new_strv((const char* const*)refs_to_fetch->pdata, -1)));
+  if (strlen(refs_to_fetch_list[0]) == 0)
+    g_variant_builder_add(&builder, "{s@v}", "refs",
+                          g_variant_new_variant(g_variant_new_strv((const char* const*)refs_to_fetch->pdata, -1)));
+  else
+    g_variant_builder_add(&builder, "{s@v}", "refs", g_variant_new_variant(g_variant_new_strv(refs_to_fetch_list, 1)));
   options = g_variant_ref_sink(g_variant_builder_end(&builder));
 
   std::string src_repo_url("file://");
@@ -111,5 +117,7 @@ bool LocalPullRepo(const fs::path& src_repo_dir, const fs::path& dst_repo_dir) {
   }
   return true;
 }
+
+fs::path GetOstreeRepoPath(const fs::path& ostree_sysroot_path) { return (ostree_sysroot_path / "ostree" / "repo"); }
 
 }  // namespace ostree_repo_sync

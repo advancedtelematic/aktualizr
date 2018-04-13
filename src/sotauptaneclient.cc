@@ -327,7 +327,10 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
     }
 
     if (sec->second->sconfig.secondary_type == Uptane::kOpcuaUptane) {
-      sec->second->sendFirmware(config.pacman.sysroot.string());
+      Json::Value data;
+      data["sysroot_path"] = config.pacman.sysroot.string();
+      data["ref_hash"] = it->sha256Hash();
+      sec->second->sendFirmware(Utils::jsonToStr(data));
       continue;
     }
 
