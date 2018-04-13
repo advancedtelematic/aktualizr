@@ -27,11 +27,13 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>)
+
 target_include_directories(aktualizr_secondary_static_lib PUBLIC $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
     aktualizr_secondary_static_lib
+    aktualizr_static_lib
     ${Boost_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${sodium_LIBRARY_RELEASE}

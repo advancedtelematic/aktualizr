@@ -114,6 +114,7 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>)
+
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:pacman,INCLUDE_DIRECTORIES>)
 
