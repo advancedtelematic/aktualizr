@@ -283,10 +283,6 @@ include(CPackComponent)
 
 
 add_subdirectory("src")
-add_subdirectory("src/cert_provider")
-add_subdirectory("src/implicit_writer")
-add_subdirectory("src/external_secondaries")
-add_subdirectory("src/socket_activation")
 add_subdirectory("fuzz")
 add_subdirectory("config")
 

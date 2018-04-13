@@ -4,10 +4,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "asn1-cerstream.h"
 #include "ipsecondarydiscovery.h"
 #include "logging.h"
-#include "socket_activation.h"
+#include "secondary_ipc/asn1-cerstream.h"
+#include "socket_activation/socket_activation.h"
 #include "utils.h"
 
 AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config,

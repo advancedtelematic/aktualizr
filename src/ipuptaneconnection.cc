@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 #include "logging.h"
-#include "socket_activation.h"
+#include "socket_activation/socket_activation.h"
 #include "utils.h"
 
 void IpUptaneConnection::open_socket() {

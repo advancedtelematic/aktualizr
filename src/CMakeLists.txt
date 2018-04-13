@@ -2,6 +2,8 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cp
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
 add_subdirectory("uptane")
+add_subdirectory("socket_activation")
+add_subdirectory("secondary_ipc")
 
 # set main aktualizr source files
 set(AKTUALIZR_SOURCES aktualizr.cc
@@ -12,6 +14,8 @@ set(AKTUALIZR_SOURCES aktualizr.cc
             eventsinterpreter.cc
             gatewaymanager.cc
             ipsecondarydiscovery.cc
+            ipuptaneconnection.cc
+            ipuptaneconnectionsplitter.cc
             socketgateway.cc
             sotauptaneclient.cc
             timer.cc
@@ -19,9 +23,6 @@ set(AKTUALIZR_SOURCES aktualizr.cc
 
 # set headers used for clang format
 set(HEADERS aktualizr.h
-            aktualizr_secondary_ipc.h
-            asn1-cer.h
-            asn1-cerstream.h
             bootstrap.h
             channel.h
             commands.h
@@ -57,16 +58,6 @@ set(HEADERS aktualizr.h
             timer.h
             types.h
             utils.h)
-
-set(AKTUALIZR_SECONDARY_IPC_SOURCES
-    aktualizr_secondary_ipc.cc
-    asn1-cer.cc
-    asn1-cerstream.cc
-    ipuptaneconnection.cc
-    ipuptaneconnectionsplitter.cc)
-add_library(aktualizr_secondary_ipc OBJECT ${AKTUALIZR_SECONDARY_IPC_SOURCES})
-target_include_directories(aktualizr_secondary_ipc PUBLIC
-    $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
 set(COMMON_UTILITIES_SOURCES
     crypto.cc
@@ -175,6 +166,12 @@ target_link_libraries(aktualizr aktualizr_static_lib
         ${SYSTEMD_LIBRARY}
         ${LIBDPKG_LIBRARIES})
 
+
+add_subdirectory("cert_provider")
+add_subdirectory("implicit_writer")
+add_subdirectory("external_secondaries")
+
+
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
@@ -183,7 +180,6 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 set(ALL_CHECKS main.cc
     ${AKTUALIZR_SOURCES}
-    ${AKTUALIZR_SECONDARY_IPC_SOURCES}
     ${COMMON_UTILITIES_SOURCES}
     ${DEB_SOURCES}
     ${OSTREE_SOURCES}

@@ -7,7 +7,7 @@
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_discovery.h"
-#include "aktualizr_secondary_ipc.h"
+#include "secondary_ipc/aktualizr_secondary_ipc.h"
 #ifdef OPCUA_SECONDARY_ENABLED
 #include "aktualizr_secondary_opcua.h"
 #endif

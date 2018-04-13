@@ -8,7 +8,7 @@
 #ifdef BUILD_OSTREE
 #include "ostree.h"
 #endif
-#include "socket_activation.h"
+#include "socket_activation/socket_activation.h"
 #include "utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,

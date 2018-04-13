@@ -6,8 +6,8 @@
 
 #include <sys/socket.h>
 
-#include "asn1-cerstream.h"
 #include "channel.h"
+#include "secondary_ipc/asn1-cerstream.h"
 #include "types.h"
 
 enum SecondaryMesTypeTag {

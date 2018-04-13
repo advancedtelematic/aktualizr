@@ -13,11 +13,11 @@
 #include <boost/uuid/uuid_generators.hpp>  // generators
 #include <boost/uuid/uuid_io.hpp>
 
-#include "asn1-cerstream.h"
 #include "invstorage.h"
 #include "keymanager.h"
 #include "logging.h"
 #include "p11engine.h"
+#include "secondary_ipc/asn1-cerstream.h"
 #include "types.h"
 #include "uptane/secondaryconfig.h"
 

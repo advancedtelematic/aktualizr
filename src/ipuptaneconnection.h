@@ -5,7 +5,7 @@
 #include <memory>
 #include <thread>
 
-#include "aktualizr_secondary_ipc.h"
+#include "secondary_ipc/aktualizr_secondary_ipc.h"
 #include "utils.h"
 
 class IpUptaneConnection {
