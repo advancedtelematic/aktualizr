@@ -6,7 +6,7 @@
 
 #include "crypto.h"
 #include "invstorage.h"
-#include "packagemanagerinterface.h"
+#include "package_manager/packagemanagerinterface.h"
 
 class PackageManagerFake : public PackageManagerInterface {
  public:

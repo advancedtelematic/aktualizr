@@ -4,7 +4,7 @@
 #include <string>
 
 #include "config.h"
-#include "packagemanagerinterface.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "types.h"
 
 #include "invstorage.h"

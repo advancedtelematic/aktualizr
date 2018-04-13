@@ -17,7 +17,7 @@
 #include "utils.h"
 
 #ifdef BUILD_OSTREE
-#include "ostree.h"
+#include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
 
 namespace Uptane {

@@ -47,6 +47,7 @@ if(BUILD_ISOTP)
                           aktualizr_static_lib
                           ${Boost_LIBRARIES}
                           ${LibArchive_LIBRARIES}
+                          ${LIBOSTREE_LIBRARIES}
                           ${CMAKE_THREAD_LIBS_INIT})
     target_compile_options(isotp-test-interface PUBLIC -DECUFLASHER_TEST_ISOTP)
     target_include_directories(isotp-test-interface PUBLIC ${ISOTP_PATH_PREFIX} ${BITFIELD_PATH_PREFIX})

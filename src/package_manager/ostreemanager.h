@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "keymanager.h"
-#include "packagemanagerinterface.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "types.h"
 
 const char remote[] = "aktualizr-remote";

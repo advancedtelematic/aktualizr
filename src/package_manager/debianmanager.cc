@@ -1,4 +1,4 @@
-#include "deb.h"
+#include "package_manager/debianmanager.h"
 
 #define LIBDPKG_VOLATILE_API 1
 #include <dpkg/dpkg-db.h>

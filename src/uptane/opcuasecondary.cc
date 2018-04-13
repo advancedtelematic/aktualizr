@@ -1,11 +1,11 @@
 #include "opcuasecondary.h"
 
-#include <opcuabridge/opcuabridgeclient.h>
+#include "opcuabridge/opcuabridgeclient.h"
 #include "secondaryconfig.h"
 
-#include <logging.h>
-#include <ostreereposync.h>
-#include <utils.h>
+#include "logging.h"
+#include "package_manager/ostreereposync.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <iterator>

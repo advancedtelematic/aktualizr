@@ -11,7 +11,7 @@
 #include "ipsecondarydiscovery.h"
 #include "ipuptaneconnection.h"
 #include "ipuptaneconnectionsplitter.h"
-#include "packagemanagerinterface.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
 

@@ -1,5 +1,5 @@
 #include "aktualizr_secondary_common.h"
-#include "packagemanagerfactory.h"
+#include "package_manager/packagemanagerfactory.h"
 #include "utils.h"
 
 AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfig &config,

@@ -7,7 +7,7 @@
 #include "crypto.h"
 #include "keymanager.h"
 #include "logging.h"
-#include "packagemanagerfactory.h"
+#include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"

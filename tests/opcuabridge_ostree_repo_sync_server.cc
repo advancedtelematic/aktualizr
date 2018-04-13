@@ -1,7 +1,9 @@
 #include <open62541.h>
 
-#include <opcuabridge/opcuabridge.h>
-#include <ostreereposync.h>
+#include "logging.h"
+#include "opcuabridge/opcuabridge.h"
+#include "package_manager/ostreemanager.h"
+#include "package_manager/ostreereposync.h"
 
 #include "opcuabridge_test_utils.h"
 
@@ -11,13 +13,12 @@
 
 #include <boost/filesystem.hpp>
 
-#include <ostree.h>
 
 namespace fs = boost::filesystem;
 
 UA_Boolean running = true;
 
-static void stopHandler(int sign) {
+static void stopHandler(int) {
   LOG_INFO << "received ctrl-c";
   running = false;
 }

@@ -4,6 +4,7 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES CO
 add_subdirectory("uptane")
 add_subdirectory("socket_activation")
 add_subdirectory("secondary_ipc")
+add_subdirectory("package_manager")
 
 # set main aktualizr source files
 set(AKTUALIZR_SOURCES aktualizr.cc
@@ -29,7 +30,6 @@ set(HEADERS aktualizr.h
             config.h
             config_utils.h
             crypto.h
-            deb.h
             events.h
             eventsinterpreter.h
             exceptions.h
@@ -45,12 +45,7 @@ set(HEADERS aktualizr.h
             keymanager.h
             logging.h
             openssl_compat.h
-            ostree.h
-            ostreereposync.h
             p11engine.h
-            packagemanagerfactory.h
-            packagemanagerfake.h
-            packagemanagerinterface.h
             socketgateway.h
             sotauptaneclient.h
             sqlstorage.h
@@ -68,19 +63,6 @@ set(COMMON_UTILITIES_SOURCES
     utils.cc)
 add_library(common_utilities OBJECT ${COMMON_UTILITIES_SOURCES})
 
-set(PACMAN_FAKE_SOURCES packagemanagerfake.cc)
-add_library(pacman OBJECT ${PACMAN_FAKE_SOURCES})
-set(DEB_SOURCES deb.cc)
-if(BUILD_DEB)
-    target_sources(pacman PUBLIC ${DEB_SOURCES})
-endif(BUILD_DEB)
-
-set(OSTREE_SOURCES ostree.cc ostreereposync.cc)
-if(BUILD_OSTREE)
-    target_sources(pacman PUBLIC ${OSTREE_SOURCES})
-    target_include_directories(pacman PUBLIC ${LIBOSTREE_INCLUDE_DIRS})
-endif(BUILD_OSTREE)
-
 set(P11_SOURCES p11engine.cc)
 if(BUILD_P11)
     target_sources(common_utilities PUBLIC ${P11_SOURCES})
@@ -95,11 +77,10 @@ add_library(storage OBJECT ${STORAGE_SOURCES})
 
 add_library(jsoncpp OBJECT ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp)
 
-# set the name of the executable
 add_library(aktualizr_static_lib STATIC
     ${AKTUALIZR_SOURCES}
     $<TARGET_OBJECTS:jsoncpp>
-    $<TARGET_OBJECTS:pacman>
+    $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:common_utilities>
     $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:storage>
@@ -107,7 +88,7 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:socket_activation>)
 
 target_include_directories(aktualizr_static_lib PUBLIC
-    $<TARGET_PROPERTY:pacman,INCLUDE_DIRECTORIES>)
+    $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
 
 set(OPCUABRIDGE_SOURCES opcuabridge/common.cc
                         opcuabridge/filelist.cc
@@ -181,10 +162,7 @@ endif(BUILD_WITH_CODE_COVERAGE)
 set(ALL_CHECKS main.cc
     ${AKTUALIZR_SOURCES}
     ${COMMON_UTILITIES_SOURCES}
-    ${DEB_SOURCES}
-    ${OSTREE_SOURCES}
     ${P11_SOURCES}
-    ${PACMAN_FAKE_SOURCES}
     ${STORAGE_SOURCES}
     ${OPCUABRIDGE_SOURCES} ${OPCUABRIDGE_HEADERS}
     ${HEADERS})
