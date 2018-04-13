@@ -12,6 +12,14 @@ pipeline {
             }
             steps {
                 sh 'scripts/coverage.sh'
+                publishHTML (target: [
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'build-coverage/coverage',
+                        reportFiles: 'index.html',
+                        reportName: 'Coverage Report'
+                ])
             }
             post {
                 always {
