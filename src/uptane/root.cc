@@ -169,13 +169,13 @@ void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, con
   // TODO check timestamp
   Uptane::TimeStamp expiry(Uptane::TimeStamp(signed_object["signed"]["expires"].asString()));
   if (expiry.IsExpiredAt(now)) {
-    LOG_TRACE << "Metadata expired at:" << expiry;
+    LOG_WARNING << "Metadata expired at:" << expiry;
     throw ExpiredMetadata(repository, role.ToString());
   }
 
   Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));
   if (role != actual_role) {
-    LOG_WARNING << "Object was signed for a different role";
+    LOG_ERROR << "Object was signed for a different role";
     LOG_TRACE << "  role:" << role;
     LOG_TRACE << "  actual_role:" << actual_role;
     throw SecurityException(repository, "Object was signed for a different role");

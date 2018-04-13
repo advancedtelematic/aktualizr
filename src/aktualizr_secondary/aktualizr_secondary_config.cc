@@ -5,9 +5,9 @@
 #include "config_utils.h"
 
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(port, "port", boost::log::trivial::info, pt);
-  CopyFromConfig(discovery, "discovery", boost::log::trivial::info, pt);
-  CopyFromConfig(discovery_port, "discovery_port", boost::log::trivial::info, pt);
+  CopyFromConfig(port, "port", boost::log::trivial::trace, pt);
+  CopyFromConfig(discovery, "discovery", boost::log::trivial::trace, pt);
+  CopyFromConfig(discovery_port, "discovery_port", boost::log::trivial::trace, pt);
 }
 
 void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const {
@@ -17,19 +17,19 @@ void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const 
 }
 
 void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(ecu_serial, "ecu_serial", boost::log::trivial::info, pt);
-  CopyFromConfig(ecu_hardware_id, "ecu_hardware_id", boost::log::trivial::info, pt);
+  CopyFromConfig(ecu_serial, "ecu_serial", boost::log::trivial::trace, pt);
+  CopyFromConfig(ecu_hardware_id, "ecu_hardware_id", boost::log::trivial::trace, pt);
 
   // TODO: de-duplicate this from config.cc
   std::string ks = "file";
-  CopyFromConfig(ks, "key_source", boost::log::trivial::warning, pt);
+  CopyFromConfig(ks, "key_source", boost::log::trivial::trace, pt);
   if (ks == "pkcs11")
     key_source = kPkcs11;
   else
     key_source = kFile;
 
   std::string kt;
-  CopyFromConfig(kt, "key_type", boost::log::trivial::warning, pt);
+  CopyFromConfig(kt, "key_type", boost::log::trivial::trace, pt);
   if (kt.size()) {
     if (kt == "RSA2048") {
       key_type = kRSA2048;

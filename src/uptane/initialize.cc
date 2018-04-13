@@ -137,7 +137,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
 
   // set provisioned credentials
   if (!loadSetTlsCreds()) {
-    LOG_INFO << "Failed to set provisioned credentials";
+    LOG_ERROR << "Failed to set provisioned credentials";
     return INIT_RET_STORAGE_FAILURE;
   }
 
