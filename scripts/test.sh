@@ -9,11 +9,11 @@ cmake -DBUILD_OSTREE=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_DEB=ON -D
 make -j8
 
 # Check that 'make install' works
-DESTDIR=/tmp/aktualizr make install
+DESTDIR=/tmp/aktualizr make install -j8
 
 if [ -n "$BUILD_ONLY" ]; then
   if [ -n "$BUILD_DEB" ]; then
-    make package
+    make package -j8
     cp garage_deploy.deb /persistent/
   fi
   echo "Skipping test run because of BUILD_ONLY environment variable"

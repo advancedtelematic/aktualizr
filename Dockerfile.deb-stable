@@ -51,6 +51,7 @@ RUN apt-get update && apt-get -y install \
   opensc \
   ostree \
   pkg-config \
+  python3-requests \
   psmisc \
   softhsm2 \
   wget

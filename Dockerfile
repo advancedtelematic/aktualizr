@@ -54,6 +54,7 @@ RUN apt-get update && apt-get -y install \
   python3-gi \
   python3-openssl \
   python3-pip \
+  python3-requests \
   python3-venv \
   valgrind \
   wget

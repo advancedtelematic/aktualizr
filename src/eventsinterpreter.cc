@@ -34,7 +34,7 @@ void EventsInterpreter::run() {
     if (event->variant == "UptaneTimestampUpdated") {
       // These events indicates the end of pooling cycle
       if (!config.uptane.polling) {
-        // the option --pooling-once is set, so we need to exit now
+        // the option --poll-once is set, so we need to exit now
         *commands_channel << std::make_shared<command::Shutdown>();
       }
     }
