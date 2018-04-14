@@ -25,7 +25,7 @@ class AktualizrSecondaryWithDiscovery : public AktualizrSecondaryInterface {
   AktualizrSecondaryWithDiscovery(const AktualizrSecondaryWithDiscovery &) = delete;
   AktualizrSecondaryWithDiscovery &operator=(const AktualizrSecondaryWithDiscovery &) = delete;
 
-  ~AktualizrSecondaryWithDiscovery() {
+  ~AktualizrSecondaryWithDiscovery() override {
     discovery_->stop();
     discovery_thread_.join();
   }

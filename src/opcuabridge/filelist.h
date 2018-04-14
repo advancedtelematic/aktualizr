@@ -15,7 +15,7 @@ namespace opcuabridge {
 
 class FileList {
  public:
-  typedef std::vector<unsigned char> block_type;
+  typedef BinaryDataType block_type;
 
   FileList() {}
   virtual ~FileList() {}

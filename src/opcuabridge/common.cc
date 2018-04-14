@@ -62,7 +62,7 @@ template <>
 UA_StatusCode read<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId, void *sessionContext,
                                       const UA_NodeId *nodeId, void *nodeContext, UA_Boolean sourceTimeStamp,
                                       const UA_NumericRange *range, UA_DataValue *dataValue) {
-  const BinaryDataContainer &bin_data = *static_cast<BinaryDataContainer *>(nodeContext);
+  const BinaryDataType &bin_data = *static_cast<BinaryDataType *>(nodeContext);
 
   UA_Variant_setArrayCopy(&dataValue->value, &bin_data[0], bin_data.size(), &UA_TYPES[UA_TYPES_BYTE]);
   dataValue->hasValue = !bin_data.empty();
@@ -75,7 +75,7 @@ UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessi
                                        const UA_NodeId *nodeId, void *nodeContext, const UA_NumericRange *range,
                                        const UA_DataValue *data) {
   if (!UA_Variant_isEmpty(&data->value) && UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    BinaryDataContainer *bin_data = static_cast<BinaryDataContainer *>(nodeContext);
+    BinaryDataType *bin_data = static_cast<BinaryDataType *>(nodeContext);
     bin_data->resize(data->value.arrayLength);
     const unsigned char *src = static_cast<const unsigned char *>(data->value.data);
     std::copy(src, src + data->value.arrayLength, bin_data->begin());

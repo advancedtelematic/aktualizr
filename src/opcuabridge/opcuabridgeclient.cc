@@ -177,7 +177,6 @@ bool Client::sendMetadataFiles(std::vector<MetadataFile>& files) const {
   MetadataFiles metadatafiles;
   bool retval = true;
   if (UA_Client_getState(client_) != UA_CLIENTSTATE_DISCONNECTED) {
-    std::srand(std::time(nullptr));
     metadatafiles.setGUID(std::rand());
     metadatafiles.setNumberOfMetadataFiles(files.size());
     metadatafiles.ClientWrite(client_);

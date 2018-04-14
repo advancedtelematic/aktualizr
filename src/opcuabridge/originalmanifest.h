@@ -6,7 +6,7 @@
 namespace opcuabridge {
 class OriginalManifest {
  public:
-  typedef std::vector<unsigned char> block_type;
+  typedef BinaryDataType block_type;
 
   OriginalManifest() {}
   virtual ~OriginalManifest() {}
