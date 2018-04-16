@@ -36,7 +36,7 @@ std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
 }
 
 Json::Value OpcuaSecondary::getManifest() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   auto original_manifest = client.recvOriginalManifest().getBlock();
   return Utils::parseJSON(std::string(original_manifest.begin(), original_manifest.end()));
 }
@@ -53,7 +53,7 @@ bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
     mf.setMetadata(meta_pack.director_targets.original());
     metadatafiles.push_back(mf);
   }
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.sendMetadataFiles(metadatafiles);
 }
 
