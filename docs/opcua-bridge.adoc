@@ -1,0 +1,44 @@
+= OPC-UA Bridge
+
+The document describes communication option between primary and secondary based on OPC-UA protocol.
+
+== OPC-UA
+
+OPC Unified Architecture (OPC UA) is a machine to machine communication protocol for industrial automation developed by the OPC Foundation. OPC-UA implementation
+https://open62541.org[open62541] is currently in use.
+
+== Build
+
+Use build configuration option `BUILD_OPCUA=ON` to enable OPC-UA support. Currently OPC-UA transport support only ostree updates, so `BUILD_OSTREE=ON` is also need to be set.
+
+== Setup
+
+Primary is required to have `"secondary_type" : "opcua_uptane"` configured for each secondary OPC-UA bridge is used.
+
+On secondary side it is required to use `--opcua` command line option to enable OPC-UA support.
+
+== OPC-UA Bridge Demo Notes
+
+Check instructions stated in https://docs.atsgarage.com/quickstarts/raspberry-pi.html[Raspberry PI] to prepare primary and secondary images. At the moment no dedicated
+SOTA feature is introduced to activate OPC-UA, so ensure that build options mentioned above are set.
+
+=== Raspberry PI 3 Wireless Support
+
+Check instructions described in https://raspinterest.wordpress.com/2017/02/28/configure-wlan0-and-bluetooth-in-yocto-raspberry-pi-3/[wlan0 in Yocto Raspberry Pi 3].
+Ensure that required modules (rfkill, cfg80211, brcmutil, brcmfmac) is deployed/added to image.
+
+=== On-board Wireless Configuration
+
+After modules are loaded and link is up, use connmanctl (https://wiki.archlinux.org/index.php/ConnMan[ConnMan]) utility to establish connection with access point.
+
+=== Order of the Devices Activation
+
+Currently the devices are need to be booted that primary is after secondaries.
+
+When the primary is need to have additional tunings (WiFi setup etc.) the order may be the following:
+[options="compact"]
+1. Boot primary
+2. Stop aktualizr service on primary
+3. Do additional configuration
+4. Boot secondary
+5. Run aktualizr service on primary
