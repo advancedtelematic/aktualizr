@@ -12,14 +12,7 @@ set(OPCUA_SECONDARY_SRC
     aktualizr_secondary_opcua.cc
     )
 
-if (BUILD_OPCUA)
-    set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
-        PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
-    list(APPEND AKTUALIZR_SECONDARY_LIB_SRC ${OPCUA_SECONDARY_SRC})
-endif (BUILD_OPCUA)
-
-add_library(aktualizr_secondary_static_lib STATIC
-    ${AKTUALIZR_SECONDARY_LIB_SRC}
+set(AKTUALIZR_SECONDARY_TARGET_OBJECTS
     $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
@@ -29,12 +22,22 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>)
 
+if (BUILD_OPCUA)
+    set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
+        PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
+    list(APPEND AKTUALIZR_SECONDARY_LIB_SRC ${OPCUA_SECONDARY_SRC})
+    list(APPEND AKTUALIZR_SECONDARY_TARGET_OBJECTS $<TARGET_OBJECTS:opcua_bridge>)
+endif (BUILD_OPCUA)
+
+add_library(aktualizr_secondary_static_lib STATIC
+    ${AKTUALIZR_SECONDARY_LIB_SRC}
+    ${AKTUALIZR_SECONDARY_TARGET_OBJECTS})
+
 target_include_directories(aktualizr_secondary_static_lib PUBLIC $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
     aktualizr_secondary_static_lib
-    aktualizr_static_lib
     ${Boost_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${sodium_LIBRARY_RELEASE}
