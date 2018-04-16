@@ -18,19 +18,18 @@ namespace Uptane {
 
 class ManagedSecondary : public SecondaryInterface {
  public:
-  ManagedSecondary(const SecondaryConfig& sconfig_in);
+  explicit ManagedSecondary(const SecondaryConfig& sconfig_in);
 
   std::string getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
       return sconfig.ecu_serial;
-    } else {
-      return public_key_id;
     }
+    return public_key_id;
   }
   std::pair<KeyType, std::string> getPublicKey() override { return std::make_pair(sconfig.key_type, public_key); }
   bool putMetadata(const MetaPack& meta_pack) override;
-  int getRootVersion(const bool director) override;
-  bool putRoot(Uptane::Root root, const bool director) override;
+  int getRootVersion(bool director) override;
+  bool putRoot(Uptane::Root root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
@@ -45,7 +44,7 @@ class ManagedSecondary : public SecondaryInterface {
   std::string detected_attack;
   std::string expected_target_name;
   std::vector<Hash> expected_target_hashes;
-  int64_t expected_target_length;
+  int64_t expected_target_length{};
 
   MetaPack current_meta;
 

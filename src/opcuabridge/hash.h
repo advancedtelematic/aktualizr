@@ -6,8 +6,8 @@
 namespace opcuabridge {
 class Hash {
  public:
-  Hash() {}
-  virtual ~Hash() {}
+  Hash() = default;
+  virtual ~Hash() = default;
 
   const HashFunction& getFunction() const { return function_; }
   void setFunction(const HashFunction& function) { function_ = function; }
@@ -26,7 +26,7 @@ class Hash {
   }
 
  protected:
-  HashFunction function_;
+  HashFunction function_{};
   std::string digest_;
 
  private:

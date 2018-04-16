@@ -14,13 +14,13 @@ class OSTreeRef;
  */
 class OSTreeRepo {
  public:
-  typedef std::shared_ptr<OSTreeRepo> ptr;
+  using ptr = std::shared_ptr<OSTreeRepo>;
   // OSTreeRepo(const OSTreeRepo&) = delete;
   OSTreeRepo& operator=(const OSTreeRepo&) = delete;
 
   virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;
-  virtual OSTreeObject::ptr GetObject(const OSTreeHash hash) const = 0;
+  virtual OSTreeObject::ptr GetObject(OSTreeHash hash) const = 0;
   virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const = 0;
   virtual const boost::filesystem::path root() const = 0;
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
@@ -32,7 +32,7 @@ class OSTreeRepo {
  */
 class OSTreeObjectMissing : std::exception {
  public:
-  OSTreeObjectMissing(const OSTreeHash _missing_object) : missing_object_(_missing_object) {}
+  explicit OSTreeObjectMissing(const OSTreeHash _missing_object) : missing_object_(_missing_object) {}
 
   const char* what() const noexcept override { return "OSTree repository is missing an object"; }
 

@@ -16,8 +16,8 @@ using std::stringstream;
  * Handle CURL write callbacks by appending to a stringstream
  */
 size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb, void *userp) {
-  stringstream *body = (stringstream *)userp;
-  body->write((const char *)buffer, size * nmemb);
+  auto *body = static_cast<stringstream *>(userp);
+  body->write(static_cast<const char *>(buffer), size * nmemb);
   return size * nmemb;
 }
 
@@ -43,7 +43,7 @@ AuthenticationResult OAuth2::Authenticate() {
   curl_easy_perform(curl_handle);
 
   AuthenticationResult res;
-  long rescode;
+  long rescode;  // NOLINT
   curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &rescode);
   if (rescode == 200) {
     ptree pt;
@@ -51,12 +51,12 @@ AuthenticationResult OAuth2::Authenticate() {
       read_json(body, pt);
       token_ = pt.get("access_token", "");
       res = AUTHENTICATION_SUCCESS;
-    } catch (json_parser_error e) {
+    } catch (const json_parser_error &e) {
       token_ = "";
       res = AUTHENTICATION_FAILURE;
     }
   } else {
-    // TODO, be more specfic about the failure cases
+    // TODO: , be more specfic about the failure cases
     res = AUTHENTICATION_FAILURE;
   }
   curl_easy_cleanup(curl_handle);

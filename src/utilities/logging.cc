@@ -7,7 +7,7 @@ using boost::log::trivial::severity_level;
 
 severity_level gLoggingThreshold;
 
-long get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::debug ? 1L : 0L; }
+int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::debug ? 1L : 0L; }
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;
@@ -21,6 +21,6 @@ void logger_set_threshold(severity_level threshold) {
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
 }
 
-int loggerGetSeverity() { return (int)gLoggingThreshold; }
+int loggerGetSeverity() { return static_cast<int>(gLoggingThreshold); }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

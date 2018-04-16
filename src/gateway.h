@@ -6,7 +6,7 @@
 class Gateway {
  public:
   virtual void processEvent(const std::shared_ptr<event::BaseEvent> &event) = 0;
-  virtual ~Gateway() {}
+  virtual ~Gateway() = default;
 };
 
 #endif /* GATEWAY_H_ */

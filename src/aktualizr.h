@@ -5,7 +5,7 @@
 
 class Aktualizr {
  public:
-  Aktualizr(Config& config);
+  explicit Aktualizr(Config& config);
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 

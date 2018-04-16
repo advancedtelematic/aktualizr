@@ -13,10 +13,10 @@ class Timer {
   Timer(const Timer&) = delete;
   Timer& operator=(const Timer&) = delete;
   bool RunningMoreThan(double seconds) const;
-  friend std::ostream& operator<<(std::ostream& os, const Timer&);
+  friend std::ostream& operator<<(std::ostream& os, const Timer& /*timer*/);
 
  private:
-  typedef std::chrono::steady_clock Clock;
+  using Clock = std::chrono::steady_clock;
 
   Clock::time_point start_;
 };

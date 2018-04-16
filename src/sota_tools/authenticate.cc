@@ -20,10 +20,10 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
         if (oauth2.Authenticate() != AUTHENTICATION_SUCCESS) {
           LOG_FATAL << "Authentication with oauth2 failed";
           return EXIT_FAILURE;
-        } else {
-          LOG_INFO << "Using oauth2 authentication token";
-          treehub.SetToken(oauth2.token());
         }
+        LOG_INFO << "Using oauth2 authentication token";
+        treehub.SetToken(oauth2.token());
+
       } else {
         LOG_INFO << "Skipping Authentication";
       }

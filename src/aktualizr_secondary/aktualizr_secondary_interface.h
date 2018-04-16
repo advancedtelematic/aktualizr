@@ -3,7 +3,7 @@
 
 class AktualizrSecondaryInterface {
  public:
-  virtual ~AktualizrSecondaryInterface() {}
+  virtual ~AktualizrSecondaryInterface() = default;
   virtual void run() = 0;
   virtual void stop() = 0;
 };

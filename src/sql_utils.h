@@ -12,7 +12,7 @@
 
 struct SQLBlob {
   const std::string& content;
-  SQLBlob(const std::string& str) : content(str) {}
+  explicit SQLBlob(const std::string& str) : content(str) {}
 };
 
 struct SQLZeroBlob {
@@ -106,14 +106,14 @@ class SQLite3Guard {
   sqlite3* get() { return handle_.get(); }
   int get_rc() { return rc_; }
 
-  SQLite3Guard(const char* path) : handle_(nullptr, sqlite3_close), rc_(0) {
+  explicit SQLite3Guard(const char* path) : handle_(nullptr, sqlite3_close), rc_(0) {
     sqlite3* h;
     rc_ = sqlite3_open(path, &h);
     handle_.reset(h);
   }
 
   int exec(const char* sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
-    return sqlite3_exec(handle_.get(), sql, callback, cb_arg, NULL);
+    return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);
   }
 
   template <typename... Types>
@@ -134,7 +134,7 @@ class SQLite3Guard {
   bool beginTransaction() {
     // Note: transaction cannot be nested and this will fail if another
     // transaction was open on the same connection
-    int ret = exec("BEGIN TRANSACTION;", NULL, NULL);
+    int ret = exec("BEGIN TRANSACTION;", nullptr, nullptr);
     if (ret != SQLITE_OK) {
       LOG_ERROR << "Can't begin transaction: " << errmsg();
     }
@@ -142,7 +142,7 @@ class SQLite3Guard {
   }
 
   bool commitTransaction() {
-    int ret = exec("COMMIT TRANSACTION;", NULL, NULL);
+    int ret = exec("COMMIT TRANSACTION;", nullptr, nullptr);
     if (ret != SQLITE_OK) {
       LOG_ERROR << "Can't commit transaction: " << errmsg();
     }
@@ -150,7 +150,7 @@ class SQLite3Guard {
   }
 
   bool rollbackTransaction() {
-    int ret = exec("ROLLBACK TRANSACTION;", NULL, NULL);
+    int ret = exec("ROLLBACK TRANSACTION;", nullptr, nullptr);
     if (ret != SQLITE_OK) {
       LOG_ERROR << "Can't rollback transaction: " << errmsg();
     }

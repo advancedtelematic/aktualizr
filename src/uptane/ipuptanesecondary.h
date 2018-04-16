@@ -9,18 +9,18 @@
 namespace Uptane {
 class IpUptaneSecondary : public SecondaryInterface {
  public:
-  IpUptaneSecondary(const SecondaryConfig& conf) : SecondaryInterface(conf), connection(nullptr) {}
+  explicit IpUptaneSecondary(const SecondaryConfig& conf) : SecondaryInterface(conf), connection(nullptr) {}
 
   // SecondaryInterface implementation
   std::pair<KeyType, std::string> getPublicKey() override;
   bool putMetadata(const MetaPack& meta_pack) override;
-  int32_t getRootVersion(const bool director) override;
-  bool putRoot(Uptane::Root root, const bool director) override;
+  int32_t getRootVersion(bool director) override;
+  bool putRoot(Uptane::Root root, bool director) override;
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
 
   // extra methods
-  void pushMessage(std::shared_ptr<SecondaryPacket> pack) { pending_messages << pack; }
+  void pushMessage(const std::shared_ptr<SecondaryPacket>& pack) { pending_messages << pack; }
   sockaddr_storage getAddr() { return sconfig.ip_addr; }
   void connect(IpUptaneConnectionSplitter* conn) { connection = conn; }
 

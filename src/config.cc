@@ -81,7 +81,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, socket_commands_path, "socket_commands_path");
   writeOption(out_stream, socket_events_path, "socket_events_path");
-  std::string events_str = "";
+  std::string events_str;
   for (auto it = socket_events.begin(); it != socket_events.end(); ++it) {
     events_str += *it;
     if (it != --socket_events.end()) {
@@ -101,24 +101,27 @@ void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 
   std::string tls_source = "file";
   CopyFromConfig(tls_source, "ca_source", boost::log::trivial::trace, pt);
-  if (tls_source == "pkcs11")
+  if (tls_source == "pkcs11") {
     ca_source = kPkcs11;
-  else
+  } else {
     ca_source = kFile;
+  }
 
   tls_source = "file";
   CopyFromConfig(tls_source, "cert_source", boost::log::trivial::trace, pt);
-  if (tls_source == "pkcs11")
+  if (tls_source == "pkcs11") {
     cert_source = kPkcs11;
-  else
+  } else {
     cert_source = kFile;
+  }
 
   tls_source = "file";
   CopyFromConfig(tls_source, "pkey_source", boost::log::trivial::trace, pt);
-  if (tls_source == "pkcs11")
+  if (tls_source == "pkcs11") {
     pkey_source = kPkcs11;
-  else
+  } else {
     pkey_source = kFile;
+  }
 }
 
 void TlsConfig::writeToStream(std::ostream& out_stream) const {
@@ -155,14 +158,15 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 
   std::string ks = "file";
   CopyFromConfig(ks, "key_source", boost::log::trivial::trace, pt);
-  if (ks == "pkcs11")
+  if (ks == "pkcs11") {
     key_source = kPkcs11;
-  else
+  } else {
     key_source = kFile;
+  }
 
   std::string kt;
   CopyFromConfig(kt, "key_type", boost::log::trivial::trace, pt);
-  if (kt.size()) {
+  if (kt.size() != 0u) {
     if (kt == "RSA2048") {
       key_type = kRSA2048;
     } else if (kt == "RSA4096") {
@@ -240,19 +244,27 @@ void Config::postUpdateValues() {
   }
 
   if (!tls.server.empty()) {
-    if (provision.server.empty()) provision.server = tls.server;
+    if (provision.server.empty()) {
+      provision.server = tls.server;
+    }
 
-    if (uptane.repo_server.empty()) uptane.repo_server = tls.server + "/repo";
+    if (uptane.repo_server.empty()) {
+      uptane.repo_server = tls.server + "/repo";
+    }
 
-    if (uptane.director_server.empty()) uptane.director_server = tls.server + "/director";
+    if (uptane.director_server.empty()) {
+      uptane.director_server = tls.server + "/director";
+    }
 
-    if (pacman.ostree_server.empty()) pacman.ostree_server = tls.server + "/treehub";
+    if (pacman.ostree_server.empty()) {
+      pacman.ostree_server = tls.server + "/treehub";
+    }
   }
 }
 
 void Config::updateFromDirs() {
-  for (auto dir : config_dirs_) {
-    for (auto config : Utils::glob((dir / "*.conf").string())) {
+  for (const auto& dir : config_dirs_) {
+    for (const auto& config : Utils::glob((dir / "*.conf").string())) {
       updateFromToml(config);
     }
   }
@@ -362,7 +374,7 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     sconfig.flasher = "";
 
     std::string key_type = config_json["key_type"].asString();
-    if (key_type.size()) {
+    if (key_type.size() != 0u) {
       if (key_type == "RSA2048") {
         sconfig.key_type = kRSA2048;
       } else if (key_type == "RSA4096") {
@@ -385,11 +397,10 @@ void Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface)
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
     throw FatalException(std::string("Legacy external flasher api-version command failed: ") + output);
-  } else {
-    boost::trim_if(output, boost::is_any_of(" \n\r\t"));
-    if (output != "1") {
-      throw FatalException(std::string("Unexpected legacy external flasher API version: ") + output);
-    }
+  }
+  boost::trim_if(output, boost::is_any_of(" \n\r\t"));
+  if (output != "1") {
+    throw FatalException(std::string("Unexpected legacy external flasher API version: ") + output);
   }
 }
 
@@ -413,7 +424,8 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
     if (ecu_info.size() == 0) {
       // Could print a warning but why bother.
       continue;
-    } else if (ecu_info.size() == 1) {
+    }
+    if (ecu_info.size() == 1) {
       sconfig.ecu_hardware_id = ecu_info[0];
       // Use getSerial, which will get the public_key_id, initialized in ManagedSecondary constructor.
       sconfig.ecu_serial = "";
@@ -480,7 +492,9 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
   int32_t cs_i;
   des >> asn1::implicit<kAsn1Enum>(cs_i);
 
-  if (cs_i < kFile || cs_i > kPkcs11) throw deserialization_error();
+  if (cs_i < kFile || cs_i > kPkcs11) {
+    throw deserialization_error();
+  }
 
   cs = static_cast<CryptoSource>(cs_i);
 

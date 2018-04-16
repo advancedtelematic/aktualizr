@@ -8,8 +8,8 @@
 namespace opcuabridge {
 class Signature {
  public:
-  Signature() {}
-  virtual ~Signature() {}
+  Signature() = default;
+  virtual ~Signature() = default;
 
   const std::string& getKeyid() const { return keyid_; }
   void setKeyid(const std::string& keyid) { keyid_ = keyid; }
@@ -39,7 +39,7 @@ class Signature {
 
  protected:
   std::string keyid_;
-  SignatureMethod method_;
+  SignatureMethod method_{};
   Hash hash_;
   std::string value_;
 

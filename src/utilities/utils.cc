@@ -190,7 +190,7 @@ typedef boost::archive::iterators::transform_width<
     base64_to_bin;
 
 std::string Utils::fromBase64(std::string base64_string) {
-  unsigned long long paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
+  uint64_t paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
   std::replace(base64_string.begin(), base64_string.end(), '=', 'A');
   std::string result(base64_to_bin(base64_string.begin()), base64_to_bin(base64_string.end()));
   result.erase(result.end() - static_cast<unsigned int>(paddingChars), result.end());
@@ -218,21 +218,23 @@ std::string Utils::extractField(const std::string &in, unsigned int field_id) {
   auto it = in.begin();
 
   // skip spaces
-  for (; it != in.end() && isspace(*it); it++)
+  for (; it != in.end() && (isspace(*it) != 0); it++) {
     ;
+  }
   for (unsigned int k = 0; k < field_id; k++) {
     bool empty = true;
-    for (; it != in.end() && !isspace(*it); it++) {
+    for (; it != in.end() && (isspace(*it) == 0); it++) {
       empty = false;
     }
     if (empty) {
       throw std::runtime_error("No such field " + std::to_string(field_id));
     }
-    for (; it != in.end() && isspace(*it); it++)
+    for (; it != in.end() && (isspace(*it) != 0); it++) {
       ;
+    }
   }
 
-  for (; it != in.end() && !isspace(*it); it++) {
+  for (; it != in.end() && (isspace(*it) == 0); it++) {
     out += *it;
   }
   return out;
@@ -337,15 +339,14 @@ std::string Utils::jsonToStr(const Json::Value &json) {
 }
 
 Json::Value Utils::getHardwareInfo() {
-  std::string result = "";
+  std::string result;
   int exit_code = shell("lshw -json", &result);
 
-  if (exit_code) {
+  if (exit_code != 0) {
     LOG_WARNING << "Could not execute lshw (is it installed?).";
     return Json::Value();
-  } else {
-    return Utils::parseJSON(result);
   }
+  return Utils::parseJSON(result);
 }
 
 Json::Value Utils::getNetworkInfo() {
@@ -359,7 +360,7 @@ Json::Value Utils::getNetworkInfo() {
     std::string mac;
   } itf;
   std::istringstream route_stream(route_content);
-  std::array<char, 200> line;
+  std::array<char, 200> line{};
 
   // skip first line
   route_stream.getline(&line[0], line.size());
@@ -388,8 +389,12 @@ Json::Value Utils::getNetworkInfo() {
       if (ifaddrs != nullptr) {
         for (struct ifaddrs *ifa = ifaddrs.get(); ifa != nullptr; ifa = ifa->ifa_next) {
           if (itf.name == ifa->ifa_name) {
-            if (!ifa->ifa_addr) continue;
-            if (ifa->ifa_addr->sa_family != AF_INET) continue;
+            if (ifa->ifa_addr == nullptr) {
+              continue;
+            }
+            if (ifa->ifa_addr->sa_family != AF_INET) {
+              continue;
+            }
             const struct sockaddr_storage *sa = reinterpret_cast<struct sockaddr_storage *>(ifa->ifa_addr);
 
             itf.ip = Utils::ipDisplayName(*sa);
@@ -435,16 +440,17 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
   boost::filesystem::directory_iterator it(from);
 
   for (; it != boost::filesystem::directory_iterator(); it++) {
-    if (boost::filesystem::is_directory(it->path()))
+    if (boost::filesystem::is_directory(it->path())) {
       copyDir(it->path(), to / it->path().filename());
-    else
+    } else {
       boost::filesystem::copy_file(it->path(), to / it->path().filename());
+    }
   }
 }
 
 std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename) {
   struct archive *a = archive_read_new();
-  if (!a) {
+  if (a == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
   }
@@ -472,21 +478,25 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
     int64_t offset;
 
     for (;;) {
-      r = archive_read_data_block(a, (const void **)&buff, &size, &offset);
+      r = archive_read_data_block(a, reinterpret_cast<const void **>(&buff), &size, &offset);
       if (r == ARCHIVE_EOF) {
         found = true;
         break;
-      } else if (r != ARCHIVE_OK) {
+      }
+      if (r != ARCHIVE_OK) {
         LOG_ERROR << "archive error: " << archive_error_string(a);
         break;
-      } else if (size > 0 && buff != NULL) {
+      }
+      if (size > 0 && buff != nullptr) {
         out_stream.write(buff, size);
       }
     }
   }
 
   r = archive_read_free(a);
-  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
+  if (r != ARCHIVE_OK) {
+    LOG_ERROR << "archive error: " << archive_error_string(a);
+  }
 
   if (!found) {
     throw std::runtime_error("could not extract " + filename + " from archive");
@@ -508,7 +518,7 @@ static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer
 
 void Utils::writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as) {
   struct archive *a = archive_write_new();
-  if (!a) {
+  if (a == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
     throw std::runtime_error("archive error");
   }
@@ -523,13 +533,13 @@ void Utils::writeArchive(const std::map<std::string, std::string> &entries, std:
   }
 
   struct archive_entry *entry = archive_entry_new();
-  for (const auto el : entries) {
+  for (const auto &el : entries) {
     archive_entry_clear(entry);
     archive_entry_set_filetype(entry, AE_IFREG);
     archive_entry_set_perm(entry, S_IRWXU | S_IRWXG | S_IRWXO);
     archive_entry_set_size(entry, el.second.size());
     archive_entry_set_pathname(entry, el.first.c_str());
-    if (archive_write_header(a, entry)) {
+    if (archive_write_header(a, entry) != 0) {
       LOG_ERROR << "archive error: " << archive_error_string(a);
       archive_entry_free(entry);
       archive_write_free(a);
@@ -544,11 +554,13 @@ void Utils::writeArchive(const std::map<std::string, std::string> &entries, std:
   }
   archive_entry_free(entry);
   r = archive_write_free(a);
-  if (r != ARCHIVE_OK) LOG_ERROR << "archive error: " << archive_error_string(a);
+  if (r != ARCHIVE_OK) {
+    LOG_ERROR << "archive error: " << archive_error_string(a);
+  }
 }
 
 sockaddr_storage Utils::ipGetSockaddr(int fd) {
-  sockaddr_storage ss;
+  sockaddr_storage ss{};
   socklen_t len = sizeof(ss);
   if (getsockname(fd, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
     throw std::runtime_error(std::string("Could not get sockaddr: ") + std::strerror(errno));
@@ -562,12 +574,12 @@ std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
 
   switch (saddr.ss_family) {
     case AF_INET: {
-      const sockaddr_in *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
+      const auto *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
       inet_ntop(AF_INET, &sa->sin_addr, ipstr, sizeof(ipstr));
       return std::string(ipstr);
     }
     case AF_INET6: {
-      const sockaddr_in6 *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
+      const auto *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
       inet_ntop(AF_INET6, &sa->sin6_addr, ipstr, sizeof(ipstr));
       return std::string(ipstr);
     }
@@ -579,10 +591,10 @@ std::string Utils::ipDisplayName(const sockaddr_storage &saddr) {
 int Utils::ipPort(const sockaddr_storage &saddr) {
   in_port_t p;
   if (saddr.ss_family == AF_INET) {
-    const sockaddr_in *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
+    const auto *sa = reinterpret_cast<const sockaddr_in *>(&saddr);
     p = sa->sin_port;
   } else if (saddr.ss_family == AF_INET6) {
-    const sockaddr_in6 *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
+    const auto *sa = reinterpret_cast<const sockaddr_in6 *>(&saddr);
     p = sa->sin6_port;
   } else {
     return -1;
@@ -594,14 +606,16 @@ int Utils::ipPort(const sockaddr_storage &saddr) {
 int Utils::shell(const std::string &command, std::string *output, bool include_stderr) {
   char buffer[128];
   std::string full_command(command);
-  if (include_stderr) full_command += " 2>&1";
+  if (include_stderr) {
+    full_command += " 2>&1";
+  }
   FILE *pipe = popen(full_command.c_str(), "r");
-  if (!pipe) {
+  if (pipe == nullptr) {
     *output = "popen() failed!";
     return -1;
   }
-  while (!feof(pipe)) {
-    if (fgets(buffer, 128, pipe) != NULL) {
+  while (feof(pipe) == 0) {
+    if (fgets(buffer, 128, pipe) != nullptr) {
       *output += buffer;
     }
   }
@@ -612,17 +626,16 @@ int Utils::shell(const std::string &command, std::string *output, bool include_s
 boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file) {
   if (file.is_absolute() || root.empty()) {
     return file;
-  } else {
-    return (root / file);
   }
+  return (root / file);
 }
 
 std::vector<boost::filesystem::path> Utils::glob(const std::string &pat) {
   glob_t glob_result;
-  ::glob(pat.c_str(), GLOB_TILDE, NULL, &glob_result);
+  ::glob(pat.c_str(), GLOB_TILDE, nullptr, &glob_result);
   std::vector<boost::filesystem::path> ret;
   for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
-    ret.push_back(boost::filesystem::path(glob_result.gl_pathv[i]));
+    ret.emplace_back(glob_result.gl_pathv[i]);
   }
   globfree(&glob_result);
   std::sort(ret.begin(), ret.end());
@@ -636,9 +649,8 @@ void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) 
   }
   if (mkdir(path.c_str(), mode) == -1) {
     throw std::runtime_error("could not create directory: " + path.native());
-  } else {
-    std::cout << "created: " << path.native() << "\n";
   }
+  std::cout << "created: " << path.native() << "\n";
 }
 
 class SafeTempRoot {
@@ -710,20 +722,20 @@ boost::filesystem::path TemporaryDirectory::operator/(const boost::filesystem::p
 std::string TemporaryDirectory::PathString() const { return Path().string(); }
 
 void Utils::setSocketPort(sockaddr_storage *addr, in_port_t port) {
-  if (addr->ss_family == AF_INET)
+  if (addr->ss_family == AF_INET) {
     reinterpret_cast<sockaddr_in *>(addr)->sin_port = port;
-  else if (addr->ss_family == AF_INET6)
+  } else if (addr->ss_family == AF_INET6) {
     reinterpret_cast<sockaddr_in6 *>(addr)->sin6_port = port;
+  }
 }
 
 bool operator<(const sockaddr_storage &left, const sockaddr_storage &right) {
   if (left.ss_family == AF_INET) {
     throw std::runtime_error("IPv4 addresses are not supported");
-  } else {
-    const unsigned char *left_addr = reinterpret_cast<const sockaddr_in6 *>(&left)->sin6_addr.s6_addr;
-    const unsigned char *right_addr = reinterpret_cast<const sockaddr_in6 *>(&right)->sin6_addr.s6_addr;
-    int res = memcmp(left_addr, right_addr, 16);
-
-    return (res < 0);
   }
+  const unsigned char *left_addr = reinterpret_cast<const sockaddr_in6 *>(&left)->sin6_addr.s6_addr;    // NOLINT
+  const unsigned char *right_addr = reinterpret_cast<const sockaddr_in6 *>(&right)->sin6_addr.s6_addr;  // NOLINT
+  int res = memcmp(left_addr, right_addr, 16);
+
+  return (res < 0);
 }

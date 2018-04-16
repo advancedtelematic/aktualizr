@@ -3,8 +3,8 @@
 #include "utilities/utils.h"
 
 AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfig &config,
-                                                   const std::shared_ptr<INvStorage> &storage)
-    : config_(config), storage_(storage), keys_(storage_, config.keymanagerConfig()) {
+                                                   std::shared_ptr<INvStorage> storage)
+    : config_(config), storage_(std::move(storage)), keys_(storage_, config.keymanagerConfig()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
 }
 
@@ -30,10 +30,12 @@ bool AktualizrSecondaryCommon::uptaneInitialize() {
   std::string ecu_hardware_id = config_.uptane.ecu_hardware_id;
   if (ecu_hardware_id.empty()) {
     ecu_hardware_id = Utils::getHostname();
-    if (ecu_hardware_id == "") return false;
+    if (ecu_hardware_id == "") {
+      return false;
+    }
   }
 
-  ecu_serials.push_back(std::pair<std::string, std::string>(ecu_serial_local, ecu_hardware_id));
+  ecu_serials.emplace_back(ecu_serial_local, ecu_hardware_id);
   storage_->storeEcuSerials(ecu_serials);
   ecu_serial_ = ecu_serials[0].first;
   hardware_id_ = ecu_serials[0].second;

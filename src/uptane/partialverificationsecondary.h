@@ -15,20 +15,19 @@ namespace Uptane {
 
 class PartialVerificationSecondary : public SecondaryInterface {
  public:
-  PartialVerificationSecondary(const SecondaryConfig& sconfig_in);
+  explicit PartialVerificationSecondary(const SecondaryConfig& sconfig_in);
 
   std::string getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
       return sconfig.ecu_serial;
-    } else {
-      return public_key_id_;
     }
+    return public_key_id_;
   }
   std::pair<KeyType, std::string> getPublicKey() override { return std::make_pair(sconfig.key_type, public_key_); }
 
   bool putMetadata(const MetaPack& meta) override;
-  int getRootVersion(const bool director) override;
-  bool putRoot(Uptane::Root root, const bool director) override;
+  int getRootVersion(bool director) override;
+  bool putRoot(Uptane::Root root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
@@ -45,6 +44,6 @@ class PartialVerificationSecondary : public SecondaryInterface {
   std::string detected_attack_;
   Uptane::Targets meta_targets_;
 };
-}
+}  // namespace Uptane
 
 #endif  // UPTANE_PARTIALVRIFICATIONSECONDARY_H_

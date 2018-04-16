@@ -10,7 +10,7 @@
 
 class IpUptaneConnection {
  public:
-  IpUptaneConnection(in_port_t in_port, struct in6_addr = IN6ADDR_ANY_INIT);
+  explicit IpUptaneConnection(in_port_t in_port, struct in6_addr /*in_addr*/ = IN6ADDR_ANY_INIT);
   ~IpUptaneConnection();
   IpUptaneConnection(const IpUptaneConnection&) = delete;
   IpUptaneConnection& operator=(const IpUptaneConnection&) = delete;

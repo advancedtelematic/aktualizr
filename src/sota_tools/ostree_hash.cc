@@ -15,7 +15,7 @@ OSTreeHash OSTreeHash::Parse(const std::string& hash) {
   for (int i = 0; i < 32; i++) {
     char byte_string[3];
     byte_string[2] = 0;
-    unsigned long byte_holder;
+    uint64_t byte_holder;
 
     refstr.read(byte_string, 2);
     char* next_char;
@@ -35,7 +35,9 @@ std::string OSTreeHash::string() const {
   str_str.fill('0');
 
   // sha256 hash is always 256 bits = 32 bytes long
-  for (int i = 0; i < 32; i++) str_str << std::setw(2) << std::hex << (unsigned short)hash_[i];
+  for (int i = 0; i < 32; i++) {
+    str_str << std::setw(2) << std::hex << static_cast<uint64_t>(hash_[i]);
+  }
   return str_str.str();
 }
 

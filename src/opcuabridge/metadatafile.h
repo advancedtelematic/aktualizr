@@ -1,6 +1,8 @@
 #ifndef OPCUABRIDGE_METADATAFILE_H_
 #define OPCUABRIDGE_METADATAFILE_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
@@ -8,8 +10,8 @@ class MetadataFile {
  public:
   typedef BinaryDataType block_type;
 
-  MetadataFile() {}
-  virtual ~MetadataFile() {}
+  MetadataFile() = default;
+  virtual ~MetadataFile() = default;
 
   const int& getGUID() const { return GUID_; }
   void setGUID(const int& GUID) { GUID_ = GUID; }
@@ -29,12 +31,16 @@ class MetadataFile {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&metadata_)                       // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&metadata_)                      // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFile>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFile>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFile>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFile>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
-  int GUID_;
-  std::size_t fileNumber_;
+  int GUID_{};
+  std::size_t fileNumber_{};
   std::string filename_;
   block_type metadata_;
 

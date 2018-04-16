@@ -24,9 +24,9 @@ bool OSTreeDirRepo::LooksValid() const {
       if (config.get<string>("core.mode") != "archive-z2") {
         LOG_WARNING << "OSTree repo is not in archive-z2 format";
         return false;
-      } else {
-        return true;
       }
+      return true;
+
     } catch (const pt::ini_parser_error &error) {
       LOG_WARNING << "Couldn't parse OSTree config file: " << config_file;
       return false;
@@ -53,7 +53,7 @@ OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash) const {
   std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   boost::filesystem::path objpath = hash.string().insert(2, 1, '/');
 
-  for (std::string ext : exts) {
+  for (const std::string &ext : exts) {
     if (fs::is_regular_file((root_ / "/objects/" / objpath).string() + ext)) {
       OSTreeObject::ptr obj(new OSTreeObject(*this, objpath.string() + ext));
       ObjectTable[hash] = obj;

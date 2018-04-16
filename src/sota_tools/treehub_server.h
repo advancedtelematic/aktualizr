@@ -32,12 +32,12 @@ class TreehubServer {
   TemporaryFile root_cert_path_;
   TemporaryFile client_cert_path_;
   TemporaryFile client_key_path_;
-  AuthMethod method_;
-  struct curl_slist auth_header_;
+  AuthMethod method_{AUTH_NONE};
+  struct curl_slist auth_header_ {};
   // Don't modify auth_header_contents_ without updating the pointer in
   // auth_header_
   std::string auth_header_contents_;
-  struct curl_slist force_header_;
+  struct curl_slist force_header_ {};
   // Don't modify force_header_contents_ without updating the pointer in
   // force_header_
   std::string force_header_contents_;

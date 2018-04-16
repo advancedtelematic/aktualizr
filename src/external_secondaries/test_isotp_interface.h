@@ -14,7 +14,7 @@ const uint32_t kMaxBlockSize = 1024;  // 1K
 const std::string kDefaultCanIf = "can0";
 class TestIsotpInterface : public ECUInterface {
  public:
-  TestIsotpInterface(unsigned int loglevel, uint32_t canid = kDefaultCanId, const std::string& canif = kDefaultCanIf);
+  TestIsotpInterface(unsigned int loglevel, uint32_t canid = kDefaultCanId, std::string canif = kDefaultCanIf);
   std::string apiVersion() override;
   std::string listEcus() override;
   InstallStatus installSoftware(const std::string& hardware_id, const std::string& ecu_id,
@@ -28,14 +28,14 @@ class TestIsotpInterface : public ECUInterface {
   uint16_t makeCanAf(uint16_t sa, uint16_t ta);
   bool sendRecvUds(const std::string& out, std::string* in, uint16_t sa, uint16_t ta, struct timeval* to);
 
-  static bool isoTpSend(const uint32_t arbitration_id, const uint8_t* data, const uint8_t size, void* private_data);
+  static bool isoTpSend(uint32_t arbitration_id, const uint8_t* data, uint8_t size, void* private_data);
 
   int can_socket;
 
   int loglevel_;
   uint32_t canId;
   std::string canIface;
-  IsoTpShims isotp_shims;
+  IsoTpShims isotp_shims{};
 };
 
 #endif  // TEST_ISOTP_INTERFACE_H_

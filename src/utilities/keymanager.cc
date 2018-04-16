@@ -3,13 +3,14 @@
 #include <stdexcept>
 
 #include <boost/scoped_array.hpp>
+#include <utility>
 
-KeyManager::KeyManager(const std::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config)
+KeyManager::KeyManager(const std::shared_ptr<INvStorage> &backend, KeyManagerConfig config)
     : backend_(backend),
-      config_(config)
+      config_(std::move(config))
 #ifdef BUILD_P11
       ,
-      p11_(config.p11)
+      p11_(config_.p11)
 #endif
 {
 }
@@ -25,7 +26,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!pkey.empty()) {
       if (tmp_pkey_file == nullptr) {
-        tmp_pkey_file = std::make_unique<TemporaryFile>("tls-pkey");
+        tmp_pkey_file = std_::make_unique<TemporaryFile>("tls-pkey");
       }
       tmp_pkey_file->PutContents(pkey);
     }
@@ -39,7 +40,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!cert.empty()) {
       if (tmp_cert_file == nullptr) {
-        tmp_cert_file = std::make_unique<TemporaryFile>("tls-cert");
+        tmp_cert_file = std_::make_unique<TemporaryFile>("tls-cert");
       }
       tmp_cert_file->PutContents(cert);
     }
@@ -53,7 +54,7 @@ void KeyManager::loadKeys(const std::string *pkey_content, const std::string *ce
     }
     if (!ca.empty()) {
       if (tmp_ca_file == nullptr) {
-        tmp_ca_file = std::make_unique<TemporaryFile>("tls-ca");
+        tmp_ca_file = std_::make_unique<TemporaryFile>("tls-ca");
       }
       tmp_ca_file->PutContents(ca);
     }
@@ -161,12 +162,14 @@ std::string KeyManager::getCN() const {
 #endif
   }
 
-  BIO *bio = BIO_new_mem_buf(const_cast<char *>(cert.c_str()), (int)cert.size());
-  X509 *x = PEM_read_bio_X509(bio, NULL, 0, NULL);
+  BIO *bio = BIO_new_mem_buf(const_cast<char *>(cert.c_str()), static_cast<int>(cert.size()));
+  X509 *x = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
   BIO_free_all(bio);
-  if (!x) throw std::runtime_error("Could not parse certificate");
+  if (x == nullptr) {
+    throw std::runtime_error("Could not parse certificate");
+  }
 
-  int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, NULL, 0);
+  int len = X509_NAME_get_text_by_NID(X509_get_subject_name(x), NID_commonName, nullptr, 0);
   if (len < 0) {
     X509_free(x);
     throw std::runtime_error("Could not get CN from certificate");
@@ -183,13 +186,13 @@ void KeyManager::copyCertsToCurl(HttpInterface *http) {
   std::string cert = getCert();
   std::string ca = getCa();
 
-  if (pkey.size() && cert.size() && ca.size()) {
+  if ((pkey.size() != 0u) && (cert.size() != 0u) && (ca.size() != 0u)) {
     http->setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);
   }
 }
 
 Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
-  ENGINE *crypto_engine = NULL;
+  ENGINE *crypto_engine = nullptr;
   std::string private_key;
 #ifdef BUILD_P11
   if (config_.uptane_key_source == kPkcs11) {

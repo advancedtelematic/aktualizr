@@ -11,15 +11,15 @@ class AktualizrSecondaryCommon;
 
 class OpcuaServerSecondaryDelegate : public opcuabridge::ServerDelegate {
  public:
-  OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon*);
+  explicit OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon* /*secondary*/);
 
-  void handleServerInitialized(opcuabridge::ServerModel*) override;
-  void handleVersionReportRequested(opcuabridge::ServerModel*) override;
-  void handleMetaDataFileReceived(opcuabridge::ServerModel*) override;
-  void handleAllMetaDataFilesReceived(opcuabridge::ServerModel*) override;
-  void handleDirectoryFilesSynchronized(opcuabridge::ServerModel*) override;
-  void handleOriginalManifestRequested(opcuabridge::ServerModel*) override;
-  void handleDirectoryFileListRequested(opcuabridge::ServerModel*) override;
+  void handleServerInitialized(opcuabridge::ServerModel* model) override;
+  void handleVersionReportRequested(opcuabridge::ServerModel* model) override;
+  void handleMetaDataFileReceived(opcuabridge::ServerModel* model) override;
+  void handleAllMetaDataFilesReceived(opcuabridge::ServerModel* model) override;
+  void handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) override;
+  void handleOriginalManifestRequested(opcuabridge::ServerModel* model) override;
+  void handleDirectoryFileListRequested(opcuabridge::ServerModel* model) override;
 
  private:
   AktualizrSecondaryCommon* secondary_;

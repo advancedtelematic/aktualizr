@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 #include <chrono>
+#include <memory>
+#include <utility>
 #include "json/json.h"
 
 #include "logging.h"
@@ -14,12 +16,12 @@
 #include "utilities/utils.h"
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                                   Uptane::Repository &repo, const std::shared_ptr<INvStorage> storage_in,
+                                   Uptane::Repository &repo, std::shared_ptr<INvStorage> storage_in,
                                    HttpInterface &http_client)
     : config(config_in),
-      events_channel(events_channel_in),
+      events_channel(std::move(std::move(events_channel_in))),
       uptane_repo(repo),
-      storage(storage_in),
+      storage(std::move(storage_in)),
       http(http_client),
       last_targets_version(-1) {
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -29,42 +31,42 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
     auto ipuptane_secs = ip_uptane_discovery.discover();
     config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
                                            ipuptane_secs.end());
-    ip_uptane_connection = std::unique_ptr<IpUptaneConnection>{new IpUptaneConnection{config.network.ipuptane_port}};
-    ip_uptane_splitter =
-        std::unique_ptr<IpUptaneConnectionSplitter>{new IpUptaneConnectionSplitter{*ip_uptane_connection}};
+    ip_uptane_connection = std_::make_unique<IpUptaneConnection>(config.network.ipuptane_port);
+    ip_uptane_splitter = std_::make_unique<IpUptaneConnectionSplitter>(*ip_uptane_connection);
   }
   initSecondaries();
 }
 
-void SotaUptaneClient::schedulePoll(std::shared_ptr<command::Channel> commands_channel) {
-  unsigned long long polling_sec = config.uptane.polling_sec;
-  std::thread([polling_sec, commands_channel]() {
+void SotaUptaneClient::schedulePoll(const std::shared_ptr<command::Channel> &commands_channel) {
+  uint64_t polling_sec = config.uptane.polling_sec;
+  std::thread([polling_sec, commands_channel, this]() {
     std::this_thread::sleep_for(std::chrono::seconds(polling_sec));
     *commands_channel << std::make_shared<command::GetUpdateRequests>();
+    if (shutdown) {
+      return;
+    }
   }).detach();
 }
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target == pacman->getCurrent();
-  } else {
-    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
-        secondaries.find(target.ecu_identifier());
-    if (map_it != secondaries.end()) {
-      // TODO: compare version
-      return true;
-    } else {
-      // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-      LOG_ERROR << "Multiple secondaries found with the same serial: " << map_it->second->getSerial();
-      return false;
-    }
   }
+  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+      secondaries.find(target.ecu_identifier());
+  if (map_it != secondaries.end()) {
+    // TODO: compare version
+    return true;
+  }
+  // TODO: iterate through secondaries, compare version when found, throw exception otherwise
+  LOG_ERROR << "Multiple secondaries found with the same serial: " << map_it->second->getSerial();
+  return false;
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
                                                          const std::string &ecu_id) {
   std::vector<Uptane::Target> result;
-  for (std::vector<Uptane::Target>::const_iterator it = targets.begin(); it != targets.end(); ++it) {
+  for (auto it = targets.begin(); it != targets.end(); ++it) {
     if (it->ecu_identifier() == ecu_id) {
       result.push_back(*it);
     }
@@ -159,7 +161,7 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
-void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_channel) {
+void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
   if (!uptane_repo.initialize()) {
@@ -195,7 +197,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
         // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
         // deploying)
         std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
-        if (updates.second.size() && updates.first > last_targets_version) {
+        if ((updates.second.size() != 0u) && updates.first > last_targets_version) {
           LOG_INFO << "got new updates";
           *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
           last_targets_version = updates.first;  // TODO: What if we fail install targets?
@@ -212,7 +214,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
         sendMetadataToEcus(updates);
 
         //   7 - send images to ECUs (deploy for OSTree)
-        if (primary_updates.size()) {
+        if (primary_updates.size() != 0u) {
           // assuming one OSTree OS per primary => there can be only one OSTree update
           std::vector<Uptane::Target>::const_iterator it;
           for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
@@ -253,7 +255,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
         return;
       }
 
-    } catch (Uptane::Exception e) {
+    } catch (const Uptane::Exception &e) {
       LOG_ERROR << e.what();
       *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
     } catch (const std::exception &ex) {
@@ -276,8 +278,9 @@ void SotaUptaneClient::initSecondaries() {
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-    if (it->secondary_type == Uptane::kIpUptane)
+    if (it->secondary_type == Uptane::kIpUptane) {
       ip_uptane_splitter->registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
+    }
 
     std::string sec_serial = sec->getSerial();
     std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
@@ -307,7 +310,7 @@ void SotaUptaneClient::verifySecondaries() {
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
-    misconfigured_ecus.push_back(MisconfiguredEcu(store_it->first, store_it->second, kOld));
+    misconfigured_ecus.emplace_back(store_it->first, store_it->second, kOld);
   } else {
     found[std::distance(serials.cbegin(), store_it)] = true;
   }
@@ -319,8 +322,8 @@ void SotaUptaneClient::verifySecondaries() {
     if (store_it == serials.end()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
-      misconfigured_ecus.push_back(MisconfiguredEcu(it->second->getSerial(), it->second->getHwId(), kNotRegistered));
-    } else if (found[std::distance(serials.cbegin(), store_it)] == true) {
+      misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), kNotRegistered);
+    } else if (found[std::distance(serials.cbegin(), store_it)]) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
     } else {
@@ -333,14 +336,14 @@ void SotaUptaneClient::verifySecondaries() {
     if (!*found_it) {
       std::pair<std::string, std::string> not_registered = serials[std::distance(found.begin(), found_it)];
       LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
-      misconfigured_ecus.push_back(MisconfiguredEcu(not_registered.first, not_registered.second, kOld));
+      misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, kOld);
     }
   }
   storage->storeMisconfiguredEcus(misconfigured_ecus);
 }
 
-// TODO: the function can't currently return any errors. The problem of error reporting from secondaries should be
-// solved on a system (backend+frontend) error.
+// TODO: the function can't currently return any errors. The problem of error reporting from secondaries should
+// be solved on a system (backend+frontend) error.
 // TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
 void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
   std::vector<Uptane::Target>::const_iterator it;
@@ -349,8 +352,7 @@ void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
 
   // target images should already have been downloaded to metadata_path/targets/
   for (it = targets.begin(); it != targets.end(); ++it) {
-    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator sec =
-        secondaries.find(it->ecu_identifier());
+    auto sec = secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
       if (!sec->second->putMetadata(meta)) {
         // connection error while putting metadata

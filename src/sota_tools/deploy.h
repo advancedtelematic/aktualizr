@@ -13,9 +13,8 @@
  *                 are fetched from disk), or OSTreeHttpRepo (in which case
  *                 the objects will be pulled over https).
  */
-bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials& push_credentials,
-                     const OSTreeHash& ostree_commit, const std::string& cacerts, const bool dryrun,
-                     const int max_curl_requests);
+bool UploadToTreehub(const OSTreeRepo::ptr& src_repo, const ServerCredentials& push_credentials,
+                     const OSTreeHash& ostree_commit, const std::string& cacerts, bool dryrun, int max_curl_requests);
 
 /**
  * Use the garage-sign tool and the images targets.json keys in credentials.zip

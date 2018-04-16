@@ -26,16 +26,15 @@
 static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
   // append the writeback data to the provided string
-  (static_cast<std::string*>(userp))->append((char*)contents, size * nmemb);
+  (static_cast<std::string*>(userp))->append(static_cast<char*>(contents), size * nmemb);
 
   // return size of written data
   return size * nmemb;
 }
 
-HttpClient::HttpClient()
-    : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION), pkcs11_key(false), pkcs11_cert(false) {
+HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
   curl = curl_easy_init();
-  headers = NULL;
+  headers = nullptr;
   http_code = 0;
 
   curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
@@ -58,13 +57,13 @@ HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_ke
   curl = curl_easy_duphandle(curl_in.curl);
 
   struct curl_slist* inlist = curl_in.headers;
-  headers = NULL;
+  headers = nullptr;
   struct curl_slist* tmp;
 
-  while (inlist) {
+  while (inlist != nullptr) {
     tmp = curl_slist_append(headers, inlist->data);
 
-    if (!tmp) {
+    if (tmp == nullptr) {
       curl_slist_free_all(headers);
       throw std::runtime_error("curl_slist_append returned null");
     }
@@ -94,18 +93,17 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
 
   if (ca_source == kPkcs11) {
     throw std::runtime_error("Accessing CA certificate on PKCS11 devices isn't currently supported");
-  } else {  // ca_source =kFile
-    std::unique_ptr<TemporaryFile> tmp_ca_file = std::make_unique<TemporaryFile>("tls-ca");
-    tmp_ca_file->PutContents(ca);
-    curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
-    tls_ca_file = std::move_if_noexcept(tmp_ca_file);
   }
+  std::unique_ptr<TemporaryFile> tmp_ca_file = std_::make_unique<TemporaryFile>("tls-ca");
+  tmp_ca_file->PutContents(ca);
+  curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
+  tls_ca_file = std::move_if_noexcept(tmp_ca_file);
 
   if (cert_source == kPkcs11) {
     curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
-  } else {  // cert_source =kFile
-    std::unique_ptr<TemporaryFile> tmp_cert_file = std::make_unique<TemporaryFile>("tls-cert");
+  } else {  // cert_source == kFile
+    std::unique_ptr<TemporaryFile> tmp_cert_file = std_::make_unique<TemporaryFile>("tls-cert");
     tmp_cert_file->PutContents(cert);
     curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
@@ -118,8 +116,8 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
     curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
-  } else {  // pkey_source =kFile
-    std::unique_ptr<TemporaryFile> tmp_pkey_file = std::make_unique<TemporaryFile>("tls-pkey");
+  } else {  // pkey_source == kFile
+    std::unique_ptr<TemporaryFile> tmp_pkey_file = std_::make_unique<TemporaryFile>("tls-pkey");
     tmp_pkey_file->PutContents(pkey);
     curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
@@ -146,7 +144,9 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
     curl_easy_setopt(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
   }
 
-  if (pkcs11_cert) curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
+  if (pkcs11_cert) {
+    curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
+  }
 
   curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
   std::string data_str = Json::FastWriter().write(data);
@@ -169,7 +169,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
     error_message << "curl error " << response.curl_code << " (http code " << response.http_status_code
                   << "): " << response.error_message;
     LOG_ERROR << error_message.str();
-    if (retry_times) {
+    if (retry_times != 0) {
       sleep(1);
       response = perform(curl_handler, --retry_times);
     }
@@ -187,7 +187,9 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
     curl_easy_setopt(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
   }
 
-  if (pkcs11_cert) curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
+  if (pkcs11_cert) {
+    curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
+  }
 
   curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);

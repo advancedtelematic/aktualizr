@@ -8,22 +8,22 @@ enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
 
 class BadCredentialsContent : public std::runtime_error {
  public:
-  BadCredentialsContent(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+  explicit BadCredentialsContent(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
 };
 
 class BadCredentialsJson : public std::runtime_error {
  public:
-  BadCredentialsJson(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+  explicit BadCredentialsJson(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
 };
 
 class BadCredentialsArchive : public std::runtime_error {
  public:
-  BadCredentialsArchive(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
+  explicit BadCredentialsArchive(const std::string &what_arg) : std::runtime_error(what_arg.c_str()) {}
 };
 
 class ServerCredentials {
  public:
-  ServerCredentials(const boost::filesystem::path &credentials_path);
+  explicit ServerCredentials(const boost::filesystem::path &credentials_path);
   bool CanSignOffline() const;
   AuthMethod GetMethod() const { return method_; };
   std::string GetClientCert() const { return client_cert_; };

@@ -26,8 +26,8 @@ enum CurrentOp {
 
 class OSTreeObject {
  public:
-  typedef boost::intrusive_ptr<OSTreeObject> ptr;
-  OSTreeObject(const OSTreeRepo& repo, const std::string object_name);
+  using ptr = boost::intrusive_ptr<OSTreeObject>;
+  OSTreeObject(const OSTreeRepo& repo, const std::string& object_name);
   OSTreeObject(const OSTreeObject&) = delete;
   OSTreeObject operator=(const OSTreeObject&) = delete;
 
@@ -40,7 +40,7 @@ class OSTreeObject {
 
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
-  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, const bool dryrun);
+  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, bool dryrun);
 
   void AddParent(OSTreeObject* parent, std::list<OSTreeObject::ptr>::iterator parent_it);
   bool children_ready() { return children_.empty(); }
@@ -51,16 +51,16 @@ class OSTreeObject {
   void LaunchNotify() { is_on_server_ = OBJECT_INPROGRESS; }
 
  private:
-  typedef std::list<OSTreeObject::ptr>::iterator childiter;
+  using childiter = std::list<OSTreeObject::ptr>::iterator;
   typedef std::pair<OSTreeObject*, childiter> parentref;
 
-  void AppendChild(OSTreeObject::ptr child);
+  void AppendChild(const OSTreeObject::ptr& child);
   std::string Url() const;
 
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
-  friend void intrusive_ptr_add_ref(OSTreeObject*);
-  friend void intrusive_ptr_release(OSTreeObject*);
+  friend void intrusive_ptr_add_ref(OSTreeObject* /*h*/);
+  friend void intrusive_ptr_release(OSTreeObject* /*h*/);
   friend std::ostream& operator<<(std::ostream& stream, const OSTreeObject& o);
 
   const boost::filesystem::path file_path_;  // Full path to the object
@@ -69,7 +69,7 @@ class OSTreeObject {
   int refcount_;  // refcounts and intrusive_ptr are used to simplify
                   // interaction with curl
   PresenceOnServer is_on_server_;
-  CurrentOp current_operation_;
+  CurrentOp current_operation_{};
 
   std::stringstream http_response_;
   CURL* curl_handle_;
@@ -80,7 +80,7 @@ class OSTreeObject {
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);
 
-std::ostream& operator<<(std::ostream& stream, const OSTreeObject::ptr o);
+std::ostream& operator<<(std::ostream& stream, const OSTreeObject::ptr& o);
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:
 #endif  // SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_

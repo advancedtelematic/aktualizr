@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <future>
+#include <memory>
 
 #include "invstorage.h"
 #include "logging.h"
@@ -31,7 +32,9 @@ void AktualizrSecondary::run() {
 
     sockaddr_storage& peer_addr = pkt->peer_addr;
     auto peer_port = primaries_map.find(peer_addr);
-    if (peer_port == primaries_map.end()) continue;
+    if (peer_port == primaries_map.end()) {
+      continue;
+    }
 
     Utils::setSocketPort(&peer_addr, htons(peer_port->second));
 
@@ -40,7 +43,7 @@ void AktualizrSecondary::run() {
       case kSecondaryMesPublicKeyReqTag: {
         auto ret = getPublicKeyResp();
 
-        SecondaryPublicKeyResp* out_msg_pkey = new SecondaryPublicKeyResp;
+        auto* out_msg_pkey = new SecondaryPublicKeyResp;
         out_msg_pkey->type = ret.first;
         out_msg_pkey->key = ret.second;
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_pkey};
@@ -48,7 +51,7 @@ void AktualizrSecondary::run() {
       }
       case kSecondaryMesManifestReqTag: {
         auto ret = getManifestResp();
-        SecondaryManifestResp* out_msg_man = new SecondaryManifestResp;
+        auto* out_msg_man = new SecondaryManifestResp;
         out_msg_man->format = kSerializationJson;
         out_msg_man->manifest = Utils::jsonToStr(ret);
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_man};
@@ -57,8 +60,8 @@ void AktualizrSecondary::run() {
       case kSecondaryMesPutMetaReqTag: {
         Uptane::MetaPack meta_pack;
 
-        SecondaryPutMetaReq* in_putmeta = dynamic_cast<SecondaryPutMetaReq*>(&(*pkt->msg));
-        SecondaryPutMetaResp* out_msg_putmeta = new SecondaryPutMetaResp;
+        auto* in_putmeta = dynamic_cast<SecondaryPutMetaReq*>(&(*pkt->msg));
+        auto* out_msg_putmeta = new SecondaryPutMetaResp;
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_putmeta};
 
         if (!in_putmeta->image_meta_present) {
@@ -83,16 +86,16 @@ void AktualizrSecondary::run() {
         break;
       }
       case kSecondaryMesRootVersionReqTag: {
-        SecondaryRootVersionReq* in_msg_rootversion = dynamic_cast<SecondaryRootVersionReq*>(&(*pkt->msg));
-        SecondaryRootVersionResp* out_msg_rootversion = new SecondaryRootVersionResp;
+        auto* in_msg_rootversion = dynamic_cast<SecondaryRootVersionReq*>(&(*pkt->msg));
+        auto* out_msg_rootversion = new SecondaryRootVersionResp;
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_rootversion};
 
         out_msg_rootversion->version = getRootVersionResp(in_msg_rootversion->director);
         break;
       }
       case kSecondaryMesPutRootReqTag: {
-        SecondaryPutRootReq* in_msg_putroot = dynamic_cast<SecondaryPutRootReq*>(&(*pkt->msg));
-        SecondaryPutRootResp* out_msg_putroot = new SecondaryPutRootResp;
+        auto* in_msg_putroot = dynamic_cast<SecondaryPutRootReq*>(&(*pkt->msg));
+        auto* out_msg_putroot = new SecondaryPutRootResp;
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_putroot};
 
         if (in_msg_putroot->root_format != kSerializationJson) {
@@ -108,8 +111,8 @@ void AktualizrSecondary::run() {
         break;
       }
       case kSecondaryMesSendFirmwareReqTag: {
-        SecondarySendFirmwareReq* in_msg_fw = dynamic_cast<SecondarySendFirmwareReq*>(&(*pkt->msg));
-        SecondarySendFirmwareResp* out_msg_fw = new SecondarySendFirmwareResp;
+        auto* in_msg_fw = dynamic_cast<SecondarySendFirmwareReq*>(&(*pkt->msg));
+        auto* out_msg_fw = new SecondarySendFirmwareResp;
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_fw};
 
         out_msg_fw->result = sendFirmwareResp(in_msg_fw->firmware);
@@ -161,7 +164,7 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
         break;
       }
       target_found = true;
-      target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
+      target_ = std_::make_unique<Uptane::Target>(*it);
     }
   }
   storage_->storeMetadata(meta_pack);
@@ -177,9 +180,8 @@ int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
 
   if (director) {
     return metapack.director_root.version();
-  } else {
-    return metapack.image_root.version();
   }
+  return metapack.image_root.version();
 }
 
 bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {

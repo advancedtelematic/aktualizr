@@ -23,14 +23,15 @@ void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::propert
   // TODO: de-duplicate this from config.cc
   std::string ks = "file";
   CopyFromConfig(ks, "key_source", boost::log::trivial::trace, pt);
-  if (ks == "pkcs11")
+  if (ks == "pkcs11") {
     key_source = kPkcs11;
-  else
+  } else {
     key_source = kFile;
+  }
 
   std::string kt;
   CopyFromConfig(kt, "key_type", boost::log::trivial::trace, pt);
-  if (kt.size()) {
+  if (kt.size() != 0u) {
     if (kt == "RSA2048") {
       key_type = kRSA2048;
     } else if (kt == "RSA4096") {

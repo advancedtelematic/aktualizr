@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <utility>
 
 #include "logging.h"
 
@@ -16,7 +17,7 @@ using std::make_shared;
 using std::shared_ptr;
 
 SocketGateway::SocketGateway(const Config &config_in, std::shared_ptr<command::Channel> commands_channel_in)
-    : config(config_in), commands_channel(commands_channel_in) {
+    : config(config_in), commands_channel(std::move(std::move(commands_channel_in))) {
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
   events_server_thread = make_shared<std::thread>(std::bind(&SocketGateway::eventsServer, this));
@@ -27,15 +28,14 @@ SocketGateway::~SocketGateway() {
   shutdown(commands_socket, SHUT_RD);
   shutdown(events_socket, SHUT_RD);
 
-  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end(); ++it) {
+  for (auto it = event_connections.begin(); it != event_connections.end(); ++it) {
     close(*it);
   }
-  for (std::vector<int>::iterator it = command_connections.begin(); it != command_connections.end(); ++it) {
+  for (auto it = command_connections.begin(); it != command_connections.end(); ++it) {
     close(*it);
   }
 
-  for (std::vector<shared_ptr<std::thread> >::iterator it = command_workers.begin(); it != command_workers.end();
-       ++it) {
+  for (auto it = command_workers.begin(); it != command_workers.end(); ++it) {
     (*it)->join();
   }
   commands_server_thread->join();
@@ -45,13 +45,15 @@ SocketGateway::~SocketGateway() {
   unlink(config.network.socket_commands_path.c_str());
 }
 
-void SocketGateway::commandsWorker(int socket, std::shared_ptr<command::Channel> channel) {
+void SocketGateway::commandsWorker(int socket, const std::shared_ptr<command::Channel> &channel) {
   const int buff_size = 512;
   char buf[buff_size];
   std::string data;
 
   while (ssize_t bytes = recv(socket, buf, buff_size, 0)) {
-    if (bytes <= 0) break;
+    if (bytes <= 0) {
+      break;
+    }
     if (bytes < buff_size) {
       buf[bytes] = '\0';
     }
@@ -74,15 +76,16 @@ void SocketGateway::commandsWorker(int socket, std::shared_ptr<command::Channel>
 
 void SocketGateway::eventsServer() {
   events_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  struct sockaddr_un cli_addr, addr;
+  struct sockaddr_un cli_addr {};
+  struct sockaddr_un addr {};
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, config.network.socket_events_path.c_str(), sizeof(addr.sun_path) - 1);
-  bind(events_socket, (struct sockaddr *)&addr, sizeof(addr));
+  bind(events_socket, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr));
   listen(events_socket, 10);
   socklen_t clilen = sizeof(cli_addr);
   while (true) {
-    int newsockfd = accept(events_socket, (struct sockaddr *)&cli_addr, &clilen);
+    int newsockfd = accept(events_socket, reinterpret_cast<struct sockaddr *>(&cli_addr), &clilen);
     if (newsockfd != -1) {
       event_connections.push_back(newsockfd);
     } else {
@@ -96,15 +99,16 @@ void SocketGateway::eventsServer() {
 void SocketGateway::commandsServer() {
   commands_socket = socket(AF_UNIX, SOCK_STREAM, 0);
 
-  struct sockaddr_un cli_addr, addr;
+  struct sockaddr_un cli_addr {};
+  struct sockaddr_un addr {};
   memset(&addr, 0, sizeof(addr));
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, config.network.socket_commands_path.c_str(), sizeof(addr.sun_path) - 1);
-  bind(commands_socket, (struct sockaddr *)&addr, sizeof(addr));
+  bind(commands_socket, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr));
   listen(commands_socket, 10);
   socklen_t clilen = sizeof(cli_addr);
   while (true) {
-    int newsockfd = accept(commands_socket, (struct sockaddr *)&cli_addr, &clilen);
+    int newsockfd = accept(commands_socket, reinterpret_cast<struct sockaddr *>(&cli_addr), &clilen);
     if (newsockfd != -1) {
       command_connections.push_back(newsockfd);
       command_workers.push_back(
@@ -119,7 +123,7 @@ void SocketGateway::commandsServer() {
 
 void SocketGateway::broadcast_event(const std::shared_ptr<event::BaseEvent> &event) {
   std::string json_event = event->toJson();
-  for (std::vector<int>::iterator it = event_connections.begin(); it != event_connections.end();) {
+  for (auto it = event_connections.begin(); it != event_connections.end();) {
     ssize_t bytes_sent = send(*it, json_event.c_str(), json_event.size(), MSG_NOSIGNAL);
     if (bytes_sent != -1) {
       ++it;
@@ -132,8 +136,7 @@ void SocketGateway::broadcast_event(const std::shared_ptr<event::BaseEvent> &eve
 }
 
 void SocketGateway::processEvent(const std::shared_ptr<event::BaseEvent> &event) {
-  std::vector<std::string>::const_iterator find_iter =
-      std::find(config.network.socket_events.begin(), config.network.socket_events.end(), event->variant);
+  auto find_iter = std::find(config.network.socket_events.begin(), config.network.socket_events.end(), event->variant);
   if (find_iter != config.network.socket_events.end()) {
     broadcast_event(event);
   }

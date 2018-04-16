@@ -37,9 +37,9 @@ int main(int argc, char **argv) {
   po::variables_map vm;
 
   try {
-    po::store(po::parse_command_line(argc, (const char *const *)argv, desc), vm);
+    po::store(po::parse_command_line(argc, reinterpret_cast<const char *const *>(argv), desc), vm);
 
-    if (vm.count("help")) {
+    if (vm.count("help") != 0u) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if (!vm.count("commit") && !vm.count("fetch-credentials") && vm.count("push-credentials")) {
+  if ((vm.count("commit") == 0u) && (vm.count("fetch-credentials") == 0u) && (vm.count("push-credentials") != 0u)) {
     LOG_INFO << "You must specify credentials for source repo, destination repo, and package name";
     return EXIT_FAILURE;
   }
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
   // Configure logging
   if (verbosity == 0) {
     // 'verbose' trumps 'quiet'
-    if ((int)vm.count("quiet")) {
+    if (static_cast<int>(vm.count("quiet")) != 0) {
       logger_set_threshold(boost::log::trivial::warning);
     } else {
       logger_set_threshold(boost::log::trivial::info);
@@ -98,16 +98,15 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     if (push_credentials.CanSignOffline()) {
-      bool ok = OfflineSignRepo(push_credentials.GetPathOnDisk(), name, commit, hardwareids);
-      return !ok;
-
-    } else {
-      LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
-      return EXIT_FAILURE;
+      bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
+      return static_cast<int>(!ok);
     }
+    LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
+    return EXIT_FAILURE;
+
   } catch (OSTreeCommitParseError &e) {
     LOG_FATAL << e.what();
-    return EXIT_FAILURE;  // TODO tests
+    return EXIT_FAILURE;  // TODO: tests
   }
   return EXIT_SUCCESS;
 }

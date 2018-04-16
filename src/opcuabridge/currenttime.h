@@ -1,6 +1,8 @@
 #ifndef OPCUABRIDGE_CURRENTTIME_H_
 #define OPCUABRIDGE_CURRENTTIME_H_
 
+#include <utility>
+
 #include "signature.h"
 #include "signed.h"
 
@@ -9,8 +11,8 @@
 namespace opcuabridge {
 class CurrentTime {
  public:
-  CurrentTime() {}
-  virtual ~CurrentTime() {}
+  CurrentTime() = default;
+  virtual ~CurrentTime() = default;
 
   const std::vector<Signature>& getSignatures() const { return signatures_; }
   void setSignatures(const std::vector<Signature>& signatures) { signatures_ = signatures; }
@@ -21,8 +23,12 @@ class CurrentTime {
   CLIENTREAD_FUNCTION_DEFINITION()                    // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                   // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<CurrentTime>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<CurrentTime>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<CurrentTime>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<CurrentTime>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
   std::vector<Signature> signatures_;

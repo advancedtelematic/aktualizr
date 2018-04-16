@@ -31,9 +31,9 @@ void Server::init(EndPointServiceType type) {
   response_ = (type == kNoLDS ? no_lds_response_ : type == kLDS ? lds_response_ : discovery_service_data_type());
 }
 
-bool Server::run(volatile bool* running) {
+bool Server::run(const volatile bool* running) {
   try {
-    while (running) {
+    while (running != nullptr) {
       discovery_service_data_type data;
       ba::ip::udp::endpoint sender_endpoint;
       socket_.receive_from(ba::buffer(data), sender_endpoint);

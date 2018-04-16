@@ -5,11 +5,13 @@
 
 #include "utilities/types.h"
 
+#include <utility>
+
 namespace opcuabridge {
 class Configuration {
  public:
-  Configuration() {}
-  virtual ~Configuration() {}
+  Configuration() = default;
+  virtual ~Configuration() = default;
 
   const std::string& getSerial() const { return serial_; }
   void setSerial(const std::string& serial) { serial_ = serial; }
@@ -24,11 +26,15 @@ class Configuration {
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<Configuration>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<Configuration>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<Configuration>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<Configuration>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
-  KeyType public_key_type_;
+  KeyType public_key_type_{};
   std::string hwid_;
   std::string public_key_;
   std::string serial_;

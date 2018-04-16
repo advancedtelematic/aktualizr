@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "logging.h"
 #include "sql_utils.h"
@@ -18,11 +19,12 @@ SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!boost::filesystem::is_directory(config.sqldb_path.parent_path())) {
     Utils::createDirectories(config.sqldb_path.parent_path(), S_IRWXU);
   } else {
-    struct stat st;
+    struct stat st {};
     stat(config.sqldb_path.parent_path().c_str(), &st);
     if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
       throw std::runtime_error("Storage directory has unsafe permissions");
-    } else if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
+    }
+    if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
       // Remove read permissions for group and others
       chmod(config.sqldb_path.parent_path().c_str(), S_IRWXU);
     }
@@ -34,10 +36,6 @@ SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   } else if (!dbInit()) {
     LOG_ERROR << "Couldn't initialize database";
   }
-}
-
-SQLStorage::~SQLStorage() {
-  // TODO: clear director_files, image_files
 }
 
 void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
@@ -55,7 +53,7 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
     return;
   }
   const char* req;
-  if (std::stoi(req_response["result"])) {
+  if (std::stoi(req_response["result"]) != 0) {
     req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
   } else {
     req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
@@ -86,9 +84,13 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (public_key) *public_key = req_response["result"];
+  if (public_key != nullptr) {
+    *public_key = req_response["result"];
+  }
 
   return true;
 }
@@ -108,9 +110,13 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (private_key) *private_key = req_response["result"];
+  if (private_key != nullptr) {
+    *private_key = req_response["result"];
+  }
 
   return true;
 }
@@ -123,7 +129,7 @@ void SQLStorage::clearPrimaryKeys() {
     return;
   }
 
-  if (db.exec("DELETE FROM primary_keys;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM primary_keys;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear primary keys: " << db.errmsg();
     return;
   }
@@ -150,12 +156,12 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     return;
   }
   const char* req;
-  if (std::stoi(req_response["result"])) {
+  if (std::stoi(req_response["result"]) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET ca_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(ca_cert) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, ca);
+  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(ca));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
@@ -177,12 +183,12 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     return;
   }
   const char* req;
-  if (std::stoi(req_response["result"])) {
+  if (std::stoi(req_response["result"]) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET client_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_cert) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, cert);
+  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(cert));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
@@ -204,12 +210,12 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     return;
   }
   const char* req;
-  if (std::stoi(req_response["result"])) {
+  if (std::stoi(req_response["result"]) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET client_pkey = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_pkey) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, pkey);
+  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(pkey));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
@@ -231,15 +237,17 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
 
-  if (req_response_table.empty()) return false;
+  if (req_response_table.empty()) {
+    return false;
+  }
 
-  if (ca) {
+  if (ca != nullptr) {
     *ca = req_response_table[0]["ca_cert"];
   }
-  if (cert) {
+  if (cert != nullptr) {
     *cert = req_response_table[0]["client_cert"];
   }
-  if (pkey) {
+  if (pkey != nullptr) {
     *pkey = req_response_table[0]["client_pkey"];
   }
   return true;
@@ -253,7 +261,7 @@ void SQLStorage::clearTlsCreds() {
     return;
   }
 
-  if (db.exec("DELETE FROM tls_creds;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM tls_creds;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear tls_creds: " << db.errmsg();
     return;
   }
@@ -274,9 +282,13 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (ca) *ca = req_response["result"];
+  if (ca != nullptr) {
+    *ca = req_response["result"];
+  }
 
   return true;
 }
@@ -296,9 +308,13 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (cert) *cert = req_response["result"];
+  if (cert != nullptr) {
+    *cert = req_response["result"];
+  }
 
   return true;
 }
@@ -318,9 +334,13 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (pkey) *pkey = req_response["result"];
+  if (pkey != nullptr) {
+    *pkey = req_response["result"];
+  }
 
   return true;
 }
@@ -333,9 +353,11 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
     return;
   }
 
-  if (!db.beginTransaction()) return;
+  if (!db.beginTransaction()) {
+    return;
+  }
 
-  if (db.exec("DELETE FROM meta;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM meta;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear meta: " << db.errmsg();
     return;
   }
@@ -349,7 +371,8 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.original()));
 
   auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
-      "INSERT INTO meta VALUES (?,?,?,?,?,?);", jsons[0], jsons[1], jsons[2], jsons[3], jsons[4], jsons[5]);
+      "INSERT INTO meta VALUES (?,?,?,?,?,?);", SQLBlob(jsons[0]), SQLBlob(jsons[1]), SQLBlob(jsons[2]),
+      SQLBlob(jsons[3]), SQLBlob(jsons[4]), SQLBlob(jsons[5]));
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
@@ -373,7 +396,9 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) return false;
+  if (req_response_table.empty()) {
+    return false;
+  }
 
   Json::Value json = Utils::parseJSON(req_response_table[0]["director_root"]);
   if (json != Json::nullValue) {
@@ -444,7 +469,7 @@ void SQLStorage::clearMetadata() {
     return;
   }
 
-  if (db.exec("DELETE FROM meta;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM meta;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear meta: " << db.errmsg();
     return;
   }
@@ -480,9 +505,13 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  if (device_id) *device_id = req_response["result"];
+  if (device_id != nullptr) {
+    *device_id = req_response["result"];
+  }
 
   return true;
 }
@@ -495,7 +524,7 @@ void SQLStorage::clearDeviceId() {
     return;
   }
 
-  if (db.exec("UPDATE OR REPLACE device_info SET device_id = NULL;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("UPDATE OR REPLACE device_info SET device_id = NULL;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear device ID: " << db.errmsg();
     return;
   }
@@ -510,7 +539,7 @@ void SQLStorage::storeEcuRegistered() {
   }
 
   std::string req = "UPDATE OR REPLACE device_info SET is_registered = 1";
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
   }
@@ -531,9 +560,11 @@ bool SQLStorage::loadEcuRegistered() {
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) return false;
+  if (req_response.find("result") == req_response.end()) {
+    return false;
+  }
 
-  return std::stoi(req_response["result"]);
+  return std::stoi(req_response["result"]) != 0;
 }
 
 void SQLStorage::clearEcuRegistered() {
@@ -545,7 +576,7 @@ void SQLStorage::clearEcuRegistered() {
   }
 
   std::string req = "UPDATE OR REPLACE device_info SET is_registered = 0";
-  if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+  if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
   }
@@ -560,9 +591,11 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
       return;
     }
 
-    if (!db.beginTransaction()) return;
+    if (!db.beginTransaction()) {
+      return;
+    }
 
-    if (db.exec("DELETE FROM ecu_serials;", NULL, NULL) != SQLITE_OK) {
+    if (db.exec("DELETE FROM ecu_serials;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
       return;
     }
@@ -604,7 +637,9 @@ bool SQLStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> 
     LOG_ERROR << "Can't get ecu_serials: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) return false;
+  if (req_response_table.empty()) {
+    return false;
+  }
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
@@ -622,7 +657,7 @@ void SQLStorage::clearEcuSerials() {
     return;
   }
 
-  if (db.exec("DELETE FROM ecu_serials;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM ecu_serials;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear ecu_serials: " << db.errmsg();
     return;
   }
@@ -637,9 +672,11 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
       return;
     }
 
-    if (!db.beginTransaction()) return;
+    if (!db.beginTransaction()) {
+      return;
+    }
 
-    if (db.exec("DELETE FROM misconfigured_ecus;", NULL, NULL) != SQLITE_OK) {
+    if (db.exec("DELETE FROM misconfigured_ecus;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
       return;
     }
@@ -673,7 +710,9 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
     LOG_ERROR << "Can't get misconfigured_ecus: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) return false;
+  if (req_response_table.empty()) {
+    return false;
+  }
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
@@ -692,7 +731,7 @@ void SQLStorage::clearMisconfiguredEcus() {
     return;
   }
 
-  if (db.exec("DELETE FROM misconfigured_ecus;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM misconfigured_ecus;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear misconfigured_ecus: " << db.errmsg();
     return;
   }
@@ -703,14 +742,16 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
-    if (!db.beginTransaction()) return;
+    if (!db.beginTransaction()) {
+      return;
+    }
 
     if (db.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db.errmsg();
       return;
     }
 
-    if (db.exec("DELETE FROM installed_versions;", NULL, NULL) != SQLITE_OK) {
+    if (db.exec("DELETE FROM installed_versions;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
       return;
     }
@@ -722,7 +763,8 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       std::string filename = it->filename();
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
-      auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename, is_current, size);
+      auto statement = db.prepareStatement<std::string, std::string, int, int>(
+          sql, hash, filename, static_cast<const int>(is_current), size);
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -749,14 +791,16 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
     LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
     return current_hash;
   }
-  if (req_response_table.empty()) return current_hash;
+  if (req_response_table.empty()) {
+    return current_hash;
+  }
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
     Json::Value installed_version;
     installed_version["hashes"]["sha256"] = (*it)["hash"];
     installed_version["length"] = Json::UInt64(std::stoll((*it)["length"]));
-    if (std::stoi((*it)["is_current"])) {
+    if (std::stoi((*it)["is_current"]) != 0) {
       current_hash = (*it)["hash"];
     }
     std::string filename = (*it)["name"];
@@ -775,7 +819,7 @@ void SQLStorage::clearInstalledVersions() {
     return;
   }
 
-  if (db.exec("DELETE FROM installed_versions;", NULL, NULL) != SQLITE_OK) {
+  if (db.exec("DELETE FROM installed_versions;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
     return;
   }
@@ -783,9 +827,9 @@ void SQLStorage::clearInstalledVersions() {
 
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
-  SQLTargetWHandle(const SQLStorage& storage, const std::string& filename, size_t size)
+  SQLTargetWHandle(const SQLStorage& storage, std::string filename, size_t size)
       : db_(storage.config_.sqldb_path.c_str()),
-        filename_(filename),
+        filename_(std::move(filename)),
         expected_size_(size),
         written_size_(0),
         closed_(false),
@@ -798,7 +842,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     // allocate a zero blob
-    if (!db_.beginTransaction()) throw exc;
+    if (!db_.beginTransaction()) {
+      throw exc;
+    }
 
     auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
         "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
@@ -885,7 +931,9 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    if (!db_.beginTransaction()) throw exc;
+    if (!db_.beginTransaction()) {
+      throw exc;
+    }
 
     auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
 
@@ -893,7 +941,8 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     if (err == SQLITE_DONE) {
       LOG_ERROR << "No such file in db: " + filename_;
       throw exc;
-    } else if (err != SQLITE_ROW) {
+    }
+    if (err != SQLITE_ROW) {
       LOG_ERROR << "Statement step failure: " << db_.errmsg();
       throw exc;
     }
@@ -1014,7 +1063,7 @@ bool SQLStorage::dbMigrate() {
         config_.schemas_path / (std::string("migrate.") + std::to_string(schema_version + 1) + ".sql");
     std::string req = Utils::readFile(migrate_script_path.string());
 
-    if (db.exec(req.c_str(), NULL, NULL) != SQLITE_OK) {
+    if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version" << (schema_version - 1) << " to version " << schema_version << ": "
                 << db.errmsg();
       return false;
@@ -1027,7 +1076,9 @@ bool SQLStorage::dbMigrate() {
 bool SQLStorage::dbInit() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
-  if (!db.beginTransaction()) return false;
+  if (!db.beginTransaction()) {
+    return false;
+  }
 
   request = kSqlGetSimple;
   req_response.clear();
@@ -1037,15 +1088,13 @@ bool SQLStorage::dbInit() {
   }
 
   if (std::stoi(req_response["result"]) < 1) {
-    if (db.exec("INSERT INTO device_info DEFAULT VALUES;", NULL, NULL) != SQLITE_OK) {
+    if (db.exec("INSERT INTO device_info DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
       return false;
     }
   }
 
-  if (!db.commitTransaction()) return false;
-
-  return true;
+  return db.commitTransaction();
 }
 
 int SQLStorage::getVersion() {
@@ -1072,19 +1121,21 @@ int SQLStorage::getVersion() {
 }
 
 int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** columns) {
-  SQLStorage* instance = static_cast<SQLStorage*>(instance_);
+  auto* instance = static_cast<SQLStorage*>(instance_);
 
   switch (instance->request) {
     case kSqlGetSimple: {
       (void)numcolumns;
       (void)columns;
-      if (values[0]) instance->req_response["result"] = values[0];
+      if (values[0] != nullptr) {
+        instance->req_response["result"] = values[0];
+      }
       break;
     }
     case kSqlGetTable: {
       std::map<std::string, std::string> row;
       for (int i = 0; i < numcolumns; ++i) {
-        if (values[i] != NULL) {
+        if (values[i] != nullptr) {
           row[columns[i]] = values[i];
         }
       }

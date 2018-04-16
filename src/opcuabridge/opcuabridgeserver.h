@@ -10,7 +10,7 @@ namespace opcuabridge {
 class Server;
 
 struct ServerModel {
-  explicit ServerModel(UA_Server*);
+  explicit ServerModel(UA_Server* /*server*/);
 
   Configuration configuration_;
 
@@ -38,7 +38,7 @@ class ServerDelegate {
   void setDiscoveryPort(uint16_t discovery_port) { discovery_port_ = discovery_port; }
   const uint16_t& getDiscoveryPort() const { return discovery_port_; }
 
-  virtual ~ServerDelegate() {}
+  virtual ~ServerDelegate() = default;
   virtual void handleServerInitialized(ServerModel*) = 0;
   virtual void handleVersionReportRequested(ServerModel*) = 0;      // on version report is requested
   virtual void handleOriginalManifestRequested(ServerModel*) = 0;   // on original manifest is requested
@@ -54,31 +54,31 @@ class ServerDelegate {
 
 class Server {
  public:
-  Server(ServerDelegate*, uint16_t port = OPCUABRIDGE_PORT);
+  explicit Server(ServerDelegate* /*delegate*/, uint16_t port = OPCUABRIDGE_PORT);
   Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd, uint16_t port = OPCUABRIDGE_PORT);
   ~Server();
 
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
 
-  bool run(volatile bool*);
+  bool run(volatile bool* /*running*/);
 
  private:
   void initializeModel();
-  void onFileListUpdated(FileList*);
-  void onFileListRequested(FileList*);
-  void countReceivedMetadataFile(MetadataFile*);
-  void onVersionReportRequested(VersionReport*);
-  void onOriginalManifestRequested(OriginalManifest*);
+  void onFileListUpdated(FileList* /*file_list*/);
+  void onFileListRequested(FileList* /*file_list*/);
+  void countReceivedMetadataFile(MetadataFile* /*metadata_file*/);
+  void onVersionReportRequested(VersionReport* /*version_report*/);
+  void onOriginalManifestRequested(OriginalManifest* /*version_report*/);
 
-  ServerModel* model_;
+  ServerModel* model_{};
 
   ServerDelegate* delegate_;
 
   UA_Server* server_;
   UA_ServerConfig* server_config_;
 
-  int discovery_socket_fd_;
+  int discovery_socket_fd_{};
   bool use_socket_activation_ = false;
 };
 

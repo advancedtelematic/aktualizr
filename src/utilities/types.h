@@ -28,12 +28,12 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
 
 namespace data {
 
-typedef std::string UpdateRequestId;
+using UpdateRequestId = std::string;
 struct Package {
   std::string name;
   std::string version;
   Json::Value toJson();
-  static Package fromJson(const std::string&);
+  static Package fromJson(const std::string& /*json_str*/);
 };
 
 enum UpdateRequestStatus { Pending = 0, InFlight };
@@ -42,8 +42,8 @@ struct UpdateAvailable {
   std::string update_id;
   std::string signature;
   std::string description;
-  bool request_confirmation;
-  unsigned long long size;
+  bool request_confirmation{};
+  uint64_t size{};
   Json::Value toJson();
   static UpdateAvailable fromJson(const std::string& json_str);
   static UpdateAvailable fromJson(const Json::Value& json);
@@ -106,10 +106,10 @@ typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
 struct UpdateReport;
 struct OperationResult {
-  OperationResult() : id(), result_code(OK), result_text() {}
-  OperationResult(const std::string& id_in, UpdateResultCode result_code_in, const std::string& result_text_in);
+  OperationResult() : result_code(OK) {}
+  OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
   std::string id;
-  UpdateResultCode result_code;
+  UpdateResultCode result_code{};
   std::string result_text;
   Json::Value toJson();
   UpdateReport toReport();

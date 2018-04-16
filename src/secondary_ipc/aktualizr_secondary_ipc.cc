@@ -10,7 +10,9 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, KeyType& kt) {
 
   des >> asn1::implicit<kAsn1Enum>(kt_i);
 
-  if (kt_i < kED25519 || kt_i > kRSA4096) throw deserialization_error();
+  if (kt_i < kED25519 || kt_i > kRSA4096) {
+    throw deserialization_error();
+  }
 
   kt = static_cast<KeyType>(kt_i);
 
@@ -26,7 +28,9 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, SerializationFormat& fmt
 
   des >> asn1::implicit<kAsn1Enum>(fmt_i);
 
-  if (fmt_i < kSerializationJson || fmt_i > kSerializationBer) throw deserialization_error();
+  if (fmt_i < kSerializationJson || fmt_i > kSerializationBer) {
+    throw deserialization_error();
+  }
 
   fmt = static_cast<SerializationFormat>(fmt_i);
 
@@ -186,80 +190,80 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, std::unique_ptr<Secondar
   des >> asn1::peekexpl(&type_tag, &type_class);
   switch (type_class | type_tag) {
     case kAsn1Context | kSecondaryMesPublicKeyReqTag: {
-      SecondaryPublicKeyReq* data_concrete = new SecondaryPublicKeyReq;
+      auto* data_concrete = new SecondaryPublicKeyReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
 
     case kAsn1Context | kSecondaryMesPublicKeyRespTag: {
-      SecondaryPublicKeyResp* data_concrete = new SecondaryPublicKeyResp;
+      auto* data_concrete = new SecondaryPublicKeyResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesManifestReqTag: {
-      SecondaryManifestReq* data_concrete = new SecondaryManifestReq;
+      auto* data_concrete = new SecondaryManifestReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesManifestRespTag: {
-      SecondaryManifestResp* data_concrete = new SecondaryManifestResp;
+      auto* data_concrete = new SecondaryManifestResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesPutMetaReqTag: {
-      SecondaryPutMetaReq* data_concrete = new SecondaryPutMetaReq;
+      auto* data_concrete = new SecondaryPutMetaReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesPutMetaRespTag: {
-      SecondaryPutMetaResp* data_concrete = new SecondaryPutMetaResp;
+      auto* data_concrete = new SecondaryPutMetaResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesRootVersionReqTag: {
-      SecondaryRootVersionReq* data_concrete = new SecondaryRootVersionReq;
+      auto* data_concrete = new SecondaryRootVersionReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesRootVersionRespTag: {
-      SecondaryRootVersionResp* data_concrete = new SecondaryRootVersionResp;
+      auto* data_concrete = new SecondaryRootVersionResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesPutRootReqTag: {
-      SecondaryPutRootReq* data_concrete = new SecondaryPutRootReq;
+      auto* data_concrete = new SecondaryPutRootReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesPutRootRespTag: {
-      SecondaryPutRootResp* data_concrete = new SecondaryPutRootResp;
+      auto* data_concrete = new SecondaryPutRootResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesSendFirmwareReqTag: {
-      SecondarySendFirmwareReq* data_concrete = new SecondarySendFirmwareReq;
+      auto* data_concrete = new SecondarySendFirmwareReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesSendFirmwareOstreeReqTag: {
-      SecondarySendFirmwareOstreeReq* data_concrete = new SecondarySendFirmwareOstreeReq;
+      auto* data_concrete = new SecondarySendFirmwareOstreeReq;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;
     }
     case kAsn1Context | kSecondaryMesSendFirmwareRespTag: {
-      SecondarySendFirmwareResp* data_concrete = new SecondarySendFirmwareResp;
+      auto* data_concrete = new SecondarySendFirmwareResp;
       des >> *data_concrete;
       data = std::unique_ptr<SecondaryMessage>(data_concrete);
       break;

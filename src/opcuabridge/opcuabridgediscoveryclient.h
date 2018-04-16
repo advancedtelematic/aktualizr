@@ -13,7 +13,7 @@ namespace discovery {
 
 class Client {
  public:
-  Client(uint16_t port) : port_(port) {}
+  explicit Client(uint16_t port) : port_(port) {}
 
   struct discovered_endpoint {
     std::string address;
@@ -24,7 +24,7 @@ class Client {
   endpoints_list_type getDiscoveredEndPoints();
 
  private:
-  void collectDiscoveredEndPointsOnIface(unsigned int);
+  void collectDiscoveredEndPointsOnIface(unsigned int /*iface*/);
 
   std::unordered_map<std::string, EndPointServiceType> discovered_endpoints_;
 

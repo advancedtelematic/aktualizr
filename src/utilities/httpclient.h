@@ -22,7 +22,7 @@ class CurlGlobalInitWrapper {
 class HttpClient : public HttpInterface {
  public:
   HttpClient();
-  HttpClient(const HttpClient &);
+  HttpClient(const HttpClient & /*curl_in*/);
   ~HttpClient() override;
   HttpResponse get(const std::string &url) override;
   HttpResponse post(const std::string &url, const Json::Value &data) override;
@@ -31,7 +31,7 @@ class HttpClient : public HttpInterface {
   HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) override;
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
-  long http_code;
+  long http_code{};  // NOLINT
 
  private:
   /**
@@ -40,8 +40,8 @@ class HttpClient : public HttpInterface {
    * that takes string (and with no implementation), this will fail during
    * compilation.
    */
-  HttpResponse post(const std::string &url, const std::string data);
-  HttpResponse put(const std::string &url, const std::string data);
+  HttpResponse post(const std::string &url, std::string data);
+  HttpResponse put(const std::string &url, std::string data);
 
   CurlGlobalInitWrapper manageCurlGlobalInit_;  // Must be first member to ensure curl init/shutdown happens first/last
   CURL *curl;
@@ -54,7 +54,7 @@ class HttpClient : public HttpInterface {
   std::unique_ptr<TemporaryFile> tls_cert_file;
   std::unique_ptr<TemporaryFile> tls_pkey_file;
   static const int RETRY_TIMES = 2;
-  bool pkcs11_key;
-  bool pkcs11_cert;
+  bool pkcs11_key{false};
+  bool pkcs11_cert{false};
 };
 #endif

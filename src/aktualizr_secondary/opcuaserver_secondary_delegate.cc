@@ -8,6 +8,8 @@
 
 #include <thread>
 
+#include <memory>
+
 namespace fs = boost::filesystem;
 
 OpcuaServerSecondaryDelegate::OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon* secondary)
@@ -26,8 +28,9 @@ void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerMo
       model->file_data_.setBasePath(ostree_source_repo);
     } else {
       model->file_data_.setBasePath(ostree_sync_working_repo_dir_.Path());
-      if (!ostree_repo_sync::LocalPullRepo(ostree_source_repo, ostree_sync_working_repo_dir_.Path()))
+      if (!ostree_repo_sync::LocalPullRepo(ostree_source_repo, ostree_sync_working_repo_dir_.Path())) {
         LOG_ERROR << "OSTree repo sync failed: unable to local pull from " << ostree_source_repo.string();
+      }
     }
   } else {
     LOG_ERROR << "Secondary: failed to initialize";
@@ -83,7 +86,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
           break;
         }
         target_found = true;
-        secondary_->target_ = std::unique_ptr<Uptane::Target>(new Uptane::Target(*it));
+        secondary_->target_ = std_::make_unique<Uptane::Target>(*it);
       }
     }
   } catch (const Uptane::SecurityException& ex) {

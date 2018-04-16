@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     }
 
     boost::filesystem::path sota_config_path(sota_config_file);
-    if (false == boost::filesystem::exists(sota_config_path)) {
+    if (!boost::filesystem::exists(sota_config_path)) {
       std::cout << "configuration file " << boost::filesystem::absolute(sota_config_path) << " not found. Exiting."
                 << std::endl;
       exit(EXIT_FAILURE);
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
       std::cout << "Primary ecu hardware ID: " << serials[0].second << std::endl;
     }
     if (serials.size() > 1) {
-      std::vector<std::pair<std::string, std::string> >::iterator it = serials.begin() + 1;
+      auto it = serials.begin() + 1;
       std::cout << "Secondaries:\n";
       int secondary_number = 1;
       for (; it != serials.end(); ++it) {
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
     std::vector<MisconfiguredEcu> misconfigured_ecus;
     storage->loadMisconfiguredEcus(&misconfigured_ecus);
-    if (misconfigured_ecus.size()) {
+    if (misconfigured_ecus.size() != 0u) {
       std::cout << "Removed or not registered ecus:" << std::endl;
       std::vector<MisconfiguredEcu>::const_iterator it;
       for (it = misconfigured_ecus.begin(); it != misconfigured_ecus.end(); ++it) {
@@ -97,28 +97,28 @@ int main(int argc, char **argv) {
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
     if (has_metadata) {
-      if (vm.count("images-root")) {
+      if (vm.count("images-root") != 0u) {
         std::cout << "image root.json content:" << std::endl;
         std::cout << pack.image_root.toJson();
       }
 
-      if (vm.count("images-target")) {
+      if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
         std::cout << pack.image_targets.toJson();
       }
 
-      if (vm.count("director-root")) {
+      if (vm.count("director-root") != 0u) {
         std::cout << "director root.json content:" << std::endl;
         std::cout << pack.director_root.toJson();
       }
 
-      if (vm.count("director-target")) {
+      if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
         std::cout << pack.director_targets.toJson();
       }
     }
 
-    if (vm.count("tls-creds")) {
+    if (vm.count("tls-creds") != 0u) {
       std::string ca;
       std::string cert;
       std::string pkey;
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
       std::cout << "Client private key:" << std::endl << pkey << std::endl;
     }
 
-    if (vm.count("ecu-keys")) {
+    if (vm.count("ecu-keys") != 0u) {
       std::string priv;
       std::string pub;
 

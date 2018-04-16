@@ -27,8 +27,8 @@ enum SecondaryMesTypeTag {
 };
 
 struct SecondaryMessage {
-  SecondaryMesTypeTag mes_type;
-  virtual ~SecondaryMessage() {}
+  SecondaryMesTypeTag mes_type{};
+  virtual ~SecondaryMessage() = default;
   virtual void serialize(asn1::Serializer& ser) const = 0;
   virtual bool operator==(const SecondaryMessage& other) const { return mes_type == other.mes_type; }
 };
@@ -42,7 +42,7 @@ enum SerializationFormat {
 
 struct SecondaryPublicKeyReq : public SecondaryMessage {
   SecondaryPublicKeyReq() { mes_type = kSecondaryMesPublicKeyReqTag; }
-  ~SecondaryPublicKeyReq() override {}
+  ~SecondaryPublicKeyReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override { return SecondaryMessage::operator==(other); }
 
@@ -52,10 +52,10 @@ struct SecondaryPublicKeyReq : public SecondaryMessage {
 
 struct SecondaryPublicKeyResp : public SecondaryMessage {
   SecondaryPublicKeyResp() { mes_type = kSecondaryMesPublicKeyRespTag; }
-  ~SecondaryPublicKeyResp() override {}
+  ~SecondaryPublicKeyResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryPublicKeyResp& other_ = dynamic_cast<const SecondaryPublicKeyResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryPublicKeyResp&>(other);
     return SecondaryMessage::operator==(other) && type == other_.type && key == other_.key;
   }
 
@@ -67,7 +67,7 @@ struct SecondaryPublicKeyResp : public SecondaryMessage {
 
 struct SecondaryManifestReq : public SecondaryMessage {
   SecondaryManifestReq() { mes_type = kSecondaryMesManifestReqTag; }
-  ~SecondaryManifestReq() override {}
+  ~SecondaryManifestReq() override = default;
   bool operator==(const SecondaryMessage& other) const override { return SecondaryMessage::operator==(other); }
 
   friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondaryManifestReq& data);
@@ -77,10 +77,10 @@ struct SecondaryManifestReq : public SecondaryMessage {
 
 struct SecondaryManifestResp : public SecondaryMessage {
   SecondaryManifestResp() { mes_type = kSecondaryMesManifestRespTag; }
-  ~SecondaryManifestResp() override {}
+  ~SecondaryManifestResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryManifestResp& other_ = dynamic_cast<const SecondaryManifestResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryManifestResp&>(other);
     return SecondaryMessage::operator==(other) && format == other_.format && manifest == other_.manifest;
   }
 
@@ -92,10 +92,10 @@ struct SecondaryManifestResp : public SecondaryMessage {
 
 struct SecondaryPutMetaReq : public SecondaryMessage {
   SecondaryPutMetaReq() { mes_type = kSecondaryMesPutMetaReqTag; }
-  ~SecondaryPutMetaReq() override {}
+  ~SecondaryPutMetaReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryPutMetaReq& other_ = dynamic_cast<const SecondaryPutMetaReq&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryPutMetaReq&>(other);
     return SecondaryMessage::operator==(other) && director_targets_format == other_.director_targets_format &&
            director_targets == other_.director_targets && image_meta_present == other_.image_meta_present &&
            (!image_meta_present ||
@@ -120,10 +120,10 @@ struct SecondaryPutMetaReq : public SecondaryMessage {
 
 struct SecondaryPutMetaResp : public SecondaryMessage {
   SecondaryPutMetaResp() { mes_type = kSecondaryMesPutMetaRespTag; }
-  ~SecondaryPutMetaResp() override {}
+  ~SecondaryPutMetaResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryPutMetaResp& other_ = dynamic_cast<const SecondaryPutMetaResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryPutMetaResp&>(other);
     return SecondaryMessage::operator==(other) && result == other_.result;
   }
 
@@ -134,10 +134,10 @@ struct SecondaryPutMetaResp : public SecondaryMessage {
 
 struct SecondaryRootVersionReq : public SecondaryMessage {
   SecondaryRootVersionReq() { mes_type = kSecondaryMesRootVersionReqTag; }
-  ~SecondaryRootVersionReq() override {}
+  ~SecondaryRootVersionReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryRootVersionReq& other_ = dynamic_cast<const SecondaryRootVersionReq&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryRootVersionReq&>(other);
     return SecondaryMessage::operator==(other) && director == other_.director;
   }
 
@@ -148,10 +148,10 @@ struct SecondaryRootVersionReq : public SecondaryMessage {
 
 struct SecondaryRootVersionResp : public SecondaryMessage {
   SecondaryRootVersionResp() { mes_type = kSecondaryMesRootVersionRespTag; }
-  ~SecondaryRootVersionResp() override {}
+  ~SecondaryRootVersionResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryRootVersionResp& other_ = dynamic_cast<const SecondaryRootVersionResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryRootVersionResp&>(other);
     return SecondaryMessage::operator==(other) && version == other_.version;
   }
 
@@ -162,10 +162,10 @@ struct SecondaryRootVersionResp : public SecondaryMessage {
 
 struct SecondaryPutRootReq : public SecondaryMessage {
   SecondaryPutRootReq() { mes_type = kSecondaryMesPutRootReqTag; }
-  ~SecondaryPutRootReq() override {}
+  ~SecondaryPutRootReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryPutRootReq& other_ = dynamic_cast<const SecondaryPutRootReq&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryPutRootReq&>(other);
     return SecondaryMessage::operator==(other) && director == other_.director && root_format == other_.root_format &&
            root == other_.root;
   }
@@ -180,10 +180,10 @@ struct SecondaryPutRootReq : public SecondaryMessage {
 
 struct SecondaryPutRootResp : public SecondaryMessage {
   SecondaryPutRootResp() { mes_type = kSecondaryMesPutRootRespTag; }
-  ~SecondaryPutRootResp() override {}
+  ~SecondaryPutRootResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondaryPutRootResp& other_ = dynamic_cast<const SecondaryPutRootResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondaryPutRootResp&>(other);
     return SecondaryMessage::operator==(other) && result == other_.result;
   }
 
@@ -194,7 +194,7 @@ struct SecondaryPutRootResp : public SecondaryMessage {
 
 struct SecondarySendFirmwareOstreeReq : public SecondaryMessage {
   SecondarySendFirmwareOstreeReq() { mes_type = kSecondaryMesSendFirmwareOstreeReqTag; }
-  ~SecondarySendFirmwareOstreeReq() override {}
+  ~SecondarySendFirmwareOstreeReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondarySendFirmwareOstreeReq& data);
   friend asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondarySendFirmwareOstreeReq& data);
@@ -206,10 +206,10 @@ struct SecondarySendFirmwareOstreeReq : public SecondaryMessage {
 
 struct SecondarySendFirmwareReq : public SecondaryMessage {
   SecondarySendFirmwareReq() { mes_type = kSecondaryMesSendFirmwareReqTag; }
-  ~SecondarySendFirmwareReq() override {}
+  ~SecondarySendFirmwareReq() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondarySendFirmwareReq& other_ = dynamic_cast<const SecondarySendFirmwareReq&>(other);
+    const auto& other_ = dynamic_cast<const SecondarySendFirmwareReq&>(other);
     return SecondaryMessage::operator==(other) && firmware == other_.firmware;
   }
 
@@ -221,10 +221,10 @@ struct SecondarySendFirmwareReq : public SecondaryMessage {
 
 struct SecondarySendFirmwareResp : public SecondaryMessage {
   SecondarySendFirmwareResp() { mes_type = kSecondaryMesSendFirmwareRespTag; }
-  ~SecondarySendFirmwareResp() override {}
+  ~SecondarySendFirmwareResp() override = default;
   void serialize(asn1::Serializer& ser) const override { ser << *this; }
   bool operator==(const SecondaryMessage& other) const override {
-    const SecondarySendFirmwareResp& other_ = dynamic_cast<const SecondarySendFirmwareResp&>(other);
+    const auto& other_ = dynamic_cast<const SecondarySendFirmwareResp&>(other);
     return SecondaryMessage::operator==(other) && result == other_.result;
   }
 
@@ -234,7 +234,7 @@ struct SecondarySendFirmwareResp : public SecondaryMessage {
 };
 
 struct SecondaryPacket {
-  SecondaryPacket(std::unique_ptr<SecondaryMessage>&& message) {
+  explicit SecondaryPacket(std::unique_ptr<SecondaryMessage>&& message) {
     msg = std::move(message);
     memset(&peer_addr, 0, sizeof(peer_addr));
   }
@@ -244,7 +244,7 @@ struct SecondaryPacket {
 
   using ChanType = Channel<std::shared_ptr<SecondaryPacket>>;
 
-  sockaddr_storage peer_addr;
+  sockaddr_storage peer_addr{};
   std::unique_ptr<SecondaryMessage> msg;
 };
 

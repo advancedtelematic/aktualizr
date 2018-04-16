@@ -18,7 +18,7 @@ using std::string;
 static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp) {
   assert(userp);
   // append the writeback data to the provided string
-  (static_cast<std::string *>(userp))->append((char *)contents, size * nmemb);
+  (static_cast<std::string *>(userp))->append(static_cast<char *>(contents), size * nmemb);
 
   // return size of written data
   return size * nmemb;
@@ -28,7 +28,9 @@ class CurlEasyWrapper {
  public:
   CurlEasyWrapper() { handler = curl_easy_init(); }
   ~CurlEasyWrapper() {
-    if (handler) curl_easy_cleanup(handler);
+    if (handler != nullptr) {
+      curl_easy_cleanup(handler);
+    }
   }
   CURL *get() { return handler; }
 
@@ -60,9 +62,9 @@ int main(int argc, char **argv) {
   po::variables_map vm;
 
   try {
-    po::store(po::parse_command_line(argc, (const char *const *)argv, desc), vm);
+    po::store(po::parse_command_line(argc, reinterpret_cast<const char *const *>(argv), desc), vm);
 
-    if (vm.count("help")) {
+    if (vm.count("help") != 0u) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
@@ -77,7 +79,7 @@ int main(int argc, char **argv) {
   // Configure logging
   if (verbosity == 0) {
     // 'verbose' trumps 'quiet'
-    if ((int)vm.count("quiet")) {
+    if (static_cast<int>(vm.count("quiet")) != 0) {
       logger_set_threshold(boost::log::trivial::warning);
     } else {
       logger_set_threshold(boost::log::trivial::info);
@@ -102,14 +104,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (authenticate(cacerts, credentials_path, treehub) != EXIT_SUCCESS) {
+  if (authenticate(cacerts, ServerCredentials(credentials_path), treehub) != EXIT_SUCCESS) {
     LOG_FATAL << "Authentication failed";
     return EXIT_FAILURE;
   }
 
   // check if the ref is present on treehub
   CurlEasyWrapper curl;
-  if (!curl.get()) {
+  if (curl.get() == nullptr) {
     LOG_FATAL << "Error initializing curl";
     return EXIT_FAILURE;
   }
@@ -124,12 +126,13 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  long http_code;
+  long http_code;  // NOLINT
   curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code == 404) {
     LOG_FATAL << "OSTree commit " << ref << " is missing in treehub";
     return EXIT_FAILURE;
-  } else if (http_code != 200) {
+  }
+  if (http_code != 200) {
     LOG_FATAL << "Error " << http_code << " getting commit " << ref << " from treehub";
     return EXIT_FAILURE;
   }

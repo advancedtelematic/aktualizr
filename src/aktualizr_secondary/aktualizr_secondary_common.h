@@ -12,7 +12,7 @@
 
 class AktualizrSecondaryCommon {
  public:
-  AktualizrSecondaryCommon(const AktualizrSecondaryConfig&, const std::shared_ptr<INvStorage>&);
+  AktualizrSecondaryCommon(const AktualizrSecondaryConfig& /*config*/, std::shared_ptr<INvStorage> /*storage*/);
 
   bool uptaneInitialize();
 

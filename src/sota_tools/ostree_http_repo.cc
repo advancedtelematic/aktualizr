@@ -11,7 +11,6 @@
 #include "ostree_http_repo.h"
 
 using std::string;
-namespace fs = boost::filesystem;
 namespace pt = boost::property_tree;
 
 bool OSTreeHttpRepo::LooksValid() const {
@@ -22,9 +21,9 @@ bool OSTreeHttpRepo::LooksValid() const {
       if (config.get<string>("core.mode") != "archive-z2") {
         LOG_WARNING << "OSTree repo is not in archive-z2 format";
         return false;
-      } else {
-        return true;
       }
+      return true;
+
     } catch (const pt::ini_parser_error &error) {
       LOG_WARNING << "Couldn't parse OSTree config file: " << (root_ / "config").string();
       return false;
@@ -53,7 +52,7 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   CURLcode err = curl_easy_perform(easy_handle);
   close(fp);
   curl_easy_cleanup(easy_handle);
-  if (err) {
+  if (err != 0u) {
     remove((root_ / path).c_str());
     return false;
   }
@@ -70,8 +69,8 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
   std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   std::string objpath = hash.string().insert(2, 1, '/');
 
-  for (std::string ext : exts) {
-    if (Get(std::string("objects/") + objpath + ext)) {
+  for (const std::string &ext : exts) {
+    if (Get(std::string("objects/") += objpath += ext)) {
       OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
       ObjectTable[hash] = obj;
       return obj;
@@ -81,7 +80,7 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
 }
 
 size_t OSTreeHttpRepo::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
-  return write(*(int *)userp, buffer, nmemb * size);
+  return write(*static_cast<int *>(userp), buffer, nmemb * size);
 }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

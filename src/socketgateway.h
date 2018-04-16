@@ -26,12 +26,12 @@ class SocketGateway : public Gateway {
   std::vector<std::shared_ptr<std::thread> > command_workers;
   std::shared_ptr<std::thread> events_server_thread;
   std::shared_ptr<std::thread> commands_server_thread;
-  int events_socket;
-  int commands_socket;
+  int events_socket{};
+  int commands_socket{};
 
   void eventsServer();
   void commandsServer();
-  void commandsWorker(int socket, std::shared_ptr<command::Channel> channel);
+  void commandsWorker(int socket, const std::shared_ptr<command::Channel> &channel);
   void broadcast_event(const std::shared_ptr<event::BaseEvent> &event);
 };
 

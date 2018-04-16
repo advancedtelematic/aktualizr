@@ -42,7 +42,7 @@ struct P11Config {
 
 class P11ContextWrapper {
  public:
-  P11ContextWrapper(const boost::filesystem::path &module);
+  explicit P11ContextWrapper(const boost::filesystem::path &module);
   ~P11ContextWrapper();
   PKCS11_ctx_st *get() const { return ctx; }
 
@@ -52,7 +52,7 @@ class P11ContextWrapper {
 
 class P11SlotsWrapper {
  public:
-  P11SlotsWrapper(PKCS11_ctx_st *ctx_in);
+  explicit P11SlotsWrapper(PKCS11_ctx_st *ctx_in);
   ~P11SlotsWrapper();
   PKCS11_slot_st *get_slots() const { return slots; }
   unsigned int get_nslots() const { return nslots; }
@@ -89,22 +89,26 @@ class P11Engine {
 
   PKCS11_slot_st *findTokenSlot() const;
 
-  P11Engine(const P11Config &config);
+  explicit P11Engine(P11Config config);
 
   friend class P11EngineGuard;
 };
 
 class P11EngineGuard {
  public:
-  P11EngineGuard(const P11Config &config) {
-    if (!instance) instance = new P11Engine(config);
+  explicit P11EngineGuard(const P11Config &config) {
+    if (instance == nullptr) {
+      instance = new P11Engine(config);
+    }
     ++ref_counter;
   };
   ~P11EngineGuard() {
-    if (ref_counter) --ref_counter;
-    if (!ref_counter) {
+    if (ref_counter != 0) {
+      --ref_counter;
+    }
+    if (ref_counter == 0) {
       delete instance;
-      instance = NULL;
+      instance = nullptr;
     }
   }
   P11Engine *operator->() const { return instance; }

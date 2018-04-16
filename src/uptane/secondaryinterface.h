@@ -19,8 +19,8 @@ namespace Uptane {
 
 class SecondaryInterface {
  public:
-  SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in) {}
-  virtual ~SecondaryInterface() {}
+  explicit SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in) {}
+  virtual ~SecondaryInterface() = default;
   virtual std::string getSerial() { return sconfig.ecu_serial; }
   virtual std::string getHwId() { return sconfig.ecu_hardware_id; }
   virtual std::pair<KeyType, std::string> getPublicKey() = 0;

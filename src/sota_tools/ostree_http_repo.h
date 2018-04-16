@@ -16,7 +16,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   explicit OSTreeHttpRepo(const TreehubServer* server) : server_(server) {}
 
   bool LooksValid() const override;
-  OSTreeObject::ptr GetObject(const OSTreeHash hash) const override;
+  OSTreeObject::ptr GetObject(OSTreeHash hash) const override;
   OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
   OSTreeRef GetRef(const std::string& refname) const override;
 

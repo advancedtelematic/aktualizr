@@ -1,13 +1,15 @@
 #ifndef OPCUABRIDGE_IMAGEREQUEST_H_
 #define OPCUABRIDGE_IMAGEREQUEST_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
 class ImageRequest {
  public:
-  ImageRequest() {}
-  virtual ~ImageRequest() {}
+  ImageRequest() = default;
+  virtual ~ImageRequest() = default;
 
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
@@ -15,8 +17,12 @@ class ImageRequest {
   CLIENTREAD_FUNCTION_DEFINITION()                     // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                    // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageRequest>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageRequest>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageRequest>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageRequest>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
   std::string filename_;

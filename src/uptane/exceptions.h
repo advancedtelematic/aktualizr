@@ -3,14 +3,15 @@
 
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace Uptane {
 
 class Exception : public std::logic_error {
  public:
-  Exception(const std::string reponame, const std::string &what_arg)
-      : std::logic_error(what_arg.c_str()), reponame_(reponame) {}
-  ~Exception() throw() override {}
+  Exception(std::string reponame, const std::string& what_arg)
+      : std::logic_error(what_arg.c_str()), reponame_(std::move(reponame)) {}
+  ~Exception() noexcept override = default;
   virtual std::string getName() { return reponame_; };
 
  protected:
@@ -19,75 +20,75 @@ class Exception : public std::logic_error {
 
 class SecurityException : public Exception {
  public:
-  SecurityException(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
-  ~SecurityException() throw() override {}
+  SecurityException(const std::string& reponame, const std::string& what_arg) : Exception(reponame, what_arg) {}
+  ~SecurityException() noexcept override = default;
 };
 
 class TargetHashMismatch : public Exception {
  public:
-  TargetHashMismatch(const std::string targetname)
+  explicit TargetHashMismatch(const std::string& targetname)
       : Exception(targetname, "The target's calculated hash did not match the hash in the metadata.") {}
-  ~TargetHashMismatch() throw() override {}
+  ~TargetHashMismatch() noexcept override = default;
 };
 
 class OversizedTarget : public Exception {
  public:
-  OversizedTarget(const std::string reponame)
+  explicit OversizedTarget(const std::string& reponame)
       : Exception(reponame, "The target's size was greater than the size in the metadata.") {}
-  ~OversizedTarget() throw() override {}
+  ~OversizedTarget() noexcept override = default;
 };
 
 class IllegalThreshold : public Exception {
  public:
-  IllegalThreshold(const std::string reponame, const std::string &what_arg) : Exception(reponame, what_arg.c_str()) {}
-  ~IllegalThreshold() throw() override {}
+  IllegalThreshold(const std::string& reponame, const std::string& what_arg) : Exception(reponame, what_arg) {}
+  ~IllegalThreshold() noexcept override = default;
 };
 
 class MissingRepo : public Exception {
  public:
-  MissingRepo(const std::string reponame) : Exception(reponame, "The " + reponame + " repo is missing.") {}
-  ~MissingRepo() throw() override {}
+  explicit MissingRepo(const std::string& reponame) : Exception(reponame, "The " + reponame + " repo is missing.") {}
+  ~MissingRepo() noexcept override = default;
 };
 
 class UnmetThreshold : public Exception {
  public:
-  UnmetThreshold(const std::string reponame, const std::string &role)
+  UnmetThreshold(const std::string& reponame, const std::string& role)
       : Exception(reponame, "The " + role + " metadata had an unmet threshold.") {}
-  ~UnmetThreshold() throw() override {}
+  ~UnmetThreshold() noexcept override = default;
 };
 
 class ExpiredMetadata : public Exception {
  public:
-  ExpiredMetadata(const std::string reponame, const std::string &role)
+  ExpiredMetadata(const std::string& reponame, const std::string& role)
       : Exception(reponame, "The " + role + " metadata was expired.") {}
-  ~ExpiredMetadata() throw() override {}
+  ~ExpiredMetadata() noexcept override = default;
 };
 
 class InvalidMetadata : public Exception {
  public:
-  InvalidMetadata(const std::string reponame, const std::string &role, const std::string reason)
+  InvalidMetadata(const std::string& reponame, const std::string& role, const std::string& reason)
       : Exception(reponame, "The " + role + " metadata failed to parse:" + reason) {}
-  ~InvalidMetadata() throw() override {}
+  ~InvalidMetadata() noexcept override = default;
 };
 
 class IllegalRsaKeySize : public Exception {
  public:
-  IllegalRsaKeySize(const std::string reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
-  ~IllegalRsaKeySize() throw() override {}
+  explicit IllegalRsaKeySize(const std::string& reponame) : Exception(reponame, "The RSA key had an illegal size.") {}
+  ~IllegalRsaKeySize() noexcept override = default;
 };
 
 class MissMatchTarget : public Exception {
  public:
-  MissMatchTarget(const std::string reponame)
+  explicit MissMatchTarget(const std::string& reponame)
       : Exception(reponame, "The target missmatch between image and director.") {}
-  ~MissMatchTarget() throw() override {}
+  ~MissMatchTarget() noexcept override = default;
 };
 
 class NonUniqueSignatures : public Exception {
  public:
-  NonUniqueSignatures(const std::string reponame, const std::string &role)
+  NonUniqueSignatures(const std::string& reponame, const std::string& role)
       : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
-  ~NonUniqueSignatures() throw() override {}
+  ~NonUniqueSignatures() noexcept override = default;
 };
 }  // namespace Uptane
 

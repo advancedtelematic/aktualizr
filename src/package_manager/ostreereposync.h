@@ -6,7 +6,7 @@
 namespace boost {
 namespace filesystem {
 class path;
-}
+}  // namespace filesystem
 }  // namespace boost
 
 namespace ostree_repo_sync {

@@ -7,17 +7,17 @@
 
 namespace Uptane {
 class IpUptaneSecondary;
-}
+}  // namespace Uptane
 
 class IpUptaneConnectionSplitter {
  public:
-  IpUptaneConnectionSplitter(IpUptaneConnection& conn);
+  explicit IpUptaneConnectionSplitter(IpUptaneConnection& conn);
   ~IpUptaneConnectionSplitter() {
     stopped = true;
     split_thread.join();
   }
   void registerSecondary(Uptane::IpUptaneSecondary& sec);
-  void send(std::shared_ptr<SecondaryPacket> pack);
+  void send(const std::shared_ptr<SecondaryPacket>& pack);
 
  private:
   std::map<sockaddr_storage, Uptane::IpUptaneSecondary*> secondaries;

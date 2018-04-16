@@ -46,14 +46,14 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
       continue;
     }
     // Threshold
-    long long int requiredThreshold = (*it)["threshold"].asInt64();
+    int64_t requiredThreshold = (*it)["threshold"].asInt64();
     if (requiredThreshold < kMinSignatures) {
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
-                << (int)kMinSignatures;
+                << kMinSignatures;
       throw IllegalThreshold(repository, "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
-      LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << (int)kMaxSignatures << " < "
+      LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << kMaxSignatures << " < "
                 << requiredThreshold;
       throw IllegalThreshold(repository, "root.json contains a role that requires too many signatures");
     }
@@ -70,7 +70,9 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
 Json::Value Root::toJson() const {
   Json::Value res = BaseMeta::toJson();
 
-  if (policy_ != kCheck) throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
+  if (policy_ != kCheck) {
+    throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
+  }
 
   res["_type"] = "Root";
   res["consistent_snapshot"] = false;
@@ -89,29 +91,40 @@ Json::Value Root::toJson() const {
   res["roles"]["timestamp"]["keyids"] = Json::arrayValue;
 
   std::set<std::pair<Role, KeyId> >::const_iterator role_key_it;
-  for (role_key_it = keys_for_role_.begin(); role_key_it != keys_for_role_.end(); role_key_it++)
+  for (role_key_it = keys_for_role_.begin(); role_key_it != keys_for_role_.end(); role_key_it++) {
     res["roles"][role_key_it->first.ToString()]["keyids"].append(role_key_it->second);
+  }
 
-  std::map<Role, int>::const_iterator th_it = thresholds_for_role_.find(Role::Root());
-  if (th_it != thresholds_for_role_.end()) res["roles"]["root"]["threshold"] = th_it->second;
+  auto th_it = thresholds_for_role_.find(Role::Root());
+  if (th_it != thresholds_for_role_.end()) {
+    res["roles"]["root"]["threshold"] = th_it->second;
+  }
 
   th_it = thresholds_for_role_.find(Role::Snapshot());
-  if (th_it != thresholds_for_role_.end()) res["roles"]["snapshot"]["threshold"] = th_it->second;
+  if (th_it != thresholds_for_role_.end()) {
+    res["roles"]["snapshot"]["threshold"] = th_it->second;
+  }
 
   th_it = thresholds_for_role_.find(Role::Targets());
-  if (th_it != thresholds_for_role_.end()) res["roles"]["targets"]["threshold"] = th_it->second;
+  if (th_it != thresholds_for_role_.end()) {
+    res["roles"]["targets"]["threshold"] = th_it->second;
+  }
 
   th_it = thresholds_for_role_.find(Role::Timestamp());
-  if (th_it != thresholds_for_role_.end()) res["roles"]["timestamp"]["threshold"] = th_it->second;
+  if (th_it != thresholds_for_role_.end()) {
+    res["roles"]["timestamp"]["threshold"] = th_it->second;
+  }
 
   return res;
 }
 
-void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, const Json::Value &signed_object) {
+void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &repository,
+                                      const Json::Value &signed_object) {
   Uptane::Role role(signed_object["signed"]["_type"].asString());
   if (policy_ == kAcceptAll) {
     return;
-  } else if (policy_ == kRejectAll) {
+  }
+  if (policy_ == kRejectAll) {
     throw SecurityException(repository, "Root policy is kRejectAll");
   }
   assert(policy_ == kCheck);
@@ -125,9 +138,8 @@ void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, con
     std::string signature = (*sig)["sig"].asString();
     if (std::find(sig_values.begin(), sig_values.end(), signature) != sig_values.end()) {
       throw NonUniqueSignatures(repository, role.ToString());
-    } else {
-      sig_values.push_back(signature);
     }
+    sig_values.push_back(signature);
 
     std::string method((*sig)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
@@ -136,13 +148,13 @@ void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, con
       throw SecurityException(repository, std::string("Unsupported sign method: ") + (*sig)["method"].asString());
     }
     std::string keyid = (*sig)["keyid"].asString();
-    if (!keys_.count(keyid)) {
+    if (keys_.count(keyid) == 0u) {
       LOG_INFO << "Signed by unknown keyid, skipping";
       LOG_TRACE << "Key ID: " << keyid;
       continue;
     }
 
-    if (!keys_for_role_.count(std::make_pair(role, keyid))) {
+    if (keys_for_role_.count(std::make_pair(role, keyid)) == 0u) {
       LOG_WARNING << "KeyId is not valid to sign for this role";
       LOG_TRACE << "KeyId: " << keyid;
       continue;
@@ -165,8 +177,8 @@ void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, con
     throw UnmetThreshold(repository, role.ToString());
   }
 
-  // TODO check _type matches role
-  // TODO check timestamp
+  // TODO: check _type matches role
+  // TODO: check timestamp
   Uptane::TimeStamp expiry(Uptane::TimeStamp(signed_object["signed"]["expires"].asString()));
   if (expiry.IsExpiredAt(now)) {
     LOG_WARNING << "Metadata expired at:" << expiry;
@@ -180,5 +192,4 @@ void Uptane::Root::UnpackSignedObject(TimeStamp now, std::string repository, con
     LOG_TRACE << "  actual_role:" << actual_role;
     throw SecurityException(repository, "Object was signed for a different role");
   }
-  return;
 }

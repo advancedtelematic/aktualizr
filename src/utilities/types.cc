@@ -1,6 +1,7 @@
 #include "utilities/types.h"
 
 #include <stdexcept>
+#include <utility>
 
 namespace data {
 Json::Value Package::toJson() {
@@ -26,7 +27,7 @@ Json::Value UpdateAvailable::toJson() {
   json["signature"] = signature;
   json["description"] = description;
   json["request_confirmation"] = request_confirmation;
-  json["size"] = size;
+  json["size"] = Json::UInt64(size);
   return json;
 }
 
@@ -66,9 +67,8 @@ DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
   return dc;
 }
 
-OperationResult::OperationResult(const std::string& id_in, UpdateResultCode result_code_in,
-                                 const std::string& result_text_in)
-    : id(id_in), result_code(result_code_in), result_text(result_text_in) {}
+OperationResult::OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in)
+    : id(std::move(id_in)), result_code(result_code_in), result_text(std::move(result_text_in)) {}
 
 InstallOutcome OperationResult::toOutcome() { return InstallOutcome(result_code, result_text); }
 
@@ -111,8 +111,7 @@ Json::Value UpdateReport::toJson() {
   json["update_id"] = update_id;
 
   Json::Value operation_results_json(Json::arrayValue);
-  for (std::vector<data::OperationResult>::iterator it = operation_results.begin(); it != operation_results.end();
-       ++it) {
+  for (auto it = operation_results.begin(); it != operation_results.end(); ++it) {
     operation_results_json.append(it->toJson());
   }
   json["operation_results"] = operation_results_json;
@@ -131,7 +130,7 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
   }
   return update_report;
 }
-}
+}  // namespace data
 
 std::string keyTypeToString(KeyType type) {
   switch (type) {

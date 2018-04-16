@@ -8,6 +8,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <utility>
 
 #include "bootstrap.h"
 #include "invstorage.h"
@@ -24,7 +25,7 @@ namespace Uptane {
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
-  Uptane::DownloadMetaStruct* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
+  auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
   ds->downloaded_length += size * nmemb;
   if (ds->downloaded_length > ds->expected_length) {
     return (size * nmemb) + 1;  // curl will abort if return unexpected size;
@@ -32,14 +33,14 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 
   // incomplete writes will stop the download (written_size != nmemb*size)
   size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), nmemb * size);
-  ds->sha256_hasher.update((const unsigned char*)contents, written_size);
-  ds->sha512_hasher.update((const unsigned char*)contents, written_size);
+  ds->sha256_hasher.update(reinterpret_cast<const unsigned char*>(contents), written_size);
+  ds->sha512_hasher.update(reinterpret_cast<const unsigned char*>(contents), written_size);
   return written_size;
 }
 
 Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
     : config(config_in),
-      storage(storage_in),
+      storage(std::move(storage_in)),
       http(http_client),
       keys_(storage, config.keymanagerConfig()),
       manifests(Json::arrayValue) {
@@ -72,24 +73,32 @@ Json::Value Repository::signVersionManifest(const Json::Value& primary_version_m
 }
 
 bool comapreForConsistency(const Uptane::Target& director_target, const Uptane::Target& image_target) {
-  if (director_target.length() > image_target.length()) return false;
-  if (director_target.filename() != image_target.filename()) return false;
-  if (director_target.hashes().size() != image_target.hashes().size()) return false;
+  if (director_target.length() > image_target.length()) {
+    return false;
+  }
+  if (director_target.filename() != image_target.filename()) {
+    return false;
+  }
+  if (director_target.hashes().size() != image_target.hashes().size()) {
+    return false;
+  }
   // TODO: hardware_identifier and release_counter?
-  for (auto director_hash : director_target.hashes()) {
+  for (auto const& director_hash : director_target.hashes()) {
     // FIXME std:find doesn't work here, can't understand why.
     // auto found = std::find(image_target.hashes().begin(),
     //                        image_target.hashes().end(), director_hash);
     // if (found == image_target.hashes().end()) return false;
 
     bool found = false;
-    for (auto imh : image_target.hashes()) {
+    for (auto const& imh : image_target.hashes()) {
       if (director_hash == imh) {
         found = true;
         break;
       };
     }
-    if (!found) return false;
+    if (!found) {
+      return false;
+    }
   }
   return true;
 }
@@ -172,7 +181,7 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   int version = meta_.director_targets.version();
 
   if (!director_targets.empty()) {
-    for (std::vector<Uptane::Target>::iterator it = director_targets.begin(); it != director_targets.end(); ++it) {
+    for (auto it = director_targets.begin(); it != director_targets.end(); ++it) {
       // TODO: support downloading encrypted targets from director
       downloadTarget(*it);
     }
@@ -180,7 +189,7 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
 }
 
-void Repository::downloadTarget(Target target) {
+void Repository::downloadTarget(const Target& target) {
   if (target.length() > 0) {
     DownloadMetaStruct ds;
     std::unique_ptr<StorageTargetWHandle> fhandle =
@@ -195,9 +204,8 @@ void Repository::downloadTarget(Target target) {
       fhandle->wabort();
       if (response.curl_code == CURLE_WRITE_ERROR) {
         throw OversizedTarget(target.filename());
-      } else {
-        throw Exception("image", "Could not download file, error: " + response.error_message);
       }
+      throw Exception("image", "Could not download file, error: " + response.error_message);
     }
     fhandle->wcommit();
     std::string h256 = ds.sha256_hasher.getHexDigest();

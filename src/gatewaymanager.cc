@@ -10,7 +10,7 @@ GatewayManager::GatewayManager(const Config &config, std::shared_ptr<command::Ch
 }
 
 void GatewayManager::processEvents(const std::shared_ptr<event::BaseEvent> &event) {
-  for (std::vector<std::shared_ptr<Gateway> >::iterator it = gateways.begin(); it != gateways.end(); ++it) {
+  for (auto it = gateways.begin(); it != gateways.end(); ++it) {
     (*it)->processEvent(event);
   }
 }

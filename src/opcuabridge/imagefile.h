@@ -1,13 +1,15 @@
 #ifndef OPCUABRIDGE_IMAGEFILE_H_
 #define OPCUABRIDGE_IMAGEFILE_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
 class ImageFile {
  public:
-  ImageFile() {}
-  virtual ~ImageFile() {}
+  ImageFile() = default;
+  virtual ~ImageFile() = default;
 
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
@@ -19,13 +21,13 @@ class ImageFile {
   CLIENTREAD_FUNCTION_DEFINITION()                  // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                 // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageFile>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageFile>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageFile>::type cb) { on_before_read_cb_ = std::move(cb); }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageFile>::type cb) { on_after_write_cb_ = std::move(cb); }
 
  protected:
   std::string filename_;
-  std::size_t numberOfBlocks_;
-  std::size_t blockSize_;
+  std::size_t numberOfBlocks_{};
+  std::size_t blockSize_{};
 
   MessageOnBeforeReadCallback<ImageFile>::type on_before_read_cb_;
   MessageOnAfterWriteCallback<ImageFile>::type on_after_write_cb_;

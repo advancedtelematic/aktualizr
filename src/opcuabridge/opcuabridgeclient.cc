@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <random>
 #include <unordered_set>
 
 #include <boost/filesystem.hpp>
@@ -45,9 +46,10 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
           considerLdsRegisteredEndPoints(makeOpcuaServerUri(ep.address));
         } else if (ep.type == discovery::kNoLDS) {
           std::string opcua_server_url = makeOpcuaServerUri(ep.address);
-          if (endPointConfirmed(opcua_server_url, sconfig))
+          if (endPointConfirmed(opcua_server_url, sconfig)) {
             discovered_end_points_cache_.insert(
                 DiscoveredEndPointCacheEntry{sconfig.ecu_serial, sconfig.ecu_hardware_id, opcua_server_url});
+          }
         } else {
           LOG_INFO << "OPC-UA discover secondary: unsupported response from " << ep.address;
         }
@@ -56,7 +58,9 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
   }
   auto ep_it = discovered_end_points_cache_.find(
       DiscoveredEndPointCacheEntry{sconfig.ecu_serial, sconfig.ecu_hardware_id, std::string()});
-  if (ep_it != discovered_end_points_cache_.end()) url_ = ep_it->opcua_server_url;
+  if (ep_it != discovered_end_points_cache_.end()) {
+    url_ = ep_it->opcua_server_url;
+  }
 }
 
 bool SelectEndPoint::endPointConfirmed(const std::string& opcua_server_url,
@@ -71,7 +75,7 @@ std::string SelectEndPoint::makeOpcuaServerUri(const std::string& address) const
 }
 
 void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds_url) {
-  UA_ApplicationDescription* applicationDescriptionArray = NULL;
+  UA_ApplicationDescription* applicationDescriptionArray = nullptr;
   size_t applicationDescriptionArraySize = 0;
 
   UA_StatusCode retval;
@@ -81,8 +85,8 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
     config.logger = &opcuabridge::BoostLogOpcua;
 
     UA_Client* client = UA_Client_new(config);
-    retval = UA_Client_findServers(client, opcua_lds_url.c_str(), 0, NULL, 0, NULL, &applicationDescriptionArraySize,
-                                   &applicationDescriptionArray);
+    retval = UA_Client_findServers(client, opcua_lds_url.c_str(), 0, nullptr, 0, nullptr,
+                                   &applicationDescriptionArraySize, &applicationDescriptionArray);
     UA_Client_delete(client);
   }
 
@@ -93,10 +97,12 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
 
   for (size_t i = 0; i < applicationDescriptionArraySize; i++) {
     UA_ApplicationDescription* description = &applicationDescriptionArray[i];
-    if (description->applicationType != UA_APPLICATIONTYPE_SERVER) continue;
+    if (description->applicationType != UA_APPLICATIONTYPE_SERVER) {
+      continue;
+    }
     if (description->discoveryUrlsSize == 0) {
-      LOG_INFO << "OPC-UA server "
-               << std::string((char*)description->applicationUri.data, description->applicationUri.length)
+      LOG_INFO << "OPC-UA server " << std::string(reinterpret_cast<char*>(description->applicationUri.data),
+                                                  description->applicationUri.length)
                << " does not provide any discovery urls";
       continue;
     }
@@ -106,9 +112,10 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
     config.logger = &opcuabridge::BoostLogOpcua;
     UA_Client* client = UA_Client_new(config);
 
-    std::string discovery_url((char*)description->discoveryUrls[0].data, description->discoveryUrls[0].length);
+    std::string discovery_url(reinterpret_cast<char*>(description->discoveryUrls[0].data),
+                              description->discoveryUrls[0].length);
 
-    UA_EndpointDescription* endpointArray = NULL;
+    UA_EndpointDescription* endpointArray = nullptr;
     size_t endpointArraySize = 0;
     retval = UA_Client_getEndpoints(client, discovery_url.c_str(), &endpointArraySize, &endpointArray);
 
@@ -120,7 +127,8 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
 
     for (size_t j = 0; j < endpointArraySize; j++) {
       UA_EndpointDescription* endpoint = &endpointArray[j];
-      std::string opcua_server_url = std::string((char*)endpoint->endpointUrl.data, endpoint->endpointUrl.length);
+      std::string opcua_server_url =
+          std::string(reinterpret_cast<char*>(endpoint->endpointUrl.data), endpoint->endpointUrl.length);
       auto opcua_server_config = Client(opcua_server_url).recvConfiguration();
       discovered_end_points_cache_.insert(DiscoveredEndPointCacheEntry{
           opcua_server_config.getSerial(), opcua_server_config.getHwId(), opcua_server_url});
@@ -177,7 +185,10 @@ bool Client::sendMetadataFiles(std::vector<MetadataFile>& files) const {
   MetadataFiles metadatafiles;
   bool retval = true;
   if (UA_Client_getState(client_) != UA_CLIENTSTATE_DISCONNECTED) {
-    metadatafiles.setGUID(std::rand());
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, INT_MAX);
+    metadatafiles.setGUID(dis(gen));
     metadatafiles.setNumberOfMetadataFiles(files.size());
     metadatafiles.ClientWrite(client_);
 
@@ -197,12 +208,16 @@ bool Client::sendMetadataFiles(std::vector<MetadataFile>& files) const {
 }
 
 bool Client::syncDirectoryFiles(const fs::path& repo_dir) const {
-  if (UA_Client_getState(client_) == UA_CLIENTSTATE_DISCONNECTED) return false;
+  if (UA_Client_getState(client_) == UA_CLIENTSTATE_DISCONNECTED) {
+    return false;
+  }
 
   opcuabridge::FileList file_list;
   opcuabridge::FileData file_data(repo_dir);
 
-  if (UA_STATUSCODE_GOOD != file_list.ClientRead(client_)) return false;
+  if (UA_STATUSCODE_GOOD != file_list.ClientRead(client_)) {
+    return false;
+  }
 
   opcuabridge::FileUnorderedSet file_unordered_set;
   opcuabridge::UpdateFileUnorderedSet(&file_unordered_set, file_list);
@@ -213,7 +228,7 @@ bool Client::syncDirectoryFiles(const fs::path& repo_dir) const {
     const fs::path& ent_path = repo_dir_it->path();
     if (fs::is_regular_file(ent_path)) {
       fs::path rel_path = fs::relative(ent_path, repo_dir);
-      if (file_unordered_set.count((opcuabridge::FileSetEntry)rel_path.c_str()) == 0) {
+      if (file_unordered_set.count(reinterpret_cast<opcuabridge::FileSetEntry>(rel_path.c_str())) == 0) {
         file_data.setFilePath(rel_path);
         if (UA_STATUSCODE_GOOD != file_data.ClientWriteFile(client_, ent_path)) {
           retval = false;

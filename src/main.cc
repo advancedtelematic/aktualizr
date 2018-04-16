@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
   // Initialize config with default values, the update with config, then with cmd
   std::string sota_config_file = commandline_map["config"].as<std::string>();
   boost::filesystem::path sota_config_path(sota_config_file);
-  if (false == boost::filesystem::exists(sota_config_path)) {
+  if (!boost::filesystem::exists(sota_config_path)) {
     std::cout << "aktualizr: configuration file " << boost::filesystem::absolute(sota_config_path)
               << " not found. Exiting." << std::endl;
     exit(EXIT_FAILURE);

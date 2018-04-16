@@ -16,8 +16,8 @@ class SQLStorage : public INvStorage {
  public:
   friend class SQLTargetWHandle;
   friend class SQLTargetRHandle;
-  SQLStorage(const StorageConfig& config);
-  ~SQLStorage() override;
+  explicit SQLStorage(const StorageConfig& config);
+  ~SQLStorage() override = default;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;
   bool loadPrimaryPublic(std::string* public_key) override;
@@ -67,7 +67,7 @@ class SQLStorage : public INvStorage {
 
  private:
   // request info
-  SQLReqId request;
+  SQLReqId request{};
   std::map<std::string, std::string> req_params;
   std::map<std::string, std::string> req_response;
   std::vector<std::map<std::string, std::string> > req_response_table;
