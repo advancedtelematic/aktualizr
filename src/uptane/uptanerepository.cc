@@ -10,11 +10,11 @@
 #include <boost/algorithm/string/trim.hpp>
 
 #include "bootstrap.h"
-#include "crypto.h"
 #include "invstorage.h"
 #include "logging.h"
 #include "openssl_compat.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 #ifdef BUILD_OSTREE
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface

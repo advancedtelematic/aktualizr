@@ -5,9 +5,9 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "crypto.h"
 #include "logging.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 namespace Uptane {
 LegacySecondary::LegacySecondary(const SecondaryConfig& sconfig_in) : ManagedSecondary(sconfig_in) {}

@@ -5,7 +5,7 @@
 
 #include "logging.h"
 #include "package_manager/ostreereposync.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 #include <algorithm>
 #include <iterator>

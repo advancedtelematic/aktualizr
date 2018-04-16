@@ -15,11 +15,11 @@
 #include <vector>
 
 #include "fsstorage.h"
-#include "httpclient.h"
 #include "logging.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
-#include "utils.h"
+#include "utilities/httpclient.h"
+#include "utilities/utils.h"
 
 Config conf("tests/config/basic.toml");
 std::string port;

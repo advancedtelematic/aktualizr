@@ -13,7 +13,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/random/uniform_smallint.hpp>
 
-#include "utils.h"
+#include "utilities/utils.h"
 
 bool CharOk(char c) {
   if (('a' <= c) && (c <= 'z')) {

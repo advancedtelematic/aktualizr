@@ -3,9 +3,9 @@
 
 #include "httpinterface.h"
 #include "invstorage.h"
-#include "p11engine.h"
-#include "types.h"
-#include "utils.h"
+#include "utilities/p11engine.h"
+#include "utilities/types.h"
+#include "utilities/utils.h"
 
 // bundle some parts of the main config together
 // Should be derived by calling Config::keymanagerConfig()

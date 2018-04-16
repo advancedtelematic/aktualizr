@@ -1,4 +1,4 @@
-#include "crypto.h"
+#include "utilities/crypto.h"
 #include "edsign.h"
 #include <stdlib.h>
 #include <string.h>

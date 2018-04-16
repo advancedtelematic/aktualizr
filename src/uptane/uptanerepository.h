@@ -6,12 +6,12 @@
 #include "json/json.h"
 
 #include "config.h"
-#include "crypto.h"
 #include "httpinterface.h"
 #include "invstorage.h"
-#include "keymanager.h"
 #include "logging.h"
 #include "uptane/secondaryinterface.h"
+#include "utilities/crypto.h"
+#include "utilities/keymanager.h"
 
 namespace Uptane {
 

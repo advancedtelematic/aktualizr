@@ -5,7 +5,7 @@
 #include "logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 Uptane::TimeStamp now("2017-01-01T01:00:00Z");
 

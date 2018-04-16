@@ -1,4 +1,4 @@
-#include "crypto.h"
+#include "utilities/crypto.h"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/scoped_array.hpp>
@@ -8,7 +8,7 @@
 
 #include "logging.h"
 #include "openssl_compat.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 std::string PublicKey::TypeString() const {
   switch (type) {

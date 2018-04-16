@@ -5,7 +5,7 @@
 
 #include "config.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "types.h"
+#include "utilities/types.h"
 
 #include "invstorage.h"
 

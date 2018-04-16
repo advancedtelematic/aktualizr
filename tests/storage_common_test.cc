@@ -8,7 +8,7 @@
 #include "fsstorage.h"
 #include "logging.h"
 #include "sqlstorage.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path storage_test_dir;
 StorageConfig storage_test_config;

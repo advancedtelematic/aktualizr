@@ -6,9 +6,9 @@
 
 #include <sys/socket.h>
 
+#include "asn1/asn1-cerstream.h"
 #include "channel.h"
-#include "secondary_ipc/asn1-cerstream.h"
-#include "types.h"
+#include "utilities/types.h"
 
 enum SecondaryMesTypeTag {
   kSecondaryMesPublicKeyReqTag = 0x02,

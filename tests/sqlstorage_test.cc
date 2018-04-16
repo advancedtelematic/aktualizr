@@ -4,7 +4,7 @@
 
 #include "logging.h"
 #include "sqlstorage.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path schemas_path;
 

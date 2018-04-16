@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include <types.h>
+#include "utilities/types.h"
 
 namespace opcuabridge {
 class Configuration {

@@ -7,7 +7,7 @@
 
 #include "logging.h"
 #include "sql_utils.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!boost::filesystem::is_directory(config.schemas_path)) {

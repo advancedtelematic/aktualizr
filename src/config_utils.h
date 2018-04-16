@@ -6,7 +6,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 /*
  The following uses a small amount of template hackery to provide a nice

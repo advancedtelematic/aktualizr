@@ -10,8 +10,8 @@
 #include "config.h"
 #include "events.h"
 #include "socketgateway.h"
-#include "types.h"
-#include "utils.h"
+#include "utilities/types.h"
+#include "utilities/utils.h"
 
 const std::string server = "http://127.0.0.1:8800";
 boost::filesystem::path socket_path;

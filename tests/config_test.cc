@@ -13,9 +13,9 @@
 
 #include "bootstrap.h"
 
-#include "crypto.h"
 #include "test_utils.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 #include "config.h"
 

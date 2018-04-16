@@ -9,12 +9,12 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "crypto.h"
 #include "fsstorage.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 #ifdef BUILD_P11
-#include "p11engine.h"
+#include "utilities/p11engine.h"
 #ifndef TEST_PKCS11_MODULE_PATH
 #define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
 #endif

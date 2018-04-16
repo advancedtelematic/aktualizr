@@ -4,7 +4,7 @@
 
 #include "uptane_time.h"
 #include "uptane_config.h"
-#include "crypto.h"
+#include "utilities/crypto.h"
 #include "readjson.h"
 /* Grammar of director/targets.json
  *

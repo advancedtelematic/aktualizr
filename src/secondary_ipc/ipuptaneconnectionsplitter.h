@@ -3,7 +3,7 @@
 
 #include <map>
 #include <thread>
-#include "ipuptaneconnection.h"
+#include "secondary_ipc/ipuptaneconnection.h"
 
 namespace Uptane {
 class IpUptaneSecondary;

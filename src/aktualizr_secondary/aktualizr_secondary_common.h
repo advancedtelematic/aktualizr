@@ -7,8 +7,8 @@
 
 #include "aktualizr_secondary_config.h"
 #include "invstorage.h"
-#include "keymanager.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "utilities/keymanager.h"
 
 class AktualizrSecondaryCommon {
  public:

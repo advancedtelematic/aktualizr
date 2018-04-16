@@ -5,7 +5,7 @@
 #define OPCUABRIDGE_ENABLE_SERIALIZATION
 
 #include <functional>
-#include "utils.h"
+#include "utilities/utils.h"
 
 #include "opcuabridge_test_utils.h"
 #include "test_utils.h"

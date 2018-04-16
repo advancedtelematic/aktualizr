@@ -1,5 +1,5 @@
-#include "httpclient.h"
-#include "utils.h"
+#include "utilities/httpclient.h"
+#include "utilities/utils.h"
 
 #include <assert.h>
 #include <openssl/crypto.h>

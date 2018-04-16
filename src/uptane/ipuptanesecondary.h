@@ -2,8 +2,8 @@
 #define UPTANE_IPUPTANESECONDARY_H_
 
 #include <chrono>
-#include "ipuptaneconnectionsplitter.h"
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
+#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "uptane/secondaryinterface.h"
 
 namespace Uptane {

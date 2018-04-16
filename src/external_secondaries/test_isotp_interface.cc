@@ -9,7 +9,7 @@
 #include <sys/time.h>
 
 #include "test_isotp_interface.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 #define HW_ID_DID 0x0001
 #define ECU_SERIAL_DID 0x0002

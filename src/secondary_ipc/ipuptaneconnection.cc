@@ -1,4 +1,4 @@
-#include "ipuptaneconnection.h"
+#include "secondary_ipc/ipuptaneconnection.h"
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -7,7 +7,7 @@
 
 #include "logging.h"
 #include "socket_activation/socket_activation.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 void IpUptaneConnection::open_socket() {
   if (socket_activation::listen_fds(0) >= 1) {

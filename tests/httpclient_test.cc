@@ -6,10 +6,10 @@
 
 #include "json/json.h"
 
-#include "httpclient.h"
 #include "test_utils.h"
-#include "types.h"
-#include "utils.h"
+#include "utilities/httpclient.h"
+#include "utilities/types.h"
+#include "utilities/utils.h"
 
 static std::string server = "http://127.0.0.1:";
 

@@ -9,7 +9,7 @@
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
 #include "socket_activation/socket_activation.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
                                        const std::shared_ptr<INvStorage>& storage)

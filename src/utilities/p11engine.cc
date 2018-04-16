@@ -1,4 +1,4 @@
-#include "p11engine.h"
+#include "utilities/p11engine.h"
 
 #include <libp11.h>
 #include <openssl/evp.h>
@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "config_utils.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 #ifdef TEST_PKCS11_ENGINE_PATH
 #define kPkcs11Path TEST_PKCS11_ENGINE_PATH

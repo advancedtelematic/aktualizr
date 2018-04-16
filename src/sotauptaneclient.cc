@@ -4,14 +4,14 @@
 #include <chrono>
 #include "json/json.h"
 
-#include "crypto.h"
-#include "keymanager.h"
 #include "logging.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/keymanager.h"
+#include "utilities/utils.h"
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
                                    const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)

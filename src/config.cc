@@ -14,7 +14,7 @@
 #include "config.h"
 #include "config_utils.h"
 #include "exceptions.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 std::ostream& operator<<(std::ostream& os, StorageType stype) {
   std::string stype_str;

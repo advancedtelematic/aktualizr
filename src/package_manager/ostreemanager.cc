@@ -12,7 +12,7 @@
 #include <boost/filesystem.hpp>
 
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
                                          const KeyManager &keys, const std::string &refhash) {

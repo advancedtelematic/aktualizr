@@ -3,7 +3,7 @@
 #include "sqlstorage.h"
 
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string storage_type = "filesystem";

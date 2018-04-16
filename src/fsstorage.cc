@@ -9,7 +9,7 @@
 #include <sys/types.h>
 
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
   struct stat st;

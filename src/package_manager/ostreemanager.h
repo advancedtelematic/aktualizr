@@ -7,9 +7,9 @@
 #include <ostree-1/ostree.h>
 
 #include "config.h"
-#include "keymanager.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "types.h"
+#include "utilities/keymanager.h"
+#include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";
 

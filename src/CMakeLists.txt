@@ -1,6 +1,8 @@
 set_source_files_properties(${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/p11engine.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
+add_subdirectory("utilities")
+add_subdirectory("asn1")
 add_subdirectory("uptane")
 add_subdirectory("socket_activation")
 add_subdirectory("secondary_ipc")
@@ -15,8 +17,6 @@ set(AKTUALIZR_SOURCES aktualizr.cc
             eventsinterpreter.cc
             gatewaymanager.cc
             ipsecondarydiscovery.cc
-            ipuptaneconnection.cc
-            ipuptaneconnectionsplitter.cc
             socketgateway.cc
             sotauptaneclient.cc
             timer.cc
@@ -29,48 +29,22 @@ set(HEADERS aktualizr.h
             commands.h
             config.h
             config_utils.h
-            crypto.h
             events.h
             eventsinterpreter.h
             exceptions.h
             fsstorage.h
             gateway.h
             gatewaymanager.h
-            httpclient.h
             httpinterface.h
             invstorage.h
             ipsecondarydiscovery.h
-            ipuptaneconnection.h
-            ipuptaneconnectionsplitter.h
-            keymanager.h
             logging.h
             openssl_compat.h
-            p11engine.h
             socketgateway.h
             sotauptaneclient.h
             sqlstorage.h
             sql_utils.h
-            timer.h
-            types.h
-            utils.h)
-
-set(COMMON_UTILITIES_SOURCES
-    crypto.cc
-    httpclient.cc
-    keymanager.cc
-    types.cc
-    logging.cc
-    utils.cc)
-add_library(common_utilities OBJECT ${COMMON_UTILITIES_SOURCES})
-
-set(P11_SOURCES p11engine.cc)
-if(BUILD_P11)
-    target_sources(common_utilities PUBLIC ${P11_SOURCES})
-
-    if(TEST_PKCS11_MODULE_PATH)
-        add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
-    endif(TEST_PKCS11_MODULE_PATH)
-endif(BUILD_P11)
+            timer.h)
 
 set(STORAGE_SOURCES fsstorage.cc sqlstorage.cc invstorage.cc)
 add_library(storage OBJECT ${STORAGE_SOURCES})
@@ -79,9 +53,10 @@ add_library(jsoncpp OBJECT ${PROJECT_SOURCE_DIR}/third_party/jsoncpp/jsoncpp.cpp
 
 add_library(aktualizr_static_lib STATIC
     ${AKTUALIZR_SOURCES}
+    $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
-    $<TARGET_OBJECTS:common_utilities>
+    $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
@@ -161,7 +136,6 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 set(ALL_CHECKS main.cc
     ${AKTUALIZR_SOURCES}
-    ${COMMON_UTILITIES_SOURCES}
     ${P11_SOURCES}
     ${STORAGE_SOURCES}
     ${OPCUABRIDGE_SOURCES} ${OPCUABRIDGE_HEADERS}

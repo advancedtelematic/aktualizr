@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "sql_utils.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 TEST(sql_utils, PrepareRvalue) {
   TemporaryDirectory temp_dir;

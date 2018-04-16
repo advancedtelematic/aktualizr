@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "types.h"
 #include "uptane/tuf.h"
+#include "utilities/types.h"
 
 class PackageManagerInterface {
  public:

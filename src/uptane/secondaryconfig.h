@@ -5,7 +5,7 @@
 
 #include <sys/socket.h>
 #include <boost/filesystem.hpp>
-#include "types.h"
+#include "utilities/types.h"
 
 namespace Uptane {
 

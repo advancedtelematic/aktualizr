@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 
 #include "example_flasher.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 std::string filename;
 std::string serial;

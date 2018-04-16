@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 class IpUptaneConnection {
  public:

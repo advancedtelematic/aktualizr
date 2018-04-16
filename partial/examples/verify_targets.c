@@ -3,7 +3,7 @@
 #include <sys/time.h>
 #include "targets.h"
 #include "uptane_time.h"
-#include "crypto.h"
+#include "utilities/crypto.h"
 
 #define BUF_SIZE 2048
 #define NUM_KEYS 16

@@ -1,6 +1,6 @@
 #include "aktualizr_secondary_common.h"
 #include "package_manager/packagemanagerfactory.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfig &config,
                                                    const std::shared_ptr<INvStorage> &storage)

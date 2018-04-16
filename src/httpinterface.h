@@ -6,8 +6,8 @@
 #include <curl/curl.h>
 #include "json/json.h"
 
-#include "types.h"
-#include "utils.h"
+#include "utilities/types.h"
+#include "utilities/utils.h"
 
 struct HttpResponse {
   HttpResponse(const std::string &body_in, const long http_status_code_in, CURLcode curl_code_in,

@@ -8,7 +8,7 @@
 #include "config.h"
 #include "httpinterface.h"
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 /**
  * Helper class to manage curl_global_init/curl_global_cleanup calls

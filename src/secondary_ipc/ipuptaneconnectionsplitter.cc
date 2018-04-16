@@ -1,4 +1,4 @@
-#include "ipuptaneconnectionsplitter.h"
+#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "uptane/ipuptanesecondary.h"
 
 IpUptaneConnectionSplitter::IpUptaneConnectionSplitter(IpUptaneConnection& conn) : connection(conn) {

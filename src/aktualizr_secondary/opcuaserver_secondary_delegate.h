@@ -3,7 +3,7 @@
 
 #include <opcuabridge/opcuabridgeserver.h>
 #include <uptane/tuf.h>
-#include <utils.h>
+#include "utilities/utils.h"
 
 #include <boost/filesystem/path.hpp>
 

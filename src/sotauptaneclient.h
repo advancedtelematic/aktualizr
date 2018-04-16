@@ -6,14 +6,14 @@
 #include "commands.h"
 #include "config.h"
 #include "events.h"
-#include "httpclient.h"
 #include "invstorage.h"
 #include "ipsecondarydiscovery.h"
-#include "ipuptaneconnection.h"
-#include "ipuptaneconnectionsplitter.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "secondary_ipc/ipuptaneconnection.h"
+#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
+#include "utilities/httpclient.h"
 
 class SotaUptaneClient {
  public:
