@@ -82,12 +82,12 @@ bool OpcuaSecondary::sendFirmware(const std::string& data) {
   return retval;
 }
 
-int OpcuaSecondary::getRootVersion(bool director) {
+int OpcuaSecondary::getRootVersion(bool /* director */) {
   LOG_ERROR << "OpcuaSecondary::getRootVersion is not implemented yet";
   return 0;
 }
 
-bool OpcuaSecondary::putRoot(Uptane::Root root, bool director) {
+bool OpcuaSecondary::putRoot(Uptane::Root /* root */, bool /* director */) {
   LOG_ERROR << "OpcuaSecondary::putRoot is not implemented yet";
   return false;
 }
