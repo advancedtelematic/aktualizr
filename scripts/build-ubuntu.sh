@@ -19,5 +19,5 @@ cp -f "${GITREPO_ROOT}/scripts/test_aktualizr_deb_and_update.sh" "${PKG_DESTDIR}
 cp -rf "${GITREPO_ROOT}/tests/test_data/fake_root" "${PKG_DESTDIR}"
 
 
-git -C "${GITREPO_ROOT}" fetch --unshallow
+git -C "${GITREPO_ROOT}" fetch --unshallow || true
 git -C "${GITREPO_ROOT}" describe > "${PKG_DESTDIR}/aktualizr-version"
