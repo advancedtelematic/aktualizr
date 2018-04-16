@@ -71,6 +71,7 @@ class Client {
 
   Configuration recvConfiguration() const;
   VersionReport recvVersionReport() const;
+  OriginalManifest recvOriginalManifest() const;
   bool sendMetadataFiles(std::vector<MetadataFile>&) const;
   bool syncDirectoryFiles(const boost::filesystem::path&) const;
 

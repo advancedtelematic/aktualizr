@@ -326,6 +326,14 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
       continue;
     }
 
+    if (sec->second->sconfig.secondary_type == Uptane::kOpcuaUptane) {
+      Json::Value data;
+      data["sysroot_path"] = config.pacman.sysroot.string();
+      data["ref_hash"] = it->sha256Hash();
+      sec->second->sendFirmware(Utils::jsonToStr(data));
+      continue;
+    }
+
     std::stringstream sstr;
     sstr << *storage->openTargetFile(it->filename());
     std::string fw = sstr.str();

@@ -6,7 +6,7 @@
 namespace opcuabridge {
 class ImageBlock {
  public:
-  typedef std::vector<unsigned char> block_type;
+  typedef BinaryDataType block_type;
 
   ImageBlock() : blockNumber_(0) {}
   virtual ~ImageBlock() {}

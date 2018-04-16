@@ -6,6 +6,8 @@
 namespace opcuabridge {
 class MetadataFile {
  public:
+  typedef BinaryDataType block_type;
+
   MetadataFile() {}
   virtual ~MetadataFile() {}
 
@@ -15,9 +17,14 @@ class MetadataFile {
   void setFileNumber(const std::size_t& fileNumber) { fileNumber_ = fileNumber; }
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
-  std::vector<unsigned char>& getMetadata() { return metadata_; }
-  const std::vector<unsigned char>& getMetadata() const { return metadata_; }
-  void setMetadata(const std::vector<unsigned char>& metadata) { metadata_ = metadata; }
+  block_type& getMetadata() { return metadata_; }
+  const block_type& getMetadata() const { return metadata_; }
+  void setMetadata(const block_type& metadata) { metadata_ = metadata; }
+  void setMetadata(const Json::Value& metadata) {
+    Json::FastWriter fw;
+    std::string s = fw.write(metadata);
+    metadata_.assign(s.begin(), s.end());
+  }
   INITSERVERNODESET_BIN_FUNCTION_DEFINITION(MetadataFile, &metadata_)  // InitServerNodeset(UA_Server*)
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&metadata_)                       // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&metadata_)                      // ClientWrite(UA_Client*)
@@ -29,7 +36,7 @@ class MetadataFile {
   int GUID_;
   std::size_t fileNumber_;
   std::string filename_;
-  std::vector<unsigned char> metadata_;
+  block_type metadata_;
 
   MessageOnBeforeReadCallback<MetadataFile>::type on_before_read_cb_;
   MessageOnAfterWriteCallback<MetadataFile>::type on_after_write_cb_;

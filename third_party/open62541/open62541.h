@@ -14307,6 +14307,9 @@ extern "C" {
 UA_ServerNetworkLayer UA_EXPORT
 UA_ServerNetworkLayerTCP(UA_ConnectionConfig conf, UA_UInt16 port);
 
+UA_ServerNetworkLayer
+UA_ServerNetworkLayerTCPSocketActivation(UA_ConnectionConfig conf, UA_Int32 socketFd);
+
 UA_Connection UA_EXPORT
 UA_ClientConnectionTCP(UA_ConnectionConfig conf, const char *endpointUrl, const UA_UInt32 timeout);
 

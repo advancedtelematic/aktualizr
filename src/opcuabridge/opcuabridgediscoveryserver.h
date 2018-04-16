@@ -12,6 +12,7 @@ namespace discovery {
 class Server {
  public:
   Server(EndPointServiceType type, uint16_t port);
+  Server(EndPointServiceType type, int socket_fd, uint16_t port);
 
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
@@ -19,6 +20,8 @@ class Server {
   bool run(volatile bool*);
 
  private:
+  void init(EndPointServiceType);
+
   boost::asio::io_service io_service_;
   boost::asio::ip::udp::socket socket_;
   discovery_service_data_type response_;

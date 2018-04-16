@@ -17,6 +17,36 @@
 
 namespace bpo = boost::program_options;
 
+class AktualizrSecondaryWithDiscovery : public AktualizrSecondaryInterface {
+ public:
+  AktualizrSecondaryWithDiscovery(const AktualizrSecondaryConfig &config, const std::shared_ptr<INvStorage> &storage)
+      : aktualizr_secondary_(new AktualizrSecondary(config, storage)),
+        discovery_(new AktualizrSecondaryDiscovery(config.network, *aktualizr_secondary_)) {}
+  AktualizrSecondaryWithDiscovery(const AktualizrSecondaryWithDiscovery &) = delete;
+  AktualizrSecondaryWithDiscovery &operator=(const AktualizrSecondaryWithDiscovery &) = delete;
+
+  ~AktualizrSecondaryWithDiscovery() override {
+    discovery_->stop();
+    discovery_thread_.join();
+  }
+  void run() override {
+    // run discovery service
+    discovery_thread_ = std::thread(&AktualizrSecondaryDiscovery::run, discovery_.get());
+
+    aktualizr_secondary_->run();
+  }
+  void stop() override { aktualizr_secondary_->stop(); }
+
+ private:
+  std::unique_ptr<AktualizrSecondary> aktualizr_secondary_;
+  std::unique_ptr<AktualizrSecondaryDiscovery> discovery_;
+  std::thread discovery_thread_;
+};
+
+#ifdef OPCUA_SECONDARY_ENABLED
+typedef AktualizrSecondaryOpcua AktualizrSecondaryOpcuaWithDiscovery;
+#endif
+
 void check_secondary_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
@@ -39,7 +69,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("server-port,p", bpo::value<int>(), "command server listening port")
       ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
       ("ecu-serial", bpo::value<std::string>(), "serial number of secondary ecu")
-      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu");
+      ("ecu-hardware-id", bpo::value<std::string>(), "hardware ID of secondary ecu")
+      ("opcua", "use OPC-UA protocol");
   // clang-format on
 
   bpo::variables_map vm;
@@ -121,42 +152,30 @@ int main(int argc, char *argv[]) {
   }
 
   int ret = 0;
-  std::thread discovery_thread;
-  std::unique_ptr<AktualizrSecondaryDiscovery> discovery;
   try {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
 
     // storage (share class with primary)
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 
+    std::unique_ptr<AktualizrSecondaryInterface> secondary;
+
+    if (commandline_map.count("opcua") != 0) {
 #ifdef OPCUA_SECONDARY_ENABLED
-    // OPC-UA bridge server has integrated discovery
-    AktualizrSecondaryOpcua secondary(config, storage);
+      secondary.reset(new AktualizrSecondaryOpcuaWithDiscovery(config, storage));
 #else
-    AktualizrSecondary secondary(config, storage);
-
-    // discovery service
-    discovery.reset(new AktualizrSecondaryDiscovery(config.network, secondary));
-    discovery_thread = std::thread(&AktualizrSecondaryDiscovery::run, discovery.get());
+      LOG_ERROR << "Built with no OPC-UA support";
+      return 1;
 #endif
+    } else {
+      secondary.reset(new AktualizrSecondaryWithDiscovery(config, storage));
+    }
 
-    secondary.run();
+    secondary->run();
 
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Error: " << exc.what();
-
     ret = 1;
   }
-
-  if (discovery != nullptr) {
-    try {
-      discovery->stop();
-      discovery_thread.join();
-    } catch (std::runtime_error &exc) {
-      LOG_ERROR << "Error: " << exc.what();
-      ret = 1;
-    }
-  }
-
   return ret;
 }

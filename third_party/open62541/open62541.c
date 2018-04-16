@@ -36286,6 +36286,47 @@ UA_ServerNetworkLayerTCP(UA_ConnectionConfig conf, UA_UInt16 port) {
 }
 
 /***************************/
+/* Server NetworkLayer TCP *
+ * with socket activation  */
+/***************************/
+
+static UA_StatusCode
+ServerNetworkLayerTCPSocketActivation_start(UA_ServerNetworkLayer *nl,
+                                            const UA_String *customHostname) {
+  return UA_STATUSCODE_GOOD;
+}
+
+static void
+ServerNetworkLayerTCPSocketActivation_stop(UA_ServerNetworkLayer *nl, UA_Server *server) {
+  ServerNetworkLayerTCP *layer = (ServerNetworkLayerTCP *)nl->handle;
+  shutdown((SOCKET)layer->serverSockets[0], 2);
+  layer->serverSocketsSize = 0;
+
+  ServerNetworkLayerTCP_stop(nl, server);
+}
+
+UA_ServerNetworkLayer
+UA_ServerNetworkLayerTCPSocketActivation(UA_ConnectionConfig conf, UA_Int32 socketFd) {
+    UA_ServerNetworkLayer nl;
+    memset(&nl, 0, sizeof(UA_ServerNetworkLayer));
+    ServerNetworkLayerTCP *layer = (ServerNetworkLayerTCP*)
+        UA_calloc(1,sizeof(ServerNetworkLayerTCP));
+    if(!layer)
+        return nl;
+
+    layer->conf = conf;
+    layer->serverSockets[0] = socketFd;
+    layer->serverSocketsSize = 1;
+
+    nl.handle = layer;
+    nl.start = ServerNetworkLayerTCPSocketActivation_start;
+    nl.listen = ServerNetworkLayerTCP_listen;
+    nl.stop = ServerNetworkLayerTCPSocketActivation_stop;
+    nl.deleteMembers = ServerNetworkLayerTCP_deleteMembers;
+    return nl;
+}
+
+/***************************/
 /* Client NetworkLayer TCP */
 /***************************/
 

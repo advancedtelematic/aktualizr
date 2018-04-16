@@ -71,14 +71,12 @@ class path;
   friend UA_StatusCode write<TYPE>(UA_Server *, const UA_NodeId *, void *, const UA_NodeId *, void *, \
                                    const UA_NumericRange *, const UA_DataValue *);
 
-#define INTERNAL_FUNCTIONS_FRIEND_DECLARATION(TYPE)                                                    \
-  friend UA_StatusCode opcuabridge::internal::ClientWrite<TYPE>(UA_Client *, const char *, TYPE *);    \
-  friend UA_StatusCode opcuabridge::internal::ClientWrite<TYPE>(UA_Client *, const char *, TYPE *,     \
-                                                                BinaryDataContainer *);                \
-  friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(UA_Client *, const char *, TYPE *);     \
-  friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(UA_Client *, const char *, TYPE *,      \
-                                                               BinaryDataContainer *);                 \
-  friend UA_StatusCode opcuabridge::internal::ClientWriteFile<TYPE>(UA_Client *, const char *, TYPE *, \
+#define INTERNAL_FUNCTIONS_FRIEND_DECLARATION(TYPE)                                                                   \
+  friend UA_StatusCode opcuabridge::internal::ClientWrite<TYPE>(UA_Client *, const char *, TYPE *);                   \
+  friend UA_StatusCode opcuabridge::internal::ClientWrite<TYPE>(UA_Client *, const char *, TYPE *, BinaryDataType *); \
+  friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(UA_Client *, const char *, TYPE *);                    \
+  friend UA_StatusCode opcuabridge::internal::ClientRead<TYPE>(UA_Client *, const char *, TYPE *, BinaryDataType *);  \
+  friend UA_StatusCode opcuabridge::internal::ClientWriteFile<TYPE>(UA_Client *, const char *, TYPE *,                \
                                                                     const boost::filesystem::path &);
 
 #define WRAPMESSAGE_FUCTION_DEFINITION(TYPE)  \
@@ -121,7 +119,7 @@ struct MessageBinaryData {};
 struct MessageFileData {
   virtual std::string getFullFilePath() const = 0;
 };
-typedef std::vector<unsigned char> BinaryDataContainer;
+typedef std::vector<uint8_t> BinaryDataType;
 
 template <typename T>
 struct MessageOnBeforeReadCallback {
@@ -211,7 +209,7 @@ inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id, Message
 }
 
 template <typename MessageT>
-inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id, MessageT *obj, BinaryDataContainer *bin_data) {
+inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id, MessageT *obj, BinaryDataType *bin_data) {
   // write binary child node
   UA_Variant *bin_val = UA_Variant_new();
   UA_Variant_setArray(bin_val, &(*bin_data)[0], bin_data->size(), &UA_TYPES[UA_TYPES_BYTE]);
@@ -255,7 +253,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT
 }
 
 template <typename MessageT>
-inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT *obj, BinaryDataContainer *bin_data) {
+inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT *obj, BinaryDataType *bin_data) {
   UA_Variant *val = UA_Variant_new();
   UA_StatusCode retval =
       UA_Client_readValueAttribute(client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);

@@ -15,6 +15,7 @@
 #include "metadatafile.h"
 #include "metadatafiles.h"
 #include "opcuabridgeconfig.h"
+#include "originalmanifest.h"
 #include "signature.h"
 #include "signed.h"
 #include "versionreport.h"

@@ -14,6 +14,7 @@ class ECUVersionManifest {
 
   const std::vector<Signature>& getSignatures() const { return signatures_; }
   void setSignatures(const std::vector<Signature>& signatures) { signatures_ = signatures; }
+  ECUVersionManifestSigned& getEcuVersionManifestSigned() { return ecuVersionManifestSigned_; }
   const ECUVersionManifestSigned& getEcuVersionManifestSigned() const { return ecuVersionManifestSigned_; }
   void setEcuVersionManifestSigned(const ECUVersionManifestSigned& ecuVersionManifestSigned) {
     ecuVersionManifestSigned_ = ecuVersionManifestSigned;

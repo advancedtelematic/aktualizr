@@ -3,6 +3,7 @@
 #include "ecuversionmanifest.h"
 #include "ecuversionmanifestsigned.h"
 #include "filedata.h"
+#include "filelist.h"
 #include "hash.h"
 #include "image.h"
 #include "imageblock.h"
@@ -10,6 +11,7 @@
 #include "imagerequest.h"
 #include "metadatafile.h"
 #include "metadatafiles.h"
+#include "originalmanifest.h"
 #include "signature.h"
 #include "signed.h"
 #include "versionreport.h"
@@ -37,6 +39,10 @@ const char *ImageBlock::node_id_ = "ImageBlock";
 const char *ImageBlock::bin_node_id_ = "ImageBlock_BinaryData";
 const char *FileData::node_id_ = "FileData";
 const char *FileData::bin_node_id_ = "FileData_BinaryData";
+const char *FileList::node_id_ = "FileList";
+const char *FileList::bin_node_id_ = "FileList_BinaryData";
+const char *OriginalManifest::node_id_ = "OriginalManifest";
+const char *OriginalManifest::bin_node_id_ = "OriginalManifest_BinaryData";
 }  // namespace opcuabridge
 
 namespace opcuabridge {
@@ -56,7 +62,7 @@ template <>
 UA_StatusCode read<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessionId, void *sessionContext,
                                       const UA_NodeId *nodeId, void *nodeContext, UA_Boolean sourceTimeStamp,
                                       const UA_NumericRange *range, UA_DataValue *dataValue) {
-  const BinaryDataContainer &bin_data = *static_cast<BinaryDataContainer *>(nodeContext);
+  const BinaryDataType &bin_data = *static_cast<BinaryDataType *>(nodeContext);
 
   UA_Variant_setArrayCopy(&dataValue->value, &bin_data[0], bin_data.size(), &UA_TYPES[UA_TYPES_BYTE]);
   dataValue->hasValue = !bin_data.empty();
@@ -69,7 +75,7 @@ UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessi
                                        const UA_NodeId *nodeId, void *nodeContext, const UA_NumericRange *range,
                                        const UA_DataValue *data) {
   if (!UA_Variant_isEmpty(&data->value) && UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    BinaryDataContainer *bin_data = static_cast<BinaryDataContainer *>(nodeContext);
+    BinaryDataType *bin_data = static_cast<BinaryDataType *>(nodeContext);
     bin_data->resize(data->value.arrayLength);
     const unsigned char *src = static_cast<const unsigned char *>(data->value.data);
     std::copy(src, src + data->value.arrayLength, bin_data->begin());

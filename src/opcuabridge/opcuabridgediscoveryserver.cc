@@ -16,7 +16,15 @@ Server::Server(EndPointServiceType type, uint16_t port) : socket_(io_service_) {
   socket_.open(listen_endpoint.protocol());
   socket_.set_option(ba::ip::udp::socket::reuse_address(true));
   socket_.bind(listen_endpoint);
+  init(type);
+}
 
+Server::Server(EndPointServiceType type, int socket_fd, uint16_t port) : socket_(io_service_) {
+  socket_.assign(ba::ip::udp::v6(), socket_fd);
+  init(type);
+}
+
+void Server::init(EndPointServiceType type) {
   socket_.set_option(
       ba::ip::multicast::join_group(ba::ip::address_v6::from_string(OPCUA_DISCOVERY_SERVICE_MULTICAST_ADDR)));
 
