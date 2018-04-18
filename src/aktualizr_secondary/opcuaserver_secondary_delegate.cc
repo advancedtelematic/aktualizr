@@ -5,6 +5,8 @@
 #include <ostreereposync.h>
 #include <utils.h>
 
+#include <thread>
+
 namespace fs = boost::filesystem;
 
 OpcuaServerSecondaryDelegate::OpcuaServerSecondaryDelegate(AktualizrSecondaryCommon* secondary)
@@ -92,22 +94,26 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
 
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {
   if (secondary_->target_) {
-    fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
-    if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
-      if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), ostree_source_repo,
-                                           secondary_->target_->sha256Hash())) {
-        LOG_ERROR << "OSTree repo sync failed: unable to local pull from "
-                  << ostree_sync_working_repo_dir_.Path().string();
-        return;
+    auto target_to_install = *secondary_->target_;
+    std::thread long_run_op([=]() {
+      fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
+      if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
+        if (!ostree_repo_sync::LocalPullRepo(ostree_sync_working_repo_dir_.Path(), ostree_source_repo,
+                                             target_to_install.sha256Hash())) {
+          LOG_ERROR << "OSTree repo sync failed: unable to local pull from "
+                    << ostree_sync_working_repo_dir_.Path().string();
+          return;
+        }
       }
-    }
-    data::UpdateResultCode res_code;
-    std::string message;
-    std::tie(res_code, message) = secondary_->pacman->install(*secondary_->target_);
-    if (res_code != data::UpdateResultCode::OK)
-      LOG_ERROR << "Could not install target (" << res_code << "): " << message;
-    else
-      secondary_->storage_->saveInstalledVersion(*secondary_->target_);
+      data::UpdateResultCode res_code;
+      std::string message;
+      std::tie(res_code, message) = secondary_->pacman->install(target_to_install);
+      if (res_code != data::UpdateResultCode::OK)
+        LOG_ERROR << "Could not install target (" << res_code << "): " << message;
+      else
+        secondary_->storage_->saveInstalledVersion(target_to_install);
+    });
+    long_run_op.detach();
   } else {
     LOG_ERROR << "No valid installation target found";
   }
