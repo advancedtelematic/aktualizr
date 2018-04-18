@@ -105,7 +105,7 @@ if (BUILD_OPCUA)
     set_source_files_properties(${OPEN62541_SOURCES} ${OPCUABRIDGE_SOURCES}
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
     add_library(opcua_bridge OBJECT ${OPCUABRIDGE_SOURCES} ${OPEN62541_SOURCES})
-    target_sources(aktualizr_static_lib PUBLIC $<TARGET_OBJECTS:opcua_bridge>)
+    target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:opcua_bridge>)
 endif (BUILD_OPCUA)
 
 add_executable(aktualizr main.cc)

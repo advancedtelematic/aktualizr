@@ -17,7 +17,7 @@ add_library(utilities OBJECT ${SOURCES})
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})
 
 if(BUILD_P11)
-    target_sources(package_manager PUBLIC p11engine.cc)
+    target_sources(utilities PRIVATE p11engine.cc)
     if(TEST_PKCS11_MODULE_PATH)
         add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
     endif(TEST_PKCS11_MODULE_PATH)
