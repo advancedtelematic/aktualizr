@@ -48,7 +48,7 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
 }
 
 TEST(storage, load_store_primary_keys) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   storage->storePrimaryKeys("pr_public", "pr_private");
 
@@ -64,7 +64,7 @@ TEST(storage, load_store_primary_keys) {
 }
 
 TEST(storage, load_store_tls) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
@@ -83,7 +83,7 @@ TEST(storage, load_store_tls) {
 }
 
 TEST(storage, load_store_metadata) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   Uptane::MetaPack stored_meta;
 
@@ -161,7 +161,7 @@ TEST(storage, load_store_metadata) {
 }
 
 TEST(storage, load_store_deviceid) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   storage->storeDeviceId("device_id");
 
@@ -176,7 +176,7 @@ TEST(storage, load_store_deviceid) {
 }
 
 TEST(storage, load_store_ecu_serials) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   std::vector<std::pair<std::string, std::string> > serials;
   serials.push_back(std::pair<std::string, std::string>("primary", "primary_hw"));
@@ -195,7 +195,7 @@ TEST(storage, load_store_ecu_serials) {
 }
 
 TEST(storage, load_store_misconfigured_ecus) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   std::vector<MisconfiguredEcu> ecus;
   ecus.push_back(MisconfiguredEcu("primary", "primary_hw", kNotRegistered));
@@ -218,7 +218,7 @@ TEST(storage, load_store_misconfigured_ecus) {
 }
 
 TEST(storage, load_store_ecu_registered) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   storage->storeEcuRegistered();
 
@@ -230,7 +230,7 @@ TEST(storage, load_store_ecu_registered) {
 }
 
 TEST(storage, store_target) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
 
   // write
@@ -288,7 +288,7 @@ TEST(storage, store_target) {
 }
 
 TEST(storage, import_data) {
-  boost::filesystem::create_directories(storage_test_dir);
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
   boost::filesystem::create_directories(storage_test_dir / "import");
 
   std::unique_ptr<INvStorage> storage = Storage();

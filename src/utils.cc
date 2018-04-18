@@ -14,6 +14,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -535,6 +536,18 @@ std::vector<boost::filesystem::path> Utils::glob(const std::string &pat) {
   return ret;
 }
 
+void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) {
+  boost::filesystem::path parent = path.parent_path();
+  if (!parent.empty() && !boost::filesystem::exists(parent)) {
+    Utils::createDirectories(parent, mode);
+  }
+  if (mkdir(path.c_str(), mode) == -1) {
+    throw std::runtime_error("could not create directory: " + path.native());
+  } else {
+    std::cout << "created: " << path.native() << "\n";
+  }
+}
+
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
@@ -575,8 +588,13 @@ TemporaryFile::TemporaryFile(const std::string &hint)
 TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 
 void TemporaryFile::PutContents(const std::string &contents) {
-  std::ofstream out(Path().c_str());
-  out << contents;
+  mode_t mode = S_IRUSR | S_IWUSR;
+  int fd = open(Path().c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
+  int written = write(fd, contents.c_str(), contents.size());
+  close(fd);
+  if (written != contents.size()) {
+    throw std::runtime_error(std::string("Could not write content to file: ") + Path().string());
+  }
 }
 
 boost::filesystem::path TemporaryFile::Path() const { return tmp_name_; }
@@ -585,7 +603,7 @@ std::string TemporaryFile::PathString() const { return Path().string(); }
 
 TemporaryDirectory::TemporaryDirectory(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {
-  boost::filesystem::create_directories(tmp_name_);
+  Utils::createDirectories(tmp_name_, S_IRWXU);
 }
 
 TemporaryDirectory::~TemporaryDirectory() { boost::filesystem::remove_all(tmp_name_); }

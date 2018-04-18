@@ -30,13 +30,11 @@ boost::filesystem::path build_dir;
  * primary and all secondaries.
  */
 TEST(Uptane, RandomSerial) {
-  TemporaryDirectory temp_dir;
+  TemporaryDirectory temp_dir1, temp_dir2;
   Config conf_1("tests/config_tests_prov.toml");
-  conf_1.storage.path = temp_dir.Path() / "certs_1";
-  boost::filesystem::remove_all(temp_dir.Path() / "certs_1");
+  conf_1.storage.path = temp_dir1.Path();
   Config conf_2("tests/config_tests_prov.toml");
-  conf_2.storage.path = temp_dir.Path() / "certs_2";
-  boost::filesystem::remove_all(temp_dir.Path() / "certs_2");
+  conf_2.storage.path = temp_dir2.Path();
 
   conf_1.uptane.primary_ecu_serial = "";
   conf_1.storage.uptane_private_key_path = "private.key";
@@ -50,28 +48,32 @@ TEST(Uptane, RandomSerial) {
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
   ecu_config.partial_verifying = false;
-  ecu_config.full_client_dir = temp_dir.Path() / "sec_1";
+  ecu_config.full_client_dir = temp_dir1.Path() / "sec_1";
   ecu_config.ecu_serial = "";
   ecu_config.ecu_hardware_id = "secondary_hardware";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
-  ecu_config.firmware_path = temp_dir.Path() / "firmware.txt";
-  ecu_config.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  ecu_config.metadata_path = temp_dir.Path() / "secondary_metadata";
+  ecu_config.firmware_path = temp_dir1.Path() / "firmware.txt";
+  ecu_config.target_name_path = temp_dir1.Path() / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir1.Path() / "secondary_metadata";
   conf_1.uptane.secondary_configs.push_back(ecu_config);
-  ecu_config.full_client_dir = temp_dir.Path() / "sec_2";
+  ecu_config.full_client_dir = temp_dir2.Path() / "sec_2";
+  ecu_config.firmware_path = temp_dir2.Path() / "firmware.txt";
+  ecu_config.target_name_path = temp_dir2.Path() / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir2.Path() / "secondary_metadata";
   conf_2.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage_1 = INvStorage::newStorage(conf_1.storage);
   auto storage_2 = INvStorage::newStorage(conf_2.storage);
-  HttpFake http(temp_dir.Path());
+  HttpFake http1(temp_dir1.Path());
+  HttpFake http2(temp_dir2.Path());
 
-  Uptane::Repository uptane_1(conf_1, storage_1, http);
-  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http);
+  Uptane::Repository uptane_1(conf_1, storage_1, http1);
+  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http1);
   EXPECT_TRUE(uptane_1.initialize());
 
-  Uptane::Repository uptane_2(conf_2, storage_2, http);
-  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http);
+  Uptane::Repository uptane_2(conf_2, storage_2, http1);
+  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http2);
   EXPECT_TRUE(uptane_2.initialize());
 
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;

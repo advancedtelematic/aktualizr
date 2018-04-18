@@ -1,5 +1,6 @@
 #include "sqlstorage.h"
 
+#include <sys/stat.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -14,7 +15,18 @@ SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
                              " missing");
   }
 
-  boost::filesystem::create_directories(config.sqldb_path.parent_path());
+  if (!boost::filesystem::is_directory(config.sqldb_path.parent_path())) {
+    Utils::createDirectories(config.sqldb_path.parent_path(), S_IRWXU);
+  } else {
+    struct stat st;
+    stat(config.sqldb_path.parent_path().c_str(), &st);
+    if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+      throw std::runtime_error("Storage directory has unsafe permissions");
+    } else if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
+      // Remove read permissions for group and others
+      chmod(config.sqldb_path.parent_path().c_str(), S_IRWXU);
+    }
+  }
 
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
