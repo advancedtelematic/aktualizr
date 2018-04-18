@@ -15,7 +15,7 @@ class PackageManagerFake : public PackageManagerInterface {
 
   Uptane::Target getCurrent() override;
 
-  data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome install(const Uptane::Target &target) override;
 
  private:
   const std::shared_ptr<INvStorage> &storage_;

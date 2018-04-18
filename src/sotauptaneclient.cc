@@ -134,6 +134,19 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   return result;
 }
 
+bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
+  for (auto manifest : manifests) {
+    if (manifest["signed"].isMember("custom")) {
+      auto status =
+          static_cast<data::UpdateResultCode>(manifest["signed"]["custom"]["operation_result"]["result_code"].asUInt());
+      if (status == data::UpdateResultCode::IN_PROGRESS) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
@@ -154,7 +167,9 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
     try {
       if (command->variant == "GetUpdateRequests") {
         // Uptane step 1 (build the vehicle version manifest):
-        uptane_repo.putManifest(AssembleManifest());
+        if (!putManifest()) {
+          continue;
+        }
         // Uptane step 2 (download time) is not implemented yet.
         // Uptane step 3 (download metadata)
         if (!uptane_repo.getMeta()) {
@@ -201,8 +216,11 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         sendImagesToEcus(updates);
         // Not required for Uptane, but used to send a status code to the
         // director.
-        uptane_repo.putManifest(AssembleManifest());
+        if (!putManifest()) {
+          continue;
+        }
 
+        // FIXME how to deal with reboot if we have a pending secondary update?
         boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
         if (boost::filesystem::exists(reboot_flag)) {
           boost::filesystem::remove(reboot_flag);
@@ -227,6 +245,15 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
       *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
     }
   }
+}
+
+bool SotaUptaneClient::putManifest() {
+  auto manifest = AssembleManifest();
+  if (!hasPendingUpdates(manifest)) {
+    uptane_repo.putManifest(manifest);
+    return true;
+  }
+  return false;
 }
 
 void SotaUptaneClient::initSecondaries() {

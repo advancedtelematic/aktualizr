@@ -18,7 +18,7 @@ class OstreeManager : public PackageManagerInterface {
   OstreeManager(const PackageConfig &pconfig, const std::shared_ptr<INvStorage> &storage);
   Json::Value getInstalledPackages() override;
   Uptane::Target getCurrent() override;
-  data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome install(const Uptane::Target &target) override;
 
   std::shared_ptr<OstreeDeployment> getStagedDeployment();
   static std::shared_ptr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);

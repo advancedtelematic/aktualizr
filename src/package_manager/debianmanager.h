@@ -15,7 +15,7 @@ class DebianManager : public PackageManagerInterface {
       : config_(pconfig), storage_(storage) {}
   Json::Value getInstalledPackages() override;
   Uptane::Target getCurrent() override;
-  data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome install(const Uptane::Target &target) override;
   PackageConfig config_;
   std::shared_ptr<INvStorage> storage_;
 };

@@ -11,7 +11,7 @@ class PackageManagerInterface {
   virtual ~PackageManagerInterface() = default;
   virtual Json::Value getInstalledPackages() = 0;
   virtual Uptane::Target getCurrent() = 0;
-  virtual data::InstallOutcome install(const Uptane::Target &target) const = 0;
+  virtual data::InstallOutcome install(const Uptane::Target &target) = 0;
   Uptane::Target getUnknown() {
     Json::Value t_json;
     t_json["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
@@ -31,8 +31,14 @@ class PackageManagerInterface {
     unsigned_ecu_version["ecu_serial"] = ecu_serial;
     unsigned_ecu_version["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
     unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
+    if (latest_operation_result_.result_code != data::UpdateResultCode::OK) {
+      unsigned_ecu_version["custom"]["operation_result"] = latest_operation_result_.toJson();
+    }
     return unsigned_ecu_version;
   }
+
+ protected:
+  data::OperationResult latest_operation_result_{};
 };
 
 #endif  // PACKAGEMANAGERINTERFACE_H_
