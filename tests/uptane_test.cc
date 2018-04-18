@@ -124,7 +124,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
 TEST(Uptane, Initialize) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   conf.uptane.repo_server = http.tls_server + "/director";
 
   conf.uptane.repo_server = http.tls_server + "/repo";
@@ -168,7 +168,7 @@ TEST(Uptane, Initialize) {
  */
 TEST(Uptane, InitializeTwice) {
   TemporaryDirectory temp_dir;
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
   conf.uptane.primary_ecu_serial = "testecuserial";
   conf.storage.uptane_private_key_path = "private.key";
@@ -227,7 +227,7 @@ TEST(Uptane, PetNameProvided) {
   boost::filesystem::path device_path = temp_dir.Path() / "device_id";
 
   /* Make sure provided device ID is read as expected. */
-  Config conf("tests/config_tests_device_id.toml");
+  Config conf("tests/config/device_id.toml");
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
@@ -258,7 +258,7 @@ TEST(Uptane, PetNameCreation) {
   boost::filesystem::path device_path = temp_dir.Path() / "device_id";
 
   // Make sure name is created.
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
@@ -424,7 +424,7 @@ TEST(Uptane, Threshold) {
 TEST(Uptane, InitializeFail) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   conf.uptane.repo_server = http.tls_server + "/director";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
@@ -583,7 +583,7 @@ TEST(Uptane, PutManifest) {
 TEST(Uptane, RunForeverNoUpdates) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
@@ -627,7 +627,7 @@ TEST(Uptane, RunForeverNoUpdates) {
 TEST(Uptane, RunForeverHasUpdates) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
@@ -686,7 +686,7 @@ std::vector<Uptane::Target> makePackage(const std::string& serial) {
 }
 
 TEST(Uptane, RunForeverInstall) {
-  Config conf("tests/config_tests_prov.toml");
+  Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
   conf.uptane.primary_ecu_serial = "testecuserial";
@@ -772,7 +772,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
  */
 TEST(Uptane, ProvisionOnServer) {
   TemporaryDirectory temp_dir;
-  Config config("tests/config_tests_prov.toml");
+  Config config("tests/config/basic.toml");
   std::string server = "tst149";
   config.provision.server = server;
   config.tls.server = server;

@@ -10,7 +10,7 @@ TEST(aktualizr_secondary_config, config_initialized_values) {
 }
 
 TEST(aktualizr_secondary_config, config_toml_parsing) {
-  AktualizrSecondaryConfig conf("tests/aktualizr_secondary/config_tests.toml");
+  AktualizrSecondaryConfig conf("tests/config/aktualizr_secondary.toml");
 
   EXPECT_EQ(conf.network.port, 9031);
 

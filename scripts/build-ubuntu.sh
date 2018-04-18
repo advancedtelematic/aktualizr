@@ -9,7 +9,7 @@ make -j8
 make package
 cp aktualizr*.deb /persistent/aktualizr.deb
 cp -rf ../src/tests/test_data/prov_selfupdate /persistent/
-cp -rf ../src/tests/config_selfupdate.toml /persistent/
+cp -rf ../src/tests/config/selfupdate.toml /persistent/
 cp -rf ../src/scripts/selfupdate_server.py /persistent/
 cp -f ../src/scripts/test_aktualizr_deb_and_update.sh /persistent/test_aktualizr_deb_and_update.sh
 cp -rf ../src/tests/test_data/fake_root /persistent/

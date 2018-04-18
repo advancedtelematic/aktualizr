@@ -30,7 +30,7 @@ TEST(config, config_initialized_values) {
 }
 
 TEST(config, config_toml_parsing) {
-  Config conf("tests/config_tests.toml");
+  Config conf("tests/config/minimal.toml");
 
   EXPECT_EQ(conf.gateway.socket, true);
 }
@@ -55,7 +55,7 @@ TEST(config, config_cmdl_parsing) {
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
-  Config conf("tests/config_tests.toml", vm);
+  Config conf("tests/config/minimal.toml", vm);
 
   EXPECT_TRUE(conf.gateway.socket);
 }
@@ -83,7 +83,7 @@ TEST(config, config_extract_credentials) {
 TEST(config, secondary_config) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
-  TestUtils::writePathToConfig("tests/config_tests.toml", conf_path_str, temp_dir.Path());
+  TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
 
   bpo::variables_map cmd;
   bpo::options_description description("some text");
@@ -105,7 +105,7 @@ TEST(config, secondary_config) {
 TEST(config, legacy_interface) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
-  TestUtils::writePathToConfig("tests/config_tests.toml", conf_path_str, temp_dir.Path());
+  TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
 
   bpo::variables_map cmd;
   bpo::options_description description("some text");
@@ -138,7 +138,7 @@ TEST(config, implicit_mode) {
 }
 
 TEST(config, automatic_mode) {
-  Config config("tests/config_tests_prov.toml");
+  Config config("tests/config/basic.toml");
   EXPECT_EQ(config.provision.mode, kAutomatic);
 }
 
@@ -155,7 +155,7 @@ TEST(config, consistent_toml_empty) {
 
 TEST(config, consistent_toml_nonempty) {
   TemporaryDirectory temp_dir;
-  Config config1("tests/config_tests_prov.toml");
+  Config config1("tests/config/basic.toml");
   config1.writeToFile((temp_dir / "output1.toml").string());
   Config config2((temp_dir / "output1.toml").string());
   config2.writeToFile((temp_dir / "output2.toml").string());

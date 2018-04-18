@@ -23,7 +23,7 @@ boost::filesystem::path sysroot;
 
 TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
-  Config config("tests/config_tests.toml");
+  Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
   config.provision.mode = kAutomatic;
   config.storage.path = temp_dir.Path();
@@ -44,7 +44,7 @@ TEST(UptaneCI, OneCycleUpdate) {
 
 TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
-  Config config("tests/config_tests.toml");
+  Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
   config.provision.mode = kAutomatic;
   config.storage.path = temp_dir.Path();

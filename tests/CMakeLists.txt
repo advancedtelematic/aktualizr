@@ -119,15 +119,21 @@ if(NOT BUILD_WITH_CODE_COVERAGE)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
+add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME commands SOURCES commands_test.cc)
 
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
+
 add_aktualizr_test(NAME events SOURCES events_test.cc)
 
 add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptane_connection_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -161,16 +167,10 @@ add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DI
 
 add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
 
-add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
-
+add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
                    PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
-add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptane_connection_test.cc PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
@@ -181,6 +181,13 @@ add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector
 #add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
 #         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
+
+if(SOTA_PACKED_CREDENTIALS)
+    add_test(NAME test_prov COMMAND ${PROJECT_SOURCE_DIR}/tests/prov_test.py
+             --build-dir ${PROJECT_BINARY_DIR}
+             --src-dir ${PROJECT_SOURCE_DIR}
+             --credentials ${SOTA_PACKED_CREDENTIALS})
+endif(SOTA_PACKED_CREDENTIALS)
 
 if(BUILD_OSTREE)
     add_custom_target(make_ostree_sysroot
@@ -357,7 +364,7 @@ add_test(NAME validate-secondary-interface
     --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
-if((BUILD_SOTA_TOOLS))
+if(BUILD_SOTA_TOOLS)
     # sota-tools tests
     add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
@@ -446,7 +453,7 @@ if((BUILD_SOTA_TOOLS))
     add_test(NAME garage-deploy-nonexistent-option
         COMMAND garage-deploy --test )
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
-endif((BUILD_SOTA_TOOLS))
+endif(BUILD_SOTA_TOOLS)
 
 # aktualizr-secondary tests
 add_test(NAME aktualizr-secondary-help
