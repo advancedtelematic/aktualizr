@@ -12,17 +12,15 @@ set(HEADERS crypto.h
             types.h
             utils.h)
 
+
+add_library(utilities OBJECT ${SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+
 if(BUILD_P11)
-    list(APPEND SOURCES p11engine.cc)
-    list(APPEND HEADERS p11engine.h)
+    target_sources(package_manager PUBLIC p11engine.cc)
     if(TEST_PKCS11_MODULE_PATH)
         add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}" -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
     endif(TEST_PKCS11_MODULE_PATH)
-else(BUILD_P11)
-    aktualizr_source_file_checks(p11engine.cc p11engine.h)
 endif(BUILD_P11)
 
-
-add_library(utilities OBJECT ${SOURCES})
-
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+aktualizr_source_file_checks(p11engine.cc p11engine.h)
