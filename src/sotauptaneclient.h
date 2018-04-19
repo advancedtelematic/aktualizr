@@ -33,7 +33,7 @@ class SotaUptaneClient {
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
-  void run(command::Channel *commands_channel);
+  void schedulePoll(command::Channel *commands_channel);
   void initSecondaries();
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);

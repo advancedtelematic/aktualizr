@@ -35,12 +35,11 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_cha
   initSecondaries();
 }
 
-void SotaUptaneClient::run(command::Channel *commands_channel) {
-  while (true) {
-    *commands_channel << std::make_shared<command::GetUpdateRequests>();
+void SotaUptaneClient::schedulePoll(command::Channel *commands_channel) {
+  std::thread([this, commands_channel]() {
     std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
-    if (shutdown) return;
-  }
+    if (!shutdown) *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  }).detach();
 }
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
@@ -158,7 +157,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   reportHwInfo();
   reportInstalledPackages();
 
-  std::thread polling_thread(std::bind(&SotaUptaneClient::run, this, commands_channel));
+  schedulePoll(commands_channel);
 
   std::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
@@ -166,6 +165,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        schedulePoll(commands_channel);
         // Uptane step 1 (build the vehicle version manifest):
         if (!putManifest()) {
           continue;
@@ -233,7 +233,6 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         }
       } else if (command->variant == "Shutdown") {
         shutdown = true;
-        polling_thread.join();
         return;
       }
 
