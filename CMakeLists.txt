@@ -20,6 +20,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake-modules)
+configure_file(CTestCustom.cmake CTestCustom.cmake)
 
 unset(AKTUALIZR_CHECKED_SRCS CACHE)
 

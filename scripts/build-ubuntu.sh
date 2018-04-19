@@ -1,9 +1,11 @@
 #! /bin/bash
 set -ex
 
+GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
+
 mkdir -p build-ubuntu
 cd build-ubuntu
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=OFF -DBUILD_DEB=ON ../src
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=OFF -DBUILD_DEB=ON "${GITREPO_ROOT}"
 
 make -j8
 make package
