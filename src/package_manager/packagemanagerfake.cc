@@ -22,7 +22,7 @@ Uptane::Target PackageManagerFake::getCurrent() {
   return getUnknown();
 }
 
-data::InstallOutcome PackageManagerFake::install(const Uptane::Target &target) {
+data::InstallOutcome PackageManagerFake::install(const Uptane::Target &target) const {
   storage_->saveInstalledVersion(target);
   return data::InstallOutcome(data::OK, "Installing fake package was successful");
 };

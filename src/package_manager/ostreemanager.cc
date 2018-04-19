@@ -66,8 +66,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
 }
 
-data::InstallOutcome OstreeManager::install(const Uptane::Target &target) {
-  setLastOperationResult(data::OperationResult(target.filename(), data::IN_PROGRESS, "Installation in progress"));
+data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const {
   const char *opt_osname = NULL;
   GCancellable *cancellable = NULL;
   GError *error = NULL;
@@ -83,30 +82,28 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) {
   if (error) {
     LOG_ERROR << "could not get repo";
     g_error_free(error);
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, "could not get repo"));
-    return latest_operation_result_.toOutcome();
+    return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
   GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str());
   if (!ostree_repo_resolve_rev(repo.get(), target.sha256Hash().c_str(), FALSE, &revision, &error)) {
     LOG_ERROR << error->message;
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, error->message));
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
-    return latest_operation_result_.toOutcome();
+    return install_outcome;
   }
 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
   if (merge_deployment == NULL) {
     LOG_ERROR << "No merge deployment";
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, "No merge deployment"));
-    return latest_operation_result_.toOutcome();
+    return data::InstallOutcome(data::INSTALL_FAILED, "No merge deployment");
   }
 
   if (!ostree_sysroot_prepare_cleanup(sysroot.get(), cancellable, &error)) {
     LOG_ERROR << error->message;
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, error->message));
-    return latest_operation_result_.toOutcome();
+    return install_outcome;
   }
 
   std::string args_content =
@@ -127,22 +124,21 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) {
   if (!ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin, merge_deployment, kargs_strv,
                                   &new_deployment, cancellable, &error)) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, error->message));
-    return latest_operation_result_.toOutcome();
+    return install_outcome;
   }
 
   if (!ostree_sysroot_simple_write_deployment(sysroot.get(), NULL, new_deployment, merge_deployment,
                                               OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable, &error)) {
     LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
+    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
-    setLastOperationResult(data::OperationResult(target.filename(), data::INSTALL_FAILED, error->message));
-    return latest_operation_result_.toOutcome();
+    return install_outcome;
   }
   LOG_INFO << "Performing sync()";
   sync();
-  setLastOperationResult(data::OperationResult(target.filename(), data::OK, "Installation successful"));
-  return latest_operation_result_.toOutcome();
+  return data::InstallOutcome(data::OK, "Installation successful");
 }
 
 OstreeManager::OstreeManager(const PackageConfig &pconfig, const std::shared_ptr<INvStorage> &storage)

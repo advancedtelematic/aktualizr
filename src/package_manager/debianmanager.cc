@@ -28,7 +28,7 @@ Json::Value DebianManager::getInstalledPackages() {
   return packages;
 }
 
-data::InstallOutcome DebianManager::install(const Uptane::Target &target) {
+data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
   LOG_INFO << "Installing " << target.filename() << " as Debian package...";
   std::string cmd = "dpkg -i ";
   std::string output;

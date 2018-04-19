@@ -3,6 +3,7 @@
 
 #include "logging.h"
 #include "package_manager/ostreereposync.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "utilities/utils.h"
 
 #include <thread>
@@ -95,6 +96,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {
   if (secondary_->target_) {
     auto target_to_install = *secondary_->target_;
+    secondary_->pacman->setOperationResult(target_to_install.filename(), data::IN_PROGRESS, "Installation in progress");
     std::thread long_run_op([=]() {
       fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
       if (!ostree_repo_sync::ArchiveModeRepo(ostree_source_repo)) {
@@ -108,10 +110,13 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
       data::UpdateResultCode res_code;
       std::string message;
       std::tie(res_code, message) = secondary_->pacman->install(target_to_install);
-      if (res_code != data::UpdateResultCode::OK)
+      if (res_code != data::UpdateResultCode::OK) {
         LOG_ERROR << "Could not install target (" << res_code << "): " << message;
-      else
+        secondary_->pacman->setOperationResult(target_to_install.filename(), res_code, message);
+      } else {
         secondary_->storage_->saveInstalledVersion(target_to_install);
+        secondary_->pacman->setOperationResult(target_to_install.filename(), data::OK, "Installation successful");
+      }
     });
     long_run_op.detach();
   } else {
