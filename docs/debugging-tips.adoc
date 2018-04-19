@@ -1,5 +1,14 @@
 = Aktualizr Debugging Tips
 
+== Running Aktualizr in development
+
+The `sota_local.toml` configuration file sets the package manager to `PackageManagerFake`, which allows the installation process to be tested locally:
+
+    # From the build directory
+    mkdir sota-prov
+    src/aktualizr --config ../config/sota_local.toml
+
+For VS code, there is a `launch.json` provided in the `.vscode` directory.  This assumes that the cmake build directory is `build`.
 
 == Dumping information about SSL Certificates
 
