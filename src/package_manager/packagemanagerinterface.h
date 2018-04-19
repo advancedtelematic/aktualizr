@@ -1,6 +1,7 @@
 #ifndef PACKAGEMANAGERINTERFACE_H_
 #define PACKAGEMANAGERINTERFACE_H_
 
+#include <mutex>
 #include <string>
 
 #include "uptane/tuf.h"
@@ -31,14 +32,22 @@ class PackageManagerInterface {
     unsigned_ecu_version["ecu_serial"] = ecu_serial;
     unsigned_ecu_version["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
     unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
+    mutex.lock();
     if (latest_operation_result_.result_code != data::UpdateResultCode::OK) {
       unsigned_ecu_version["custom"]["operation_result"] = latest_operation_result_.toJson();
     }
+    mutex.unlock();
     return unsigned_ecu_version;
   }
 
  protected:
+  void setLastOperationResult(const data::OperationResult &operation_result) {
+    mutex.lock();
+    latest_operation_result_ = operation_result;
+    mutex.unlock();
+  }
   data::OperationResult latest_operation_result_{};
+  std::mutex mutex;
 };
 
 #endif  // PACKAGEMANAGERINTERFACE_H_
