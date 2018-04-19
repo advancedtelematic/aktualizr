@@ -13,16 +13,16 @@
 #include <boost/uuid/uuid_generators.hpp>  // generators
 #include <boost/uuid/uuid_io.hpp>
 
-#include "asn1-cerstream.h"
+#include "asn1/asn1-cerstream.h"
 #include "invstorage.h"
-#include "keymanager.h"
 #include "logging.h"
-#include "p11engine.h"
-#include "types.h"
+#include "package_manager/packagemanagerconfig.h"
 #include "uptane/secondaryconfig.h"
+#include "utilities/keymanager.h"
+#include "utilities/p11engine.h"
+#include "utilities/types.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
-enum PackageManager { kNone = 0, kOstree, kDebian };
 
 // Keep the order of config options the same as in writeToFile() and
 // updateFromPropertyTree() in config.cc.
@@ -93,17 +93,6 @@ struct UptaneConfig {
 
 struct DiscoveryConfig {
   bool ipuptane{false};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
-struct PackageConfig {
-  PackageManager type{kOstree};
-  std::string os;
-  boost::filesystem::path sysroot;
-  std::string ostree_server;
-  boost::filesystem::path packages_file{"/usr/package.manifest"};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

@@ -5,11 +5,11 @@
 
 #include "config.h"
 #include "fsstorage.h"
-#include "keymanager.h"
-#include "utils.h"
+#include "utilities/keymanager.h"
+#include "utilities/utils.h"
 
 #ifdef BUILD_P11
-#include "p11engine.h"
+#include "utilities/p11engine.h"
 #ifndef TEST_PKCS11_MODULE_PATH
 #define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
 #endif

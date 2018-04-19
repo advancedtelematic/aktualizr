@@ -6,10 +6,10 @@
 #include "invstorage.h"
 #include "logging.h"
 #ifdef BUILD_OSTREE
-#include "ostree.h"
+#include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
-#include "socket_activation.h"
-#include "utils.h"
+#include "socket_activation/socket_activation.h"
+#include "utilities/utils.h"
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
                                        const std::shared_ptr<INvStorage>& storage)

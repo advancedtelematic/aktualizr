@@ -7,8 +7,8 @@
 #include <picojson.h>
 
 #include "channel.h"
-#include "types.h"
 #include "uptane/tuf.h"
+#include "utilities/types.h"
 
 namespace command {
 

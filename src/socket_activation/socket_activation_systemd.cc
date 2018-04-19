@@ -1,6 +1,6 @@
 #include <systemd/sd-daemon.h>
 
-#include "socket_activation.h"
+#include "socket_activation/socket_activation.h"
 
 namespace socket_activation {
 

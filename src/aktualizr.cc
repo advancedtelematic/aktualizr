@@ -10,9 +10,9 @@
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
-#include "httpclient.h"
 #include "invstorage.h"
 #include "sotauptaneclient.h"
+#include "utilities/httpclient.h"
 
 Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'

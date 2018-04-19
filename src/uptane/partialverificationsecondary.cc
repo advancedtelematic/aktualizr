@@ -8,9 +8,9 @@
 
 #include "../exceptions.h"
 #include "logging.h"
-#include "types.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
+#include "utilities/types.h"
 
 namespace Uptane {
 

@@ -7,7 +7,7 @@
 #include "bootstrap.h"
 #include "config.h"
 #include "logging.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
 

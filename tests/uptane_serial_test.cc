@@ -19,7 +19,7 @@
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
 

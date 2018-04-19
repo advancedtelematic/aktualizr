@@ -1,7 +1,7 @@
 #include <open62541.h>
 
 #include <opcuabridge/opcuabridge.h>
-#include <ostreereposync.h>
+#include "package_manager/ostreereposync.h"
 
 #include <fstream>
 #include <iostream>

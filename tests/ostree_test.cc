@@ -10,9 +10,9 @@
 
 #include "config.h"
 #include "fsstorage.h"
-#include "ostree.h"
-#include "types.h"
-#include "utils.h"
+#include "package_manager/ostreemanager.h"
+#include "utilities/types.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path sysroot;
 

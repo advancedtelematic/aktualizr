@@ -12,7 +12,7 @@
 #include "logging.h"
 #include "sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 /**
  * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr

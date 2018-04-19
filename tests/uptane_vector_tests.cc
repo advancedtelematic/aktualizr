@@ -9,10 +9,10 @@
 
 #include "config.h"
 #include "fsstorage.h"
-#include "httpclient.h"
 #include "logging.h"
 #include "uptane/uptanerepository.h"
-#include "utils.h"
+#include "utilities/httpclient.h"
+#include "utilities/utils.h"
 
 bool match_error(Json::Value error, Uptane::Exception* e) {
   if (error["director"]["update"]["err_msg"].asString() == e->what() ||

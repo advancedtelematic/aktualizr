@@ -7,9 +7,9 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
-#include "crypto.h"
 #include "exceptions.h"
 #include "logging.h"
+#include "utilities/crypto.h"
 
 using Uptane::Hash;
 using Uptane::Role;

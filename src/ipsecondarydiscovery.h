@@ -5,7 +5,7 @@
 
 #include "config.h"
 #include "uptane/secondaryconfig.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 const int AKT_DISCOVERY_REQ = 0x00;
 const int AKT_DISCOVERY_RESP = 0x01;

@@ -4,7 +4,7 @@
 #include "aktualizr_secondary.h"
 #include "aktualizr_secondary_config.h"
 
-#include "utils.h"
+#include "utilities/utils.h"
 
 class AktualizrSecondaryDiscovery {
  public:

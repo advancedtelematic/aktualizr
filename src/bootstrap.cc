@@ -6,9 +6,9 @@
 #include <fstream>
 #include <sstream>
 
-#include "crypto.h"
 #include "logging.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::string& provision_password)
     : ca(""), cert(""), pkey("") {

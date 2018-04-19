@@ -4,7 +4,7 @@
 #include "json/json.h"
 #include "secondaryinterface.h"
 
-#include <types.h>
+#include "utilities/types.h"
 
 namespace Uptane {
 

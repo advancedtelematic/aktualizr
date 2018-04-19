@@ -1,11 +1,11 @@
 #include "opcuasecondary.h"
 
-#include <opcuabridge/opcuabridgeclient.h>
+#include "opcuabridge/opcuabridgeclient.h"
 #include "secondaryconfig.h"
 
-#include <logging.h>
-#include <ostreereposync.h>
-#include <utils.h>
+#include "logging.h"
+#include "package_manager/ostreereposync.h"
+#include "utilities/utils.h"
 
 #include <algorithm>
 #include <iterator>
@@ -36,7 +36,7 @@ std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
 }
 
 Json::Value OpcuaSecondary::getManifest() {
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   auto original_manifest = client.recvOriginalManifest().getBlock();
   return Utils::parseJSON(std::string(original_manifest.begin(), original_manifest.end()));
 }
@@ -53,7 +53,7 @@ bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
     mf.setMetadata(meta_pack.director_targets.original());
     metadatafiles.push_back(mf);
   }
-  opcuabridge::Client client(opcuabridge::SelectEndPoint(SecondaryInterface::sconfig));
+  opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.sendMetadataFiles(metadatafiles);
 }
 
@@ -82,12 +82,12 @@ bool OpcuaSecondary::sendFirmware(const std::string& data) {
   return retval;
 }
 
-int OpcuaSecondary::getRootVersion(bool director) {
+int OpcuaSecondary::getRootVersion(bool /* director */) {
   LOG_ERROR << "OpcuaSecondary::getRootVersion is not implemented yet";
   return 0;
 }
 
-bool OpcuaSecondary::putRoot(Uptane::Root root, bool director) {
+bool OpcuaSecondary::putRoot(Uptane::Root /* root */, bool /* director */) {
   LOG_ERROR << "OpcuaSecondary::putRoot is not implemented yet";
   return false;
 }

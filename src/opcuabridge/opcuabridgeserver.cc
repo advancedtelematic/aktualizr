@@ -4,7 +4,7 @@
 #include <open62541.h>
 
 #include <uptane/secondaryconfig.h>
-#include <utils.h>
+#include "utilities/utils.h"
 
 #include <boost/preprocessor/array/to_list.hpp>
 #include <boost/preprocessor/list/for_each.hpp>

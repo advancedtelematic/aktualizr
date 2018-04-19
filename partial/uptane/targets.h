@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "crypto.h"
+#include "utilities/crypto.h"
 #include "uptane_time.h"
 #include "readjson.h"
 

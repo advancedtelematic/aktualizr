@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "uptane_config.h"
 #include "uptane_time.h"
-#include "crypto.h"
+#include "utilities/crypto.h"
 
 /* Both are blocking functions. Read should return exactly as many bytes as requested.
  * If the processing is to be cancelled, it is recommended that both functions write

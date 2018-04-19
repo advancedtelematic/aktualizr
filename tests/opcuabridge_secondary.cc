@@ -1,7 +1,7 @@
 #include <open62541.h>
 
-#include "crypto.h"
 #include "logging.h"
+#include "utilities/crypto.h"
 
 #include "opcuabridge_test_utils.h"
 

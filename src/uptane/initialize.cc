@@ -4,9 +4,9 @@
 #include <boost/scoped_array.hpp>
 
 #include "bootstrap.h"
-#include "keymanager.h"
 #include "logging.h"
 #include "uptane/uptanerepository.h"
+#include "utilities/keymanager.h"
 
 namespace Uptane {
 

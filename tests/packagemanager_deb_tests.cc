@@ -3,12 +3,12 @@
 #include <boost/filesystem.hpp>
 #include <memory>
 
-#include <config.h>
-#include <packagemanagerfactory.h>
-#include <packagemanagerinterface.h>
-#include <utils.h>
+#include "config.h"
 #include "fsstorage.h"
 #include "invstorage.h"
+#include "package_manager/packagemanagerfactory.h"
+#include "package_manager/packagemanagerinterface.h"
+#include "utilities/utils.h"
 
 TEST(PackageManagerFactory, Debian_Install_Good) {
   Config config;

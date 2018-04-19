@@ -1,6 +1,6 @@
 #include "server_credentials.h"
 
-#include "utils.h"
+#include "utilities/utils.h"
 
 #include <archive.h>
 #include <archive_entry.h>

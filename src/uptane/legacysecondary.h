@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "types.h"
 #include "uptane/managedsecondary.h"
+#include "utilities/types.h"
 
 namespace Uptane {
 class LegacySecondary : public ManagedSecondary {

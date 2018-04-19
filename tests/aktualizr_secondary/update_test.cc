@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "fsstorage.h"
-#include "utils.h"
+#include "utilities/utils.h"
 std::string sysroot;
 
 class ShortCircuitSecondary : public Uptane::SecondaryInterface {

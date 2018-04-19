@@ -8,8 +8,8 @@
 #include <memory>
 #include <utility>
 
-#include "ipuptaneconnection.h"
-#include "ipuptaneconnectionsplitter.h"
+#include "secondary_ipc/ipuptaneconnection.h"
+#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "uptane/ipuptanesecondary.h"
 #include "uptane/secondaryconfig.h"
 

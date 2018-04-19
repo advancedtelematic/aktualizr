@@ -8,15 +8,15 @@
 #include <boost/polymorphic_pointer_cast.hpp>
 
 #include "fsstorage.h"
-#include "httpclient.h"
+#include "utilities/httpclient.h"
 #include "logging.h"
-#include "ostree.h"
-#include "packagemanagerfactory.h"
-#include "packagemanagerinterface.h"
+#include "package_manager/ostreemanager.h"
+#include "package_manager/packagemanagerfactory.h"
+#include "package_manager/packagemanagerinterface.h"
 #include "sotauptaneclient.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/uptanerepository.h"
-#include "utils.h"
+#include "utilities/utils.h"
 
 boost::filesystem::path credentials;
 boost::filesystem::path sysroot;

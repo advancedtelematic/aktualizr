@@ -117,7 +117,7 @@ add_custom_target(build_tests)
 # clang-check and clang-format
 find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format)
 find_program(CLANG_CHECK NAMES clang-check-6.0 clang-check-3.8 clang-check)
-find_program(CLANG_TIDY NAMES clang-tidy-6.0 clang-tidy-3.8 clang-tidy)
+find_program(CLANG_TIDY NAMES clang-tidy-6.0)
 
 if(CLANG_FORMAT)
     function(aktualizr_clang_format)
@@ -283,10 +283,6 @@ include(CPackComponent)
 
 
 add_subdirectory("src")
-add_subdirectory("src/cert_provider")
-add_subdirectory("src/implicit_writer")
-add_subdirectory("src/external_secondaries")
-add_subdirectory("src/socket_activation")
 add_subdirectory("fuzz")
 add_subdirectory("config")
 

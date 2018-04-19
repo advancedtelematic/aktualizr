@@ -7,9 +7,9 @@
 #include "uptane/secondaryinterface.h"
 
 #include "ipsecondarydiscovery.h"
-#include "ipuptaneconnection.h"
-#include "ipuptaneconnectionsplitter.h"
 #include "logging.h"
+#include "secondary_ipc/ipuptaneconnection.h"
+#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 
 namespace po = boost::program_options;
 

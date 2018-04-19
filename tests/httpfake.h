@@ -6,9 +6,9 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "crypto.h"
 #include "httpinterface.h"
-#include "utils.h"
+#include "utilities/crypto.h"
+#include "utilities/utils.h"
 
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };
 
