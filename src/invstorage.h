@@ -6,8 +6,8 @@
 #include <memory>
 #include <string>
 
-#include "config_utils.h"
 #include "uptane/tuf.h"
+#include "utilities/config_utils.h"
 
 enum StorageType { kFileSystem = 0, kSqlite };
 

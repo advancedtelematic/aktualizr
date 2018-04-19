@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "config_utils.h"
+#include "utilities/config_utils.h"
 
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", boost::log::trivial::trace, pt);

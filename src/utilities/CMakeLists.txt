@@ -5,7 +5,8 @@ set(SOURCES crypto.cc
             types.cc
             utils.cc)
 
-set(HEADERS crypto.h
+set(HEADERS config_utils.h
+            crypto.h
             httpclient.h
             keymanager.h
             logging.h

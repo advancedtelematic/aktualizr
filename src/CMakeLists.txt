@@ -28,7 +28,6 @@ set(HEADERS aktualizr.h
             channel.h
             commands.h
             config.h
-            config_utils.h
             events.h
             eventsinterpreter.h
             exceptions.h

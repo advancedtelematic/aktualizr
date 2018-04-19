@@ -6,8 +6,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "config_utils.h"
 #include "logging.h"
+#include "utilities/config_utils.h"
 
 // declare p11 types as incomplete so that the header can be used without libp11
 struct PKCS11_ctx_st;

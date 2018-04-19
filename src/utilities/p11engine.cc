@@ -7,7 +7,7 @@
 #include <boost/scoped_array.hpp>
 #include <vector>
 
-#include "config_utils.h"
+#include "utilities/config_utils.h"
 #include "utilities/utils.h"
 
 #ifdef TEST_PKCS11_ENGINE_PATH
