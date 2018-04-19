@@ -4,7 +4,7 @@
 
 #include "config.h"
 
-EventsInterpreter::EventsInterpreter(const Config& config_in, event::Channel* events_channel_in,
+EventsInterpreter::EventsInterpreter(const Config& config_in, std::shared_ptr<event::Channel> events_channel_in,
                                      std::shared_ptr<command::Channel> commands_channel_in)
     : config(config_in),
       events_channel(events_channel_in),

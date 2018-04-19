@@ -596,7 +596,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.pacman.sysroot = sysroot;
 
   conf.tls.server = http.tls_server;
-  event::Channel events_channel;
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
   *commands_channel << std::make_shared<command::GetUpdateRequests>();
@@ -606,21 +606,21 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
 
-  EXPECT_TRUE(events_channel.hasValues());
-  events_channel >> event;
+  EXPECT_TRUE(events_channel->hasValues());
+  *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
 
-  EXPECT_TRUE(events_channel.hasValues());
-  events_channel >> event;
+  EXPECT_TRUE(events_channel->hasValues());
+  *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 
-  EXPECT_TRUE(events_channel.hasValues());
-  events_channel >> event;
+  EXPECT_TRUE(events_channel->hasValues());
+  *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
@@ -653,19 +653,19 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.uptane.secondary_configs.push_back(ecu_config);
 
   conf.tls.server = http.tls_server;
-  event::Channel events_channel;
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
   *commands_channel << std::make_shared<command::GetUpdateRequests>();
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
-  EXPECT_TRUE(events_channel.hasValues());
-  events_channel >> event;
+  EXPECT_TRUE(events_channel->hasValues());
+  *events_channel >> event;
   EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
   event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());
   EXPECT_EQ(targets_event->packages.size(), 2u);
@@ -699,7 +699,7 @@ TEST(Uptane, RunForeverInstall) {
   conf.pacman.sysroot = sysroot;
 
   conf.tls.server = http.tls_server;
-  event::Channel events_channel;
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
   std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
@@ -707,7 +707,7 @@ TEST(Uptane, RunForeverInstall) {
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
-  SotaUptaneClient up(conf, &events_channel, repo, storage, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
@@ -754,8 +754,8 @@ TEST(Uptane, UptaneSecondaryAdd) {
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
-  event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -784,7 +784,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.uptane.polling_sec = 1;
   config.storage.path = temp_dir.Path();
 
-  event::Channel events_channel;
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
@@ -793,7 +793,7 @@ TEST(Uptane, ProvisionOnServer) {
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage, http);
-  SotaUptaneClient up(config, &events_channel, repo, storage, http);
+  SotaUptaneClient up(config, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 }
 

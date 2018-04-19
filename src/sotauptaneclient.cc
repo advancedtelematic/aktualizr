@@ -13,8 +13,9 @@
 #include "utilities/keymanager.h"
 #include "utilities/utils.h"
 
-SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
-                                   const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
+SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
+                                   Uptane::Repository &repo, const std::shared_ptr<INvStorage> storage_in,
+                                   HttpInterface &http_client)
     : config(config_in),
       events_channel(events_channel_in),
       uptane_repo(repo),

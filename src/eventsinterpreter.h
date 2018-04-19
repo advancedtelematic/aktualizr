@@ -10,7 +10,7 @@
 
 class EventsInterpreter {
  public:
-  EventsInterpreter(const Config &config_in, event::Channel *events_channel_in,
+  EventsInterpreter(const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
                     std::shared_ptr<command::Channel> commands_channel_in);
   ~EventsInterpreter();
   void interpret();
@@ -19,7 +19,7 @@ class EventsInterpreter {
  private:
   const Config &config;
   std::thread thread;
-  event::Channel *events_channel;
+  std::shared_ptr<event::Channel> events_channel;
   std::shared_ptr<command::Channel> commands_channel;
   GatewayManager gateway_manager;
 };

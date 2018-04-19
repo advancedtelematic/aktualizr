@@ -17,7 +17,7 @@
 
 class SotaUptaneClient {
  public:
-  SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+  SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in, Uptane::Repository &repo,
                    const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
   void runForever(std::shared_ptr<command::Channel> commands_channel);
   Json::Value AssembleManifest();
@@ -42,7 +42,7 @@ class SotaUptaneClient {
   bool putManifest();
 
   Config &config;
-  event::Channel *events_channel;
+  std::shared_ptr<event::Channel> events_channel;
   Uptane::Repository &uptane_repo;
   const std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> pacman;
