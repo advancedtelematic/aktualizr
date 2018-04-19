@@ -25,9 +25,9 @@ TEST(EventsTest, broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel chan;
+  std::shared_ptr<command::Channel> chan{new command::Channel};
 
-  SocketGateway gateway(conf, &chan);
+  SocketGateway gateway(conf, chan);
   sleep(1);
   std::string cmd =
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
@@ -50,9 +50,9 @@ TEST(EventsTest, not_broadcasted) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel chan;
+  std::shared_ptr<command::Channel> chan{new command::Channel};
 
-  SocketGateway gateway(conf, &chan);
+  SocketGateway gateway(conf, chan);
   std::string cmd =
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
@@ -73,15 +73,15 @@ TEST(CommandsTest, recieved) {
   Config conf;
   conf.network = network_conf;
 
-  command::Channel chan;
+  std::shared_ptr<command::Channel> chan{new command::Channel};
 
-  SocketGateway gateway(conf, &chan);
+  SocketGateway gateway(conf, chan);
   std::string cmd =
       (socket_path / "commands.py").string() + " " + (temp_dir.Path() / "sota-commands.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
   std::shared_ptr<command::BaseCommand> command;
-  chan >> command;
+  *chan >> command;
 
   EXPECT_EQ(command->variant, "Shutdown");
 }

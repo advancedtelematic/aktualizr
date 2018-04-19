@@ -35,10 +35,11 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_cha
   initSecondaries();
 }
 
-void SotaUptaneClient::schedulePoll(command::Channel *commands_channel) {
-  std::thread([this, commands_channel]() {
-    std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
-    if (!shutdown) *commands_channel << std::make_shared<command::GetUpdateRequests>();
+void SotaUptaneClient::schedulePoll(std::shared_ptr<command::Channel> commands_channel) {
+  unsigned long long polling_sec = config.uptane.polling_sec;
+  std::thread([polling_sec, commands_channel]() {
+    std::this_thread::sleep_for(std::chrono::seconds(polling_sec));
+    *commands_channel << std::make_shared<command::GetUpdateRequests>();
   }).detach();
 }
 
@@ -146,7 +147,7 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
-void SotaUptaneClient::runForever(command::Channel *commands_channel) {
+void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
   if (!uptane_repo.initialize()) {

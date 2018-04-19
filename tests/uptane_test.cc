@@ -597,17 +597,17 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   conf.tls.server = http.tls_server;
   event::Channel events_channel;
-  command::Channel commands_channel;
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  commands_channel << std::make_shared<command::GetUpdateRequests>();
-  commands_channel << std::make_shared<command::GetUpdateRequests>();
-  commands_channel << std::make_shared<command::GetUpdateRequests>();
-  commands_channel << std::make_shared<command::Shutdown>();
+  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::Shutdown>();
 
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
-  up.runForever(&commands_channel);
+  up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
 
@@ -654,14 +654,14 @@ TEST(Uptane, RunForeverHasUpdates) {
 
   conf.tls.server = http.tls_server;
   event::Channel events_channel;
-  command::Channel commands_channel;
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  commands_channel << std::make_shared<command::GetUpdateRequests>();
-  commands_channel << std::make_shared<command::Shutdown>();
+  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
-  up.runForever(&commands_channel);
+  up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
   EXPECT_TRUE(events_channel.hasValues());
@@ -700,15 +700,15 @@ TEST(Uptane, RunForeverInstall) {
 
   conf.tls.server = http.tls_server;
   event::Channel events_channel;
-  command::Channel commands_channel;
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
   std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
-  commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
-  commands_channel << std::make_shared<command::Shutdown>();
+  *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
+  *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage, http);
   SotaUptaneClient up(conf, &events_channel, repo, storage, http);
-  up.runForever(&commands_channel);
+  up.runForever(commands_channel);
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
 
@@ -785,16 +785,16 @@ TEST(Uptane, ProvisionOnServer) {
   config.storage.path = temp_dir.Path();
 
   event::Channel events_channel;
-  command::Channel commands_channel;
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
   std::vector<Uptane::Target> packages_to_install = makePackage(config.uptane.primary_ecu_serial);
-  commands_channel << std::make_shared<command::GetUpdateRequests>();
-  commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
-  commands_channel << std::make_shared<command::Shutdown>();
+  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
+  *commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient up(config, &events_channel, repo, storage, http);
-  up.runForever(&commands_channel);
+  up.runForever(commands_channel);
 }
 
 TEST(Uptane, CheckOldProvision) {

@@ -36,7 +36,7 @@ class Channel {
    */
   void operator<<(const T &target) {
     std::unique_lock<std::mutex> lock(m);
-    if (closed) throw std::logic_error("Attempt to write to closed channel.");
+    if (closed) return;
     fill_cv.wait(lock, [this]() { return hasSpace(); });
     q.push(target);
     drain_cv.notify_one();
