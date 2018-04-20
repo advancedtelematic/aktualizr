@@ -1,0 +1,184 @@
+= Configuration
+
+Aktualizr is configured via `.toml` config file and passed to the application via the `--config` flag.
+
+An example config file is provided below.
+
+[source,toml]
+----
+[provision]
+provision_path = "/var/sota/sota_provisioning_credentials.zip"
+
+[storage]
+type = "sqlite"
+sqldb_path = "/var/sota/sql.db"
+schemas_path = "/usr/lib/sota/schemas"
+
+[discovery]
+ipuptane = true
+
+[network]
+ipdiscovery_host = "::ffff:10.0.3.255"
+
+[storage]
+type = "sqlite"
+
+# for type = "sqlite"
+sqldb_path = "/var/sota/sql.db"
+schemas_path = "/usr/lib/sota/schemas"
+
+# for type = "filesystem"
+path = "/var/sota/"
+tls_cacert_path = "token/root.crt"
+tls_clientcert_path = "token/client.pem"
+tls_pkey_path = "token/pkey.pem"
+
+# TODO ?
+uptane_metadata_path = "metadata"
+uptane_private_key_path = "ecukey.der"
+uptane_public_key_path = "ecukey.pub"
+
+[tls]
+server_url_path = "/var/sota/gateway.url"
+cert_source = "pkcs11"
+pkey_source = "pkcs11"
+
+[p11]
+module = "/usr/lib/softhsm/libsofthsm2.so"
+pass = "1234"
+uptane_key_id = "03"
+tls_clientcert_id = "01"
+tls_pkey_id = "02"
+
+[uptane]
+key_source = "pkcs11"
+# TODO why is this in [storage]
+primary_ecu_hardware_id = "ubuntu"
+
+[import]
+tls_cacert_path = "/var/sota/import_root.crt"
+tls_clientcert_path = "/var/sota/import_client.pem"
+tls_pkey_path = "/var/sota/import_pkey.pem"
+
+[network]
+port = 9030
+
+[storage]
+type = "sqlite"
+sqldb_path = "/var/sota/secondary.db"
+schemas_path = "/usr/lib/sota/schemas"[uptane]
+
+[pacman]
+type = "debian"
+----
+
+== `provision`
+
+The options for how the device is provisioned with the backend.
+This table is required.
+
+[options="header"]
+|=====================================================================================
+| Name             | Required | Description
+| `provision_path` | true     | Path to the bundle containing provisioning certificates.
+|=====================================================================================
+
+== `storage`
+
+The options for how Aktualizr stores data locally.
+This table is required.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Required          | Description
+| `type`                    | true              | What type of storage driver to use. Options: `sqlite`, `filesystem`.
+| `sqldb_path`              | with `sqlite`     | Path to the database file.
+| `schemas_path`            | with `sqlite`     | Path to the directory containing schema migrations.
+| `path`                    | with `filesystem` | Directory for storage
+| `uptane_metadata_path`    | with `filesystem` | Path to the uptane metadata store.
+| `uptane_private_key_path` | with `filesystem` | Relative path to the Uptane specific private key.
+| `uptane_public_key_path`  | with `filesystem` | Relative path to the Uptane specific public key.
+| `tls_cacert_path`         | with `filesystem` | Relative path to the TLS root CA cert.
+| `tls_clientcert_path`     | with `filesystem` | Relative path to the client's TLS cert.
+| `tls_pkey_path`           | with `filesystem` | Relative path to the client's TLS private key.
+|==========================================================================================
+
+== `discovery`
+
+Config options for how secondary devices are detected by the primary.
+
+[options="header"]
+|==========================================================================================
+| Name       | Required | Description
+| `ipuptane` | true     | Boolean to enable UDP multicast for secondary discovery.
+|==========================================================================================
+
+== `network`
+
+Config options for how secondary devices are detected by the primary.
+
+[options="header"]
+|==========================================================================================
+| Name               | Required | Description
+| `ipdiscovery_host` | true     | Subnetmask for primary to broadcast.
+| `port`             | true     | Port to listen on for incoming messages
+|==========================================================================================
+
+== `tls`
+
+Configuration for client-server TLS connections.
+
+[options="header"]
+|==========================================================================================
+| Name               | Required | Description
+| `server_url_path`  | true     | A path to the location on the filesystem that contains the server's URL
+|==========================================================================================
+
+== `p11`
+
+Options for using a PKCS#11 compliant device for storing cryptographic keys.
+This table is optional.
+
+[options="header"]
+|==========================================================================================
+| Name                 | Required | Description
+| `module`             | true     | Path to the shared object HSM driver.
+| `pass`               | ???      | Password for accessing the HSM.
+| `uptane_key_id`      | ???      | Key ID of the Uptane key in the HSM.
+| `tls_client_cert_id` | ???      | Key ID of the client's TLS cert.
+| `tls_pkey_id`        | ???      | Key ID of the client's TLS private key.
+|==========================================================================================
+
+== `uptane`
+
+Options for Uptane.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Required | Description
+| `key_source`              | true     | A path to the location on the filesystem that contains the server's URL
+| `primary_ecu_hardware_id` | true     | The hardware ID of the primary ECU (e.g., `rasberry-pi`)
+|==========================================================================================
+
+== `import`
+
+Options for importing data from the filesystem into the storage.
+
+[options="header"]
+|==========================================================================================
+| Name                | Required | Description
+| `tls_cacert_path`   | true     | Path to the TLS root CA cert.
+| `tls_clientcert_id` | true     | Path to the TLS client cert.
+| `tls_pkey_id`       | true     | Path to the TLS private key.
+|==========================================================================================
+== `pacman`
+
+The package manager that should be used to install updates.
+Note that this only coincidentally shares the name with the ArchLinux `pacman` tool.
+
+
+[options="header"]
+|==========================================================================================
+| Name   | Required | Description
+| `type` | true     | Which package manager to use. Options: `debian`, `ostree`.
+|==========================================================================================
