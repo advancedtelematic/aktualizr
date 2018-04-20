@@ -164,6 +164,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        reportNetworkInfo();
         // Uptane step 1 (build the vehicle version manifest):
         uptane_repo.putManifest(AssembleManifest());
         // Uptane step 2 (download time) is not implemented yet.
