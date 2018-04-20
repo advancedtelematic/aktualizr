@@ -285,6 +285,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
+  CopySubtreeFromConfig(telemetry,"telemetry", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {

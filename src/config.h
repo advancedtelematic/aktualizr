@@ -98,6 +98,13 @@ struct DiscoveryConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
+struct TelemetryConfig {
+  /**
+   * Report device network information: IP address, hostname, MAC address
+   */
+  bool report_network{true};
+};
+
 class Config {
  public:
   Config();
@@ -125,6 +132,7 @@ class Config {
   PackageConfig pacman;
   StorageConfig storage;
   ImportConfig import;
+  TelemetryConfig telemetry;
 
  private:
   std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
