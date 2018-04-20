@@ -14,11 +14,13 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/remove_whitespace.hpp>
@@ -211,6 +213,29 @@ std::string Utils::stripQuotes(const std::string &value) {
 // Add leading and trailing quotes
 std::string Utils::addQuotes(const std::string &value) { return "\"" + value + "\""; }
 
+std::string Utils::extractField(const std::string &in, unsigned int field_id) {
+  std::string out;
+  auto it = in.begin();
+
+  // skip spaces
+  for (; it != in.end() && isspace(*it); it++);
+  for (unsigned int k = 0; k < field_id; k++) {
+    bool empty = true;
+    for (;it != in.end() && !isspace(*it); it++) {
+      empty = false;
+    }
+    if (empty) {
+      throw std::runtime_error("No such field " + std::to_string(field_id));
+    }
+    for (;it != in.end() && isspace(*it); it++);
+  }
+
+  for (;it != in.end() && !isspace(*it); it++) {
+    out += *it;
+  }
+  return out;
+}
+
 Json::Value Utils::parseJSON(const std::string &json_str) {
   Json::Reader reader;
   Json::Value json_value;
@@ -319,6 +344,72 @@ Json::Value Utils::getHardwareInfo() {
   } else {
     return Utils::parseJSON(result);
   }
+}
+
+Json::Value Utils::getNetworkInfo() {
+  // get interface with default route
+  std::ifstream path_stream("/proc/net/route");
+  std::string route_content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
+
+  struct {
+    std::string name;
+    std::string ip;
+    std::string mac;
+  } itf;
+  std::istringstream route_stream(route_content);
+  std::array<char, 200> line;
+
+  // skip first line
+  route_stream.getline(&line[0], line.size());
+  while (route_stream.getline(&line[0], line.size())) {
+    std::string itfn = Utils::extractField(&line[0], 0);
+    std::string droute = Utils::extractField(&line[0], 1);
+    if (droute == "00000000") {
+      itf.name = itfn;
+      // take the first routing to 0
+      break;
+    }
+  }
+
+  if (itf.name != "") {
+    {
+      // get ip address
+      StructGuard<struct ifaddrs> ifaddrs(nullptr, freeifaddrs);
+      {
+        struct ifaddrs *ifa;
+        if (getifaddrs(&ifa) < 0) {
+          LOG_ERROR << "getifaddrs: " << std::strerror(errno);
+        } else {
+          ifaddrs.reset(ifa);
+        }
+      }
+      if (ifaddrs != nullptr) {
+        for (struct ifaddrs *ifa = ifaddrs.get(); ifa != nullptr; ifa = ifa->ifa_next) {
+          if (itf.name == ifa->ifa_name) {
+            if (!ifa->ifa_addr) continue;
+            if (ifa->ifa_addr->sa_family != AF_INET) continue;
+            const struct sockaddr_storage *sa = reinterpret_cast<struct sockaddr_storage*>(ifa->ifa_addr);
+
+            itf.ip = Utils::ipDisplayName(*sa);
+          }
+        }
+      }
+    }
+    {
+      // get mac address
+      std::ifstream mac_stream("/sys/class/net/" + itf.name + "/address");
+      std::string m((std::istreambuf_iterator<char>(mac_stream)), std::istreambuf_iterator<char>());
+      itf.mac = std::move(m);
+      boost::trim_right(itf.mac);
+    }
+  }
+
+  Json::Value network_info;
+  network_info["local_ipv4"] = itf.ip;
+  network_info["mac"] = itf.mac;
+  network_info["hostname"] = Utils::getHostname();
+
+  return network_info;
 }
 
 std::string Utils::getHostname() {

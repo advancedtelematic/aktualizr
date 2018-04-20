@@ -108,10 +108,7 @@ void SotaUptaneClient::reportInstalledPackages() {
 void SotaUptaneClient::reportNetworkInfo() {
   if (config.telemetry.report_network) {
     LOG_DEBUG << "Reporting network information";
-    Json::Value network_info;
-    network_info["local_ipv4"] = "10.0.0.1";
-    network_info["mac"] = "aa:bb:cc:dd:ee";
-    network_info["hostname"] = Utils::getHostname();
+    Json::Value network_info = Utils::getNetworkInfo();
     http.put(config.tls.server + "/device_info/network", network_info);
   } else {
     LOG_DEBUG << "Not reporting network information because telemetry is disabled";

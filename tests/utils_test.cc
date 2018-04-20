@@ -46,6 +46,14 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+TEST(Utils, getNetworkInfo) {
+  Json::Value netinfo = Utils::getNetworkInfo();
+
+  EXPECT_NE(netinfo["local_ipv4"].asString(), "");
+  EXPECT_NE(netinfo["mac"].asString(), "");
+  EXPECT_NE(netinfo["hostname"].asString(), "");
+}
+
 TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
 
 /**

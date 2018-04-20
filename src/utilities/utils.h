@@ -15,6 +15,7 @@ struct Utils {
   static std::string toBase64(const std::string &);
   static std::string stripQuotes(const std::string &value);
   static std::string addQuotes(const std::string &value);
+  static std::string extractField(const std::string &in, unsigned int field_id);
   static Json::Value parseJSON(const std::string &json_str);
   static Json::Value parseJSONFile(const boost::filesystem::path &filename);
   static std::string jsonToStr(const Json::Value &json);
@@ -28,6 +29,7 @@ struct Utils {
   static std::string readFileFromArchive(std::istream &as, const std::string &filename);
   static void writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as);
   static Json::Value getHardwareInfo();
+  static Json::Value getNetworkInfo();
   static std::string getHostname();
   static std::string randomUuid();
   static sockaddr_storage ipGetSockaddr(int fd);
