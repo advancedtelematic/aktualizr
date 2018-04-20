@@ -179,6 +179,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
     try {
       if (command->variant == "GetUpdateRequests") {
         schedulePoll(commands_channel);
+        reportNetworkInfo();
         // Uptane step 1 (build the vehicle version manifest):
         if (!putManifest()) {
           continue;

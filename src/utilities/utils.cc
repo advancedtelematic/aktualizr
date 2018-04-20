@@ -14,8 +14,8 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <arpa/inet.h>
-#include <ifaddrs.h>
 #include <fcntl.h>
+#include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -218,19 +218,21 @@ std::string Utils::extractField(const std::string &in, unsigned int field_id) {
   auto it = in.begin();
 
   // skip spaces
-  for (; it != in.end() && isspace(*it); it++);
+  for (; it != in.end() && isspace(*it); it++)
+    ;
   for (unsigned int k = 0; k < field_id; k++) {
     bool empty = true;
-    for (;it != in.end() && !isspace(*it); it++) {
+    for (; it != in.end() && !isspace(*it); it++) {
       empty = false;
     }
     if (empty) {
       throw std::runtime_error("No such field " + std::to_string(field_id));
     }
-    for (;it != in.end() && isspace(*it); it++);
+    for (; it != in.end() && isspace(*it); it++)
+      ;
   }
 
-  for (;it != in.end() && !isspace(*it); it++) {
+  for (; it != in.end() && !isspace(*it); it++) {
     out += *it;
   }
   return out;
@@ -388,7 +390,7 @@ Json::Value Utils::getNetworkInfo() {
           if (itf.name == ifa->ifa_name) {
             if (!ifa->ifa_addr) continue;
             if (ifa->ifa_addr->sa_family != AF_INET) continue;
-            const struct sockaddr_storage *sa = reinterpret_cast<struct sockaddr_storage*>(ifa->ifa_addr);
+            const struct sockaddr_storage *sa = reinterpret_cast<struct sockaddr_storage *>(ifa->ifa_addr);
 
             itf.ip = Utils::ipDisplayName(*sa);
           }
