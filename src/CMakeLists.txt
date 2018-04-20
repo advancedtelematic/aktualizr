@@ -7,6 +7,7 @@ add_subdirectory("uptane")
 add_subdirectory("socket_activation")
 add_subdirectory("secondary_ipc")
 add_subdirectory("package_manager")
+add_subdirectory("telemetry")
 
 # set main aktualizr source files
 set(AKTUALIZR_SOURCES aktualizr.cc
@@ -59,7 +60,8 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>
-    $<TARGET_OBJECTS:socket_activation>)
+    $<TARGET_OBJECTS:socket_activation>
+    $<TARGET_OBJECTS:telemetry>)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)

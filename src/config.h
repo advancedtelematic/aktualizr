@@ -17,6 +17,7 @@
 #include "invstorage.h"
 #include "logging.h"
 #include "package_manager/packagemanagerconfig.h"
+#include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
 #include "utilities/keymanager.h"
 #include "utilities/p11engine.h"
@@ -125,6 +126,7 @@ class Config {
   PackageConfig pacman;
   StorageConfig storage;
   ImportConfig import;
+  TelemetryConfig telemetry;
 
  private:
   std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
