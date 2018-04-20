@@ -17,6 +17,7 @@
 #include "invstorage.h"
 #include "logging.h"
 #include "package_manager/packagemanagerconfig.h"
+#include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
 #include "utilities/keymanager.h"
 #include "utilities/p11engine.h"
@@ -96,13 +97,6 @@ struct DiscoveryConfig {
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
-};
-
-struct TelemetryConfig {
-  /**
-   * Report device network information: IP address, hostname, MAC address
-   */
-  bool report_network{true};
 };
 
 class Config {

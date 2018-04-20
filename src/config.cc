@@ -285,7 +285,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
-  CopySubtreeFromConfig(telemetry,"telemetry", pt);
+  CopySubtreeFromConfig(telemetry, "telemetry", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -460,6 +460,7 @@ void Config::writeToFile(const boost::filesystem::path& filename) const {
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);
+  WriteSectionToStream(telemetry, "telemetry", sink);
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
