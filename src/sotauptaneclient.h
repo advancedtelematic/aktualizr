@@ -33,6 +33,7 @@ class SotaUptaneClient {
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
+  void reportNetworkInfo();
   void run(command::Channel *commands_channel);
   void initSecondaries();
   void verifySecondaries();

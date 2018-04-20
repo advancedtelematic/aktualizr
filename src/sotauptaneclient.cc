@@ -104,6 +104,14 @@ void SotaUptaneClient::reportInstalledPackages() {
   http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages());
 }
 
+void SotaUptaneClient::reportNetworkInfo() {
+  Json::Value network_info;
+  network_info["local_ipv4"] = "10.0.0.1";
+  network_info["mac"] = "aa:bb:cc:dd:ee";
+  network_info["hostname"] = Utils::getHostname();
+  http.put(config.tls.server + "/device_info/network", network_info);
+}
+
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result;
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_repo.getPrimaryEcuSerial());
@@ -144,6 +152,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   LOG_DEBUG << "... provisioned OK";
   reportHwInfo();
   reportInstalledPackages();
+  reportNetworkInfo();
 
   std::thread polling_thread(std::bind(&SotaUptaneClient::run, this, commands_channel));
 
