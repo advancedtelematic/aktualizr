@@ -43,7 +43,7 @@ class PackageManagerInterface {
   data::OperationResult setOperationResult(const std::string& id, data::UpdateResultCode result_code,
                                            const std::string& result_text) {
     std::lock_guard<std::mutex> guard(mutex_);
-    latest_operation_result_ = std::move(data::OperationResult(id, result_code, result_text));
+    latest_operation_result_ = data::OperationResult(id, result_code, result_text);
     return latest_operation_result_;
   }
 
