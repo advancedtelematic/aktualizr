@@ -230,37 +230,35 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
   // serialize private key
   char* privkey_buf;
-  size_t privkey_len;
-  FILE* privkey_file = open_memstream(&privkey_buf, &privkey_len);
+  BIO* privkey_file = BIO_new(BIO_s_mem());
   if (!privkey_file) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
-  int ret = PEM_write_RSAPrivateKey(privkey_file, certificate_rsa, NULL, NULL, 0, NULL, NULL);
-  fclose(privkey_file);
+  int ret = PEM_write_bio_RSAPrivateKey(privkey_file, certificate_rsa, NULL, NULL, 0, NULL, NULL);
   if (!ret) {
     std::cerr << "PEM_write_RSAPrivateKey" << std::endl;
     return false;
   }
+  auto privkey_len = BIO_get_mem_data(privkey_file, &privkey_buf);
   *pkey = std::string(privkey_buf, privkey_len);
-  free(privkey_buf);
+  BIO_free(privkey_file);
 
   // serialize certificate
   char* cert_buf;
-  size_t cert_len;
-  FILE* cert_file = open_memstream(&cert_buf, &cert_len);
+  BIO* cert_file = BIO_new(BIO_s_mem());
   if (!cert_file) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
-  ret = PEM_write_X509(cert_file, certificate.get());
-  fclose(cert_file);
+  ret = PEM_write_bio_X509(cert_file, certificate.get());
   if (!ret) {
     std::cerr << "PEM_write_X509" << std::endl;
     return false;
   }
+  auto cert_len = BIO_get_mem_data(cert_file, cert_buf);
   *cert = std::string(cert_buf, cert_len);
-  free(cert_buf);
+  BIO_free(cert_file);
 
   return true;
 }
@@ -428,11 +426,11 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "...success\n";
 
-    FILE* device_p12 = fmemopen(const_cast<char*>(response.body.c_str()), response.body.size(), "rb");
+    BIO* device_p12 = BIO_new_mem_buf(response.body.c_str(), response.body.size());
     if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
       return -1;
     }
-    fclose(device_p12);
+    BIO_free(device_p12);
 
   } else {  // device CA set => generate and sign a new certificate
     if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map))
