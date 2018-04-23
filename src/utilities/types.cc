@@ -66,6 +66,12 @@ DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
   return dc;
 }
 
+OperationResult::OperationResult(const std::string& id_in, UpdateResultCode result_code_in,
+                                 const std::string& result_text_in)
+    : id(id_in), result_code(result_code_in), result_text(result_text_in) {}
+
+InstallOutcome OperationResult::toOutcome() { return InstallOutcome(result_code, result_text); }
+
 Json::Value OperationResult::toJson() {
   Json::Value json;
   json["id"] = id;

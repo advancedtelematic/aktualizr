@@ -38,6 +38,8 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
+  bool hasPendingUpdates(const Json::Value &manifests);
+  bool putManifest();
 
   Config &config;
   event::Channel *events_channel;

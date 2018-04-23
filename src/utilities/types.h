@@ -97,19 +97,24 @@ enum UpdateResultCode {
   /// SWM Internal integrity error
   INTERNAL_ERROR,
   /// Other error
-  GENERAL_ERROR
+  GENERAL_ERROR,
+  /// Updating process in progress
+  IN_PROGRESS
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
 struct UpdateReport;
 struct OperationResult {
+  OperationResult() : id(), result_code(OK), result_text() {}
+  OperationResult(const std::string& id_in, UpdateResultCode result_code_in, const std::string& result_text_in);
   std::string id;
   UpdateResultCode result_code;
   std::string result_text;
   Json::Value toJson();
   UpdateReport toReport();
   bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
+  InstallOutcome toOutcome();
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };
