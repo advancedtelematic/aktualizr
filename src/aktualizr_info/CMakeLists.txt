@@ -11,8 +11,12 @@ target_link_libraries(aktualizr-info aktualizr_static_lib
   ${GLIB2_LIBRARIES}
   ${LibArchive_LIBRARIES}
   ${LIBOSTREE_LIBRARIES}
-  ${SQLITE3_LIBRARIES}
-  gcov)
+  ${SQLITE3_LIBRARIES})
+
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(aktualizr-info gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 install(TARGETS aktualizr-info
         COMPONENT aktualizr

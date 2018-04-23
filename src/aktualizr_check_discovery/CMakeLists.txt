@@ -12,8 +12,11 @@ target_link_libraries(aktualizr-check-discovery aktualizr_static_lib
   ${LibArchive_LIBRARIES}
   ${SQLITE3_LIBRARIES}
   ${LIBOSTREE_LIBRARIES}
-  ${SYSTEMD_LIBRARY}
-  gcov)
+  ${SYSTEMD_LIBRARY})
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(aktualizr-check-discovery gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 install(TARGETS aktualizr-check-discovery
         COMPONENT aktualizr
