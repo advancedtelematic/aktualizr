@@ -16,6 +16,7 @@ const char remote[] = "aktualizr-remote";
 class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(const PackageConfig &pconfig, const std::shared_ptr<INvStorage> &storage);
+  std::string name() override { return "ostree"; }
   Json::Value getInstalledPackages() override;
   Uptane::Target getCurrent() override;
   data::InstallOutcome install(const Uptane::Target &target) const override;

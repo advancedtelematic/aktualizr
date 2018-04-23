@@ -73,6 +73,7 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 }
 
 data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &target) {
+  LOG_INFO << "Installing package using " << pacman->name() << " package manager";
   try {
     return pacman->install(target);
   } catch (std::exception &ex) {
@@ -213,6 +214,8 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
             break;
           }
           // TODO: other updates for primary
+        } else {
+          LOG_INFO << "No update to install on primary";
         }
 
         sendImagesToEcus(updates);

@@ -10,6 +10,7 @@
 class PackageManagerInterface {
  public:
   virtual ~PackageManagerInterface() = default;
+  virtual std::string name() = 0;
   virtual Json::Value getInstalledPackages() = 0;
   virtual Uptane::Target getCurrent() = 0;
   virtual data::InstallOutcome install(const Uptane::Target& target) const = 0;
