@@ -1,7 +1,10 @@
 #include "test_utils.h"
 
 #include <signal.h>
+
+#if defined(OS_LINUX)
 #include <sys/prctl.h>
+#endif
 #include <fstream>
 #include <string>
 
@@ -49,7 +52,10 @@ TestHelperProcess::TestHelperProcess(const std::string &argv0, const std::string
     throw std::runtime_error("Failed to execute process:" + argv0);
   }
   if (pid_ == 0) {
+
+#if defined(OS_LINUX)
     prctl(PR_SET_PDEATHSIG, SIGTERM);
+#endif
     execlp(argv0.c_str(), argv0.c_str(), argv1.c_str(), (char *)0);
   }
 }
