@@ -11,7 +11,7 @@
 using std::make_shared;
 using std::shared_ptr;
 
-SocketGateway::SocketGateway(const Config &config_in, command::Channel *commands_channel_in)
+SocketGateway::SocketGateway(const Config &config_in, std::shared_ptr<command::Channel> commands_channel_in)
     : config(config_in), commands_channel(commands_channel_in) {
   unlink(config.network.socket_events_path.c_str());
   unlink(config.network.socket_commands_path.c_str());
@@ -41,7 +41,7 @@ SocketGateway::~SocketGateway() {
   unlink(config.network.socket_commands_path.c_str());
 }
 
-void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
+void SocketGateway::commandsWorker(int socket, std::shared_ptr<command::Channel> channel) {
   const int buff_size = 512;
   char buf[buff_size];
   std::string data;

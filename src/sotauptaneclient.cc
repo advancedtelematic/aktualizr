@@ -13,8 +13,9 @@
 #include "utilities/keymanager.h"
 #include "utilities/utils.h"
 
-SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
-                                   const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client)
+SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
+                                   Uptane::Repository &repo, const std::shared_ptr<INvStorage> storage_in,
+                                   HttpInterface &http_client)
     : config(config_in),
       events_channel(events_channel_in),
       uptane_repo(repo),
@@ -35,12 +36,12 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, event::Channel *events_cha
   initSecondaries();
 }
 
-void SotaUptaneClient::run(command::Channel *commands_channel) {
-  while (true) {
+void SotaUptaneClient::schedulePoll(std::shared_ptr<command::Channel> commands_channel) {
+  unsigned long long polling_sec = config.uptane.polling_sec;
+  std::thread([polling_sec, commands_channel]() {
+    std::this_thread::sleep_for(std::chrono::seconds(polling_sec));
     *commands_channel << std::make_shared<command::GetUpdateRequests>();
-    std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
-    if (shutdown) return;
-  }
+  }).detach();
 }
 
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
@@ -147,7 +148,7 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
-void SotaUptaneClient::runForever(command::Channel *commands_channel) {
+void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
   if (!uptane_repo.initialize()) {
@@ -158,7 +159,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
   reportHwInfo();
   reportInstalledPackages();
 
-  std::thread polling_thread(std::bind(&SotaUptaneClient::run, this, commands_channel));
+  schedulePoll(commands_channel);
 
   std::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
@@ -166,6 +167,7 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
 
     try {
       if (command->variant == "GetUpdateRequests") {
+        schedulePoll(commands_channel);
         // Uptane step 1 (build the vehicle version manifest):
         if (!putManifest()) {
           continue;
@@ -233,7 +235,6 @@ void SotaUptaneClient::runForever(command::Channel *commands_channel) {
         }
       } else if (command->variant == "Shutdown") {
         shutdown = true;
-        polling_thread.join();
         return;
       }
 

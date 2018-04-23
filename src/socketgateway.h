@@ -11,7 +11,7 @@
 
 class SocketGateway : public Gateway {
  public:
-  SocketGateway(const Config &config_in, command::Channel *commands_channel_in);
+  SocketGateway(const Config &config_in, std::shared_ptr<command::Channel> commands_channel_in);
   SocketGateway(const SocketGateway &) = delete;
   SocketGateway operator=(const SocketGateway &) = delete;
 
@@ -20,7 +20,7 @@ class SocketGateway : public Gateway {
 
  private:
   const Config &config;
-  command::Channel *commands_channel;
+  std::shared_ptr<command::Channel> commands_channel;
   std::vector<int> event_connections;
   std::vector<int> command_connections;
   std::vector<std::shared_ptr<std::thread> > command_workers;
@@ -31,7 +31,7 @@ class SocketGateway : public Gateway {
 
   void eventsServer();
   void commandsServer();
-  void commandsWorker(int socket, command::Channel *channel);
+  void commandsWorker(int socket, std::shared_ptr<command::Channel> channel);
   void broadcast_event(const std::shared_ptr<event::BaseEvent> &event);
 };
 

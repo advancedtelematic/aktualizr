@@ -17,9 +17,9 @@
 
 class SotaUptaneClient {
  public:
-  SotaUptaneClient(Config &config_in, event::Channel *events_channel_in, Uptane::Repository &repo,
+  SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in, Uptane::Repository &repo,
                    const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
-  void runForever(command::Channel *commands_channel);
+  void runForever(std::shared_ptr<command::Channel> commands_channel);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
 
@@ -33,7 +33,7 @@ class SotaUptaneClient {
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
-  void run(command::Channel *commands_channel);
+  void schedulePoll(std::shared_ptr<command::Channel> commands_channel);
   void initSecondaries();
   void verifySecondaries();
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
@@ -42,7 +42,7 @@ class SotaUptaneClient {
   bool putManifest();
 
   Config &config;
-  event::Channel *events_channel;
+  std::shared_ptr<event::Channel> events_channel;
   Uptane::Repository &uptane_repo;
   const std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> pacman;

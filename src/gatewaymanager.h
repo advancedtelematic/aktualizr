@@ -9,7 +9,7 @@
 
 class GatewayManager {
  public:
-  GatewayManager(const Config &config, command::Channel *commands_channel_in);
+  GatewayManager(const Config &config, std::shared_ptr<command::Channel> commands_channel_in);
   void processEvents(const std::shared_ptr<event::BaseEvent> &event);
 
  private:

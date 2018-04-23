@@ -30,10 +30,10 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
 }
 
 int Aktualizr::run() {
-  command::Channel commands_channel;
-  event::Channel events_channel;
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
 
-  EventsInterpreter events_interpreter(config_, &events_channel, &commands_channel);
+  EventsInterpreter events_interpreter(config_, events_channel, commands_channel);
 
   // run events interpreter in background
   events_interpreter.interpret();
@@ -42,8 +42,8 @@ int Aktualizr::run() {
   storage->importData(config_.import);
   HttpClient http;
   Uptane::Repository repo(config_, storage, http);
-  SotaUptaneClient uptane_client(config_, &events_channel, repo, storage, http);
-  uptane_client.runForever(&commands_channel);
+  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http);
+  uptane_client.runForever(commands_channel);
 
   return EXIT_SUCCESS;
 }

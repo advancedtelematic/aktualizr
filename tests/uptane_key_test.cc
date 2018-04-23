@@ -118,8 +118,8 @@ TEST(UptaneKey, CheckAllKeys) {
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
-  event::Channel events_channel;
-  SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
   EXPECT_TRUE(uptane.initialize());
   checkKeyTests(storage, sota_client);
 }
@@ -139,8 +139,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
+    std::shared_ptr<event::Channel> events_channel{new event::Channel};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
@@ -151,8 +151,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
+    std::shared_ptr<event::Channel> events_channel{new event::Channel};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
@@ -169,8 +169,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage, http);
-    event::Channel events_channel;
-    SotaUptaneClient sota_client(config, &events_channel, uptane, storage, http);
+    std::shared_ptr<event::Channel> events_channel{new event::Channel};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
     EXPECT_TRUE(uptane.initialize());
     checkKeyTests(storage, sota_client);
