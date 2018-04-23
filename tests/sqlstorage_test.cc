@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "logging.h"
+#include "sql_utils.h"
 #include "sqlstorage.h"
 #include "utilities/utils.h"
 
@@ -124,6 +125,21 @@ TEST(sqlstorage, MigrationVersionCheck) {
   SQLStorage storage(config);
 
   EXPECT_EQ(storage.getVersion(), kSqlSchemaVersion);
+}
+
+TEST(sqlstorage, WrongDatabaseCheck) {
+  TemporaryDirectory temp_dir;
+  StorageConfig config;
+  config.path = temp_dir.Path();
+  config.sqldb_path = temp_dir.Path() / "test.db";
+  config.schemas_path = "config/schemas";
+  SQLite3Guard db(config.sqldb_path.c_str());
+  if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
+    FAIL();
+  }
+
+  SQLStorage storage(config);
+  EXPECT_EQ(storage.getVersion(), -2);
 }
 
 #ifndef __NO_MAIN__

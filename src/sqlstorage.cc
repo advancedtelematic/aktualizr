@@ -1006,9 +1006,11 @@ bool SQLStorage::dbMigrate() {
   int schema_version = getVersion();
   if (schema_version == kSqlSchemaVersion) {
     return true;
+  } else if (schema_version == DbState::kInvalid) {
+    LOG_ERROR << "We point to the wrong sqlite database file.";
+    return false;
   }
 
-  // hack here: getVersion() returns -1 if the database didn't exist, so 'migrate.0.sql' will be run in this case
   for (; schema_version < kSqlSchemaVersion; schema_version++) {
     boost::filesystem::path migrate_script_path =
         config_.schemas_path / (std::string("migrate.") + std::to_string(schema_version + 1) + ".sql");
@@ -1053,21 +1055,31 @@ int SQLStorage::getVersion() {
 
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
-    return -1;
+    return DbState::kInvalid;
   }
 
   request = kSqlGetSimple;
   req_response.clear();
-  std::string req = std::string("SELECT version FROM version LIMIT 1;");
+  std::string req = std::string("SELECT count(*) FROM sqlite_master WHERE type='table';");
+  if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
+    LOG_ERROR << "Can't get tables count: " << db.errmsg();
+    return DbState::kInvalid;
+  }
+  if (std::stoi(req_response["result"]) == 0) {
+    return DbState::kEmpty;
+  }
+
+  req_response.clear();
+  req = std::string("SELECT version FROM version LIMIT 1;");
   if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get database version: " << db.errmsg();
-    return -1;
+    return DbState::kInvalid;
   }
 
   try {
     return std::stoi(req_response["result"]);
   } catch (const std::exception&) {
-    return -1;
+    return DbState::kInvalid;
   }
 }
 
