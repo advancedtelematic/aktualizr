@@ -3,10 +3,10 @@
 import argparse
 import hashlib
 import os.path
-import requests
 import shutil
 import sys
 import tarfile
+import urllib.request
 import xml.etree.ElementTree as ET
 
 from pathlib import Path
@@ -27,11 +27,11 @@ def main():
     if args.name and not sha256_hash:
         print('Warning: specific version requested without specifying the sha256 hash.')
 
-    r = requests.get('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com')
-    if r.status_code != 200:
+    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com')
+    if r.status != 200:
         print('Error: unable to request index!')
         return 1
-    tree = ET.fromstring(r.text)
+    tree = ET.fromstring(r.read().decode('utf-8'))
     # Assume namespace.
     ns = '{http://s3.amazonaws.com/doc/2006-03-01/}'
     items = tree.findall(ns + 'Contents')
@@ -75,12 +75,12 @@ def main():
 
 
 def download(name, path, md5_hash, sha256_hash):
-    r2 = requests.get('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/' + name, stream=True)
-    if r2.status_code != 200:
+    r = urllib.request.urlopen('https://ats-tuf-cli-releases.s3-eu-central-1.amazonaws.com/' + name)
+    if r.status != 200:
         print('Error: unable to request file!')
         return False
     with path.open(mode='wb') as f:
-        shutil.copyfileobj(r2.raw, f)
+        shutil.copyfileobj(r, f)
     return check_hashes(name, path, md5_hash, sha256_hash)
 
 
