@@ -105,6 +105,16 @@ void SotaUptaneClient::reportInstalledPackages() {
   http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages());
 }
 
+void SotaUptaneClient::reportNetworkInfo() {
+  if (config.telemetry.report_network) {
+    LOG_DEBUG << "Reporting network information";
+    Json::Value network_info = Utils::getNetworkInfo();
+    http.put(config.tls.server + "/system_info/network", network_info);
+  } else {
+    LOG_DEBUG << "Not reporting network information because telemetry is disabled";
+  }
+}
+
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result;
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_repo.getPrimaryEcuSerial());
@@ -158,6 +168,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
   LOG_DEBUG << "... provisioned OK";
   reportHwInfo();
   reportInstalledPackages();
+  reportNetworkInfo();
 
   schedulePoll(commands_channel);
 
@@ -168,6 +179,7 @@ void SotaUptaneClient::runForever(std::shared_ptr<command::Channel> commands_cha
     try {
       if (command->variant == "GetUpdateRequests") {
         schedulePoll(commands_channel);
+        reportNetworkInfo();
         // Uptane step 1 (build the vehicle version manifest):
         if (!putManifest()) {
           continue;
