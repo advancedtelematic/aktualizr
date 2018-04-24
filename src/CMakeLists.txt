@@ -41,6 +41,7 @@ if (BUILD_OPCUA)
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
     add_library(opcua_bridge OBJECT ${OPCUABRIDGE_SOURCES} ${OPEN62541_SOURCES})
     target_sources(aktualizr_static_lib PRIVATE $<TARGET_OBJECTS:opcua_bridge>)
+    include_directories(${PROJECT_SOURCE_DIR}/src/opcuabridge)
 endif (BUILD_OPCUA)
 
 add_executable(aktualizr aktualizr_primary/main.cc)

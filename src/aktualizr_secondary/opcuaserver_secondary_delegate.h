@@ -1,7 +1,7 @@
 #ifndef AKTUALIZR_SECONDARY_OPCUASERVER_SECONDARY_DELEGATE_H_
 #define AKTUALIZR_SECONDARY_OPCUASERVER_SECONDARY_DELEGATE_H_
 
-#include <opcuabridge/opcuabridgeserver.h>
+#include <opcuabridgeserver.h>
 #include <uptane/tuf.h>
 #include "utilities/utils.h"
 

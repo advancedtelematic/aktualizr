@@ -1,9 +1,9 @@
 #include "opcuabridgeclient.h"
 #include "opcuabridgediscoveryclient.h"
 
-#include <logging.h>
+#include "logging/logging.h"
 
-#include <uptane/secondaryconfig.h>
+#include "uptane/secondaryconfig.h"
 
 #include <open62541.h>
 

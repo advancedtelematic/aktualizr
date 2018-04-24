@@ -16,10 +16,12 @@
 #include "signed.h"
 #include "versionreport.h"
 
-#include <logging.h>
+#include "logging/logging.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
+
+#include <fstream>
 
 namespace fs = boost::filesystem;
 

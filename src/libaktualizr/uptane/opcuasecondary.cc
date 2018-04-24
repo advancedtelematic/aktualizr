@@ -1,6 +1,6 @@
 #include "opcuasecondary.h"
 
-#include "opcuabridge/opcuabridgeclient.h"
+#include "opcuabridgeclient.h"
 #include "secondaryconfig.h"
 
 #include "logging/logging.h"

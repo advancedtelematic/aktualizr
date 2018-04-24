@@ -7,7 +7,7 @@
 #include <boost/phoenix/operator.hpp>
 #include <boost/scope_exit.hpp>
 
-#include <logging.h>
+#include "logging/logging.h"
 
 #include "opcuabridgediscoveryclient.h"
 

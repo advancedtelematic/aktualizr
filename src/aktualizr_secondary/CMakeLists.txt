@@ -29,6 +29,7 @@ if (BUILD_OPCUA)
         ${OPCUA_SECONDARY_SRC} $<TARGET_OBJECTS:opcua_bridge>)
     set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
         PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
+    target_include_directories(aktualizr_secondary_static_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/opcuabridge)
 endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_secondary_static_lib PUBLIC
