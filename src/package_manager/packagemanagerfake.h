@@ -11,6 +11,7 @@
 class PackageManagerFake : public PackageManagerInterface {
  public:
   PackageManagerFake(const std::shared_ptr<INvStorage> &storage) : storage_(storage) {}
+  std::string name() override { return "fake"; }
   Json::Value getInstalledPackages() override;
 
   Uptane::Target getCurrent() override;
