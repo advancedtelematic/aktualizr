@@ -32,17 +32,16 @@ struct PublicKey {
     value = Utils::readFile(path.string());
     value = value.substr(0, value.size() - 1);
     // value = boost::replace_all_copy(value, "\n", "\\n");
-    type = RSA;  // temporary suuport only RSA
+    type = RSA;  // temporary support only RSA
   }
   PublicKey(std::string v, const std::string &t) : value(std::move(v)) {
     std::string type_str = boost::algorithm::to_lower_copy(t);
     if (type_str == "rsa") {
       type = RSA;
-      BIO *bufio = BIO_new_mem_buf(reinterpret_cast<const void *>(value.c_str()), static_cast<int>(value.length()));
-      ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, nullptr, nullptr, nullptr);
-      key_length = RSA_size(rsa);
-      RSA_free(rsa);
-      BIO_free_all(bufio);
+      StructGuard<BIO> bufio(
+          BIO_new_mem_buf(reinterpret_cast<const void *>(value.c_str()), static_cast<int>(value.length())), BIO_vfree);
+      StructGuard<::RSA> rsa(PEM_read_bio_RSA_PUBKEY(bufio.get(), nullptr, nullptr, nullptr), RSA_free);
+      key_length = RSA_size(rsa.get());
     } else if (type_str == "ed25519") {
       type = ED25519;
     } else {

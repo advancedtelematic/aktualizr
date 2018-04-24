@@ -181,16 +181,14 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
     LOG_ERROR << "Requested public key was not found";
     return false;
   }
-  EVP_PKEY* evp_key = PKCS11_get_public_key(key);
-  BIO* mem = BIO_new(BIO_s_mem());
-  PEM_write_bio_PUBKEY(mem, evp_key);
+  StructGuard<EVP_PKEY> evp_key(PKCS11_get_public_key(key), EVP_PKEY_free);
+  StructGuard<BIO> mem(BIO_new(BIO_s_mem()), BIO_vfree);
+  PEM_write_bio_PUBKEY(mem.get(), evp_key.get());
 
   char* pem_key = nullptr;
-  int length = BIO_get_mem_data(mem, &pem_key);  // NOLINT
+  int length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
   key_out->assign(pem_key, length);
 
-  EVP_PKEY_free(evp_key);
-  BIO_free_all(mem);
   return true;
 }
 
@@ -257,13 +255,12 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
     LOG_ERROR << "Requested certificate was not found";
     return false;
   }
-  BIO* mem = BIO_new(BIO_s_mem());
-  PEM_write_bio_X509(mem, cert->x509);
+  StructGuard<BIO> mem(BIO_new(BIO_s_mem()), BIO_vfree);
+  PEM_write_bio_X509(mem.get(), cert->x509);
 
   char* pem_key = nullptr;
-  int length = BIO_get_mem_data(mem, &pem_key);  // NOLINT
+  int length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
   cert_out->assign(pem_key, length);
 
-  BIO_free_all(mem);
   return true;
 }

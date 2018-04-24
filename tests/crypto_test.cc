@@ -146,10 +146,9 @@ TEST(crypto, parsep12) {
   if (!p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/cred.p12";
   }
-  BIO *p12src = BIO_new(BIO_s_file());
-  BIO_set_fp(p12src, p12file, BIO_CLOSE);
-  Crypto::parseP12(p12src, "", &pkey, &cert, &ca);
-  BIO_free(p12src);
+  StructGuard<BIO> p12src(BIO_new(BIO_s_file()), BIO_vfree);
+  BIO_set_fp(p12src.get(), p12file, BIO_CLOSE);
+  Crypto::parseP12(p12src.get(), "", &pkey, &cert, &ca);
   EXPECT_EQ(pkey,
             "-----BEGIN PRIVATE KEY-----\n"
             "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRoQ43D8dREwDpt69\n"
@@ -227,13 +226,12 @@ TEST(crypto, parsep12_FAIL) {
   std::string ca;
 
   FILE *bad_p12file = fopen("tests/test_data/priv.key", "rb");
-  BIO *p12src = BIO_new(BIO_s_file());
-  BIO_set_fp(p12src, bad_p12file, BIO_CLOSE);
+  StructGuard<BIO> p12src(BIO_new(BIO_s_file()), BIO_vfree);
+  BIO_set_fp(p12src.get(), bad_p12file, BIO_CLOSE);
   if (!bad_p12file) {
     EXPECT_TRUE(false) << " could not open tests/test_data/priv.key";
   }
-  bool result = Crypto::parseP12(p12src, "", &pkey, &cert, &ca);
-  BIO_free(p12src);
+  bool result = Crypto::parseP12(p12src.get(), "", &pkey, &cert, &ca);
   EXPECT_EQ(result, false);
 }
 

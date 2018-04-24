@@ -88,10 +88,10 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
 }
 
 // I miss Rust's ? operator
-#define SSL_ERROR(description)                                                        \
-  {                                                                                   \
-    std::cerr << description << ERR_error_string(ERR_get_error(), NULL) << std::endl; \
-    return false;                                                                     \
+#define SSL_ERROR(description)                                                           \
+  {                                                                                      \
+    std::cerr << description << ERR_error_string(ERR_get_error(), nullptr) << std::endl; \
+    return false;                                                                        \
   }
 bool generate_and_sign(const std::string& cacert_path, const std::string& capkey_path, std::string* pkey,
                        std::string* cert, const bpo::variables_map& commandline_map) {
@@ -239,35 +239,33 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
   // serialize private key
   char* privkey_buf;
-  BIO* privkey_file = BIO_new(BIO_s_mem());
+  StructGuard<BIO> privkey_file(BIO_new(BIO_s_mem()), BIO_vfree);
   if (privkey_file == nullptr) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
-  int ret = PEM_write_bio_RSAPrivateKey(privkey_file, certificate_rsa, nullptr, nullptr, 0, nullptr, nullptr);
+  int ret = PEM_write_bio_RSAPrivateKey(privkey_file.get(), certificate_rsa, nullptr, nullptr, 0, nullptr, nullptr);
   if (ret == 0) {
     std::cerr << "PEM_write_RSAPrivateKey" << std::endl;
     return false;
   }
-  auto privkey_len = BIO_get_mem_data(privkey_file, &privkey_buf);  // NOLINT
+  auto privkey_len = BIO_get_mem_data(privkey_file.get(), &privkey_buf);  // NOLINT
   *pkey = std::string(privkey_buf, privkey_len);
-  BIO_free(privkey_file);
 
   // serialize certificate
   char* cert_buf;
-  BIO* cert_file = BIO_new(BIO_s_mem());
+  StructGuard<BIO> cert_file(BIO_new(BIO_s_mem()), BIO_vfree);
   if (cert_file == nullptr) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
-  ret = PEM_write_bio_X509(cert_file, certificate.get());
+  ret = PEM_write_bio_X509(cert_file.get(), certificate.get());
   if (ret == 0) {
     std::cerr << "PEM_write_X509" << std::endl;
     return false;
   }
-  auto cert_len = BIO_get_mem_data(cert_file, &cert_buf);  // NOLINT
+  auto cert_len = BIO_get_mem_data(cert_file.get(), &cert_buf);  // NOLINT
   *cert = std::string(cert_buf, cert_len);
-  BIO_free(cert_file);
 
   return true;
 }
@@ -450,12 +448,10 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "...success\n";
 
-    BIO* device_p12 = BIO_new_mem_buf(response.body.c_str(), response.body.size());
-    if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
+    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), response.body.size()), BIO_vfree);
+    if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
       return -1;
     }
-    BIO_free(device_p12);
-
   } else {  // device CA set => generate and sign a new certificate
     if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map)) {
       return 1;

@@ -28,18 +28,16 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 
-  BIO* reg_p12 = BIO_new_mem_buf(p12_str.c_str(), p12_str.size());
+  StructGuard<BIO> reg_p12(BIO_new_mem_buf(p12_str.c_str(), p12_str.size()), BIO_vfree);
   if (reg_p12 == nullptr) {
     LOG_ERROR << "Unable to open P12 archive: " << std::strerror(errno);
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
 
-  if (!Crypto::parseP12(reg_p12, provision_password, &pkey, &cert, &ca)) {
+  if (!Crypto::parseP12(reg_p12.get(), provision_password, &pkey, &cert, &ca)) {
     LOG_ERROR << "Unable to parse P12 archive";
-    BIO_free(reg_p12);
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }
-  BIO_free(reg_p12);
 }
 
 std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_path) {
