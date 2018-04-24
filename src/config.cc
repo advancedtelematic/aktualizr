@@ -197,6 +197,12 @@ void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
 
 void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
 
+void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(loglevel, "loglevel", boost::log::trivial::trace, pt);
+}
+
+void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
+
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
@@ -286,7 +292,8 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  // Keep this order the same as in config.h and writeToFile().
+  // Keep this order the same as in config.h and Config::writeToFile().
+  CopySubtreeFromConfig(logger, "logger", pt);
   CopySubtreeFromConfig(gateway, "gateway", pt);
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
@@ -301,6 +308,9 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+  }
   if (cmd.count("poll-once") != 0) {
     uptane.polling = false;
   }
@@ -459,9 +469,10 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
 // could skip blank strings or compare values against a freshly built instance
 // to detect and skip default values.
 void Config::writeToFile(const boost::filesystem::path& filename) const {
-  // Keep this order the same as in config.h and updateFromPropertyTree().
+  // Keep this order the same as in config.h and Config::updateFromPropertyTree().
   std::ofstream sink(filename.c_str(), std::ofstream::out);
 
+  WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(gateway, "gateway", sink);
   WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(p11, "p11", sink);

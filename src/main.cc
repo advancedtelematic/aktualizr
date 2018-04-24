@@ -113,45 +113,41 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
   logger_init();
+  logger_set_threshold(boost::log::trivial::info);
+  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  // check for loglevel
-  if (commandline_map.count("loglevel") != 0) {
-    // set the log level from command line option
-    boost::log::trivial::severity_level severity =
-        static_cast<boost::log::trivial::severity_level>(commandline_map["loglevel"].as<int>());
-    if (severity < boost::log::trivial::trace) {
-      LOG_DEBUG << "Invalid log level";
-      severity = boost::log::trivial::trace;
-    }
-    if (boost::log::trivial::fatal < severity) {
-      LOG_WARNING << "Invalid log level";
-      severity = boost::log::trivial::fatal;
-    }
-    if (severity <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
-    logger_set_threshold(severity);
-  }
-
-  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
-  LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
   // Initialize config with default values, the update with config, then with cmd
   std::string sota_config_file = commandline_map["config"].as<std::string>();
   boost::filesystem::path sota_config_path(sota_config_file);
   if (!boost::filesystem::exists(sota_config_path)) {
-    std::cout << "aktualizr: configuration file " << boost::filesystem::absolute(sota_config_path)
+    std::cerr << "aktualizr: configuration file " << boost::filesystem::absolute(sota_config_path)
               << " not found. Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
 
   try {
-    Config config(sota_config_path, commandline_map);
     if (geteuid() != 0) {
       LOG_WARNING << "\033[31mAktualizr is currently running as non-root and may not work as expected! Aktualizr "
                      "should be run as root for proper functionality.\033[0m\n";
     }
+
+    Config config(sota_config_path, commandline_map);
+    if (config.logger.loglevel < boost::log::trivial::trace) {
+      LOG_WARNING << "Invalid log level";
+      config.logger.loglevel = boost::log::trivial::trace;
+    }
+    if (boost::log::trivial::fatal < config.logger.loglevel) {
+      LOG_WARNING << "Invalid log level";
+      config.logger.loglevel = boost::log::trivial::fatal;
+    }
+    if (config.logger.loglevel <= boost::log::trivial::debug) {
+      SSL_load_error_strings();
+    }
+    logger_set_threshold(config.logger.loglevel);
+    LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
+
     boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";
     Utils::writeFile(saved_config_path, boost::filesystem::absolute(sota_config_path).string());
     Aktualizr aktualizr(config);
