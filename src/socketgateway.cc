@@ -50,7 +50,7 @@ void SocketGateway::commandsWorker(int socket, command::Channel *channel) {
   char buf[buff_size];
   std::string data;
 
-  while (ssize_t bytes = recv(socket, buf, buff_size, MSG_NOSIGNAL)) {
+  while (ssize_t bytes = recv(socket, buf, buff_size, 0)) {
     if (bytes <= 0) break;
     if (bytes < buff_size) {
       buf[bytes] = '\0';
