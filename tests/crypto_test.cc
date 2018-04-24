@@ -233,7 +233,7 @@ TEST(crypto, parsep12_FAIL) {
     EXPECT_TRUE(false) << " could not open tests/test_data/priv.key";
   }
   bool result = Crypto::parseP12(p12src, "", &pkey, &cert, &ca);
-  fclose(bad_p12file);
+  BIO_free(p12src);
   EXPECT_EQ(result, false);
 }
 

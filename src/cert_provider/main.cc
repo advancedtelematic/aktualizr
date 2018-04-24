@@ -256,7 +256,7 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
     std::cerr << "PEM_write_X509" << std::endl;
     return false;
   }
-  auto cert_len = BIO_get_mem_data(cert_file, cert_buf);
+  auto cert_len = BIO_get_mem_data(cert_file, &cert_buf);
   *cert = std::string(cert_buf, cert_len);
   BIO_free(cert_file);
 
