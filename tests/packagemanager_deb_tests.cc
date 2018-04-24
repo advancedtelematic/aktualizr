@@ -4,10 +4,10 @@
 #include <memory>
 
 #include "config.h"
-#include "fsstorage.h"
-#include "invstorage.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "utilities/utils.h"
 
 TEST(PackageManagerFactory, Debian_Install_Good) {

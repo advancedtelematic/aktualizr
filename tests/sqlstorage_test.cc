@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include "logging.h"
+#include "logging/logging.h"
+#include "storage/sqlstorage.h"
 #include "sql_utils.h"
-#include "sqlstorage.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path schemas_path;

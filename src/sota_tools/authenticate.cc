@@ -1,6 +1,6 @@
 #include "authenticate.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "oauth2.h"
 #include "server_credentials.h"
 

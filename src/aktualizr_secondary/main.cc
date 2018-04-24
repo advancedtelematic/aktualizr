@@ -14,7 +14,7 @@
 #endif
 #include "utilities/utils.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 
 namespace bpo = boost::program_options;
 

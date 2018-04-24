@@ -2,9 +2,9 @@
 
 #include <future>
 
-#include "aktualizr_secondary/aktualizr_secondary.h"
+#include "aktualizr_secondary.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 
 AktualizrSecondaryConfig conf("tests/config/aktualizr_secondary.toml");
 std::string sysroot;

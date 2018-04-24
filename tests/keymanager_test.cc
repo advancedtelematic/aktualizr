@@ -4,7 +4,7 @@
 #include "json/json.h"
 
 #include "config.h"
-#include "fsstorage.h"
+#include "storage/fsstorage.h"
 #include "utilities/keymanager.h"
 #include "utilities/utils.h"
 

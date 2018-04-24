@@ -8,11 +8,11 @@
 
 #include <boost/filesystem.hpp>
 
-#include "fsstorage.h"
-#include "sqlstorage.h"
+#include "storage/fsstorage.h"
+#include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 
 StorageType storage_test_type;
 

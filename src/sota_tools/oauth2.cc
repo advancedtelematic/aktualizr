@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "oauth2.h"
 
 using boost::property_tree::json_parser::json_parser_error;

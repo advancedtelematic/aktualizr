@@ -12,10 +12,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "fsstorage.h"
 #include "httpfake.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "sotauptaneclient.h"
+#include "storage/fsstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"

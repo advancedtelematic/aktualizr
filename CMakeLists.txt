@@ -15,6 +15,9 @@ option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
+set(logger_type "boost" CACHE STRING "")
+set(storage_type "sqlite" CACHE STRING "")
+
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
 endif()
@@ -228,7 +231,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ############### BUILD RULES
-include_directories(${PROJECT_SOURCE_DIR}/src)
+#include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/open62541)

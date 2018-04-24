@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include "fsstorage.h"
-#include "logging.h"
+#include "logging/logging.h"
+#include "storage/fsstorage.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/httpclient.h"

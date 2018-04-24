@@ -2,7 +2,7 @@
 
 #include <json/json.h>
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "uptane/exceptions.h"
 #include "uptane/tuf.h"
 #include "utilities/utils.h"

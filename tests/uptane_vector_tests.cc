@@ -8,8 +8,8 @@
 #include <string>
 
 #include "config.h"
-#include "fsstorage.h"
-#include "logging.h"
+#include "logging/logging.h"
+#include "storage/fsstorage.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/httpclient.h"
 #include "utilities/utils.h"

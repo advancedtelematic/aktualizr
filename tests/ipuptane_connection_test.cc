@@ -13,7 +13,7 @@
 #include "uptane/ipuptanesecondary.h"
 #include "uptane/secondaryconfig.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 
 template <typename Mes>
 bool test_message(sockaddr_storage addr, SecondaryPacket::ChanType& out_channel,

@@ -1,7 +1,7 @@
 #include "request_pool.h"
 #include <exception>
 
-#include "logging.h"
+#include "logging/logging.h"
 
 RequestPool::RequestPool(const TreehubServer& server, int max_requests)
     : max_requests_(max_requests), running_requests_(0), server_(server), stopped_(false) {

@@ -6,8 +6,8 @@
 #include <string>
 
 #include "aktualizr_secondary_config.h"
-#include "invstorage.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "storage/invstorage.h"
 #include "utilities/keymanager.h"
 
 class AktualizrSecondaryCommon {

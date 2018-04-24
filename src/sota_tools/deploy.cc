@@ -7,7 +7,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "authenticate.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "ostree_dir_repo.h"
 #include "ostree_http_repo.h"
 #include "ostree_object.h"

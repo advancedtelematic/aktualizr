@@ -381,6 +381,8 @@ if(BUILD_SOTA_TOOLS)
 
     add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc)
     target_link_libraries(t_ostree_hash sota_tools_static_lib)
+    target_include_directories(t_ostree_hash
+                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
 
     # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
@@ -469,18 +471,23 @@ add_test(NAME aktualizr-secondary-help
 
 add_aktualizr_test(NAME aktualizr_secondary_config SOURCES aktualizr_secondary/config_test.cc PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_config aktualizr_secondary_static_lib aktualizr_static_lib)
+target_include_directories(t_aktualizr_secondary_config PUBLIC ${PROJECT_SOURCE_DIR}/src/aktualizr_secondary)
 
 add_aktualizr_test(NAME aktualizr_secondary_protocol SOURCES aktualizr_secondary/protocol_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
+target_include_directories(t_aktualizr_secondary_protocol PUBLIC ${PROJECT_SOURCE_DIR}/src/aktualizr_secondary)
 
 add_aktualizr_test(NAME aktualizr_secondary_update SOURCES aktualizr_secondary/update_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
+target_include_directories(t_aktualizr_secondary_update PUBLIC ${PROJECT_SOURCE_DIR}/src/aktualizr_secondary)
 
 add_aktualizr_test(NAME aktualizr_secondary_uptane SOURCES aktualizr_secondary/uptane_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
+target_include_directories(t_aktualizr_secondary_uptane PUBLIC ${PROJECT_SOURCE_DIR}/src/aktualizr_secondary)
 
 add_aktualizr_test(NAME aktualizr_secondary_discovery SOURCES aktualizr_secondary/discovery_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_discovery aktualizr_secondary_static_lib aktualizr_static_lib)
+target_include_directories(t_aktualizr_secondary_discovery PUBLIC ${PROJECT_SOURCE_DIR}/src/aktualizr_secondary)
 
 # test running the executable with command line option --help
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)

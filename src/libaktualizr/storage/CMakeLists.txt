@@ -1,0 +1,18 @@
+if(storage_type STREQUAL "filesystem")
+  set(SOURCES fsstorage.cc)
+  set(HEADERS fsstorage.h)
+elseif(storage_type STREQUAL "sqlite")
+  set(SOURCES fsstorage.cc sqlstorage.cc)
+  set(HEADERS fsstorage.h sqlstorage.h)
+elseif(storage_type STREQUAL "android")
+  set(SOURCES androidstorage.cc)
+  set(HEADERS androidstorage.h)
+else()
+  message(FATAL_ERROR "Unknown storage type: ${storage_type}")
+endif()
+
+set(HEADERS ${HEADERS} invstorage.h)
+set(SOURCES ${SOURCES} invstorage.cc)
+
+add_library(storage OBJECT ${SOURCES})
+aktualizr_source_file_checks(${SOURCES} ${HEADERS})

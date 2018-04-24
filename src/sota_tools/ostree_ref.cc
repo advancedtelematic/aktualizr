@@ -8,7 +8,7 @@
 #include <sstream>
 #include <utility>
 
-#include "logging.h"
+#include "logging/logging.h"
 
 using std::string;
 

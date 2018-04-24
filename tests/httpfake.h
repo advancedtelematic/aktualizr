@@ -4,6 +4,8 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <fstream>
+
 #include "json/json.h"
 
 #include "httpinterface.h"

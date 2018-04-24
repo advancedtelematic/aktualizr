@@ -1,4 +1,3 @@
-
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -8,7 +7,7 @@
 #include "accumulator.h"
 #include "authenticate.h"
 #include "json/json.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "treehub_server.h"
 
 namespace po = boost::program_options;

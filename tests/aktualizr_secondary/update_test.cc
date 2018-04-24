@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "aktualizr_secondary/aktualizr_secondary.h"
+#include "aktualizr_secondary.h"
 #include "uptane/secondaryinterface.h"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
 #include "config.h"
-#include "fsstorage.h"
+#include "storage/fsstorage.h"
 #include "utilities/utils.h"
 std::string sysroot;
 

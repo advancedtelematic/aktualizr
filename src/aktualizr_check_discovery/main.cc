@@ -7,7 +7,7 @@
 #include "uptane/secondaryinterface.h"
 
 #include "ipsecondarydiscovery.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "secondary_ipc/ipuptaneconnection.h"
 #include "secondary_ipc/ipuptaneconnectionsplitter.h"
 

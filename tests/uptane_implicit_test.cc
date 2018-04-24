@@ -7,10 +7,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
-#include "fsstorage.h"
 #include "httpfake.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "sotauptaneclient.h"
+#include "storage/fsstorage.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/utils.h"
 

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "aktualizr_secondary/aktualizr_secondary.h"
+#include "aktualizr_secondary.h"
 #include "sotauptaneclient.h"
 
 #include "config.h"

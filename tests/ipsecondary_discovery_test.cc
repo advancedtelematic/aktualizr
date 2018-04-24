@@ -11,7 +11,7 @@
 
 #include "config.h"
 #include "ipsecondarydiscovery.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "test_utils.h"
 
 std::string port;

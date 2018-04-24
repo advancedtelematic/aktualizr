@@ -1,7 +1,7 @@
 #include "opcuaserver_secondary_delegate.h"
 #include "aktualizr_secondary/aktualizr_secondary_common.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "package_manager/ostreereposync.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "utilities/utils.h"

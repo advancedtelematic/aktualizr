@@ -12,10 +12,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
 
-#include "fsstorage.h"
 #include "httpfake.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "sotauptaneclient.h"
+#include "storage/fsstorage.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/uptanerepository.h"

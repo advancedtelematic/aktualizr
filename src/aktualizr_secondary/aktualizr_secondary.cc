@@ -4,8 +4,7 @@
 #include <future>
 #include <memory>
 
-#include "invstorage.h"
-#include "logging.h"
+#include "logging/logging.h"
 #ifdef BUILD_OSTREE
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif

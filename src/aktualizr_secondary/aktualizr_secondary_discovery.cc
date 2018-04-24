@@ -6,7 +6,7 @@
 
 #include "asn1/asn1-cerstream.h"
 #include "ipsecondarydiscovery.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "socket_activation/socket_activation.h"
 #include "utilities/utils.h"
 

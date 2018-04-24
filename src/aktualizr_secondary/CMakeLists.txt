@@ -15,6 +15,7 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:utilities>
     $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:storage>
+    $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:uptane>
     $<TARGET_OBJECTS:socket_activation>)
 

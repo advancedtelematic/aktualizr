@@ -9,7 +9,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "fsstorage.h"
+#include "storage/fsstorage.h"
 #include "utilities/crypto.h"
 #include "utilities/utils.h"
 

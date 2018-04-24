@@ -2,11 +2,11 @@
 
 #include <future>
 
-#include "aktualizr_secondary/aktualizr_secondary_discovery.h"
+#include "aktualizr_secondary_discovery.h"
 #include "config.h"
 #include "ipsecondarydiscovery.h"  // to test from the other side
 
-#include "logging.h"
+#include "logging/logging.h"
 
 std::shared_ptr<INvStorage> storage;
 AktualizrSecondaryConfig config;
