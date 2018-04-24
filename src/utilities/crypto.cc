@@ -175,14 +175,14 @@ bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &sig
   }
 }
 
-bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
+bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
                       std::string *out_ca) {
 #if AKTUALIZR_OPENSSL_PRE_11
   SSLeay_add_all_algorithms();
 #endif
-  PKCS12 *p12 = d2i_PKCS12_fp(p12_fp, NULL);
+  PKCS12 *p12 = d2i_PKCS12_bio(p12_bio, NULL);
   if (!p12) {
-    LOG_ERROR << "Could not read from " << p12_fp << " file pointer";
+    LOG_ERROR << "Could not read from " << p12_bio << " file pointer";
     return false;
   }
 
@@ -190,55 +190,54 @@ bool Crypto::parseP12(FILE *p12_fp, const std::string &p12_password, std::string
   X509 *x509_cert = NULL;
   STACK_OF(X509) *ca_certs = NULL;
   if (!PKCS12_parse(p12, p12_password.c_str(), &pkey, &x509_cert, &ca_certs)) {
-    LOG_ERROR << "Could not parse file from " << p12_fp << " file pointer";
+    LOG_ERROR << "Could not parse file from " << p12_bio << " source pointer";
     PKCS12_free(p12);
     return false;
   }
   PKCS12_free(p12);
 
-  char *pkey_buf;
-  size_t pkey_len;
-  FILE *pkey_pem_file = open_memstream(&pkey_buf, &pkey_len);
-  if (!pkey_pem_file) {
+  BIO *pkey_pem_sink = BIO_new(BIO_s_mem());
+  if (!pkey_pem_sink) {
     LOG_ERROR << "Could not open pkey buffer for writing";
     EVP_PKEY_free(pkey);
     return false;
   }
-  PEM_write_PrivateKey(pkey_pem_file, pkey, NULL, NULL, 0, 0, NULL);
-  fclose(pkey_pem_file);
+  PEM_write_bio_PrivateKey(pkey_pem_sink, pkey, NULL, NULL, 0, 0, NULL);
   EVP_PKEY_free(pkey);
+  char *pkey_buf;
+  auto pkey_len = BIO_get_mem_data(pkey_pem_sink, &pkey_buf);
   *out_pkey = std::string(pkey_buf, pkey_len);
-  free(pkey_buf);
+  BIO_free(pkey_pem_sink);
 
   char *cert_buf;
   size_t cert_len;
-  FILE *cert_file = open_memstream(&cert_buf, &cert_len);
-  if (!cert_file) {
+  BIO *cert_sink = BIO_new(BIO_s_mem());
+  if (!cert_sink) {
     LOG_ERROR << "Could not open certificate buffer for writing";
     return false;
   }
-  PEM_write_X509(cert_file, x509_cert);
+  PEM_write_bio_X509(cert_sink, x509_cert);
 
   char *ca_buf;
   size_t ca_len;
-  FILE *ca_file = open_memstream(&ca_buf, &ca_len);
-  if (!ca_file) {
+  BIO *ca_sink = BIO_new(BIO_s_mem());
+  if (!ca_sink) {
     LOG_ERROR << "Could not open ca buffer for writing";
     return false;
   }
   X509 *ca_cert = NULL;
   for (int i = 0; i < sk_X509_num(ca_certs); i++) {
     ca_cert = sk_X509_value(ca_certs, i);
-    PEM_write_X509(ca_file, ca_cert);
-    PEM_write_X509(cert_file, ca_cert);
+    PEM_write_bio_X509(ca_sink, ca_cert);
+    PEM_write_bio_X509(cert_sink, ca_cert);
   }
-  fclose(ca_file);
+  ca_len = BIO_get_mem_data(ca_sink, &ca_buf);
   *out_ca = std::string(ca_buf, ca_len);
-  free(ca_buf);
+  BIO_free(ca_sink);
 
-  fclose(cert_file);
+  cert_len = BIO_get_mem_data(cert_sink, &cert_buf);
   *out_cert = std::string(cert_buf, cert_len);
-  free(cert_buf);
+  BIO_free(cert_sink);
 
   sk_X509_pop_free(ca_certs, X509_free);
   X509_free(x509_cert);
@@ -303,43 +302,41 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
   EVP_PKEY *pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, r);
   char *pubkey_buf;
-  size_t pubkey_len;
-  FILE *pubkey_file = open_memstream(&pubkey_buf, &pubkey_len);
-  if (!pubkey_file) {
+  BIO *pubkey_sink = BIO_new(BIO_s_mem());
+  if (!pubkey_sink) {
     return false;
   }
-  ret = PEM_write_PUBKEY(pubkey_file, pkey);
-  fclose(pubkey_file);
+  ret = PEM_write_bio_PUBKEY(pubkey_sink, pkey);
   if (ret != 1) {
     RSA_free(r);
 #if AKTUALIZR_OPENSSL_AFTER_11
     BN_free(bne);
 #endif
-    free(pubkey_buf);
+    BIO_free(pubkey_sink);
     return false;
   }
+  auto pubkey_len = BIO_get_mem_data(pubkey_sink, &pubkey_buf);
   *public_key = std::string(pubkey_buf, pubkey_len);
-  free(pubkey_buf);
+  BIO_free(pubkey_sink);
 
   char *privkey_buf;
-  size_t privkey_len;
-  FILE *privkey_file = open_memstream(&privkey_buf, &privkey_len);
-  if (!privkey_file) {
+  BIO *privkey_sink = BIO_new(BIO_s_mem());
+  if (!privkey_sink) {
     return false;
   }
 
-  ret = PEM_write_RSAPrivateKey(privkey_file, r, NULL, NULL, 0, NULL, NULL);
-  fclose(privkey_file);
+  ret = PEM_write_bio_RSAPrivateKey(privkey_sink, r, NULL, NULL, 0, NULL, NULL);
   if (ret != 1) {
     RSA_free(r);
 #if AKTUALIZR_OPENSSL_AFTER_11
     BN_free(bne);
 #endif
-    free(privkey_buf);
+    BIO_free(privkey_sink);
     return false;
   }
+  auto privkey_len = BIO_get_mem_data(privkey_sink, &privkey_buf);
   *private_key = std::string(privkey_buf, privkey_len);
-  free(privkey_buf);
+  BIO_free(privkey_sink);
   EVP_PKEY_free(pkey);
 #if AKTUALIZR_OPENSSL_AFTER_11
   BN_free(bne);

@@ -236,6 +236,8 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
+include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(${LibArchive_INCLUDE_DIR})
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-fstack-protector-all)

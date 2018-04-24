@@ -48,8 +48,11 @@ target_link_libraries(aktualizr-secondary
     ${LIBDPKG_LIBRARIES}
     ${LIBP11_LIBRARIES}
     ${SYSTEMD_LIBRARY}
-    gcov
     )
+
+if(BUILD_WITH_CODE_COVERAGE)
+    target_link_libraries(aktualizr-secondary gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 install(TARGETS aktualizr-secondary
         COMPONENT aktualizr

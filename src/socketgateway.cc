@@ -8,6 +8,10 @@
 
 #include "logging.h"
 
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 using std::make_shared;
 using std::shared_ptr;
 
@@ -46,7 +50,7 @@ void SocketGateway::commandsWorker(int socket, std::shared_ptr<command::Channel>
   char buf[buff_size];
   std::string data;
 
-  while (ssize_t bytes = recv(socket, buf, buff_size, MSG_NOSIGNAL)) {
+  while (ssize_t bytes = recv(socket, buf, buff_size, 0)) {
     if (bytes <= 0) break;
     if (bytes < buff_size) {
       buf[bytes] = '\0';
