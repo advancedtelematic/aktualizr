@@ -22,8 +22,8 @@ script:
 - ci_env=`bash <(curl -s https://codecov.io/env)`
 - docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
   ${SCRIPT}
-- "./scripts/test_garage_deploy_deb.sh ${DOCKERFILE}"
-- "./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}"
+- if [ $DOCKERFILE = Dockerfile.deb-stable ]; then ./scripts/test_garage_deploy_deb.sh ${DOCKERFILE}; fi
+- if [ $DOCKERFILE = Dockerfile.noostree ]; then ./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}; fi
 deploy:
         - provider: releases
           file: /persistent/garage_deploy.deb
