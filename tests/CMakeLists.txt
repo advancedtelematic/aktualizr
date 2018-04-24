@@ -268,10 +268,10 @@ add_test(NAME feat1_test--help COMMAND aktualizr --help)
 add_test(NAME feat1_test-h COMMAND aktualizr -h)
 # test running the executable with command line option --something
 add_test(NAME feat1_test--something
-         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml)
 # test running the executable with command line option -sth
 add_test(NAME feat1_test-sth
-         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
+         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml)
 # call the executable without any options
 add_test(NAME test_plain COMMAND aktualizr)
 # check invalid logging level
@@ -309,13 +309,13 @@ set_tests_properties(test-help-with-nonexistent-options
                      PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
 
 add_test(NAME test-legacy-interface-with-nonexistent-file
-         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --legacy-interface nonexistentfile)
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml --legacy-interface nonexistentfile)
 
 set_tests_properties(test-legacy-interface-with-nonexistent-file
                      PROPERTIES PASS_REGULAR_EXPRESSION  "Legacy external flasher not found: nonexistentfile")
 
 add_test(NAME test-secondary-config-with-nonexistent-file
-         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --secondary-config nonexistentfile)
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml --secondary-config nonexistentfile)
 
 set_tests_properties(test-secondary-config-with-nonexistent-file
                      PROPERTIES PASS_REGULAR_EXPRESSION  "nonexistentfile does not exist!")

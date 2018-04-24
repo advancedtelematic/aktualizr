@@ -15,8 +15,7 @@ enum StorageType { kFileSystem = 0, kSqlite };
 struct StorageConfig {
   StorageType type{kFileSystem};
   boost::filesystem::path path{"/var/sota"};
-  // TODO: merge with path once SQLStorage class is complete
-  boost::filesystem::path sqldb_path{"/var/sota/storage.db"};
+
   // FS storage
   boost::filesystem::path uptane_metadata_path{"metadata"};
   boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
@@ -26,6 +25,7 @@ struct StorageConfig {
   boost::filesystem::path tls_clientcert_path{"client.pem"};
 
   // SQLite storage
+  boost::filesystem::path sqldb_path{"sql.db"};
   boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
