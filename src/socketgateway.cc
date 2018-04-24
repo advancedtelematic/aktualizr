@@ -9,7 +9,7 @@
 #include "logging.h"
 
 #ifndef MSG_NOSIGNAL
-#define MSG_NOSIGNAL           0
+#define MSG_NOSIGNAL 0
 #endif
 
 using std::make_shared;

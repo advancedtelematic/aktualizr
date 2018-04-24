@@ -130,6 +130,7 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
   BIO* device_p12 = BIO_new_mem_buf(response.body.c_str(), response.body.size());
   if (!Crypto::parseP12(device_p12, "", &pkey, &cert, &ca)) {
     LOG_ERROR << "Received a malformed P12 package from the server";
+    BIO_free(device_p12);
     return INIT_RET_BAD_P12;
   }
   BIO_free(device_p12);

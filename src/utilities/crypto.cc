@@ -204,7 +204,7 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
   }
   PEM_write_bio_PrivateKey(pkey_pem_sink, pkey, NULL, NULL, 0, 0, NULL);
   EVP_PKEY_free(pkey);
-  char* pkey_buf;
+  char *pkey_buf;
   auto pkey_len = BIO_get_mem_data(pkey_pem_sink, &pkey_buf);
   *out_pkey = std::string(pkey_buf, pkey_len);
   BIO_free(pkey_pem_sink);

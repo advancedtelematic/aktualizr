@@ -52,7 +52,6 @@ TestHelperProcess::TestHelperProcess(const std::string &argv0, const std::string
     throw std::runtime_error("Failed to execute process:" + argv0);
   }
   if (pid_ == 0) {
-
 #if defined(OS_LINUX)
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
