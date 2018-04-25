@@ -48,13 +48,19 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
     // Threshold
     int64_t requiredThreshold = (*it)["threshold"].asInt64();
     if (requiredThreshold < kMinSignatures) {
+      // static_cast<int> is to stop << taking a reference to kMinSignatures
+      // http://www.stroustrup.com/bs_faq2.html#in-class
+      // this occurs in Boost 1.62 (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
-                << kMinSignatures;
+                << static_cast<int>(kMinSignatures);
       throw IllegalThreshold(repository, "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
-      LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << kMaxSignatures << " < "
-                << requiredThreshold;
+      // static_cast<int> is to stop << taking a reference to kMaxSignatures
+      // http://www.stroustrup.com/bs_faq2.html#in-class
+      // this occurs in Boost 1.62  (and possibly other versions)
+      LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << static_cast<int>(kMaxSignatures)
+                << " < " << requiredThreshold;
       throw IllegalThreshold(repository, "root.json contains a role that requires too many signatures");
     }
     thresholds_for_role_[role] = requiredThreshold;
