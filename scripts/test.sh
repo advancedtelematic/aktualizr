@@ -40,40 +40,54 @@ cd "${TEST_BUILD_DIR}"
 
 if [[ $TEST_WITH_P11 = 1 ]]; then
     echo ">> Setting up P11"
-    export SOFTHSM2_CONF="$PWD/softhsm2.conf"
-    export TOKEN_DIR="$PWD/softhsm2-tokens"
     if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
+        export SOFTHSM2_CONF="$PWD/softhsm2.conf"
+        export TOKEN_DIR="$PWD/softhsm2-tokens"
         mkdir -p "${TOKEN_DIR}"
         cp "$GITREPO_ROOT/tests/test_data/softhsm2.conf" "${SOFTHSM2_CONF}"
 
         "$GITREPO_ROOT/scripts/setup_hsm.sh"
+        set +x
     fi
 fi
 
 echo ">> Running CMake"
-[[ $TEST_DRYRUN = 1 ]] || cmake "${CMAKE_ARGS[@]}" "${GITREPO_ROOT}"
+if [[ $TEST_DRYRUN != 1 ]]; then
+    set -x
+    cmake "${CMAKE_ARGS[@]}" "${GITREPO_ROOT}"
+    set +x
+fi
 
 if [[ $TEST_WITH_STATICTESTS = 1 ]]; then
     echo ">> Running static checks"
-    [[ $TEST_DRYRUN = 1 ]] || make check-format -j8
-    [[ $TEST_DRYRUN = 1 ]] || make clang-tidy clang-check -j8
+    if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
+        make check-format -j8
+        make clang-tidy clang-check -j8
+        set +x
+    fi
 fi
 
 if [[ $TEST_WITH_BUILD = 1 ]]; then
     echo ">> Building and installing"
     if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
         make -j8
 
         # Check that 'make install' works
         DESTDIR=/tmp/aktualizr make install -j8
+        set +x
     fi
 fi
 
 if [[ $TEST_WITH_INSTALLGARAGEDEPLOY = 1 ]]; then
     echo ">> Building debian package"
     if [[ $TEST_DRYRUN != 1 ]]; then
+        set -x
         make package -j8
         cp garage_deploy.deb /persistent/
+        set +x
     fi
 fi
 
@@ -81,6 +95,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
     if [[ $TEST_WITH_COVERAGE = 1 ]]; then
         echo ">> Running test suite with coverage"
         if [[ $TEST_DRYRUN != 1 ]]; then
+            set -x
             # not fail immediately on Jenkins, it will analyze the list of tests
             CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 coverage || [[ $JENKINS_RUN = 1 ]]
 
@@ -89,11 +104,14 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
             else
                 echo "Not inside Travis, skipping codecov.io upload"
             fi
+            set +x
         fi
     else
         echo ">> Running test suite"
         if [[ $TEST_DRYRUN != 1 ]]; then
+            set -x
             CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 check-full || [[ $JENKINS_RUN = 1 ]]
+            set +x
         fi
     fi
 fi
