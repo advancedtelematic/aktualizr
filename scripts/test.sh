@@ -7,10 +7,9 @@ GITREPO_ROOT="${1:-$(readlink -f "$(dirname "$0")/..")}"
 TEST_BUILD_DIR=${TEST_BUILD_DIR:-build-test}
 TEST_WITH_STATICTESTS=${TEST_WITH_STATICTESTS:-0}
 TEST_WITH_BUILD=${TEST_WITH_BUILD:-1}
-TEST_WITH_INSTALLGARAGEDEPLOY=${TEST_WITH_INSTALLGARAGEDEPLOY:-0}
+TEST_WITH_INSTALL_DEB_PACKAGES=${TEST_WITH_INSTALL_DEB_PACKAGES:-0}
 TEST_WITH_TESTSUITE=${TEST_WITH_TESTSUITE:-1}
 
-TEST_WITH_VALGRIND=${TEST_WITH_VALGRIND:-1}
 TEST_WITH_COVERAGE=${TEST_WITH_COVERAGE:-0}
 
 TEST_WITH_SOTA_TOOLS=${TEST_WITH_SOTA_TOOLS:-1}
@@ -18,11 +17,13 @@ TEST_WITH_P11=${TEST_WITH_P11:-0}
 TEST_WITH_OSTREE=${TEST_WITH_OSTREE:-1}
 TEST_WITH_DEB=${TEST_WITH_DEB:-1}
 
+TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
+TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
 TEST_DRYRUN=${TEST_DRYRUN:-0}
 
 # Build CMake arguments
 CMAKE_ARGS=()
-if [[ $TEST_WITH_VALGRIND = 1 ]]; then CMAKE_ARGS+=("-DCMAKE_BUILD_TYPE=Valgrind"); fi
+CMAKE_ARGS+=("-DCMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE}")
 if [[ $TEST_WITH_COVERAGE = 1 ]]; then CMAKE_ARGS+=("-DBUILD_WITH_CODE_COVERAGE=ON"); fi
 if [[ $TEST_WITH_SOTA_TOOLS = 1 ]]; then CMAKE_ARGS+=("-DBUILD_SOTA_TOOLS=ON"); fi
 if [[ $TEST_WITH_P11 = 1 ]]; then
@@ -81,12 +82,17 @@ if [[ $TEST_WITH_BUILD = 1 ]]; then
     fi
 fi
 
-if [[ $TEST_WITH_INSTALLGARAGEDEPLOY = 1 ]]; then
+if [[ $TEST_WITH_INSTALL_DEB_PACKAGES = 1 ]]; then
     echo ">> Building debian package"
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
         make package -j8
-        cp garage_deploy.deb /persistent/
+
+        # install garage-deploy
+        cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}"
+
+        # install aktualizr.deb
+        cp ./*aktualizr.deb "${TEST_INSTALL_DESTDIR}/aktualizr.deb"
         set +x
     fi
 fi

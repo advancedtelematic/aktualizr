@@ -10,7 +10,7 @@ env:
   DARGS="-eTEST_WITH_VALGRIND=0 -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1"
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
 - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh
-  DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_INSTALLGARAGEDEPLOY=1"
+  DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_INSTALL_DEB_PACKAGES=1"
 - DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
 - DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
