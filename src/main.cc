@@ -116,18 +116,9 @@ int main(int argc, char *argv[]) {
     }
 
     Config config(sota_config_path, commandline_map);
-    if (config.logger.loglevel < boost::log::trivial::trace) {
-      LOG_WARNING << "Invalid log level";
-      config.logger.loglevel = boost::log::trivial::trace;
-    }
-    if (boost::log::trivial::fatal < config.logger.loglevel) {
-      LOG_WARNING << "Invalid log level";
-      config.logger.loglevel = boost::log::trivial::fatal;
-    }
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();
     }
-    logger_set_threshold(config.logger.loglevel);
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";

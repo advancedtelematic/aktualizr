@@ -266,6 +266,16 @@ void Config::postUpdateValues() {
       pacman.ostree_server = tls.server + "/treehub";
     }
   }
+
+  if (logger.loglevel < boost::log::trivial::trace) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::trace;
+  }
+  if (boost::log::trivial::fatal < logger.loglevel) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::fatal;
+  }
+  logger_set_threshold(logger.loglevel);
 }
 
 void Config::updateFromDirs() {
