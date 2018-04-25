@@ -1,30 +1,10 @@
-/*!
- * \cond FILEINFO
- ******************************************************************************
- * \file main.cpp
- ******************************************************************************
- *
- * Copyright (C) ATS Advanced Telematic Systems GmbH GmbH, 2016
- *
- * \author Moritz Klinger
- *
- ******************************************************************************
- *
- * \brief  The main file of the project.
- *
- *
- ******************************************************************************
- *
- * \endcond
- */
+#include <iostream>
 
-/*****************************************************************************/
 #include <openssl/ssl.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-#include <iostream>
 
 #include "aktualizr.h"
 #include "config.h"
@@ -49,11 +29,14 @@ void check_info_options(const bpo::options_description &description, const bpo::
 bpo::variables_map parse_options(int argc, char *argv[]) {
   bpo::options_description description("aktualizr command line options");
   // clang-format off
+  // Try to keep these options in the same order as Config::updateFromCommandLine().
+  // The first three are commandline only.
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
-      ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
+      ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
+      ("poll-once", "Check for updates only once and exit")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
@@ -61,7 +44,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
-      ("poll-once", "Check for updates only once and exit")
       ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
       ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
       ("disable-keyid-validation", "deprecated");

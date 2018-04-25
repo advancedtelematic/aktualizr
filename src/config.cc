@@ -308,6 +308,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
+  // Try to keep these options in the same order as parse_options() in main.cc.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
   }
@@ -316,12 +317,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("gateway-socket") != 0) {
     gateway.socket = cmd["gateway-socket"].as<bool>();
-  }
-  if (cmd.count("primary-ecu-serial") != 0) {
-    uptane.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
-  }
-  if (cmd.count("primary-ecu-hardware-id") != 0) {
-    uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
   if (cmd.count("tls-server") != 0) {
     tls.server = cmd["tls-server"].as<std::string>();
@@ -334,6 +329,12 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("ostree-server") != 0) {
     pacman.ostree_server = cmd["ostree-server"].as<std::string>();
+  }
+  if (cmd.count("primary-ecu-serial") != 0) {
+    uptane.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
+  }
+  if (cmd.count("primary-ecu-hardware-id") != 0) {
+    uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
 
   if (cmd.count("secondary-config") != 0) {
