@@ -1,5 +1,7 @@
 #include "commands.h"
 
+#include <utility>
+
 namespace command {
 
 Json::Value BaseCommand::toJson() {
@@ -14,17 +16,21 @@ std::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& js
   std::string data = json.serialize(false);
   if (variant == "Shutdown") {
     return std::make_shared<Shutdown>();
-  } else if (variant == "GetUpdateRequests") {
-    return std::make_shared<GetUpdateRequests>();
-  } else if (variant == "StartDownload") {
-    return std::make_shared<StartDownload>(StartDownload::fromJson(data));
-  } else if (variant == "AbortDownload") {
-    return std::make_shared<AbortDownload>(AbortDownload::fromJson(data));
-  } else if (variant == "SendUpdateReport") {
-    return std::make_shared<SendUpdateReport>(SendUpdateReport::fromJson(data));
-  } else {
-    throw std::runtime_error("wrong command variant = " + variant);
   }
+  if (variant == "GetUpdateRequests") {
+    return std::make_shared<GetUpdateRequests>();
+  }
+  if (variant == "StartDownload") {
+    return std::make_shared<StartDownload>(StartDownload::fromJson(data));
+  }
+  if (variant == "AbortDownload") {
+    return std::make_shared<AbortDownload>(AbortDownload::fromJson(data));
+  }
+  if (variant == "SendUpdateReport") {
+    return std::make_shared<SendUpdateReport>(SendUpdateReport::fromJson(data));
+  }
+  throw std::runtime_error("wrong command variant = " + variant);
+
   return std::make_shared<BaseCommand>();
 }
 
@@ -34,7 +40,7 @@ std::string Shutdown::toJson() { return Json::FastWriter().write(BaseCommand::to
 GetUpdateRequests::GetUpdateRequests() { variant = "GetUpdateRequests"; }
 std::string GetUpdateRequests::toJson() { return Json::FastWriter().write(BaseCommand::toJson()); }
 
-StartDownload::StartDownload(const data::UpdateRequestId& ur_in) : update_request_id(ur_in) {
+StartDownload::StartDownload(data::UpdateRequestId ur_in) : update_request_id(std::move(ur_in)) {
   variant = "StartDownload";
 }
 
@@ -51,7 +57,7 @@ StartDownload StartDownload::fromJson(const std::string& json_str) {
   return StartDownload(json["fields"][0].asString());
 }
 
-AbortDownload::AbortDownload(const data::UpdateRequestId& ur_in) : update_request_id(ur_in) {
+AbortDownload::AbortDownload(data::UpdateRequestId ur_in) : update_request_id(std::move(ur_in)) {
   variant = "AbortDownload";
 }
 
@@ -68,7 +74,7 @@ AbortDownload AbortDownload::fromJson(const std::string& json_str) {
   return AbortDownload(json["fields"][0].asString());
 }
 
-SendUpdateReport::SendUpdateReport(const data::UpdateReport& ureport_in) : update_report(ureport_in) {
+SendUpdateReport::SendUpdateReport(data::UpdateReport ureport_in) : update_report(std::move(ureport_in)) {
   variant = "SendUpdateReport";
 }
 
@@ -86,7 +92,7 @@ SendUpdateReport SendUpdateReport::fromJson(const std::string& json_str) {
   return SendUpdateReport(data::UpdateReport::fromJson(Json::FastWriter().write(json["fields"][0])));
 }
 
-UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
+UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in) : packages(std::move(packages_in)) {
   variant = "UptaneInstall";
 }
 }  // namespace command

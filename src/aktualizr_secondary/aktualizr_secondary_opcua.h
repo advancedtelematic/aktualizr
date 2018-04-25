@@ -14,7 +14,7 @@
 
 class AktualizrSecondaryOpcua : public AktualizrSecondaryInterface, private AktualizrSecondaryCommon {
  public:
-  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig&, std::shared_ptr<INvStorage>&);
+  AktualizrSecondaryOpcua(const AktualizrSecondaryConfig& /*config*/, std::shared_ptr<INvStorage>& /*storage*/);
   void run() override;
   void stop() override;
 

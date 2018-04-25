@@ -4,6 +4,7 @@
 #include "asn1/asn1-cer.h"
 
 #include <stack>
+#include <utility>
 
 // tokens
 namespace asn1 {
@@ -11,21 +12,22 @@ namespace asn1 {
 class Token {
  public:
   enum TokType { seq_tok, endseq_tok, restseq_tok, expl_tok, peekexpl_tok, endexpl_tok, opt_tok, endopt_tok };
-  Token(TokType t) { type = t; }
+  explicit Token(TokType t) { type = t; }
   virtual ~Token() = default;
   TokType type;
 };
 
 class EndoptToken : public Token {
  public:
-  EndoptToken(bool* result = nullptr) : Token(endopt_tok), result_p(result) {}
+  explicit EndoptToken(bool* result = nullptr) : Token(endopt_tok), result_p(result) {}
   ~EndoptToken() override = default;
   bool* result_p;
 };
 
 class ExplicitToken : public Token {
  public:
-  ExplicitToken(uint8_t tag, ASN1_Class tag_class = kAsn1Context) : Token(expl_tok), tag(tag), tag_class(tag_class) {}
+  explicit ExplicitToken(uint8_t tag, ASN1_Class tag_class = kAsn1Context)
+      : Token(expl_tok), tag(tag), tag_class(tag_class) {}
   ~ExplicitToken() override = default;
   uint8_t tag;
   ASN1_Class tag_class;
@@ -33,7 +35,7 @@ class ExplicitToken : public Token {
 
 class PeekExplicitToken : public Token {
  public:
-  PeekExplicitToken(uint8_t* tag = nullptr, ASN1_Class* tag_class = nullptr)
+  explicit PeekExplicitToken(uint8_t* tag = nullptr, ASN1_Class* tag_class = nullptr)
       : Token(peekexpl_tok), tag(tag), tag_class(tag_class) {}
   ~PeekExplicitToken() override = default;
   uint8_t* tag;
@@ -56,42 +58,42 @@ template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, int32_t&> {
  public:
   int32_t& data;
-  ImplicitC(int32_t& d) : data(d) {}
+  explicit ImplicitC(int32_t& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, const int32_t&> {
  public:
   const int32_t& data;
-  ImplicitC(const int32_t& d) : data(d) {}
+  explicit ImplicitC(const int32_t& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, bool&> {
  public:
   bool& data;
-  ImplicitC(bool& d) : data(d) {}
+  explicit ImplicitC(bool& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, const bool&> {
  public:
   const bool& data;
-  ImplicitC(const bool& d) : data(d) {}
+  explicit ImplicitC(const bool& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, std::string&> {
  public:
   std::string& data;
-  ImplicitC(std::string& d) : data(d) {}
+  explicit ImplicitC(std::string& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag>
 class ImplicitC<Tag, const std::string&> {
  public:
   const std::string& data;
-  ImplicitC(const std::string& d) : data(d) {}
+  explicit ImplicitC(const std::string& d) : data(d) {}
 };
 
 template <ASN1_UniversalTag Tag, typename T>
@@ -122,7 +124,7 @@ Serializer& operator<<(Serializer& ser, ImplicitC<Tag, T> imp) {
 
 class Deserializer {
  public:
-  Deserializer(const std::string& d) : data(d){};
+  explicit Deserializer(std::string d) : data(std::move(d)){};
 
   Deserializer& operator>>(int32_t& val);
   Deserializer& operator>>(bool& val);

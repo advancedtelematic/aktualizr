@@ -12,14 +12,14 @@
 TEST(authenticate, good_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_good.zip";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, good_cert_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_cert_good.zip";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
   CURL *curl_handle = curl_easy_init();
   curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
@@ -45,7 +45,7 @@ TEST(authenticate, good_cert_noauth_zip) {
 TEST(authenticate, bad_cert_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_cert_bad.zip";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
   CURL *curl_handle = curl_easy_init();
   curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1);
@@ -58,7 +58,7 @@ TEST(authenticate, bad_cert_zip) {
 TEST(authenticate, bad_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_bad.zip";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(1, r);
 }
 
@@ -70,14 +70,14 @@ TEST(authenticate, no_json_zip) {
 TEST(authenticate, good_json) {
   boost::filesystem::path filepath = "sota_tools/auth_test_good.json";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
 }
 
 TEST(authenticate, bad_json) {
   boost::filesystem::path filepath = "sota_tools/auth_test_bad.json";
   TreehubServer treehub;
-  int r = authenticate("", filepath, treehub);
+  int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(1, r);
 }
 

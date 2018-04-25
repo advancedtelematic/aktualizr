@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <list>
 #include <map>
+#include <utility>
 
 #include "ostree_hash.h"
 #include "ostree_object.h"
@@ -12,10 +13,10 @@
 
 class OSTreeDirRepo : public OSTreeRepo {
  public:
-  explicit OSTreeDirRepo(const boost::filesystem::path &root_path) : root_(root_path) {}
+  explicit OSTreeDirRepo(boost::filesystem::path root_path) : root_(std::move(root_path)) {}
 
   bool LooksValid() const override;
-  OSTreeObject::ptr GetObject(const OSTreeHash hash) const override;
+  OSTreeObject::ptr GetObject(OSTreeHash hash) const override;
   OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
   OSTreeRef GetRef(const std::string &refname) const override;
 

@@ -13,7 +13,7 @@ class SecondaryConfig;
 
 class OpcuaSecondary : public SecondaryInterface {
  public:
-  OpcuaSecondary(const SecondaryConfig&);
+  explicit OpcuaSecondary(const SecondaryConfig& /*sconfig*/);
   ~OpcuaSecondary() override;
 
   std::string getSerial() override;

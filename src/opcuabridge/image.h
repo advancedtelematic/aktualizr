@@ -8,8 +8,8 @@
 namespace opcuabridge {
 class Image {
  public:
-  Image() {}
-  virtual ~Image() {}
+  Image() = default;
+  virtual ~Image() = default;
 
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
@@ -33,7 +33,7 @@ class Image {
 
  protected:
   std::string filename_;
-  std::size_t length_;
+  std::size_t length_{};
   std::vector<Hash> hashes_;
 
  private:

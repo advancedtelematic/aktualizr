@@ -9,17 +9,17 @@
 
 using std::string;
 
-TreehubServer::TreehubServer() : method_(AUTH_NONE) {
+TreehubServer::TreehubServer() {
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
   auth_header_.next = &force_header_;
   force_header_contents_ = "x-ats-ostree-force: true";
   force_header_.data = const_cast<char*>(force_header_contents_.c_str());
-  force_header_.next = NULL;
+  force_header_.next = nullptr;
 }
 
 void TreehubServer::SetToken(const string& token) {
   assert(auth_header_.next == &force_header_);
-  assert(force_header_.next == NULL);
+  assert(force_header_.next == nullptr);
 
   auth_header_contents_ = "Authorization: Bearer " + token;
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
@@ -45,10 +45,11 @@ void TreehubServer::SetAuthBasic(const std::string& username, const std::string&
 void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, bool tufrepo) const {
   std::string url = (tufrepo ? repo_url_ : root_url_);
 
-  if (*url.rbegin() != '/' && *url_suffix.begin() != '/')
+  if (*url.rbegin() != '/' && *url_suffix.begin() != '/') {
     url += "/";
-  else if (*url.rbegin() == '/' && *url_suffix.begin() == '/')
+  } else if (*url.rbegin() == '/' && *url_suffix.begin() == '/') {
     url.erase(url.length() - 1);
+  }
 
   boost::trim_if(url, boost::is_any_of(" \t\r\n"));
 

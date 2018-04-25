@@ -55,7 +55,7 @@ void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
   }
 }
 
-void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
+void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {  // NOLINT
   if (h->is_on_server() == OBJECT_PRESENT) {
     uploaded++;
     h->NotifyParents(p);
@@ -66,7 +66,7 @@ void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {
   }
 }
 
-bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &push_credentials,
+bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
                      const OSTreeHash &ostree_commit, const std::string &cacerts, const bool dryrun,
                      const int max_curl_requests) {
   TreehubServer push_server;
@@ -110,7 +110,7 @@ bool UploadToTreehub(const OSTreeRepo::ptr src_repo, const ServerCredentials &pu
     LOG_INFO << "Dry run. No objects uploaded.";
   }
 
-  if (errors) {
+  if (errors != 0) {
     LOG_ERROR << "One or more errors while pushing";
     return false;
   }
@@ -175,11 +175,11 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
     ref.PushRef(push_server, easy_handle);
     CURLcode err = curl_easy_perform(easy_handle);
-    if (err) {
+    if (err != 0u) {
       LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
       errors++;
     }
-    long rescode;
+    long rescode;  // NOLINT
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";

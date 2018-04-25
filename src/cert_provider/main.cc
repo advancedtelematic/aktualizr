@@ -6,6 +6,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <utility>
 
 #include <openssl/ssl.h>
 #include "json/json.h"
@@ -104,7 +105,9 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
   }
 
   int cert_days = 365;
-  if (commandline_map.count("days") != 0) cert_days = (commandline_map["days"].as<int>());
+  if (commandline_map.count("days") != 0) {
+    cert_days = (commandline_map["days"].as<int>());
+  }
 
   std::string newcert_c;
   if (commandline_map.count("certificate-c") != 0) {
@@ -146,9 +149,10 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
   // read CA certificate
   std::string cacert_contents = Utils::readFile(cacert_path);
-  StructGuard<BIO> bio_in_cacert(BIO_new_mem_buf(cacert_contents.c_str(), (int)(cacert_contents.size())), BIO_free_all);
-  StructGuard<X509> ca_certificate(PEM_read_bio_X509(bio_in_cacert.get(), nullptr, 0, nullptr), X509_free);
-  if (!ca_certificate.get()) {
+  StructGuard<BIO> bio_in_cacert(BIO_new_mem_buf(cacert_contents.c_str(), static_cast<int>(cacert_contents.size())),
+                                 BIO_free_all);
+  StructGuard<X509> ca_certificate(PEM_read_bio_X509(bio_in_cacert.get(), nullptr, nullptr, nullptr), X509_free);
+  if (ca_certificate.get() == nullptr) {
     std::cerr << "Reading CA certificate failed"
               << "\n";
     return false;
@@ -156,14 +160,15 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
   // read CA private key
   std::string capkey_contents = Utils::readFile(capkey_path);
-  StructGuard<BIO> bio_in_capkey(BIO_new_mem_buf(capkey_contents.c_str(), (int)(capkey_contents.size())), BIO_free_all);
+  StructGuard<BIO> bio_in_capkey(BIO_new_mem_buf(capkey_contents.c_str(), static_cast<int>(capkey_contents.size())),
+                                 BIO_free_all);
   StructGuard<EVP_PKEY> ca_privkey(PEM_read_bio_PrivateKey(bio_in_capkey.get(), nullptr, nullptr, nullptr),
                                    EVP_PKEY_free);
-  if (!ca_privkey.get()) SSL_ERROR("PEM_read_bio_PrivateKey failed: ");
+  if (ca_privkey.get() == nullptr) SSL_ERROR("PEM_read_bio_PrivateKey failed: ");
 
   // create certificate
   StructGuard<X509> certificate(X509_new(), X509_free);
-  if (!certificate.get()) SSL_ERROR("X509_new failed: ");
+  if (certificate.get() == nullptr) SSL_ERROR("X509_new failed: ");
 
   X509_set_version(certificate.get(), 2);  // X509v3
 
@@ -175,88 +180,92 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
   //   create and set certificate subject name
   StructGuard<X509_NAME> subj(X509_NAME_new(), X509_NAME_free);
-  if (!subj.get()) SSL_ERROR("X509_NAME_new failed: ");
+  if (subj.get() == nullptr) SSL_ERROR("X509_NAME_new failed: ");
 
   if (!newcert_c.empty()) {
-    if (!X509_NAME_add_entry_by_txt(subj.get(), "C", MBSTRING_ASC, (const unsigned char*)newcert_c.c_str(), -1, -1, 0))
+    if (X509_NAME_add_entry_by_txt(subj.get(), "C", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char*>(newcert_c.c_str()), -1, -1, 0) == 0)
       SSL_ERROR("X509_NAME_add_entry_by_txt failed: ");
   }
 
   if (!newcert_st.empty()) {
-    if (!X509_NAME_add_entry_by_txt(subj.get(), "ST", MBSTRING_ASC, (const unsigned char*)newcert_st.c_str(), -1, -1,
-                                    0))
+    if (X509_NAME_add_entry_by_txt(subj.get(), "ST", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char*>(newcert_st.c_str()), -1, -1, 0) == 0)
       SSL_ERROR("X509_NAME_add_entry_by_txt failed: ");
   }
 
   if (!newcert_o.empty()) {
-    if (!X509_NAME_add_entry_by_txt(subj.get(), "O", MBSTRING_ASC, (const unsigned char*)newcert_o.c_str(), -1, -1, 0))
+    if (X509_NAME_add_entry_by_txt(subj.get(), "O", MBSTRING_ASC,
+                                   reinterpret_cast<const unsigned char*>(newcert_o.c_str()), -1, -1, 0) == 0)
       SSL_ERROR("X509_NAME_add_entry_by_txt failed: ");
   }
 
   assert(!newcert_cn.empty());
-  if (!X509_NAME_add_entry_by_txt(subj.get(), "CN", MBSTRING_ASC, (const unsigned char*)newcert_cn.c_str(), -1, -1, 0))
+  if (X509_NAME_add_entry_by_txt(subj.get(), "CN", MBSTRING_ASC,
+                                 reinterpret_cast<const unsigned char*>(newcert_cn.c_str()), -1, -1, 0) == 0)
     SSL_ERROR("X509_NAME_add_entry_by_txt failed: ");
 
-  if (!X509_set_subject_name(certificate.get(), subj.get())) SSL_ERROR("X509_set_subject_name failed: ");
+  if (X509_set_subject_name(certificate.get(), subj.get()) == 0) SSL_ERROR("X509_set_subject_name failed: ");
 
   //    set issuer name
   X509_NAME* ca_subj = X509_get_subject_name(ca_certificate.get());
-  if (!ca_subj) SSL_ERROR("X509_get_subject_name failed: ");
+  if (ca_subj == nullptr) SSL_ERROR("X509_get_subject_name failed: ");
 
-  if (!X509_set_issuer_name(certificate.get(), ca_subj)) SSL_ERROR("X509_set_issuer_name failed: ");
+  if (X509_set_issuer_name(certificate.get(), ca_subj) == 0) SSL_ERROR("X509_set_issuer_name failed: ");
 
   // create and set key
 
   // freed by owner EVP_PKEY
   RSA* certificate_rsa = RSA_generate_key(rsa_bits, RSA_F4, nullptr, nullptr);
-  if (!certificate_rsa) SSL_ERROR("RSA_generate_key failed: ");
+  if (certificate_rsa == nullptr) SSL_ERROR("RSA_generate_key failed: ");
 
   StructGuard<EVP_PKEY> certificate_pkey(EVP_PKEY_new(), EVP_PKEY_free);
-  if (!certificate_pkey.get()) SSL_ERROR("EVP_PKEY_new failed: ");
+  if (certificate_pkey.get() == nullptr) SSL_ERROR("EVP_PKEY_new failed: ");
 
-  if (!EVP_PKEY_assign_RSA(certificate_pkey.get(), certificate_rsa)) SSL_ERROR("EVP_PKEY_assign_RSA failed: ");
+  if (!EVP_PKEY_assign_RSA(certificate_pkey.get(), certificate_rsa))  // NOLINT
+    SSL_ERROR("EVP_PKEY_assign_RSA failed: ");
 
-  if (!X509_set_pubkey(certificate.get(), certificate_pkey.get())) SSL_ERROR("X509_set_pubkey failed: ");
+  if (X509_set_pubkey(certificate.get(), certificate_pkey.get()) == 0) SSL_ERROR("X509_set_pubkey failed: ");
 
   //    set validity period
-  if (!X509_gmtime_adj(X509_get_notBefore(certificate.get()), 0)) SSL_ERROR("X509_gmtime_adj failed: ");
+  if (X509_gmtime_adj(X509_get_notBefore(certificate.get()), 0) == nullptr) SSL_ERROR("X509_gmtime_adj failed: ");
 
-  if (!X509_gmtime_adj(X509_get_notAfter(certificate.get()), 60 * 60 * 24 * cert_days))
+  if (X509_gmtime_adj(X509_get_notAfter(certificate.get()), 60L * 60L * 24L * cert_days) == nullptr)
     SSL_ERROR("X509_gmtime_adj failed: ");
 
   //    sign
   const EVP_MD* cert_digest = EVP_sha256();
-  if (!X509_sign(certificate.get(), ca_privkey.get(), cert_digest)) SSL_ERROR("X509_sign failed: ");
+  if (X509_sign(certificate.get(), ca_privkey.get(), cert_digest) == 0) SSL_ERROR("X509_sign failed: ");
 
   // serialize private key
   char* privkey_buf;
   BIO* privkey_file = BIO_new(BIO_s_mem());
-  if (!privkey_file) {
+  if (privkey_file == nullptr) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
-  int ret = PEM_write_bio_RSAPrivateKey(privkey_file, certificate_rsa, NULL, NULL, 0, NULL, NULL);
-  if (!ret) {
+  int ret = PEM_write_bio_RSAPrivateKey(privkey_file, certificate_rsa, nullptr, nullptr, 0, nullptr, nullptr);
+  if (ret == 0) {
     std::cerr << "PEM_write_RSAPrivateKey" << std::endl;
     return false;
   }
-  auto privkey_len = BIO_get_mem_data(privkey_file, &privkey_buf);
+  auto privkey_len = BIO_get_mem_data(privkey_file, &privkey_buf);  // NOLINT
   *pkey = std::string(privkey_buf, privkey_len);
   BIO_free(privkey_file);
 
   // serialize certificate
   char* cert_buf;
   BIO* cert_file = BIO_new(BIO_s_mem());
-  if (!cert_file) {
+  if (cert_file == nullptr) {
     std::cerr << "Error opening memstream" << std::endl;
     return false;
   }
   ret = PEM_write_bio_X509(cert_file, certificate.get());
-  if (!ret) {
+  if (ret == 0) {
     std::cerr << "PEM_write_X509" << std::endl;
     return false;
   }
-  auto cert_len = BIO_get_mem_data(cert_file, &cert_buf);
+  auto cert_len = BIO_get_mem_data(cert_file, &cert_buf);  // NOLINT
   *cert = std::string(cert_buf, cert_len);
   BIO_free(cert_file);
 
@@ -265,22 +274,28 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
 class SSHRunner {
  public:
-  SSHRunner(const std::string& target, bool skip_checks, int port = 22)
-      : target_(target), skip_checks_(skip_checks), port_(port) {}
+  SSHRunner(std::string target, bool skip_checks, int port = 22)
+      : target_(std::move(target)), skip_checks_(skip_checks), port_(port) {}
 
   void runCmd(const std::string& cmd) const {
     std::ostringstream prefix;
 
     prefix << "ssh ";
-    if (port_ != 22) prefix << "-p " << port_ << " ";
-    if (skip_checks_) prefix << "-o StrictHostKeyChecking=no ";
+    if (port_ != 22) {
+      prefix << "-p " << port_ << " ";
+    }
+    if (skip_checks_) {
+      prefix << "-o StrictHostKeyChecking=no ";
+    }
     prefix << target_ << " ";
 
     std::string fullCmd = prefix.str() + cmd;
     std::cout << "Running " << fullCmd << std::endl;
 
     int ret = system(fullCmd.c_str());
-    if (ret != 0) throw std::runtime_error("Error running command on " + target_ + ": " + std::to_string(ret));
+    if (ret != 0) {
+      throw std::runtime_error("Error running command on " + target_ + ": " + std::to_string(ret));
+    }
   }
 
   void transferFile(const boost::filesystem::path& inFile, const boost::filesystem::path& targetPath) {
@@ -290,14 +305,20 @@ class SSHRunner {
     std::ostringstream prefix;
 
     prefix << "scp ";
-    if (port_ != 22) prefix << "-P " << port_ << " ";
-    if (skip_checks_) prefix << "-o StrictHostKeyChecking=no ";
+    if (port_ != 22) {
+      prefix << "-P " << port_ << " ";
+    }
+    if (skip_checks_) {
+      prefix << "-o StrictHostKeyChecking=no ";
+    }
 
     std::string fullCmd = prefix.str() + inFile.string() + " " + target_ + ":" + targetPath.string();
     std::cout << "Running " << fullCmd << std::endl;
 
     int ret = system(fullCmd.c_str());
-    if (ret != 0) throw std::runtime_error("Error copying file on " + target_ + ": " + std::to_string(ret));
+    if (ret != 0) {
+      throw std::runtime_error("Error copying file on " + target_ + ": " + std::to_string(ret));
+    }
   }
 
  private:
@@ -314,7 +335,7 @@ int main(int argc, char* argv[]) {
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
   boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
-  std::string target = "";
+  std::string target;
   if (commandline_map.count("target") != 0) {
     target = commandline_map["target"].as<std::string>();
   }
@@ -363,17 +384,21 @@ int main(int argc, char* argv[]) {
     Config config(config_path);
     // TODO: provide path to root directory in `--local` parameter
 
-    if (!config.storage.path.empty()) directory = config.storage.path;
+    if (!config.storage.path.empty()) {
+      directory = config.storage.path;
+    }
 
-    if (!config.import.tls_pkey_path.empty())
+    if (!config.import.tls_pkey_path.empty()) {
       pkey_file = config.import.tls_pkey_path;
-    else
+    } else {
       pkey_file = config.storage.tls_pkey_path;
+    }
 
-    if (!config.import.tls_clientcert_path.empty())
+    if (!config.import.tls_clientcert_path.empty()) {
       cert_file = config.import.tls_clientcert_path;
-    else
+    } else {
       cert_file = config.storage.tls_clientcert_path;
+    }
     if (provide_ca) {
       if (!config.import.tls_cacert_path.empty()) {
         ca_file = config.import.tls_cacert_path;
@@ -419,10 +444,9 @@ int main(int argc, char* argv[]) {
       if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
         std::cout << "Device ID" << device_id << "is occupied.\n";
         return -1;
-      } else {
-        std::cout << "Provisioning failed, response: " << response.body << "\n";
-        return -1;
       }
+      std::cout << "Provisioning failed, response: " << response.body << "\n";
+      return -1;
     }
     std::cout << "...success\n";
 
@@ -433,8 +457,9 @@ int main(int argc, char* argv[]) {
     BIO_free(device_p12);
 
   } else {  // device CA set => generate and sign a new certificate
-    if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map))
+    if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map)) {
       return 1;
+    }
     // TODO: backend should issue credentials.zip for implicit provision that will contain
     //  root CA certificate as a separate file. Until then extract it from autoprov.p12
     Bootstrap boot(credentials_path, "");
@@ -478,7 +503,7 @@ int main(int argc, char* argv[]) {
 
   if (!target.empty()) {
     std::cout << "Copying client certificate and keys to " << target << ":" << directory;
-    if (port) {
+    if (port != 0) {
       std::cout << " on port " << port;
     }
     std::cout << " ...\n";

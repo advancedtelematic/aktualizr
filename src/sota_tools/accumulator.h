@@ -17,7 +17,7 @@
 template <typename T>
 class accumulator_type : public boost::program_options::value_semantic {
  public:
-  accumulator_type(T* store) : _store(store), _interval(1), _default(0) {}
+  explicit accumulator_type(T* store) : _store(store), _interval(1), _default(0) {}
 
   /// Set the notifier function.
   accumulator_type* notifier(std::function<void(const T&)> f) {
@@ -58,7 +58,9 @@ class accumulator_type : public boost::program_options::value_semantic {
   //
   /// There should never be any tokens.
   virtual void parse(boost::any& value_store, const std::vector<std::string>&, bool /*utf8*/) const {  // NOLINT
-    if (value_store.empty()) value_store = T();
+    if (value_store.empty()) {
+      value_store = T();
+    }
     boost::any_cast<T&>(value_store) += _interval;
   }
 
@@ -70,9 +72,13 @@ class accumulator_type : public boost::program_options::value_semantic {
 
   /// Notify the user function with the value of the value store.
   virtual void notify(const boost::any& value_store) const {  // NOLINT
-    const T* val = boost::any_cast<T>(&value_store);
-    if (_store) *_store = *val;
-    if (_notifier) _notifier(*val);
+    const auto* val = boost::any_cast<T>(&value_store);
+    if (_store) {
+      *_store = *val;
+    }
+    if (_notifier) {
+      _notifier(*val);
+    }
   }
 
   virtual ~accumulator_type() {}  // NOLINT

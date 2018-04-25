@@ -1,6 +1,7 @@
 #ifndef IPSECONDARYDISCOVERY_H_
 #define IPSECONDARYDISCOVERY_H_
 
+#include <utility>
 #include <vector>
 
 #include "config.h"
@@ -12,7 +13,7 @@ const int AKT_DISCOVERY_RESP = 0x01;
 
 class IpSecondaryDiscovery {
  public:
-  IpSecondaryDiscovery(const NetworkConfig &config) : config_(config){};
+  explicit IpSecondaryDiscovery(NetworkConfig config) : config_(std::move(config)){};
   std::vector<Uptane::SecondaryConfig> discover();
   std::vector<Uptane::SecondaryConfig> waitDevices();
   bool sendRequest();

@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     }
 
     boost::filesystem::path sota_config_path(sota_config_file);
-    if (false == boost::filesystem::exists(sota_config_path)) {
+    if (!boost::filesystem::exists(sota_config_path)) {
       std::cout << "configuration file " << boost::filesystem::absolute(sota_config_path) << " not found. Exiting."
                 << std::endl;
       exit(EXIT_FAILURE);
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     auto discovered = ip_uptane_discovery.discover();
     LOG_INFO << "Discovering finished";
     LOG_INFO << "Found " << discovered.size() << " devices";
-    if (discovered.size()) {
+    if (discovered.size() != 0u) {
       LOG_TRACE << "Trying to connect with founded devices and get public key";
       IpUptaneConnection ip_uptane_connection(config.network.ipuptane_port);
       IpUptaneConnectionSplitter ip_uptane_splitter(ip_uptane_connection);

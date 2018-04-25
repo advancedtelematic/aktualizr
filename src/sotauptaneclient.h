@@ -1,6 +1,7 @@
 #include <atomic>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "commands.h"
@@ -18,8 +19,8 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in, Uptane::Repository &repo,
-                   const std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
-  void runForever(std::shared_ptr<command::Channel> commands_channel);
+                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
+  void runForever(const std::shared_ptr<command::Channel> &commands_channel);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
 
@@ -33,7 +34,7 @@ class SotaUptaneClient {
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
-  void schedulePoll(std::shared_ptr<command::Channel> commands_channel);
+  void schedulePoll(const std::shared_ptr<command::Channel> &commands_channel);
   void reportNetworkInfo();
   void initSecondaries();
   void verifySecondaries();
@@ -57,7 +58,7 @@ class SotaUptaneClient {
 
 class SerialCompare {
  public:
-  SerialCompare(const std::string &target_in) : target(target_in) {}
+  explicit SerialCompare(std::string target_in) : target(std::move(target_in)) {}
   bool operator()(std::pair<std::string, std::string> &in) { return (in.first == target); }
 
  private:

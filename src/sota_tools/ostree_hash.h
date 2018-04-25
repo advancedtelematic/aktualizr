@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 class OSTreeHash {
  public:
@@ -15,7 +16,7 @@ class OSTreeHash {
    */
   static OSTreeHash Parse(const std::string& hash);
 
-  explicit OSTreeHash(const uint8_t[32]);
+  explicit OSTreeHash(const uint8_t /*hash*/[32]);
 
   std::string string() const;
 
@@ -23,12 +24,12 @@ class OSTreeHash {
   friend std::ostream& operator<<(std::ostream& os, const OSTreeHash& obj);
 
  private:
-  uint8_t hash_[32];
+  uint8_t hash_[32]{};
 };
 
 class OSTreeCommitParseError : std::exception {
  public:
-  OSTreeCommitParseError(const std::string bad_hash) : bad_hash_(bad_hash) {}
+  explicit OSTreeCommitParseError(std::string bad_hash) : bad_hash_(std::move(bad_hash)) {}
 
   const char* what() const noexcept override { return "Could not parse OSTree commit"; }
 

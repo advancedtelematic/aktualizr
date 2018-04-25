@@ -20,7 +20,7 @@ FileSetEntryHash::result_type FileSetEntryHash::operator()(FileSetEntryHash::arg
 
 bool FileSetEntryEqual::operator()(const FileSetEntryEqual::argument_type& lhs,
                                    const FileSetEntryEqual::argument_type& rhs) const {
-  return (0 == strcmp((const char*)lhs, (const char*)rhs));
+  return (0 == strcmp(reinterpret_cast<const char*>(lhs), reinterpret_cast<const char*>(rhs)));
 }
 
 std::size_t UpdateFileList(FileList* filelist, const fs::path& repo_dir_path) {
@@ -41,10 +41,12 @@ std::size_t UpdateFileList(FileList* filelist, const fs::path& repo_dir_path) {
 
 void UpdateFileUnorderedSet(FileUnorderedSet* file_unordered_set, const FileList& file_list) {
   if (!file_list.getBlock().empty()) {
-    FileList::block_type::const_reverse_iterator block_rev_it = file_list.getBlock().rbegin(), p = block_rev_it,
-                                                 block_rev_end_it = file_list.getBlock().rend();
-    for (; block_rev_it != block_rev_end_it; p = block_rev_it)
-      if ((block_rev_end_it == ++block_rev_it) || ('\0' == *(block_rev_it))) file_unordered_set->insert(&*p);
+    auto block_rev_it = file_list.getBlock().rbegin(), p = block_rev_it, block_rev_end_it = file_list.getBlock().rend();
+    for (; block_rev_it != block_rev_end_it; p = block_rev_it) {
+      if ((block_rev_end_it == ++block_rev_it) || ('\0' == *(block_rev_it))) {
+        file_unordered_set->insert(&*p);
+      }
+    }
   }
 }
 

@@ -9,8 +9,8 @@
 namespace opcuabridge {
 class ECUVersionManifest {
  public:
-  ECUVersionManifest() {}
-  virtual ~ECUVersionManifest() {}
+  ECUVersionManifest() = default;
+  virtual ~ECUVersionManifest() = default;
 
   const std::vector<Signature>& getSignatures() const { return signatures_; }
   void setSignatures(const std::vector<Signature>& signatures) { signatures_ = signatures; }

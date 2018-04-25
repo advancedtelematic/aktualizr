@@ -26,9 +26,9 @@ enum InitRetCode {
 };
 
 struct DownloadMetaStruct {
-  int64_t expected_length;
-  int64_t downloaded_length;
-  StorageTargetWHandle *fhandle;
+  int64_t expected_length{};
+  int64_t downloaded_length{};
+  StorageTargetWHandle *fhandle{};
   MultiPartSHA256Hasher sha256_hasher;
   MultiPartSHA512Hasher sha512_hasher;
 };
@@ -71,7 +71,7 @@ class Repository {
 
   std::vector<std::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 
-  void downloadTarget(Target target);
+  void downloadTarget(const Target &target);
   Json::Value getJSON(const std::string &url);
   Json::Value fetchRole(const std::string &base_url, Uptane::Role role, Version version = Version());
 

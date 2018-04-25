@@ -20,7 +20,7 @@
 namespace boost {
 namespace filesystem {
 class path;
-}
+}  // namespace filesystem
 }  // namespace boost
 
 #define INITSERVERNODESET_FUNCTION_DEFINITION(TYPE)                             \
@@ -109,7 +109,7 @@ extern const UA_UInt16 kNSindex;
 
 extern const char *kLocale;
 
-extern void BoostLogOpcua(UA_LogLevel, UA_LogCategory, const char *, va_list);
+extern void BoostLogOpcua(UA_LogLevel /*level*/, UA_LogCategory /*category*/, const char * /*msg*/, va_list /*args*/);
 
 enum HashFunction { HASH_FUN_SHA224, HASH_FUN_SHA256, HASH_FUN_SHA384 };
 
@@ -135,9 +135,11 @@ template <typename T>
 UA_StatusCode read(UA_Server *server, const UA_NodeId *sessionId, void *sessionContext, const UA_NodeId *nodeId,
                    void *nodeContext, UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
                    UA_DataValue *dataValue) {
-  T *obj = static_cast<T *>(nodeContext);
+  auto *obj = static_cast<T *>(nodeContext);
 
-  if (obj->on_before_read_cb_) obj->on_before_read_cb_(obj);
+  if (obj->on_before_read_cb_) {
+    obj->on_before_read_cb_(obj);
+  }
 
   std::string msg = T::wrapMessage(obj);
 
@@ -160,12 +162,14 @@ UA_StatusCode read<MessageFileData>(UA_Server *server, const UA_NodeId *sessionI
 template <typename T>
 UA_StatusCode write(UA_Server *server, const UA_NodeId *sessionId, void *sessionContext, const UA_NodeId *nodeId,
                     void *nodeContext, const UA_NumericRange *range, const UA_DataValue *data) {
-  T *obj = static_cast<T *>(nodeContext);
+  auto *obj = static_cast<T *>(nodeContext);
 
   if (!UA_Variant_isEmpty(&data->value) && UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
     T::unwrapMessage(obj, static_cast<const char *>(data->value.data), data->value.arrayLength);
   }
-  if (obj->on_after_write_cb_) obj->on_after_write_cb_(obj);
+  if (obj->on_after_write_cb_) {
+    obj->on_after_write_cb_(obj);
+  }
   return UA_STATUSCODE_GOOD;
 }
 
@@ -193,7 +197,7 @@ inline void AddDataSourceVariable(UA_Server *server, const char *node_id, void *
   UA_Server_addDataSourceVariableNode(server, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), parent_node_id,
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
                                       UA_QUALIFIEDNAME(kNSindex, const_cast<char *>(node_id)), UA_NODEID_NULL, attr,
-                                      dataSource, node_context, NULL);
+                                      dataSource, node_context, nullptr);
 }
 
 template <typename MessageT>
@@ -229,14 +233,17 @@ inline UA_StatusCode ClientWrite(UA_Client *client, const char *node_id, Message
   return retval;
 }
 
-UA_StatusCode ClientWriteFile(UA_Client *, const char *, const boost::filesystem::path &,
-                              const std::size_t block_size = OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE);
+UA_StatusCode ClientWriteFile(UA_Client * /*client*/, const char * /*node_id*/,
+                              const boost::filesystem::path & /*file_path*/,
+                              std::size_t block_size = OPCUABRIDGE_FILEDATA_WRITE_BLOCK_SIZE);
 
 template <typename MessageT>
 inline UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id, MessageT *obj,
                                      const boost::filesystem::path &file_path) {
   UA_StatusCode retval = ClientWrite<MessageT>(client, node_id, obj);
-  if (retval == UA_STATUSCODE_GOOD) retval = ClientWriteFile(client, obj->bin_node_id_, file_path);
+  if (retval == UA_STATUSCODE_GOOD) {
+    retval = ClientWriteFile(client, obj->bin_node_id_, file_path);
+  }
   return retval;
 }
 
@@ -265,7 +272,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT
         client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
     if (retval == UA_STATUSCODE_GOOD && UA_Variant_hasArrayType(bin_val, &UA_TYPES[UA_TYPES_BYTE])) {
       bin_data->resize(bin_val->arrayLength);
-      const unsigned char *src = static_cast<const unsigned char *>(bin_val->data);
+      const auto *src = static_cast<const unsigned char *>(bin_val->data);
       std::copy(src, src + bin_val->arrayLength, bin_data->begin());
     }
     UA_Variant_delete(bin_val);
@@ -281,7 +288,9 @@ template <typename T>
 inline Json::Value jsonArray(const std::vector<T> &v) {
   Json::Value jsonArray;
   jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) jsonArray[i] = v[i].wrapMessage();
+  for (int i = 0; i < v.size(); ++i) {
+    jsonArray[i] = v[i].wrapMessage();
+  }
   return jsonArray;
 }
 
@@ -289,7 +298,9 @@ template <>
 inline Json::Value jsonArray<int>(const std::vector<int> &v) {
   Json::Value jsonArray;
   jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) jsonArray[i] = static_cast<Json::Value::Int>(v[i]);
+  for (int i = 0; i < v.size(); ++i) {
+    jsonArray[i] = static_cast<Json::Value::Int>(v[i]);
+  }
   return jsonArray;
 }
 
@@ -297,7 +308,9 @@ template <>
 inline Json::Value jsonArray<std::size_t>(const std::vector<std::size_t> &v) {
   Json::Value jsonArray;
   jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) jsonArray[i] = static_cast<Json::Value::UInt>(v[i]);
+  for (int i = 0; i < v.size(); ++i) {
+    jsonArray[i] = static_cast<Json::Value::UInt>(v[i]);
+  }
   return jsonArray;
 }
 
@@ -315,7 +328,10 @@ inline std::vector<T> stdVector(const Json::Value &v) {
 template <>
 inline std::vector<int> stdVector(const Json::Value &v) {
   std::vector<int> stdv;
-  for (int i = 0; i < v.size(); ++i) stdv.push_back(v[i].asInt());
+  stdv.reserve(v.size());
+  for (int i = 0; i < v.size(); ++i) {
+    stdv.push_back(v[i].asInt());
+  }
   return stdv;
 }
 

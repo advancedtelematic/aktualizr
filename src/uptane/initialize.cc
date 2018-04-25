@@ -14,7 +14,9 @@ namespace Uptane {
 bool Repository::initDeviceId(const ProvisionConfig& provision_config, const UptaneConfig& uptane_config) {
   // if device_id is already stored, just return
   std::string device_id;
-  if (storage->loadDeviceId(&device_id)) return true;
+  if (storage->loadDeviceId(&device_id)) {
+    return true;
+  }
 
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = uptane_config.device_id;
@@ -58,14 +60,16 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
   std::string primary_ecu_hardware_id = uptane_config.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
-    if (primary_ecu_hardware_id == "") return false;
+    if (primary_ecu_hardware_id == "") {
+      return false;
+    }
   }
 
-  ecu_serials.push_back(std::pair<std::string, std::string>(primary_ecu_serial_local, primary_ecu_hardware_id));
+  ecu_serials.emplace_back(primary_ecu_serial_local, primary_ecu_hardware_id);
 
   std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondary_info.begin(); it != secondary_info.end(); ++it) {
-    ecu_serials.push_back(std::pair<std::string, std::string>((*it)->getSerial(), (*it)->getHwId()));
+    ecu_serials.emplace_back((*it)->getSerial(), (*it)->getHwId());
   }
 
   storage->storeEcuSerials(ecu_serials);
@@ -79,7 +83,7 @@ void Repository::resetEcuSerials() {
 }
 
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
-bool Repository::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size(); }
+bool Repository::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size() != 0u; }
 
 void Repository::resetEcuKeys() { storage->clearPrimaryKeys(); }
 
@@ -91,7 +95,9 @@ bool Repository::loadSetTlsCreds() {
 
 // Postcondition: TLS credentials are in the storage
 InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
-  if (loadSetTlsCreds()) return INIT_RET_OK;
+  if (loadSetTlsCreds()) {
+    return INIT_RET_OK;
+  }
 
   if (provision_config.mode != kAutomatic) {
     LOG_ERROR << "Credentials not found";
@@ -118,10 +124,9 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
       LOG_ERROR << "Device id" << device_id << "is occupied";
       return INIT_RET_OCCUPIED;
-    } else {
-      LOG_ERROR << "Autoprovisioning failed, response: " << response.body;
-      return INIT_RET_SERVER_FAILURE;
     }
+    LOG_ERROR << "Autoprovisioning failed, response: " << response.body;
+    return INIT_RET_SERVER_FAILURE;
   }
 
   std::string pkey;
@@ -154,7 +159,9 @@ void Repository::resetTlsCreds() {
 
 // Postcondition: "ECUs registered" flag set in the storage
 InitRetCode Repository::initEcuRegister() {
-  if (storage->loadEcuRegistered()) return INIT_RET_OK;
+  if (storage->loadEcuRegistered()) {
+    return INIT_RET_OK;
+  }
 
   std::string primary_public = keys_.getUptanePublicKey();
 
@@ -198,10 +205,9 @@ InitRetCode Repository::initEcuRegister() {
         (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
       LOG_ERROR << "Some ECU is already registered";
       return INIT_RET_OCCUPIED;
-    } else {
-      LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
-      return INIT_RET_SERVER_FAILURE;
     }
+    LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
+    return INIT_RET_SERVER_FAILURE;
   }
   // do not call storage->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
@@ -224,7 +230,8 @@ bool Repository::initialize() {
       resetDeviceId();
       LOG_INFO << "Device name is already registered, restart";
       continue;
-    } else if (ret_code != INIT_RET_OK) {
+    }
+    if (ret_code != INIT_RET_OK) {
       LOG_ERROR << "Autoprovisioning failed, abort initialization";
       return false;
     }

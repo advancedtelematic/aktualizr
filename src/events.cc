@@ -1,4 +1,6 @@
 #include "events.h"
+
+#include <utility>
 namespace event {
 
 Json::Value BaseEvent::toBaseJson() {
@@ -8,7 +10,7 @@ Json::Value BaseEvent::toBaseJson() {
   return json;
 }
 
-Error::Error(const std::string& message_in) : message(message_in) { variant = "Error"; }
+Error::Error(std::string message_in) : message(std::move(message_in)) { variant = "Error"; }
 std::string Error::toJson() {
   Json::Value json = BaseEvent::toBaseJson();
   json["fields"].append(message);
@@ -22,7 +24,7 @@ Error Error::fromJson(const std::string& json_str) {
   return Error(json["fields"][0].asString());
 }
 
-UpdateAvailable::UpdateAvailable(const data::UpdateAvailable& ua_in) : update_vailable(ua_in) {
+UpdateAvailable::UpdateAvailable(data::UpdateAvailable ua_in) : update_vailable(std::move(ua_in)) {
   variant = "UpdateAvailable";
 }
 
@@ -39,7 +41,7 @@ UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
   return UpdateAvailable(data::UpdateAvailable::fromJson(Json::FastWriter().write(json["fields"][0])));
 }
 
-DownloadComplete::DownloadComplete(const data::DownloadComplete& dc_in) : download_complete(dc_in) {
+DownloadComplete::DownloadComplete(data::DownloadComplete dc_in) : download_complete(std::move(dc_in)) {
   variant = "DownloadComplete";
 }
 
@@ -64,7 +66,7 @@ UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpd
 
 std::string UptaneTimestampUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
 
-UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in) : packages(packages_in) {
+UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in) : packages(std::move(packages_in)) {
   variant = "UptaneTargetsUpdated";
 }
 

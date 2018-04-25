@@ -18,4 +18,4 @@ void IpUptaneConnectionSplitter::registerSecondary(Uptane::IpUptaneSecondary& se
   sec.connect(this);
 }
 
-void IpUptaneConnectionSplitter::send(std::shared_ptr<SecondaryPacket> pack) { connection.out_channel_ << pack; }
+void IpUptaneConnectionSplitter::send(const std::shared_ptr<SecondaryPacket>& pack) { connection.out_channel_ << pack; }

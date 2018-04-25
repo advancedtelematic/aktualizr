@@ -23,7 +23,7 @@ class KeyManager {
   // std::string RSAPSSSign(const std::string &message);
   // Contains the logic from HttpClient::setCerts()
   void copyCertsToCurl(HttpInterface *http);
-  KeyManager(const std::shared_ptr<INvStorage> &backend, const KeyManagerConfig &config);
+  KeyManager(const std::shared_ptr<INvStorage> &backend, KeyManagerConfig config);
   void loadKeys(const std::string *pkey_content = nullptr, const std::string *cert_content = nullptr,
                 const std::string *ca_content = nullptr);
   std::string getPkeyFile() const;
@@ -33,7 +33,7 @@ class KeyManager {
   std::string getCert() const;
   std::string getCa() const;
   std::string getCN() const;
-  bool isOk() const { return (getPkey().size() && getCert().size() && getCa().size()); }
+  bool isOk() const { return ((getPkey().size() != 0u) && (getCert().size() != 0u) && (getCa().size() != 0u)); }
   std::string generateUptaneKeyPair();
   std::string getUptanePublicKey() const;
   Json::Value signTuf(const Json::Value &in_data) const;

@@ -24,18 +24,20 @@ ServerModel::ServerModel(UA_Server* server) {
 }
 
 Server::Server(ServerDelegate* delegate, uint16_t port) : delegate_(delegate) {
-  server_config_ = UA_ServerConfig_new_minimal(port, NULL);
+  server_config_ = UA_ServerConfig_new_minimal(port, nullptr);
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
   server_ = UA_Server_new(server_config_);
 
   initializeModel();
 
-  if (delegate_) delegate_->handleServerInitialized(model_);
+  if (delegate_ != nullptr) {
+    delegate_->handleServerInitialized(model_);
+  }
 }
 
 Server::Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd, uint16_t port) : delegate_(delegate) {
-  server_config_ = UA_ServerConfig_new_minimal(port, NULL);
+  server_config_ = UA_ServerConfig_new_minimal(port, nullptr);
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
   server_config_->networkLayers[0].deleteMembers(&server_config_->networkLayers[0]);
@@ -49,7 +51,9 @@ Server::Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd,
 
   initializeModel();
 
-  if (delegate_) delegate_->handleServerInitialized(model_);
+  if (delegate_ != nullptr) {
+    delegate_->handleServerInitialized(model_);
+  }
 }
 
 void Server::initializeModel() {
@@ -74,12 +78,13 @@ bool Server::run(volatile bool* running) {
   boost::scoped_thread<boost::interrupt_and_join_if_joinable> discovery(
       [](bool use_socket_activation, int socket_fd, volatile bool* server_running, ServerDelegate* delegate) {
         std::unique_ptr<discovery::Server> discovery_server;
-        if (use_socket_activation)
+        if (use_socket_activation) {
           discovery_server = boost::make_unique<discovery::Server>(delegate->getServiceType(), socket_fd,
                                                                    delegate->getDiscoveryPort());
-        else
+        } else {
           discovery_server =
               boost::make_unique<discovery::Server>(delegate->getServiceType(), delegate->getDiscoveryPort());
+        }
         discovery_server->run(server_running);
       },
       use_socket_activation_, discovery_socket_fd_, running, delegate_);
@@ -87,28 +92,37 @@ bool Server::run(volatile bool* running) {
 }
 
 void Server::onVersionReportRequested(VersionReport* version_report) {
-  if (delegate_) delegate_->handleVersionReportRequested(model_);
+  if (delegate_ != nullptr) {
+    delegate_->handleVersionReportRequested(model_);
+  }
 }
 
 void Server::onOriginalManifestRequested(OriginalManifest* version_report) {
-  if (delegate_) delegate_->handleOriginalManifestRequested(model_);
+  if (delegate_ != nullptr) {
+    delegate_->handleOriginalManifestRequested(model_);
+  }
 }
 
 void Server::onFileListRequested(FileList* file_list) {
-  if (delegate_) delegate_->handleDirectoryFileListRequested(model_);
+  if (delegate_ != nullptr) {
+    delegate_->handleDirectoryFileListRequested(model_);
+  }
 }
 
 void Server::onFileListUpdated(FileList* file_list) {
-  if (!file_list->getBlock().empty() && file_list->getBlock()[0] == '\0' && delegate_)
+  if (!file_list->getBlock().empty() && file_list->getBlock()[0] == '\0' && (delegate_ != nullptr)) {
     delegate_->handleDirectoryFilesSynchronized(model_);
+  }
 }
 
 void Server::countReceivedMetadataFile(MetadataFile* metadata_file) {
   if (model_->metadatafiles_.getGUID() == metadata_file->getGUID()) {
     ++model_->received_metadata_files_;
-    if (delegate_) delegate_->handleMetaDataFileReceived(model_);
+    if (delegate_ != nullptr) {
+      delegate_->handleMetaDataFileReceived(model_);
+    }
   }
-  if (model_->metadatafiles_.getNumberOfMetadataFiles() == model_->received_metadata_files_ && delegate_) {
+  if (model_->metadatafiles_.getNumberOfMetadataFiles() == model_->received_metadata_files_ && (delegate_ != nullptr)) {
     model_->received_metadata_files_ = 0;
     delegate_->handleAllMetaDataFilesReceived(model_);
   }

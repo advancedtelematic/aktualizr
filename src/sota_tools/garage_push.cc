@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
   string ref;
   int max_curl_requests;
 
-  boost::filesystem::path credentials_path;
   string home_path = string(getenv("HOME"));
   string cacerts;
+  boost::filesystem::path credentials_path(home_path + "/.sota_tools.json");
 
   int verbosity;
   bool dry_run = false;
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     ("quiet,q", "Quiet mode")
     ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->default_value(home_path + "/.sota_tools.json"), "credentials (json or zip containing json)")
+    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload");
@@ -43,9 +43,9 @@ int main(int argc, char **argv) {
   po::variables_map vm;
 
   try {
-    po::store(po::parse_command_line(argc, (const char *const *)argv, desc), vm);
+    po::store(po::parse_command_line(argc, reinterpret_cast<const char *const *>(argv), desc), vm);
 
-    if (vm.count("help")) {
+    if (vm.count("help") != 0u) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   // Configure logging
   if (verbosity == 0) {
     // 'verbose' trumps 'quiet'
-    if ((int)vm.count("quiet")) {
+    if (static_cast<int>(vm.count("quiet")) != 0) {
       logger_set_threshold(boost::log::trivial::warning);
     } else {
       logger_set_threshold(boost::log::trivial::info);
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (vm.count("dry-run")) {
+  if (vm.count("dry-run") != 0u) {
     dry_run = true;
   }
 

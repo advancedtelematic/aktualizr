@@ -1,6 +1,8 @@
 #ifndef OPCUABRIDGE_ORIGINALMANIFEST_H_
 #define OPCUABRIDGE_ORIGINALMANIFEST_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
@@ -8,8 +10,8 @@ class OriginalManifest {
  public:
   typedef BinaryDataType block_type;
 
-  OriginalManifest() {}
-  virtual ~OriginalManifest() {}
+  OriginalManifest() = default;
+  virtual ~OriginalManifest() = default;
 
   block_type& getBlock() { return block_; }
   const block_type& getBlock() const { return block_; }
@@ -18,8 +20,12 @@ class OriginalManifest {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&block_)                           // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&block_)                          // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<OriginalManifest>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<OriginalManifest>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<OriginalManifest>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<OriginalManifest>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
   block_type block_;
@@ -35,7 +41,7 @@ class OriginalManifest {
     Json::Value v;
     return v;
   }
-  void unwrapMessage(Json::Value v) {}
+  void unwrapMessage(const Json::Value& v) {}
 
   WRAPMESSAGE_FUCTION_DEFINITION(OriginalManifest)
   UNWRAPMESSAGE_FUCTION_DEFINITION(OriginalManifest)

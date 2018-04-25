@@ -6,8 +6,8 @@
 namespace opcuabridge {
 class Signed {
  public:
-  Signed() {}
-  virtual ~Signed() {}
+  Signed() = default;
+  virtual ~Signed() = default;
 
   const std::vector<int>& getTokens() const { return tokens_; }
   void setTokens(const std::vector<int>& tokens) { tokens_ = tokens; }
@@ -27,7 +27,7 @@ class Signed {
 
  protected:
   std::vector<int> tokens_;
-  int timestamp_;
+  int timestamp_{};
 
  private:
 #ifdef OPCUABRIDGE_ENABLE_SERIALIZATION

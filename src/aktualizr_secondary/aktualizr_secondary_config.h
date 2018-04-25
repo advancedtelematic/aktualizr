@@ -28,9 +28,9 @@ struct AktualizrSecondaryUptaneConfig {
 
 class AktualizrSecondaryConfig {
  public:
-  AktualizrSecondaryConfig() {}
+  AktualizrSecondaryConfig() = default;
   AktualizrSecondaryConfig(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
-  AktualizrSecondaryConfig(const boost::filesystem::path& filename);
+  explicit AktualizrSecondaryConfig(const boost::filesystem::path& filename);
 
   KeyManagerConfig keymanagerConfig() const;
 

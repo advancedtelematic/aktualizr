@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#include <utility>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -14,35 +15,35 @@
 #define HW_ID_DID 0x0001
 #define ECU_SERIAL_DID 0x0002
 
-TestIsotpInterface::TestIsotpInterface(const unsigned int loglevel, uint32_t canid, const std::string& canif)
-    : loglevel_(loglevel), canId(canid), canIface(canif) {
+TestIsotpInterface::TestIsotpInterface(const unsigned int loglevel, uint32_t canid, std::string canif)
+    : loglevel_(loglevel), canId(canid), canIface(std::move(canif)) {
   can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 
   if (can_socket < -1) {
     throw std::runtime_error("Unable to open socket");
   }
 
-  struct can_filter filter;
+  struct can_filter filter {};
   filter.can_id = canId & 0x1F;
   filter.can_mask = 0x1F;
   setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
 
-  struct ifreq ifr;
-  strncpy(ifr.ifr_name, canIface.c_str(), IFNAMSIZ);
+  struct ifreq ifr {};
+  strncpy(ifr.ifr_name, canIface.c_str(), IFNAMSIZ);  // NOLINT
 
-  if (ioctl(can_socket, SIOCGIFINDEX, &ifr)) {
+  if (ioctl(can_socket, SIOCGIFINDEX, &ifr) != 0) {
     throw std::runtime_error("Unable to get interface index");
   }
 
-  struct sockaddr_can addr;
+  struct sockaddr_can addr {};
   addr.can_family = AF_CAN;
-  addr.can_ifindex = ifr.ifr_ifindex;
+  addr.can_ifindex = ifr.ifr_ifindex;  // NOLINT
 
-  if (bind(can_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+  if (bind(can_socket, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
     throw std::runtime_error("Unable to bind socket");
   }
 
-  isotp_shims = isotp_init_shims(NULL, isoTpSend, NULL, this);
+  isotp_shims = isotp_init_shims(nullptr, isoTpSend, nullptr, this);
 
   populateEcus();
 }
@@ -64,7 +65,7 @@ std::string TestIsotpInterface::listEcus() {
   for (it = ecus.begin(); it != ecus.end(); ++it) {
     const std::string& hw_id = it->first.first;
     const std::string& ecu_serial = it->first.second;
-    res += hw_id + "\t" + ecu_serial + "\n";
+    res += ((hw_id + "\t") += ecu_serial) += "\n";
   }
 
   return res;
@@ -152,12 +153,14 @@ TestIsotpInterface::InstallStatus TestIsotpInterface::installSoftware(const std:
     return InstallFailureModified;
   }
   uint32_t block_size = 0;
-  for (int i = 0; i < ((resp[1] >> 4) & 0x0f); i++) {
+  for (uint8_t i = 0; i < ((resp[1] >> 4) & 0x0f); i++) {
     block_size |= resp[2 + i];
     block_size <<= 8;
   }
 
-  if (block_size > kMaxBlockSize) block_size = kMaxBlockSize;
+  if (block_size > kMaxBlockSize) {
+    block_size = kMaxBlockSize;
+  }
 
   uint8_t seqn = 1;
 
@@ -168,7 +171,9 @@ TestIsotpInterface::InstallStatus TestIsotpInterface::installSoftware(const std:
 
     int len = (size - i >= block_size) ? block_size : size - i;
 
-    for (int j = 0; j < len; j++) payload.push_back(firmware_content[i + j]);
+    for (int j = 0; j < len; j++) {
+      payload.push_back(firmware_content[i + j]);
+    }
 
     if (!sendRecvUds(payload, &resp, canId, id, &timeout) || resp.empty()) {
       std::cerr << "TransferData failed" << std::endl;
@@ -197,19 +202,23 @@ uint16_t TestIsotpInterface::makeCanAf(uint16_t sa, uint16_t ta) { return ((sa <
 
 bool TestIsotpInterface::isoTpSend(const uint32_t arbitration_id, const uint8_t* data, const uint8_t size,
                                    void* private_data) {
-  TestIsotpInterface* instance = static_cast<TestIsotpInterface*>(private_data);
+  auto* instance = static_cast<TestIsotpInterface*>(private_data);
 
-  if (!instance || size > 8) return false;
+  if ((instance == nullptr) || size > 8) {
+    return false;
+  }
 
   if (instance->loglevel_ == 4) {
     std::cerr << "Sending CAN message AF: 0x" << std::hex << arbitration_id << "; Data:";
-    for (int i = 0; i < size; i++) std::cerr << " " << std::hex << (int)data[i];
+    for (int i = 0; i < size; i++) {
+      std::cerr << " " << std::hex << static_cast<int>(data[i]);
+    }
     std::cerr << std::endl;
   }
 
   int can_socket = instance->can_socket;
 
-  struct can_frame frame;
+  struct can_frame frame {};
 
   frame.can_id = arbitration_id;
   frame.can_dlc = size;
@@ -219,7 +228,8 @@ bool TestIsotpInterface::isoTpSend(const uint32_t arbitration_id, const uint8_t*
   if (res < 0) {
     std::cerr << "CAN write error: " << strerror(errno) << std::endl;
     return false;
-  } else if (res != sizeof(frame)) {
+  }
+  if (res != sizeof(frame)) {
     std::cerr << "CAN write error: " << res << " bytes of " << sizeof(frame) << " were sent" << std::endl;
     return false;
   }
@@ -228,25 +238,28 @@ bool TestIsotpInterface::isoTpSend(const uint32_t arbitration_id, const uint8_t*
 
 bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, uint16_t sa, uint16_t ta,
                                      struct timeval* to) {
-  if (out.empty()) return false;
+  if (out.empty()) {
+    return false;
+  }
 
-  IsoTpMessage message = isotp_new_send_message(makeCanAf(sa, ta), (const uint8_t*)out.c_str(), out.length());
-  IsoTpSendHandle send_handle = isotp_send(&isotp_shims, &message, NULL);
+  IsoTpMessage message =
+      isotp_new_send_message(makeCanAf(sa, ta), reinterpret_cast<const uint8_t*>(out.c_str()), out.length());
+  IsoTpSendHandle send_handle = isotp_send(&isotp_shims, &message, nullptr);
   if (send_handle.completed) {
     if (!send_handle.success) {
       std::cerr << "Message send failed" << std::endl;
       return false;
     }
   } else {
-    while (1) {
+    while (true) {
       fd_set read_set;
       FD_ZERO(&read_set);
       FD_SET(can_socket, &read_set);
 
       struct timeval timeout = *to;
-      if (select((can_socket + 1), &read_set, NULL, NULL, &timeout) >= 0) {
+      if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
         if (FD_ISSET(can_socket, &read_set)) {
-          struct can_frame f;
+          struct can_frame f {};
           int ret = read(can_socket, &f, sizeof(f));
           if (ret < 0) {
             std::cerr << "Error receiving CAN frame" << std::endl;
@@ -268,10 +281,9 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
             if (send_handle.completed) {
               if (send_handle.success) {
                 break;  // proceed to waiting for response
-              } else {
-                std::cerr << "IsoTp send failed" << std::endl;
-                return false;
               }
+              std::cerr << "IsoTp send failed" << std::endl;
+              return false;
             }
           }
 
@@ -292,17 +304,17 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
     }
   }
 
-  IsoTpReceiveHandle recv_handle = isotp_receive(&isotp_shims, makeCanAf(ta, sa), NULL);
+  IsoTpReceiveHandle recv_handle = isotp_receive(&isotp_shims, makeCanAf(ta, sa), nullptr);
 
-  while (1) {
+  while (true) {
     fd_set read_set;
     FD_ZERO(&read_set);
     FD_SET(can_socket, &read_set);
 
     struct timeval timeout = *to;
-    if (select((can_socket + 1), &read_set, NULL, NULL, &timeout) >= 0) {
+    if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
       if (FD_ISSET(can_socket, &read_set)) {
-        struct can_frame f;
+        struct can_frame f {};
         int ret = read(can_socket, &f, sizeof(f));
         if (ret < 0) {
           std::cerr << "Error receiving CAN frame" << std::endl;
@@ -315,7 +327,7 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
             std::cerr << "IsoTp receiving error" << std::endl;
             return false;
           }
-          *in = std::string((const char*)message.payload, (size_t)message.size);
+          *in = std::string(reinterpret_cast<const char*>(message.payload), static_cast<size_t>(message.size));
           return true;
         }
       } else {
@@ -341,13 +353,14 @@ void TestIsotpInterface::populateEcus() {
   for (uint8_t id = 0x01; id <= 0x1f; id++) {
     std::string resp;
     std::string hwid;
-    if (!sendRecvUds(std::string((const char*)payload_hwid, (size_t)3), &resp, canId, id, &timeout)) {
-      std::cerr << "Error sending request for HW ID for id " << (int)id << std::endl;
+    if (!sendRecvUds(std::string(reinterpret_cast<const char*>(payload_hwid), static_cast<size_t>(3)), &resp, canId, id,
+                     &timeout)) {
+      std::cerr << "Error sending request for HW ID for id " << static_cast<int>(id) << std::endl;
       continue;
     }
     if (resp.empty()) {  // timeout
       if (loglevel_ == 4) {
-        std::cerr << "Request for HW ID for id " << (int)id << " timed out" << std::endl;
+        std::cerr << "Request for HW ID for id " << static_cast<int>(id) << " timed out" << std::endl;
       }
       continue;
     }
@@ -358,7 +371,8 @@ void TestIsotpInterface::populateEcus() {
     }
 
     if (resp[0] != 0x62) {
-      std::cerr << "Invalid response id " << (int)resp[0] << " when " << (int)0x62 << " was expected" << std::endl;
+      std::cerr << "Invalid response id " << static_cast<int>(resp[0]) << " when " << 0x62 << " was expected"
+                << std::endl;
       continue;
     }
 
@@ -369,14 +383,15 @@ void TestIsotpInterface::populateEcus() {
     }
 
     hwid = resp.substr(3);
-    if (!sendRecvUds(std::string((const char*)payload_serial, (size_t)3), &resp, canId, id, &timeout)) {
-      std::cerr << "Error sending request for ECU serial for id " << (int)id << std::endl;
+    if (!sendRecvUds(std::string(reinterpret_cast<const char*>(payload_serial), static_cast<size_t>(3)), &resp, canId,
+                     id, &timeout)) {
+      std::cerr << "Error sending request for ECU serial for id " << static_cast<int>(id) << std::endl;
       continue;
     }
 
     if (resp.empty()) {  // timeout
       if (loglevel_ == 4) {
-        std::cerr << "Request for HW ID for id " << (int)id << " timed out" << std::endl;
+        std::cerr << "Request for HW ID for id " << static_cast<int>(id) << " timed out" << std::endl;
       }
       continue;
     }
@@ -387,7 +402,8 @@ void TestIsotpInterface::populateEcus() {
     }
 
     if (resp[0] != 0x62) {
-      std::cerr << "Invalid response id " << (int)resp[0] << " when " << (int)0x62 << " was expected" << std::endl;
+      std::cerr << "Invalid response id " << static_cast<int>(resp[0]) << " when " << 0x62 << " was expected"
+                << std::endl;
       continue;
     }
 

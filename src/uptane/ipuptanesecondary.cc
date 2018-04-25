@@ -1,5 +1,7 @@
 #include "ipuptanesecondary.h"
 
+#include <memory>
+
 namespace Uptane {
 
 bool IpUptaneSecondary::sendRecv(std::unique_ptr<SecondaryMessage> mes, std::shared_ptr<SecondaryPacket>& resp,
@@ -16,12 +18,12 @@ bool IpUptaneSecondary::sendRecv(std::unique_ptr<SecondaryMessage> mes, std::sha
 std::pair<KeyType, std::string> IpUptaneSecondary::getPublicKey() {
   std::shared_ptr<SecondaryPacket> resp;
 
-  if (!sendRecv(std::unique_ptr<SecondaryPublicKeyReq>(new SecondaryPublicKeyReq{}), resp) ||
+  if (!sendRecv(std_::make_unique<SecondaryPublicKeyReq>(), resp) ||
       (resp->msg->mes_type != kSecondaryMesPublicKeyRespTag)) {
     return std::make_pair(kUnknownKey, "");
   }
 
-  SecondaryPublicKeyResp& pkey_resp = dynamic_cast<SecondaryPublicKeyResp&>(*resp->msg);
+  auto& pkey_resp = dynamic_cast<SecondaryPublicKeyResp&>(*resp->msg);
 
   return std::make_pair(pkey_resp.type, pkey_resp.key);
 }
@@ -50,7 +52,9 @@ int32_t IpUptaneSecondary::getRootVersion(const bool director) {
 
   std::shared_ptr<SecondaryPacket> resp;
 
-  if (!sendRecv(std::move(req), resp) || (resp->msg->mes_type != kSecondaryMesRootVersionRespTag)) return -1;
+  if (!sendRecv(std::move(req), resp) || (resp->msg->mes_type != kSecondaryMesRootVersionRespTag)) {
+    return -1;
+  }
 
   return dynamic_cast<SecondaryRootVersionResp&>(*resp->msg).version;
 }
@@ -79,13 +83,16 @@ bool IpUptaneSecondary::sendFirmware(const std::string& data) {
 Json::Value IpUptaneSecondary::getManifest() {
   std::shared_ptr<SecondaryPacket> resp;
 
-  if (!sendRecv(std::unique_ptr<SecondaryManifestReq>(new SecondaryManifestReq{}), resp) ||
-      (resp->msg->mes_type != kSecondaryMesManifestRespTag))
+  if (!sendRecv(std_::make_unique<SecondaryManifestReq>(), resp) ||
+      (resp->msg->mes_type != kSecondaryMesManifestRespTag)) {
     return Json::Value();
+  }
 
-  SecondaryManifestResp& man_resp = dynamic_cast<SecondaryManifestResp&>(*resp->msg);
+  auto& man_resp = dynamic_cast<SecondaryManifestResp&>(*resp->msg);
 
-  if (man_resp.format != kSerializationJson) return Json::Value();
+  if (man_resp.format != kSerializationJson) {
+    return Json::Value();
+  }
 
   return Utils::parseJSON(man_resp.manifest);
 }

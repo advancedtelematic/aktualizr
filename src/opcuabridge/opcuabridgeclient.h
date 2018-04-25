@@ -10,18 +10,18 @@ struct UA_Client;
 namespace boost {
 namespace filesystem {
 class path;
-}
+}  // namespace filesystem
 }  // namespace boost
 
 namespace Uptane {
 class SecondaryConfig;
-}
+}  // namespace Uptane
 
 namespace opcuabridge {
 
 class SelectEndPoint {
  public:
-  explicit SelectEndPoint(const Uptane::SecondaryConfig&);
+  explicit SelectEndPoint(const Uptane::SecondaryConfig& /*sconfig*/);
 
   const std::string& getUrl() const { return url_; }
 
@@ -49,7 +49,7 @@ class SelectEndPoint {
                              DiscoveredEndPointCacheEntryEqual>
       DiscoveredEndPointCache;
 
-  bool endPointConfirmed(const std::string& opcua_server_url, const Uptane::SecondaryConfig&) const;
+  bool endPointConfirmed(const std::string& opcua_server_url, const Uptane::SecondaryConfig& /*sconfig*/) const;
   std::string makeOpcuaServerUri(const std::string& address) const;
   void considerLdsRegisteredEndPoints(const std::string& opcua_lds_url);
 
@@ -60,20 +60,20 @@ class SelectEndPoint {
 
 class Client {
  public:
-  explicit Client(const SelectEndPoint&) noexcept;
+  explicit Client(const SelectEndPoint& /*selector*/) noexcept;
   explicit Client(const std::string& url) noexcept;
   ~Client();
 
   Client(const Client&) = delete;
   Client& operator=(const Client&) = delete;
 
-  operator bool() const;
+  explicit operator bool() const;
 
   Configuration recvConfiguration() const;
   VersionReport recvVersionReport() const;
   OriginalManifest recvOriginalManifest() const;
-  bool sendMetadataFiles(std::vector<MetadataFile>&) const;
-  bool syncDirectoryFiles(const boost::filesystem::path&) const;
+  bool sendMetadataFiles(std::vector<MetadataFile>& /*files*/) const;
+  bool syncDirectoryFiles(const boost::filesystem::path& /*repo_dir*/) const;
 
  private:
   UA_Client* client_;

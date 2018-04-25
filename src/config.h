@@ -76,7 +76,7 @@ struct ProvisionConfig {
 
 struct UptaneConfig {
   bool polling{true};
-  unsigned long long polling_sec{10u};
+  uint64_t polling_sec{10u};
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
@@ -103,8 +103,8 @@ class Config {
  public:
   Config();
   Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
-  Config(const boost::filesystem::path& filename);
-  Config(const std::vector<boost::filesystem::path>& config_dirs) {
+  explicit Config(const boost::filesystem::path& filename);
+  explicit Config(const std::vector<boost::filesystem::path>& config_dirs) {
     config_dirs_ = config_dirs;
     updateFromDirs();
   }

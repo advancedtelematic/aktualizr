@@ -96,4 +96,4 @@ bool PartialVerificationSecondary::loadKeys(std::string *public_key, std::string
   *public_key = Utils::readFile(public_key_path.string());
   return true;
 }
-};
+}  // namespace Uptane

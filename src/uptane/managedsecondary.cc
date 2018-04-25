@@ -50,16 +50,18 @@ bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
     }
   }
 
-  if (!target_found) detected_attack = "No update for this ECU";
+  if (!target_found) {
+    detected_attack = "No update for this ECU";
+  }
 
   return true;
 }
 
 int ManagedSecondary::getRootVersion(const bool director) {
-  if (director)
+  if (director) {
     return current_meta.director_root.version();
-  else
-    return current_meta.image_root.version();
+  }
+  return current_meta.image_root.version();
 }
 
 bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
@@ -79,8 +81,12 @@ bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
 }
 
 bool ManagedSecondary::sendFirmware(const std::string &data) {
-  if (expected_target_name.empty()) return true;
-  if (!detected_attack.empty()) return true;
+  if (expected_target_name.empty()) {
+    return true;
+  }
+  if (!detected_attack.empty()) {
+    return true;
+  }
 
   if (data.size() > expected_target_length) {
     detected_attack = "overflow";
@@ -132,7 +138,7 @@ Json::Value ManagedSecondary::getManifest() {
 
   Json::Value signed_ecu_version;
 
-  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(NULL, private_key, Json::FastWriter().write(manifest)));
+  std::string b64sig = Utils::toBase64(Crypto::RSAPSSSign(nullptr, private_key, Json::FastWriter().write(manifest)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;

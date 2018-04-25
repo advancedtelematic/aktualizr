@@ -2,6 +2,7 @@
 #define DEB_H_
 
 #include <string>
+#include <utility>
 
 #include "config.h"
 #include "package_manager/packagemanagerinterface.h"
@@ -11,8 +12,8 @@
 
 class DebianManager : public PackageManagerInterface {
  public:
-  DebianManager(const PackageConfig &pconfig, const std::shared_ptr<INvStorage> &storage)
-      : config_(pconfig), storage_(storage) {}
+  DebianManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage)
+      : config_(std::move(pconfig)), storage_(std::move(storage)) {}
   std::string name() override { return "debian"; }
   Json::Value getInstalledPackages() override;
   Uptane::Target getCurrent() override;

@@ -75,9 +75,9 @@ UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessi
                                        const UA_NodeId *nodeId, void *nodeContext, const UA_NumericRange *range,
                                        const UA_DataValue *data) {
   if (!UA_Variant_isEmpty(&data->value) && UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    BinaryDataType *bin_data = static_cast<BinaryDataType *>(nodeContext);
+    auto *bin_data = static_cast<BinaryDataType *>(nodeContext);
     bin_data->resize(data->value.arrayLength);
-    const unsigned char *src = static_cast<const unsigned char *>(data->value.data);
+    const auto *src = static_cast<const unsigned char *>(data->value.data);
     std::copy(src, src + data->value.arrayLength, bin_data->begin());
   }
   return UA_STATUSCODE_GOOD;
@@ -95,7 +95,7 @@ UA_StatusCode write<MessageFileData>(UA_Server *server, const UA_NodeId *session
                                      const UA_NodeId *nodeId, void *nodeContext, const UA_NumericRange *range,
                                      const UA_DataValue *data) {
   if (!UA_Variant_isEmpty(&data->value) && UA_Variant_hasArrayType(&data->value, &UA_TYPES[UA_TYPES_BYTE])) {
-    MessageFileData *mfd = static_cast<MessageFileData *>(nodeContext);
+    auto *mfd = static_cast<MessageFileData *>(nodeContext);
 
     fs::path full_file_path = mfd->getFullFilePath();
     if (!fs::exists(full_file_path)) {
@@ -131,7 +131,9 @@ UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id, const boos
     UA_Variant_setArray(val, const_cast<char *>(&(*f_it)), current_block_size, &UA_TYPES[UA_TYPES_BYTE]);
     val->storageType = UA_VARIANT_DATA_NODELETE;
     retval = UA_Client_writeValueAttribute(client, UA_NODEID_STRING(kNSindex, const_cast<char *>(node_id)), val);
-    if (retval != UA_STATUSCODE_GOOD) return retval;
+    if (retval != UA_STATUSCODE_GOOD) {
+      return retval;
+    }
     std::advance(f_it, current_block_size);
     written_size += current_block_size;
   }

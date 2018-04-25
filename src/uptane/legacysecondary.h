@@ -9,7 +9,7 @@
 namespace Uptane {
 class LegacySecondary : public ManagedSecondary {
  public:
-  LegacySecondary(const SecondaryConfig& sconfig_in);
+  explicit LegacySecondary(const SecondaryConfig& sconfig_in);
 
  private:
   bool storeFirmware(const std::string& target_name, const std::string& content) override;

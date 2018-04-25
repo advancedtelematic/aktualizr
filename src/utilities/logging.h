@@ -24,7 +24,7 @@
 
 // Use like:
 // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-long get_curlopt_verbose();
+int64_t get_curlopt_verbose();
 
 void logger_init();
 

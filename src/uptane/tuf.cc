@@ -6,13 +6,13 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <utility>
 
 #include "exceptions.h"
 #include "logging.h"
 #include "utilities/crypto.h"
 
 using Uptane::Hash;
-using Uptane::Role;
 using Uptane::Root;
 using Uptane::Target;
 using Uptane::TimeStamp;
@@ -29,7 +29,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Version &v) {
 
 TimeStamp TimeStamp::Now() {
   time_t raw_time;
-  struct tm time_struct;
+  struct tm time_struct {};
   time(&raw_time);
   gmtime_r(&raw_time, &time_struct);
   char formatted[22];
@@ -40,9 +40,8 @@ TimeStamp TimeStamp::Now() {
 TimeStamp::TimeStamp(std::string rfc3339) {
   if (rfc3339.length() != 20 || rfc3339[19] != 'Z') {
     throw Uptane::InvalidMetadata("", "", "Invalid timestamp");
-  } else {
-    time_ = rfc3339;
   }
+  time_ = rfc3339;
 }
 
 bool TimeStamp::IsValid() const { return time_.length() != 0; }
@@ -98,12 +97,16 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   return os;
 }
 
-Target::Target(const std::string &filename, const Json::Value &content) : filename_(filename), ecu_identifier_("") {
+Target::Target(std::string filename, const Json::Value &content) : filename_(std::move(filename)), ecu_identifier_("") {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
     // TODO: Hardware identifier?
-    if (custom.isMember("ecuIdentifier")) ecu_identifier_ = custom["ecuIdentifier"].asString();
-    if (custom.isMember("targetFormat")) type_ = custom["targetFormat"].asString();
+    if (custom.isMember("ecuIdentifier")) {
+      ecu_identifier_ = custom["ecuIdentifier"].asString();
+    }
+    if (custom.isMember("targetFormat")) {
+      type_ = custom["targetFormat"].asString();
+    }
   }
 
   length_ = content["length"].asInt64();
@@ -126,7 +129,7 @@ Json::Value Uptane::Target::toJson() const {
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
     res["hashes"][it->TypeString()] = it->HashString();
   }
-  res["length"] = Json::Value((Json::Value::Int64)length_);
+  res["length"] = Json::Value(static_cast<Json::Value::Int64>(length_));
   return res;
 }
 
@@ -147,7 +150,7 @@ std::string Target::sha256Hash() const {
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
   os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length();
   os << " hashes: (";
-  for (std::vector<Hash>::const_iterator it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
+  for (auto it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
     os << *it << ", ";
   }
   os << "))";
@@ -177,8 +180,9 @@ Uptane::BaseMeta::BaseMeta(const TimeStamp &now, const std::string &repository, 
 }
 
 void Uptane::Targets::init(const Json::Value &json) {
-  if (!json.isObject() || json["signed"]["_type"] != "Targets")
+  if (!json.isObject() || json["signed"]["_type"] != "Targets") {
     throw Uptane::InvalidMetadata("", "targets", "invalid targets.json");
+  }
 
   Json::Value target_list = json["signed"]["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
@@ -213,12 +217,14 @@ Json::Value Uptane::TimestampMeta::toJson() const {
 }
 
 void Uptane::Snapshot::init(const Json::Value &json) {
-  if (!json.isObject() || json["signed"]["_type"] != "Snapshot")
+  if (!json.isObject() || json["signed"]["_type"] != "Snapshot") {
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
+  }
 
   Json::Value meta_list = json["signed"]["meta"];
-  for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++)
+  for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++) {
     versions[m_it.key().asString()] = (*m_it)["version"].asInt();
+  }
 }
 
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }

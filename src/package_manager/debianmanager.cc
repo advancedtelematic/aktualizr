@@ -10,7 +10,7 @@
 
 Json::Value DebianManager::getInstalledPackages() {
   Json::Value packages(Json::arrayValue);
-  struct pkg_array array;
+  struct pkg_array array {};
   dpkg_program_init("a.out");
   modstatdb_open(msdbrw_available_readonly);
 
@@ -43,10 +43,9 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
     LOG_INFO << "... Installation of Debian package successful";
     storage_->saveInstalledVersion(target);
     return data::InstallOutcome(data::OK, "Installing debian package was successful");
-  } else {
-    LOG_ERROR << "... Installation of Debian package failed";
-    return data::InstallOutcome(data::INSTALL_FAILED, output);
   }
+  LOG_ERROR << "... Installation of Debian package failed";
+  return data::InstallOutcome(data::INSTALL_FAILED, output);
 }
 
 Uptane::Target DebianManager::getCurrent() {

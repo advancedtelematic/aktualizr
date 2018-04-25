@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <boost/scoped_array.hpp>
+#include <utility>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -12,21 +13,18 @@
 #include "utilities/utils.h"
 
 FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
-  struct stat st;
+  struct stat st {};
   stat(config_.path.c_str(), &st);
   if ((st.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
     throw std::runtime_error("Storage directory has unsafe permissions");
-  } else if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
+  }
+  if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
     // Remove read permissions for group and others
     chmod(config_.path.c_str(), S_IRWXU);
   }
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
   boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
   boost::filesystem::create_directories(config_.path / "targets");
-}
-
-FSStorage::~FSStorage() {
-  // TODO: clear director_files, image_files
 }
 
 void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
@@ -49,7 +47,9 @@ bool FSStorage::loadPrimaryPublic(std::string* public_key) {
     return false;
   }
 
-  if (public_key) *public_key = Utils::readFile(public_key_path.string());
+  if (public_key != nullptr) {
+    *public_key = Utils::readFile(public_key_path.string());
+  }
   return true;
 }
 
@@ -59,7 +59,9 @@ bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
     return false;
   }
 
-  if (private_key) *private_key = Utils::readFile(private_key_path.string());
+  if (private_key != nullptr) {
+    *private_key = Utils::readFile(private_key_path.string());
+  }
   return true;
 }
 
@@ -101,13 +103,13 @@ bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pk
       !boost::filesystem::exists(pkey_path) || boost::filesystem::is_directory(pkey_path)) {
     return false;
   }
-  if (ca) {
+  if (ca != nullptr) {
     *ca = Utils::readFile(ca_path.string());
   }
-  if (cert) {
+  if (cert != nullptr) {
     *cert = Utils::readFile(cert_path.string());
   }
-  if (pkey) {
+  if (pkey != nullptr) {
     *pkey = Utils::readFile(pkey_path.string());
   }
   return true;
@@ -121,9 +123,13 @@ void FSStorage::clearTlsCreds() {
 
 bool FSStorage::loadTlsCommon(std::string* data, const boost::filesystem::path& path_in) {
   boost::filesystem::path path(Utils::absolutePath(config_.path, path_in));
-  if (!boost::filesystem::exists(path)) return false;
+  if (!boost::filesystem::exists(path)) {
+    return false;
+  }
 
-  if (data) *data = Utils::readFile(path.string());
+  if (data != nullptr) {
+    *data = Utils::readFile(path.string());
+  }
 
   return true;
 }
@@ -155,8 +161,9 @@ bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
       !boost::filesystem::exists(director_path / "targets.json") ||
       !boost::filesystem::exists(image_path / "root.json") || !boost::filesystem::exists(image_path / "targets.json") ||
       !boost::filesystem::exists(image_path / "timestamp.json") ||
-      !boost::filesystem::exists(image_path / "snapshot.json"))
+      !boost::filesystem::exists(image_path / "snapshot.json")) {
     return false;
+  }
 
   Json::Value json = Utils::parseJSONFile(director_path / "root.json");
   if (json != Json::nullValue) {
@@ -236,9 +243,13 @@ void FSStorage::storeDeviceId(const std::string& device_id) {
 }
 
 bool FSStorage::loadDeviceId(std::string* device_id) {
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "device_id").string())) return false;
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "device_id").string())) {
+    return false;
+  }
 
-  if (device_id) *device_id = Utils::readFile(Utils::absolutePath(config_.path, "device_id").string());
+  if (device_id != nullptr) {
+    *device_id = Utils::readFile(Utils::absolutePath(config_.path, "device_id").string());
+  }
   return true;
 }
 
@@ -285,7 +296,7 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
     hw_id = Utils::readFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id").string());
   }
 
-  if (serials) {
+  if (serials != nullptr) {
     serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
   }
 
@@ -300,13 +311,13 @@ bool FSStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >
     try {
       hw_id = buf.substr(tab + 1);
     } catch (const std::out_of_range& e) {
-      if (serials) {
+      if (serials != nullptr) {
         serials->clear();
       }
       file.close();
       return false;
     }
-    if (serials) {
+    if (serials != nullptr) {
       serials->push_back(std::pair<std::string, std::string>(serial, hw_id));
     }
   }
@@ -334,7 +345,9 @@ void FSStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus
 }
 
 bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) return false;
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) {
+    return false;
+  }
   Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "misconfigured_ecus").string());
 
   for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
@@ -364,7 +377,9 @@ void FSStorage::storeInstalledVersions(const std::vector<Uptane::Target>& instal
 
 std::string FSStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
   std::string current_hash;
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) return current_hash;
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
+    return current_hash;
+  }
   Json::Value installed_versions_json =
       Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
   std::vector<Uptane::Target> new_versions;
@@ -396,8 +411,13 @@ void FSStorage::clearInstalledVersions() {
 
 class FSTargetWHandle : public StorageTargetWHandle {
  public:
-  FSTargetWHandle(const FSStorage& storage, const std::string& filename, size_t size)
-      : storage_(storage), filename_(filename), expected_size_(size), written_size_(0), closed_(false), fp_(0) {
+  FSTargetWHandle(const FSStorage& storage, std::string filename, size_t size)
+      : storage_(storage),
+        filename_(std::move(filename)),
+        expected_size_(size),
+        written_size_(0),
+        closed_(false),
+        fp_(0) {
     fp_ = open(storage_.targetFilepath(filename_).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
     if (fp_ == -1) {
@@ -480,7 +500,7 @@ class FSTargetRHandle : public StorageTargetRHandle {
   }
 
   size_t rsize() const override {
-    struct stat sb;
+    struct stat sb {};
     fstat(fp_, &sb);
     return sb.st_size;
   }

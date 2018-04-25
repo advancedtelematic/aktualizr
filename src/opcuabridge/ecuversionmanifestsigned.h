@@ -8,8 +8,8 @@
 namespace opcuabridge {
 class ECUVersionManifestSigned {
  public:
-  ECUVersionManifestSigned() {}
-  virtual ~ECUVersionManifestSigned() {}
+  ECUVersionManifestSigned() = default;
+  virtual ~ECUVersionManifestSigned() = default;
 
   const std::string& getEcuIdentifier() const { return ecuIdentifier_; }
   void setEcuIdentifier(const std::string& ecuIdentifier) { ecuIdentifier_ = ecuIdentifier; }
@@ -43,8 +43,8 @@ class ECUVersionManifestSigned {
 
  protected:
   std::string ecuIdentifier_;
-  int previousTime_;
-  int currentTime_;
+  int previousTime_{};
+  int currentTime_{};
   std::string securityAttack_;
   Image installedImage_;
 

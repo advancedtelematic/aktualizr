@@ -17,14 +17,14 @@ class Server {
   Server(const Server&) = delete;
   Server& operator=(const Server&) = delete;
 
-  bool run(volatile bool*);
+  bool run(const volatile bool* /*running*/);
 
  private:
-  void init(EndPointServiceType);
+  void init(EndPointServiceType /*type*/);
 
   boost::asio::io_service io_service_;
   boost::asio::ip::udp::socket socket_;
-  discovery_service_data_type response_;
+  discovery_service_data_type response_{};
 
   const discovery_service_data_type lds_response_ = OPCUA_DISCOVERY_SERVICE_LDS_RESPONSE,
                                     no_lds_response_ = OPCUA_DISCOVERY_SERVICE_RESPONSE;

@@ -1,13 +1,15 @@
 #ifndef OPCUABRIDGE_METADATAFILES_H_
 #define OPCUABRIDGE_METADATAFILES_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
 class MetadataFiles {
  public:
-  MetadataFiles() {}
-  virtual ~MetadataFiles() {}
+  MetadataFiles() = default;
+  virtual ~MetadataFiles() = default;
 
   const int& getGUID() const { return GUID_; }
   void setGUID(const int& GUID) { GUID_ = GUID; }
@@ -19,8 +21,12 @@ class MetadataFiles {
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFiles>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFiles>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<MetadataFiles>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<MetadataFiles>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
   int GUID_{-1};

@@ -15,6 +15,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 
 #include <string>
+#include <utility>
 
 #include "utilities/types.h"
 #include "utilities/utils.h"
@@ -26,19 +27,19 @@ BIO *BIO_new_mem_buf(const void *, int);
 
 struct PublicKey {
   enum Type { RSA = 0, ED25519 };
-  PublicKey() {}
-  PublicKey(const boost::filesystem::path &path) {
+  PublicKey() = default;
+  explicit PublicKey(const boost::filesystem::path &path) {
     value = Utils::readFile(path.string());
     value = value.substr(0, value.size() - 1);
     // value = boost::replace_all_copy(value, "\n", "\\n");
     type = RSA;  // temporary suuport only RSA
   }
-  PublicKey(const std::string &v, const std::string &t) : value(v) {
+  PublicKey(std::string v, const std::string &t) : value(std::move(v)) {
     std::string type_str = boost::algorithm::to_lower_copy(t);
     if (type_str == "rsa") {
       type = RSA;
-      BIO *bufio = BIO_new_mem_buf((const void *)value.c_str(), (int)value.length());
-      ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, 0, 0, 0);
+      BIO *bufio = BIO_new_mem_buf(reinterpret_cast<const void *>(value.c_str()), static_cast<int>(value.length()));
+      ::RSA *rsa = PEM_read_bio_RSA_PUBKEY(bufio, nullptr, nullptr, nullptr);
       key_length = RSA_size(rsa);
       RSA_free(rsa);
       BIO_free_all(bufio);
@@ -53,8 +54,8 @@ struct PublicKey {
     return value == rhs.value && type == rhs.type && (type != RSA || key_length == rhs.key_length);
   }
   std::string value;
-  Type type;
-  int key_length;
+  Type type{};
+  int key_length{};
 };
 
 class MultiPartSHA512Hasher {
@@ -63,12 +64,12 @@ class MultiPartSHA512Hasher {
   void update(const unsigned char *part, int64_t size) { crypto_hash_sha512_update(&state_, part, size); }
   std::string getHexDigest() {
     unsigned char sha512_hash[crypto_hash_sha512_BYTES];
-    crypto_hash_sha512_final(&state_, sha512_hash);
-    return boost::algorithm::hex(std::string((char *)sha512_hash, crypto_hash_sha512_BYTES));
+    crypto_hash_sha512_final(&state_, static_cast<unsigned char *>(sha512_hash));
+    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha512_hash), crypto_hash_sha512_BYTES));
   }
 
  private:
-  crypto_hash_sha512_state state_;
+  crypto_hash_sha512_state state_{};
 };
 
 class MultiPartSHA256Hasher {
@@ -77,12 +78,12 @@ class MultiPartSHA256Hasher {
   void update(const unsigned char *part, int64_t size) { crypto_hash_sha256_update(&state_, part, size); }
   std::string getHexDigest() {
     unsigned char sha256_hash[crypto_hash_sha256_BYTES];
-    crypto_hash_sha256_final(&state_, sha256_hash);
-    return boost::algorithm::hex(std::string((char *)sha256_hash, crypto_hash_sha256_BYTES));
+    crypto_hash_sha256_final(&state_, static_cast<unsigned char *>(sha256_hash));
+    return boost::algorithm::hex(std::string(reinterpret_cast<char *>(sha256_hash), crypto_hash_sha256_BYTES));
   }
 
  private:
-  crypto_hash_sha256_state state_;
+  crypto_hash_sha256_state state_{};
 };
 
 class Crypto {

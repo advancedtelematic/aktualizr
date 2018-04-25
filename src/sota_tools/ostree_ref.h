@@ -12,8 +12,8 @@
 class OSTreeRef {
  public:
   OSTreeRef(const OSTreeRepo& repo, const std::string& ref_name);
-  OSTreeRef(const TreehubServer& serve_repo, const std::string& ref_name);
-  OSTreeRef(OSTreeRef&& rhs) : ref_content_(rhs.ref_content_), ref_name_(rhs.ref_name_) {}
+  OSTreeRef(const TreehubServer& serve_repo, std::string ref_name);
+  OSTreeRef(OSTreeRef&& rhs) = default;
 
   void PushRef(const TreehubServer& push_target, CURL* curl_handle) const;
 
@@ -24,7 +24,7 @@ class OSTreeRef {
 
  private:
   std::string Url() const;
-  bool is_valid;
+  bool is_valid{};
 
   std::string ref_content_;
   const std::string ref_name_;  // OSTree name of the object

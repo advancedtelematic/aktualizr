@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <utility>
 
 #include "logging.h"
 
@@ -30,7 +31,8 @@ OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string &ref_name) : ref_name_
   }
 }
 
-OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, const string &ref_name) : is_valid(true), ref_name_(ref_name) {
+OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, string ref_name)
+    : is_valid(true), ref_name_(std::move(ref_name)) {
   CURL *curl_handle = curl_easy_init();
   serve_repo.InjectIntoCurl(Url(), curl_handle);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
@@ -66,9 +68,9 @@ string OSTreeRef::Url() const { return "refs/heads/" + ref_name_; }
 OSTreeHash OSTreeRef::GetHash() const { return OSTreeHash::Parse(ref_content_); }
 
 size_t OSTreeRef::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
-  OSTreeRef *that = (OSTreeRef *)userp;
+  auto *that = static_cast<OSTreeRef *>(userp);
   assert(that);
-  that->http_response_.write((const char *)buffer, size * nmemb);
+  that->http_response_.write(static_cast<const char *>(buffer), size * nmemb);
   return size * nmemb;
 }
 

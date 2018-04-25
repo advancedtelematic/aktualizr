@@ -4,13 +4,14 @@
 #include "common.h"
 
 #include <boost/filesystem.hpp>
+#include <utility>
 
 namespace opcuabridge {
 class FileData : public MessageFileData {
  public:
-  FileData() {}
-  FileData(const boost::filesystem::path& base_path) : base_path_(base_path) {}
-  virtual ~FileData() {}
+  FileData() = default;
+  explicit FileData(boost::filesystem::path base_path) : base_path_(std::move(base_path)) {}
+  virtual ~FileData() = default;
 
   const boost::filesystem::path& getBasePath() const { return base_path_; }
   void setBasePath(const boost::filesystem::path& base_path) { base_path_ = base_path; }
@@ -22,8 +23,8 @@ class FileData : public MessageFileData {
   INITSERVERNODESET_FILE_FUNCTION_DEFINITION(FileData)  // InitServerNodeset(UA_Server*)
   CLIENTWRITE_FILE_FUNCTION_DEFINITION()                // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileData>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileData>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileData>::type cb) { on_before_read_cb_ = std::move(cb); }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileData>::type cb) { on_after_write_cb_ = std::move(cb); }
 
  protected:
   boost::filesystem::path base_path_;

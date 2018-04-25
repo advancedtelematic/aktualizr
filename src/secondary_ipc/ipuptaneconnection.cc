@@ -25,7 +25,7 @@ void IpUptaneConnection::open_socket() {
     throw std::runtime_error("socket creation failed");
   }
   SocketHandle hdl(new int(socket_fd));
-  sockaddr_in6 sa;
+  sockaddr_in6 sa{};
 
   memset(&sa, 0, sizeof(sa));
   sa.sin6_family = AF_INET6;
@@ -88,10 +88,12 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
       };
       addr_len = sizeof(sockaddr_in6);
       socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
-      if (socket_fd < 0) throw std::system_error(errno, std::system_category(), "socket");
+      if (socket_fd < 0) {
+        throw std::system_error(errno, std::system_category(), "socket");
+      }
 
       SocketHandle hdl(new int(socket_fd));
-      sockaddr_in6 sa;
+      sockaddr_in6 sa{};
 
       memset(&sa, 0, sizeof(sa));
       sa.sin6_family = AF_INET6;
@@ -104,7 +106,7 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
 
       LOG_INFO << "Outstanding connection to" << Utils::ipDisplayName(pkt->peer_addr) << ":"
                << Utils::ipPort(pkt->peer_addr);
-      if (connect(*hdl, (struct sockaddr *)&pkt->peer_addr, addr_len) < 0) {
+      if (connect(*hdl, reinterpret_cast<struct sockaddr *>(&pkt->peer_addr), addr_len) < 0) {
         LOG_ERROR << "connect: " << std::strerror(errno);
         continue;
       }
@@ -162,7 +164,7 @@ void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_pt
   std::unique_ptr<SecondaryMessage> mes;
   try {
     asn1_stream >> mes;
-  } catch (deserialization_error) {
+  } catch (deserialization_error &) {
     LOG_ERROR << "Failed to parse message: " << Utils::toBase64(message_content);
     return;
   }
@@ -173,7 +175,7 @@ void IpUptaneConnection::handle_connection_msgs(SocketHandle con, std::unique_pt
 }
 
 in_port_t IpUptaneConnection::listening_port() const {
-  sockaddr_storage ss;
+  sockaddr_storage ss{};
   socklen_t len = sizeof(ss);
   in_port_t p;
   if (getsockname(*socket_hdl_, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
@@ -181,10 +183,10 @@ in_port_t IpUptaneConnection::listening_port() const {
   }
 
   if (ss.ss_family == AF_INET) {
-    sockaddr_in *sa = reinterpret_cast<sockaddr_in *>(&ss);
+    auto *sa = reinterpret_cast<sockaddr_in *>(&ss);
     p = sa->sin_port;
   } else if (ss.ss_family == AF_INET6) {
-    sockaddr_in6 *sa = reinterpret_cast<sockaddr_in6 *>(&ss);
+    auto *sa = reinterpret_cast<sockaddr_in6 *>(&ss);
     p = sa->sin6_port;
   } else {
     return -1;
@@ -194,7 +196,7 @@ in_port_t IpUptaneConnection::listening_port() const {
 }
 
 sockaddr_storage IpUptaneConnection::listening_address() const {
-  sockaddr_storage ss;
+  sockaddr_storage ss{};
   socklen_t len = sizeof(ss);
   if (getsockname(*socket_hdl_, reinterpret_cast<sockaddr *>(&ss), &len) < 0) {
     throw std::system_error(errno, std::system_category(), "getsockname");

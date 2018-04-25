@@ -5,6 +5,7 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "uptane/tuf.h"
 #include "utilities/config_utils.h"
@@ -46,15 +47,15 @@ class INvStorage;
 class FSStorage;
 class SQLStorage;
 
-typedef void (INvStorage::*store_data_t)(const std::string& data);
-typedef bool (INvStorage::*load_data_t)(std::string* data);
+using store_data_t = void (INvStorage::*)(const std::string&);
+using load_data_t = bool (INvStorage::*)(std::string*);
 
 typedef std::pair<std::string, bool> InstalledVersion;
 
 enum EcuState { kOld = 0, kNotRegistered };
 struct MisconfiguredEcu {
-  MisconfiguredEcu(const std::string& serial_in, const std::string hardware_id_in, EcuState state_in)
-      : serial(serial_in), hardware_id(hardware_id_in), state(state_in) {}
+  MisconfiguredEcu(std::string serial_in, std::string hardware_id_in, EcuState state_in)
+      : serial(std::move(serial_in)), hardware_id(std::move(hardware_id_in)), state(state_in) {}
   std::string serial;
   std::string hardware_id;
   EcuState state;
@@ -64,7 +65,7 @@ class StorageTargetWHandle {
  public:
   class WriteError : public std::runtime_error {
    public:
-    WriteError(const std::string& what) : std::runtime_error(what) {}
+    explicit WriteError(const std::string& what) : std::runtime_error(what) {}
   };
   virtual ~StorageTargetWHandle() = default;
   virtual size_t wfeed(const uint8_t* buf, size_t size) = 0;
@@ -72,7 +73,7 @@ class StorageTargetWHandle {
   virtual void wabort() = 0;
 
   friend std::istream& operator>>(std::istream& is, StorageTargetWHandle& handle) {
-    std::array<uint8_t, 256> arr;
+    std::array<uint8_t, 256> arr{};
     while (!is.eof()) {
       is.read(reinterpret_cast<char*>(arr.data()), arr.size());
 
@@ -88,7 +89,7 @@ class StorageTargetRHandle {
  public:
   class ReadError : public std::runtime_error {
    public:
-    ReadError(const std::string& what) : std::runtime_error(what) {}
+    explicit ReadError(const std::string& what) : std::runtime_error(what) {}
   };
   virtual ~StorageTargetRHandle() = default;
   virtual size_t rsize() const = 0;
@@ -96,7 +97,7 @@ class StorageTargetRHandle {
   virtual void rclose() = 0;
 
   friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
-    std::array<uint8_t, 256> arr;
+    std::array<uint8_t, 256> arr{};
     size_t written = 0;
     while (written < handle.rsize()) {
       size_t nread = handle.rread(arr.data(), arr.size());
@@ -113,8 +114,8 @@ class StorageTargetRHandle {
 // possible
 class INvStorage {
  public:
-  INvStorage(const StorageConfig& config) : config_(config) {}
-  virtual ~INvStorage() {}
+  explicit INvStorage(const StorageConfig& config) : config_(config) {}
+  virtual ~INvStorage() = default;
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key) = 0;
   virtual bool loadPrimaryPublic(std::string* public_key) = 0;

@@ -1,6 +1,8 @@
 #ifndef OPCUABRIDGE_VERSIONREPORT_H_
 #define OPCUABRIDGE_VERSIONREPORT_H_
 
+#include <utility>
+
 #include "ecuversionmanifest.h"
 
 #include "common.h"
@@ -8,8 +10,8 @@
 namespace opcuabridge {
 class VersionReport {
  public:
-  VersionReport() {}
-  virtual ~VersionReport() {}
+  VersionReport() = default;
+  virtual ~VersionReport() = default;
 
   const int& getTokenForTimeServer() const { return tokenForTimeServer_; }
   void setTokenForTimeServer(const int& tokenForTimeServer) { tokenForTimeServer_ = tokenForTimeServer; }
@@ -20,11 +22,15 @@ class VersionReport {
   CLIENTREAD_FUNCTION_DEFINITION()                      // ClientRead(UA_Client*)
   CLIENTWRITE_FUNCTION_DEFINITION()                     // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<VersionReport>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<VersionReport>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<VersionReport>::type cb) {
+    on_before_read_cb_ = std::move(cb);
+  }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<VersionReport>::type cb) {
+    on_after_write_cb_ = std::move(cb);
+  }
 
  protected:
-  int tokenForTimeServer_;
+  int tokenForTimeServer_{};
   ECUVersionManifest ecuVersionManifest_;
 
   MessageOnBeforeReadCallback<VersionReport>::type on_before_read_cb_;

@@ -9,7 +9,7 @@
 namespace Uptane {
 class VirtualSecondary : public ManagedSecondary {
  public:
-  VirtualSecondary(const SecondaryConfig& sconfig_in);
+  explicit VirtualSecondary(const SecondaryConfig& sconfig_in);
 
  private:
   bool storeFirmware(const std::string& target_name, const std::string& content) override;

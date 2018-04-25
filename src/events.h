@@ -18,27 +18,27 @@ class BaseEvent {
   Json::Value toBaseJson();
   virtual std::string toJson() = 0;
 };
-typedef Channel<std::shared_ptr<BaseEvent> > Channel;
+using Channel = Channel<std::shared_ptr<BaseEvent> >;
 
 class Error : public BaseEvent {
  public:
   std::string message;
-  Error(const std::string&);
+  explicit Error(std::string /*message_in*/);
   std::string toJson() override;
-  static Error fromJson(const std::string&);
+  static Error fromJson(const std::string& /*json_str*/);
 };
 
 class UpdateAvailable : public BaseEvent {
  public:
   data::UpdateAvailable update_vailable;
-  UpdateAvailable(const data::UpdateAvailable& ua_in);
+  explicit UpdateAvailable(data::UpdateAvailable ua_in);
   std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
 };
 
 class DownloadComplete : public BaseEvent {
  public:
-  DownloadComplete(const data::DownloadComplete& dc_in);
+  explicit DownloadComplete(data::DownloadComplete dc_in);
   data::DownloadComplete download_complete;
   std::string toJson() override;
   static DownloadComplete fromJson(const std::string& json_str);
@@ -61,7 +61,7 @@ class UptaneTargetsUpdated : public BaseEvent {
   std::vector<Uptane::Target> packages;
   std::string toJson() override;
 
-  UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
+  explicit UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
 };
 }  // namespace event
 

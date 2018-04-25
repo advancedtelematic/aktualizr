@@ -44,16 +44,18 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    if (vm.count("command")) {
+    if (vm.count("command") != 0u) {
       ECUInterface *ecu = make_ecu(vm["loglevel"].as<unsigned int>());
       if (command == "api-version") {
         std::cout << ecu->apiVersion();
         return EXIT_SUCCESS;
-      } else if (command == "list-ecus") {
+      }
+      if (command == "list-ecus") {
         std::cout << ecu->listEcus();
         return EXIT_SUCCESS;
-      } else if (command == "install-software") {
-        if (!vm.count("hardware-identifier") || !vm.count("firmware")) {
+      }
+      if (command == "install-software") {
+        if ((vm.count("hardware-identifier") == 0u) || (vm.count("firmware") == 0u)) {
           std::cerr << "install-software command requires --hardware-identifier, --firmware, and possibly "
                        "--ecu-identifier.\n";
           return EXIT_FAILURE;
@@ -62,17 +64,16 @@ int main(int argc, char **argv) {
             ecu->installSoftware(hardware_identifier, ecu_identifier, firmware_path.string());
         std::cout << "Installation result: " << result << "\n";
         return result;
-      } else {
-        std::cout << "unknown command: " << command[0] << "\n";
-        std::cout << desc;
       }
+      std::cout << "unknown command: " << command[0] << "\n";
+      std::cout << desc;
 
       return EXIT_SUCCESS;
-    } else {
-      std::cout << "You must provide a command.\n";
-      std::cout << desc;
-      return EXIT_FAILURE;
     }
+    std::cout << "You must provide a command.\n";
+    std::cout << desc;
+    return EXIT_FAILURE;
+
   } catch (const po::error &o) {
     std::cout << o.what();
     std::cout << desc;

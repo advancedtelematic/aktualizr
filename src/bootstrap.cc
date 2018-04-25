@@ -29,7 +29,7 @@ Bootstrap::Bootstrap(const boost::filesystem::path& provision_path, const std::s
   }
 
   BIO* reg_p12 = BIO_new_mem_buf(p12_str.c_str(), p12_str.size());
-  if (!reg_p12) {
+  if (reg_p12 == nullptr) {
     LOG_ERROR << "Unable to open P12 archive: " << std::strerror(errno);
     throw std::runtime_error("Unable to parse bootstrap credentials");
   }

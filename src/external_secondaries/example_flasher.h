@@ -5,8 +5,8 @@
 
 class ExampleFlasher : public ECUInterface {
  public:
-  ~ExampleFlasher() override {}
-  ExampleFlasher(const unsigned int loglevel);
+  ~ExampleFlasher() override = default;
+  explicit ExampleFlasher(unsigned int loglevel);
   std::string apiVersion() override;
   std::string listEcus() override;
   InstallStatus installSoftware(const std::string &hardware_id, const std::string &ecu_id,

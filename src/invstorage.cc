@@ -8,10 +8,11 @@
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string storage_type = "filesystem";
   CopyFromConfig(storage_type, "type", boost::log::trivial::trace, pt);
-  if (storage_type == "sqlite")
+  if (storage_type == "sqlite") {
     type = kSqlite;
-  else
+  } else {
     type = kFileSystem;
+  }
 
   CopyFromConfig(path, "path", boost::log::trivial::trace, pt);
   CopyFromConfig(sqldb_path, "sqldb_path", boost::log::trivial::trace, pt);
@@ -55,7 +56,7 @@ void ImportConfig::writeToStream(std::ostream& out_stream) const {
 
 void INvStorage::importSimple(store_data_t store_func, load_data_t load_func,
                               boost::filesystem::path imported_data_path) {
-  if (!(this->*load_func)(NULL) && !imported_data_path.empty()) {
+  if (!(this->*load_func)(nullptr) && !imported_data_path.empty()) {
     if (!boost::filesystem::exists(imported_data_path)) {
       LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
       return;
@@ -84,14 +85,16 @@ void INvStorage::importUpdateSimple(store_data_t store_func, load_data_t load_fu
       LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
       return;
     }
-    if (content.empty()) content = Utils::readFile(imported_data_path.string());
+    if (content.empty()) {
+      content = Utils::readFile(imported_data_path.string());
+    }
     (this->*store_func)(content);
   }
 }
 
 void INvStorage::importPrimaryKeys(const boost::filesystem::path& import_pubkey_path,
                                    const boost::filesystem::path& import_privkey_path) {
-  if (loadPrimaryKeys(NULL, NULL) || import_pubkey_path.empty() || import_privkey_path.empty()) {
+  if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
     return;
   }
   if (!boost::filesystem::exists(import_pubkey_path)) {
@@ -144,18 +147,26 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
 void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage) {
   std::string public_key;
   std::string private_key;
-  if (fs_storage->loadPrimaryKeys(&public_key, &private_key)) sql_storage->storePrimaryKeys(public_key, private_key);
+  if (fs_storage->loadPrimaryKeys(&public_key, &private_key)) {
+    sql_storage->storePrimaryKeys(public_key, private_key);
+  }
 
   std::string ca;
   std::string cert;
   std::string pkey;
-  if (fs_storage->loadTlsCreds(&ca, &cert, &pkey)) sql_storage->storeTlsCreds(ca, cert, pkey);
+  if (fs_storage->loadTlsCreds(&ca, &cert, &pkey)) {
+    sql_storage->storeTlsCreds(ca, cert, pkey);
+  }
 
   std::string device_id;
-  if (fs_storage->loadDeviceId(&device_id)) sql_storage->storeDeviceId(device_id);
+  if (fs_storage->loadDeviceId(&device_id)) {
+    sql_storage->storeDeviceId(device_id);
+  }
 
   std::vector<std::pair<std::string, std::string> > serials;
-  if (fs_storage->loadEcuSerials(&serials)) sql_storage->storeEcuSerials(serials);
+  if (fs_storage->loadEcuSerials(&serials)) {
+    sql_storage->storeEcuSerials(serials);
+  }
 
   if (fs_storage->loadEcuRegistered()) {
     sql_storage->storeEcuRegistered();
@@ -163,7 +174,7 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
 
   std::vector<Uptane::Target> installed_versions;
   std::string current_hash = fs_storage->loadInstalledVersions(&installed_versions);
-  if (installed_versions.size()) {
+  if (installed_versions.size() != 0u) {
     sql_storage->storeInstalledVersions(installed_versions, current_hash);
   }
 

@@ -4,11 +4,12 @@
 #include "imageblock.h"
 
 #include <unordered_set>
+#include <utility>
 
 namespace boost {
 namespace filesystem {
 class path;
-}
+}  // namespace filesystem
 }  // namespace boost
 
 namespace opcuabridge {
@@ -17,8 +18,8 @@ class FileList {
  public:
   typedef BinaryDataType block_type;
 
-  FileList() {}
-  virtual ~FileList() {}
+  FileList() = default;
+  virtual ~FileList() = default;
 
   block_type& getBlock() { return block_; }
   const block_type& getBlock() const { return block_; }
@@ -27,8 +28,8 @@ class FileList {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&block_)                   // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&block_)                  // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileList>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileList>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<FileList>::type cb) { on_before_read_cb_ = std::move(cb); }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<FileList>::type cb) { on_after_write_cb_ = std::move(cb); }
 
  protected:
   block_type block_;
@@ -44,7 +45,7 @@ class FileList {
     Json::Value v;
     return v;
   }
-  void unwrapMessage(Json::Value v) {}
+  void unwrapMessage(const Json::Value& v) {}
 
   WRAPMESSAGE_FUCTION_DEFINITION(FileList)
   UNWRAPMESSAGE_FUCTION_DEFINITION(FileList)
@@ -76,8 +77,8 @@ struct FileSetEntryEqual {
 
 typedef std::unordered_set<FileSetEntry, FileSetEntryHash, FileSetEntryEqual> FileUnorderedSet;
 
-std::size_t UpdateFileList(FileList*, const boost::filesystem::path&);
-void UpdateFileUnorderedSet(FileUnorderedSet*, const FileList&);
+std::size_t UpdateFileList(FileList* /*filelist*/, const boost::filesystem::path& /*repo_dir_path*/);
+void UpdateFileUnorderedSet(FileUnorderedSet* /*file_unordered_set*/, const FileList& /*file_list*/);
 
 }  // namespace opcuabridge
 

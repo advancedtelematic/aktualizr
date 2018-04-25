@@ -24,8 +24,10 @@ Client::endpoints_list_type Client::getDiscoveredEndPoints() {
   endpoints_list_type discovered_endpoints_list;
   struct ifaddrs *ifaddr = nullptr, *ifa;
 
-  BOOST_SCOPE_EXIT(&ifaddr) {
-    if (ifaddr) freeifaddrs(ifaddr);
+  BOOST_SCOPE_EXIT(&ifaddr) {  // NOLINT
+    if (ifaddr != nullptr) {
+      freeifaddrs(ifaddr);
+    }
   }
   BOOST_SCOPE_EXIT_END
 
@@ -35,15 +37,16 @@ Client::endpoints_list_type Client::getDiscoveredEndPoints() {
   }
   std::size_t i = 0;
   char addr[NI_MAXHOST];
-  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next, ++i) {
-    if (ifa->ifa_addr != NULL && ifa->ifa_addr->sa_family == AF_INET6 &&
-        0 == getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), addr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) &&
+  for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next, ++i) {
+    if (ifa->ifa_addr != nullptr && ifa->ifa_addr->sa_family == AF_INET6 &&
+        0 == getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), addr, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST) &&
         !ba::ip::address_v6::from_string(addr).is_loopback()) {
       collectDiscoveredEndPointsOnIface(if_nametoindex(ifa->ifa_name));
     }
   }
-  for (const auto& ep : discovered_endpoints_)
+  for (const auto& ep : discovered_endpoints_) {
     discovered_endpoints_list.push_back(discovered_endpoint{ep.first, ep.second});
+  }
   return discovered_endpoints_list;
 }
 
@@ -70,7 +73,9 @@ void Client::collectDiscoveredEndPointsOnIface(unsigned int iface) {
     int request_attempts_count = OPCUA_DISCOVERY_SERVICE_ATTEMPTS;
     discovery_service_data_type request = OPCUA_DISCOVERY_SERVICE_REQUEST, response;
     while (!discovery_timeout_expired) {
-      if (--request_attempts_count >= 0) s.send_to(ba::buffer(request), ep);
+      if (--request_attempts_count >= 0) {
+        s.send_to(ba::buffer(request), ep);
+      }
 
       ba::ip::udp::endpoint discovered_ep;
       error_code = ba::error::would_block;
@@ -80,9 +85,10 @@ void Client::collectDiscoveredEndPointsOnIface(unsigned int iface) {
         io_service.run_one();
       } while (!discovery_timeout_expired && error_code == ba::error::would_block);
       std::string discovered_ep_address = discovered_ep.address().to_string();
-      if (error_code) {
+      if (error_code != nullptr) {
         throw boost::system::system_error(error_code);
-      } else if (!discovery_timeout_expired && discovered_endpoints_.count(discovered_ep_address) == 0) {
+      }
+      if (!discovery_timeout_expired && discovered_endpoints_.count(discovered_ep_address) == 0) {
         EndPointServiceType type =
             (response == no_lds_response_ ? kNoLDS : response == lds_response_ ? kLDS : kUnknown);
         discovered_endpoints_.insert(std::make_pair(discovered_ep_address, type));

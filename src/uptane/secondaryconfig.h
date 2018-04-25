@@ -20,10 +20,10 @@ enum SecondaryType {
 
 class SecondaryConfig {
  public:
-  SecondaryType secondary_type;
+  SecondaryType secondary_type{};
   std::string ecu_serial;
   std::string ecu_hardware_id;
-  bool partial_verifying;
+  bool partial_verifying{};
   std::string ecu_private_key;
   std::string ecu_public_key;
   KeyType key_type{kRSA2048};
@@ -37,7 +37,7 @@ class SecondaryConfig {
 
   boost::filesystem::path flasher;  // kLegacy
 
-  sockaddr_storage ip_addr;  // kIpUptane
+  sockaddr_storage ip_addr{};  // kIpUptane
 };
 }  // namespace Uptane
 

@@ -14,13 +14,12 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 
 namespace fs = boost::filesystem;
-namespace io = boost::iostreams;
 
 namespace Uptane {
 
 OpcuaSecondary::OpcuaSecondary(const SecondaryConfig& sconfig) : SecondaryInterface(sconfig) {}
 
-OpcuaSecondary::~OpcuaSecondary() {}
+OpcuaSecondary::~OpcuaSecondary() = default;
 
 std::string OpcuaSecondary::getSerial() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
@@ -63,7 +62,9 @@ bool OpcuaSecondary::sendFirmware(const std::string& data) {
   const fs::path source_repo_dir_path(ostree_repo_sync::GetOstreeRepoPath(data_json["sysroot_path"].asString()));
 
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
-  if (!client) return false;
+  if (!client) {
+    return false;
+  }
 
   bool retval = true;
   if (ostree_repo_sync::ArchiveModeRepo(source_repo_dir_path)) {

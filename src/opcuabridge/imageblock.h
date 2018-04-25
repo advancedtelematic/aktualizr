@@ -1,6 +1,8 @@
 #ifndef OPCUABRIDGE_IMAGEBLOCK_H_
 #define OPCUABRIDGE_IMAGEBLOCK_H_
 
+#include <utility>
+
 #include "common.h"
 
 namespace opcuabridge {
@@ -8,8 +10,8 @@ class ImageBlock {
  public:
   typedef BinaryDataType block_type;
 
-  ImageBlock() : blockNumber_(0) {}
-  virtual ~ImageBlock() {}
+  ImageBlock() = default;
+  virtual ~ImageBlock() = default;
 
   const std::string& getFilename() const { return filename_; }
   void setFilename(const std::string& filename) { filename_ = filename; }
@@ -22,12 +24,12 @@ class ImageBlock {
   CLIENTREAD_BIN_FUNCTION_DEFINITION(&block_)                     // ClientRead(UA_Client*)
   CLIENTWRITE_BIN_FUNCTION_DEFINITION(&block_)                    // ClientWrite(UA_Client*)
 
-  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageBlock>::type cb) { on_before_read_cb_ = cb; }
-  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageBlock>::type cb) { on_after_write_cb_ = cb; }
+  void setOnBeforeReadCallback(MessageOnBeforeReadCallback<ImageBlock>::type cb) { on_before_read_cb_ = std::move(cb); }
+  void setOnAfterWriteCallback(MessageOnAfterWriteCallback<ImageBlock>::type cb) { on_after_write_cb_ = std::move(cb); }
 
  protected:
   std::string filename_;
-  std::size_t blockNumber_;
+  std::size_t blockNumber_{0};
   block_type block_;
 
   MessageOnBeforeReadCallback<ImageBlock>::type on_before_read_cb_;

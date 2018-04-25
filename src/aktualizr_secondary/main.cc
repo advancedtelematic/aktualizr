@@ -1,6 +1,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <memory>
 
 #include <openssl/ssl.h>
 
@@ -162,13 +163,13 @@ int main(int argc, char *argv[]) {
 
     if (commandline_map.count("opcua") != 0) {
 #ifdef OPCUA_SECONDARY_ENABLED
-      secondary.reset(new AktualizrSecondaryOpcuaWithDiscovery(config, storage));
+      secondary = std_::make_unique<AktualizrSecondaryOpcuaWithDiscovery>(config, storage);
 #else
       LOG_ERROR << "Built with no OPC-UA support";
       return 1;
 #endif
     } else {
-      secondary.reset(new AktualizrSecondaryWithDiscovery(config, storage));
+      secondary = std_::make_unique<AktualizrSecondaryWithDiscovery>(config, storage);
     }
 
     secondary->run();
