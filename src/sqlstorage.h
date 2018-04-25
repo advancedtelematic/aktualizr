@@ -11,6 +11,7 @@
 const int kSqlSchemaVersion = 4;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
+enum DbState { kEmpty = -1, kInvalid = -2 };
 
 class SQLStorage : public INvStorage {
  public:
