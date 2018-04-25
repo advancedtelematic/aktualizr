@@ -28,13 +28,6 @@ enum ProvisionMode { kAutomatic = 0, kImplicit };
 // Try to keep the order of config options the same as in Config::writeToFile()
 // and Config::updateFromPropertyTree() in config.cc.
 
-struct LoggerConfig {
-  boost::log::trivial::severity_level loglevel{boost::log::trivial::info};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
 struct GatewayConfig {
   bool socket{false};
 

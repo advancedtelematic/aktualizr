@@ -65,7 +65,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-secondary version")
-      ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
+      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, warning, info, error, fatal)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
       ("server-port,p", bpo::value<int>(), "command server listening port")
       ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
@@ -120,30 +120,11 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 /*****************************************************************************/
 int main(int argc, char *argv[]) {
   logger_init();
+  logger_set_threshold(boost::log::trivial::info);
+  LOG_INFO << "Aktualizr-secondary version " AKTUALIZR_VERSION " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  // check for loglevel
-  if (commandline_map.count("loglevel") != 0) {
-    // set the log level from command line option
-    boost::log::trivial::severity_level severity =
-        static_cast<boost::log::trivial::severity_level>(commandline_map["loglevel"].as<int>());
-    if (severity < boost::log::trivial::trace) {
-      LOG_DEBUG << "Invalid log level";
-      severity = boost::log::trivial::trace;
-    }
-    if (boost::log::trivial::fatal < severity) {
-      LOG_WARNING << "Invalid log level";
-      severity = boost::log::trivial::fatal;
-    }
-    if (severity <= boost::log::trivial::debug) {
-      SSL_load_error_strings();
-    }
-    logger_set_threshold(severity);
-  }
-
-  LOG_INFO << "Aktualizr-secondary version " AKTUALIZR_VERSION " starting";
-  LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
   // Initialize config with default values, the update with config, then with cmd
   boost::filesystem::path secondary_config_path(commandline_map["config"].as<std::string>());
   if (!boost::filesystem::exists(secondary_config_path)) {
@@ -155,6 +136,10 @@ int main(int argc, char *argv[]) {
   int ret = 0;
   try {
     AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
+    if (config.logger.loglevel <= boost::log::trivial::debug) {
+      SSL_load_error_strings();
+    }
+    LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     // storage (share class with primary)
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
@@ -165,7 +150,7 @@ int main(int argc, char *argv[]) {
 #ifdef OPCUA_SECONDARY_ENABLED
       secondary = std_::make_unique<AktualizrSecondaryOpcuaWithDiscovery>(config, storage);
 #else
-      LOG_ERROR << "Built with no OPC-UA support";
+      LOG_ERROR << "Built without OPC-UA support!";
       return 1;
 #endif
     } else {

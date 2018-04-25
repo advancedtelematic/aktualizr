@@ -6,6 +6,14 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "config.h"
+#include "logging.h"
+#include "package_manager/packagemanagerconfig.h"
+#include "utilities/keymanager.h"
+#include "utilities/p11engine.h"
+
+// Try to keep the order of config options the same as in
+// AktualizrSecondaryConfig::writeToFile() and
+// AktualizrSecondaryConfig::updateFromPropertyTree().
 
 struct AktualizrSecondaryNetConfig {
   in_port_t port{9030};
@@ -34,15 +42,17 @@ class AktualizrSecondaryConfig {
 
   KeyManagerConfig keymanagerConfig() const;
 
+  void postUpdateValues();
   void writeToFile(const boost::filesystem::path& filename);
 
   AktualizrSecondaryNetConfig network;
   AktualizrSecondaryUptaneConfig uptane;
 
   // from primary config
-  StorageConfig storage;
+  LoggerConfig logger;
   P11Config p11;
   PackageConfig pacman;
+  StorageConfig storage;
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

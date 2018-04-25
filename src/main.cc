@@ -11,8 +11,6 @@
 #include "logging.h"
 #include "utilities/utils.h"
 
-/*****************************************************************************/
-
 namespace bpo = boost::program_options;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
@@ -35,7 +33,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
-      ("loglevel", bpo::value<int>(), "set log level 0-4 (trace, debug, warning, info, error)")
+      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, warning, info, error, fatal)")
       ("poll-once", "Check for updates only once and exit")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
@@ -92,7 +90,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
-/*****************************************************************************/
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);

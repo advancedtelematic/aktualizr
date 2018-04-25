@@ -197,12 +197,6 @@ void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
 
 void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
 
-void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(loglevel, "loglevel", boost::log::trivial::trace, pt);
-}
-
-void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
-
 /**
  * \par Description:
  *    Overload the << operator for the configuration class allowing
