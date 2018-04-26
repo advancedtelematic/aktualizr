@@ -37,18 +37,19 @@ TEST(config, config_toml_parsing_empty_file) {
 }
 
 TEST(config, config_cmdl_parsing) {
-  constexpr int argc = 3;
-  const char *argv[argc] = {"./aktualizr", "--gateway-socket", "on"};
+  constexpr int argc = 5;
+  const char *argv[argc] = {"./aktualizr", "--gateway-socket", "on", "-c", "tests/config/minimal.toml"};
 
   bpo::options_description description("CommandLine Options");
   // clang-format off
   description.add_options()
-    ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway");
+    ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
   // clang-format on
 
   bpo::variables_map vm;
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
-  Config conf("tests/config/minimal.toml", vm);
+  Config conf(vm);
 
   EXPECT_TRUE(conf.gateway.socket);
 }
@@ -82,12 +83,15 @@ TEST(config, secondary_config) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file");
-  // clang-format on
-  const char *argv[] = {"aktualizr", "--secondary-config", "config/secondary/virtualsec.json"};
-  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+    ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
 
-  Config conf(conf_path_str, cmd);
+  // clang-format on
+  const char *argv[] = {"aktualizr", "--secondary-config", "config/secondary/virtualsec.json", "-c",
+                        conf_path_str.c_str()};
+  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
+
+  Config conf(cmd);
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
   EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kVirtual);
   EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "demo-virtual");
@@ -115,13 +119,15 @@ TEST(config, legacy_interface_cmdline) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program");
+    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
+
   // clang-format on
   std::string path = (build_dir / "src/external_secondaries/example-interface").string();
-  const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
-  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+  const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str(), "-c", conf_path_str.c_str()};
+  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
 
-  Config conf(conf_path_str, cmd);
+  Config conf(cmd);
   checkSecondaryConfig(conf);
 }
 
@@ -170,14 +176,19 @@ TEST(config, consistent_toml_nonempty) {
 
 TEST(config, config_dirs_one_dir) {
   Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
-  EXPECT_EQ(config.storage.path, "/z_path");
+  EXPECT_EQ(config.storage.path.string(), "path_z");
+  EXPECT_EQ(config.pacman.sysroot.string(), "sysroot_z");
+  EXPECT_EQ(config.pacman.os, "os_a");
 }
 
 TEST(config, config_dirs_two_dirs) {
   std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
                                                    "tests/test_data/config_dirs/second_one_dir"};
   Config config(config_dirs);
-  EXPECT_EQ(config.storage.path, "/latest_path");
+  EXPECT_EQ(config.storage.path.string(), "path_z");
+  EXPECT_EQ(config.pacman.sysroot.string(), "sysroot_z");
+  EXPECT_NE(config.pacman.os, "os_a");
+  EXPECT_EQ(config.provision.provision_path.string(), "y_prov_path");
 }
 
 #ifndef __NO_MAIN__

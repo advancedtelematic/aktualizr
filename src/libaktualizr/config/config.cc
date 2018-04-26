@@ -213,20 +213,23 @@ std::ostream& operator<<(std::ostream& os, const Config& cfg) {
 Config::Config() { postUpdateValues(); }
 
 Config::Config(const boost::filesystem::path& filename) {
-  updateFromDirs();
   updateFromToml(filename);
   postUpdateValues();
 }
 
-Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
+Config::Config(const boost::program_options::variables_map& cmd) {
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
     logger_set_threshold(logger);
   }
-  updateFromDirs();
-  updateFromToml(filename);
+
+  if (cmd.count("config") > 0) {
+    updateFromDirs(cmd["config"].as<std::vector<boost::filesystem::path>>());
+  } else {
+    updateFromDirs(config_dirs_);
+  }
   updateFromCommandLine(cmd);
   postUpdateValues();
 }
@@ -274,21 +277,34 @@ void Config::postUpdateValues() {
 
   checkLegacyVersion();
   initLegacySecondaries();
+  LOG_TRACE << "Final configuration that will be used: \n" << (*this);
 }
 
-void Config::updateFromDirs() {
-  for (const auto& dir : config_dirs_) {
-    for (const auto& config : Utils::glob((dir / "*.conf").string())) {
-      updateFromToml(config);
+void Config::updateFromDirs(const std::vector<boost::filesystem::path>& configs) {
+  std::map<std::string, boost::filesystem::path> configs_map;
+  for (const auto& config : configs) {
+    if (boost::filesystem::is_directory(config)) {
+      for (const auto& config_file : Utils::glob((config / "*.toml").string())) {
+        configs_map[config_file.filename().string()] = config_file;
+      }
+    } else {
+      configs_map[config.filename().string()] = config;
     }
+  }
+  for (const auto& config_file : configs_map) {
+    updateFromToml(config_file.second);
   }
 }
 
 void Config::updateFromToml(const boost::filesystem::path& filename) {
+  LOG_DEBUG << "Reading config: " << filename;
+  if (!boost::filesystem::exists(filename)) {
+    throw std::runtime_error(filename.string() + " does not exist.");
+  }
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename.string(), pt);
   updateFromPropertyTree(pt);
-  LOG_TRACE << "config read from " << filename << " :\n" << (*this);
+  LOG_DEBUG << "Config read from " << filename;
 }
 
 // For testing
@@ -348,7 +364,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
   if (cmd.count("secondary-config") != 0) {
-    std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path> >();
+    std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path>>();
     readSecondaryConfigs(sconfigs);
   }
   if (cmd.count("legacy-interface") != 0) {

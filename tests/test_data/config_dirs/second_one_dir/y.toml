@@ -1,0 +1,5 @@
+[storage]
+path = "latest_path"
+
+[provision]
+provision_path = "y_prov_path"
