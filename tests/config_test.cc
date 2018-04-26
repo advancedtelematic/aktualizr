@@ -24,9 +24,9 @@ TEST(config, config_initialized_values) {
 }
 
 TEST(config, config_toml_parsing) {
-  Config conf("tests/config/minimal.toml");
+  Config conf("tests/config/basic.toml");
 
-  EXPECT_EQ(conf.gateway.socket, true);
+  EXPECT_EQ(conf.pacman.type, kNone);
 }
 
 TEST(config, config_toml_parsing_empty_file) {

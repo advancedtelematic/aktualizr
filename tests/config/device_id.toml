@@ -1,6 +1,3 @@
-[gateway]
-socket = true
-
 [uptane]
 device_id = "test-name-123"
 key_type = "ED25519"
