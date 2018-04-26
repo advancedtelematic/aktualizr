@@ -53,6 +53,15 @@ pipeline {
           steps {
             sh 'scripts/test.sh'
           }
+          post {
+            always {
+              step([$class: 'XUnitBuilder',
+                  thresholds: [
+                  [$class: 'SkippedThreshold', failureThreshold: '0'],
+                  [$class: 'FailedThreshold', failureThreshold: '0']],
+                  tools: [[$class: 'CTestType', pattern: 'build-openssl11/**/Test.xml']]])
+            }
+          }
         }
         stage('debian_pkg') {
           agent any

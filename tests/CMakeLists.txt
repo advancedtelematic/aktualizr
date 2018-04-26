@@ -77,17 +77,14 @@ function(add_aktualizr_test)
     else()
         set(WD )
     endif()
-        # Running tests that are both instrumented by gcov and valgrind at
-        # the same time is very expensive.  Disable valgrind when running
-        # under gcov, or when the test is explicitly flagged that it fails
-        # under valgrind (these should be fixed)
-        if(AKTUALIZR_TEST_NO_VALGRIND OR BUILD_WITH_CODE_COVERAGE)
+        # run tests under valgrind if the correct CMAKE_BUILD_TYPE is set
+        if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                     COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
                      ${WD})
         else()
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                     COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
                      ${WD})
         endif()
     add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
@@ -116,7 +113,7 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-if(NOT BUILD_WITH_CODE_COVERAGE)
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     # Code coverage disables valgrind, and this test is only checking that
     # valgrind finds memory leaks
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
