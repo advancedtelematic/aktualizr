@@ -6,12 +6,13 @@ branches:
     - master
     - /^\d\d\d\d\.\d+$/
 env:
-- DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/coverage.sh
+- DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh
+  DARGS="-eTEST_WITH_VALGRIND=0 -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1"
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
 - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh
-  DARGS="-eBUILD_ONLY=1 -eBUILD_DEB=1"
+  DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_INSTALL_DEB_PACKAGES=1"
 - DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
-  DARGS="-eBUILD_ONLY=1 -eSTATIC_CHECKS=1"
+  DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
 - DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build-ubuntu.sh
 services:
 - docker
@@ -22,8 +23,8 @@ script:
 - ci_env=`bash <(curl -s https://codecov.io/env)`
 - docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
   ${SCRIPT}
-- "./scripts/test_garage_deploy_deb.sh ${DOCKERFILE}"
-- "./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}"
+- if [ $DOCKERFILE = Dockerfile.deb-stable ]; then ./scripts/test_garage_deploy_deb.sh ${DOCKERFILE}; fi
+- if [ $DOCKERFILE = Dockerfile.noostree ]; then ./scripts/test_aktualizr_deb_ubuntu.sh ${DOCKERFILE}; fi
 deploy:
         - provider: releases
           file: /persistent/garage_deploy.deb

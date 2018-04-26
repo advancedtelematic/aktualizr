@@ -1,8 +1,8 @@
 pipeline {
   agent none
-    environment {
-      JENKINS_RUN = '1'
-    }
+  environment {
+    JENKINS_RUN = '1'
+  }
   stages {
     stage('test') {
       parallel {
@@ -12,8 +12,14 @@ pipeline {
               filename 'Dockerfile'
             }
           }
+          environment {
+            TEST_BUILD_DIR = 'build-coverage'
+            TEST_WITH_VALGRIND = '1'
+            TEST_WITH_COVERAGE = '1'
+            TEST_WITH_P11 = '1'
+          }
           steps {
-            sh 'scripts/coverage.sh'
+            sh 'scripts/test.sh'
           }
           post {
             always {
@@ -31,6 +37,21 @@ pipeline {
                   reportName: 'Coverage Report'
               ])
             }
+          }
+        }
+        stage('openssl11') {
+          agent {
+            dockerfile {
+              filename 'Dockerfile.deb-testing'
+            }
+          }
+          environment {
+            TEST_BUILD_DIR = 'build-openssl1'
+            TEST_WITH_TESTSUITE = '0'
+            TEST_WITH_STATICTESTS = '1'
+          }
+          steps {
+            sh 'scripts/test.sh'
           }
         }
         stage('debian_pkg') {
