@@ -1,7 +1,2 @@
 [gateway]
 socket = true
-
-[network]
-socket_commands_path = "/tmp/sota-commands.socket"
-socket_events_path = "/tmp/sota-events.socket"
-socket_events = "DownloadComplete, DownloadFailed, NoUpdateRequests"
