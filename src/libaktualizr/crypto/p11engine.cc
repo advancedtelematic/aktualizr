@@ -82,44 +82,37 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
   uri_prefix_ = std::string("pkcs11:serial=") + slot->token->serialnr + ";pin-value=" + config_.pass + ";id=%";
 
   ENGINE_load_builtin_engines();
-  ssl_engine_ = ENGINE_by_id("dynamic");
+  ssl_engine_.reset(ENGINE_by_id("dynamic"));
   if (ssl_engine_ == nullptr) {
     throw std::runtime_error("SSL pkcs11 engine initialization failed");
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "SO_PATH", kPkcs11Path, 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "SO_PATH", kPkcs11Path, 0) == 0) {
     throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + kPkcs11Path);
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "ID", "pkcs11", 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "ID", "pkcs11", 0) == 0) {
     throw std::runtime_error("Engine command failed: ID pksc11");
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "LIST_ADD", "1", 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "LIST_ADD", "1", 0) == 0) {
     throw std::runtime_error("Engine command failed: LIST_ADD 1");
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "LOAD", nullptr, 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "LOAD", nullptr, 0) == 0) {
     throw std::runtime_error("Engine command failed: LOAD");
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "MODULE_PATH", config_.module.c_str(), 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "MODULE_PATH", config_.module.c_str(), 0) == 0) {
     throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module.string());
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_, "PIN", config_.pass.c_str(), 0) == 0) {
+  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "PIN", config_.pass.c_str(), 0) == 0) {
     throw std::runtime_error(std::string("Engine command failed: PIN ") + config_.pass);
   }
 
-  if (ENGINE_init(ssl_engine_) == 0) {
+  if (ENGINE_init(ssl_engine_.get()) == 0) {
     throw std::runtime_error("Engine initialization failed");
-  }
-}
-
-P11Engine::~P11Engine() {
-  if (!config_.module.empty()) {
-    ENGINE_finish(ssl_engine_);
-    ENGINE_cleanup();
   }
 }
 

@@ -27,6 +27,7 @@ TEST(authenticate, good_cert_zip) {
   CURLcode rc = curl_easy_perform(curl_handle);
 
   EXPECT_EQ(CURLE_OK, rc);
+  curl_easy_cleanup(curl_handle);
 }
 
 TEST(authenticate, good_cert_noauth_zip) {
@@ -40,6 +41,7 @@ TEST(authenticate, good_cert_noauth_zip) {
   CURLcode rc = curl_easy_perform(curl_handle);
 
   EXPECT_EQ(CURLE_OK, rc);
+  curl_easy_cleanup(curl_handle);
 }
 
 TEST(authenticate, bad_cert_zip) {
@@ -53,6 +55,7 @@ TEST(authenticate, bad_cert_zip) {
   CURLcode rc = curl_easy_perform(curl_handle);
 
   EXPECT_NE(CURLE_OK, rc);
+  curl_easy_cleanup(curl_handle);
 }
 
 TEST(authenticate, bad_zip) {
