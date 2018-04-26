@@ -74,4 +74,10 @@
     ...
     obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so*
 }
-
+{
+    openssl softhsm leak (https://github.com/opendnssec/SoftHSMv2/issues/133)
+    Memcheck:Leak
+    ...
+    fun:ENGINE_ctrl_cmd_string
+    ...
+}
