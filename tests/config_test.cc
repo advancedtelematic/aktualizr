@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -12,12 +8,10 @@
 #include <boost/program_options.hpp>
 
 #include "bootstrap.h"
-
+#include "config.h"
 #include "test_utils.h"
 #include "utilities/crypto.h"
 #include "utilities/utils.h"
-
-#include "config.h"
 
 namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
@@ -102,7 +96,18 @@ TEST(config, secondary_config) {
   EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
 }
 
-TEST(config, legacy_interface) {
+void checkSecondaryConfig(const Config &conf) {
+  EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kLegacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
+  EXPECT_FALSE(conf.uptane.secondary_configs[0].ecu_serial.empty());
+  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::kLegacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
+  // If not provided, serial is not generated until SotaUptaneClient is initialized.
+  EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
+}
+
+TEST(config, legacy_interface_cmdline) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
   TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
@@ -118,14 +123,14 @@ TEST(config, legacy_interface) {
   bpo::store(bpo::parse_command_line(3, argv, description), cmd);
 
   Config conf(conf_path_str, cmd);
-  EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::kLegacy);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
-  EXPECT_FALSE(conf.uptane.secondary_configs[0].ecu_serial.empty());
-  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::kLegacy);
-  EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
-  // If not provided, serial is not generated until SotaUptaneClient is initialized.
-  EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
+  checkSecondaryConfig(conf);
+}
+
+TEST(config, legacy_interface_config) {
+  Config conf("tests/config/minimal.toml");
+  conf.uptane.legacy_interface = build_dir / "src/external_secondaries/example-interface";
+  conf.postUpdateValues();
+  checkSecondaryConfig(conf);
 }
 
 /**

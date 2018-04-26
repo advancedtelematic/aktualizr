@@ -176,7 +176,9 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
     }
   }
 
-  // uptane.secondary_configs currently can only be set via command line.
+  CopyFromConfig(legacy_interface, "legacy_interface", boost::log::trivial::trace, pt);
+  // uptane.secondary_configs is populated by processing secondary configs from
+  // the commandline and uptane.legacy_interface.
 }
 
 void UptaneConfig::writeToStream(std::ostream& out_stream) const {
@@ -189,6 +191,7 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, repo_server, "repo_server");
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
+  writeOption(out_stream, legacy_interface, "legacy_interface");
 }
 
 void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -227,6 +230,16 @@ KeyManagerConfig Config::keymanagerConfig() const {
 }
 
 void Config::postUpdateValues() {
+  if (logger.loglevel < boost::log::trivial::trace) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::trace;
+  }
+  if (boost::log::trivial::fatal < logger.loglevel) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::fatal;
+  }
+  logger_set_threshold(logger.loglevel);
+
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;
   }
@@ -261,15 +274,8 @@ void Config::postUpdateValues() {
     }
   }
 
-  if (logger.loglevel < boost::log::trivial::trace) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::trace;
-  }
-  if (boost::log::trivial::fatal < logger.loglevel) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::fatal;
-  }
-  logger_set_threshold(logger.loglevel);
+  checkLegacyVersion();
+  initLegacySecondaries();
 }
 
 void Config::updateFromDirs() {
@@ -340,22 +346,17 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   if (cmd.count("primary-ecu-hardware-id") != 0) {
     uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
-
   if (cmd.count("secondary-config") != 0) {
     std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path> >();
     readSecondaryConfigs(sconfigs);
   }
-
   if (cmd.count("legacy-interface") != 0) {
-    boost::filesystem::path legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
-    checkLegacyVersion(legacy_interface);
-    initLegacySecondaries(legacy_interface);
+    uptane.legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
   }
 }
 
 void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
-  std::vector<boost::filesystem::path>::const_iterator it;
-  for (it = sconfigs.begin(); it != sconfigs.end(); ++it) {
+  for (auto it = sconfigs.cbegin(); it != sconfigs.cend(); ++it) {
     if (!boost::filesystem::exists(*it)) {
       throw FatalException(it->string() + " does not exist!");
     }
@@ -402,13 +403,16 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
   }
 }
 
-void Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface) {
-  if (!boost::filesystem::exists(legacy_interface)) {
-    throw FatalException(std::string("Legacy external flasher not found: ") + legacy_interface.string());
+void Config::checkLegacyVersion() {
+  if (uptane.legacy_interface.empty()) {
+    return;
+  }
+  if (!boost::filesystem::exists(uptane.legacy_interface)) {
+    throw FatalException(std::string("Legacy external flasher not found: ") + uptane.legacy_interface.string());
   }
   std::stringstream command;
   std::string output;
-  command << legacy_interface << " api-version --loglevel " << loggerGetSeverity();
+  command << uptane.legacy_interface << " api-version --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
     throw FatalException(std::string("Legacy external flasher api-version command failed: ") + output);
@@ -419,10 +423,13 @@ void Config::checkLegacyVersion(const boost::filesystem::path& legacy_interface)
   }
 }
 
-void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interface) {
+void Config::initLegacySecondaries() {
+  if (uptane.legacy_interface.empty()) {
+    return;
+  }
   std::stringstream command;
   std::string output;
-  command << legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
+  command << uptane.legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
   int rs = Utils::shell(command.str(), &output);
   if (rs != 0) {
     LOG_ERROR << "Legacy external flasher list-ecus command failed: " << output;
@@ -462,7 +469,7 @@ void Config::initLegacySecondaries(const boost::filesystem::path& legacy_interfa
     sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
     sconfig.metadata_path = sconfig.full_client_dir / "metadata";
     sconfig.target_name_path = sconfig.full_client_dir / "target_name";
-    sconfig.flasher = legacy_interface;
+    sconfig.flasher = uptane.legacy_interface;
 
     uptane.secondary_configs.push_back(sconfig);
   }
