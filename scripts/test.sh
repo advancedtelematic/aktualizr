@@ -73,6 +73,7 @@ if [[ $TEST_WITH_P11 = 1 ]]; then
         set -x
         export SOFTHSM2_CONF="$PWD/softhsm2.conf"
         export TOKEN_DIR="$PWD/softhsm2-tokens"
+        rm -rf "${TOKEN_DIR}"
         mkdir -p "${TOKEN_DIR}"
         cp "$GITREPO_ROOT/tests/test_data/softhsm2.conf" "${SOFTHSM2_CONF}"
 
