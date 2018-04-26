@@ -1,3 +1,4 @@
+#include <json/json.h>
 #include <atomic>
 #include <map>
 #include <string>
@@ -54,6 +55,7 @@ class SotaUptaneClient {
   std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
   std::unique_ptr<IpUptaneConnectionSplitter> ip_uptane_splitter;
   std::atomic<bool> shutdown = {false};
+  Json::Value last_network_info_reported;
 };
 
 class SerialCompare {
