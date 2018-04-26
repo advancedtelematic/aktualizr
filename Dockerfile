@@ -55,14 +55,17 @@ RUN apt-get update && apt-get -y install \
   python3-openssl \
   python3-pip \
   python3-venv \
-  valgrind \
   wget
 
+# Includes workaround for this bug:
+# https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1501545
+# https://stackoverflow.com/questions/37032339/valgrind-unrecognised-instruction
 RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
 RUN apt-get update && apt-get -y install \
   libp11-2 \
   libp11-dev \
-  softhsm2
+  softhsm2 \
+  valgrind
 RUN useradd testuser
 
 WORKDIR aktualizr
