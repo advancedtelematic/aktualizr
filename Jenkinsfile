@@ -14,7 +14,7 @@ pipeline {
           }
           environment {
             TEST_BUILD_DIR = 'build-coverage'
-            TEST_WITH_VALGRIND = '1'
+            TEST_CMAKE_BUILD_TYPE = 'Valgrind'
             TEST_WITH_COVERAGE = '1'
             TEST_WITH_P11 = '1'
           }
@@ -46,7 +46,7 @@ pipeline {
             }
           }
           environment {
-            TEST_BUILD_DIR = 'build-openssl1'
+            TEST_BUILD_DIR = 'build-openssl11'
             TEST_WITH_TESTSUITE = '0'
             TEST_WITH_STATICTESTS = '1'
           }
@@ -65,11 +65,11 @@ pipeline {
                docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v $PWD/build-ubuntu/pkg:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build-ubuntu.sh
                '''
             // test package installation in another docker
-            sh 'scripts/test_aktualizr_deb_ubuntu.sh Dockerfile.noostree $PWD/build-ubuntu/pkg'
+            sh 'scripts/test_aktualizr_deb_ubuntu.sh $PWD/build-ubuntu/pkg'
           }
           post {
             always {
-              archiveArtifacts artifacts: 'build-ubuntu/pkg/*.deb', fingerprint: true
+              archiveArtifacts artifacts: 'build-ubuntu/pkg/*aktualizr.deb', fingerprint: true
             }
           }
         }
