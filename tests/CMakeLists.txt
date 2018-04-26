@@ -145,6 +145,7 @@ add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptane_connection_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_keymanager PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
@@ -169,12 +170,16 @@ add_aktualizr_test(NAME utils SOURCES utils_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_implicit PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
 
