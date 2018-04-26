@@ -112,7 +112,13 @@ void SotaUptaneClient::reportNetworkInfo() {
   if (config.telemetry.report_network) {
     LOG_DEBUG << "Reporting network information";
     Json::Value network_info = Utils::getNetworkInfo();
-    http.put(config.tls.server + "/system_info/network", network_info);
+    if (network_info != last_network_info_reported) {
+      HttpResponse response = http.put(config.tls.server + "/system_info/network", network_info);
+      if (response.isOk()) {
+        last_network_info_reported = network_info;
+      }
+    }
+
   } else {
     LOG_DEBUG << "Not reporting network information because telemetry is disabled";
   }
