@@ -125,9 +125,6 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
         StorageConfig old_config;
         old_config.type = kFileSystem;
         old_config.path = path;
-        // just use the defaults?
-        old_config.uptane_private_key_path = "ecukey.der";
-        old_config.tls_cacert_path = "root.crt";
 
         std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
         std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config);

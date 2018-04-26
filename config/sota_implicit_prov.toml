@@ -3,5 +3,3 @@ server_url_path = "/var/sota/gateway.url"
 
 [storage]
 type = "filesystem"
-tls_cacert_path = "root.crt"
-uptane_private_key_path = "ecukey.der"

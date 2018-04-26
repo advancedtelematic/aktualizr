@@ -18,9 +18,9 @@ struct StorageConfig {
 
   // FS storage
   boost::filesystem::path uptane_metadata_path{"metadata"};
-  boost::filesystem::path uptane_private_key_path{"ecukey.pem"};
+  boost::filesystem::path uptane_private_key_path{"ecukey.der"};
   boost::filesystem::path uptane_public_key_path{"ecukey.pub"};
-  boost::filesystem::path tls_cacert_path{"ca.pem"};
+  boost::filesystem::path tls_cacert_path{"root.crt"};
   boost::filesystem::path tls_pkey_path{"pkey.pem"};
   boost::filesystem::path tls_clientcert_path{"client.pem"};
 
