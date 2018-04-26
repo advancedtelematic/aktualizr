@@ -269,10 +269,10 @@ add_test(NAME test_cmdline--help COMMAND aktualizr --help)
 add_test(NAME test_cmdline-h COMMAND aktualizr -h)
 # test running the executable with command line option --something
 add_test(NAME test_cmdline--something
-         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/basic.toml)
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # test running the executable with command line option -sth
 add_test(NAME test_cmdline-sth
-         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/tests/config/basic.toml)
+         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # call the executable without any options
 add_test(NAME test_cmdline_empty COMMAND aktualizr)
 # test the return code when running the executable with non-existent configuration file
@@ -316,11 +316,11 @@ set_tests_properties(test-secondary-config-with-nonexistent-file
 
 # check invalid logging levels
 add_test(NAME test_log_invalid
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/basic.toml --loglevel=6)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=6)
 set_tests_properties(test_log_invalid
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 add_test(NAME test_log_negative
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/basic.toml --loglevel=-1)
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=-1)
 set_tests_properties(test_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
@@ -486,7 +486,7 @@ target_link_libraries(t_aktualizr_secondary_discovery aktualizr_secondary_static
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)
 # test running the executable with command line option --something
 add_test(NAME aktualizr_secondary_cmdline--something
-         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/basic.toml)
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # call the executable without any options
 add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr)
 # test the return code when running the executable with non-existent configuration file
