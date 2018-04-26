@@ -45,10 +45,17 @@ add_dependencies(build_tests aktualizr-info)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
 
+# build list of tests to run
+foreach(label ${TESTSUITE_ONLY})
+    set(CTEST_EXTRA_ARGS ${CTEST_EXTRA_ARGS} -L ${label})
+endforeach()
+
+foreach(label ${TESTSUITE_EXCLUDE})
+    set(CTEST_EXTRA_ARGS ${CTEST_EXTRA_ARGS} -LE ${label})
+endforeach()
+
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
-                  -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
-add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
-    -E test_uptane_vectors DEPENDS build_tests)
+                  DEPENDS build_tests)
 
 # Reference asn1c libraries
 add_asn1c_lib(asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
@@ -127,6 +134,7 @@ add_aktualizr_test(NAME commands SOURCES commands_test.cc)
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_crypto PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -177,11 +185,13 @@ add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
 set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+    set(VECTOR_TESTS_ARGS "valgrind")
+endif(CMAKE_BUILD_TYPE MATCHES "Valgrind")
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
-#add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-#         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
+         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors ${VECTOR_TESTS_ARGS})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
+set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
     add_test(NAME test_prov COMMAND ${PROJECT_SOURCE_DIR}/tests/prov_test.py
@@ -346,7 +356,7 @@ add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
         ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=on")
 
-add_dependencies(qa check-full)
+add_dependencies(qa check)
 
 
 # implicit_writer tests

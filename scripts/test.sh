@@ -23,6 +23,8 @@ TEST_WITH_DEB=${TEST_WITH_DEB:-1}
 TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
 TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
 TEST_DRYRUN=${TEST_DRYRUN:-0}
+TEST_TESTSUITE_ONLY=${TEST_TESTSUITE_ONLY:-}
+TEST_TESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE:-}
 
 # Build CMake arguments
 CMAKE_ARGS=()
@@ -36,6 +38,8 @@ if [[ $TEST_WITH_P11 = 1 ]]; then
 fi
 if [[ $TEST_WITH_OSTREE = 1 ]]; then CMAKE_ARGS+=("-DBUILD_OSTREE=ON"); fi
 if [[ $TEST_WITH_DEB = 1 ]]; then CMAKE_ARGS+=("-DBUILD_DEB=ON"); fi
+CMAKE_ARGS+=("-DTESTSUITE_ONLY=${TEST_TESTSUITE_ONLY}");
+CMAKE_ARGS+=("-DTESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE}")
 echo ">> CMake options: ${CMAKE_ARGS[*]}"
 
 # Test stages
@@ -119,7 +123,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
         echo ">> Running test suite"
         if [[ $TEST_DRYRUN != 1 ]]; then
             set -x
-            CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 check-full || [[ $JENKINS_RUN = 1 ]]
+            CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 check || [[ $JENKINS_RUN = 1 ]]
             set +x
         fi
     fi
