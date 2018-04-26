@@ -1,5 +1,6 @@
 #! /bin/bash
-set -ex
+
+set -exuo pipefail
 
 /persistent/selfupdate_server.py 8000&
 

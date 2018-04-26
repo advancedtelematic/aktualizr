@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -ex
+
+set -exuo pipefail
 
 PKG_SRCDIR="${1:-/persistent}"
 echo "Building docker for testing aktualizr deb package inside it."
