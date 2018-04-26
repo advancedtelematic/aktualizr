@@ -1,7 +1,7 @@
 #ifndef PACKAGEMANAGERFACTORY_H_
 #define PACKAGEMANAGERFACTORY_H_
 
-#include "config.h"
+#include "config/config.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
 

@@ -3,10 +3,10 @@
 #include <openssl/x509.h>
 #include <boost/scoped_array.hpp>
 
-#include "bootstrap.h"
+#include "bootstrap/bootstrap.h"
+#include "crypto/keymanager.h"
 #include "logging/logging.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/keymanager.h"
 
 namespace Uptane {
 

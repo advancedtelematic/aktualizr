@@ -2,14 +2,14 @@
 #include <iostream>
 #include <string>
 
-#include "config.h"
+#include "config/config.h"
 #include "uptane/secondaryfactory.h"
 #include "uptane/secondaryinterface.h"
 
-#include "ipsecondarydiscovery.h"
 #include "logging/logging.h"
 #include "secondary_ipc/ipuptaneconnection.h"
 #include "secondary_ipc/ipuptaneconnectionsplitter.h"
+#include "uptane/ipsecondarydiscovery.h"
 
 namespace po = boost::program_options;
 

@@ -14,11 +14,11 @@
 #include <utility>
 #include <vector>
 
+#include "http/httpclient.h"
 #include "logging/logging.h"
 #include "storage/fsstorage.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/httpclient.h"
 #include "utilities/utils.h"
 
 Config conf("tests/config/basic.toml");

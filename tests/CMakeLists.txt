@@ -37,6 +37,8 @@ if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
 endif(BUILD_SOTA_TOOLS)
 
+include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
+
 add_dependencies(build_tests aktualizr-secondary)
 
 add_dependencies(build_tests aktualizr-info)
@@ -175,7 +177,7 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
                    PROJECT_WORKING_DIRECTORY)
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
-target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS} crypto)
+target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
 set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
@@ -207,11 +209,12 @@ if(BUILD_OSTREE)
 endif(BUILD_OSTREE)
 
 if(BUILD_OPCUA)
+    include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/)
     set_source_files_properties(opcuabridge_test_utils.cc opcuabridge_messaging_test.cc opcuabridge_server.cc
                                 opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                                 opcuabridge_ostree_repo_sync_client.cc
                                 opcuabridge_ostree_repo_sync_server.cc
-                                PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
+                                PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
     add_executable(opcuabridge-server opcuabridge_server.cc opcuabridge_test_utils.cc)
     target_link_libraries(opcuabridge-server aktualizr_static_lib ${TEST_LIBS})
     add_dependencies(build_tests opcuabridge-server)

@@ -1,4 +1,4 @@
-#include "utilities/keymanager.h"
+#include "keymanager.h"
 
 #include <stdexcept>
 

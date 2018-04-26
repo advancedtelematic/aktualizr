@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "config.h"
+#include "config/config.h"
 #include "uptane/secondaryconfig.h"
 #include "utilities/utils.h"
 

@@ -4,8 +4,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "bootstrap.h"
-#include "config.h"
+#include "bootstrap/bootstrap.h"
+#include "config/config.h"
 #include "logging/logging.h"
 #include "utilities/utils.h"
 

@@ -6,10 +6,10 @@
 
 #include <boost/filesystem.hpp>
 
-#include "commands.h"
-#include "config.h"
-#include "events.h"
-#include "socketgateway.h"
+#include "config/config.h"
+#include "primary/commands.h"
+#include "primary/events.h"
+#include "primary/socketgateway.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 

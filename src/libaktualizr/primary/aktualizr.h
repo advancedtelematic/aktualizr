@@ -1,7 +1,7 @@
 #ifndef AKTUALIZR_H_
 #define AKTUALIZR_H_
 
-#include "config.h"
+#include "config/config.h"
 
 class Aktualizr {
  public:

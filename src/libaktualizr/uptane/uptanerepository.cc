@@ -10,11 +10,11 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <utility>
 
-#include "bootstrap.h"
+#include "bootstrap/bootstrap.h"
+#include "crypto/crypto.h"
+#include "crypto/openssl_compat.h"
 #include "logging/logging.h"
-#include "openssl_compat.h"
 #include "storage/invstorage.h"
-#include "utilities/crypto.h"
 #include "utilities/utils.h"
 
 #ifdef BUILD_OSTREE

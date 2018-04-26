@@ -4,9 +4,9 @@
 #include <memory>
 #include <string>
 
+#include "crypto/crypto.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
-#include "utilities/crypto.h"
 
 class PackageManagerFake : public PackageManagerInterface {
  public:

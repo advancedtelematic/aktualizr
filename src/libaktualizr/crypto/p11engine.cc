@@ -1,4 +1,4 @@
-#include "utilities/p11engine.h"
+#include "p11engine.h"
 
 #include <libp11.h>
 #include <openssl/evp.h>

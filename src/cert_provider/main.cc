@@ -11,10 +11,10 @@
 #include <openssl/ssl.h>
 #include "json/json.h"
 
-#include "bootstrap.h"
+#include "bootstrap/bootstrap.h"
+#include "crypto/crypto.h"
+#include "http/httpclient.h"
 #include "logging/logging.h"
-#include "utilities/crypto.h"
-#include "utilities/httpclient.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;

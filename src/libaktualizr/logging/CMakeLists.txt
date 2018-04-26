@@ -1,6 +1,6 @@
-if(logger_type STREQUAL "boost")
+if(LOGGING_TYPE STREQUAL "boost")
   set(SOURCES boost_logging.cc)
-elseif(logger_type STREQUAL "android")
+elseif(LOGGING_TYPE STREQUAL "android")
   set(SOURCES android_logging.cc)
 else()
   message(FATAL_ERROR "Unknown logger type: ${logger_type}")

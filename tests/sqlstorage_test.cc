@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "logging/logging.h"
-#include "sql_utils.h"
+#include "storage/sql_utils.h"
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 

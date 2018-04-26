@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "timer.h"
+#include "utilities/timer.h"
 
 TEST(Timer, Short) {
   Timer timer;

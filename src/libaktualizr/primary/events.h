@@ -5,8 +5,8 @@
 
 #include <json/json.h>
 
-#include "channel.h"
 #include "uptane/tuf.h"
+#include "utilities/channel.h"
 #include "utilities/types.h"
 
 namespace event {

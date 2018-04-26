@@ -7,11 +7,11 @@
 #include <memory>
 #include <string>
 
-#include "config.h"
+#include "config/config.h"
+#include "http/httpclient.h"
 #include "logging/logging.h"
 #include "storage/fsstorage.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/httpclient.h"
 #include "utilities/utils.h"
 
 bool match_error(Json::Value error, Uptane::Exception* e) {

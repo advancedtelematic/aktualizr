@@ -12,10 +12,10 @@
 #include "package_manager/ostreemanager.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "sotauptaneclient.h"
+#include "primary/sotauptaneclient.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/httpclient.h"
+#include "http/httpclient.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path credentials;

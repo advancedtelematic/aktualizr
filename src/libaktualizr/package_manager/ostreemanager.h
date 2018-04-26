@@ -6,9 +6,9 @@
 #include <glib/gi18n.h>
 #include <ostree-1/ostree.h>
 
-#include "config.h"
+#include "config/config.h"
+#include "crypto/keymanager.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "utilities/keymanager.h"
 #include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";

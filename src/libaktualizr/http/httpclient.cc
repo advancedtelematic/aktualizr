@@ -1,4 +1,4 @@
-#include "utilities/httpclient.h"
+#include "httpclient.h"
 #include "utilities/utils.h"
 
 #include <assert.h>
@@ -12,7 +12,7 @@
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
 
-#include "openssl_compat.h"
+#include "crypto/openssl_compat.h"
 
 /*****************************************************************************/
 /**

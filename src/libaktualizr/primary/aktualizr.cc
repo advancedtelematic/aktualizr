@@ -1,18 +1,18 @@
 #include "aktualizr.h"
 
-#include "timer.h"
+#include "utilities/timer.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <sodium.h>
 
-#include "channel.h"
 #include "commands.h"
 #include "events.h"
 #include "eventsinterpreter.h"
+#include "http/httpclient.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "utilities/httpclient.h"
+#include "utilities/channel.h"
 
 Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'

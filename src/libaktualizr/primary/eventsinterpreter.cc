@@ -3,7 +3,7 @@
 #include <memory>
 #include <utility>
 
-#include "config.h"
+#include "config/config.h"
 
 EventsInterpreter::EventsInterpreter(const Config& config_in, std::shared_ptr<event::Channel> events_channel_in,
                                      std::shared_ptr<command::Channel> commands_channel_in)

@@ -15,8 +15,8 @@ option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
-set(logger_type "boost" CACHE STRING "")
-set(storage_type "sqlite" CACHE STRING "")
+set(LOGGING_TYPE "boost" CACHE STRING "")
+set(STORAGE_TYPE "sqlite" CACHE STRING "")
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "Aktualizr does not support building in the source tree. Please remove CMakeCache.txt and the CMakeFiles/ directory, then create a subdirectory to build in: mkdir build; cd build; cmake ..")
@@ -82,8 +82,6 @@ if(BUILD_SOTA_TOOLS)
 endif(BUILD_SOTA_TOOLS)
 
 if(BUILD_OPCUA)
-    set(OPEN62541_IGNORED_WARNINGS
-        "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
     add_definitions(-DOPCUA_SECONDARY_ENABLED)
 endif(BUILD_OPCUA)
 
@@ -231,11 +229,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ############### BUILD RULES
-#include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
-include_directories(${PROJECT_SOURCE_DIR}/third_party/open62541)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
@@ -290,17 +284,18 @@ include(CPack)
 include(CPackComponent)
 
 
-add_subdirectory("src")
 add_subdirectory("fuzz")
 add_subdirectory("config")
 
+add_subdirectory("src/libaktualizr")
 add_subdirectory("src/sota_tools")
-
+add_subdirectory("src/aktualizr_primary")
 add_subdirectory("src/aktualizr_secondary")
-
 add_subdirectory("src/aktualizr_info")
-
 add_subdirectory("src/aktualizr_check_discovery")
+add_subdirectory("src/cert_provider")
+add_subdirectory("src/implicit_writer")
+add_subdirectory("src/external_secondaries")
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
@@ -314,6 +309,16 @@ add_subdirectory("docs")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
     src/*.cc src/*.c src/*.h)
 foreach(FILE ${ALL_SOURCE_FILES})
+    # ignore third party sources
+    string (FIND ${FILE} "/third_party/" EXCLUDE_DIR_FOUND)
+    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+      continue()
+    endif()
+    string (FIND ${FILE} "/opcuabridge/" EXCLUDE_DIR_FOUND)
+    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+      continue()
+    endif()
+
     list(FIND AKTUALIZR_CHECKED_SRCS ${FILE} INDEX)
     if (${INDEX} EQUAL "-1")
         message(FATAL_ERROR "${FILE} not checked")

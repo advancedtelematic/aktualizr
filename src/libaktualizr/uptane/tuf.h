@@ -9,7 +9,7 @@
 #include <set>
 #include "uptane/exceptions.h"
 
-#include "utilities/crypto.h"
+#include "crypto/crypto.h"
 
 namespace Uptane {
 

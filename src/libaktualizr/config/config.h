@@ -14,13 +14,13 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "asn1/asn1-cerstream.h"
+#include "crypto/keymanager.h"
+#include "crypto/p11engine.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerconfig.h"
 #include "storage/invstorage.h"
 #include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
-#include "utilities/keymanager.h"
-#include "utilities/p11engine.h"
 #include "utilities/types.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };

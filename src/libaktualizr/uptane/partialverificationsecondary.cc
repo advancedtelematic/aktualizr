@@ -6,10 +6,10 @@
 #include <boost/filesystem.hpp>
 #include "json/json.h"
 
-#include "../exceptions.h"
 #include "logging/logging.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
+#include "utilities/exceptions.h"
 #include "utilities/types.h"
 
 namespace Uptane {

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "config.h"
+#include "config/config.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 

@@ -8,8 +8,8 @@
 
 #include "json/json.h"
 
-#include "httpinterface.h"
-#include "utilities/crypto.h"
+#include "crypto/crypto.h"
+#include "http/httpinterface.h"
 #include "utilities/utils.h"
 
 enum ProvisioningResult { ProvisionOK, ProvisionFailure };

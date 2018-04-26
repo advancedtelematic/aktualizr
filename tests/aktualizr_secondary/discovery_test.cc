@@ -3,8 +3,8 @@
 #include <future>
 
 #include "aktualizr_secondary_discovery.h"
-#include "config.h"
-#include "ipsecondarydiscovery.h"  // to test from the other side
+#include "config/config.h"
+#include "uptane/ipsecondarydiscovery.h"  // to test from the other side
 
 #include "logging/logging.h"
 

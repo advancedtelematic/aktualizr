@@ -14,7 +14,7 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
-#include "sotauptaneclient.h"
+#include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"

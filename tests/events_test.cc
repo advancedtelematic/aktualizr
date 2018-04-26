@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "events.h"
+#include "primary/events.h"
 
 TEST(event, Error_event_to_json) {
   std::string error = "Error123";

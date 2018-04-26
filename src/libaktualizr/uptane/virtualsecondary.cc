@@ -3,7 +3,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "utilities/crypto.h"
+#include "crypto/crypto.h"
 #include "utilities/utils.h"
 
 namespace Uptane {

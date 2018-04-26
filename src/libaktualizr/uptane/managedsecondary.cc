@@ -3,8 +3,8 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "crypto/crypto.h"
 #include "logging/logging.h"
-#include "utilities/crypto.h"
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {

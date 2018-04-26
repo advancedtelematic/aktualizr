@@ -1,9 +1,9 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include "httpinterface.h"
+#include "crypto/p11engine.h"
+#include "http/httpinterface.h"
 #include "storage/invstorage.h"
-#include "utilities/p11engine.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 

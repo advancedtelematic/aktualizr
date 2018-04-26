@@ -6,16 +6,16 @@
 #include <vector>
 
 #include "commands.h"
-#include "config.h"
+#include "config/config.h"
 #include "events.h"
-#include "ipsecondarydiscovery.h"
+#include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "secondary_ipc/ipuptaneconnection.h"
 #include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "storage/invstorage.h"
+#include "uptane/ipsecondarydiscovery.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/httpclient.h"
 
 class SotaUptaneClient {
  public:

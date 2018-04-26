@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "aktualizr_secondary.h"
-#include "sotauptaneclient.h"
+#include "primary/sotauptaneclient.h"
 
-#include "config.h"
+#include "config/config.h"
 #include "httpfake.h"
 
 std::shared_ptr<INvStorage> storage;

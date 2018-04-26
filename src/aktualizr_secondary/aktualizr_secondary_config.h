@@ -5,11 +5,11 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "config.h"
-#include "logging.h"
+#include "config/config.h"
+#include "crypto/keymanager.h"
+#include "crypto/p11engine.h"
+#include "logging/logging.h"
 #include "package_manager/packagemanagerconfig.h"
-#include "utilities/keymanager.h"
-#include "utilities/p11engine.h"
 
 // Try to keep the order of config options the same as in
 // AktualizrSecondaryConfig::writeToFile() and

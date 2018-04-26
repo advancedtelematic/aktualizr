@@ -5,8 +5,8 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
+#include "crypto/crypto.h"
 #include "logging/logging.h"
-#include "utilities/crypto.h"
 #include "utilities/utils.h"
 
 namespace Uptane {

@@ -3,7 +3,7 @@
 
 #include <thread>
 #include "commands.h"
-#include "config.h"
+#include "config/config.h"
 #include "events.h"
 #include "gatewaymanager.h"
 #include "logging/logging.h"

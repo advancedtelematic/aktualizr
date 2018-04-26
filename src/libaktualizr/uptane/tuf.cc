@@ -8,9 +8,9 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <utility>
 
-#include "exceptions.h"
+#include "crypto/crypto.h"
 #include "logging/logging.h"
-#include "utilities/crypto.h"
+#include "utilities/exceptions.h"
 
 using Uptane::Hash;
 using Uptane::Root;

@@ -10,6 +10,7 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
 add_library(aktualizr_secondary_static_lib STATIC
     ${AKTUALIZR_SECONDARY_LIB_SRC}
     $<TARGET_OBJECTS:asn1>
+    $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:utilities>
@@ -28,8 +29,9 @@ if (BUILD_OPCUA)
     target_sources(aktualizr_secondary_static_lib PRIVATE
         ${OPCUA_SECONDARY_SRC} $<TARGET_OBJECTS:opcua_bridge>)
     set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
-        PROPERTIES COMPILE_FLAGS ${OPEN62541_IGNORED_WARNINGS})
-    target_include_directories(aktualizr_secondary_static_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/opcuabridge)
+        PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+    target_include_directories(aktualizr_secondary_static_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/libaktualizr/opcuabridge
+                                                                     ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541)
 endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_secondary_static_lib PUBLIC

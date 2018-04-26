@@ -5,13 +5,13 @@
 
 #include "json/json.h"
 
-#include "config.h"
-#include "httpinterface.h"
+#include "config/config.h"
+#include "crypto/crypto.h"
+#include "crypto/keymanager.h"
+#include "http/httpinterface.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-#include "utilities/crypto.h"
-#include "utilities/keymanager.h"
 
 namespace Uptane {
 

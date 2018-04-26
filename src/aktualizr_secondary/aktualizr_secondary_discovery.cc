@@ -5,9 +5,9 @@
 #include <sys/types.h>
 
 #include "asn1/asn1-cerstream.h"
-#include "ipsecondarydiscovery.h"
 #include "logging/logging.h"
 #include "socket_activation/socket_activation.h"
+#include "uptane/ipsecondarydiscovery.h"
 #include "utilities/utils.h"
 
 AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config,

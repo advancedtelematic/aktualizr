@@ -1,4 +1,4 @@
-#include "utilities/crypto.h"
+#include "crypto.h"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/scoped_array.hpp>

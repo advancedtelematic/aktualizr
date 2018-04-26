@@ -10,10 +10,10 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 
-#include "bootstrap.h"
+#include "bootstrap/bootstrap.h"
 #include "config.h"
-#include "exceptions.h"
 #include "utilities/config_utils.h"
+#include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
 std::ostream& operator<<(std::ostream& os, StorageType stype) {

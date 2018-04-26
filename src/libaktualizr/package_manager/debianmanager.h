@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include "config.h"
+#include "config/config.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "utilities/types.h"
 

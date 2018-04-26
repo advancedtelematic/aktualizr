@@ -5,7 +5,7 @@
 #include <memory>
 #include "json/json.h"
 
-#include "config.h"
+#include "config/config.h"
 #include "httpinterface.h"
 #include "logging/logging.h"
 #include "utilities/utils.h"

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "commands.h"
-#include "config.h"
+#include "config/config.h"
 #include "events.h"
 #include "gateway.h"
 

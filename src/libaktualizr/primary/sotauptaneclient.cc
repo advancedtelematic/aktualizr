@@ -6,13 +6,13 @@
 #include <utility>
 #include "json/json.h"
 
+#include "crypto/crypto.h"
+#include "crypto/keymanager.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryfactory.h"
-#include "utilities/crypto.h"
-#include "utilities/keymanager.h"
 #include "utilities/utils.h"
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
