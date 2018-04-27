@@ -7,15 +7,15 @@
 #include <boost/filesystem.hpp>
 #include <boost/polymorphic_pointer_cast.hpp>
 
-#include "storage/fsstorage.h"
+#include "http/httpclient.h"
 #include "logging/logging.h"
 #include "package_manager/ostreemanager.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/sotauptaneclient.h"
+#include "storage/fsstorage.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/uptanerepository.h"
-#include "http/httpclient.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path credentials;
