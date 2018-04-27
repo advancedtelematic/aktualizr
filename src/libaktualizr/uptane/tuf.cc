@@ -118,6 +118,8 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
       hashes_.push_back(h);
     }
   }
+  // sort hashes so that higher priority hash algorithm goes first
+  std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
 Json::Value Uptane::Target::toJson() const {

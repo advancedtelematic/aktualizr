@@ -85,6 +85,7 @@ std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
  */
 class Hash {
  public:
+  // order corresponds algorithm priority
   enum Type { kSha256, kSha512, kUnknownAlgorithm };
 
   Hash(const std::string &type, const std::string &hash);

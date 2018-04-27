@@ -33,8 +33,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 
   // incomplete writes will stop the download (written_size != nmemb*size)
   size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), nmemb * size);
-  ds->sha256_hasher.update(reinterpret_cast<const unsigned char*>(contents), written_size);
-  ds->sha512_hasher.update(reinterpret_cast<const unsigned char*>(contents), written_size);
+  ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
   return written_size;
 }
 
@@ -198,6 +197,11 @@ void Repository::downloadTarget(const Target& target) {
     ds.downloaded_length = 0;
     ds.expected_length = target.length();
 
+    if (target.hashes().empty()) {
+      throw Exception("image", "No hash defined for the target");
+    }
+
+    ds.hash_type = target.hashes()[0].type();
     HttpResponse response =
         http.download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
     if (!response.isOk()) {
@@ -208,10 +212,8 @@ void Repository::downloadTarget(const Target& target) {
       throw Exception("image", "Could not download file, error: " + response.error_message);
     }
     fhandle->wcommit();
-    std::string h256 = ds.sha256_hasher.getHexDigest();
-    std::string h512 = ds.sha512_hasher.getHexDigest();
 
-    if (!target.MatchWith(Hash(Hash::kSha256, h256)) && !target.MatchWith(Hash(Hash::kSha512, h512))) {
+    if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
       throw TargetHashMismatch(target.filename());
     }
   } else if (target.format().empty() || target.format() == "OSTREE") {
