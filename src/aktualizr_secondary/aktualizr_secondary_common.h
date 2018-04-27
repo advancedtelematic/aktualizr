@@ -6,9 +6,9 @@
 #include <string>
 
 #include "aktualizr_secondary_config.h"
-#include "invstorage.h"
+#include "crypto/keymanager.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "utilities/keymanager.h"
+#include "storage/invstorage.h"
 
 class AktualizrSecondaryCommon {
  public:

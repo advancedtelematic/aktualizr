@@ -13,17 +13,17 @@
 
 #include <boost/filesystem.hpp>
 
-#include "fsstorage.h"
 #include "httpfake.h"
-#include "logging.h"
-#include "sotauptaneclient.h"
+#include "logging/logging.h"
+#include "primary/sotauptaneclient.h"
+#include "storage/fsstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/utils.h"
 
 #ifdef BUILD_P11
-#include "utilities/p11engine.h"
+#include "crypto/p11engine.h"
 #ifndef TEST_PKCS11_MODULE_PATH
 #define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
 #endif

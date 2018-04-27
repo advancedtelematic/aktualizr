@@ -5,7 +5,7 @@
 #include "accumulator.h"
 #include "authenticate.h"
 #include "deploy.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "ostree_http_repo.h"
 
 namespace po = boost::program_options;

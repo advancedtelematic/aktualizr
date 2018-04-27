@@ -1,6 +1,6 @@
 #include <open62541.h>
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "opcuabridge/opcuabridge.h"
 #include "package_manager/ostreemanager.h"
 #include "package_manager/ostreereposync.h"

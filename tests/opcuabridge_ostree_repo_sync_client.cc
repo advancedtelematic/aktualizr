@@ -9,7 +9,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "test_utils.h"
 
 namespace fs = boost::filesystem;

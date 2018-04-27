@@ -5,9 +5,9 @@
 
 #include <boost/filesystem.hpp>
 
-#include "fsstorage.h"
-#include "logging.h"
-#include "sqlstorage.h"
+#include "logging/logging.h"
+#include "storage/fsstorage.h"
+#include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path storage_test_dir;

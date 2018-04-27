@@ -9,10 +9,10 @@
 
 #include <boost/program_options.hpp>
 
-#include "config.h"
-#include "ipsecondarydiscovery.h"
-#include "logging.h"
+#include "config/config.h"
+#include "logging/logging.h"
 #include "test_utils.h"
+#include "uptane/ipsecondarydiscovery.h"
 
 std::string port;
 

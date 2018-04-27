@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sql_utils.h"
+#include "storage/sql_utils.h"
 #include "utilities/utils.h"
 
 TEST(sql_utils, PrepareRvalue) {

@@ -1,6 +1,6 @@
 #include "opcuabridge_test_utils.h"
 
-#include "logging.h"
+#include "logging/logging.h"
 
 namespace opcuabridge_test_utils {
 

@@ -11,7 +11,7 @@
 
 #include "AKIpUptaneMes.h"
 #include "AKTlsConfig.h"
-#include "config.h"
+#include "config/config.h"
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
 
 namespace bpo = boost::program_options;

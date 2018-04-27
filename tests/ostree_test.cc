@@ -8,9 +8,9 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
-#include "config.h"
-#include "fsstorage.h"
+#include "config/config.h"
 #include "package_manager/ostreemanager.h"
+#include "storage/fsstorage.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 

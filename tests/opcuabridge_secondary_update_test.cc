@@ -13,7 +13,7 @@
 #include "opcuabridge_test_utils.h"
 #include "test_utils.h"
 
-#include "utilities/crypto.h"
+#include "crypto/crypto.h"
 
 #include <boost/filesystem.hpp>
 

@@ -7,10 +7,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "bootstrap.h"
-#include "config.h"
+#include "bootstrap/bootstrap.h"
+#include "config/config.h"
 #include "test_utils.h"
-#include "utilities/crypto.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;

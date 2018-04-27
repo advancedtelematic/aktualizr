@@ -3,15 +3,15 @@
 
 #include <memory>
 
-#include "aktualizr_secondary/aktualizr_secondary_common.h"
-#include "aktualizr_secondary/aktualizr_secondary_config.h"
-#include "aktualizr_secondary/aktualizr_secondary_interface.h"
-#include "channel.h"
-#include "invstorage.h"
+#include "aktualizr_secondary_common.h"
+#include "aktualizr_secondary_config.h"
+#include "aktualizr_secondary_interface.h"
+#include "crypto/keymanager.h"
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
 #include "secondary_ipc/ipuptaneconnection.h"
+#include "storage/invstorage.h"
 #include "uptane/tuf.h"
-#include "utilities/keymanager.h"
+#include "utilities/channel.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 

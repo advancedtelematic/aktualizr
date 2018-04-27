@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-#include "logging.h"
+#include "logging/logging.h"
 #include "ostree_dir_repo.h"
 #include "ostree_hash.h"
 

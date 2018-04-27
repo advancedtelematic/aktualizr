@@ -1,4 +1,3 @@
-
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <iomanip>
@@ -6,7 +5,7 @@
 
 #include "accumulator.h"
 #include "deploy.h"
-#include "logging.h"
+#include "logging/logging.h"
 #include "ostree_dir_repo.h"
 #include "ostree_repo.h"
 

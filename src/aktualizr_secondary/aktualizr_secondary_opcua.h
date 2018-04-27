@@ -8,7 +8,7 @@
 #include "aktualizr_secondary_interface.h"
 #include "opcuaserver_secondary_delegate.h"
 
-#include <opcuabridge/opcuabridgeserver.h>
+#include <opcuabridgeserver.h>
 
 #include <boost/shared_ptr.hpp>
 

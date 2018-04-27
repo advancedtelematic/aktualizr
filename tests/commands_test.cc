@@ -4,7 +4,7 @@
 
 #include "picojson.h"
 
-#include "commands.h"
+#include "primary/commands.h"
 
 TEST(command, Shutdown_comand_to_json) {
   command::Shutdown comand;

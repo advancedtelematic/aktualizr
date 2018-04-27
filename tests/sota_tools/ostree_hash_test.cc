@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "sota_tools/ostree_hash.h"
+#include "ostree_hash.h"
 
 using std::string;
 
