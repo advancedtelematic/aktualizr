@@ -15,8 +15,6 @@ key_source = "pkcs11"
 
 [storage]
 type = "filesystem"
-path = "/var/sota/"
-uptane_metadata_path = "metadata"
 tls_cacert_path = "token/root.crt"
 tls_clientcert_path = "token/client.pem"
 tls_pkey_path = "token/pkey.pem"

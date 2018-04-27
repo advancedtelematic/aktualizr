@@ -3,8 +3,6 @@ server_url_path = "/var/sota/gateway.url"
 
 [storage]
 type = "sqlite"
-sqldb_path = "/var/sota/sql.db"
-schemas_path = "/usr/lib/sota/schemas"
 
 [import]
 tls_cacert_path = "/var/sota/import_root.crt"

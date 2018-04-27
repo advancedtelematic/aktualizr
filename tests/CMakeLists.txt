@@ -258,67 +258,72 @@ if(BUILD_DEB)
     list(APPEND TEST_SOURCES packagemanager_deb_tests.cc)
 endif(BUILD_DEB)
 
+
 ###############################################################################
 # The test feature of cmake checks the return value when the program
 # exits. If the return value is zero, the testcase passes.
 
 # test running the executable with command line option --help
-add_test(NAME feat1_test--help COMMAND aktualizr --help)
+add_test(NAME test_cmdline--help COMMAND aktualizr --help)
 # test running the executable with command line option -h
-add_test(NAME feat1_test-h COMMAND aktualizr -h)
+add_test(NAME test_cmdline-h COMMAND aktualizr -h)
 # test running the executable with command line option --something
-add_test(NAME feat1_test--something
-         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
+add_test(NAME test_cmdline--something
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # test running the executable with command line option -sth
-add_test(NAME feat1_test-sth
-         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/config/config.toml.example)
+add_test(NAME test_cmdline-sth
+         COMMAND aktualizr -sth -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # call the executable without any options
-add_test(NAME test_plain COMMAND aktualizr)
-# check invalid logging level
-add_test(NAME test_log_invalid COMMAND aktualizr --loglevel=5)
+add_test(NAME test_cmdline_empty COMMAND aktualizr)
 # test the return code when running the executable with non-existent configuration file
-add_test(NAME test-no-config-check-code
+add_test(NAME test_no_config_check_code
          COMMAND aktualizr -c non-existent-config.toml)
 
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass
-set_tests_properties(feat1_test--something
-                     feat1_test-sth
-                     test_plain
-                     test_log_invalid
-                     test-no-config-check-code
+set_tests_properties(test_cmdline--something
+                     test_cmdline-sth
+                     test_cmdline_empty
+                     test_no_config_check_code
                      PROPERTIES WILL_FAIL TRUE)
 
+# Check for expected output messages given specific misconfigurations
 # test the error message when running the executable with non-existent configuration file
 add_test(NAME test-no-config-check-message
          COMMAND aktualizr -c non-existent-config.toml)
+set_tests_properties(test-no-config-check-message
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr: configuration file .* not found. Exiting.")
 
 add_test(NAME test-help-with-other-options
          COMMAND aktualizr --help -c someconfig.toml)
+set_tests_properties(test-help-with-other-options
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr command line options")
 
 add_test(NAME test-help-with-nonexistent-options
          COMMAND aktualizr --help -somebadoption)
-
-set_tests_properties(test-no-config-check-message
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr: configuration file .* not found. Exiting.")
-
-set_tests_properties(test-help-with-other-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
-
 set_tests_properties(test-help-with-nonexistent-options
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "aktualizr command line options")
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr command line options")
 
 add_test(NAME test-legacy-interface-with-nonexistent-file
-         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --legacy-interface nonexistentfile)
-
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml --legacy-interface nonexistentfile)
 set_tests_properties(test-legacy-interface-with-nonexistent-file
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "Legacy external flasher not found: nonexistentfile")
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Legacy external flasher not found: nonexistentfile")
 
 add_test(NAME test-secondary-config-with-nonexistent-file
-         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/config.toml.example --secondary-config nonexistentfile)
-
+         COMMAND aktualizr -c  ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml --secondary-config nonexistentfile)
 set_tests_properties(test-secondary-config-with-nonexistent-file
-                     PROPERTIES PASS_REGULAR_EXPRESSION  "nonexistentfile does not exist!")
+                     PROPERTIES PASS_REGULAR_EXPRESSION "nonexistentfile does not exist!")
+
+# check invalid logging levels
+add_test(NAME test_log_invalid
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=6)
+set_tests_properties(test_log_invalid
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+add_test(NAME test_log_negative
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=-1)
+set_tests_properties(test_log_negative
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+
 
 # Try building with various cmake options
 add_test(NAME test_build_all_off
@@ -457,6 +462,7 @@ if(BUILD_SOTA_TOOLS)
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
 endif(BUILD_SOTA_TOOLS)
 
+
 # aktualizr-secondary tests
 add_test(NAME aktualizr-secondary-help
     COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
@@ -475,6 +481,52 @@ target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_li
 
 add_aktualizr_test(NAME aktualizr_secondary_discovery SOURCES aktualizr_secondary/discovery_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_discovery aktualizr_secondary_static_lib aktualizr_static_lib)
+
+# test running the executable with command line option --help
+add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)
+# test running the executable with command line option --something
+add_test(NAME aktualizr_secondary_cmdline--something
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+# call the executable without any options
+add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr)
+# test the return code when running the executable with non-existent configuration file
+add_test(NAME aktualizr_secondary_no_config_check_code
+         COMMAND aktualizr -c non-existent-config.toml)
+
+# testcases with non-supported command line options will return 1
+# in this case we want the testcase to pass
+set_tests_properties(aktualizr_secondary_cmdline--something
+                     aktualizr_secondary_cmdline_empty
+                     aktualizr_secondary_no_config_check_code
+                     PROPERTIES WILL_FAIL TRUE)
+
+# Check for expected output messages given specific misconfigurations
+# test the error message when running the executable with non-existent configuration file
+add_test(NAME aktualizr_secondary_no_config_check_message
+         COMMAND aktualizr-secondary -c non-existent-config.toml)
+set_tests_properties(aktualizr_secondary_no_config_check_message
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary: configuration file .* not found. Exiting.")
+
+add_test(NAME aktualizr_secondary_help_with_other_options
+         COMMAND aktualizr-secondary --help -c someconfig.toml)
+set_tests_properties(aktualizr_secondary_help_with_other_options
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary command line options")
+
+add_test(NAME aktualizr_secondary_help_with_nonexistent_options
+         COMMAND aktualizr-secondary --help -somebadoption)
+set_tests_properties(aktualizr_secondary_help_with_nonexistent_options
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary command line options")
+
+# check aktualizr-secondary invalid logging levels
+add_test(NAME aktualizr_secondary_log_invalid
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/aktualizr_secondary.toml --loglevel=6)
+set_tests_properties(aktualizr_secondary_log_invalid
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+add_test(NAME aktualizr_secondary_log_negative
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/aktualizr_secondary.toml --loglevel=-1)
+set_tests_properties(aktualizr_secondary_log_negative
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+
 
 # aktualizr-info tests
 add_test(NAME aktualizr-info-noarguments

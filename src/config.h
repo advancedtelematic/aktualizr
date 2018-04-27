@@ -25,8 +25,8 @@
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 
-// Keep the order of config options the same as in writeToFile() and
-// updateFromPropertyTree() in config.cc.
+// Try to keep the order of config options the same as in Config::writeToFile()
+// and Config::updateFromPropertyTree() in config.cc.
 
 struct GatewayConfig {
   bool socket{false};
@@ -84,6 +84,7 @@ struct UptaneConfig {
   std::string repo_server;
   CryptoSource key_source{kFile};
   KeyType key_type{kRSA2048};
+  boost::filesystem::path legacy_interface{};
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
   std::string getKeyTypeString() const { return keyTypeToString(key_type); }
@@ -116,6 +117,7 @@ class Config {
   void writeToFile(const boost::filesystem::path& filename) const;
 
   // config data structures
+  LoggerConfig logger;
   GatewayConfig gateway;
   NetworkConfig network;
   P11Config p11;
@@ -135,8 +137,8 @@ class Config {
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
-  void checkLegacyVersion(const boost::filesystem::path& legacy_interface);
-  void initLegacySecondaries(const boost::filesystem::path& legacy_interface);
+  void checkLegacyVersion();
+  void initLegacySecondaries();
 };
 
 #endif  // CONFIG_H_

@@ -1,7 +1,3 @@
-[network]
-port = 9030
-
 [storage]
 type = "sqlite"
 sqldb_path = "/var/sota/secondary.db"
-schemas_path = "/usr/lib/sota/schemas"

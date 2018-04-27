@@ -2,6 +2,9 @@
 #define SOTA_CLIENT_TOOLS_LOGGING_H_
 
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
+#include "config_utils.h"
 
 /** Log an unrecoverable error */
 #define LOG_FATAL BOOST_LOG_TRIVIAL(fatal)
@@ -31,5 +34,12 @@ void logger_init();
 void logger_set_threshold(boost::log::trivial::severity_level threshold);
 
 int loggerGetSeverity();
+
+struct LoggerConfig {
+  boost::log::trivial::severity_level loglevel{boost::log::trivial::info};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
 
 #endif

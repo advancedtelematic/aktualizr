@@ -6,7 +6,6 @@ type = "sqlite"
 schemas_path = "config/schemas"
 
 [pacman]
-type = "ostree"
 os = "testos"
 sysroot = "testsysroot"
 ostree_server = "test_server"

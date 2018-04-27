@@ -53,10 +53,12 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
                                                    const boost::program_options::variables_map& cmd) {
   updateFromToml(filename);
   updateFromCommandLine(cmd);
+  postUpdateValues();
 }
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename) {
   updateFromToml(filename);
+  postUpdateValues();
 }
 
 KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
@@ -64,7 +66,22 @@ KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
+void AktualizrSecondaryConfig::postUpdateValues() {
+  if (logger.loglevel < boost::log::trivial::trace) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::trace;
+  }
+  if (boost::log::trivial::fatal < logger.loglevel) {
+    LOG_WARNING << "Invalid log level";
+    logger.loglevel = boost::log::trivial::fatal;
+  }
+  logger_set_threshold(logger.loglevel);
+}
+
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+  }
   if (cmd.count("server-port") != 0) {
     network.port = cmd["server-port"].as<int>();
   }
@@ -86,15 +103,16 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 }
 
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  // Keep this order the same as in secondary_config.h and writeToFile().
+  // Keep this order the same as in aktualizr_secondary_config.h and
+  // AktualizrSecondaryConfig::writeToFile().
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
 
   // from aktualizr config
-  CopySubtreeFromConfig(storage, "storage", pt);
+  CopySubtreeFromConfig(logger, "logger", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
-  CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
+  CopySubtreeFromConfig(storage, "storage", pt);
 }
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
@@ -109,7 +127,8 @@ void AktualizrSecondaryConfig::updateFromToml(const boost::filesystem::path& fil
 }
 
 void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filename) {
-  // Keep this order the same as in secondary_config.h and updateFromPropertyTree().
+  // Keep this order the same as in aktualizr_secondary_config.h and
+  // AktualizrSecondaryConfig::updateFromPropertyTree().
   std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
@@ -117,7 +136,8 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   WriteSectionToStream(uptane, "uptane", sink);
 
   // from aktualizr config
-  WriteSectionToStream(storage, "storage", sink);
+  WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(pacman, "pacman", sink);
+  WriteSectionToStream(storage, "storage", sink);
 }

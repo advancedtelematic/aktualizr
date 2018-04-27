@@ -23,4 +23,10 @@ void logger_set_threshold(severity_level threshold) {
 
 int loggerGetSeverity() { return static_cast<int>(gLoggingThreshold); }
 
+void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(loglevel, "loglevel", boost::log::trivial::trace, pt);
+}
+
+void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:
