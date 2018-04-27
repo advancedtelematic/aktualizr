@@ -42,6 +42,9 @@ struct LoggerConfig {
   void writeToStream(std::ostream& out_stream) const;
 
   void setLogLevel();
+
+ private:
+  bool initialized{false};
 };
 
 #endif

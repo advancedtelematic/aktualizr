@@ -116,7 +116,8 @@ class Config {
   void postUpdateValues();
   void writeToFile(const boost::filesystem::path& filename) const;
 
-  // config data structures
+  // Config data structures. Keep logger first so that it is taken into account
+  // while processing the others.
   LoggerConfig logger;
   GatewayConfig gateway;
   NetworkConfig network;
