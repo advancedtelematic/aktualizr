@@ -222,7 +222,7 @@ Config::Config(const boost::filesystem::path& filename, const boost::program_opt
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
     logger.setLogLevel();
   }
   updateFromDirs();
@@ -318,7 +318,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   // Try to keep these options in the same order as parse_options() in main.cc.
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
   }
   if (cmd.count("poll-once") != 0) {
     uptane.polling = false;

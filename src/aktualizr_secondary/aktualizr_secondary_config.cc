@@ -54,7 +54,7 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
     logger.setLogLevel();
   }
   updateFromToml(filename);
@@ -76,7 +76,7 @@ void AktualizrSecondaryConfig::postUpdateValues() { logger.setLogLevel(); }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
   }
   if (cmd.count("server-port") != 0) {
     network.port = cmd["server-port"].as<int>();

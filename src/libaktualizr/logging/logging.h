@@ -36,7 +36,7 @@ void logger_set_threshold(boost::log::trivial::severity_level threshold);
 int loggerGetSeverity();
 
 struct LoggerConfig {
-  boost::log::trivial::severity_level loglevel{boost::log::trivial::info};
+  int loglevel{2};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

@@ -43,7 +43,7 @@ void LoggerConfig::setLogLevel() {
     LOG_WARNING << "Invalid log level";
     loglevel = boost::log::trivial::fatal;
   }
-  logger_set_threshold(loglevel);
+  logger_set_threshold(static_cast<boost::log::trivial::severity_level>(loglevel));
   initialized = true;
 }
 
