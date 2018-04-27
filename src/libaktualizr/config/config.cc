@@ -249,7 +249,7 @@ void Config::postUpdateValues() {
       if (boost::filesystem::exists(provision.provision_path)) {
         tls.server = Bootstrap::readServerUrl(provision.provision_path);
       } else {
-        LOG_ERROR << "Provided provision archive '" << provision.provision_path << "' does not exist!";
+        LOG_ERROR << "Provided provision archive " << provision.provision_path << " does not exist!";
       }
     }
   }
