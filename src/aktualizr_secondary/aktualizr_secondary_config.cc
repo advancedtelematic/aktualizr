@@ -51,6 +51,12 @@ void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) con
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
                                                    const boost::program_options::variables_map& cmd) {
+  // Redundantly check and set the loglevel from the commandline prematurely so
+  // that it is taken account while processing the config.
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.setLogLevel();
+  }
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
@@ -66,17 +72,7 @@ KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
-void AktualizrSecondaryConfig::postUpdateValues() {
-  if (logger.loglevel < boost::log::trivial::trace) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::trace;
-  }
-  if (boost::log::trivial::fatal < logger.loglevel) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::fatal;
-  }
-  logger_set_threshold(logger.loglevel);
-}
+void AktualizrSecondaryConfig::postUpdateValues() { logger.setLogLevel(); }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {

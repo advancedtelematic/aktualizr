@@ -40,6 +40,8 @@ struct LoggerConfig {
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
+
+  void setLogLevel();
 };
 
 #endif

@@ -219,6 +219,12 @@ Config::Config(const boost::filesystem::path& filename) {
 }
 
 Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
+  // Redundantly check and set the loglevel from the commandline prematurely so
+  // that it is taken account while processing the config.
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.setLogLevel();
+  }
   updateFromDirs();
   updateFromToml(filename);
   updateFromCommandLine(cmd);
@@ -230,15 +236,7 @@ KeyManagerConfig Config::keymanagerConfig() const {
 }
 
 void Config::postUpdateValues() {
-  if (logger.loglevel < boost::log::trivial::trace) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::trace;
-  }
-  if (boost::log::trivial::fatal < logger.loglevel) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::fatal;
-  }
-  logger_set_threshold(logger.loglevel);
+  logger.setLogLevel();
 
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;

@@ -29,4 +29,16 @@ void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 
 void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
 
+void LoggerConfig::setLogLevel() {
+  if (loglevel < boost::log::trivial::trace) {
+    LOG_WARNING << "Invalid log level";
+    loglevel = boost::log::trivial::trace;
+  }
+  if (boost::log::trivial::fatal < loglevel) {
+    LOG_WARNING << "Invalid log level";
+    loglevel = boost::log::trivial::fatal;
+  }
+  logger_set_threshold(loglevel);
+}
+
 // vim: set tabstop=2 shiftwidth=2 expandtab:
