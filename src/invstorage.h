@@ -25,7 +25,7 @@ struct StorageConfig {
   boost::filesystem::path tls_clientcert_path{"client.pem"};
 
   // SQLite storage
-  boost::filesystem::path sqldb_path{"sql.db"};
+  boost::filesystem::path sqldb_path{"/var/sota/sql.db"};
   boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
