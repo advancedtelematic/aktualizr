@@ -1,0 +1,57 @@
+#! /usr/bin/env python3
+
+from mocktreehub import TreehubServer, TemporaryCredentials
+from socketserver import ThreadingTCPServer
+import subprocess
+import threading
+
+import sys
+
+from time import sleep
+
+
+class OstreeRepo(object):
+    def __init__(self):
+        self.upload_count = 0
+
+    def upload(self, name):
+        print("Uploaded", name)
+        self.upload_count += 1
+        if self.upload_count % 10 == 0:
+            return status_code
+        return 200
+
+    def query(self, name):
+        return 404
+
+
+def main():
+    global status_code
+    status_code = int(sys.argv[2])
+    ostree_repo = OstreeRepo()
+
+    def handler(*args):
+        TreehubServer(ostree_repo, *args)
+
+    httpd = ThreadingTCPServer(('127.0.0.1', 0), handler)
+    address, port = httpd.socket.getsockname()
+    print("Serving at port", port)
+    t = threading.Thread(target=httpd.serve_forever)
+    t.setDaemon(True)
+    t.start()
+
+    target = sys.argv[1]
+
+    with TemporaryCredentials(port) as creds:
+        dut = subprocess.Popen(args=[target, '--credentials', creds.path(), '--ref', 'master',
+                                     '--repo', 'bigger_repo'])
+        try:
+            exitcode = dut.wait(30)
+            sys.exit(exitcode)
+        except subprocess.TimeoutExpired:
+            print("garage-push hung")
+            sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
