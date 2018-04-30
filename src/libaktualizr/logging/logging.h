@@ -25,6 +25,13 @@
 /** Report very-verbose debugging information */
 #define LOG_TRACE BOOST_LOG_TRIVIAL(trace)
 
+struct LoggerConfig {
+  int loglevel{2};
+
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
+  void writeToStream(std::ostream& out_stream) const;
+};
+
 // Use like:
 // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
 int64_t get_curlopt_verbose();
@@ -33,18 +40,8 @@ void logger_init();
 
 void logger_set_threshold(boost::log::trivial::severity_level threshold);
 
+void logger_set_threshold(const LoggerConfig& lconfig);
+
 int loggerGetSeverity();
-
-struct LoggerConfig {
-  int loglevel{2};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-
-  void setLogLevel();
-
- private:
-  bool initialized{false};
-};
 
 #endif

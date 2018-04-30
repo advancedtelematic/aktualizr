@@ -16,7 +16,7 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-std::ostream& operator<<(std::ostream& os, StorageType stype) {
+std::ostream& operator<<(std::ostream& os, const StorageType stype) {
   std::string stype_str;
   switch (stype) {
     case kFileSystem:
@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, StorageType stype) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, KeyType kt) {
+std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
     case kRSA2048:
@@ -223,7 +223,7 @@ Config::Config(const boost::filesystem::path& filename, const boost::program_opt
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
-    logger.setLogLevel();
+    logger_set_threshold(logger);
   }
   updateFromDirs();
   updateFromToml(filename);
@@ -236,7 +236,7 @@ KeyManagerConfig Config::keymanagerConfig() const {
 }
 
 void Config::postUpdateValues() {
-  logger.setLogLevel();
+  logger_set_threshold(logger);
 
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;
@@ -302,6 +302,9 @@ void Config::updateFromTomlString(const std::string& contents) {
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h and Config::writeToFile().
   CopySubtreeFromConfig(logger, "logger", pt);
+  // If not already set from the commandline, set the loglevel now so that it
+  // affects the rest of the config processing.
+  logger_set_threshold(logger);
   CopySubtreeFromConfig(gateway, "gateway", pt);
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);

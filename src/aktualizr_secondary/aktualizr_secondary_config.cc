@@ -55,7 +55,7 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
-    logger.setLogLevel();
+    logger_set_threshold(logger);
   }
   updateFromToml(filename);
   updateFromCommandLine(cmd);
@@ -72,7 +72,7 @@ KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
-void AktualizrSecondaryConfig::postUpdateValues() { logger.setLogLevel(); }
+void AktualizrSecondaryConfig::postUpdateValues() { logger_set_threshold(logger); }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
@@ -101,11 +101,17 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in aktualizr_secondary_config.h and
   // AktualizrSecondaryConfig::writeToFile().
+
+  // from aktualizr config
+  CopySubtreeFromConfig(logger, "logger", pt);
+  // If not already set from the commandline, set the loglevel now so that it
+  // affects the rest of the config processing.
+  logger_set_threshold(logger);
+
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
 
   // from aktualizr config
-  CopySubtreeFromConfig(logger, "logger", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
@@ -128,11 +134,13 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
+  // from aktualizr config
+  WriteSectionToStream(logger, "logger", sink);
+
   WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(uptane, "uptane", sink);
 
   // from aktualizr config
-  WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
