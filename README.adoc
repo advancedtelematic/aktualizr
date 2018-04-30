@@ -230,7 +230,7 @@ make aktualizr
 
 The compiled 'aktualizr' executable can be copied to the remote system and run.
 
-Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the run-qemu-ota script in meta-updater does this), then:
+Aktualizr can be debugged remotely by exposing a port from the VM to development machine (the --gdb option to the https://github.com/advancedtelematic/meta-updater/blob/rocko/scripts/run-qemu-ota[run-qemu-ota script] in https://github.com/advancedtelematic/meta-updater[meta-updater] does this), then:
 
 .On the target:
 ----

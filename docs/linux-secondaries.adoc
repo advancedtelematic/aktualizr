@@ -1,11 +1,11 @@
 
 = Linux Secondaries
 
-Aktualizr and meta-updater support updating secondary devices running Linux as well as deeply embedded (RTOS) devices.
+Aktualizr and https://github.com/advancedtelematic/meta-updater[meta-updater] support updating secondary devices running Linux as well as deeply embedded (RTOS) devices.
 
 There is a demonstration of this using qemu and two images in meta-updater called 'primary-image' and 'secondary-image'. The networking setup works in the following way:
 
-Both the primary and secondary have two network interfaces. The first one (vlan 0 in qemu) is connected to the internet via the 'user mode' networking in qemu (-net user), and is set up to support connecting to the device via ssh. 
+Both the primary and secondary have two network interfaces. The first one (vlan 0 in qemu) is connected to the internet via the 'user mode' networking in qemu (-net user), and is set up to support connecting to the device via ssh.
 
 The second network interface is used for the internal network between the devices. The primary provides a DHCP server, and the clients run DHCP clients.
 
