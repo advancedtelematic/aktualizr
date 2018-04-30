@@ -33,7 +33,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
-      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, warning, info, error, fatal)")
+      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("poll-once", "Check for updates only once and exit")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")

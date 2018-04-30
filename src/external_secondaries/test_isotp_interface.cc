@@ -49,14 +49,14 @@ TestIsotpInterface::TestIsotpInterface(const unsigned int loglevel, uint32_t can
 }
 
 std::string TestIsotpInterface::apiVersion() {
-  if (loglevel_ == 4) {
+  if (loglevel_ == 0) {
     std::cerr << "Displaying api version" << std::endl;
   }
   return "1";
 }
 
 std::string TestIsotpInterface::listEcus() {
-  if (loglevel_ == 4) {
+  if (loglevel_ == 0) {
     std::cerr << "Displaying list of ecus:" << std::endl;
   }
 
@@ -74,7 +74,7 @@ std::string TestIsotpInterface::listEcus() {
 TestIsotpInterface::InstallStatus TestIsotpInterface::installSoftware(const std::string& hardware_id,
                                                                       const std::string& ecu_id,
                                                                       const std::string& firmware) {
-  if (loglevel_ == 4) {
+  if (loglevel_ == 0) {
     std::cerr << "Installing hardware_id: " << hardware_id << ", ecu_id: " << ecu_id << " firmware_path: " << firmware
               << std::endl;
   }
@@ -208,7 +208,7 @@ bool TestIsotpInterface::isoTpSend(const uint32_t arbitration_id, const uint8_t*
     return false;
   }
 
-  if (instance->loglevel_ == 4) {
+  if (instance->loglevel_ == 0) {
     std::cerr << "Sending CAN message AF: 0x" << std::hex << arbitration_id << "; Data:";
     for (int i = 0; i < size; i++) {
       std::cerr << " " << std::hex << static_cast<int>(data[i]);
@@ -288,7 +288,7 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
           }
 
         } else {
-          if (loglevel_ == 4) {
+          if (loglevel_ == 0) {
             std::cerr << "Timeout on CAN socket" << std::endl;
           }
           *in = "";
@@ -331,7 +331,7 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
           return true;
         }
       } else {
-        if (loglevel_ == 4) {
+        if (loglevel_ == 0) {
           std::cerr << "Timeout on CAN socket" << std::endl;
         }
         *in = "";
@@ -359,7 +359,7 @@ void TestIsotpInterface::populateEcus() {
       continue;
     }
     if (resp.empty()) {  // timeout
-      if (loglevel_ == 4) {
+      if (loglevel_ == 0) {
         std::cerr << "Request for HW ID for id " << static_cast<int>(id) << " timed out" << std::endl;
       }
       continue;
@@ -390,7 +390,7 @@ void TestIsotpInterface::populateEcus() {
     }
 
     if (resp.empty()) {  // timeout
-      if (loglevel_ == 4) {
+      if (loglevel_ == 0) {
         std::cerr << "Request for HW ID for id " << static_cast<int>(id) << " timed out" << std::endl;
       }
       continue;

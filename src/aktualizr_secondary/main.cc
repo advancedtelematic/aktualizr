@@ -65,7 +65,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-secondary version")
-      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, warning, info, error, fatal)")
+      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
       ("server-port,p", bpo::value<int>(), "command server listening port")
       ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
