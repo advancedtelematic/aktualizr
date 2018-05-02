@@ -175,6 +175,8 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
   curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
+  http_response_.str("");                                 // Empty the response buffer
+
   CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "err:" << curl_multi_strerror(err);
@@ -200,6 +202,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
+  http_response_.str("");  // Empty the response buffer
 
   assert(form_post_ == nullptr);
   struct curl_httppost *last_item = nullptr;
@@ -249,6 +252,8 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     } else {
       is_on_server_ = OBJECT_STATE_UNKNOWN;
       LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
+      LOG_DEBUG << "Http response code:" << rescode;
+      LOG_DEBUG << http_response_.str();
       last_operation_result_ = ServerResponse::kTemporaryFailure;
       pool.AddQuery(this);
     }
@@ -269,6 +274,8 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       NotifyParents(pool);
     } else {
       LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
+      LOG_DEBUG << "Http response code:" << rescode;
+      LOG_DEBUG << http_response_.str();
       is_on_server_ = OBJECT_MISSING;
       last_operation_result_ = ServerResponse::kTemporaryFailure;
       pool.AddUpload(this);

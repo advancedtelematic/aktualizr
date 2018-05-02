@@ -24,6 +24,8 @@ class TreehubServer(BaseHTTPRequestHandler):
             code = self._ostree_repo.upload(obj)
             self.send_response_only(code)
             self.end_headers()
+            if code == 500:
+                self.wfile.write(b"Internal server error")
         elif self.path.startswith('/refs/heads'):
             self.send_response_only(200)
             self.end_headers()
