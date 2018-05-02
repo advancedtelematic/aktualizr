@@ -25,7 +25,7 @@ enum CurrentOp {
  * There is no category for a permanent failure at the moment: we are able to
  * detect a failure that is definitely permanent.
  */
-enum class ServerResponse { kOk, kTemporaryFailure };
+enum class ServerResponse { kNoResponse, kOk, kTemporaryFailure };
 
 class OSTreeObject {
  public:
@@ -85,7 +85,7 @@ class OSTreeObject {
   std::list<OSTreeObject::ptr> children_;
 
   std::chrono::steady_clock::time_point request_start_time_;
-  ServerResponse last_operation_result_;
+  ServerResponse last_operation_result_{ServerResponse::kNoResponse};
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);
