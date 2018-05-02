@@ -72,7 +72,7 @@ HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_ke
   }
 }
 
-CurlGlobalInitWrapper HttpClient::manageCurlGlobalInit_ {};
+CurlGlobalInitWrapper HttpClient::manageCurlGlobalInit_{};
 
 HttpClient::~HttpClient() {
   curl_slist_free_all(headers);

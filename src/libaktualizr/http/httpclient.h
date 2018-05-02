@@ -17,10 +17,10 @@ class CurlGlobalInitWrapper {
  public:
   CurlGlobalInitWrapper() { curl_global_init(CURL_GLOBAL_DEFAULT); }
   ~CurlGlobalInitWrapper() { curl_global_cleanup(); }
-  CurlGlobalInitWrapper& operator=(const CurlGlobalInitWrapper&) = delete;
-  CurlGlobalInitWrapper(const CurlGlobalInitWrapper&) = delete;
-  CurlGlobalInitWrapper& operator=(CurlGlobalInitWrapper&&) = delete;
-  CurlGlobalInitWrapper(CurlGlobalInitWrapper&&) = delete;
+  CurlGlobalInitWrapper &operator=(const CurlGlobalInitWrapper &) = delete;
+  CurlGlobalInitWrapper(const CurlGlobalInitWrapper &) = delete;
+  CurlGlobalInitWrapper &operator=(CurlGlobalInitWrapper &&) = delete;
+  CurlGlobalInitWrapper(CurlGlobalInitWrapper &&) = delete;
 };
 
 class HttpClient : public HttpInterface {
