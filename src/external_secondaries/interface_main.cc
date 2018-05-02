@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("loglevel,l", po::value<unsigned int>()->default_value(0),
-         "set log level 0-4 (trace, debug, warning, info, error)")
+    ("loglevel,l", po::value<unsigned int>()->default_value(2),
+         "set log level 0-5 (trace, debug, info, warning, error, fatal)")
     ("hardware-identifier", po::value<string>(&hardware_identifier),
          "hardware identifier of the ECU where the update should be installed (e.g. rh850)")
     ("ecu-identifier", po::value<string>(&ecu_identifier),

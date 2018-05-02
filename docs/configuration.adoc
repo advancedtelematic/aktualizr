@@ -1,127 +1,61 @@
 = Configuration
 
-Aktualizr is configured via `.toml` config file and passed to the application via the `--config` flag.
+Aktualizr is configured via `.toml` config file and passed to the application via the `--config` flag. All fields are optional, and many have reasonable defaults that should be used unless you have a particular need to do otherwise.
 
-An example config file is provided below.
+Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:../config/[] and link:../tests/config/[].
 
-[source,toml]
-----
-[provision]
-provision_path = "/var/sota/sota_provisioning_credentials.zip"
+Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:../src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
 
-[storage]
-type = "sqlite"
-sqldb_path = "/var/sota/sql.db"
-schemas_path = "/usr/lib/sota/schemas"
+== `logger`
 
-[discovery]
-ipuptane = true
-
-[network]
-ipdiscovery_host = "::ffff:10.0.3.255"
-
-[storage]
-type = "sqlite"
-
-# for type = "sqlite"
-sqldb_path = "/var/sota/sql.db"
-schemas_path = "/usr/lib/sota/schemas"
-
-# for type = "filesystem"
-path = "/var/sota/"
-tls_cacert_path = "token/root.crt"
-tls_clientcert_path = "token/client.pem"
-tls_pkey_path = "token/pkey.pem"
-
-# TODO ?
-uptane_metadata_path = "metadata"
-uptane_private_key_path = "ecukey.der"
-uptane_public_key_path = "ecukey.pub"
-
-[tls]
-server_url_path = "/var/sota/gateway.url"
-cert_source = "pkcs11"
-pkey_source = "pkcs11"
-
-[p11]
-module = "/usr/lib/softhsm/libsofthsm2.so"
-pass = "1234"
-uptane_key_id = "03"
-tls_clientcert_id = "01"
-tls_pkey_id = "02"
-
-[uptane]
-key_source = "pkcs11"
-# TODO why is this in [storage]
-primary_ecu_hardware_id = "ubuntu"
-
-[import]
-tls_cacert_path = "/var/sota/import_root.crt"
-tls_clientcert_path = "/var/sota/import_client.pem"
-tls_pkey_path = "/var/sota/import_pkey.pem"
-
-[network]
-port = 9030
-
-[storage]
-type = "sqlite"
-sqldb_path = "/var/sota/secondary.db"
-schemas_path = "/usr/lib/sota/schemas"[uptane]
-
-[pacman]
-type = "debian"
-----
-
-== `provision`
-
-The options for how the device is provisioned with the backend.
-This table is required.
-
-[options="header"]
-|=====================================================================================
-| Name             | Required | Description
-| `provision_path` | true     | Path to the bundle containing provisioning certificates.
-|=====================================================================================
-
-== `storage`
-
-The options for how Aktualizr stores data locally.
-This table is required.
+Configuration for the logger.
 
 [options="header"]
 |==========================================================================================
-| Name                      | Required          | Description
-| `type`                    | true              | What type of storage driver to use. Options: `sqlite`, `filesystem`.
-| `sqldb_path`              | with `sqlite`     | Path to the database file.
-| `schemas_path`            | with `sqlite`     | Path to the directory containing schema migrations.
-| `path`                    | with `filesystem` | Directory for storage
-| `uptane_metadata_path`    | with `filesystem` | Path to the uptane metadata store.
-| `uptane_private_key_path` | with `filesystem` | Relative path to the Uptane specific private key.
-| `uptane_public_key_path`  | with `filesystem` | Relative path to the Uptane specific public key.
-| `tls_cacert_path`         | with `filesystem` | Relative path to the TLS root CA cert.
-| `tls_clientcert_path`     | with `filesystem` | Relative path to the client's TLS cert.
-| `tls_pkey_path`           | with `filesystem` | Relative path to the client's TLS private key.
+| Name       | Default  | Description
+| `loglevel` | `2`      | Log level, 0-5 (trace, debug, info, warning, error, fatal).
 |==========================================================================================
 
-== `discovery`
+== `gateway`
 
-Config options for how secondary devices are detected by the primary.
+Configuration for the gateway manager.
 
 [options="header"]
 |==========================================================================================
-| Name       | Required | Description
-| `ipuptane` | true     | Boolean to enable UDP multicast for secondary discovery.
+| Name     | Default | Description
+| `socket` | `false` | Enable the socket gateway.
 |==========================================================================================
 
 == `network`
 
-Config options for how secondary devices are detected by the primary.
+Config options for networking and secondary device detection by the primary.
 
 [options="header"]
 |==========================================================================================
-| Name               | Required | Description
-| `ipdiscovery_host` | true     | Subnetmask for primary to broadcast.
-| `port`             | true     | Port to listen on for incoming messages
+| Name                       | Default                                | Description
+| `socket_commands_path`     | `"/tmp/sota-commands.socket"`          | Path to a socket to be used for transmitting commands.
+| `socket_events_path`       | `"/tmp/sota-events.socket"`            | Path to a socket to be used for transmitting events.
+| `socket_events`            | `"DownloadComplete", "DownloadFailed"` | Events to broadcast to connected sockets.
+| `ipdiscovery_host`         | `"::ffff:127.0.0.1"`                   | Subnetmask for primary to broadcast for secondary discovery.
+| `ipdiscovery_port`         | `9031`                                 | Port for primary to broadcast for secondary discovery.
+| `ipdiscovery_wait_seconds` | `10`                                   | Seconds to wait for secondaries to respond to discovery broadcast message.
+| `ipuptane_port`            | `9030`                                 | Port to listen on for incoming messages
+
+|==========================================================================================
+
+== `p11`
+
+Options for using a PKCS#11 compliant device for storing cryptographic keys. Note that the key ID options require the corresponding options in the `tls` or `uptane` section to be set to `pkcs11`.
+
+[options="header"]
+|==========================================================================================
+| Name                 | Default | Description
+| `module`             |         | Path to the shared object HSM driver.
+| `pass`               |         | Password for accessing the HSM.
+| `uptane_key_id`      |         | Key ID of the Uptane key in the HSM.
+| `tls_cacert_id`      |         | Key ID of the TLS root CA certificate for authenticating the server.
+| `tls_pkey_id`        |         | Key ID of the client's TLS private key.
+| `tls_client_cert_id` |         | Key ID of the client's TLS certificate.
 |==========================================================================================
 
 == `tls`
@@ -130,24 +64,30 @@ Configuration for client-server TLS connections.
 
 [options="header"]
 |==========================================================================================
-| Name               | Required | Description
-| `server_url_path`  | true     | A path to the location on the filesystem that contains the server's URL
+| Name               | Default  | Description
+| `server`           |          | Server URL.
+| `server_url_path`  |          | Path to a file that contains the server URL.
+| `ca_source`        | `"file"` | Where to read the TLS root CA certificate from. Options: `"file"`, `"pkcs11"`.
+| `pkey_source`      | `"file"` | Where to read the client's TLS private key from. Options: `"file"`, `"pkcs11"`.
+| `cert_source`      | `"file"` | Where to read the client's TLS certificate from. Options: `"file"`, `"pkcs11"`.
 |==========================================================================================
 
-== `p11`
+Note that `server_url_path` is only used if `server` is empty. If both are empty, the server URL will be read from `provision.provisioning_path` if it is set and contains a file named `autoprov.url`.
 
-Options for using a PKCS#11 compliant device for storing cryptographic keys.
-This table is optional.
+== `provision`
+
+Options for how the device is provisioned with the backend.
 
 [options="header"]
-|==========================================================================================
-| Name                 | Required | Description
-| `module`             | true     | Path to the shared object HSM driver.
-| `pass`               | ???      | Password for accessing the HSM.
-| `uptane_key_id`      | ???      | Key ID of the Uptane key in the HSM.
-| `tls_client_cert_id` | ???      | Key ID of the client's TLS cert.
-| `tls_pkey_id`        | ???      | Key ID of the client's TLS private key.
-|==========================================================================================
+|=====================================================================================
+| Name             | Default   | Description
+| `server`         |           | Server provisioning URL. If empty, set to `tls.server`.
+| `provision_path` |           | Path to an archive containing provisioning data. See link:credentials.adoc[] for the specification of the contents of this file.
+| `p12_password`   |           | Password for PKCS#12 encryption.
+| `expiry_days`    | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
+|=====================================================================================
+
+If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
 
 == `uptane`
 
@@ -155,30 +95,83 @@ Options for Uptane.
 
 [options="header"]
 |==========================================================================================
-| Name                      | Required | Description
-| `key_source`              | true     | A path to the location on the filesystem that contains the server's URL
-| `primary_ecu_hardware_id` | true     | The hardware ID of the primary ECU (e.g., `rasberry-pi`)
+| Name                      | Default      | Description
+| `polling`                 | `true`       | Enable continuous polling of the server. (The inverse of `--poll-once`.)
+| `polling_sec`             | `10`         | Interval between polls (in seconds).
+| `device_id`                 |            | Device ID of the primary ECU. If left empty, a random name will be generated.
+| `primary_ecu_serial`      |              | Serial number of the primary ECU. If left empty, a random serial will be generated.
+| `primary_ecu_hardware_id` |              | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
+| `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
+| `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
+| `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
+| `key_type`                | `"kRSA2048"` | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"kRSA4096"`.
+| `legacy_interface`        |              | Path to an executable interface for communicating with legacy secondary ECUs. See link:legacysecondary.adoc[] for more information.
+|==========================================================================================
+
+== `discovery`
+
+Config options for how secondary devices are detected by the primary.
+
+[options="header"]
+|==========================================================================================
+| Name       | Default | Description
+| `ipuptane` | `false` | Enable UDP multicast for secondary discovery.
+|==========================================================================================
+
+== `pacman`
+
+Options for package management and update installation. Note that this only coincidentally shares the name with the ArchLinux `pacman` tool.
+
+[options="header"]
+|==========================================================================================
+| Name            | Default                   | Description
+| `type`          | `"ostree"`                | Which package manager to use. Options: `"ostree"`, `"debian"`, `"none"`.
+| `os`            |                           | OSTree operating system group. Only used with `ostree`.
+| `sysroot`       |                           | Path to an OSTree sysroot. Only used with `ostree`.
+| `ostree_server` |                           | OSTree server URL. Only used with `ostree`. If empty, set to `tls.server` with `/treehub` appended.
+| `packages_file` | `"/usr/package.manifest"` | Path to a file for storing package manifest information. Only used with `ostree`.
+|==========================================================================================
+
+== `storage`
+
+Options for how Aktualizr stores data locally.
+
+[options="header"]
+|==========================================================================================
+| Name                      | Default                   | Description
+| `type`                    | `"filesystem"`            | What type of storage driver to use. Options: `"sqlite"`, `"filesystem"`.
+| `path`                    | `"/var/sota"`             | Directory for storage. Only used with `filesystem`.
+| `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store. Only used with `filesystem`.
+| `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key. Only used with `filesystem`.
+| `uptane_public_key_path`  | `"ecukey.pub"`            | Relative path to the Uptane specific public key. Only used with `filesystem`.
+| `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate. Only used with `filesystem`.
+| `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key. Only used with `filesystem`.
+| `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate. Only used with `filesystem`.
+| `sqldb_path`              | `"/var/sota/sql.db"`      | Path to the database file. Only used with `sqlite`.
+| `schemas_path`            | `"/usr/lib/sota/schemas"` | Path to the directory containing schema migrations. Only used with `sqlite`.
 |==========================================================================================
 
 == `import`
 
-Options for importing data from the filesystem into the storage.
+Options for importing data from the filesystem into the storage. Most useful if `storage.type` is `sqlite`.
 
 [options="header"]
 |==========================================================================================
-| Name                | Required | Description
-| `tls_cacert_path`   | true     | Path to the TLS root CA cert.
-| `tls_clientcert_id` | true     | Path to the TLS client cert.
-| `tls_pkey_id`       | true     | Path to the TLS private key.
+| Name                      | Default | Description
+| `uptane_private_key_path` |         | Path to the device's private key.
+| `uptane_public_key_path`  |         | Path to the device's public key.
+| `tls_cacert_path`         |         | Path to the TLS root CA certificate.
+| `tls_pkey_id`             |         | Path to the TLS private key.
+| `tls_clientcert_id`       |         | Path to the TLS client certificate.
 |==========================================================================================
-== `pacman`
 
-The package manager that should be used to install updates.
-Note that this only coincidentally shares the name with the ArchLinux `pacman` tool.
+== `telemetry`
 
+Options for configuration how aktualizr communicates with the server.
 
 [options="header"]
 |==========================================================================================
-| Name   | Required | Description
-| `type` | true     | Which package manager to use. Options: `debian`, `ostree`.
+| Name             | Default | Description
+| `report_network` | `true`  | Enable reporting of device networking information to the server.
 |==========================================================================================
+

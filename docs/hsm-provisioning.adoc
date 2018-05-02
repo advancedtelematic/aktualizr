@@ -1,6 +1,6 @@
 = Implicit Provisioning with an HSM
 
-This document describes the current support for implicit provisioning with an HSM in Aktualizr and meta-updater.
+This document describes the current support for implicit provisioning with an HSM in Aktualizr and https://github.com/advancedtelematic/meta-updater[meta-updater].
 
 == Background
 
@@ -29,7 +29,7 @@ The following items are relevant for implicit provisioning:
 
 // end::summary-table[]
 
-An example `.toml` configuration file can be found at `config/sota_hsm_prov.toml`. This is what is used as in input to `implicit_writer` during bitbaking with meta-updater.
+An example `.toml` configuration file can be found at link:../config/sota_hsm_prov.toml[]. This is what is used as in input to `implicit_writer` during bitbaking with meta-updater.
 
 == Steps
 
