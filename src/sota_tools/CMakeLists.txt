@@ -15,7 +15,6 @@ set (SOTA_TOOLS_LIB_SRC
 
 if (BUILD_SOTA_TOOLS)
   add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
-  target_compile_options(sota_tools_static_lib PUBLIC -std=c++11)
   target_include_directories(sota_tools_static_lib PUBLIC ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 endif (BUILD_SOTA_TOOLS)
 
