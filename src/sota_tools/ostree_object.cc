@@ -169,7 +169,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   current_operation_ = OSTREE_OBJECT_PRESENCE_CHECK;
 
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1);  // HEAD
+  curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
 
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
