@@ -51,6 +51,12 @@ void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) con
 
 AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
                                                    const boost::program_options::variables_map& cmd) {
+  // Redundantly check and set the loglevel from the commandline prematurely so
+  // that it is taken account while processing the config.
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = cmd["loglevel"].as<int>();
+    logger_set_threshold(logger);
+  }
   updateFromToml(filename);
   updateFromCommandLine(cmd);
   postUpdateValues();
@@ -66,21 +72,11 @@ KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
-void AktualizrSecondaryConfig::postUpdateValues() {
-  if (logger.loglevel < boost::log::trivial::trace) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::trace;
-  }
-  if (boost::log::trivial::fatal < logger.loglevel) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::fatal;
-  }
-  logger_set_threshold(logger.loglevel);
-}
+void AktualizrSecondaryConfig::postUpdateValues() { logger_set_threshold(logger); }
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
   }
   if (cmd.count("server-port") != 0) {
     network.port = cmd["server-port"].as<int>();
@@ -105,11 +101,17 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in aktualizr_secondary_config.h and
   // AktualizrSecondaryConfig::writeToFile().
+
+  // from aktualizr config
+  CopySubtreeFromConfig(logger, "logger", pt);
+  // If not already set from the commandline, set the loglevel now so that it
+  // affects the rest of the config processing.
+  logger_set_threshold(logger);
+
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(uptane, "uptane", pt);
 
   // from aktualizr config
-  CopySubtreeFromConfig(logger, "logger", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
   CopySubtreeFromConfig(pacman, "pacman", pt);
   CopySubtreeFromConfig(storage, "storage", pt);
@@ -132,11 +134,13 @@ void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filena
   std::ofstream sink(filename.c_str(), std::ofstream::out);
   sink << std::boolalpha;
 
+  // from aktualizr config
+  WriteSectionToStream(logger, "logger", sink);
+
   WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(uptane, "uptane", sink);
 
   // from aktualizr config
-  WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);

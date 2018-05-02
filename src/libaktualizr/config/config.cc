@@ -16,7 +16,7 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-std::ostream& operator<<(std::ostream& os, StorageType stype) {
+std::ostream& operator<<(std::ostream& os, const StorageType stype) {
   std::string stype_str;
   switch (stype) {
     case kFileSystem:
@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, StorageType stype) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, KeyType kt) {
+std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
     case kRSA2048:
@@ -219,6 +219,12 @@ Config::Config(const boost::filesystem::path& filename) {
 }
 
 Config::Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd) {
+  // Redundantly check and set the loglevel from the commandline prematurely so
+  // that it is taken account while processing the config.
+  if (cmd.count("loglevel") != 0) {
+    logger.loglevel = cmd["loglevel"].as<int>();
+    logger_set_threshold(logger);
+  }
   updateFromDirs();
   updateFromToml(filename);
   updateFromCommandLine(cmd);
@@ -230,15 +236,7 @@ KeyManagerConfig Config::keymanagerConfig() const {
 }
 
 void Config::postUpdateValues() {
-  if (logger.loglevel < boost::log::trivial::trace) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::trace;
-  }
-  if (boost::log::trivial::fatal < logger.loglevel) {
-    LOG_WARNING << "Invalid log level";
-    logger.loglevel = boost::log::trivial::fatal;
-  }
-  logger_set_threshold(logger.loglevel);
+  logger_set_threshold(logger);
 
   if (provision.provision_path.empty()) {
     provision.mode = kImplicit;
@@ -251,7 +249,7 @@ void Config::postUpdateValues() {
       if (boost::filesystem::exists(provision.provision_path)) {
         tls.server = Bootstrap::readServerUrl(provision.provision_path);
       } else {
-        LOG_ERROR << "Provided provision archive '" << provision.provision_path << "' does not exist!";
+        LOG_ERROR << "Provided provision archive " << provision.provision_path << " does not exist!";
       }
     }
   }
@@ -304,6 +302,9 @@ void Config::updateFromTomlString(const std::string& contents) {
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h and Config::writeToFile().
   CopySubtreeFromConfig(logger, "logger", pt);
+  // If not already set from the commandline, set the loglevel now so that it
+  // affects the rest of the config processing.
+  logger_set_threshold(logger);
   CopySubtreeFromConfig(gateway, "gateway", pt);
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
@@ -320,7 +321,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   // Try to keep these options in the same order as parse_options() in main.cc.
   if (cmd.count("loglevel") != 0) {
-    logger.loglevel = static_cast<boost::log::trivial::severity_level>(cmd["loglevel"].as<int>());
+    logger.loglevel = cmd["loglevel"].as<int>();
   }
   if (cmd.count("poll-once") != 0) {
     uptane.polling = false;

@@ -180,20 +180,6 @@ TEST(config, config_dirs_two_dirs) {
   EXPECT_EQ(config.storage.path, "/latest_path");
 }
 
-TEST(config, invalid_loglevel) {
-  Config config;
-  config.logger.loglevel = static_cast<boost::log::trivial::severity_level>(6);
-  config.postUpdateValues();
-  EXPECT_EQ(config.logger.loglevel, boost::log::trivial::fatal);
-}
-
-TEST(config, negative_loglevel) {
-  Config config;
-  config.logger.loglevel = static_cast<boost::log::trivial::severity_level>(-1);
-  config.postUpdateValues();
-  EXPECT_EQ(config.logger.loglevel, boost::log::trivial::trace);
-}
-
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

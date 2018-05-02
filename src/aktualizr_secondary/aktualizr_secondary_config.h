@@ -45,11 +45,13 @@ class AktualizrSecondaryConfig {
   void postUpdateValues();
   void writeToFile(const boost::filesystem::path& filename);
 
+  // from primary config
+  LoggerConfig logger;
+
   AktualizrSecondaryNetConfig network;
   AktualizrSecondaryUptaneConfig uptane;
 
   // from primary config
-  LoggerConfig logger;
   P11Config p11;
   PackageConfig pacman;
   StorageConfig storage;
