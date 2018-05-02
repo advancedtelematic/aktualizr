@@ -434,6 +434,18 @@ if(BUILD_SOTA_TOOLS)
         COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
 
+    add_test(NAME server-500-every-10-request
+        COMMAND ./test-server-error_every_10 $<TARGET_FILE:garage-push> 500
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    add_test(NAME server-409-every-10-request
+        COMMAND ./test-server-error_every_10 $<TARGET_FILE:garage-push> 409
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    add_test(NAME server-500_after_20
+        COMMAND ./test-server-500_after_20 $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
     add_test(NAME auth-plus-failure
         COMMAND sota_tools/test-auth-plus-failure $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
