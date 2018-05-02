@@ -4,6 +4,7 @@
 #include "request_pool.h"
 
 #include <assert.h>
+#include <curl/curl.h>
 #include <glib.h>
 #include <iostream>
 
@@ -179,6 +180,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
     LOG_ERROR << "err:" << curl_multi_strerror(err);
   }
   refcount_++;  // Because curl now has a reference to us
+  request_start_time_ = std::chrono::steady_clock::now();
 }
 
 void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const bool dryrun) {
@@ -215,9 +217,10 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
   }
   refcount_++;  // Because curl now has a reference to us
+  request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::CurlDone(CURLM *curl_multi_handle) {
+void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
   refcount_--;            // Because curl now doesn't have a reference to us
   assert(refcount_ > 0);  // At least our parent should have a reference to us
 
@@ -225,28 +228,50 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle) {
   curl_easy_getinfo(curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
   if (current_operation_ == OSTREE_OBJECT_PRESENCE_CHECK) {
     if (rescode == 200) {
+      LOG_INFO << "Already Present:" << object_name_;
       is_on_server_ = OBJECT_PRESENT;
+      last_operation_result_ = ServerResponse::kOk;
+      NotifyParents(pool);
     } else if (rescode == 404) {
       is_on_server_ = OBJECT_MISSING;
-    } else {
-      is_on_server_ = OBJECT_BREAKS_SERVER;
-      LOG_ERROR << "OSTree fetch error: " << rescode;
-      if (rescode == 0) {
-        char *url = nullptr;
-        curl_easy_getinfo(curl_handle_, CURLINFO_EFFECTIVE_URL, &url);
-        LOG_ERROR << "Check your OSTree server in treehub.json: " << url;
+      last_operation_result_ = ServerResponse::kOk;
+      try {
+        PopulateChildren();
+        if (children_ready()) {
+          pool.AddUpload(this);
+        } else {
+          QueryChildren(pool);
+        }
+      } catch (const OSTreeObjectMissing &error) {
+        LOG_ERROR << "Local OSTree repo does not contain object " << error.missing_object();
+        pool.Abort();
       }
+    } else {
+      is_on_server_ = OBJECT_STATE_UNKNOWN;
+      LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
+      last_operation_result_ = ServerResponse::kTemporaryFailure;
+      pool.AddQuery(this);
     }
+
   } else if (current_operation_ == OSTREE_OBJECT_UPLOADING) {
     // TODO: check that http_response_ matches the object hash
     curl_formfree(form_post_);
     form_post_ = nullptr;
     if (rescode == 200) {
-      LOG_DEBUG << "OSTree upload successful";
+      LOG_TRACE << "OSTree upload successful";
       is_on_server_ = OBJECT_PRESENT;
+      last_operation_result_ = ServerResponse::kOk;
+      NotifyParents(pool);
+    } else if (rescode == 409) {
+      LOG_DEBUG << "OSTree upload reported a 409 Conflict, possibly due to concurrent uploads";
+      is_on_server_ = OBJECT_PRESENT;
+      last_operation_result_ = ServerResponse::kOk;
+      NotifyParents(pool);
     } else {
-      LOG_ERROR << "OSTree upload error: " << rescode;
-      is_on_server_ = OBJECT_BREAKS_SERVER;
+      LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
+      is_on_server_ = OBJECT_MISSING;
+      last_operation_result_ = ServerResponse::kTemporaryFailure;
+      pool.AddUpload(this);
     }
   } else {
     assert(0);

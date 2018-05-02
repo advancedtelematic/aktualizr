@@ -12,59 +12,9 @@
 #include "ostree_http_repo.h"
 #include "ostree_object.h"
 #include "ostree_ref.h"
+#include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
-
-int present_already = 0;
-int uploaded = 0;
-int errors = 0;
-
-void queried_ev(RequestPool &p, OSTreeObject::ptr h) {
-  switch (h->is_on_server()) {
-    case OBJECT_MISSING:
-      try {
-        // Check for children before uploading the parent.
-        h->PopulateChildren();
-        if (h->children_ready()) {
-          p.AddUpload(h);
-        } else {
-          h->QueryChildren(p);
-        }
-      } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Local OSTree repo does not contain object " << error.missing_object();
-        p.Abort();
-        errors++;
-      }
-      break;
-
-    case OBJECT_PRESENT:
-      present_already++;
-      h->NotifyParents(p);
-      break;
-
-    case OBJECT_BREAKS_SERVER:
-      LOG_ERROR << "Uploading object " << h << " failed.";
-      p.Abort();
-      errors++;
-      break;
-    default:
-      LOG_ERROR << "Surprise state:" << h->is_on_server();
-      p.Abort();
-      errors++;
-      break;
-  }
-}
-
-void uploaded_ev(RequestPool &p, OSTreeObject::ptr h) {  // NOLINT
-  if (h->is_on_server() == OBJECT_PRESENT) {
-    uploaded++;
-    h->NotifyParents(p);
-  } else {
-    LOG_ERROR << "Surprise state:" << h->is_on_server();
-    p.Abort();
-    errors++;
-  }
-}
 
 bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
                      const OSTreeHash &ostree_commit, const std::string &cacerts, const bool dryrun,
@@ -89,30 +39,23 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
   // Add commit object to the queue
   request_pool.AddQuery(root_object);
 
-  // Set callbacks
-  request_pool.OnQuery(queried_ev);
-  request_pool.OnUpload(uploaded_ev);
-
   // Main curl event loop.
   // request_pool takes care of holding number of outstanding requests below
-  // kMaxCurlRequests
-  // Callbacks (queried_ev and uploaded_ev) add new requests to the pool and
+  // OSTreeObject::CurlDone() adds new requests to the pool and
   // stop the pool on error
 
   do {
     request_pool.Loop(dryrun);
   } while (root_object->is_on_server() != OBJECT_PRESENT && !request_pool.is_stopped());
 
-  if (!dryrun) {
-    LOG_INFO << "Uploaded " << uploaded << " objects";
-    LOG_INFO << "Already present " << present_already << " objects";
+  if (root_object->is_on_server() == OBJECT_PRESENT) {
+    if (!dryrun) {
+      LOG_INFO << "Upload to Treehub complete after " << request_pool.total_requests_made() << " requests";
+    } else {
+      LOG_INFO << "Dry run. No objects uploaded.";
+    }
   } else {
-    LOG_INFO << "Dry run. No objects uploaded.";
-  }
-
-  if (errors != 0) {
     LOG_ERROR << "One or more errors while pushing";
-    return false;
   }
 
   return root_object->is_on_server() == OBJECT_PRESENT;
@@ -170,6 +113,7 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     return false;
   }
 
+  bool ok = true;
   if (!dry_run) {
     CURL *easy_handle = curl_easy_init();
     curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
@@ -177,15 +121,15 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     CURLcode err = curl_easy_perform(easy_handle);
     if (err != 0u) {
       LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
-      errors++;
+      ok = false;
     }
     long rescode;  // NOLINT
     curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-      errors++;
+      ok = false;
     }
     curl_easy_cleanup(easy_handle);
   }
-  return errors == 0;
+  return ok;
 }

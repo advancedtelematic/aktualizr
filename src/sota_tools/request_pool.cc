@@ -1,12 +1,16 @@
 #include "request_pool.h"
+
+#include <chrono>
 #include <exception>
+#include <thread>
 
 #include "logging/logging.h"
 
 RequestPool::RequestPool(const TreehubServer& server, int max_requests)
-    : max_requests_(max_requests), running_requests_(0), server_(server), stopped_(false) {
+    : rate_controller_(max_requests), running_requests_(0), server_(server), stopped_(false) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_ = curl_multi_init();
+  curl_multi_setopt(multi_, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
 }
 
 RequestPool::~RequestPool() {
@@ -37,7 +41,7 @@ void RequestPool::AddUpload(const OSTreeObject::ptr& request) {
 }
 
 void RequestPool::LoopLaunch(const bool dryrun) {
-  while (running_requests_ < max_requests_ && (!query_queue_.empty() || !upload_queue_.empty())) {
+  while (running_requests_ < rate_controller_.MaxConcurrency() && (!query_queue_.empty() || !upload_queue_.empty())) {
     OSTreeObject::ptr cur;
 
     // Queries first, uploads second
@@ -45,16 +49,17 @@ void RequestPool::LoopLaunch(const bool dryrun) {
       cur = upload_queue_.front();
       upload_queue_.pop_front();
       cur->Upload(server_, multi_, dryrun);
+      total_requests_made_++;
       if (dryrun) {
         // Don't send an actual upload message, just skip to the part where we
-        // acknowledge that the object has been uploaded. This is mostly
-        // necessary to make sure NotifyParents gets called.
-        upload_cb_(*this, cur);
+        // acknowledge that the object has been uploaded.
+        cur->NotifyParents(*this);
       }
     } else {
       cur = query_queue_.front();
       query_queue_.pop_front();
       cur->MakeTestRequest(server_, multi_);
+      total_requests_made_++;
     }
 
     running_requests_++;
@@ -106,17 +111,15 @@ void RequestPool::LoopListen() {
     CURLMsg* msg = curl_multi_info_read(multi_, &msgs_in_queue);
     if ((msg != nullptr) && msg->msg == CURLMSG_DONE) {
       OSTreeObject::ptr h = ostree_object_from_curl(msg->easy_handle);
-      h->CurlDone(multi_);
-      switch (h->operation()) {
-        case OSTREE_OBJECT_UPLOADING:
-          upload_cb_(*this, h);
-          break;
-        case OSTREE_OBJECT_PRESENCE_CHECK:
-          query_cb_(*this, h);
-          break;
-        default:
-          throw std::runtime_error("Unexpected current operation on an object");
-          break;
+      h->CurlDone(multi_, *this);
+      bool server_responded_ok = h->LastOperationResult() == ServerResponse::kOk;
+      RateController::clock::time_point start_time = h->RequestStartTime();
+      RateController::clock::time_point end_time = RateController::clock::now();
+      rate_controller_.RequestCompleted(start_time, end_time, server_responded_ok);
+      if (rate_controller_.ServerHasFailed()) {
+        Abort();
+      } else {
+        std::this_thread::sleep_for(rate_controller_.GetSleepTime());
       }
     }
   } while (msgs_in_queue > 0);

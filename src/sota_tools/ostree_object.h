@@ -1,8 +1,10 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
+
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
@@ -11,18 +13,19 @@
 class OSTreeRepo;
 class RequestPool;
 
-enum PresenceOnServer {
-  OBJECT_STATE_UNKNOWN,
-  OBJECT_PRESENT,
-  OBJECT_MISSING,
-  OBJECT_INPROGRESS,
-  OBJECT_BREAKS_SERVER,
-};
+enum PresenceOnServer { OBJECT_STATE_UNKNOWN, OBJECT_PRESENT, OBJECT_MISSING, OBJECT_INPROGRESS };
 
 enum CurrentOp {
   OSTREE_OBJECT_UPLOADING,
   OSTREE_OBJECT_PRESENCE_CHECK,
 };
+
+/**
+ * Broad categories for server response codes.
+ * There is no category for a permanent failure at the moment: we are able to
+ * detect a failure that is definitely permanent.
+ */
+enum class ServerResponse { kOk, kTemporaryFailure };
 
 class OSTreeObject {
  public:
@@ -36,7 +39,7 @@ class OSTreeObject {
   PresenceOnServer is_on_server() const { return is_on_server_; }
   CurrentOp operation() const { return current_operation_; }
 
-  void CurlDone(CURLM* curl_multi_handle);
+  void CurlDone(CURLM* curl_multi_handle, RequestPool& pool);
 
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
@@ -49,6 +52,10 @@ class OSTreeObject {
   void NotifyParents(RequestPool& pool);
   void ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it);
   void LaunchNotify() { is_on_server_ = OBJECT_INPROGRESS; }
+
+  std::chrono::steady_clock::time_point RequestStartTime() const { return request_start_time_; }
+
+  ServerResponse LastOperationResult() const { return last_operation_result_; }
 
  private:
   using childiter = std::list<OSTreeObject::ptr>::iterator;
@@ -76,6 +83,9 @@ class OSTreeObject {
   struct curl_httppost* form_post_;
   std::list<parentref> parents_;
   std::list<OSTreeObject::ptr> children_;
+
+  std::chrono::steady_clock::time_point request_start_time_;
+  ServerResponse last_operation_result_;
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);

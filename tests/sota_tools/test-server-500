@@ -73,7 +73,7 @@ def main():
             if not ostree_repo.did_return_500.is_set():
                 print("Didn't hit failure case")
                 sys.exit(1)
-            if exitcode != 1:
+            if exitcode != 0:
                 print("Incorrect exit code %d" % exitcode)
                 sys.exit(1)
         except subprocess.TimeoutExpired:

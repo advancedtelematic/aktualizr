@@ -1,21 +1,22 @@
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 set (SOTA_TOOLS_LIB_SRC
   authenticate.cc
-  server_credentials.cc
+  deploy.cc
   oauth2.cc
   ostree_hash.cc
   ostree_ref.cc
   ostree_dir_repo.cc
   ostree_http_repo.cc
   ostree_object.cc
+  rate_controller.cc
   request_pool.cc
+  server_credentials.cc
   treehub_server.cc
-  deploy.cc
 )
 
 if (BUILD_SOTA_TOOLS)
   add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
-  target_include_directories(sota_tools_static_lib PUBLIC ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
+  target_include_directories(sota_tools_static_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 endif (BUILD_SOTA_TOOLS)
 
 ##### garage-push targets
@@ -126,6 +127,7 @@ set(ALL_SOTA_TOOLS_HEADERS
   ostree_object.h
   ostree_ref.h
   ostree_repo.h
+  rate_controller.h
   request_pool.h
   server_credentials.h
   treehub_server.h
