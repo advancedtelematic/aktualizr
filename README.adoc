@@ -34,7 +34,7 @@ toc::[]
 
 This client, and the https://github.com/advancedtelematic/rvi_sota_server[GENIVI SOTA] project, is aligned with the https://uptane.github.io[Uptane] security framework for software updates. Full details and whitepapers can be found on their site.
 
-== Install
+== Installation
 
 === Dependencies
 
@@ -141,7 +141,7 @@ make test
 
 Some of the tests require provisioning credentials. For details of the credentials format, see link:docs/credentials.adoc[credentials.adoc]. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the cmake GUI, by passing `-DSOTA_PACKED_CREDENTIALS=...` to cmake, or by editing `CMakeCache.txt` in the build directory.
 
-=== Code Coverage
+=== Code coverage
 
 The project can be configured to generate a code coverage report. First, create a CMake build directory for coverage builds, and invoke CMake with the `-DBUILD_WITH_CODE_COVERAGE=ON` flag:
 
@@ -185,7 +185,7 @@ The following command will get a shell to perform an interactive build, but note
 docker run --rm -it advancedtelematic/aktualizr
 ----
 
-=== Developing against an OpenEmbedded system
+=== Developing and debugging with an OpenEmbedded system
 
 By default OpenEmbedded builds fixed versions of software from a VCS using bitbake recipes. When developing Aktualizr itself it is useful to have a quicker edit-compile-run cycle and access to a debugger. The following steps will use OpenEmbedded to create a cross-compilation environment, then build inside that.
 
@@ -259,11 +259,19 @@ Then connect the debugger as usual.
 
 == Usage
 
-Run the client and provide a yaml formatted configuration file using the commandline option -c or --config. The configuration file has to contain the OAuth2 server URL, the SOTA server URL, a valid clientID and according secret and a valid device UUID. See the example config file at config/config.yml.example. The client will use the clientID and according secret to get an OAuth2 token from the authorization server which is then used to send API requests to the SOTA server.
+=== Configuration
+
+To run the aktualizr client, you will need to provide a toml-formatted configuration file using the command line option `-c` or `--config`:
 
 ----
 aktualizr -c <path/configfile>
 ----
+
+Additional command line options can be found in the code (see link:../src/aktualizr_primary/main.cc[]) or by running `aktualizr --help`. More details on configuring aktualizr can be found in link:docs/configuration.adoc[]. If you are using https://github.com/advancedtelematic/meta-updater[meta-updater], more information about configuring aktualizr in that environment can be found there.
+
+=== Provisioning
+
+If you intend to use aktualizr to authenticate with a server, you will need some form of provisioning. Aktualizr currently supports three methods of provisioning: link:docs/automatic-provisioning.adoc[automatic], link:docs/implicit-provisioning.adoc[implicit], and link:docs/hsm-provisioning.adoc[by using an HSM]. You can learn more about the credentials files used to support provisioning in link:docs/credentials.adoc[].
 
 == Maintainers
 
