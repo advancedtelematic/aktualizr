@@ -167,6 +167,32 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
+void SotaUptaneClient::getUpdateRequests() {
+  reportNetworkInfo();
+  // Uptane step 1 (build the vehicle version manifest):
+  if (!putManifest()) {
+    return;
+  }
+  // Uptane step 2 (download time) is not implemented yet.
+  // Uptane step 3 (download metadata)
+  if (!uptane_repo.getMeta()) {
+    LOG_ERROR << "could not retrieve metadata";
+    *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+    return;
+  }
+  // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
+  // deploying)
+  std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
+  if ((updates.second.size() != 0u) && updates.first > last_targets_version) {
+    LOG_INFO << "got new updates";
+    *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
+    last_targets_version = updates.first;  // TODO: What if we fail install targets?
+  } else {
+    LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
+    *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+  }
+}
+
 void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
@@ -188,29 +214,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
     try {
       if (command->variant == "GetUpdateRequests") {
         schedulePoll(commands_channel);
-        reportNetworkInfo();
-        // Uptane step 1 (build the vehicle version manifest):
-        if (!putManifest()) {
-          continue;
-        }
-        // Uptane step 2 (download time) is not implemented yet.
-        // Uptane step 3 (download metadata)
-        if (!uptane_repo.getMeta()) {
-          LOG_ERROR << "could not retrieve metadata";
-          *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
-          continue;
-        }
-        // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
-        // deploying)
-        std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
-        if ((updates.second.size() != 0u) && updates.first > last_targets_version) {
-          LOG_INFO << "got new updates";
-          *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
-          last_targets_version = updates.first;  // TODO: What if we fail install targets?
-        } else {
-          LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
-          *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
-        }
+        getUpdateRequests();
       } else if (command->variant == "UptaneInstall") {
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
         operation_result = Json::nullValue;
