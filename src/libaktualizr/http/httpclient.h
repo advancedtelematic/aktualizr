@@ -17,6 +17,10 @@ class CurlGlobalInitWrapper {
  public:
   CurlGlobalInitWrapper() { curl_global_init(CURL_GLOBAL_DEFAULT); }
   ~CurlGlobalInitWrapper() { curl_global_cleanup(); }
+  CurlGlobalInitWrapper &operator=(const CurlGlobalInitWrapper &) = delete;
+  CurlGlobalInitWrapper(const CurlGlobalInitWrapper &) = delete;
+  CurlGlobalInitWrapper &operator=(CurlGlobalInitWrapper &&) = delete;
+  CurlGlobalInitWrapper(CurlGlobalInitWrapper &&) = delete;
 };
 
 class HttpClient : public HttpInterface {
@@ -43,7 +47,7 @@ class HttpClient : public HttpInterface {
   HttpResponse post(const std::string &url, std::string data);
   HttpResponse put(const std::string &url, std::string data);
 
-  CurlGlobalInitWrapper manageCurlGlobalInit_;  // Must be first member to ensure curl init/shutdown happens first/last
+  static CurlGlobalInitWrapper manageCurlGlobalInit_;
   CURL *curl;
   curl_slist *headers;
   HttpResponse perform(CURL *curl_handler, int retry_times);
