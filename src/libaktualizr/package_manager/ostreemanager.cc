@@ -86,7 +86,8 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
     return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
   }
 
-  GKeyFile *origin = ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str());
+  auto origin = StructGuard<GKeyFile>(
+      ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str()), g_key_file_free);
   if (ostree_repo_resolve_rev(repo.get(), target.sha256Hash().c_str(), FALSE, &revision, &error) == 0) {
     LOG_ERROR << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
@@ -122,7 +123,7 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   auto kargs_strv = const_cast<char **>(&kargs_strv_vector[0]);
 
   OstreeDeployment *new_deployment = nullptr;
-  if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin, merge_deployment, kargs_strv,
+  if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment, kargs_strv,
                                  &new_deployment, cancellable, &error) == 0) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
