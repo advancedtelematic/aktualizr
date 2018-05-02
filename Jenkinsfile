@@ -25,8 +25,9 @@ pipeline {
             always {
               step([$class: 'XUnitBuilder',
                   thresholds: [
-                  [$class: 'SkippedThreshold', failureThreshold: '0'],
-                  [$class: 'FailedThreshold', failureThreshold: '0']],
+                    [$class: 'SkippedThreshold', failureThreshold: '1'],
+                    [$class: 'FailedThreshold', failureThreshold: '1']
+                  ],
                   tools: [[$class: 'CTestType', pattern: 'build-coverage/**/Test.xml']]])
               publishHTML (target: [
                   allowMissing: false,
@@ -58,8 +59,9 @@ pipeline {
             always {
               step([$class: 'XUnitBuilder',
                   thresholds: [
-                  [$class: 'SkippedThreshold', failureThreshold: '0'],
-                  [$class: 'FailedThreshold', failureThreshold: '0']],
+                    [$class: 'SkippedThreshold', failureThreshold: '1'],
+                    [$class: 'FailedThreshold', failureThreshold: '1']
+                  ],
                   tools: [[$class: 'CTestType', pattern: 'build-openssl11/**/Test.xml']]])
             }
           }
