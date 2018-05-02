@@ -270,10 +270,10 @@ OSTreeObject::~OSTreeObject() {
 }
 
 OSTreeObject::ptr ostree_object_from_curl(CURL *curlhandle) {
-  char *p;
+  void *p;
   curl_easy_getinfo(curlhandle, CURLINFO_PRIVATE, &p);
   assert(p);
-  auto *h = reinterpret_cast<OSTreeObject *>(p);
+  auto *h = static_cast<OSTreeObject *>(p);
   return boost::intrusive_ptr<OSTreeObject>(h);
 }
 
