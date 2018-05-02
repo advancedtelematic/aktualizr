@@ -7,7 +7,7 @@ using boost::log::trivial::severity_level;
 
 severity_level gLoggingThreshold;
 
-int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::debug ? 1L : 0L; }
+int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::trace ? 1L : 0L; }
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;
