@@ -13,6 +13,7 @@ option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
+option(BUILD_LOAD_TESTS "Set to ON to build load tests" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
 set(TESTSUITE_ONLY "" CACHE STRING "Only run tests matching this list of labels")
@@ -32,11 +33,15 @@ unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
-set(BOOST_COMPONENTS log_setup log filesystem program_options system)
+set(BOOST_COMPONENTS log_setup log filesystem program_options system )
 
 if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
 endif(BUILD_OPCUA)
+
+if(BUILD_LOAD_TESTS)
+    list(APPEND BOOST_COMPONENTS thread)
+endif(BUILD_LOAD_TESTS)
 
 find_package(PkgConfig REQUIRED)
 find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
@@ -299,6 +304,8 @@ add_subdirectory("src/aktualizr_check_discovery")
 add_subdirectory("src/cert_provider")
 add_subdirectory("src/implicit_writer")
 add_subdirectory("src/external_secondaries")
+
+add_subdirectory("src/load_tests")
 
 include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
