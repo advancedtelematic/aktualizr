@@ -2,6 +2,7 @@
 
 @VALGRIND@ --error-exitcode=1 \
     --leak-check=yes \
+    --num-callers=25 \
     --show-possibly-lost=yes \
     --errors-for-leak-kinds=definite \
     "--suppressions=@PROJECT_SOURCE_DIR@/tests/aktualizr.supp" \
