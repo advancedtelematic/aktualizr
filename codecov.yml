@@ -1,11 +1,5 @@
 ignore:
-  - "src/third_party"
-  - "src/tests"
-
-fixes:
-  - "src/::"     
-
-ignore:
-  - "tests"
   - "third_party"
+  - "tests"
   - "generated"
+  - "src/libaktualizr/third_party"
