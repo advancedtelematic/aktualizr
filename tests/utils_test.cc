@@ -11,6 +11,7 @@
 #include <set>
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/archive/iterators/dataflow_exception.hpp>
 #include <boost/random/uniform_smallint.hpp>
 
 #include "utilities/utils.h"
@@ -79,13 +80,26 @@ TEST(Utils, RandomUuidSane) {
   }
 }
 
-TEST(Utils, FromBase64) {
+TEST(Utils, ToBase64) {
   // Generated using python's base64.b64encode
   EXPECT_EQ("aGVsbG8=", Utils::toBase64("hello"));
   EXPECT_EQ("", Utils::toBase64(""));
   EXPECT_EQ("CQ==", Utils::toBase64("\t"));
   EXPECT_EQ("YWI=", Utils::toBase64("ab"));
   EXPECT_EQ("YWJj", Utils::toBase64("abc"));
+}
+
+TEST(Utils, FromBase64) {
+  EXPECT_EQ(Utils::fromBase64("aGVsbG8="), "hello");
+  EXPECT_EQ(Utils::fromBase64(""), "");
+  EXPECT_EQ(Utils::fromBase64("YWI="), "ab");
+  EXPECT_EQ(Utils::fromBase64("YWJj"), "abc");
+}
+
+TEST(Utils, FromBase64Wrong) {
+  EXPECT_THROW(Utils::fromBase64("Привіт"), boost::archive::iterators::dataflow_exception);
+  EXPECT_THROW(Utils::fromBase64("aGVsbG8=="), boost::archive::iterators::dataflow_exception);
+  EXPECT_THROW(Utils::fromBase64("CQ==="), boost::archive::iterators::dataflow_exception);
 }
 
 TEST(Utils, Base64RoundTrip) {
