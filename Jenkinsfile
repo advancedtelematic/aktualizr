@@ -40,6 +40,20 @@ pipeline {
             }
           }
         }
+        stage('nop11') {
+          agent {
+            dockerfile {
+              filename 'Dockerfile.nop11'
+            }
+          }
+          environment {
+            TEST_BUILD_DIR = 'build-nop11'
+            TEST_CMAKE_BUILD_TYPE = 'Valgrind'
+          }
+          steps {
+            sh 'scripts/test.sh'
+          }
+        }
         stage('openssl11') {
           agent {
             dockerfile {
