@@ -69,6 +69,10 @@ struct ProvisionConfig {
   std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
   ProvisionMode mode{kAutomatic};
+  std::string device_id;
+  std::string primary_ecu_serial;
+  std::string primary_ecu_hardware_id;
+  std::string ecu_registration_endpoint;
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -77,9 +81,6 @@ struct ProvisionConfig {
 struct UptaneConfig {
   bool polling{true};
   uint64_t polling_sec{10u};
-  std::string device_id;
-  std::string primary_ecu_serial;
-  std::string primary_ecu_hardware_id;
   std::string director_server;
   std::string repo_server;
   CryptoSource key_source{kFile};

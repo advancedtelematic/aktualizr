@@ -1,3 +1,4 @@
+#include <gtest/gtest_prod.h>
 #include <json/json.h>
 #include <atomic>
 #include <map>
@@ -31,6 +32,19 @@ class SotaUptaneClient {
   std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
 
  private:
+  FRIEND_TEST(UptaneKey, CheckAllKeys);
+  FRIEND_TEST(UptaneKey, RecoverWithoutKeys);
+  FRIEND_TEST(aktualizr_secondary_uptane, credentialsPassing);
+  FRIEND_TEST(Uptane, RandomSerial);
+  FRIEND_TEST(Uptane, ReloadSerial);
+  FRIEND_TEST(Uptane, LegacySerial);
+  FRIEND_TEST(Uptane, AssembleManifestGood);
+  FRIEND_TEST(Uptane, AssembleManifestBad);
+  FRIEND_TEST(Uptane, PutManifest);
+  FRIEND_TEST(Uptane, UptaneSecondaryAdd);
+  FRIEND_TEST(UptaneCI, OneCycleUpdate);
+  FRIEND_TEST(UptaneCI, CheckKeys);
+
   bool isInstalled(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
@@ -45,6 +59,7 @@ class SotaUptaneClient {
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   bool putManifest();
+  bool initialize();
 
   Config &config;
   std::shared_ptr<event::Channel> events_channel;

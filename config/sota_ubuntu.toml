@@ -1,8 +1,6 @@
-[uptane]
-primary_ecu_hardware_id = "ubuntu"
-
 [provision]
 provision_path = "/var/sota/sota_provisioning_credentials.zip"
+primary_ecu_hardware_id = "ubuntu"
 
 [storage]
 type = "sqlite"

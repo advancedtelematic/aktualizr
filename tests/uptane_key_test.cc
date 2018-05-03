@@ -24,11 +24,11 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
                   TemporaryDirectory& temp_dir, const std::string& tls_server) {
   config.uptane.repo_server = tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  config.provision.primary_ecu_serial = "testecuserial";
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
   config.tls.server = tls_server;
   config.uptane.repo_server = tls_server + "/repo";
-  config.uptane.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
   config.storage.uptane_private_key_path = "private.key";
@@ -120,7 +120,7 @@ TEST(UptaneKey, CheckAllKeys) {
   Uptane::Repository uptane(config, storage, http);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
   checkKeyTests(storage, sota_client);
 }
 
@@ -142,7 +142,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
 
     // Remove TLS keys but keep ECU keys and try to initialize.
@@ -154,7 +154,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
   }
 
@@ -172,7 +172,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
   }
 }

@@ -137,6 +137,10 @@ void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& 
   CopyFromConfig(p12_password, "p12_password", boost::log::trivial::trace, pt);
   CopyFromConfig(expiry_days, "expiry_days", boost::log::trivial::trace, pt);
   CopyFromConfig(provision_path, "provision_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(device_id, "device_id", boost::log::trivial::trace, pt);
+  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::trace, pt);
+  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::trace, pt);
+  CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", boost::log::trivial::trace, pt);
   // provision.mode is set in postUpdateValues.
 }
 
@@ -145,14 +149,15 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, p12_password, "p12_password");
   writeOption(out_stream, expiry_days, "expiry_days");
   writeOption(out_stream, provision_path, "provision_path");
+  writeOption(out_stream, device_id, "device_id");
+  writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
+  writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
+  writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(polling, "polling", boost::log::trivial::trace, pt);
   CopyFromConfig(polling_sec, "polling_sec", boost::log::trivial::trace, pt);
-  CopyFromConfig(device_id, "device_id", boost::log::trivial::trace, pt);
-  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::trace, pt);
-  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::trace, pt);
   CopyFromConfig(director_server, "director_server", boost::log::trivial::trace, pt);
   CopyFromConfig(repo_server, "repo_server", boost::log::trivial::trace, pt);
 
@@ -184,9 +189,6 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, polling, "polling");
   writeOption(out_stream, polling_sec, "polling_sec");
-  writeOption(out_stream, device_id, "device_id");
-  writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
-  writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, director_server, "director_server");
   writeOption(out_stream, repo_server, "repo_server");
   writeOption(out_stream, key_source, "key_source");
@@ -276,6 +278,12 @@ void Config::postUpdateValues() {
     }
   }
 
+  if (!uptane.director_server.empty()) {
+    if (provision.ecu_registration_endpoint.empty()) {
+      provision.ecu_registration_endpoint = uptane.director_server + "/ecus";
+    }
+  }
+
   checkLegacyVersion();
   initLegacySecondaries();
   LOG_TRACE << "Final configuration that will be used: \n" << (*this);
@@ -361,10 +369,10 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     pacman.ostree_server = cmd["ostree-server"].as<std::string>();
   }
   if (cmd.count("primary-ecu-serial") != 0) {
-    uptane.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
+    provision.primary_ecu_serial = cmd["primary-ecu-serial"].as<std::string>();
   }
   if (cmd.count("primary-ecu-hardware-id") != 0) {
-    uptane.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
+    provision.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
   if (cmd.count("secondary-config") != 0) {
     std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path>>();

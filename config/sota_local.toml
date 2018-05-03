@@ -1,8 +1,6 @@
-[uptane]
-primary_ecu_hardware_id = "desktop"
-
 [provision]
 provision_path = "credentials.zip"
+primary_ecu_hardware_id = "desktop"
 
 [storage]
 path = "sota-prov"

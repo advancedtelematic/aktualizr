@@ -47,15 +47,15 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = kAutomatic;
+  config.provision.primary_ecu_serial = "testecuserial";
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.uptane.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
 
   std::string arch = sota_client.secondaryTreehubCredentials();
   std::string ca, cert, pkey, server_url;

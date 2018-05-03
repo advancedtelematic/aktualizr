@@ -36,7 +36,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
-  EXPECT_TRUE(repo.initialize());
+  EXPECT_TRUE(sota_client.initialize());
   EXPECT_TRUE(repo.putManifest(sota_client.AssembleManifest()));
   // should not throw any exceptions
   repo.getTargets();
@@ -70,7 +70,7 @@ TEST(UptaneCI, CheckKeys) {
   HttpClient http;
   Uptane::Repository repo(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, repo, storage, http);
-  EXPECT_TRUE(repo.initialize());
+  EXPECT_TRUE(sota_client.initialize());
 
   std::string ca;
   std::string cert;

@@ -3,6 +3,7 @@ set(SOURCES aktualizr.cc
             events.cc
             eventsinterpreter.cc
             gatewaymanager.cc
+            initializer.cc
             socketgateway.cc
             sotauptaneclient.cc)
 
@@ -12,6 +13,7 @@ set(HEADERS aktualizr.h
             eventsinterpreter.h
             gateway.h
             gatewaymanager.h
+            initializer.h
             socketgateway.h
             sotauptaneclient.h)
 

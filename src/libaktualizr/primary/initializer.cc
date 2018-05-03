@@ -1,3 +1,5 @@
+#include "initializer.h"
+
 #include <string>
 
 #include <openssl/x509.h>
@@ -6,12 +8,9 @@
 #include "bootstrap/bootstrap.h"
 #include "crypto/keymanager.h"
 #include "logging/logging.h"
-#include "uptane/uptanerepository.h"
-
-namespace Uptane {
 
 // Postcondition: device_id is in the storage
-bool Repository::initDeviceId(const ProvisionConfig& provision_config, const UptaneConfig& uptane_config) {
+bool Initializer::initDeviceId() {
   // if device_id is already stored, just return
   std::string device_id;
   if (storage->loadDeviceId(&device_id)) {
@@ -19,12 +18,12 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
   }
 
   // if device_id is specified in config, just use it, otherwise generate a  random one
-  device_id = uptane_config.device_id;
+  device_id = config.device_id;
   if (device_id.empty()) {
-    if (provision_config.mode == kAutomatic) {
+    if (config.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
-    } else if (provision_config.mode == kImplicit) {
-      device_id = KeyManager(storage, config.keymanagerConfig()).getCN();
+    } else if (config.mode == kImplicit) {
+      device_id = keys.getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
       return false;
@@ -34,30 +33,24 @@ bool Repository::initDeviceId(const ProvisionConfig& provision_config, const Upt
   storage->storeDeviceId(device_id);
   return true;
 }
-void Repository::resetDeviceId() { storage->clearDeviceId(); }
-
-void Repository::setEcuSerialMembers(const std::pair<std::string, std::string>& ecu_serials) {
-  primary_ecu_serial = ecu_serials.first;
-  primary_hardware_id_ = ecu_serials.second;
-}
+void Initializer::resetDeviceId() { storage->clearDeviceId(); }
 
 // Postcondition [(serial, hw_id)] is in the storage
-bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
+bool Initializer::initEcuSerials() {
   std::vector<std::pair<std::string, std::string> > ecu_serials;
 
   // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
   //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
   if (storage->loadEcuSerials(&ecu_serials)) {
-    setEcuSerialMembers(ecu_serials[0]);
     return true;
   }
 
-  std::string primary_ecu_serial_local = uptane_config.primary_ecu_serial;
+  std::string primary_ecu_serial_local = config.primary_ecu_serial;
   if (primary_ecu_serial_local.empty()) {
-    primary_ecu_serial_local = Crypto::getKeyId(keys_.getUptanePublicKey());
+    primary_ecu_serial_local = Crypto::getKeyId(keys.getUptanePublicKey());
   }
 
-  std::string primary_ecu_hardware_id = uptane_config.primary_ecu_hardware_id;
+  std::string primary_ecu_hardware_id = config.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
     if (primary_ecu_hardware_id == "") {
@@ -67,39 +60,33 @@ bool Repository::initEcuSerials(const UptaneConfig& uptane_config) {
 
   ecu_serials.emplace_back(primary_ecu_serial_local, primary_ecu_hardware_id);
 
-  std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
-  for (it = secondary_info.begin(); it != secondary_info.end(); ++it) {
-    ecu_serials.emplace_back((*it)->getSerial(), (*it)->getHwId());
+  for (auto it = secondary_info.begin(); it != secondary_info.end(); ++it) {
+    ecu_serials.emplace_back(it->second->getSerial(), it->second->getHwId());
   }
 
   storage->storeEcuSerials(ecu_serials);
-  setEcuSerialMembers(ecu_serials[0]);
   return true;
 }
 
-void Repository::resetEcuSerials() {
-  storage->clearEcuSerials();
-  primary_ecu_serial = "";
-}
+void Initializer::resetEcuSerials() { storage->clearEcuSerials(); }
 
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
-bool Repository::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size() != 0u; }
+bool Initializer::initPrimaryEcuKeys() { return keys.generateUptaneKeyPair().size() != 0u; }
 
-void Repository::resetEcuKeys() { storage->clearPrimaryKeys(); }
+void Initializer::resetEcuKeys() { storage->clearPrimaryKeys(); }
 
-bool Repository::loadSetTlsCreds() {
-  KeyManager keys(storage, config.keymanagerConfig());
-  keys.copyCertsToCurl(&http);
+bool Initializer::loadSetTlsCreds() {
+  keys.copyCertsToCurl(&http_client);
   return keys.isOk();
 }
 
 // Postcondition: TLS credentials are in the storage
-InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
+InitRetCode Initializer::initTlsCreds() {
   if (loadSetTlsCreds()) {
     return INIT_RET_OK;
   }
 
-  if (provision_config.mode != kAutomatic) {
+  if (config.mode != kAutomatic) {
     LOG_ERROR << "Credentials not found";
     return INIT_RET_STORAGE_FAILURE;
   }
@@ -107,8 +94,8 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
   // Autoprovision is needed and possible => autoprovision
 
   // set bootstrap credentials
-  Bootstrap boot(provision_config.provision_path, provision_config.p12_password);
-  http.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
+  Bootstrap boot(config.provision_path, config.p12_password);
+  http_client.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
 
   Json::Value data;
   std::string device_id;
@@ -117,8 +104,8 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
     return INIT_RET_STORAGE_FAILURE;
   }
   data["deviceId"] = device_id;
-  data["ttl"] = provision_config.expiry_days;
-  HttpResponse response = http.post(provision_config.server + "/devices", data);
+  data["ttl"] = config.expiry_days;
+  HttpResponse response = http_client.post(config.server + "/devices", data);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
@@ -149,19 +136,19 @@ InitRetCode Repository::initTlsCreds(const ProvisionConfig& provision_config) {
   return INIT_RET_OK;
 }
 
-void Repository::resetTlsCreds() {
-  if (config.provision.mode != kImplicit) {
+void Initializer::resetTlsCreds() {
+  if (config.mode != kImplicit) {
     storage->clearTlsCreds();
   }
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-InitRetCode Repository::initEcuRegister() {
+InitRetCode Initializer::initEcuRegister() {
   if (storage->loadEcuRegistered()) {
     return INIT_RET_OK;
   }
 
-  std::string primary_public = keys_.getUptanePublicKey();
+  std::string primary_public = keys.getUptanePublicKey();
 
   if (primary_public.empty()) {
     return INIT_RET_STORAGE_FAILURE;
@@ -180,23 +167,22 @@ InitRetCode Repository::initEcuRegister() {
     Json::Value primary_ecu;
     primary_ecu["hardware_identifier"] = ecu_serials[0].second;
     primary_ecu["ecu_serial"] = ecu_serials[0].first;
-    primary_ecu["clientKey"]["keytype"] = config.uptane.getKeyTypeString();
+    primary_ecu["clientKey"]["keytype"] = keyTypeToString(keys.getUptaneKeyType());
     primary_ecu["clientKey"]["keyval"]["public"] = primary_public;
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  std::vector<std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
-  for (it = secondary_info.begin(); it != secondary_info.end(); it++) {
+  for (auto it = secondary_info.cbegin(); it != secondary_info.cend(); it++) {
     Json::Value ecu;
-    auto public_key = (*it)->getPublicKey();
-    ecu["hardware_identifier"] = (*it)->getHwId();
-    ecu["ecu_serial"] = (*it)->getSerial();
+    auto public_key = it->second->getPublicKey();
+    ecu["hardware_identifier"] = it->second->getHwId();
+    ecu["ecu_serial"] = it->second->getSerial();
     ecu["clientKey"]["keytype"] = keyTypeToString(public_key.first);
     ecu["clientKey"]["keyval"]["public"] = public_key.second;
     all_ecus["ecus"].append(ecu);
   }
 
-  HttpResponse response = http.post(config.uptane.director_server + "/ecus", all_ecus);
+  HttpResponse response = http_client.post(config.ecu_registration_endpoint, all_ecus);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&
@@ -214,14 +200,18 @@ InitRetCode Repository::initEcuRegister() {
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-bool Repository::initialize() {
+Initializer::Initializer(const ProvisionConfig& config, const std::shared_ptr<INvStorage>& storage,
+                         HttpInterface& http_client, KeyManager& keys,
+                         const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info)
+    : config(config), storage(storage), http_client(http_client), keys(keys), secondary_info(secondary_info) {
+  success = false;
   for (int i = 0; i < MaxInitializationAttempts; i++) {
-    if (!initDeviceId(config.provision, config.uptane)) {
+    if (!initDeviceId()) {
       LOG_ERROR << "Device ID generation failed, abort initialization";
-      return false;
+      return;
     }
 
-    InitRetCode ret_code = initTlsCreds(config.provision);
+    InitRetCode ret_code = initTlsCreds();
     // if a device with the same ID has already been registered to the server,
     // generate a new one
     if (ret_code == INIT_RET_OCCUPIED) {
@@ -231,16 +221,16 @@ bool Repository::initialize() {
     }
     if (ret_code != INIT_RET_OK) {
       LOG_ERROR << "Autoprovisioning failed, abort initialization";
-      return false;
+      return;
     }
 
     if (!initPrimaryEcuKeys()) {
       LOG_ERROR << "ECU key generation failed, abort initialization";
-      return false;
+      return;
     }
-    if (!initEcuSerials(config.uptane)) {
+    if (!initEcuSerials()) {
       LOG_ERROR << "ECU serial generation failed, abort initialization";
-      return false;
+      return;
     }
 
     ret_code = initEcuRegister();
@@ -250,22 +240,13 @@ bool Repository::initialize() {
       LOG_INFO << "ECU serial is already registered";
     } else if (ret_code != INIT_RET_OK) {
       LOG_ERROR << "ECU registration failed, abort initialization";
-      return false;
+      return;
     }
 
     // TODO: acknowledge on server _before_ setting the flag
     storage->storeEcuRegistered();
-    return true;
+    success = true;
+    return;
   }
   LOG_ERROR << "Initialization failed after " << MaxInitializationAttempts << " attempts";
-  return false;
 }
-
-void Repository::initReset() {
-  storage->clearEcuRegistered();
-  resetTlsCreds();
-  resetEcuKeys();
-  resetEcuSerials();
-  resetDeviceId();
-}
-}  // namespace Uptane
