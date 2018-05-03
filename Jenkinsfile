@@ -6,6 +6,7 @@ pipeline {
   stages {
     stage('test') {
       parallel {
+        // run all tests with p11 and collect coverage
         stage('coverage') {
           agent {
             dockerfile {
@@ -40,6 +41,7 @@ pipeline {
             }
           }
         }
+        // run crypto tests without p11
         stage('nop11') {
           agent {
             dockerfile {
@@ -55,6 +57,30 @@ pipeline {
             sh 'scripts/test.sh'
           }
         }
+        // build garage_deploy.deb
+        stage('garage_deploy') {
+          agent any
+          environment {
+            TEST_INSTALL_DESTDIR = "${env.WORKSPACE}/build-debstable/pkg"
+          }
+          steps {
+            // build package inside docker
+            sh '''
+               IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
+               mkdir -p ${TEST_INSTALL_DESTDIR}
+               docker build -t ${IMG_TAG} -f Dockerfile.deb-stable .
+               docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_garage_deploy.sh
+               '''
+            // test package installation in another docker
+            sh 'scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR}'
+          }
+          post {
+            always {
+              archiveArtifacts artifacts: "build-debstable/pkg/*garage_deploy.deb", fingerprint: true
+            }
+          }
+        }
+        // run crypto tests with Openssl 1.1
         stage('openssl11') {
           agent {
             dockerfile {
@@ -82,6 +108,7 @@ pipeline {
             }
           }
         }
+        // build and test aktualizr.deb
         stage('debian_pkg') {
           agent any
           environment {
