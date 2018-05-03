@@ -83,20 +83,23 @@ pipeline {
         }
         stage('debian_pkg') {
           agent any
+          environment {
+            TEST_INSTALL_DESTDIR = "${env.WORKSPACE}/build-ubuntu/pkg"
+          }
           steps {
             // build package inside docker
             sh '''
                IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
-               mkdir -p $PWD/build-ubuntu/pkg
+               mkdir -p ${TEST_INSTALL_DESTDIR}
                docker build -t ${IMG_TAG} -f Dockerfile.noostree .
-               docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v $PWD/build-ubuntu/pkg:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build-ubuntu.sh
+               docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
                '''
             // test package installation in another docker
-            sh 'scripts/test_aktualizr_deb_ubuntu.sh $PWD/build-ubuntu/pkg'
+            sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR}'
           }
           post {
             always {
-              archiveArtifacts artifacts: 'build-ubuntu/pkg/*aktualizr.deb', fingerprint: true
+              archiveArtifacts artifacts: "build-ubuntu/pkg/*aktualizr.deb", fingerprint: true
             }
           }
         }
