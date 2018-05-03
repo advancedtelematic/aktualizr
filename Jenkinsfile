@@ -49,6 +49,7 @@ pipeline {
           environment {
             TEST_BUILD_DIR = 'build-nop11'
             TEST_CMAKE_BUILD_TYPE = 'Valgrind'
+            TEST_TESTSUITE_ONLY = 'crypto'
           }
           steps {
             sh 'scripts/test.sh'

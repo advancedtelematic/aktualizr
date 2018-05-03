@@ -9,7 +9,7 @@ env:
 - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_CMAKE_BUILD_TYPE=Debug -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1"
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
-  DARGS="-eTEST_TESTSUITE_EXCLUDE=uptane_vectors"
+  DARGS="-eTEST_TESTSUITE_ONLY=crypto"
 - DOCKERFILE=Dockerfile.deb-stable CACHE=latest-deb-stable SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_WITH_TESTSUITE=0 -eTEST_WITH_INSTALL_DEB_PACKAGES=1"
 - DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
