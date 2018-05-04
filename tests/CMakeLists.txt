@@ -203,6 +203,7 @@ if(SOTA_PACKED_CREDENTIALS)
              --build-dir ${PROJECT_BINARY_DIR}
              --src-dir ${PROJECT_SOURCE_DIR}
              --credentials ${SOTA_PACKED_CREDENTIALS})
+    set_tests_properties(test_prov PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 if(BUILD_OSTREE)
@@ -217,6 +218,7 @@ if(BUILD_OSTREE)
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                            ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
+        set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
     endif(SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE)
 
@@ -367,16 +369,11 @@ add_dependencies(qa check)
 # implicit_writer tests
 add_test(NAME implicit-writer-help COMMAND aktualizr_implicit_writer --help)
 
-if(SOTA_PACKED_CREDENTIALS)
-    set(IMPLICIT_CREDENTIALS ${SOTA_PACKED_CREDENTIALS})
-else()
-    set(IMPLICIT_CREDENTIALS ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip)
-endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
     COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py
-    -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
+    -c ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip
+    -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
     -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
-
 
 # external_secondaries tests
 add_dependencies(build_tests aktualizr-validate-secondary-interface example-interface)
@@ -455,19 +452,23 @@ if(BUILD_SOTA_TOOLS)
         add_test(NAME dry-run
             COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(dry-run PROPERTIES LABELS "credentials")
 
         add_test(NAME auth-plus-happy-case
             COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(auth-plus-happy-case PROPERTIES LABELS "credentials")
 
         add_test(NAME verbose-logging
             COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(verbose-logging PROPERTIES LABELS "credentials")
 
         if(STRACE)
             add_test(NAME cacert-used
                 COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push>
                 ${SOTA_PACKED_CREDENTIALS} ${STRACE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+            set_tests_properties(cacert-used PROPERTIES LABELS "credentials")
         endif(STRACE)
     endif(SOTA_PACKED_CREDENTIALS)
 

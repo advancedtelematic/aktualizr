@@ -18,6 +18,9 @@ pipeline {
             TEST_CMAKE_BUILD_TYPE = 'Valgrind'
             TEST_WITH_COVERAGE = '1'
             TEST_WITH_P11 = '1'
+            // tests which requires credentials (build only)
+            TEST_SOTA_PACKED_CREDENTIALS = 'dummy-credentials'
+            TEST_TESTSUITE_EXCLUDE = 'credentials'
           }
           steps {
             sh 'scripts/test.sh'
