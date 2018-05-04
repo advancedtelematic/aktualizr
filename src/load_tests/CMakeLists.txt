@@ -27,9 +27,14 @@ if (BUILD_LOAD_TESTS)
             ${GLIB2_LIBRARIES}
             ${LibArchive_LIBRARIES}
             ${LIBOSTREE_LIBRARIES}
+            ${LIBP11_LIBRARIES}
             ${SQLITE3_LIBRARIES}
             ${SYSTEMD_LIBRARY}
             ${LIBDPKG_LIBRARIES})
+
+    if(BUILD_WITH_CODE_COVERAGE)
+        target_link_libraries(ota-load-tests gcov)
+    endif(BUILD_WITH_CODE_COVERAGE)
 
     install(TARGETS ota-load-tests
             COMPONENT aktualizr
