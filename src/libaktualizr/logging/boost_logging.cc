@@ -13,7 +13,7 @@ void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 
 void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
 
-int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::debug ? 1L : 0L; }
+int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial::trace ? 1L : 0L; }
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;

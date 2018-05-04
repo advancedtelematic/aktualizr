@@ -374,19 +374,8 @@ add_test(NAME validate-secondary-interface
     --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
 
 
+add_subdirectory(sota_tools)
 if(BUILD_SOTA_TOOLS)
-    # sota-tools tests
-    add_aktualizr_test(NAME sota_tools_auth_test SOURCES sota_tools/auth_test.cc
-                       PROJECT_WORKING_DIRECTORY NO_VALGRIND)
-    target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
-    target_include_directories(t_sota_tools_auth_test
-                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
-
-    add_aktualizr_test(NAME ostree_hash SOURCES sota_tools/ostree_hash_test.cc)
-    target_link_libraries(t_ostree_hash sota_tools_static_lib)
-    target_include_directories(t_ostree_hash
-                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
-
     # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
         target_compile_options(sota_tools_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
@@ -432,6 +421,18 @@ if(BUILD_SOTA_TOOLS)
 
     add_test(NAME server-500
         COMMAND ./test-server-500 $<TARGET_FILE:garage-push>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    add_test(NAME server-500-every-10-request
+        COMMAND ./test-server-error_every_10 $<TARGET_FILE:garage-push> 500
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    add_test(NAME server-409-every-10-request
+        COMMAND ./test-server-error_every_10 $<TARGET_FILE:garage-push> 409
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
+
+    add_test(NAME server-500_after_20
+        COMMAND ./test-server-500_after_20 $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sota_tools)
 
     add_test(NAME auth-plus-failure
