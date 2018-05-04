@@ -291,7 +291,7 @@ include(CPackComponent)
 
 add_subdirectory("fuzz")
 add_subdirectory("config")
-
+add_subdirectory("third_party/HdrHistogram_c/src")
 add_subdirectory("src/libaktualizr")
 add_subdirectory("src/sota_tools")
 add_subdirectory("src/aktualizr_primary")
