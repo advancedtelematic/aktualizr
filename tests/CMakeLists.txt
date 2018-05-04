@@ -45,10 +45,17 @@ add_dependencies(build_tests aktualizr-info)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
 
+# build list of tests to run
+foreach(label ${TESTSUITE_ONLY})
+    set(CTEST_EXTRA_ARGS ${CTEST_EXTRA_ARGS} -L ${label})
+endforeach()
+
+foreach(label ${TESTSUITE_EXCLUDE})
+    set(CTEST_EXTRA_ARGS ${CTEST_EXTRA_ARGS} -LE ${label})
+endforeach()
+
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
-                  -E test_valgrind_uptane_vectors\\|test_build DEPENDS build_tests)
-add_custom_target(check-full COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
-    -E test_uptane_vectors DEPENDS build_tests)
+                  DEPENDS build_tests)
 
 # Reference asn1c libraries
 add_asn1c_lib(asn1-reference/common asn1-reference/config/cryptosource asn1-reference/config/tlsconfig)
@@ -77,17 +84,14 @@ function(add_aktualizr_test)
     else()
         set(WD )
     endif()
-        # Running tests that are both instrumented by gcov and valgrind at
-        # the same time is very expensive.  Disable valgrind when running
-        # under gcov, or when the test is explicitly flagged that it fails
-        # under valgrind (these should be fixed)
-        if(AKTUALIZR_TEST_NO_VALGRIND OR BUILD_WITH_CODE_COVERAGE)
+        # run tests under valgrind if the correct CMAKE_BUILD_TYPE is set
+        if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                     COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
                      ${WD})
         else()
             add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                     COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                     COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
                      ${WD})
         endif()
     add_dependencies(build_tests t_${AKTUALIZR_TEST_NAME})
@@ -116,7 +120,7 @@ endif(TEST_PKCS11_MODULE_PATH)
 configure_file(run-valgrind.in run-valgrind @ONLY)
 SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
-if(NOT BUILD_WITH_CODE_COVERAGE)
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     # Code coverage disables valgrind, and this test is only checking that
     # valgrind finds memory leaks
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
@@ -130,6 +134,7 @@ add_aktualizr_test(NAME commands SOURCES commands_test.cc)
 add_aktualizr_test(NAME config SOURCES config_test.cc ARGS ${PROJECT_BINARY_DIR} PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_crypto PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -140,6 +145,7 @@ add_aktualizr_test(NAME http_client SOURCES httpclient_test.cc PROJECT_WORKING_D
 add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptane_connection_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_keymanager PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME packagemanager SOURCES packagemanager_test.cc NO_VALGRIND
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
@@ -164,12 +170,16 @@ add_aktualizr_test(NAME utils SOURCES utils_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_implicit PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
 
@@ -180,17 +190,20 @@ add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
 set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+    set(VECTOR_TESTS_ARGS "valgrind")
+endif(CMAKE_BUILD_TYPE MATCHES "Valgrind")
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors)
-#add_test(NAME test_valgrind_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-#         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors valgrind)
+         ${PROJECT_SOURCE_DIR}/tests/tuf-test-vectors ${VECTOR_TESTS_ARGS})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
+set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
     add_test(NAME test_prov COMMAND ${PROJECT_SOURCE_DIR}/tests/prov_test.py
              --build-dir ${PROJECT_BINARY_DIR}
              --src-dir ${PROJECT_SOURCE_DIR}
              --credentials ${SOTA_PACKED_CREDENTIALS})
+    set_tests_properties(test_prov PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 if(BUILD_OSTREE)
@@ -205,6 +218,7 @@ if(BUILD_OSTREE)
     if(SOTA_PACKED_CREDENTIALS)
         add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
                            ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
+        set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
     endif(SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE)
 
@@ -349,22 +363,17 @@ add_test(NAME test_build_release
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
         ${PROJECT_SOURCE_DIR} test_build_release "-DCMAKE_BUILD_TYPE=Release -DBUILD_OSTREE=on")
 
-add_dependencies(qa check-full)
+add_dependencies(qa check)
 
 
 # implicit_writer tests
 add_test(NAME implicit-writer-help COMMAND aktualizr_implicit_writer --help)
 
-if(SOTA_PACKED_CREDENTIALS)
-    set(IMPLICIT_CREDENTIALS ${SOTA_PACKED_CREDENTIALS})
-else()
-    set(IMPLICIT_CREDENTIALS ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip)
-endif(SOTA_PACKED_CREDENTIALS)
 add_test(NAME implicit-writer-test
     COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py
-    -c ${IMPLICIT_CREDENTIALS} -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
+    -c ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip
+    -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
     -o ${PROJECT_BINARY_DIR}/implicit -w ${PROJECT_BINARY_DIR}/src/implicit_writer/)
-
 
 # external_secondaries tests
 add_dependencies(build_tests aktualizr-validate-secondary-interface example-interface)
@@ -443,19 +452,23 @@ if(BUILD_SOTA_TOOLS)
         add_test(NAME dry-run
             COMMAND sota_tools/test-dry-run $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(dry-run PROPERTIES LABELS "credentials")
 
         add_test(NAME auth-plus-happy-case
             COMMAND sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(auth-plus-happy-case PROPERTIES LABELS "credentials")
 
         add_test(NAME verbose-logging
             COMMAND sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+        set_tests_properties(verbose-logging PROPERTIES LABELS "credentials")
 
         if(STRACE)
             add_test(NAME cacert-used
                 COMMAND sota_tools/test-cacert-used $<TARGET_FILE:garage-push>
                 ${SOTA_PACKED_CREDENTIALS} ${STRACE} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+            set_tests_properties(cacert-used PROPERTIES LABELS "credentials")
         endif(STRACE)
     endif(SOTA_PACKED_CREDENTIALS)
 

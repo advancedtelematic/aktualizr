@@ -5,6 +5,7 @@
 #include <openssl/err.h>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <memory>
 
 #include "logging/logging.h"
 #include "utilities/config_utils.h"
@@ -74,8 +75,15 @@ class P11Engine {
   P11Engine(const P11Engine &) = delete;
   P11Engine &operator=(const P11Engine &) = delete;
 
-  ~P11Engine();
-  ENGINE *getEngine() { return ssl_engine_; }
+  struct ENGINEFinalizer {
+    void operator()(ENGINE *engine) const {
+      ENGINE_finish(engine);
+      ENGINE_free(engine);
+      ENGINE_cleanup();
+    }
+  };
+
+  ENGINE *getEngine() { return ssl_engine_.get(); }
   std::string getUptaneKeyId() const { return uri_prefix_ + config_.uptane_key_id; }
   std::string getTlsCacertId() const { return uri_prefix_ + config_.tls_cacert_id; }
   std::string getTlsPkeyId() const { return uri_prefix_ + config_.tls_pkey_id; }
@@ -87,7 +95,7 @@ class P11Engine {
  private:
   const P11Config config_;
   std::string uri_prefix_;
-  ENGINE *ssl_engine_;
+  std::unique_ptr<ENGINE, ENGINEFinalizer> ssl_engine_{nullptr};
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
 

@@ -37,12 +37,16 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
   StructGuard<EVP_PKEY> key(nullptr, EVP_PKEY_free);
   StructGuard<RSA> rsa(nullptr, RSA_free);
   if (engine != nullptr) {
+    // FIXME: this call leaks memory somehow...
     key.reset(ENGINE_load_private_key(engine, private_key.c_str(), nullptr, nullptr));
 
     if (key == nullptr) {
       LOG_ERROR << "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), nullptr);
       return std::string();
     }
+    // libp11 increments the private key reference for some reason, decrement
+    // here to avoid leak later
+    EVP_PKEY_free(key.get());
 
     rsa.reset(EVP_PKEY_get1_RSA(key.get()));
     if (rsa == nullptr) {

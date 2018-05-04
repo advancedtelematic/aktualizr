@@ -15,6 +15,9 @@ option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 
+set(TESTSUITE_ONLY "" CACHE STRING "Only run tests matching this list of labels")
+set(TESTSUITE_EXCLUDE "" CACHE STRING "Exclude tests matching this list of labels")
+
 set(LOGGING_TYPE "boost" CACHE STRING "")
 set(STORAGE_TYPE "sqlite" CACHE STRING "")
 
@@ -102,8 +105,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
-SET(CMAKE_CXX_FLAGS_VALGRIND "-O1")
-SET(CMAKE_C_FLAGS_VALGRIND "-O1")
+SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
+SET(CMAKE_C_FLAGS_VALGRIND "-O1 -g")
 
 
 ################ QA RULES

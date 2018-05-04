@@ -1,5 +1,6 @@
-#! /bin/bash
-set -ex
+#!/bin/bash
+
+set -exuo pipefail
 
 # configure test.sh
 export GITREPO_ROOT=${1:-$(readlink -f "$(dirname "$0")/..")}

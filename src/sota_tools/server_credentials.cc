@@ -84,6 +84,8 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
       throw BadCredentialsContent(std::string("treehub.json not found in zipped credentials file: ") +
                                   credentials_path.string());
     }
+  } else {
+    archive_read_free(a);
   }
 
   try {
