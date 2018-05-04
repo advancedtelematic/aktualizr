@@ -18,7 +18,7 @@ if (BUILD_LOAD_TESTS)
 
     target_link_libraries(ota-load-tests
             aktualizr_static_lib
-            hdr_histogram
+            hdr_histogram_static
             ${Boost_LIBRARIES}
             ${OPENSSL_LIBRARIES}
             ${sodium_LIBRARY_RELEASE}
