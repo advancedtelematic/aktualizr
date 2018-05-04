@@ -22,7 +22,7 @@ enum CurrentOp {
 
 /**
  * Broad categories for server response codes.
- * There is no category for a permanent failure at the moment: we are able to
+ * There is no category for a permanent failure at the moment: we are unable to
  * detect a failure that is definitely permanent.
  */
 enum class ServerResponse { kNoResponse, kOk, kTemporaryFailure };
