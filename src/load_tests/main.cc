@@ -1,11 +1,11 @@
-#include <iostream>
-#include <boost/program_options.hpp>
 #include <curl/curl.h>
-#include <thread>
 #include <logging/logging.h>
+#include <boost/program_options.hpp>
+#include <iostream>
+#include <thread>
 
-#include "provision.h"
 #include "check.h"
+#include "provision.h"
 #include "sslinit.h"
 
 namespace bpo = boost::program_options;
@@ -69,7 +69,7 @@ void provisionDevicesCmd(const std::vector<std::string> &opts) {
 void setLogLevel(const bpo::variables_map &vm) {
   // set the log level from command line option
   boost::log::trivial::severity_level severity =
-    static_cast<boost::log::trivial::severity_level>(vm["loglevel"].as<int>());
+      static_cast<boost::log::trivial::severity_level>(vm["loglevel"].as<int>());
   if (severity < boost::log::trivial::trace) {
     LOG_DEBUG << "Invalid log level";
     severity = boost::log::trivial::trace;
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
       {"provision", provisionDevicesCmd},
       {"check", checkForUpdatesCmd}
       // {"pull", pullOSTreeCmd}
-      };
+  };
 
   std::stringstream acc;
   bool first = true;
@@ -107,16 +107,12 @@ int main(int argc, char *argv[]) {
   std::string supportedTests = acc.str();
   std::string cmd;
   bpo::options_description description("OTA load tests");
-  description.add_options()("help,h", "Show help message")(
-      "loglevel", bpo::value<int>()->default_value(3),
-      "set log level 0-4 (trace, debug, warning, info, error)")(
+  description.add_options()("help,h", "Show help message")("loglevel", bpo::value<int>()->default_value(3),
+                                                           "set log level 0-4 (trace, debug, warning, info, error)")(
       "test", bpo::value<std::string>(&cmd), supportedTests.c_str());
 
   bpo::variables_map vm;
-  bpo::parsed_options parsed = bpo::command_line_parser(argc, argv)
-                                   .options(description)
-                                   .allow_unregistered()
-                                   .run();
+  bpo::parsed_options parsed = bpo::command_line_parser(argc, argv).options(description).allow_unregistered().run();
   bpo::store(parsed, vm);
   bpo::notify(vm);
 
@@ -132,8 +128,7 @@ int main(int argc, char *argv[]) {
     auto fn = commands.find(cmd);
     if (fn != commands.end()) {
       openssl_callbacks_setup();
-      std::vector<std::string> unprocessedOptions =
-          bpo::collect_unrecognized(parsed.options, bpo::include_positional);
+      std::vector<std::string> unprocessedOptions = bpo::collect_unrecognized(parsed.options, bpo::include_positional);
       fn->second(unprocessedOptions);
       openssl_callbacks_cleanup();
     } else {

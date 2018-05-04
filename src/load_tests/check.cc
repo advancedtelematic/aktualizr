@@ -1,17 +1,17 @@
-#include <string>
-#include <random>
 #include "check.h"
+#include <random>
+#include <string>
 #include "context.h"
 #include "executor.h"
 #include "primary/events.h"
 #include "primary/sotauptaneclient.h"
-#include "uptane/uptanerepository.h"
 #include "storage/fsstorage.h"
+#include "uptane/uptanerepository.h"
 
 class EphemeralStorage : public FSStorage {
  public:
   EphemeralStorage(const StorageConfig &config) : FSStorage(config) {}
-  void storeMetadata(const Uptane::MetaPack &) override {};
+  void storeMetadata(const Uptane::MetaPack &) override{};
 
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig &config) {
     return std::make_shared<EphemeralStorage>(config);
@@ -24,10 +24,10 @@ class CheckForUpdate {
   std::shared_ptr<INvStorage> storage;
 
   HttpClient httpClient;
+
  public:
-  CheckForUpdate(Config config_) : config{config_},
-                                   storage{EphemeralStorage::newStorage(config.storage)},
-                                   httpClient{} {}
+  CheckForUpdate(Config config_)
+      : config{config_}, storage{EphemeralStorage::newStorage(config.storage)}, httpClient{} {}
 
   void operator()() {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
@@ -66,15 +66,13 @@ class CheckForUpdateTasks {
   uniform_int_distribution<> gen;
 
  public:
-  CheckForUpdateTasks(const boost::filesystem::path baseDir) : configs{loadDeviceConfigurations(baseDir)},
-                                                               gen(0, configs.size() - 1) {
+  CheckForUpdateTasks(const boost::filesystem::path baseDir)
+      : configs{loadDeviceConfigurations(baseDir)}, gen(0, configs.size() - 1) {
     std::random_device seedGen;
     rng.seed(seedGen());
   }
 
-  CheckForUpdate nextTask() {
-    return CheckForUpdate{configs[gen(rng)]};
-  }
+  CheckForUpdate nextTask() { return CheckForUpdate{configs[gen(rng)]}; }
 };
 
 void checkForUpdates(const boost::filesystem::path &baseDir, const uint rate, const uint nr, const uint parallelism) {

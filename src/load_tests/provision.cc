@@ -1,9 +1,9 @@
 #include "provision.h"
 #include <config/config.h>
+#include <http/httpclient.h>
 #include <primary/events.h>
 #include <primary/sotauptaneclient.h>
 #include <uptane/uptanerepository.h>
-#include <http/httpclient.h>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>

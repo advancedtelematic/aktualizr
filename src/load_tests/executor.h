@@ -83,7 +83,7 @@ class TaskStartTimeCalculator {
   }
 };
 
-template<typename TaskStream>
+template <typename TaskStream>
 class Executor {
   ExecutionController &controller;
   std::vector<std::thread> workers;
@@ -153,7 +153,6 @@ class Executor {
     summary.print();
     return summary;
   };
-
 };
 
 #endif
