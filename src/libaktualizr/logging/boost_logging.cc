@@ -6,7 +6,6 @@ namespace logging = boost::log;
 using boost::log::trivial::severity_level;
 
 static severity_level gLoggingThreshold;
-static bool initialized{false};
 
 void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(loglevel, "loglevel", boost::log::trivial::trace, pt);
@@ -29,9 +28,6 @@ void logger_set_threshold(const severity_level threshold) {
 }
 
 void logger_set_threshold(const LoggerConfig& lconfig) {
-  if (initialized) {
-    return;
-  }
   int loglevel = lconfig.loglevel;
   if (loglevel < boost::log::trivial::trace) {
     LOG_WARNING << "Invalid log level: " << loglevel;
@@ -42,7 +38,6 @@ void logger_set_threshold(const LoggerConfig& lconfig) {
     loglevel = boost::log::trivial::fatal;
   }
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(loglevel));
-  initialized = true;
 }
 
 int loggerGetSeverity() { return static_cast<int>(gLoggingThreshold); }

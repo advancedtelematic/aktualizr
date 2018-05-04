@@ -169,18 +169,20 @@ TEST(Uptane, LegacySerial) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program");
+    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
+
   // clang-format on
   std::string path = (build_dir / "src/external_secondaries/example-interface").string();
-  const char* argv[] = {"aktualizr", "--legacy-interface", path.c_str()};
-  bpo::store(bpo::parse_command_line(3, argv, description), cmd);
+  const char* argv[] = {"aktualizr", "--legacy-interface", path.c_str(), "-c", conf_path_str.c_str()};
+  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
 
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;
   std::vector<std::pair<std::string, std::string> > ecu_serials_2;
 
   // Initialize and store serials.
   {
-    Config conf(conf_path_str, cmd);
+    Config conf(cmd);
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
@@ -199,7 +201,7 @@ TEST(Uptane, LegacySerial) {
 
   // Initialize new objects and load serials.
   {
-    Config conf(conf_path_str, cmd);
+    Config conf(cmd);
     conf.uptane.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";

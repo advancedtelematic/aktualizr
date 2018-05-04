@@ -103,11 +103,11 @@ struct DiscoveryConfig {
 class Config {
  public:
   Config();
-  Config(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
+  explicit Config(const boost::program_options::variables_map& cmd);
   explicit Config(const boost::filesystem::path& filename);
   explicit Config(const std::vector<boost::filesystem::path>& config_dirs) {
-    config_dirs_ = config_dirs;
-    updateFromDirs();
+    updateFromDirs(config_dirs);
+    postUpdateValues();
   }
 
   KeyManagerConfig keymanagerConfig() const;
@@ -133,7 +133,7 @@ class Config {
 
  private:
   std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
-  void updateFromDirs();
+  void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);

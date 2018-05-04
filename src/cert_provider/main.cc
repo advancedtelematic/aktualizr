@@ -51,7 +51,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
       ("root-ca,r", "provide root CA")
       ("server-url,u", "provide server url file")
       ("local,l", bpo::value<boost::filesystem::path>(), "local directory to write credentials to")
-      ("config,g", bpo::value<boost::filesystem::path>(), "sota.toml configuration file from which to get file names")
+      ("config,g", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory from which to get file names")
       ("skip-checks,s", "skip strict host key checking for ssh/scp commands");
   // clang-format on
 
@@ -347,9 +347,9 @@ int main(int argc, char* argv[]) {
   if (commandline_map.count("local") != 0) {
     local_dir = commandline_map["local"].as<boost::filesystem::path>();
   }
-  boost::filesystem::path config_path = "";
+  std::vector<boost::filesystem::path> config_path;
   if (commandline_map.count("config") != 0) {
-    config_path = commandline_map["config"].as<boost::filesystem::path>();
+    config_path = commandline_map["config"].as<std::vector<boost::filesystem::path>>();
   }
   bool skip_checks = commandline_map.count("skip-checks") != 0;
 

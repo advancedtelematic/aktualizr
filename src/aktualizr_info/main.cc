@@ -1,6 +1,8 @@
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "config/config.h"
 #include "logging/logging.h"
@@ -13,7 +15,7 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("config,c", po::value<std::string>(), "toml configuration file")
+    ("config,c", po::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
     ("tls-creds",  "Outputs TLS credentials")
     ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
@@ -34,20 +36,11 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    std::string sota_config_file = "/usr/lib/sota/sota.toml";
-    if (vm.count("config") != 0) {
-      sota_config_file = vm["config"].as<std::string>();
-    } else if (boost::filesystem::exists("/tmp/aktualizr_config_path")) {
-      sota_config_file = Utils::readFile("/tmp/aktualizr_config_path");
+    std::vector<boost::filesystem::path> sota_config_files;
+    if (vm.count("config") > 0) {
+      sota_config_files = vm["config"].as<std::vector<boost::filesystem::path>>();
     }
-
-    boost::filesystem::path sota_config_path(sota_config_file);
-    if (!boost::filesystem::exists(sota_config_path)) {
-      std::cout << "configuration file " << boost::filesystem::absolute(sota_config_path) << " not found. Exiting."
-                << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    Config config(sota_config_path.string());
+    Config config(sota_config_files);
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
@@ -63,7 +56,7 @@ int main(int argc, char **argv) {
       std::cout << "Device ID: " << device_id << std::endl;
     }
 
-    std::vector<std::pair<std::string, std::string> > serials;
+    std::vector<std::pair<std::string, std::string>> serials;
     if (!storage->loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
     } else if (serials.size() == 0) {

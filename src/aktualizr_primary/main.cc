@@ -32,7 +32,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   description.add_options()
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
-      ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
+      ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("poll-once", "Check for updates only once and exit")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
@@ -97,29 +97,16 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  // Initialize config with default values, the update with config, then with cmd
-  std::string sota_config_file = commandline_map["config"].as<std::string>();
-  boost::filesystem::path sota_config_path(sota_config_file);
-  if (!boost::filesystem::exists(sota_config_path)) {
-    std::cerr << "aktualizr: configuration file " << boost::filesystem::absolute(sota_config_path)
-              << " not found. Exiting." << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
   try {
     if (geteuid() != 0) {
       LOG_WARNING << "\033[31mAktualizr is currently running as non-root and may not work as expected! Aktualizr "
                      "should be run as root for proper functionality.\033[0m\n";
     }
-
-    Config config(sota_config_path, commandline_map);
+    Config config(commandline_map);
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
-
-    boost::filesystem::path saved_config_path = "/tmp/aktualizr_config_path";
-    Utils::writeFile(saved_config_path, boost::filesystem::absolute(sota_config_path).string());
     Aktualizr aktualizr(config);
     return aktualizr.run();
   } catch (const std::exception &ex) {
