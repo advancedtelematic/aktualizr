@@ -2,17 +2,7 @@
 set(AKTUALIZR_CHECK_DISCOVERY_SRC main.cc )
 
 add_executable(aktualizr-check-discovery ${AKTUALIZR_CHECK_DISCOVERY_SRC})
-target_link_libraries(aktualizr-check-discovery aktualizr_static_lib
-  ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${sodium_LIBRARY_RELEASE}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${CURL_LIBRARIES}
-  ${GLIB2_LIBRARIES}
-  ${LibArchive_LIBRARIES}
-  ${SQLITE3_LIBRARIES}
-  ${LIBOSTREE_LIBRARIES}
-  ${SYSTEMD_LIBRARY})
+target_link_libraries(aktualizr-check-discovery aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
 if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(aktualizr-check-discovery gcov)

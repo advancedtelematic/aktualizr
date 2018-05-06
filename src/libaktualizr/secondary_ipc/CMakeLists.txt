@@ -9,4 +9,6 @@ set(HEADERS aktualizr_secondary_ipc.h
 
 add_library(aktualizr_secondary_ipc OBJECT ${SOURCES})
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+add_aktualizr_test(NAME ipuptane_connection SOURCES ipuptaneconnection_test.cc PROJECT_WORKING_DIRECTORY)
+
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

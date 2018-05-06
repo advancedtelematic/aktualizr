@@ -30,4 +30,34 @@ if (BUILD_OPCUA)
     set_source_files_properties(opcuasecondary.cc PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
 endif (BUILD_OPCUA)
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h)
+add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
+
+if(BUILD_OSTREE)
+    if(SOTA_PACKED_CREDENTIALS)
+        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                           ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
+        set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
+    endif(SOTA_PACKED_CREDENTIALS)
+endif(BUILD_OSTREE)
+list(APPEND TEST_SOURCES uptane_ci_test.cc)
+
+add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
+
+add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_implicit PROPERTIES LABELS "crypto")
+
+add_aktualizr_test(NAME uptane_key SOURCES uptane_key_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_key PROPERTIES LABELS "crypto")
+
+add_aktualizr_test(NAME uptane_network SOURCES uptane_network_test.cc PROJECT_WORKING_DIRECTORY)
+set_tests_properties(test_uptane_network PROPERTIES LABELS "crypto")
+
+add_aktualizr_test(NAME uptane_secondary SOURCES uptane_secondary_test.cc PROJECT_WORKING_DIRECTORY)
+
+add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJECT_BINARY_DIR}
+                   PROJECT_WORKING_DIRECTORY)
+
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h ${TEST_SOURCES})
