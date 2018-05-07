@@ -45,7 +45,7 @@ class ProvisionDeviceTask {
     auto eventsIn = std::make_shared<event::Channel>();
     SotaUptaneClient client{config, eventsIn, repo, storage, httpClient};
     try {
-      if (repo.initialize()) {
+      if (client.initialize()) {
         repo.putManifest(client.AssembleManifest());
       } else {
         LOG_ERROR << "Failed to initialize repository for " << config.storage.path;
