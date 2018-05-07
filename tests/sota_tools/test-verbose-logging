@@ -1,4 +1,4 @@
 #!/bin/bash
 set -eu
 
-$1 --ref master --repo sota_tools/repo --credentials $2 -nv 2>&1 | grep -q "Content-Type"
+$1 --ref master --repo sota_tools/repo --credentials $2 -nvv 2>&1 | grep -q "Content-Type"
