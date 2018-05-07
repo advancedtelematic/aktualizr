@@ -36,11 +36,7 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    std::vector<boost::filesystem::path> sota_config_files;
-    if (vm.count("config") > 0) {
-      sota_config_files = vm["config"].as<std::vector<boost::filesystem::path>>();
-    }
-    Config config(sota_config_files);
+    Config config(vm);
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
