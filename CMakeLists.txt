@@ -295,7 +295,11 @@ include(CPackComponent)
 
 add_subdirectory("fuzz")
 add_subdirectory("config")
-add_subdirectory("third_party/HdrHistogram_c/src")
+if (BUILD_LOAD_TESTS)
+    # HdrHistogram installs support libraries, which creates junk the aktualzr
+    # recipe would have to remove
+    add_subdirectory("third_party/HdrHistogram_c/src")
+endif(BUILD_LOAD_TESTS)
 add_subdirectory("src/libaktualizr")
 add_subdirectory("src/sota_tools")
 add_subdirectory("src/aktualizr_primary")
