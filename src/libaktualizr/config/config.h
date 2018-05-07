@@ -140,6 +140,7 @@ class Config {
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
   void checkLegacyVersion();
   void initLegacySecondaries();
+  bool loglevel_from_cmdline{false};
 };
 
 #endif  // CONFIG_H_
