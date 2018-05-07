@@ -223,6 +223,7 @@ Config::Config(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
     logger_set_threshold(logger);
+    loglevel_from_cmdline = true;
   }
 
   if (cmd.count("config") > 0) {
@@ -317,10 +318,12 @@ void Config::updateFromTomlString(const std::string& contents) {
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in config.h and Config::writeToFile().
-  CopySubtreeFromConfig(logger, "logger", pt);
-  // If not already set from the commandline, set the loglevel now so that it
-  // affects the rest of the config processing.
-  logger_set_threshold(logger);
+  if (!loglevel_from_cmdline) {
+    CopySubtreeFromConfig(logger, "logger", pt);
+    // If not already set from the commandline, set the loglevel now so that it
+    // affects the rest of the config processing.
+    logger_set_threshold(logger);
+  }
   CopySubtreeFromConfig(gateway, "gateway", pt);
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
