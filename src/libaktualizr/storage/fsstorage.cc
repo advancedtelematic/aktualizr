@@ -12,19 +12,28 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
-FSStorage::FSStorage(const StorageConfig& config) : INvStorage(config) {
+FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStorage(config) {
   struct stat st {};
-  stat(config_.path.c_str(), &st);
-  if ((st.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
-    throw std::runtime_error("Storage directory has unsafe permissions");
+
+  if (!migration_only) {
+    stat(config_.path.c_str(), &st);
+    if ((st.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
+      throw std::runtime_error("Storage directory has unsafe permissions");
+    }
+    if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
+      // Remove read permissions for group and others
+      chmod(config_.path.c_str(), S_IRWXU);
+    }
+    try {
+      boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
+      boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) /
+                                            "director");
+      boost::filesystem::create_directories(config_.path / "targets");
+    } catch (const boost::filesystem::filesystem_error& e) {
+      LOG_ERROR << "FSStorage failed to create directories:" << e.what();
+      throw;
+    }
   }
-  if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
-    // Remove read permissions for group and others
-    chmod(config_.path.c_str(), S_IRWXU);
-  }
-  boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
-  boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director");
-  boost::filesystem::create_directories(config_.path / "targets");
 }
 
 void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {

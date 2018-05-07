@@ -6,7 +6,7 @@
 
 class FSStorage : public INvStorage {
  public:
-  explicit FSStorage(const StorageConfig& config);
+  explicit FSStorage(const StorageConfig& config, bool migration_only = false);
   ~FSStorage() override = default;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;
