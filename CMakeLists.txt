@@ -15,6 +15,7 @@ option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" ON)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
+set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
 set(TESTSUITE_ONLY "" CACHE STRING "Only run tests matching this list of labels")
 set(TESTSUITE_EXCLUDE "" CACHE STRING "Exclude tests matching this list of labels")
