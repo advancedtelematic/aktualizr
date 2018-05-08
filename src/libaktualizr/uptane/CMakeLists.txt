@@ -1,5 +1,4 @@
-set(SOURCES initialize.cc
-    ipsecondarydiscovery.cc
+set(SOURCES ipsecondarydiscovery.cc
     ipuptanesecondary.cc
     legacysecondary.cc
     managedsecondary.cc

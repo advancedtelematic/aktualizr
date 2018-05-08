@@ -14,6 +14,8 @@ tls_clientcert_path = "/persistent/prov_selfupdate/client.pem"
 polling = false
 polling_sec = 10
 key_source = "file"
+
+[provision]
 primary_ecu_serial = "723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66"
 primary_ecu_hardware_id = "laptop-test"
 

@@ -36,11 +36,11 @@ TEST(Uptane, RandomSerial) {
   Config conf_2("tests/config/basic.toml");
   conf_2.storage.path = temp_dir2.Path();
 
-  conf_1.uptane.primary_ecu_serial = "";
+  conf_1.provision.primary_ecu_serial = "";
   conf_1.storage.uptane_private_key_path = "private.key";
   conf_1.storage.uptane_public_key_path = "public.key";
 
-  conf_2.uptane.primary_ecu_serial = "";
+  conf_2.provision.primary_ecu_serial = "";
   conf_2.storage.uptane_private_key_path = "private.key";
   conf_2.storage.uptane_public_key_path = "public.key";
 
@@ -70,11 +70,11 @@ TEST(Uptane, RandomSerial) {
 
   Uptane::Repository uptane_1(conf_1, storage_1, http1);
   SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http1);
-  EXPECT_TRUE(uptane_1.initialize());
+  EXPECT_TRUE(uptane_client1.initialize());
 
   Uptane::Repository uptane_2(conf_2, storage_2, http1);
   SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http2);
-  EXPECT_TRUE(uptane_2.initialize());
+  EXPECT_TRUE(uptane_client2.initialize());
 
   std::vector<std::pair<std::string, std::string> > ecu_serials_1;
   std::vector<std::pair<std::string, std::string> > ecu_serials_2;
@@ -118,7 +118,7 @@ TEST(Uptane, ReloadSerial) {
   {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
-    conf.uptane.primary_ecu_serial = "";
+    conf.provision.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
     conf.uptane.secondary_configs.push_back(ecu_config);
@@ -127,7 +127,7 @@ TEST(Uptane, ReloadSerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
     EXPECT_FALSE(ecu_serials_1[0].first.empty());
@@ -138,7 +138,7 @@ TEST(Uptane, ReloadSerial) {
   {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
-    conf.uptane.primary_ecu_serial = "";
+    conf.provision.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
     conf.uptane.secondary_configs.push_back(ecu_config);
@@ -147,7 +147,7 @@ TEST(Uptane, ReloadSerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
     EXPECT_FALSE(ecu_serials_2[0].first.empty());
@@ -183,7 +183,7 @@ TEST(Uptane, LegacySerial) {
   // Initialize and store serials.
   {
     Config conf(cmd);
-    conf.uptane.primary_ecu_serial = "";
+    conf.provision.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
@@ -191,7 +191,7 @@ TEST(Uptane, LegacySerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
     EXPECT_FALSE(ecu_serials_1[0].first.empty());
@@ -202,7 +202,7 @@ TEST(Uptane, LegacySerial) {
   // Initialize new objects and load serials.
   {
     Config conf(cmd);
-    conf.uptane.primary_ecu_serial = "";
+    conf.provision.primary_ecu_serial = "";
     conf.storage.uptane_private_key_path = "private.key";
     conf.storage.uptane_public_key_path = "public.key";
 
@@ -210,7 +210,7 @@ TEST(Uptane, LegacySerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);
     EXPECT_FALSE(ecu_serials_2[0].first.empty());

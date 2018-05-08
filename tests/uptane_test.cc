@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -15,6 +11,7 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "primary/initializer.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "test_utils.h"
@@ -130,7 +127,7 @@ TEST(Uptane, Initialize) {
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.tls.server = http.tls_server;
 
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
 
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -151,15 +148,17 @@ TEST(Uptane, Initialize) {
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  Uptane::Repository uptane(conf, storage, http);
-  result = uptane.initialize();
+  KeyManager keys(storage, conf.keymanagerConfig());
+  Initializer initializer(conf.provision, storage, http, keys, {});
+
+  result = initializer.isSuccessful();
   EXPECT_TRUE(result);
   EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_clientcert_path));
   EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
   EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir.Path() / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 1);
-  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), conf.uptane.primary_ecu_serial);
+  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), conf.provision.primary_ecu_serial);
 }
 
 /*
@@ -170,7 +169,7 @@ TEST(Uptane, InitializeTwice) {
   TemporaryDirectory temp_dir;
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
 
@@ -189,31 +188,41 @@ TEST(Uptane, InitializeTwice) {
   EXPECT_FALSE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(conf, storage, http);
-  result = uptane.initialize();
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_clientcert_path));
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  result = storage->loadTlsCreds(&ca1, &cert1, &pkey1);
-  EXPECT_TRUE(result);
+  {
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
 
-  result = uptane.initialize();
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_clientcert_path));
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
-  EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
+    result = initializer.isSuccessful();
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_clientcert_path));
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
 
-  std::string pkey2;
-  std::string cert2;
-  std::string ca2;
-  result = storage->loadTlsCreds(&ca2, &cert2, &pkey2);
-  EXPECT_TRUE(result);
+    result = storage->loadTlsCreds(&ca1, &cert1, &pkey1);
+    EXPECT_TRUE(result);
+  }
 
-  EXPECT_EQ(cert1, cert2);
-  EXPECT_EQ(ca1, ca2);
-  EXPECT_EQ(pkey1, pkey2);
+  {
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+
+    result = initializer.isSuccessful();
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_clientcert_path));
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_cacert_path));
+    EXPECT_TRUE(boost::filesystem::exists(conf.storage.path / conf.storage.tls_pkey_path));
+
+    std::string pkey2;
+    std::string cert2;
+    std::string ca2;
+    result = storage->loadTlsCreds(&ca2, &cert2, &pkey2);
+    EXPECT_TRUE(result);
+
+    EXPECT_EQ(cert1, cert2);
+    EXPECT_EQ(ca1, ca2);
+    EXPECT_EQ(pkey1, pkey2);
+  }
 }
 
 /**
@@ -231,20 +240,22 @@ TEST(Uptane, PetNameProvided) {
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(conf, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  KeyManager keys(storage, conf.keymanagerConfig());
+  Initializer initializer(conf.provision, storage, http, keys, {});
 
-  EXPECT_EQ(conf.uptane.device_id, test_name);
+  EXPECT_TRUE(initializer.isSuccessful());
+
+  EXPECT_EQ(conf.provision.device_id, test_name);
   EXPECT_TRUE(boost::filesystem::exists(device_path));
   EXPECT_EQ(Utils::readFile(device_path), test_name);
 
   /* Make sure name is unchanged after re-initializing config. */
   conf.postUpdateValues();
-  EXPECT_EQ(conf.uptane.device_id, test_name);
+  EXPECT_EQ(conf.provision.device_id, test_name);
   EXPECT_TRUE(boost::filesystem::exists(device_path));
   EXPECT_EQ(Utils::readFile(device_path), test_name);
 }
@@ -262,7 +273,7 @@ TEST(Uptane, PetNameCreation) {
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = "private.key";
   conf.storage.uptane_public_key_path = "public.key";
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
   conf.provision.provision_path = temp_dir.Path() / "cred.zip";
 
@@ -271,7 +282,11 @@ TEST(Uptane, PetNameCreation) {
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+
+    EXPECT_TRUE(initializer.isSuccessful());
 
     EXPECT_TRUE(boost::filesystem::exists(device_path));
     test_name1 = Utils::readFile(device_path);
@@ -284,12 +299,14 @@ TEST(Uptane, PetNameCreation) {
   {
     conf.storage.path = temp_dir2.Path();
     boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir2.Path() / "cred.zip");
-    conf.uptane.device_id = "";
+    conf.provision.device_id = "";
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir2.Path());
-    Uptane::Repository uptane(conf, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+
+    EXPECT_TRUE(initializer.isSuccessful());
 
     EXPECT_TRUE(boost::filesystem::exists(temp_dir2.Path() / "device_id"));
     test_name2 = Utils::readFile(temp_dir2.Path() / "device_id");
@@ -299,11 +316,13 @@ TEST(Uptane, PetNameCreation) {
   // If the device_id is cleared in the config, but the file is still present,
   // re-initializing the config should still read the device_id from file.
   {
-    conf.uptane.device_id = "";
+    conf.provision.device_id = "";
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+
+    EXPECT_TRUE(initializer.isSuccessful());
 
     EXPECT_TRUE(boost::filesystem::exists(temp_dir2.Path() / "device_id"));
     EXPECT_EQ(Utils::readFile(temp_dir2.Path() / "device_id"), test_name2);
@@ -316,12 +335,15 @@ TEST(Uptane, PetNameCreation) {
     TemporaryDirectory temp_dir3;
     conf.storage.path = temp_dir3.Path();
     boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir3.Path() / "cred.zip");
-    conf.uptane.device_id = test_name2;
+    conf.provision.device_id = test_name2;
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir3.Path());
     Uptane::Repository uptane(conf, storage, http);
-    EXPECT_TRUE(uptane.initialize());
+    KeyManager keys(storage, conf.keymanagerConfig());
+    Initializer initializer(conf.provision, storage, http, keys, {});
+
+    EXPECT_TRUE(initializer.isSuccessful());
 
     EXPECT_TRUE(boost::filesystem::exists(temp_dir3.Path() / "device_id"));
     EXPECT_EQ(Utils::readFile(temp_dir3.Path() / "device_id"), test_name2);
@@ -433,13 +455,16 @@ TEST(Uptane, InitializeFail) {
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.tls.server = http.tls_server;
 
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository uptane(conf, storage, http);
 
   http.provisioningResponse = ProvisionFailure;
-  bool result = uptane.initialize();
+  KeyManager keys(storage, conf.keymanagerConfig());
+  Initializer initializer(conf.provision, storage, http, keys, {});
+
+  bool result = initializer.isSuccessful();
   http.provisioningResponse = ProvisionOK;
   EXPECT_FALSE(result);
 }
@@ -459,7 +484,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.provision.mode = kAutomatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.uptane.primary_ecu_serial = "testecuserial";
+  config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
   Uptane::SecondaryConfig ecu_config;
@@ -478,7 +503,7 @@ TEST(Uptane, AssembleManifestGood) {
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
   EXPECT_EQ(manifest.size(), 2);
@@ -499,7 +524,7 @@ TEST(Uptane, AssembleManifestBad) {
   config.provision.mode = kAutomatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.uptane.primary_ecu_serial = "testecuserial";
+  config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
   Uptane::SecondaryConfig ecu_config;
@@ -524,11 +549,12 @@ TEST(Uptane, AssembleManifestBad) {
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
+
   EXPECT_EQ(manifest.size(), 1);
-  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"], config.uptane.primary_ecu_serial);
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"], config.provision.primary_ecu_serial);
 }
 
 TEST(Uptane, PutManifest) {
@@ -546,7 +572,7 @@ TEST(Uptane, PutManifest) {
   config.provision.mode = kAutomatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.uptane.primary_ecu_serial = "testecuserial";
+  config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = kNone;
 
   Uptane::SecondaryConfig ecu_config;
@@ -565,7 +591,7 @@ TEST(Uptane, PutManifest) {
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
 
   EXPECT_TRUE(uptane.putManifest(sota_client.AssembleManifest()));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http.test_manifest));
@@ -587,7 +613,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
-  conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -631,7 +657,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
-  conf.uptane.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -689,7 +715,7 @@ TEST(Uptane, RunForeverInstall) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
-  conf.uptane.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_serial = "testecuserial";
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.polling_sec = 1;
@@ -733,7 +759,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.provision.mode = kAutomatic;
   config.uptane.repo_server = http.tls_server + "/repo";
   config.tls.server = http.tls_server;
-  config.uptane.primary_ecu_serial = "testecuserial";
+  config.provision.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
@@ -756,10 +782,10 @@ TEST(Uptane, UptaneSecondaryAdd) {
   Uptane::Repository uptane(config, storage, http);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  EXPECT_TRUE(sota_client.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
-  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.uptane.primary_ecu_serial);
+  EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
   EXPECT_EQ(ecu_data["ecus"][1]["ecu_serial"].asString(), "secondary_ecu_serial");
   EXPECT_EQ(ecu_data["ecus"][1]["hardware_identifier"].asString(), "secondary_hardware");
   EXPECT_EQ(ecu_data["ecus"][1]["clientKey"]["keytype"].asString(), "RSA");
@@ -778,9 +804,9 @@ TEST(Uptane, ProvisionOnServer) {
   config.tls.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
-  config.uptane.device_id = "tst149_device_id";
-  config.uptane.primary_ecu_hardware_id = "tst149_hardware_identifier";
-  config.uptane.primary_ecu_serial = "tst149_ecu_serial";
+  config.provision.device_id = "tst149_device_id";
+  config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
+  config.provision.primary_ecu_serial = "tst149_ecu_serial";
   config.uptane.polling_sec = 1;
   config.storage.path = temp_dir.Path();
 
@@ -788,7 +814,7 @@ TEST(Uptane, ProvisionOnServer) {
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  std::vector<Uptane::Target> packages_to_install = makePackage(config.uptane.primary_ecu_serial);
+  std::vector<Uptane::Target> packages_to_install = makePackage(config.provision.primary_ecu_serial);
   *commands_channel << std::make_shared<command::GetUpdateRequests>();
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
@@ -809,9 +835,12 @@ TEST(Uptane, CheckOldProvision) {
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
   EXPECT_FALSE(storage->loadEcuRegistered());
-  EXPECT_TRUE(uptane.initialize());
+
+  KeyManager keys(storage, config.keymanagerConfig());
+  Initializer initializer(config.provision, storage, http, keys, {});
+
+  EXPECT_TRUE(initializer.isSuccessful());
   EXPECT_TRUE(storage->loadEcuRegistered());
 }
 
@@ -1032,7 +1061,7 @@ TEST(Uptane, SaveVersion) {
   config.storage.tls_cacert_path = "ca.pem";
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
-  config.uptane.device_id = "device_id";
+  config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
@@ -1058,7 +1087,7 @@ TEST(Uptane, LoadVersion) {
   config.storage.tls_cacert_path = "ca.pem";
   config.storage.tls_clientcert_path = "client.pem";
   config.storage.tls_pkey_path = "pkey.pem";
-  config.uptane.device_id = "device_id";
+  config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
@@ -1086,7 +1115,7 @@ TEST(Uptane, getMetaCorrectStorage) {
   config.storage.path = temp_dir.Path();
   config.storage.sqldb_path = temp_dir / "db.sqlite";
   config.storage.schemas_path = "config/schemas";
-  config.uptane.device_id = "device_id";
+  config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
   Uptane::Repository uptane(config, storage, http);
@@ -1108,7 +1137,7 @@ TEST(Uptane, krejectallTest) {
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
   config.storage.schemas_path = "config/schemas";
-  config.uptane.device_id = "device_id";
+  config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
@@ -1125,7 +1154,7 @@ TEST(Uptane, VerifyMetaTest) {
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
   config.storage.schemas_path = "config/schemas";
-  config.uptane.device_id = "device_id";
+  config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
@@ -1183,8 +1212,10 @@ TEST(Uptane, Pkcs11Provision) {
 
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.initialize());
+  KeyManager keys(storage, config.keymanagerConfig());
+  Initializer initializer(config.provision, storage, http, keys, {});
+
+  EXPECT_TRUE(initializer.isSuccessful());
 }
 #endif
 

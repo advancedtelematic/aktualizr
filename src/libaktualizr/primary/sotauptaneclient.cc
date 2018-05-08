@@ -8,6 +8,7 @@
 
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
+#include "initializer.h"
 #include "logging/logging.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "uptane/exceptions.h"
@@ -167,6 +168,24 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
+bool SotaUptaneClient::initialize() {
+  KeyManager keys(storage, config.keymanagerConfig());
+  Initializer initializer(config.provision, storage, http, keys, secondaries);
+
+  if (!initializer.isSuccessful()) {
+    return false;
+  }
+
+  std::vector<std::pair<std::string, std::string> > serials;
+  if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
+    return false;
+  }
+
+  uptane_repo.setPrimaryEcuSerialHwId(serials[0]);
+
+  return true;
+}
+
 void SotaUptaneClient::getUpdateRequests() {
   reportNetworkInfo();
   // Uptane step 1 (build the vehicle version manifest):
@@ -196,9 +215,10 @@ void SotaUptaneClient::getUpdateRequests() {
 void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &commands_channel) {
   LOG_DEBUG << "Checking if device is provisioned...";
 
-  if (!uptane_repo.initialize()) {
+  if (!initialize()) {
     throw std::runtime_error("Fatal error of tls or ecu device registration");
   }
+
   verifySecondaries();
   LOG_DEBUG << "... provisioned OK";
   reportHwInfo();

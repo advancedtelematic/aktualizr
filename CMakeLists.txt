@@ -239,6 +239,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/googletest/googletest/include)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
