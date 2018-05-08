@@ -113,7 +113,7 @@ Before checking in code, the code linting checks should be run:
 make qa
 ----
 
-This will reformat all the code with clang-format and run clang-check and the test suite. Please follow the https://google.github.io/styleguide/cppguide.html[Google C++ Style Guide] coding standard.
+This will reformat all the code with clang-format and run clang-tidy and the test suite. Please follow the https://google.github.io/styleguide/cppguide.html[Google C++ Style Guide] coding standard.
 
 By default, the compilation and tests run in sequence and the output of failing tests is suppressed. To run in parallel, for example with eight threads, and print the output of failing tests, run this:
 

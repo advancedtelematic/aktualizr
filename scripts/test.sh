@@ -98,7 +98,7 @@ if [[ $TEST_WITH_STATICTESTS = 1 ]]; then
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
         make check-format -j8 || add_failure "formatting"
-        make clang-tidy clang-check -j8 || add_failure "static checks"
+        make clang-tidy -j8 || add_failure "static checks"
         set +x
     fi
 fi

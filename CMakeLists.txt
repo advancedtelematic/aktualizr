@@ -160,7 +160,6 @@ endif()
 
 if(CLANG_CHECK)
     add_custom_target(clang-check)
-    add_dependencies(qa clang-check)
     function(aktualizr_clang_check)
         file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
         foreach(FILE ${ARGN})
