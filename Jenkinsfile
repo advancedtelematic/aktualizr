@@ -95,6 +95,7 @@ pipeline {
             TEST_CMAKE_BUILD_TYPE = 'Valgrind'
             TEST_TESTSUITE_ONLY = 'crypto'
             TEST_WITH_STATICTESTS = '1'
+            TEST_WITH_LOAD_TESTS = '1'  // build only
           }
           steps {
             // FIXME: some failures left!
