@@ -119,7 +119,20 @@ add_test(NAME aktualizr_secondary_help_with_nonexistent_options
 set_tests_properties(aktualizr_secondary_help_with_nonexistent_options
                      PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary command line options")
 
-# check aktualizr-secondary invalid logging levels
+# Check aktualizr-secondary verbose config parsing output with debug loglevel.
+add_test(NAME aktualizr_secondary_log_debug
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
+set_tests_properties(aktualizr_secondary_log_debug
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml")
+# Check aktualizr-secondary silent config parsing output with default loglevel.
+# Note that the extra PASS is necessary to ignore the return code.
+add_test(NAME aktualizr_secondary_log_default
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+set_tests_properties(aktualizr_secondary_log_default
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml"
+                                PASS_REGULAR_EXPRESSION "Aktualizr version")
+
+# Check aktualizr-secondary invalid logging levels.
 add_test(NAME aktualizr_secondary_log_invalid
          COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/aktualizr_secondary.toml --loglevel=6)
 set_tests_properties(aktualizr_secondary_log_invalid
