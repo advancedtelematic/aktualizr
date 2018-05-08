@@ -61,17 +61,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       exit(EXIT_FAILURE);
     }
   } catch (const bpo::required_option &ex) {
-    if (ex.get_option_name() == "--config") {
-      std::cout << ex.get_option_name() << " is missing.\nYou have to provide a valid configuration "
-                                           "file using toml format. See the example configuration file "
-                                           "in config/config.toml.example"
-                << std::endl;
-      exit(EXIT_FAILURE);
-    } else {
-      // print the error and append the default commandline option description
-      std::cout << ex.what() << std::endl << description;
-      exit(EXIT_SUCCESS);
-    }
+    // print the error and append the default commandline option description
+    std::cout << ex.what() << std::endl << description;
+    exit(EXIT_FAILURE);
   } catch (const bpo::error &ex) {
     check_info_options(description, vm);
 

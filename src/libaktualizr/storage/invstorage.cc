@@ -127,7 +127,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
         old_config.path = path;
 
         std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
-        std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config);
+        std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config, true);
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
       }

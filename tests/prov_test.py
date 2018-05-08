@@ -43,7 +43,7 @@ def provision(tmp_dir, build_dir, src_dir, creds_in):
         f.write('type = "sqlite"\n')
         f.write('sqldb_path = "' + str(db) + '"\n')
         f.write('schemas_path = "' + str(schemas) + '"\n')
-    akt = build_dir / 'src/aktualizr'
+    akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
 
     s = subprocess.Popen([str(akt), '--config', str(conf)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
