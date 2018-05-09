@@ -219,7 +219,7 @@ Config::Config(const boost::filesystem::path& filename) {
   postUpdateValues();
 }
 
-Config::Config(const boost::program_options::variables_map& cmd) {
+Config::Config(const boost::program_options::variables_map& cmd, const bool process_legacy_interface_in) {
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
@@ -227,6 +227,8 @@ Config::Config(const boost::program_options::variables_map& cmd) {
     logger_set_threshold(logger);
     loglevel_from_cmdline = true;
   }
+
+  process_legacy_interface = process_legacy_interface_in;
 
   if (cmd.count("config") > 0) {
     updateFromDirs(cmd["config"].as<std::vector<boost::filesystem::path>>());
@@ -284,8 +286,10 @@ void Config::postUpdateValues() {
     }
   }
 
-  checkLegacyVersion();
-  initLegacySecondaries();
+  if (process_legacy_interface) {
+    checkLegacyVersion();
+    initLegacySecondaries();
+  }
   LOG_TRACE << "Final configuration that will be used: \n" << (*this);
 }
 

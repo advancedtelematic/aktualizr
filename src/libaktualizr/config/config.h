@@ -104,7 +104,7 @@ struct DiscoveryConfig {
 class Config {
  public:
   Config();
-  explicit Config(const boost::program_options::variables_map& cmd);
+  Config(const boost::program_options::variables_map& cmd, bool process_legacy_interface_in = true);
   explicit Config(const boost::filesystem::path& filename);
   explicit Config(const std::vector<boost::filesystem::path>& config_dirs) {
     updateFromDirs(config_dirs);
@@ -133,7 +133,6 @@ class Config {
   TelemetryConfig telemetry;
 
  private:
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
@@ -141,7 +140,10 @@ class Config {
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
   void checkLegacyVersion();
   void initLegacySecondaries();
+
+  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   bool loglevel_from_cmdline{false};
+  bool process_legacy_interface{true};
 };
 
 #endif  // CONFIG_H_
