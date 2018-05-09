@@ -133,7 +133,6 @@ class Config {
   TelemetryConfig telemetry;
 
  private:
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void updateFromToml(const boost::filesystem::path& filename);
@@ -141,6 +140,8 @@ class Config {
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
   void checkLegacyVersion();
   void initLegacySecondaries();
+
+  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   bool loglevel_from_cmdline{false};
 };
 

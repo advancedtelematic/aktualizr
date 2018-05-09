@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "config/config.h"
+#include "aktualizr_info_config.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
 
@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   desc.add_options()
     ("help,h", "print usage")
     ("config,c", po::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
+    ("loglevel", po::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
     ("tls-creds",  "Outputs TLS credentials")
     ("ecu-keys",  "Outputs UPTANE keys")
     ("images-root",  "Outputs root.json from images repo")
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
 
   try {
     logger_init();
-    logger_set_threshold(boost::log::trivial::error);
+    logger_set_threshold(boost::log::trivial::info);
     po::variables_map vm;
     po::basic_parsed_options<char> parsed_options = po::command_line_parser(argc, argv).options(desc).run();
     po::store(parsed_options, vm);
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    Config config(vm);
+    AktualizrInfoConfig config(vm);
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;

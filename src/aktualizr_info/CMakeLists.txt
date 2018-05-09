@@ -1,5 +1,7 @@
 
-set(AKTUALIZR_INFO_SRC main.cc )
+set(AKTUALIZR_INFO_SRC main.cc aktualizr_info_config.cc)
+
+set(AKTUALIZR_INFO_HEADERS aktualizr_info_config.h)
 
 add_executable(aktualizr-info ${AKTUALIZR_INFO_SRC})
 target_link_libraries(aktualizr-info aktualizr_static_lib
@@ -22,6 +24,6 @@ install(TARGETS aktualizr-info
         COMPONENT aktualizr
         RUNTIME DESTINATION bin)
 
-aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC})
+aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC} ${AKTUALIZR_INFO_HEADERS})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:
