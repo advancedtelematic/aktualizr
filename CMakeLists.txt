@@ -196,7 +196,7 @@ if(CLANG_TIDY)
             endif()
             string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_tidy-${SUBDIR}-${FILE}")
             add_custom_target(${TARGETNAME}
-                COMMAND ${CLANG_TIDY} -quiet -header-filter=\${CMAKE_SOURCE_DIR}/src/.* --extra-arg-before=-Wno-unknown-warning-option -format-style=file -warnings-as-errors=* -p ${CMAKE_BINARY_DIR} ${FILE}
+                COMMAND ${CLANG_TIDY} -quiet -header-filter=${CMAKE_SOURCE_DIR}/src/.* --extra-arg-before=-Wno-unknown-warning-option -format-style=file -p ${CMAKE_BINARY_DIR} ${FILE}
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 VERBATIM)
             add_dependencies(clang-tidy ${TARGETNAME})
