@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
       exit(EXIT_SUCCESS);
     }
 
-    Config config(vm);
+    bool process_legacy_interface = false;
+    Config config(vm, process_legacy_interface);
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
