@@ -63,7 +63,7 @@ add_asn1c_lib(asn1-reference/uptane/ipuptane_message)
 compile_asn1_lib()
 list(APPEND TEST_LIBS asn1_lib)
 
-# List of source files to run clang-format and clang-check on. Automatically
+# List of source files to run static analysis on. Automatically
 # appended to by add_aktualizr_test, but anything that doesn't use that must be
 # manually added to this list.
 set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h)
