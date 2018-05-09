@@ -44,9 +44,6 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
       LOG_ERROR << "ENGINE_load_private_key failed with error " << ERR_error_string(ERR_get_error(), nullptr);
       return std::string();
     }
-    // libp11 increments the private key reference for some reason, decrement
-    // here to avoid leak later
-    EVP_PKEY_free(key.get());
 
     rsa.reset(EVP_PKEY_get1_RSA(key.get()));
     if (rsa == nullptr) {
