@@ -13,7 +13,7 @@ option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
 option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
-option(BUILD_LOAD_TESTS "Set to ON to build load tests" ON)
+option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
