@@ -4,8 +4,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "utilities/config_utils.h"
-
 /** Log an unrecoverable error */
 #define LOG_FATAL BOOST_LOG_TRIVIAL(fatal)
 

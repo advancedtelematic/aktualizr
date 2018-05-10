@@ -49,15 +49,18 @@ void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) con
   writeOption(out_stream, key_type, "key_type");
 }
 
-AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path& filename,
-                                                   const boost::program_options::variables_map& cmd) {
+AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::program_options::variables_map& cmd) {
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
     logger_set_threshold(logger);
   }
-  updateFromToml(filename);
+  if (cmd.count("config") > 0) {
+    updateFromDirs(cmd["config"].as<std::vector<boost::filesystem::path>>());
+  } else {
+    updateFromDirs(config_dirs_);
+  }
   updateFromCommandLine(cmd);
   postUpdateValues();
 }
@@ -119,13 +122,6 @@ void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree
 
 std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
   return os << "\tServer listening port: " << cfg.network.port << std::endl;
-}
-
-void AktualizrSecondaryConfig::updateFromToml(const boost::filesystem::path& filename) {
-  boost::property_tree::ptree pt;
-  boost::property_tree::ini_parser::read_ini(filename.string(), pt);
-  updateFromPropertyTree(pt);
-  LOG_TRACE << "config read from " << filename << " :\n" << (*this);
 }
 
 void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filename) {

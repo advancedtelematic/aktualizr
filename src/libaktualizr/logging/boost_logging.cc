@@ -1,4 +1,5 @@
 #include "logging.h"
+#include "utilities/config_utils.h"
 
 #include <boost/log/utility/setup/console.hpp>
 

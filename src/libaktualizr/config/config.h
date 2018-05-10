@@ -21,6 +21,7 @@
 #include "storage/invstorage.h"
 #include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
+#include "utilities/config_utils.h"
 #include "utilities/types.h"
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
@@ -101,7 +102,7 @@ struct DiscoveryConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
-class Config {
+class Config : public BaseConfig {
  public:
   Config();
   explicit Config(const boost::program_options::variables_map& cmd);
@@ -134,9 +135,7 @@ class Config {
   TelemetryConfig telemetry;
 
  private:
-  void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void updateFromToml(const boost::filesystem::path& filename);
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
   void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
   void checkLegacyVersion();

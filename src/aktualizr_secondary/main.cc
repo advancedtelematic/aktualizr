@@ -66,7 +66,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr-secondary version")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("config,c", bpo::value<std::string>()->required(), "toml configuration file")
+      ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("server-port,p", bpo::value<int>(), "command server listening port")
       ("discovery-port,d", bpo::value<int>(), "discovery service listening port (0 to disable)")
       ("ecu-serial", bpo::value<std::string>(), "serial number of secondary ecu")
@@ -117,17 +117,9 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
-  // Initialize config with default values, the update with config, then with cmd
-  boost::filesystem::path secondary_config_path(commandline_map["config"].as<std::string>());
-  if (!boost::filesystem::exists(secondary_config_path)) {
-    std::cout << "aktualizr-secondary: configuration file " << boost::filesystem::absolute(secondary_config_path)
-              << " not found. Exiting." << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
   int ret = 0;
   try {
-    AktualizrSecondaryConfig config(secondary_config_path, commandline_map);
+    AktualizrSecondaryConfig config(commandline_map);
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();
     }

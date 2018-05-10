@@ -34,10 +34,10 @@ struct AktualizrSecondaryUptaneConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
-class AktualizrSecondaryConfig {
+class AktualizrSecondaryConfig : public BaseConfig {
  public:
   AktualizrSecondaryConfig() = default;
-  AktualizrSecondaryConfig(const boost::filesystem::path& filename, const boost::program_options::variables_map& cmd);
+  AktualizrSecondaryConfig(const boost::program_options::variables_map& cmd);
   explicit AktualizrSecondaryConfig(const boost::filesystem::path& filename);
 
   KeyManagerConfig keymanagerConfig() const;
@@ -58,8 +58,7 @@ class AktualizrSecondaryConfig {
 
  private:
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void updateFromToml(const boost::filesystem::path& filename);
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
 };
 
 #endif  // AKTUALIZR_SECONDARY_CONFIG_H_
