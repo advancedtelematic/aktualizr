@@ -1,22 +1,19 @@
 
 {
-	"_type" : "Targets",
-	"expires" : "2017-11-17T23:58:40Z",
-	"targets" : 
-	{
-		"master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0" : 
+	"signatures" : 
+	[
+		
 		{
-			"custom" : 
-			{
-				"ecuIdentifier" : "cd51a49a-25d9-438e-93fa-c0dde6bfcec9",
-				"targetFormat" : ""
-			},
-			"hashes" : 
-			{
-				"sha256" : "863DE625F305413DC3BE306AFAB7C3F39D8713045CFFF812B3AF83F9722851F0"
-			},
-			"length" : 0
+			"keyid" : "af563026fc4f99af2f0d956c9c6f096d4a64109f8e9cf4d2136a0ee58adfe1d1",
+			"method" : "rsassa-pss-sha256",
+			"sig" : "Cthl29QLv00jOiNngOtrNLO/94oZvzi9LM5+8V3oGXyNIAHfLEtx1Ap5Y5QHXm+jbItkurYeKvgBlNy3tzsH3j4F1poF5Qg2t7kN/PLgueR51Ri3ez9iW8/HGIM6PFtnJ1q/q9j9+1+FkiEJ6CqIGrr0yKq3X8/mX9JBA+G4TyA/YipVZ+fdUNYphXk5INMpLCT9sXN3CsFU3SGJyF1KTm0pmo740OBYkSDL8XAK8NcMVeOIbzSwDaz1eARLPc6jZj+4Plj2OIUJ8Of4IJ5xQkTpQauzvKAwOhXQJGZtdFWRNF8BnawkhFx9lqrsS4BBj20HlnBTSw/r3FW72iU45A=="
 		}
-	},
-	"version" : 33
+	],
+	"signed" : 
+	{
+		"_type" : "Targets",
+		"expires" : "2018-06-10T22:09:41Z",
+		"targets" : {},
+		"version" : 0
+	}
 }

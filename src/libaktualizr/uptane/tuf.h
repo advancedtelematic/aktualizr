@@ -324,6 +324,7 @@ struct MetaPack {
   Targets image_targets;
   TimestampMeta image_timestamp;
   Snapshot image_snapshot;
+  bool isConsistent() const;
 };
 }  // namespace Uptane
 

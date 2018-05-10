@@ -1,6 +1,30 @@
 
 {
-	"_type" : "Timestamp",
-	"expires" : "2017-11-05T14:50:27Z",
-	"version" : 4
+	"signatures" : 
+	[
+		
+		{
+			"keyid" : "e85a760051bc6f38185230d26eed49d60890c1a389a74183e770443eb8dc11c6",
+			"method" : "rsassa-pss-sha256",
+			"sig" : "UfiJzJevJQaMQFffdWPN4lkPAY7OTvrNrwylU//zGP5PK+ilB/TcyGtpuSP0UDHk2DsBIbaeuL2L0DOZwhPYMWhKv0SAa4JBbMASp5xxqZt8LyHxbIPZJNGyIjfmf/rC9Pyl8tsyfVWuAbnLhkKv75eNri5C/p2eyFIFrkeFq3r2DtD6KC7smtInRJ9mzCxyWsbOyrT6qy45YyefZG35wi4LY91hlL2NmxNIaBbQGSNVIHfasllgXtmW8ASUUDsfifPj++f4qxFSr4nr6JL2yeKV7s1SNpsISPTKAHClnBuHwjNyadgwERGDDtg0fY4DtxAXY1mBoBPDEAuB8Xguog=="
+		}
+	],
+	"signed" : 
+	{
+		"_type" : "Timestamp",
+		"expires" : "2018-05-11T22:09:52Z",
+		"meta" : 
+		{
+			"snapshot.json" : 
+			{
+				"hashes" : 
+				{
+					"sha256" : "5b896882b3a8ec67d38e1db50e28c356f857742411e9bdd14317bc6ca271c4bf"
+				},
+				"length" : 818,
+				"version" : 20
+			}
+		},
+		"version" : 21
+	}
 }
