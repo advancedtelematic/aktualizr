@@ -23,12 +23,12 @@ struct P11Config {
   std::string tls_clientcert_id;
 
   void updateFromPropertyTree(const boost::property_tree::ptree &pt) {
-    CopyFromConfig(module, "module", boost::log::trivial::trace, pt);
-    CopyFromConfig(pass, "pass", boost::log::trivial::trace, pt);
-    CopyFromConfig(uptane_key_id, "uptane_key_id", boost::log::trivial::trace, pt);
-    CopyFromConfig(tls_cacert_id, "tls_cacert_id", boost::log::trivial::trace, pt);
-    CopyFromConfig(tls_pkey_id, "tls_pkey_id", boost::log::trivial::trace, pt);
-    CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", boost::log::trivial::trace, pt);
+    CopyFromConfig(module, "module", pt);
+    CopyFromConfig(pass, "pass", pt);
+    CopyFromConfig(uptane_key_id, "uptane_key_id", pt);
+    CopyFromConfig(tls_cacert_id, "tls_cacert_id", pt);
+    CopyFromConfig(tls_pkey_id, "tls_pkey_id", pt);
+    CopyFromConfig(tls_clientcert_id, "tls_clientcert_id", pt);
   }
 
   void writeToStream(std::ostream &out_stream) const {

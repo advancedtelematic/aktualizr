@@ -8,7 +8,7 @@ using boost::log::trivial::severity_level;
 static severity_level gLoggingThreshold;
 
 void LoggerConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(loglevel, "loglevel", boost::log::trivial::trace, pt);
+  CopyFromConfig(loglevel, "loglevel", pt);
 }
 
 void LoggerConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, loglevel, "loglevel"); }
