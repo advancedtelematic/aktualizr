@@ -240,12 +240,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ############### BUILD RULES
 include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr)
 include_directories(${PROJECT_SOURCE_DIR}/third_party/googletest/googletest/include)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/jsoncpp)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/picojson)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBOSTREE_INCLUDE_DIRS})
 include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
+
+set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
+add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-fstack-protector-all)
@@ -325,11 +330,7 @@ add_subdirectory("docs")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR}
     src/*.cc src/*.c src/*.h)
 foreach(FILE ${ALL_SOURCE_FILES})
-    # ignore third party sources
-    string (FIND ${FILE} "/third_party/" EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-      continue()
-    endif()
+    # ignore opcuabridge
     string (FIND ${FILE} "/opcuabridge/" EXCLUDE_DIR_FOUND)
     if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
       continue()
