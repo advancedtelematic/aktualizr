@@ -635,6 +635,7 @@ std::vector<boost::filesystem::path> Utils::glob(const std::string &pat) {
   ::glob(pat.c_str(), GLOB_TILDE, nullptr, &glob_result);
   std::vector<boost::filesystem::path> ret;
   for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     ret.emplace_back(glob_result.gl_pathv[i]);
   }
   globfree(&glob_result);

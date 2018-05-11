@@ -1,6 +1,3 @@
-include_directories("third_party/jsoncpp")
-include_directories("third_party/picojson")
-
 add_subdirectory("utilities")
 add_subdirectory("asn1")
 add_subdirectory("bootstrap")
@@ -19,9 +16,6 @@ add_subdirectory("telemetry")
 if (BUILD_OPCUA)
     add_subdirectory("opcuabridge")
 endif (BUILD_OPCUA)
-
-set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
-add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:asn1>
@@ -46,4 +40,3 @@ endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
-

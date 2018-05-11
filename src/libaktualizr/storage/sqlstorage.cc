@@ -1139,7 +1139,9 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
     case kSqlGetSimple: {
       (void)numcolumns;
       (void)columns;
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if (values[0] != nullptr) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         instance->req_response["result"] = values[0];
       }
       break;
@@ -1147,7 +1149,9 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
     case kSqlGetTable: {
       std::map<std::string, std::string> row;
       for (int i = 0; i < numcolumns; ++i) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         if (values[i] != nullptr) {
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           row[columns[i]] = values[i];
         }
       }

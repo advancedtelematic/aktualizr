@@ -119,6 +119,7 @@ IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_add
       size_t pos = 0;
 
       while (len > 0) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         ssize_t written = write(*hdl, data + pos, len);
         if (written < 0) {
           LOG_ERROR << "write: " << std::strerror(errno);

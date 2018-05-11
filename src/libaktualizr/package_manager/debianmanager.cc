@@ -17,10 +17,12 @@ Json::Value DebianManager::getInstalledPackages() {
   pkg_array_init_from_db(&array);
   pkg_array_sort(&array, pkg_sorter_by_nonambig_name_arch);
   for (int i = 0; i < array.n_pkgs; ++i) {
-    if (array.pkgs[i]->status == PKG_STAT_INSTALLED) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    struct pkginfo *pkg = array.pkgs[i];
+    if (pkg->status == PKG_STAT_INSTALLED) {
       Json::Value package;
-      package["name"] = pkg_name(array.pkgs[i], pnaw_nonambig);
-      package["version"] = versiondescribe(&array.pkgs[i]->installed.version, vdew_nonambig);
+      package["name"] = pkg_name(pkg, pnaw_nonambig);
+      package["version"] = versiondescribe(&pkg->installed.version, vdew_nonambig);
       packages.append(package);
     }
   }
