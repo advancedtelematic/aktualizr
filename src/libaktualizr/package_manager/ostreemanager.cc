@@ -203,6 +203,7 @@ OstreeDeploymentPtr OstreeManager::getStagedDeployment() {
   deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
 
   if (deployments->len > 0) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     auto *d = static_cast<OstreeDeployment *>(deployments->pdata[0]);
     auto *d2 = static_cast<OstreeDeployment *>(g_object_ref(d));
     res = d2;
