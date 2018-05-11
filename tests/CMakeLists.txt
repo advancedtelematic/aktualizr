@@ -384,6 +384,7 @@ add_test(NAME validate-secondary-interface
 
 
 add_subdirectory(sota_tools)
+
 if(BUILD_SOTA_TOOLS)
     # Setup coverage for sota_tools_static_lib
     if(BUILD_WITH_CODE_COVERAGE)
