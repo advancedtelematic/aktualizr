@@ -6,7 +6,7 @@
 
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string pm_type = "ostree";
-  CopyFromConfig(pm_type, "type", boost::log::trivial::trace, pt);
+  CopyFromConfig(pm_type, "type", pt);
   if (pm_type == "ostree") {
     type = kOstree;
   } else if (pm_type == "debian") {
@@ -15,10 +15,10 @@ void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
     type = kNone;
   }
 
-  CopyFromConfig(os, "os", boost::log::trivial::trace, pt);
-  CopyFromConfig(sysroot, "sysroot", boost::log::trivial::trace, pt);
-  CopyFromConfig(ostree_server, "ostree_server", boost::log::trivial::trace, pt);
-  CopyFromConfig(packages_file, "packages_file", boost::log::trivial::trace, pt);
+  CopyFromConfig(os, "os", pt);
+  CopyFromConfig(sysroot, "sysroot", pt);
+  CopyFromConfig(ostree_server, "ostree_server", pt);
+  CopyFromConfig(packages_file, "packages_file", pt);
 }
 
 void PackageConfig::writeToStream(std::ostream& out_stream) const {

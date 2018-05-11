@@ -54,15 +54,10 @@ inline void writeOption(std::ostream& sink, const T& data, const std::string& op
 }
 
 template <typename T>
-inline void CopyFromConfig(T& dest, const std::string& option_name, boost::log::trivial::severity_level warning_level,
-                           const boost::property_tree::ptree& pt) {
+inline void CopyFromConfig(T& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
   boost::optional<T> value = pt.get_optional<T>(option_name);
   if (value.is_initialized()) {
     dest = StripQuotesFromStrings(value.get());
-  } else {
-    static boost::log::sources::severity_logger<boost::log::trivial::severity_level> logger;
-    BOOST_LOG_SEV(logger, static_cast<boost::log::trivial::severity_level>(warning_level))
-        << option_name << " not in config file. Using default:" << dest;
   }
 }
 

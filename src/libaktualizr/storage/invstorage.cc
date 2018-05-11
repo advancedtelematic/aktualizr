@@ -7,22 +7,22 @@
 
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string storage_type = "filesystem";
-  CopyFromConfig(storage_type, "type", boost::log::trivial::trace, pt);
+  CopyFromConfig(storage_type, "type", pt);
   if (storage_type == "sqlite") {
     type = kSqlite;
   } else {
     type = kFileSystem;
   }
 
-  CopyFromConfig(path, "path", boost::log::trivial::trace, pt);
-  CopyFromConfig(sqldb_path, "sqldb_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane_metadata_path, "uptane_metadata_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane_private_key_path, "uptane_private_key_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane_public_key_path, "uptane_public_key_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_cacert_path, "tls_cacert_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_pkey_path, "tls_pkey_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_clientcert_path, "tls_clientcert_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(schemas_path, "schemas_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(path, "path", pt);
+  CopyFromConfig(sqldb_path, "sqldb_path", pt);
+  CopyFromConfig(uptane_metadata_path, "uptane_metadata_path", pt);
+  CopyFromConfig(uptane_private_key_path, "uptane_private_key_path", pt);
+  CopyFromConfig(uptane_public_key_path, "uptane_public_key_path", pt);
+  CopyFromConfig(tls_cacert_path, "tls_cacert_path", pt);
+  CopyFromConfig(tls_pkey_path, "tls_pkey_path", pt);
+  CopyFromConfig(tls_clientcert_path, "tls_clientcert_path", pt);
+  CopyFromConfig(schemas_path, "schemas_path", pt);
 }
 
 void StorageConfig::writeToStream(std::ostream& out_stream) const {
@@ -39,11 +39,11 @@ void StorageConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void ImportConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(uptane_private_key_path, "uptane_private_key_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(uptane_public_key_path, "uptane_public_key_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_cacert_path, "tls_cacert_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_pkey_path, "tls_pkey_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(tls_clientcert_path, "tls_clientcert_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(uptane_private_key_path, "uptane_private_key_path", pt);
+  CopyFromConfig(uptane_public_key_path, "uptane_public_key_path", pt);
+  CopyFromConfig(tls_cacert_path, "tls_cacert_path", pt);
+  CopyFromConfig(tls_pkey_path, "tls_pkey_path", pt);
+  CopyFromConfig(tls_clientcert_path, "tls_clientcert_path", pt);
 }
 
 void ImportConfig::writeToStream(std::ostream& out_stream) const {

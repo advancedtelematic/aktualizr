@@ -116,6 +116,7 @@ class Config {
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
   void writeToFile(const boost::filesystem::path& filename) const;
+  void writeToStream(std::ostream& sink) const;
 
   // Config data structures. Keep logger first so that it is taken into account
   // while processing the others.

@@ -54,14 +54,14 @@ std::ostream& operator<<(std::ostream& os, const KeyType kt) {
 }
 
 void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(socket, "socket", boost::log::trivial::trace, pt);
+  CopyFromConfig(socket, "socket", pt);
 }
 
 void GatewayConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, socket, "socket"); }
 
 void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(socket_commands_path, "socket_commands_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(socket_events_path, "socket_events_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(socket_commands_path, "socket_commands_path", pt);
+  CopyFromConfig(socket_events_path, "socket_events_path", pt);
 
   boost::optional<std::string> events_string = pt.get_optional<std::string>("socket_events");
   if (events_string.is_initialized()) {
@@ -72,10 +72,10 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
     LOG_TRACE << "network.socket_events not in config file. Using default";
   }
 
-  CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", boost::log::trivial::trace, pt);
-  CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", boost::log::trivial::trace, pt);
-  CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", boost::log::trivial::trace, pt);
-  CopyFromConfig(ipuptane_port, "network.ipuptane_port", boost::log::trivial::trace, pt);
+  CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", pt);
+  CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", pt);
+  CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", pt);
+  CopyFromConfig(ipuptane_port, "network.ipuptane_port", pt);
 }
 
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
@@ -96,11 +96,11 @@ void NetworkConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(server, "server", boost::log::trivial::trace, pt);
-  CopyFromConfig(server_url_path, "server_url_path", boost::log::trivial::trace, pt);
+  CopyFromConfig(server, "server", pt);
+  CopyFromConfig(server_url_path, "server_url_path", pt);
 
   std::string tls_source = "file";
-  CopyFromConfig(tls_source, "ca_source", boost::log::trivial::trace, pt);
+  CopyFromConfig(tls_source, "ca_source", pt);
   if (tls_source == "pkcs11") {
     ca_source = kPkcs11;
   } else {
@@ -108,7 +108,7 @@ void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   }
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "cert_source", boost::log::trivial::trace, pt);
+  CopyFromConfig(tls_source, "cert_source", pt);
   if (tls_source == "pkcs11") {
     cert_source = kPkcs11;
   } else {
@@ -116,7 +116,7 @@ void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   }
 
   tls_source = "file";
-  CopyFromConfig(tls_source, "pkey_source", boost::log::trivial::trace, pt);
+  CopyFromConfig(tls_source, "pkey_source", pt);
   if (tls_source == "pkcs11") {
     pkey_source = kPkcs11;
   } else {
@@ -133,14 +133,14 @@ void TlsConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void ProvisionConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(server, "server", boost::log::trivial::trace, pt);
-  CopyFromConfig(p12_password, "p12_password", boost::log::trivial::trace, pt);
-  CopyFromConfig(expiry_days, "expiry_days", boost::log::trivial::trace, pt);
-  CopyFromConfig(provision_path, "provision_path", boost::log::trivial::trace, pt);
-  CopyFromConfig(device_id, "device_id", boost::log::trivial::trace, pt);
-  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", boost::log::trivial::trace, pt);
-  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", boost::log::trivial::trace, pt);
-  CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", boost::log::trivial::trace, pt);
+  CopyFromConfig(server, "server", pt);
+  CopyFromConfig(p12_password, "p12_password", pt);
+  CopyFromConfig(expiry_days, "expiry_days", pt);
+  CopyFromConfig(provision_path, "provision_path", pt);
+  CopyFromConfig(device_id, "device_id", pt);
+  CopyFromConfig(primary_ecu_serial, "primary_ecu_serial", pt);
+  CopyFromConfig(primary_ecu_hardware_id, "primary_ecu_hardware_id", pt);
+  CopyFromConfig(ecu_registration_endpoint, "ecu_registration_endpoint", pt);
   // provision.mode is set in postUpdateValues.
 }
 
@@ -156,13 +156,13 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(polling, "polling", boost::log::trivial::trace, pt);
-  CopyFromConfig(polling_sec, "polling_sec", boost::log::trivial::trace, pt);
-  CopyFromConfig(director_server, "director_server", boost::log::trivial::trace, pt);
-  CopyFromConfig(repo_server, "repo_server", boost::log::trivial::trace, pt);
+  CopyFromConfig(polling, "polling", pt);
+  CopyFromConfig(polling_sec, "polling_sec", pt);
+  CopyFromConfig(director_server, "director_server", pt);
+  CopyFromConfig(repo_server, "repo_server", pt);
 
   std::string ks = "file";
-  CopyFromConfig(ks, "key_source", boost::log::trivial::trace, pt);
+  CopyFromConfig(ks, "key_source", pt);
   if (ks == "pkcs11") {
     key_source = kPkcs11;
   } else {
@@ -170,7 +170,7 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   }
 
   std::string kt;
-  CopyFromConfig(kt, "key_type", boost::log::trivial::trace, pt);
+  CopyFromConfig(kt, "key_type", pt);
   if (kt.size() != 0u) {
     if (kt == "RSA2048") {
       key_type = kRSA2048;
@@ -181,7 +181,7 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
     }
   }
 
-  CopyFromConfig(legacy_interface, "legacy_interface", boost::log::trivial::trace, pt);
+  CopyFromConfig(legacy_interface, "legacy_interface", pt);
   // uptane.secondary_configs is populated by processing secondary configs from
   // the commandline and uptane.legacy_interface.
 }
@@ -197,7 +197,7 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(ipuptane, "ipuptane", boost::log::trivial::trace, pt);
+  CopyFromConfig(ipuptane, "ipuptane", pt);
 }
 
 void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, ipuptane, "ipuptane"); }
@@ -208,8 +208,8 @@ void DiscoveryConfig::writeToStream(std::ostream& out_stream) const { writeOptio
  *    us to print its content, i.e. for logging purposes.
  */
 std::ostream& operator<<(std::ostream& os, const Config& cfg) {
-  return os << "\tPolling enabled : " << cfg.uptane.polling << std::endl
-            << "\tPolling interval : " << cfg.uptane.polling_sec << std::endl;
+  cfg.writeToStream(os);
+  return os;
 }
 
 Config::Config() { postUpdateValues(); }
@@ -511,7 +511,10 @@ void Config::initLegacySecondaries() {
 void Config::writeToFile(const boost::filesystem::path& filename) const {
   // Keep this order the same as in config.h and Config::updateFromPropertyTree().
   std::ofstream sink(filename.c_str(), std::ofstream::out);
+  writeToStream(sink);
+}
 
+void Config::writeToStream(std::ostream& sink) const {
   WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(gateway, "gateway", sink);
   WriteSectionToStream(network, "network", sink);
