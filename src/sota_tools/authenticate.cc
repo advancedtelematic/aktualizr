@@ -10,6 +10,7 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
   switch (creds.GetMethod()) {
     case AUTH_BASIC: {
       treehub.SetAuthBasic(creds.GetAuthUser(), creds.GetAuthPassword());
+      treehub.ca_certs(cacerts);
       break;
     }
 
