@@ -42,9 +42,7 @@ class KeyManager {
  private:
   const std::shared_ptr<INvStorage> &backend_;
   KeyManagerConfig config_;
-#ifdef BUILD_P11
-  P11EngineGuard p11_;
-#endif
+  std::unique_ptr<P11EngineGuard> p11_;
   std::unique_ptr<TemporaryFile> tmp_pkey_file;
   std::unique_ptr<TemporaryFile> tmp_cert_file;
   std::unique_ptr<TemporaryFile> tmp_ca_file;
