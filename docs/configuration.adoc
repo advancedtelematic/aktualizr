@@ -150,7 +150,6 @@ Options for how Aktualizr stores data locally.
 | `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key. Only used with `filesystem`.
 | `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate. Only used with `filesystem`.
 | `sqldb_path`              | `"/var/sota/sql.db"`      | Path to the database file. Only used with `sqlite`.
-| `schemas_path`            | `"/usr/lib/sota/schemas"` | Path to the directory containing schema migrations. Only used with `sqlite`.
 |==========================================================================================
 
 == `import`

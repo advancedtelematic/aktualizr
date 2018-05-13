@@ -22,7 +22,6 @@ void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(tls_cacert_path, "tls_cacert_path", pt);
   CopyFromConfig(tls_pkey_path, "tls_pkey_path", pt);
   CopyFromConfig(tls_clientcert_path, "tls_clientcert_path", pt);
-  CopyFromConfig(schemas_path, "schemas_path", pt);
 }
 
 void StorageConfig::writeToStream(std::ostream& out_stream) const {
@@ -35,7 +34,6 @@ void StorageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, tls_cacert_path, "tls_cacert_path");
   writeOption(out_stream, tls_pkey_path, "tls_pkey_path");
   writeOption(out_stream, tls_clientcert_path, "tls_clientcert_path");
-  writeOption(out_stream, schemas_path, "schemas_path");
 }
 
 void ImportConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {

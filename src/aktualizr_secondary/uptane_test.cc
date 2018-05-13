@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   config.network.port = 0;  // random port
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir.Path() / "sql.db";
-  config.storage.schemas_path = "config/schemas";
+
   storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
   if (argc != 2) {

@@ -11,11 +11,6 @@
 #include "utilities/utils.h"
 
 SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
-  if (!boost::filesystem::is_directory(config.schemas_path)) {
-    throw std::runtime_error("Aktualizr installation incorrect. Schemas directory " + config.schemas_path.string() +
-                             " missing");
-  }
-
   if (!boost::filesystem::is_directory(config.sqldb_path.parent_path())) {
     Utils::createDirectories(config.sqldb_path.parent_path(), S_IRWXU);
   } else {
@@ -1053,19 +1048,18 @@ bool SQLStorage::dbMigrate() {
   }
 
   int schema_version = getVersion();
-  if (schema_version == kSqlSchemaVersion) {
+  if (schema_version == (schema_migrations.size() - 1)) {
     return true;
   } else if (schema_version == DbState::kInvalid) {
     LOG_ERROR << "We point to the wrong sqlite database file.";
     return false;
   }
-
-  for (; schema_version < kSqlSchemaVersion; schema_version++) {
-    boost::filesystem::path migrate_script_path =
-        config_.schemas_path / (std::string("migrate.") + std::to_string(schema_version + 1) + ".sql");
-    std::string req = Utils::readFile(migrate_script_path.string());
-
-    if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
+  if (schema_version + 1L >= schema_migrations.size()) {
+    LOG_ERROR << "Only forward migrattions are supported. You cannot migrate to the older chema.";
+    return false;
+  }
+  for (schema_version = schema_version + 1; schema_version < schema_migrations.size(); ++schema_version) {
+    if (db.exec(schema_migrations[schema_version].c_str(), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version" << (schema_version - 1) << " to version " << schema_version << ": "
                 << db.errmsg();
       return false;

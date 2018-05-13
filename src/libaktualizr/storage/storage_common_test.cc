@@ -40,7 +40,6 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
     config.tls_cacert_path = "test_tls.ca";
   } else if (config.type == kSqlite) {
     config.sqldb_path = storage_dir / "test.db";
-    config.schemas_path = "config/schemas";
   } else {
     std::cout << "Invalid config type: " << config.type << "\n";
   }

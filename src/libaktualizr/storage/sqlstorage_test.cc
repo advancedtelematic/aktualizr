@@ -7,18 +7,16 @@
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
-boost::filesystem::path schemas_path;
+extern const std::string current_schema;
 
 typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 
-static std::map<std::string, std::string> parseSchema(int version) {
-  boost::filesystem::path schema_file = schemas_path / (std::string("schema.") + std::to_string(version) + ".sql");
-  std::string schema = Utils::readFile(schema_file.string());
+static std::map<std::string, std::string> parseSchema() {
   std::map<std::string, std::string> result;
   std::vector<std::string> tokens;
-
   enum { STATE_INIT, STATE_CREATE, STATE_TABLE, STATE_NAME };
   boost::char_separator<char> sep(" \"\t\r\n", "(),;");
+  std::string schema(current_schema);
   sql_tokenizer tok(schema, sep);
   int parsing_state = STATE_INIT;
 
@@ -77,7 +75,7 @@ static bool tableSchemasEqual(const std::string& left, const std::string& right)
 }
 
 static bool dbSchemaCheck(SQLStorage& storage) {
-  std::map<std::string, std::string> tables = parseSchema(kSqlSchemaVersion);
+  std::map<std::string, std::string> tables = parseSchema();
 
   for (std::map<std::string, std::string>::iterator it = tables.begin(); it != tables.end(); ++it) {
     std::string schema_from_db = storage.getTableSchemaFromDb(it->first);
@@ -96,7 +94,6 @@ TEST(sqlstorage, migrate) {
   StorageConfig config;
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "test.db";
-  config.schemas_path = "config/schemas";
 
   SQLStorage storage(config);
   boost::filesystem::remove_all(config.sqldb_path);
@@ -106,25 +103,14 @@ TEST(sqlstorage, migrate) {
   EXPECT_TRUE(dbSchemaCheck(storage));
 }
 
-TEST(sqlstorage, MissingSchema) {
-  TemporaryDirectory temp_dir;
-  StorageConfig config;
-  config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "test.db";
-  config.schemas_path = "config/schemas-missing";
-
-  EXPECT_THROW(SQLStorage storage(config), std::runtime_error);
-}
-
 TEST(sqlstorage, MigrationVersionCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "test.db";
-  config.schemas_path = "config/schemas";
   SQLStorage storage(config);
 
-  EXPECT_EQ(storage.getVersion(), kSqlSchemaVersion);
+  EXPECT_EQ(storage.getVersion(), schema_migrations.size() - 1);
 }
 
 TEST(sqlstorage, WrongDatabaseCheck) {
@@ -132,7 +118,6 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   StorageConfig config;
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "test.db";
-  config.schemas_path = "config/schemas";
   SQLite3Guard db(config.sqldb_path.c_str());
   if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
     FAIL();
@@ -147,12 +132,6 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
-
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the schemas directory as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  schemas_path = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

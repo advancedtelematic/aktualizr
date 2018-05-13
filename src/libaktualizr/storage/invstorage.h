@@ -26,7 +26,6 @@ struct StorageConfig {
 
   // SQLite storage
   boost::filesystem::path sqldb_path{"/var/sota/sql.db"};
-  boost::filesystem::path schemas_path{"/usr/lib/sota/schemas"};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

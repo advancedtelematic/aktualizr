@@ -853,7 +853,6 @@ TEST(Uptane, fs_to_sql_full) {
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
-  config.schemas_path = "config/schemas";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
@@ -975,7 +974,6 @@ TEST(Uptane, fs_to_sql_partial) {
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
-  config.schemas_path = "config/schemas";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
@@ -1114,7 +1112,7 @@ TEST(Uptane, getMetaCorrectStorage) {
   config.storage.type = kSqlite;
   config.storage.path = temp_dir.Path();
   config.storage.sqldb_path = temp_dir / "db.sqlite";
-  config.storage.schemas_path = "config/schemas";
+
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
@@ -1136,7 +1134,7 @@ TEST(Uptane, krejectallTest) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
-  config.storage.schemas_path = "config/schemas";
+
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
@@ -1153,7 +1151,7 @@ TEST(Uptane, VerifyMetaTest) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
-  config.storage.schemas_path = "config/schemas";
+
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
