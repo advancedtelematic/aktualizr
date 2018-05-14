@@ -39,17 +39,33 @@ An example `.toml` configuration file can be found at link:../config/sota_hsm_pr
 +
 If you do not have your own CA certificate for signing device certificates, you can generate a self-signed certificate for testing.
 +
-For example, you can use the scripts in link:https://github.com/advancedtelematic/ota-community-edition[`ota-community-edition`]:
+ifdef::env-github[]
+You can examine the `new_server` function in link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L127[OTA Community Edition's `start.sh`] for one way of generating the cert.
+endif::[]
+ifndef::env-github[]
+With openssl on the command line:
 +
+[source,bash]
 ----
-git clone https://github.com/advancedtelematic/ota-community-edition.git
-cd ota-community-edition/
-./scripts/genserver.sh
+include::https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/start.sh[tags="genserverkeys"]
 ----
+endif::[]
 +
-This script creates a `./ota.ce/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
+This will create a `./${SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
 . Upload the root CA certificate to the server. To add a root CA certificate to link:https://atsgarage.com[ATS Garage], contact link:mailto:support@atsgarage.com[support@atsgarage.com].
-. Generate a device certificate and key, and sign it with the root CA you just created. Examine link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/genclient.sh[genclient.sh] for one such process.
+. Generate a device certificate and key, and sign it with the root CA you just created.
++
+ifdef::env-github[]
+Examine the link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L89[`new_client` function in start.sh] for one way to do that.
+endif::[]
+ifndef::env-github[]
+With openssl on the command line:
++
+[source,bash]
+----
+include::https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/start.sh[tags="genclientkeys"]
+----
+endif::[]
 . Add the internal root CA certificate of the device gateway the device will connect to. To get the device gateway's certificate, use openssl:
 +
 ----
