@@ -1,8 +1,10 @@
 = Configuration
 
-Aktualizr is configured via `.toml` config file and passed to the application via the `--config` flag. All fields are optional, and many have reasonable defaults that should be used unless you have a particular need to do otherwise.
+Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). By default, if `--config` is not specified on the command line, aktualizr searches `/usr/lib/sota/conf.d` and `/etc/sota/conf.d/` for files ending in a `.toml` extension. Aktualizr processes these config files in systemd style, meaning that if multiple files are found with the same name, the last one found overrules and hides the others. Files are processed in alphabetical order, so if a config option is specified in multiple files, the last entry found overrules the others.
 
-Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:../config/[] and link:../tests/config/[].
+Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:../config/[], link:../tests/config/[], and link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[].
+
+All fields are optional, and most have reasonable defaults that should be used unless you have a particular need to do otherwise.
 
 Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:../src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
 
