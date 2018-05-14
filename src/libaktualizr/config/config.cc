@@ -289,33 +289,6 @@ void Config::postUpdateValues() {
   LOG_TRACE << "Final configuration that will be used: \n" << (*this);
 }
 
-void Config::updateFromDirs(const std::vector<boost::filesystem::path>& configs) {
-  std::map<std::string, boost::filesystem::path> configs_map;
-  for (const auto& config : configs) {
-    if (boost::filesystem::is_directory(config)) {
-      for (const auto& config_file : Utils::glob((config / "*.toml").string())) {
-        configs_map[config_file.filename().string()] = config_file;
-      }
-    } else {
-      configs_map[config.filename().string()] = config;
-    }
-  }
-  for (const auto& config_file : configs_map) {
-    updateFromToml(config_file.second);
-  }
-}
-
-void Config::updateFromToml(const boost::filesystem::path& filename) {
-  LOG_DEBUG << "Reading config: " << filename;
-  if (!boost::filesystem::exists(filename)) {
-    throw std::runtime_error(filename.string() + " does not exist.");
-  }
-  boost::property_tree::ptree pt;
-  boost::property_tree::ini_parser::read_ini(filename.string(), pt);
-  updateFromPropertyTree(pt);
-  LOG_DEBUG << "Config read from " << filename;
-}
-
 // For testing
 void Config::updateFromTomlString(const std::string& contents) {
   boost::property_tree::ptree pt;

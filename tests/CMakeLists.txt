@@ -529,8 +529,7 @@ set_tests_properties(aktualizr_secondary_cmdline--something
 add_test(NAME aktualizr_secondary_no_config_check_message
          COMMAND aktualizr-secondary -c non-existent-config.toml)
 set_tests_properties(aktualizr_secondary_no_config_check_message
-                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary: configuration file .* not found. Exiting.")
-
+                     PROPERTIES PASS_REGULAR_EXPRESSION "non-existent-config.toml does not exist.")
 add_test(NAME aktualizr_secondary_help_with_other_options
          COMMAND aktualizr-secondary --help -c someconfig.toml)
 set_tests_properties(aktualizr_secondary_help_with_other_options
