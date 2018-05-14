@@ -26,7 +26,7 @@ set(HEADERS exceptions.h
 add_library(uptane OBJECT ${SOURCES})
 if (BUILD_OPCUA)
     target_sources(uptane PRIVATE opcuasecondary.cc)
-    target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/)
+    target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/open62541)
     set_source_files_properties(opcuasecondary.cc PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
 endif (BUILD_OPCUA)
 

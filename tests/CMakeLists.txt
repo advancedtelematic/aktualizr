@@ -223,7 +223,7 @@ if(BUILD_OSTREE)
 endif(BUILD_OSTREE)
 
 if(BUILD_OPCUA)
-    include_directories(${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/)
+    include_directories(${PROJECT_SOURCE_DIR}/third_party/open62541)
     set_source_files_properties(opcuabridge_test_utils.cc opcuabridge_messaging_test.cc opcuabridge_server.cc
                                 opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                                 opcuabridge_ostree_repo_sync_client.cc

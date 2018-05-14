@@ -80,6 +80,7 @@ UA_StatusCode write<MessageBinaryData>(UA_Server *server, const UA_NodeId *sessi
     auto *bin_data = static_cast<BinaryDataType *>(nodeContext);
     bin_data->resize(data->value.arrayLength);
     const auto *src = static_cast<const unsigned char *>(data->value.data);
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     std::copy(src, src + data->value.arrayLength, bin_data->begin());
   }
   return UA_STATUSCODE_GOOD;
@@ -142,6 +143,16 @@ UA_StatusCode ClientWriteFile(UA_Client *client, const char *node_id, const boos
   UA_Variant_delete(val);
 
   return UA_STATUSCODE_GOOD;
+}
+
+/**
+ * Workaround for cppcoreguidelines-pro-bounds-pointer-arithmetic
+ * TODO: Replace with something that is memory-safe
+ */
+void parseJson(const char *msg, size_t len, Json::Value *value) {
+  Json::Reader rd;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  rd.parse(msg, msg + len, *value);
 }
 
 }  // namespace internal

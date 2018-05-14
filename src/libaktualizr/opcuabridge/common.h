@@ -8,8 +8,8 @@
 
 #include <functional>
 
+#include <json/json.h>
 #include <open62541.h>
-#include "json/json.h"
 
 #include <algorithm>
 #include <string>
@@ -86,11 +86,20 @@ class path;
     return fw.write(value);                   \
   }
 
+namespace opcuabridge {
+namespace internal {
+/**
+ * Workaround for cppcoreguidelines-pro-bounds-pointer-arithmetic
+ * TODO: Replace with something that is memory-safe
+ */
+void parseJson(const char *msg, size_t len, Json::Value *value);
+}  // namespace internal
+}  // namespace opcuabridge
+
 #define UNWRAPMESSAGE_FUCTION_DEFINITION(TYPE)                        \
   static void unwrapMessage(TYPE *obj, const char *msg, size_t len) { \
-    Json::Reader rd;                                                  \
     Json::Value value;                                                \
-    rd.parse(msg, msg + len, value);                                  \
+    opcuabridge::internal::parseJson(msg, len, &value);               \
     obj->unwrapMessage(value);                                        \
   }
 
@@ -273,6 +282,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT
     if (retval == UA_STATUSCODE_GOOD && UA_Variant_hasArrayType(bin_val, &UA_TYPES[UA_TYPES_BYTE])) {
       bin_data->resize(bin_val->arrayLength);
       const auto *src = static_cast<const unsigned char *>(bin_val->data);
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       std::copy(src, src + bin_val->arrayLength, bin_data->begin());
     }
     UA_Variant_delete(bin_val);
