@@ -63,7 +63,7 @@ class P11SlotsWrapper {
   unsigned int get_nslots() const { return nslots; }
 
  private:
-  PKCS11_ctx_st *ctx;
+  PKCS11_ctx_st *ctx;  // NOLINT
   PKCS11_slot_st *slots;
   unsigned int nslots;
 };
