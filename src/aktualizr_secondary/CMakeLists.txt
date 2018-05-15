@@ -40,18 +40,7 @@ target_include_directories(aktualizr_secondary_static_lib PUBLIC
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
     aktualizr_secondary_static_lib
-    ${Boost_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
-    ${sodium_LIBRARY_RELEASE}
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${CURL_LIBRARIES}
-    ${GLIB2_LIBRARIES}
-    ${LibArchive_LIBRARIES}
-    ${LIBOSTREE_LIBRARIES}
-    ${SQLITE3_LIBRARIES}
-    ${LIBDPKG_LIBRARIES}
-    ${LIBP11_LIBRARIES}
-    ${SYSTEMD_LIBRARY}
+    ${AKTUALIZR_EXTERNAL_LIBS}
     )
 
 if(BUILD_WITH_CODE_COVERAGE)
@@ -75,6 +64,73 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
 set(AKTUALIZR_SECONDARY_ALL_CHECKS ${AKTUALIZR_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_LIB_SRC} ${ALL_AKTUALIZR_SECONDARY_HEADERS}
                                    ${OPCUA_SECONDARY_SRC})
 list(REMOVE_DUPLICATES AKTUALIZR_SECONDARY_ALL_CHECKS)
-aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_ALL_CHECKS})
+
+include(AddAktualizrTest)
+
+list(APPEND TEST_LIBS aktualizr_secondary_static_lib)
+
+add_aktualizr_test(NAME aktualizr_secondary_config SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_discovery SOURCES aktualizr_secondary_discovery_test.cc  ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+
+add_test(NAME aktualizr-secondary-help
+    COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
+
+add_aktualizr_test(NAME aktualizr_secondary_protocol SOURCES protocol_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
+
+add_aktualizr_test(NAME aktualizr_secondary_update SOURCES update_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
+
+add_aktualizr_test(NAME aktualizr_secondary_uptane SOURCES uptane_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
+
+# test running the executable with command line option --help
+add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)
+# test running the executable with command line option --something
+add_test(NAME aktualizr_secondary_cmdline--something
+         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+# call the executable without any options
+add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr)
+# test the return code when running the executable with non-existent configuration file
+add_test(NAME aktualizr_secondary_no_config_check_code
+         COMMAND aktualizr -c non-existent-config.toml)
+
+# testcases with non-supported command line options will return 1
+# in this case we want the testcase to pass
+set_tests_properties(aktualizr_secondary_cmdline--something
+                     aktualizr_secondary_cmdline_empty
+                     aktualizr_secondary_no_config_check_code
+                     PROPERTIES WILL_FAIL TRUE)
+
+# Check for expected output messages given specific misconfigurations
+# test the error message when running the executable with non-existent configuration file
+add_test(NAME aktualizr_secondary_no_config_check_message
+         COMMAND aktualizr-secondary -c non-existent-config.toml)
+set_tests_properties(aktualizr_secondary_no_config_check_message
+                     PROPERTIES PASS_REGULAR_EXPRESSION "non-existent-config.toml does not exist.")
+
+add_test(NAME aktualizr_secondary_help_with_other_options
+         COMMAND aktualizr-secondary --help -c someconfig.toml)
+set_tests_properties(aktualizr_secondary_help_with_other_options
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary command line options")
+
+add_test(NAME aktualizr_secondary_help_with_nonexistent_options
+         COMMAND aktualizr-secondary --help -somebadoption)
+set_tests_properties(aktualizr_secondary_help_with_nonexistent_options
+                     PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr-secondary command line options")
+
+# check aktualizr-secondary invalid logging levels
+add_test(NAME aktualizr_secondary_log_invalid
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/aktualizr_secondary.toml --loglevel=6)
+set_tests_properties(aktualizr_secondary_log_invalid
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+add_test(NAME aktualizr_secondary_log_negative
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/aktualizr_secondary.toml --loglevel=-1)
+set_tests_properties(aktualizr_secondary_log_negative
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
+
+
+
+aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_ALL_CHECKS} ${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

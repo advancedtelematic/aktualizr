@@ -5,12 +5,8 @@ set(MAIN_ECU_INTERFACE_SRC interface_main.cc make_ecu.cc)
 
 add_executable(example-interface ${MAIN_ECU_INTERFACE_SRC} example_flasher.cc)
 target_link_libraries(example-interface
-                      ${Boost_SYSTEM_LIBRARIES}
                       aktualizr_static_lib
-                      ${Boost_LIBRARIES}
-                      ${LibArchive_LIBRARIES}
-                      ${LIBOSTREE_LIBRARIES}
-                      ${CMAKE_THREAD_LIBS_INIT})
+                      ${AKTUALIZR_EXTERNAL_LIBS})
 target_compile_options(example-interface PUBLIC -DECUFLASHER_EXAMPLE)
 
 add_executable(aktualizr-validate-secondary-interface validate_secondary_interface_test.cc)
@@ -43,12 +39,8 @@ if(BUILD_ISOTP)
 
     add_executable(isotp-test-interface ${MAIN_ECU_INTERFACE_SRC} ${ISOTP_TEST_SRC} ${ISOTP_SRC})
     target_link_libraries(isotp-test-interface
-                          ${Boost_SYSTEM_LIBRARIES}
                           aktualizr_static_lib
-                          ${Boost_LIBRARIES}
-                          ${LibArchive_LIBRARIES}
-                          ${LIBOSTREE_LIBRARIES}
-                          ${CMAKE_THREAD_LIBS_INIT})
+                          ${AKTUALIZR_EXTERNAL_LIBS})
     target_compile_options(isotp-test-interface PUBLIC -DECUFLASHER_TEST_ISOTP)
     target_include_directories(isotp-test-interface PUBLIC ${ISOTP_PATH_PREFIX} ${BITFIELD_PATH_PREFIX})
 
@@ -58,5 +50,12 @@ if(BUILD_ISOTP)
 
     install(TARGETS isotp-test-interface RUNTIME DESTINATION bin)
 endif(BUILD_ISOTP)
+
+add_dependencies(build_tests aktualizr-validate-secondary-interface example-interface)
+add_test(NAME validate-secondary-interface
+    COMMAND aktualizr-validate-secondary-interface
+    --target ${PROJECT_BINARY_DIR}/src/external_secondaries/example-interface
+    --firmware ${PROJECT_SOURCE_DIR}/tests/test_data/firmware.txt)
+
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

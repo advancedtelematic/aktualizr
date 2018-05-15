@@ -11,5 +11,10 @@ set(HEADERS channel.h
 
 
 add_library(utilities OBJECT ${SOURCES})
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+include(AddAktualizrTest)
+
+add_aktualizr_test(NAME timer SOURCES timer_test.cc)
+add_aktualizr_test(NAME utils SOURCES utils_test.cc PROJECT_WORKING_DIRECTORY)
+
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
 

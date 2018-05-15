@@ -19,4 +19,8 @@ else(BUILD_P11)
     target_sources(crypto PRIVATE p11engine_dummy.cc)
 endif(BUILD_P11)
 
-aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11engine.h)
+
+add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
+
+aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11engine.h ${TEST_SOURCES})

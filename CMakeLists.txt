@@ -85,6 +85,12 @@ if(BUILD_P11)
     add_definitions(-DBUILD_P11)
 endif(BUILD_P11)
 
+# Setup PKCS11
+if(TEST_PKCS11_MODULE_PATH)
+    add_definitions(-DTEST_PKCS11_MODULE_PATH="${TEST_PKCS11_MODULE_PATH}"
+                    -DTEST_PKCS11_ENGINE_PATH="${TEST_PKCS11_ENGINE_PATH}")
+endif(TEST_PKCS11_MODULE_PATH)
+
 if(BUILD_SOTA_TOOLS)
     find_package(GLIB2 REQUIRED)
     find_program(STRACE NAMES strace)
@@ -298,6 +304,30 @@ include(CPack)
 include(CPackComponent)
 
 
+set (AKTUALIZR_EXTERNAL_LIBS
+    ${Boost_SYSTEM_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${CURL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${sodium_LIBRARY_RELEASE}
+    ${LIBOSTREE_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
+    ${LibArchive_LIBRARIES}
+    ${LIBP11_LIBRARIES}
+    ${LIBDPKG_LIBRARIES}
+    ${GLIB2_LIBRARIES}
+    ${SYSTEMD_LIBRARY})
+
+set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
+    if(BUILD_WITH_CODE_COVERAGE)
+        list(APPEND TEST_LIBS gcov)
+    endif(BUILD_WITH_CODE_COVERAGE)
+
+
+include(CTest)
+ENABLE_TESTING()
+
 add_subdirectory("fuzz")
 add_subdirectory("config")
 if (BUILD_LOAD_TESTS)
@@ -316,8 +346,6 @@ add_subdirectory("src/implicit_writer")
 add_subdirectory("src/external_secondaries")
 
 add_subdirectory("src/load_tests")
-
-include(CTest)
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
 add_subdirectory("docs")
