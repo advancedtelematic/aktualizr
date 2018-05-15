@@ -98,6 +98,9 @@ endif(BUILD_SOTA_TOOLS)
 
 if(BUILD_OPCUA)
     add_definitions(-DOPCUA_SECONDARY_ENABLED)
+    if (NOT BUILD_OSTREE)
+        message(FATAL_ERROR "BUILD_OPCUA requires BUILD_OSTREE")
+    endif(NOT BUILD_OSTREE)
 endif(BUILD_OPCUA)
 
 if(BUILD_SYSTEMD)
