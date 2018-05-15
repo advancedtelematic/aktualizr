@@ -33,14 +33,14 @@ endif (BUILD_OPCUA)
 add_aktualizr_test(NAME discovery_secondary SOURCES ipsecondary_discovery_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME tuf SOURCES tuf_test.cc PROJECT_WORKING_DIRECTORY)
 
-if(BUILD_OSTREE)
-    if(SOTA_PACKED_CREDENTIALS)
-        add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
-                           ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
-        set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
-    endif(SOTA_PACKED_CREDENTIALS)
-endif(BUILD_OSTREE)
-list(APPEND TEST_SOURCES uptane_ci_test.cc)
+if(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
+    add_aktualizr_test(NAME uptane_ci SOURCES uptane_ci_test.cc PROJECT_WORKING_DIRECTORY NO_VALGRIND
+                        ARGS ${SOTA_PACKED_CREDENTIALS} ${PROJECT_BINARY_DIR}/ostree_repo)
+    set_tests_properties(test_uptane_ci PROPERTIES LABELS "credentials")
+else(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
+    list(APPEND TEST_SOURCES uptane_ci_test.cc)
+endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
+
 
 add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
