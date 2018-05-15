@@ -117,7 +117,7 @@ TEST(UptaneKey, CheckAllKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
@@ -138,7 +138,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    Uptane::Repository uptane(config, storage, http);
+    Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
@@ -150,7 +150,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   }
   {
     auto storage = INvStorage::newStorage(config.storage);
-    Uptane::Repository uptane(config, storage, http);
+    Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 
@@ -168,7 +168,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
 
   {
     auto storage = INvStorage::newStorage(config.storage);
-    Uptane::Repository uptane(config, storage, http);
+    Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
 

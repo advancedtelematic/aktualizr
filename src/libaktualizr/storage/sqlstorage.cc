@@ -340,7 +340,7 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
   return true;
 }
 
-void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
+void SQLStorage::storeMetadataCommon(const Uptane::RawMetaPack& metadata, const std::string& tablename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -352,22 +352,15 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
     return;
   }
 
-  if (db.exec("DELETE FROM meta;", nullptr, nullptr) != SQLITE_OK) {
+  if (db.exec("DELETE FROM " + tablename + ";", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear meta: " << db.errmsg();
     return;
   }
 
-  std::vector<std::string> jsons;
-  jsons.push_back(Json::FastWriter().write(metadata.director_root.original()));
-  jsons.push_back(Json::FastWriter().write(metadata.director_targets.original()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_root.original()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_targets.original()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_timestamp.original()));
-  jsons.push_back(Json::FastWriter().write(metadata.image_snapshot.original()));
-
   auto statement = db.prepareStatement<SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob, SQLBlob>(
-      "INSERT INTO meta VALUES (?,?,?,?,?,?);", SQLBlob(jsons[0]), SQLBlob(jsons[1]), SQLBlob(jsons[2]),
-      SQLBlob(jsons[3]), SQLBlob(jsons[4]), SQLBlob(jsons[5]));
+      "INSERT INTO " + tablename + " VALUES (?,?,?,?,?,?);", SQLBlob(metadata.director_root),
+      SQLBlob(metadata.director_targets), SQLBlob(metadata.image_root), SQLBlob(metadata.image_targets),
+      SQLBlob(metadata.image_timestamp), SQLBlob(metadata.image_snapshot));
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set metadata: " << db.errmsg();
@@ -377,7 +370,7 @@ void SQLStorage::storeMetadata(const Uptane::MetaPack& metadata) {
   db.commitTransaction();
 }
 
-bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
+bool SQLStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::string& tablename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -387,7 +380,7 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
 
   request = kSqlGetTable;
   req_response_table.clear();
-  if (db.exec("SELECT * FROM meta;", callback, this) != SQLITE_OK) {
+  if (db.exec("SELECT * FROM " + tablename + ";", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
     return false;
   }
@@ -395,68 +388,47 @@ bool SQLStorage::loadMetadata(Uptane::MetaPack* metadata) {
     return false;
   }
 
-  Json::Value json = Utils::parseJSON(req_response_table[0]["director_root"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;  // Old format contains only signed part.
-    }
-    metadata->director_root = Uptane::Root("director", fixed_json);
-  } else {
+  const std::string* data = &req_response_table[0]["director_root"];
+  if (data->empty())
     return false;
+  else if (metadata) {
+    metadata->director_root = *data;
   }
 
-  json = Utils::parseJSON(req_response_table[0]["image_root"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_root = Uptane::Root("image", fixed_json);
-  } else {
+  data = &req_response_table[0]["image_root"];
+  if (data->empty())
     return false;
-  }
+  else if (metadata)
+    metadata->image_root = *data;
 
-  json = Utils::parseJSON(req_response_table[0]["director_targets"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->director_targets = Uptane::Targets(fixed_json);
-  }
+  data = &req_response_table[0]["director_targets"];
+  if (data->empty())
+    return false;
+  else if (metadata)
+    metadata->director_targets = *data;
 
-  json = Utils::parseJSON(req_response_table[0]["image_targets"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_targets = Uptane::Targets(fixed_json);
-  }
+  data = &req_response_table[0]["image_targets"];
+  if (data->empty())
+    return false;
+  else if (metadata)
+    metadata->image_targets = *data;
 
-  json = Utils::parseJSON(req_response_table[0]["image_timestamp"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
-  }
+  data = &req_response_table[0]["image_timestamp"];
+  if (data->empty())
+    return false;
+  else if (metadata)
+    metadata->image_timestamp = *data;
 
-  json = Utils::parseJSON(req_response_table[0]["image_snapshot"]);
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_snapshot = Uptane::Snapshot(fixed_json);
-  }
+  data = &req_response_table[0]["image_snapshot"];
+  if (data->empty())
+    return false;
+  else if (metadata)
+    metadata->image_snapshot = *data;
 
   return true;
 }
 
-void SQLStorage::clearMetadata() {
+void SQLStorage::clearMetadataCommon(const std::string& tablename) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -464,10 +436,99 @@ void SQLStorage::clearMetadata() {
     return;
   }
 
-  if (db.exec("DELETE FROM meta;", nullptr, nullptr) != SQLITE_OK) {
+  if (db.exec("DELETE FROM " + tablename + ";", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear meta: " << db.errmsg();
     return;
   }
+}
+
+void SQLStorage::storeMetadata(const Uptane::RawMetaPack& metadata) { storeMetadataCommon(metadata, "meta"); }
+bool SQLStorage::loadMetadata(Uptane::RawMetaPack* metadata) { return loadMetadataCommon(metadata, "meta"); }
+void SQLStorage::clearMetadata() { clearMetadataCommon("meta"); }
+
+void SQLStorage::storeUncheckedMetadata(const Uptane::RawMetaPack& metadata) {
+  storeMetadataCommon(metadata, "rawmeta");
+}
+bool SQLStorage::loadUncheckedMetadata(Uptane::RawMetaPack* metadata) {
+  return loadMetadataCommon(metadata, "rawmeta");
+}
+void SQLStorage::clearUncheckedMetadata() { clearMetadataCommon("rawmeta"); }
+
+void SQLStorage::storeRootCommon(bool director, const std::string& root, Uptane::Version version,
+                                 const std::string& tablename) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (!db.beginTransaction()) {
+    return;
+  }
+
+  auto delete_statement = db.prepareStatement<int, int>(
+      "DELETE FROM " + tablename + " WHERE (director=? AND version=?);", director, version.version());
+  if (delete_statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't clear root meta: " << db.errmsg();
+    return;
+  }
+
+  auto statement = db.prepareStatement<SQLBlob, int, int>("INSERT INTO " + tablename + " VALUES (?,?,?);",
+                                                          SQLBlob(root), director, version.version());
+
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set root meta: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+bool SQLStorage::loadRootCommon(bool director, std::string* root, Uptane::Version version,
+                                const std::string& tablename) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return false;
+  }
+
+  auto statement = db.prepareStatement<int, int>("SELECT root FROM " + tablename + " WHERE (director=? AND version=?);",
+                                                 director, version.version());
+
+  int result = statement.step();
+
+  if (result == SQLITE_DONE) {
+    LOG_ERROR << "Root meta not present";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get root meta: " << db.errmsg();
+    return false;
+  }
+  std::string data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+
+  if (data.empty())
+    return false;
+  else if (root) {
+    *root = std::move(data);
+  }
+
+  return true;
+}
+
+void SQLStorage::storeRoot(bool director, const std::string& root, Uptane::Version version) {
+  storeRootCommon(director, root, version, "root_meta");
+}
+bool SQLStorage::loadRoot(bool director, std::string* root, Uptane::Version version) {
+  return loadRootCommon(director, root, version, "root_meta");
+}
+
+void SQLStorage::storeUncheckedRoot(bool director, const std::string& root, Uptane::Version version) {
+  storeRootCommon(director, root, version, "root_rawmeta");
+}
+bool SQLStorage::loadUncheckedRoot(bool director, std::string* root, Uptane::Version version) {
+  return loadRootCommon(director, root, version, "root_rawmeta");
 }
 
 void SQLStorage::storeDeviceId(const std::string& device_id) {

@@ -59,7 +59,7 @@ void AktualizrSecondary::run() {
         break;
       }
       case kSecondaryMesPutMetaReqTag: {
-        Uptane::MetaPack meta_pack;
+        Uptane::RawMetaPack meta_pack;
 
         auto* in_putmeta = dynamic_cast<SecondaryPutMetaReq*>(&(*pkt->msg));
         auto* out_msg_putmeta = new SecondaryPutMetaResp;
@@ -79,10 +79,10 @@ void AktualizrSecondary::run() {
           break;
         }
 
-        meta_pack.director_targets = Uptane::Targets(Utils::parseJSON(in_putmeta->director_targets));
-        meta_pack.image_targets = Uptane::Targets(Utils::parseJSON(in_putmeta->image_targets));
-        meta_pack.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(in_putmeta->image_timestamp));
-        meta_pack.image_snapshot = Uptane::Snapshot(Utils::parseJSON(in_putmeta->image_snapshot));
+        meta_pack.director_targets = in_putmeta->director_targets;
+        meta_pack.image_targets = in_putmeta->image_targets;
+        meta_pack.image_timestamp = in_putmeta->image_timestamp;
+        meta_pack.image_snapshot = in_putmeta->image_snapshot;
         out_msg_putmeta->result = putMetadataResp(meta_pack);
         break;
       }
@@ -105,9 +105,7 @@ void AktualizrSecondary::run() {
           break;
         }
 
-        out_msg_putroot->result = putRootResp(
-            Uptane::Root(((in_msg_putroot->director) ? "director" : "repo"), Utils::parseJSON(in_msg_putroot->root)),
-            in_msg_putroot->director);
+        out_msg_putroot->result = putRootResp(in_msg_putroot->root, in_msg_putroot->director);
 
         break;
       }
@@ -144,14 +142,13 @@ Json::Value AktualizrSecondary::getManifestResp() const {
   return keys_.signTuf(manifest);
 }
 
-bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
+bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   detected_attack_.clear();
 
-  if (!meta_pack.isConsistent()) {
-    return false;
-  }
-  if (meta_targets_.version() > meta_pack.director_targets.version()) {
+  root_ = Uptane::Root(now, "director", Utils::parseJSON(meta_pack.director_root), root_);
+  Uptane::Targets targets(now, "director", Utils::parseJSON(meta_pack.director_targets), root_);
+  if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }
@@ -173,19 +170,20 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
 }
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
-  Uptane::MetaPack metapack;
-  if (!storage_->loadMetadata(&metapack)) {
+  Uptane::RawMetaPack meta_pack;
+  if (!storage_->loadMetadata(&meta_pack)) {
     LOG_ERROR << "Could not load metadata";
     return -1;
   }
 
   if (director) {
-    return metapack.director_root.version();
+    return Uptane::Root("director", Utils::parseJSON(meta_pack.director_root)).version();
+  } else {
+    return Uptane::Root("repo", Utils::parseJSON(meta_pack.image_root)).version();
   }
-  return metapack.image_root.version();
 }
 
-bool AktualizrSecondary::putRootResp(Uptane::Root root, bool director) {
+bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
   (void)root;
   (void)director;
   LOG_ERROR << "putRootResp is not implemented yet";

@@ -31,12 +31,12 @@ PartialVerificationSecondary::PartialVerificationSecondary(const SecondaryConfig
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
-bool PartialVerificationSecondary::putMetadata(const MetaPack &meta) {
+bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
-  root_ = Uptane::Root(now, "director", meta.director_root.original(), root_);
-  Uptane::Targets targets(now, "director", meta.director_targets.original(), root_);
+  root_ = Uptane::Root(now, "director", Utils::parseJSON(meta.director_root), root_);
+  Uptane::Targets targets(now, "director", Utils::parseJSON(meta.director_targets), root_);
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
@@ -67,7 +67,7 @@ int PartialVerificationSecondary::getRootVersion(bool director) {
   return 0;
 }
 
-bool PartialVerificationSecondary::putRoot(Uptane::Root root, bool director) {
+bool PartialVerificationSecondary::putRoot(const std::string &root, bool director) {
   (void)root;
   (void)director;
 

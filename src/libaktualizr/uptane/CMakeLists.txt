@@ -1,4 +1,5 @@
-set(SOURCES ipsecondarydiscovery.cc
+set(SOURCES fetcher.cc
+    ipsecondarydiscovery.cc
     ipuptanesecondary.cc
     legacysecondary.cc
     managedsecondary.cc
@@ -10,6 +11,7 @@ set(SOURCES ipsecondarydiscovery.cc
     virtualsecondary.cc)
 
 set(HEADERS exceptions.h
+    fetcher.h
     ipsecondarydiscovery.h
     ipuptanesecondary.h
     legacysecondary.h

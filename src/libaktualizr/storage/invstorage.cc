@@ -170,7 +170,7 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
     sql_storage->storeInstalledVersions(installed_versions, current_hash);
   }
 
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
   if (fs_storage->loadMetadata(&metadata)) {
     sql_storage->storeMetadata(metadata);
   }

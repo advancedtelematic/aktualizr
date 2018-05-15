@@ -149,102 +149,96 @@ bool FSStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, conf
 
 bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
 
-void FSStorage::storeMetadata(const Uptane::MetaPack& metadata) {
+void FSStorage::storeMetadataCommon(const Uptane::RawMetaPack& metadata, const std::string& suffix) {
   boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
-  Utils::writeFile((director_path / "root.json"), metadata.director_root.original());
-  Utils::writeFile((director_path / "targets.json"), metadata.director_targets.original());
-  Utils::writeFile((image_path / "root.json"), metadata.image_root.original());
-  Utils::writeFile((image_path / "targets.json"), metadata.image_targets.original());
-  Utils::writeFile((image_path / "timestamp.json"), metadata.image_timestamp.original());
-  Utils::writeFile((image_path / "snapshot.json"), metadata.image_snapshot.original());
+  Utils::writeFile((director_path / ("root.json" + suffix)), metadata.director_root);
+  Utils::writeFile((director_path / ("targets.json" + suffix)), metadata.director_targets);
+  Utils::writeFile((image_path / ("root.json" + suffix)), metadata.image_root);
+  Utils::writeFile((image_path / ("targets.json" + suffix)), metadata.image_targets);
+  Utils::writeFile((image_path / ("timestamp.json" + suffix)), metadata.image_timestamp);
+  Utils::writeFile((image_path / ("snapshot.json" + suffix)), metadata.image_snapshot);
   sync();
 }
 
-bool FSStorage::loadMetadata(Uptane::MetaPack* metadata) {
+bool FSStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::string& suffix) {
   boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
-  if (!boost::filesystem::exists(director_path / "root.json") ||
-      !boost::filesystem::exists(director_path / "targets.json") ||
-      !boost::filesystem::exists(image_path / "root.json") || !boost::filesystem::exists(image_path / "targets.json") ||
-      !boost::filesystem::exists(image_path / "timestamp.json") ||
-      !boost::filesystem::exists(image_path / "snapshot.json")) {
+  if (!boost::filesystem::exists(director_path / ("root.json" + suffix)) ||
+      !boost::filesystem::exists(director_path / ("targets.json" + suffix)) ||
+      !boost::filesystem::exists(image_path / ("root.json" + suffix)) ||
+      !boost::filesystem::exists(image_path / ("targets.json" + suffix)) ||
+      !boost::filesystem::exists(image_path / ("timestamp.json" + suffix)) ||
+      !boost::filesystem::exists(image_path / ("snapshot.json" + suffix))) {
     return false;
   }
 
-  Json::Value json = Utils::parseJSONFile(director_path / "root.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;  // Old format contains only signed part.
-    }
-    metadata->director_root = Uptane::Root("director", fixed_json);
-  } else {
-    return false;
-  }
-
-  json = Utils::parseJSONFile(image_path / "root.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_root = Uptane::Root("image", fixed_json);
-  } else {
-    return false;
-  }
-
-  json = Utils::parseJSONFile(director_path / "targets.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->director_targets = Uptane::Targets(fixed_json);
-  }
-
-  json = Utils::parseJSONFile(image_path / "targets.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_targets = Uptane::Targets(fixed_json);
-  }
-
-  json = Utils::parseJSONFile(image_path / "timestamp.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_timestamp = Uptane::TimestampMeta(fixed_json);
-  }
-
-  json = Utils::parseJSONFile(image_path / "snapshot.json");
-  if (json != Json::nullValue) {
-    Json::Value fixed_json = json;
-    if (!json.isMember("signed")) {
-      fixed_json["signed"] = json;
-    }
-    metadata->image_snapshot = Uptane::Snapshot(fixed_json);
+  if (metadata) {
+    metadata->director_root = Utils::readFile(director_path / ("root.json" + suffix));
+    metadata->image_root = Utils::readFile(image_path / ("root.json" + suffix));
+    metadata->director_targets = Utils::readFile(director_path / ("targets.json" + suffix));
+    metadata->image_targets = Utils::readFile(image_path / ("targets.json" + suffix));
+    metadata->image_timestamp = Utils::readFile(image_path / ("timestamp.json" + suffix));
+    metadata->image_snapshot = Utils::readFile(image_path / ("snapshot.json" + suffix));
   }
 
   return true;
 }
 
-void FSStorage::clearMetadata() {
+void FSStorage::clearMetadataCommon(const std::string& suffix) {
   boost::filesystem::path image_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
 
-  boost::filesystem::remove(director_path / "root.json");
-  boost::filesystem::remove(director_path / "targets.json");
-  boost::filesystem::remove(director_path / "root.json");
-  boost::filesystem::remove(director_path / "targets.json");
-  boost::filesystem::remove(image_path / "timestamp.json");
-  boost::filesystem::remove(image_path / "snapshot.json");
+  boost::filesystem::remove(director_path / ("root.json" + suffix));
+  boost::filesystem::remove(director_path / ("targets.json" + suffix));
+  boost::filesystem::remove(director_path / ("root.json" + suffix));
+  boost::filesystem::remove(director_path / ("targets.json" + suffix));
+  boost::filesystem::remove(image_path / ("timestamp.json" + suffix));
+  boost::filesystem::remove(image_path / ("snapshot.json" + suffix));
+}
+
+void FSStorage::storeMetadata(const Uptane::RawMetaPack& metadata) { storeMetadataCommon(metadata, ""); }
+bool FSStorage::loadMetadata(Uptane::RawMetaPack* metadata) { return loadMetadataCommon(metadata, ""); }
+void FSStorage::clearMetadata() { clearMetadataCommon(""); }
+
+void FSStorage::storeUncheckedMetadata(const Uptane::RawMetaPack& metadata) { storeMetadataCommon(metadata, ".raw"); }
+bool FSStorage::loadUncheckedMetadata(Uptane::RawMetaPack* metadata) { return loadMetadataCommon(metadata, ".raw"); }
+void FSStorage::clearUncheckedMetadata() { clearMetadataCommon(".raw"); }
+
+void FSStorage::storeRootCommon(bool director, const std::string& root, Uptane::Version version,
+                                const std::string& suffix) {
+  boost::filesystem::path dir_path =
+      Utils::absolutePath(config_.path, config_.uptane_metadata_path) / ((director) ? "director" : "repo");
+
+  Utils::writeFile((dir_path / (version.RoleFileName(Uptane::Role::Root()) + suffix)), root);
+}
+bool FSStorage::loadRootCommon(bool director, std::string* root, Uptane::Version version, const std::string& suffix) {
+  boost::filesystem::path dir_path =
+      Utils::absolutePath(config_.path, config_.uptane_metadata_path) / ((director) ? "director" : "repo");
+  boost::filesystem::path file_path = dir_path / (version.RoleFileName(Uptane::Role::Root()) + suffix);
+  if (!boost::filesystem::exists(file_path)) return false;
+  if (root) {
+    *root = Utils::readFile(file_path);
+  }
+  return true;
+}
+
+void FSStorage::storeRoot(bool director, const std::string& root, Uptane::Version version) {
+  storeRootCommon(director, root, version, "");
+}
+
+bool FSStorage::loadRoot(bool director, std::string* root, Uptane::Version version) {
+  return loadRootCommon(director, root, version, "");
+}
+
+void FSStorage::storeUncheckedRoot(bool director, const std::string& root, Uptane::Version version) {
+  storeRootCommon(director, root, version, ".raw");
+}
+
+bool FSStorage::loadUncheckedRoot(bool director, std::string* root, Uptane::Version version) {
+  return loadRootCommon(director, root, version, ".raw");
 }
 
 void FSStorage::storeDeviceId(const std::string& device_id) {

@@ -74,13 +74,10 @@ TEST(SecondaryFactory, Uptane_putMetadata_good) {
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
   Uptane::PartialVerificationSecondary sec(sconfig);
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
 
-  Json::Value json_root = Utils::parseJSONFile("tests/test_data/repo/root.json");
-  metadata.director_root = Uptane::Root("director", json_root);
-
-  Json::Value json_targets = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
-  metadata.director_targets = Uptane::Targets(json_targets);
+  metadata.director_root = Utils::readFile("tests/test_data/repo/root.json");
+  metadata.director_targets = Utils::readFile("tests/test_data/targets_hasupdates.json");
   EXPECT_NO_THROW(sec.putMetadata(metadata));
 }
 
@@ -98,14 +95,13 @@ TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
   sconfig.metadata_path = temp_dir.Path() / "metadata";
   Uptane::PartialVerificationSecondary sec(sconfig);
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
 
-  Json::Value json_root = Utils::parseJSONFile("tests/test_data/repo/root.json");
-  metadata.director_root = Uptane::Root("director", json_root);
+  metadata.director_root = Utils::readFile("tests/test_data/repo/root.json");
 
   Json::Value json_targets = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
   json_targets["signatures"][0]["sig"] = "Wrong signature";
-  metadata.director_targets = Uptane::Targets(json_targets);
+  metadata.director_targets = Utils::jsonToStr(json_targets);
   EXPECT_THROW(sec.putMetadata(metadata), Uptane::UnmetThreshold);
 }
 

@@ -13,9 +13,9 @@ class IpUptaneSecondary : public SecondaryInterface {
 
   // SecondaryInterface implementation
   PublicKey getPublicKey() override;
-  bool putMetadata(const MetaPack& meta_pack) override;
+  bool putMetadata(const RawMetaPack& meta_pack) override;
   int32_t getRootVersion(bool director) override;
-  bool putRoot(Uptane::Root root, bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
 

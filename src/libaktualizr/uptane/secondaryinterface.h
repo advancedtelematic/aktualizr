@@ -26,9 +26,9 @@ class SecondaryInterface {
   virtual PublicKey getPublicKey() = 0;
 
   virtual Json::Value getManifest() = 0;
-  virtual bool putMetadata(const MetaPack& meta_pack) = 0;
+  virtual bool putMetadata(const RawMetaPack& meta_pack) = 0;
   virtual int32_t getRootVersion(bool director) = 0;
-  virtual bool putRoot(Uptane::Root root, bool director) = 0;
+  virtual bool putRoot(const std::string& root, bool director) = 0;
 
   virtual bool sendFirmware(const std::string& data) = 0;
 

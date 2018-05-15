@@ -44,12 +44,12 @@ bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
   std::vector<opcuabridge::MetadataFile> metadatafiles;
   {
     opcuabridge::MetadataFile mf;
-    mf.setMetadata(meta_pack.director_root.original());
+    mf.setMetadata(meta_pack.director_root);
     metadatafiles.push_back(mf);
   }
   {
     opcuabridge::MetadataFile mf;
-    mf.setMetadata(meta_pack.director_targets.original());
+    mf.setMetadata(meta_pack.director_targets);
     metadatafiles.push_back(mf);
   }
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
@@ -88,7 +88,7 @@ int OpcuaSecondary::getRootVersion(bool /* director */) {
   return 0;
 }
 
-bool OpcuaSecondary::putRoot(Uptane::Root /* root */, bool /* director */) {
+bool OpcuaSecondary::putRoot(const std::string& /* root */, bool /* director */) {
   LOG_ERROR << "OpcuaSecondary::putRoot is not implemented yet";
   return false;
 }

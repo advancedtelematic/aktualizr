@@ -13,6 +13,7 @@
 #include "secondary_ipc/ipuptaneconnection.h"
 #include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "storage/invstorage.h"
+#include "uptane/fetcher.h"
 #include "uptane/ipsecondarydiscovery.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
@@ -53,6 +54,7 @@ class SotaUptaneClient {
   const std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> pacman;
   HttpInterface &http;
+  Uptane::Fetcher uptane_fetcher;
   int last_targets_version;
   Json::Value operation_result;
   std::unique_ptr<IpUptaneConnection> ip_uptane_connection;

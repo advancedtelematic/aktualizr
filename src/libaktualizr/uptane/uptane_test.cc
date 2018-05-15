@@ -281,7 +281,7 @@ TEST(Uptane, PetNameCreation) {
   {
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
 
     KeyManager keys(storage, conf.keymanagerConfig());
     Initializer initializer(conf.provision, storage, http, keys, {});
@@ -339,7 +339,7 @@ TEST(Uptane, PetNameCreation) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir3.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
     KeyManager keys(storage, conf.keymanagerConfig());
     Initializer initializer(conf.provision, storage, http, keys, {});
 
@@ -458,7 +458,7 @@ TEST(Uptane, InitializeFail) {
   conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository uptane(conf, storage, http);
+  Uptane::Repository uptane(conf, storage);
 
   http.provisioningResponse = ProvisionFailure;
   KeyManager keys(storage, conf.keymanagerConfig());
@@ -501,7 +501,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
 
@@ -547,7 +547,7 @@ TEST(Uptane, AssembleManifestBad) {
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
 
@@ -589,11 +589,12 @@ TEST(Uptane, PutManifest) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
   SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
 
-  EXPECT_TRUE(uptane.putManifest(sota_client.AssembleManifest()));
+  auto signed_manifest = uptane.signManifest(sota_client.AssembleManifest());
+  EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", signed_manifest).isOk());
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http.test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / http.test_manifest).string());
 
@@ -631,7 +632,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   *commands_channel << std::make_shared<command::Shutdown>();
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage, http);
+  Uptane::Repository repo(conf, storage);
   SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
@@ -685,7 +686,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   *commands_channel << std::make_shared<command::GetUpdateRequests>();
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage, http);
+  Uptane::Repository repo(conf, storage);
   SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
@@ -732,7 +733,7 @@ TEST(Uptane, RunForeverInstall) {
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage, http);
+  Uptane::Repository repo(conf, storage);
   SotaUptaneClient up(conf, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 
@@ -779,7 +780,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
@@ -818,7 +819,7 @@ TEST(Uptane, ProvisionOnServer) {
   *commands_channel << std::make_shared<command::GetUpdateRequests>();
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
-  Uptane::Repository repo(config, storage, http);
+  Uptane::Repository repo(config, storage);
   SotaUptaneClient up(config, events_channel, repo, storage, http);
   up.runForever(commands_channel);
 }
@@ -879,7 +880,7 @@ TEST(Uptane, fs_to_sql_full) {
   std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
   fs_storage.loadMetadata(&metadata);
 
   std::cout << "CONFIG.PATH: " << config.path << std::endl;
@@ -943,7 +944,7 @@ TEST(Uptane, fs_to_sql_full) {
   std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
-  Uptane::MetaPack sql_metadata;
+  Uptane::RawMetaPack sql_metadata;
   sql_storage->loadMetadata(&sql_metadata);
 
   EXPECT_EQ(sql_public_key, public_key);
@@ -1000,7 +1001,7 @@ TEST(Uptane, fs_to_sql_partial) {
   std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
   fs_storage.loadMetadata(&metadata);
 
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
@@ -1031,7 +1032,7 @@ TEST(Uptane, fs_to_sql_partial) {
   std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
-  Uptane::MetaPack sql_metadata;
+  Uptane::RawMetaPack sql_metadata;
   sql_storage->loadMetadata(&sql_metadata);
 
   EXPECT_EQ(sql_public_key, public_key);
@@ -1063,7 +1064,7 @@ TEST(Uptane, SaveVersion) {
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -1089,7 +1090,7 @@ TEST(Uptane, LoadVersion) {
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -1116,13 +1117,14 @@ TEST(Uptane, getMetaCorrectStorage) {
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.getMeta());
+  Uptane::Fetcher fetcher(config, storage, http);
+  EXPECT_TRUE(fetcher.fetchMeta());
 
   // check that we indeed have stored the new metadata
-  Uptane::MetaPack new_meta;
-  storage->loadMetadata(&new_meta);
-  EXPECT_EQ(new_meta.director_root.version(), 1);
+  Uptane::RawMetaPack new_meta;
+  storage->loadUncheckedMetadata(&new_meta);
+  Uptane::Root new_root{"director", Utils::parseJSON(new_meta.director_root)};
+  EXPECT_EQ(new_root.version(), 1);
 }
 
 TEST(Uptane, krejectallTest) {
@@ -1138,8 +1140,10 @@ TEST(Uptane, krejectallTest) {
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
-  EXPECT_TRUE(uptane.getMeta());
+  Uptane::Repository uptane(config, storage);
+  Uptane::Fetcher fetcher(config, storage, http);
+  EXPECT_TRUE(fetcher.fetchMeta());
+  EXPECT_TRUE(uptane.feedCheckMeta());
 }
 
 TEST(Uptane, VerifyMetaTest) {
@@ -1155,7 +1159,7 @@ TEST(Uptane, VerifyMetaTest) {
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage, http);
+  Uptane::Repository uptane(config, storage);
 
   Json::Value targets_file = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
   Uptane::Targets director_targets_good(targets_file);

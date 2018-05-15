@@ -26,9 +26,9 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
   Uptane::HardwareIdentifier getHwIdResp() const;
   PublicKey getPublicKeyResp() const;
   Json::Value getManifestResp() const;
-  bool putMetadataResp(const Uptane::MetaPack& meta_pack);
+  bool putMetadataResp(const Uptane::RawMetaPack& meta_pack);
   int32_t getRootVersionResp(bool director) const;
-  bool putRootResp(Uptane::Root root, bool director);
+  bool putRootResp(const std::string& root, bool director);
   bool sendFirmwareResp(const std::string& firmware);
   void addPrimary(sockaddr_storage& addr, in_port_t port) {
     std::unique_lock<std::mutex> lock(primaries_mutex);

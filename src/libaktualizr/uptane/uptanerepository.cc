@@ -17,53 +17,36 @@
 #include "storage/invstorage.h"
 #include "utilities/utils.h"
 
-#ifdef BUILD_OSTREE
-#include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
-#endif
-
 namespace Uptane {
 
-static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
-  assert(userp);
-  auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
-  ds->downloaded_length += size * nmemb;
-  if (ds->downloaded_length > ds->expected_length) {
-    return (size * nmemb) + 1;  // curl will abort if return unexpected size;
-  }
-
-  // incomplete writes will stop the download (written_size != nmemb*size)
-  size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), nmemb * size);
-  ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
-  return written_size;
-}
-
-Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client)
+Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> storage_in)
     : config(config_in),
       storage(std::move(storage_in)),
-      http(http_client),
       keys_(storage, config.keymanagerConfig()),
       manifests(Json::arrayValue) {
-  if (!storage->loadMetadata(&meta_)) {
-    meta_.director_root = Root(Root::kAcceptAll);
-    meta_.image_root = Root(Root::kAcceptAll);
+  RawMetaPack meta_stored;
+
+  meta_.director_root = Root(Root::kAcceptAll);
+  meta_.image_root = Root(Root::kAcceptAll);
+  if (storage->loadMetadata(&meta_stored)) {
+    // stored metadata is trusted
+    meta_.director_root = Uptane::Root("director", Utils::parseJSON(meta_stored.director_root));
+    meta_.image_root = Uptane::Root("repo", Utils::parseJSON(meta_stored.image_root));
+
+    meta_.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(meta_stored.image_timestamp));
+    meta_.image_snapshot = Uptane::Snapshot(Utils::parseJSON(meta_stored.image_snapshot));
+    meta_.image_targets = Uptane::Targets(Utils::parseJSON(meta_stored.image_targets));
+
+    meta_.director_targets = Uptane::Targets(Utils::parseJSON(meta_stored.director_targets));
   }
 }
 
-void Repository::updateRoot(Version version) {
-  Uptane::Root director_root("director", fetchRole(config.uptane.director_server, Role::Root(), version));
-  meta_.director_root = director_root;
-  Uptane::Root image_root("image", fetchRole(config.uptane.repo_server, Role::Root(), version));
-  meta_.image_root = image_root;
-}
-
-bool Repository::putManifest(const Json::Value& version_manifests) {
+Json::Value Repository::signManifest(const Json::Value& version_manifests) {
   Json::Value manifest;
   manifest["primary_ecu_serial"] = primary_ecu_serial;
   manifest["ecu_version_manifests"] = version_manifests;
 
-  Json::Value tuf_signed = keys_.signTuf(manifest);
-  HttpResponse response = http.put(config.uptane.director_server + "/manifest", tuf_signed);
-  return response.isOk();
+  return keys_.signTuf(manifest);
 }
 
 Json::Value Repository::signVersionManifest(const Json::Value& primary_version_manifests) {
@@ -117,61 +100,84 @@ bool Repository::verifyMetaTargets(const Uptane::Targets& director_targets, cons
   return true;
 }
 
-Json::Value Repository::getJSON(const std::string& url) {
-  HttpResponse response = http.get(url);
-  if (!response.isOk()) {
-    throw MissingRepo(url);
-  }
-  return response.getJson();
-}
-
-/**
- * Note this doesn't check the validity of version numbers, only that the signed part is actually signed.
- * @param repo
- * @param role
- * @param version
- * @param root_used
- * @return The contents of the "signed" section
- */
-Json::Value Repository::fetchRole(const std::string& base_url, Uptane::Role role, Version version) {
-  // TODO: chain-loading root.json
-  return getJSON(base_url + "/" + version.RoleFileName(role));
-}
-
-bool Repository::getMeta() {
-  MetaPack new_meta;
+bool Repository::feedCheckMeta() {
   TimeStamp now(TimeStamp::Now());
+  MetaPack new_meta;
+  RawMetaPack meta_raw;
 
-  new_meta.director_root =
-      Uptane::Root(now, "director", fetchRole(config.uptane.director_server, Role::Root()), meta_.director_root);
-  new_meta.image_root = Uptane::Root(now, "repo", fetchRole(config.uptane.repo_server, Role::Root()), meta_.image_root);
-
-  new_meta.image_timestamp = Uptane::TimestampMeta(
-      now, "repo", fetchRole(config.uptane.repo_server, Role::Timestamp(), Version()), meta_.image_root);
-  if (new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
-    new_meta.image_snapshot = Uptane::Snapshot(
-        now, "repo", fetchRole(config.uptane.repo_server, Role::Snapshot(), Version()), meta_.image_root);
-    new_meta.image_targets = Uptane::Targets(
-        now, "repo", fetchRole(config.uptane.repo_server, Role::Targets(), Version()), meta_.image_root);
-  } else {
-    new_meta.image_snapshot = meta_.image_snapshot;
-    new_meta.image_targets = meta_.image_targets;
+  // should be already put to the storage by fetcher
+  if (!storage->loadUncheckedMetadata(&meta_raw)) {
+    LOG_WARNING << "No metadata to check";
+    return false;
   }
 
-  new_meta.director_targets = Uptane::Targets(
-      now, "director", fetchRole(config.uptane.director_server, Role::Targets(), Version()), meta_.director_root);
-  if (new_meta.director_root.version() > meta_.director_root.version() ||
-      new_meta.image_root.version() > meta_.image_root.version() ||
-      new_meta.director_targets.version() > meta_.director_targets.version() ||
-      new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
-    if (verifyMetaTargets(new_meta.director_targets, new_meta.image_targets)) {
-      storage->storeMetadata(new_meta);
-      meta_ = new_meta;
-    } else {
-      LOG_WARNING << "Metadata image/directory repo consistency check failed.";
+  try {
+    // first check with previous root
+    new_meta.director_root =
+        Uptane::Root(now, "director", Utils::parseJSON(meta_raw.director_root), meta_.director_root);
+    new_meta.image_root = Uptane::Root(now, "repo", Utils::parseJSON(meta_raw.image_root), meta_.image_root);
+
+    // second check against the new root
+    new_meta.director_root =
+        Uptane::Root(now, "director", Utils::parseJSON(meta_raw.director_root), new_meta.director_root);
+    new_meta.image_root = Uptane::Root(now, "repo", Utils::parseJSON(meta_raw.image_root), new_meta.image_root);
+
+    new_meta.image_timestamp =
+        Uptane::TimestampMeta(now, "repo", Utils::parseJSON(meta_raw.image_timestamp), new_meta.image_root);
+    new_meta.image_snapshot =
+        Uptane::Snapshot(now, "repo", Utils::parseJSON(meta_raw.image_snapshot), new_meta.image_root);
+    new_meta.image_targets =
+        Uptane::Targets(now, "repo", Utils::parseJSON(meta_raw.image_targets), new_meta.image_root);
+
+    new_meta.director_targets =
+        Uptane::Targets(now, "director", Utils::parseJSON(meta_raw.director_targets), new_meta.director_root);
+
+    if (new_meta.director_root.version() < meta_.director_root.version() ||
+        new_meta.image_root.version() < meta_.image_root.version() ||
+        new_meta.director_targets.version() < meta_.director_targets.version() ||
+        new_meta.image_targets.version() < meta_.image_targets.version() ||
+        new_meta.image_snapshot.version() < meta_.image_snapshot.version() ||
+        new_meta.image_timestamp.version() < meta_.image_timestamp.version()) {
+      LOG_WARNING << "Metadata downgrade attempted";
       return false;
     }
+
+    if (!verifyMetaTargets(new_meta.director_targets, new_meta.image_targets)) {
+      LOG_WARNING << "Metadata image/directory repo consistency check failed";
+      return false;
+    }
+
+    if (!storage->loadMetadata(nullptr) || new_meta.director_root.version() > meta_.director_root.version() ||
+        new_meta.image_root.version() > meta_.image_root.version() ||
+        new_meta.director_targets.version() > meta_.director_targets.version() ||
+        new_meta.image_targets.version() > meta_.image_targets.version() ||
+        new_meta.image_snapshot.version() > meta_.image_snapshot.version() ||
+        new_meta.image_timestamp.version() > meta_.image_timestamp.version()) {
+      storage->storeMetadata(meta_raw);
+      meta_ = new_meta;
+    }
+  } catch (const Exception& e) {
+    // save exception to use in vector tests
+    last_exception = e;
+    LOG_WARNING << "Uptane exception in " << e.getName() << ": " << e.what();
+    return false;
   }
+  return true;
+}
+
+bool Repository::feedCheckRoot(bool director, Version version) {
+  std::string root;
+  if (storage->loadUncheckedRoot(director, &root, version)) {
+    return false;
+  }
+  // TODO: verify
+  if (director)
+    meta_.director_root = Uptane::Root("director", Utils::parseJSON(root));
+  else
+    meta_.image_root = Uptane::Root("repo", Utils::parseJSON(root));
+
+  storage->storeRoot(director, root, version);
+
   return true;
 }
 
@@ -179,51 +185,7 @@ std::pair<int, std::vector<Uptane::Target> > Repository::getTargets() {
   std::vector<Uptane::Target> director_targets = meta_.director_targets.targets;
   int version = meta_.director_targets.version();
 
-  if (!director_targets.empty()) {
-    for (auto it = director_targets.begin(); it != director_targets.end(); ++it) {
-      // TODO: support downloading encrypted targets from director
-      downloadTarget(*it);
-    }
-  }
   return std::pair<uint32_t, std::vector<Uptane::Target> >(version, director_targets);
 }
 
-void Repository::downloadTarget(const Target& target) {
-  if (target.length() > 0) {
-    DownloadMetaStruct ds;
-    std::unique_ptr<StorageTargetWHandle> fhandle =
-        storage->allocateTargetFile(false, target.filename(), target.length());
-    ds.fhandle = fhandle.get();
-    ds.downloaded_length = 0;
-    ds.expected_length = target.length();
-
-    if (target.hashes().empty()) {
-      throw Exception("image", "No hash defined for the target");
-    }
-
-    ds.hash_type = target.hashes()[0].type();
-    HttpResponse response =
-        http.download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
-    if (!response.isOk()) {
-      fhandle->wabort();
-      if (response.curl_code == CURLE_WRITE_ERROR) {
-        throw OversizedTarget(target.filename());
-      }
-      throw Exception("image", "Could not download file, error: " + response.error_message);
-    }
-    fhandle->wcommit();
-
-    if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
-      throw TargetHashMismatch(target.filename());
-    }
-  } else if (target.format().empty() || target.format() == "OSTREE") {
-#ifdef BUILD_OSTREE
-    KeyManager keys(storage, config.keymanagerConfig());
-    keys.loadKeys();
-    OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target.sha256Hash());
-#else
-    LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
-#endif
-  }
-}
 }  // namespace Uptane

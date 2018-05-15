@@ -116,6 +116,10 @@ class SQLite3Guard {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);
   }
 
+  int exec(std::string sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
+    return exec(sql.c_str(), callback, cb_arg);
+  }
+
   template <typename... Types>
   SQLiteStatement prepareStatement(const std::string& zSql, const Types&... args) {
     return SQLiteStatement(handle_.get(), zSql, args...);
