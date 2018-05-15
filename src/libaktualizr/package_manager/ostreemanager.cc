@@ -16,6 +16,8 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
+using OstreeProgressPtr = std::unique_ptr<OstreeAsyncProgress, GObjectFinalizer<OstreeAsyncProgress>>;
+
 static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data)
 {
   guint *percent_complete = (guint*)data;
@@ -60,7 +62,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
-  g_autoptr(OstreeAsyncProgress) progress = NULL;
+  OstreeProgressPtr progress = nullptr;
   guint percent_complete = 0;
 
   OstreeSysrootPtr sysroot = OstreeManager::LoadSysroot(sysroot_path);
@@ -97,15 +99,15 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
 
   options = g_variant_builder_end(&builder);
 
-  progress = ostree_async_progress_new_and_connect(aktualizr_progress_cb, &percent_complete);
-  if (ostree_repo_pull_with_options(repo.get(), remote, options, progress, cancellable, &error) == 0) {
+  progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &percent_complete));
+  if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
     LOG_ERROR << "Error of pulling image: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     g_variant_unref(options);
     return install_outcome;
   }
-  ostree_async_progress_finish(progress);
+  ostree_async_progress_finish(progress.get());
   g_variant_unref(options);
   return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
 }
