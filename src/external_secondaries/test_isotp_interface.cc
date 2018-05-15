@@ -211,6 +211,7 @@ bool TestIsotpInterface::isoTpSend(const uint32_t arbitration_id, const uint8_t*
   if (instance->loglevel_ == 0) {
     std::cerr << "Sending CAN message AF: 0x" << std::hex << arbitration_id << "; Data:";
     for (int i = 0; i < size; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       std::cerr << " " << std::hex << static_cast<int>(data[i]);
     }
     std::cerr << std::endl;

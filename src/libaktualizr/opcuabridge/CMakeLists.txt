@@ -34,7 +34,7 @@ set(HEADERS boostarch.h
             utility.h
             versionreport.h)
 
-set_source_files_properties(${SOURCES} ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/open62541.c PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
-add_library(opcua_bridge OBJECT ${SOURCES} ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/open62541.c)
-target_include_directories(opcua_bridge PRIVATE ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541/)
+set_source_files_properties(${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+add_library(opcua_bridge OBJECT ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
+target_include_directories(opcua_bridge PRIVATE ${PROJECT_SOURCE_DIR}/third_party/open62541)
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})

@@ -40,7 +40,9 @@ Server::Server(ServerDelegate* delegate, int socket_fd, int discovery_socket_fd,
   server_config_ = UA_ServerConfig_new_minimal(port, nullptr);
   server_config_->logger = &opcuabridge::BoostLogOpcua;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   server_config_->networkLayers[0].deleteMembers(&server_config_->networkLayers[0]);
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   server_config_->networkLayers[0] = UA_ServerNetworkLayerTCPSocketActivation(UA_ConnectionConfig_default, socket_fd);
   server_config_->networkLayersSize = 1;
 

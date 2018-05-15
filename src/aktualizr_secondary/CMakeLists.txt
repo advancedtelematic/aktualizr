@@ -31,7 +31,7 @@ if (BUILD_OPCUA)
     set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
         PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
     target_include_directories(aktualizr_secondary_static_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/libaktualizr/opcuabridge
-                                                                     ${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/open62541)
+                                                                     ${PROJECT_SOURCE_DIR}/third_party/open62541)
 endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_secondary_static_lib PUBLIC

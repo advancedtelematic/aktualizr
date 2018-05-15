@@ -96,6 +96,7 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
   }
 
   for (size_t i = 0; i < applicationDescriptionArraySize; i++) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     UA_ApplicationDescription* description = &applicationDescriptionArray[i];
     if (description->applicationType != UA_APPLICATIONTYPE_SERVER) {
       continue;
@@ -111,8 +112,9 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
     config.timeout = OPCUABRIDGE_CLIENT_SYNC_RESPONSE_TIMEOUT_MS;
     config.logger = &opcuabridge::BoostLogOpcua;
     UA_Client* client = UA_Client_new(config);
-
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     std::string discovery_url(reinterpret_cast<char*>(description->discoveryUrls[0].data),
+                              // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                               description->discoveryUrls[0].length);
 
     UA_EndpointDescription* endpointArray = nullptr;
@@ -126,6 +128,7 @@ void SelectEndPoint::considerLdsRegisteredEndPoints(const std::string& opcua_lds
     }
 
     for (size_t j = 0; j < endpointArraySize; j++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       UA_EndpointDescription* endpoint = &endpointArray[j];
       std::string opcua_server_url =
           std::string(reinterpret_cast<char*>(endpoint->endpointUrl.data), endpoint->endpointUrl.length);
