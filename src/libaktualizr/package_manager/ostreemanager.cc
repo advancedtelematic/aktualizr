@@ -18,40 +18,24 @@
 
 static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data)
 {
-  g_autofree char *status = NULL;
-  gboolean caught_error, scanning;
-  guint outstanding_fetches;
-  guint outstanding_metadata_fetches;
-  guint outstanding_writes;
-  guint n_scanned_metadata;
   guint *percent_complete = (guint*)data;
 
-  ostree_async_progress_get (progress,
-                             "outstanding-fetches", "u", &outstanding_fetches,
-                             "outstanding-metadata-fetches", "u", &outstanding_metadata_fetches,
-                             "outstanding-writes", "u", &outstanding_writes,
-                             "caught-error", "b", &caught_error,
-                             "scanning", "u", &scanning,
-                             "scanned-metadata", "u", &n_scanned_metadata,
-                             "status", "s", &status,
-                             NULL);
+  g_autofree char *status = ostree_async_progress_get_status(progress);
+  guint scanning = ostree_async_progress_get_uint(progress, "scanning");
+  guint outstanding_fetches = ostree_async_progress_get_uint(progress, "outstanding-fetches");
+  guint outstanding_metadata_fetches = ostree_async_progress_get_uint(progress, "outstanding-metadata-fetches");
+  guint outstanding_writes = ostree_async_progress_get_uint(progress, "outstanding-writes");
+  guint n_scanned_metadata = ostree_async_progress_get_uint(progress, "scanned-metadata");
 
   if (status && *status != '\0') {
     LOG_INFO << "ostree-pull: " << status;
   }
-  else if (caught_error) {
-    LOG_INFO << "ostree-pull: Caught error, waiting for outstanding tasks";
-  }
   else if (outstanding_fetches) {
-    guint fetched, metadata_fetched, requested;
-    ostree_async_progress_get (progress,
-                               "fetched", "u", &fetched,
-                               "metadata-fetched", "u", &metadata_fetched,
-                               "requested", "u", &requested,
-                               NULL);
-
+    guint fetched = ostree_async_progress_get_uint(progress, "fetched");
+    guint metadata_fetched = ostree_async_progress_get_uint(progress, "metadata-fetched");
+    guint requested = ostree_async_progress_get_uint(progress, "requested");
     if (scanning || outstanding_metadata_fetches) {
-      LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched;
+      LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched << " outstanding: " << outstanding_metadata_fetches;
     }
     else {
       guint calculated = round((((float)fetched) / requested) * 100);
