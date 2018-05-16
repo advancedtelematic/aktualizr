@@ -90,7 +90,6 @@ class BaseConfig {
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(filename.string(), pt);
     updateFromPropertyTree(pt);
-    LOG_DEBUG << "Config read from " << filename;
   }
   virtual void updateFromPropertyTree(const boost::property_tree::ptree& pt) = 0;
 
