@@ -40,7 +40,9 @@ foreach(label ${TESTSUITE_EXCLUDE})
 endforeach()
 
 add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS}
-                  DEPENDS build_tests)
+                  DEPENDS build_tests
+                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                  )
 
 
 # List of source files to run static analysis on. Automatically
