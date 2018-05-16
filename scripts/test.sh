@@ -44,6 +44,8 @@ if [[ $TEST_WITH_LOAD_TESTS = 1 ]]; then CMAKE_ARGS+=("-DBUILD_LOAD_TESTS=ON"); 
 if [[ -n $TEST_SOTA_PACKED_CREDENTIALS ]]; then
     CMAKE_ARGS+=("-DSOTA_PACKED_CREDENTIALS=$TEST_SOTA_PACKED_CREDENTIALS");
 fi
+# set these in any case so that it's immune to CMake's caching (it's often
+# useful to change these while using the same build directory)
 CMAKE_ARGS+=("-DTESTSUITE_ONLY=${TEST_TESTSUITE_ONLY}");
 CMAKE_ARGS+=("-DTESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE}")
 echo ">> CMake options: ${CMAKE_ARGS[*]}"
