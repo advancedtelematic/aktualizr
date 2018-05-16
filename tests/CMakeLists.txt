@@ -150,7 +150,20 @@ add_test(NAME test-secondary-config-with-nonexistent-file
 set_tests_properties(test-secondary-config-with-nonexistent-file
                      PROPERTIES PASS_REGULAR_EXPRESSION "nonexistentfile does not exist!")
 
-# check invalid logging levels
+# Check verbose config parsing output with debug loglevel.
+add_test(NAME test_log_debug
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
+set_tests_properties(test_log_debug
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml")
+# Check silent config parsing output with default loglevel. Note that the extra
+# PASS is necessary to ignore the return code.
+add_test(NAME test_log_default
+         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+set_tests_properties(test_log_default
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml"
+                                PASS_REGULAR_EXPRESSION "Aktualizr version")
+
+# Check invalid logging levels.
 add_test(NAME test_log_invalid
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=6)
 set_tests_properties(test_log_invalid
