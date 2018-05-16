@@ -6,11 +6,11 @@
 
 #include <gio/gio.h>
 #include <json/json.h>
+#include <ostree-1/ostree-async-progress.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
-#include <ostree-1/ostree-async-progress.h>
 #include <utility>
 
 #include "logging/logging.h"
@@ -18,9 +18,8 @@
 
 using OstreeProgressPtr = std::unique_ptr<OstreeAsyncProgress, GObjectFinalizer<OstreeAsyncProgress>>;
 
-static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data)
-{
-  auto *percent_complete = static_cast<guint*>(data);
+static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) {
+  auto *percent_complete = static_cast<guint *>(data);
 
   g_autofree char *status = ostree_async_progress_get_status(progress);
   guint scanning = ostree_async_progress_get_uint(progress, "scanning");
@@ -31,25 +30,23 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data)
 
   if (status != nullptr && *status != '\0') {
     LOG_INFO << "ostree-pull: " << status;
-  }
-  else if (outstanding_fetches != 0) {
+  } else if (outstanding_fetches != 0) {
     float fetched = ostree_async_progress_get_uint(progress, "fetched");
     guint metadata_fetched = ostree_async_progress_get_uint(progress, "metadata-fetched");
     guint requested = ostree_async_progress_get_uint(progress, "requested");
     if (scanning != 0 || outstanding_metadata_fetches != 0) {
-      LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched << " outstanding: " << outstanding_metadata_fetches;
+      LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
+               << " outstanding: " << outstanding_metadata_fetches;
     } else {
       guint calculated = round(((fetched) / requested) * 100);
       if (calculated != *percent_complete) {
         LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
-	*percent_complete = calculated;
+        *percent_complete = calculated;
       }
     }
-  }
-  else if (outstanding_writes != 0) {
+  } else if (outstanding_writes != 0) {
     LOG_INFO << "ostree-pull: Writing objects: " << outstanding_writes;
-  }
-  else {
+  } else {
     LOG_INFO << "ostree-pull: Scanning metadata: " << n_scanned_metadata;
   }
 }
