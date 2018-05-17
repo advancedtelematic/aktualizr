@@ -6,6 +6,7 @@
 
 #include <gio/gio.h>
 #include <json/json.h>
+#include <ostree-1/ostree-async-progress.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -15,6 +16,41 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
+using OstreeProgressPtr = std::unique_ptr<OstreeAsyncProgress, GObjectFinalizer<OstreeAsyncProgress>>;
+
+static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) {
+  auto *percent_complete = static_cast<guint *>(data);
+
+  g_autofree char *status = ostree_async_progress_get_status(progress);
+  guint scanning = ostree_async_progress_get_uint(progress, "scanning");
+  guint outstanding_fetches = ostree_async_progress_get_uint(progress, "outstanding-fetches");
+  guint outstanding_metadata_fetches = ostree_async_progress_get_uint(progress, "outstanding-metadata-fetches");
+  guint outstanding_writes = ostree_async_progress_get_uint(progress, "outstanding-writes");
+  guint n_scanned_metadata = ostree_async_progress_get_uint(progress, "scanned-metadata");
+
+  if (status != nullptr && *status != '\0') {
+    LOG_INFO << "ostree-pull: " << status;
+  } else if (outstanding_fetches != 0) {
+    float fetched = ostree_async_progress_get_uint(progress, "fetched");
+    guint metadata_fetched = ostree_async_progress_get_uint(progress, "metadata-fetched");
+    guint requested = ostree_async_progress_get_uint(progress, "requested");
+    if (scanning != 0 || outstanding_metadata_fetches != 0) {
+      LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
+               << " outstanding: " << outstanding_metadata_fetches;
+    } else {
+      guint calculated = round(((fetched) / requested) * 100);
+      if (calculated != *percent_complete) {
+        LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
+        *percent_complete = calculated;
+      }
+    }
+  } else if (outstanding_writes != 0) {
+    LOG_INFO << "ostree-pull: Writing objects: " << outstanding_writes;
+  } else {
+    LOG_INFO << "ostree-pull: Scanning metadata: " << n_scanned_metadata;
+  }
+}
+
 data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
                                          const KeyManager &keys, const std::string &refhash) {
   const char *const commit_ids[] = {refhash.c_str()};
@@ -22,6 +58,8 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
+  OstreeProgressPtr progress = nullptr;
+  guint percent_complete = 0;
 
   OstreeSysrootPtr sysroot = OstreeManager::LoadSysroot(sysroot_path);
   OstreeRepoPtr repo = LoadRepo(sysroot.get(), &error);
@@ -37,6 +75,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
     g_hash_table_destroy(ref_list);  // OSTree creates the table with destroy notifiers, so no memory leaks expected
     // should never be greater than 1, but use >= for robustness
     if (length >= 1) {
+      LOG_DEBUG << "refhash already pulled";
       return data::InstallOutcome(data::ALREADY_PROCESSED, "Refhash was already pulled");
     }
   }
@@ -56,13 +95,15 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
 
   options = g_variant_builder_end(&builder);
 
-  if (ostree_repo_pull_with_options(repo.get(), remote, options, nullptr, cancellable, &error) == 0) {
+  progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &percent_complete));
+  if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
     LOG_ERROR << "Error of pulling image: " << error->message;
     data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
     g_error_free(error);
     g_variant_unref(options);
     return install_outcome;
   }
+  ostree_async_progress_finish(progress.get());
   g_variant_unref(options);
   return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
 }
