@@ -68,8 +68,6 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
     std::string e = Utils::stripQuotes(events_string.get());
     socket_events.empty();
     boost::split(socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
-  } else {
-    LOG_TRACE << "network.socket_events not in config file. Using default";
   }
 
   CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", pt);
