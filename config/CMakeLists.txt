@@ -1,10 +1,4 @@
 
-install(DIRECTORY schemas
-        DESTINATION lib/sota
-        FILE_PERMISSIONS OWNER_READ OWNER_WRITE
-        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        COMPONENT aktualizr)
-
 install(FILES systemd/aktualizr-ubuntu.service
         DESTINATION lib/systemd/system
         RENAME aktualizr.service

@@ -29,7 +29,6 @@ def provision(tmp_dir, build_dir, src_dir, creds_in):
     creds = tmp_dir / creds_in.name
     shutil.copyfile(str(creds_in), str(creds))
     db = tmp_dir / 'sql.db'
-    schemas = src_dir / 'config/schemas'
     conf = tmp_dir / 'config.toml'
     with conf.open('w') as f:
         f.write('[pacman]\n')
@@ -42,7 +41,6 @@ def provision(tmp_dir, build_dir, src_dir, creds_in):
         f.write('path = "' + str(tmp_dir) + '"\n')
         f.write('type = "sqlite"\n')
         f.write('sqldb_path = "' + str(db) + '"\n')
-        f.write('schemas_path = "' + str(schemas) + '"\n')
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
 

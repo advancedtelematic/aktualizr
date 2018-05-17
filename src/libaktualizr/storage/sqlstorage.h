@@ -7,8 +7,8 @@
 
 #include "invstorage.h"
 
-// See docs/schema-migrations.adoc
-const int kSqlSchemaVersion = 4;
+extern const std::vector<std::string> schema_migrations;
+extern const std::string current_schema;
 
 enum SQLReqId { kSqlGetSimple, kSqlGetTable };
 enum DbState { kEmpty = -1, kInvalid = -2 };
