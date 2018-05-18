@@ -77,7 +77,7 @@ add_test(NAME opcuabridge-ostree-repo-sync-test
 
 add_test(NAME opcuabridge-ostree-repo-sync-valgrind-test
             COMMAND ${PROJECT_SOURCE_DIR}/tests/run_opcuabridge_ostree_repo_sync_test.sh
-            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests valgrind)
+            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests ${RUN_VALGRIND})
 
 
 

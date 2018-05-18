@@ -25,11 +25,9 @@ fi
 sleep 3
 trap 'kill %1' EXIT
 
-if [ "$3" == "valgrind" ]; then
-  $BIN_DIR/run-valgrind $BIN_DIR/opcuabridge-ostree-repo-sync-client $TEST_SRC_REPO $PORT
-else
-  $BIN_DIR/opcuabridge-ostree-repo-sync-client $TEST_SRC_REPO $PORT
-fi
+# $3 can be set to 'valgrind' (or the run-valgrind wrapper)
+$3 $BIN_DIR/opcuabridge-ostree-repo-sync-client $TEST_SRC_REPO $PORT
+
 
 ostree show --repo=$TEST_DST_REPO $TEST_REF > $TEST_DST_REPO/__ostree_show_$TEST_REF
 diff $TEST_SRC_REPO/__ostree_show_$TEST_REF $TEST_DST_REPO/__ostree_show_$TEST_REF
