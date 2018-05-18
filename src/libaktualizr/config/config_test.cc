@@ -36,6 +36,19 @@ TEST(config, config_toml_parsing_empty_file) {
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 }
 
+TEST(config, config_toml_int) {
+  Config conf;
+  conf.updateFromTomlString("[uptane]\npolling = false\npolling_sec = 99\n");
+
+  EXPECT_EQ(conf.uptane.polling, false);
+  EXPECT_EQ(conf.uptane.polling_sec, 99u);
+}
+TEST(config, config_toml_netport) {
+  Config conf;
+  conf.updateFromTomlString("[network]\nipuptane_port = 9099\n\n");
+  EXPECT_EQ(conf.network.ipuptane_port, 9099);
+}
+
 TEST(config, config_cmdl_parsing) {
   constexpr int argc = 5;
   const char *argv[argc] = {"./aktualizr", "--gateway-socket", "on", "-c", "tests/config/minimal.toml"};

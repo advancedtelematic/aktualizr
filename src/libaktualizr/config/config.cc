@@ -73,7 +73,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", pt);
   CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", pt);
   CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", pt);
-  CopyFromConfig(ipuptane_port, "network.ipuptane_port", pt);
+  CopyFromConfig(ipuptane_port, "ipuptane_port", pt);
 }
 
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
