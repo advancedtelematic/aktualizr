@@ -21,7 +21,7 @@ class AktualizrSecondaryCommon {
   std::shared_ptr<INvStorage> storage_;
   KeyManager keys_;
   std::string ecu_serial_;
-  std::string hardware_id_;
+  Uptane::HardwareIdentifier hardware_id_;
   std::shared_ptr<PackageManagerInterface> pacman;
   Uptane::Root root_;
   Uptane::Targets meta_targets_;

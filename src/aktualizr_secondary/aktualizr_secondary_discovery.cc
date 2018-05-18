@@ -91,7 +91,7 @@ void AktualizrSecondaryDiscovery::run() {
       LOG_TRACE << "Got discovery request from " << Utils::ipDisplayName(peer) << ":" << primary_port;
       std::string smsg;
       asn1::Serializer ser;
-      std::string hwid = akt_secondary_.getHwIdResp();
+      std::string hwid = akt_secondary_.getHwIdResp().ToString();
       std::string serialid = akt_secondary_.getSerialResp();
       int32_t port_32 = config_.port;
       ser << asn1::expl(AKT_DISCOVERY_RESP) << asn1::seq << asn1::implicit<kAsn1Utf8String>(serialid)

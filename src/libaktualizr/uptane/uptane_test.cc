@@ -871,7 +871,7 @@ TEST(Uptane, fs_to_sql_full) {
   std::string device_id;
   fs_storage.loadDeviceId(&device_id);
 
-  std::vector<std::pair<std::string, std::string> > serials;
+  EcuSerials serials;
   fs_storage.loadEcuSerials(&serials);
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
@@ -935,7 +935,7 @@ TEST(Uptane, fs_to_sql_full) {
   std::string sql_device_id;
   sql_storage->loadDeviceId(&sql_device_id);
 
-  std::vector<std::pair<std::string, std::string> > sql_serials;
+  EcuSerials sql_serials;
   sql_storage->loadEcuSerials(&sql_serials);
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
@@ -992,7 +992,7 @@ TEST(Uptane, fs_to_sql_partial) {
   std::string device_id;
   fs_storage.loadDeviceId(&device_id);
 
-  std::vector<std::pair<std::string, std::string> > serials;
+  EcuSerials serials;
   fs_storage.loadEcuSerials(&serials);
 
   bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
@@ -1023,7 +1023,7 @@ TEST(Uptane, fs_to_sql_partial) {
   std::string sql_device_id;
   sql_storage->loadDeviceId(&sql_device_id);
 
-  std::vector<std::pair<std::string, std::string> > sql_serials;
+  EcuSerials sql_serials;
   sql_storage->loadEcuSerials(&sql_serials);
 
   bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;

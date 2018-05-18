@@ -40,8 +40,8 @@ class SQLStorage : public INvStorage {
   void storeDeviceId(const std::string& device_id) override;
   bool loadDeviceId(std::string* device_id) override;
   void clearDeviceId() override;
-  void storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) override;
-  bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) override;
+  void storeEcuSerials(const EcuSerials& serials) override;
+  bool loadEcuSerials(EcuSerials* serials) override;
   void clearEcuSerials() override;
   void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) override;
   bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) override;

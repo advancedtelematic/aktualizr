@@ -23,7 +23,7 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
 
   // implementation of primary's SecondaryInterface
   std::string getSerialResp() const;
-  std::string getHwIdResp() const;
+  Uptane::HardwareIdentifier getHwIdResp() const;
   std::pair<KeyType, std::string> getPublicKeyResp() const;
   Json::Value getManifestResp() const;
   bool putMetadataResp(const Uptane::MetaPack& meta_pack);

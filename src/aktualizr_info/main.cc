@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
       std::cout << "Device ID: " << device_id << std::endl;
     }
 
-    std::vector<std::pair<std::string, std::string>> serials;
+    EcuSerials serials;
     if (!storage->loadEcuSerials(&serials)) {
       std::cout << "Couldn't load ECU serials" << std::endl;
     } else if (serials.size() == 0) {

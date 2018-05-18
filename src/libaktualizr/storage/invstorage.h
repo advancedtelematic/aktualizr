@@ -51,12 +51,14 @@ using load_data_t = bool (INvStorage::*)(std::string*);
 
 typedef std::pair<std::string, bool> InstalledVersion;
 
+typedef std::vector<std::pair<std::string, Uptane::HardwareIdentifier>> EcuSerials;
+
 enum EcuState { kOld = 0, kNotRegistered };
 struct MisconfiguredEcu {
-  MisconfiguredEcu(std::string serial_in, std::string hardware_id_in, EcuState state_in)
+  MisconfiguredEcu(std::string serial_in, Uptane::HardwareIdentifier hardware_id_in, EcuState state_in)
       : serial(std::move(serial_in)), hardware_id(std::move(hardware_id_in)), state(state_in) {}
   std::string serial;
-  std::string hardware_id;
+  Uptane::HardwareIdentifier hardware_id;
   EcuState state;
 };
 
@@ -139,8 +141,8 @@ class INvStorage {
   virtual bool loadDeviceId(std::string* device_id) = 0;
   virtual void clearDeviceId() = 0;
 
-  virtual void storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) = 0;
-  virtual bool loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) = 0;
+  virtual void storeEcuSerials(const EcuSerials& serials) = 0;
+  virtual bool loadEcuSerials(EcuSerials* serials) = 0;
   virtual void clearEcuSerials() = 0;
 
   virtual void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) = 0;

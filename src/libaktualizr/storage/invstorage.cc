@@ -155,7 +155,7 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
     sql_storage->storeDeviceId(device_id);
   }
 
-  std::vector<std::pair<std::string, std::string> > serials;
+  EcuSerials serials;
   if (fs_storage->loadEcuSerials(&serials)) {
     sql_storage->storeEcuSerials(serials);
   }

@@ -76,8 +76,8 @@ TEST(Uptane, RandomSerial) {
   SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http2);
   EXPECT_TRUE(uptane_client2.initialize());
 
-  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
-  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+  EcuSerials ecu_serials_1;
+  EcuSerials ecu_serials_2;
 
   EXPECT_TRUE(storage_1->loadEcuSerials(&ecu_serials_1));
   EXPECT_TRUE(storage_2->loadEcuSerials(&ecu_serials_2));
@@ -99,8 +99,8 @@ TEST(Uptane, RandomSerial) {
  */
 TEST(Uptane, ReloadSerial) {
   TemporaryDirectory temp_dir;
-  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
-  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+  EcuSerials ecu_serials_1;
+  EcuSerials ecu_serials_2;
 
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::kVirtual;
@@ -177,8 +177,8 @@ TEST(Uptane, LegacySerial) {
   const char* argv[] = {"aktualizr", "--legacy-interface", path.c_str(), "-c", conf_path_str.c_str()};
   bpo::store(bpo::parse_command_line(5, argv, description), cmd);
 
-  std::vector<std::pair<std::string, std::string> > ecu_serials_1;
-  std::vector<std::pair<std::string, std::string> > ecu_serials_2;
+  EcuSerials ecu_serials_1;
+  EcuSerials ecu_serials_2;
 
   // Initialize and store serials.
   {

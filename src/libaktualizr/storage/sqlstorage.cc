@@ -577,7 +577,7 @@ void SQLStorage::clearEcuRegistered() {
   }
 }
 
-void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::string> >& serials) {
+void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
   if (serials.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
@@ -595,7 +595,8 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
       return;
     }
 
-    std::string serial = serials[0].first, hwid = serials[0].second;
+    std::string serial = serials[0].first;
+    std::string hwid = serials[0].second.ToString();
     auto statement =
         db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
     if (statement.step() != SQLITE_DONE) {
@@ -603,10 +604,10 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
       return;
     }
 
-    std::vector<std::pair<std::string, std::string> >::const_iterator it;
+    EcuSerials::const_iterator it;
     for (it = serials.begin() + 1; it != serials.end(); it++) {
       auto statement = db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,0);",
-                                                                     it->first, it->second);
+                                                                     it->first, it->second.ToString());
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
@@ -618,7 +619,7 @@ void SQLStorage::storeEcuSerials(const std::vector<std::pair<std::string, std::s
   }
 }
 
-bool SQLStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> >* serials) {
+bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
@@ -638,7 +639,7 @@ bool SQLStorage::loadEcuSerials(std::vector<std::pair<std::string, std::string> 
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    serials->push_back(std::make_pair((*it)["serial"], (*it)["hardware_id"]));
+    serials->push_back({(*it)["serial"], Uptane::HardwareIdentifier((*it)["hardware_id"])});
   }
 
   return true;
@@ -679,7 +680,7 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
     std::vector<MisconfiguredEcu>::const_iterator it;
     for (it = ecus.begin(); it != ecus.end(); it++) {
       auto statement = db.prepareStatement<std::string, std::string, int>(
-          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial, it->hardware_id, it->state);
+          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial, it->hardware_id.ToString(), it->state);
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
@@ -711,8 +712,8 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    ecus->push_back(
-        MisconfiguredEcu((*it)["serial"], (*it)["hardware_id"], static_cast<EcuState>(std::stoi((*it)["state"]))));
+    ecus->push_back(MisconfiguredEcu((*it)["serial"], Uptane::HardwareIdentifier((*it)["hardware_id"]),
+                                     static_cast<EcuState>(std::stoi((*it)["state"]))));
   }
 
   return true;

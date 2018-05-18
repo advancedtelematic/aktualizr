@@ -65,6 +65,11 @@ std::ostream &Uptane::operator<<(std::ostream &os, const TimeStamp &t) {
   return os;
 }
 
+std::ostream &Uptane::operator<<(std::ostream &os, const HardwareIdentifier &hwid) {
+  os << hwid.hwid_;
+  return os;
+}
+
 Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
   if (type == "sha512") {
     type_ = Hash::kSha512;
