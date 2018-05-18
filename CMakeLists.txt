@@ -132,6 +132,11 @@ add_custom_target(format)
 add_dependencies(qa format)
 
 # All binaries are built as prerequisites to this target
+if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
+    find_program(VALGRIND NAMES valgrind)
+    configure_file(scripts/run-valgrind.in ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind @ONLY)
+    set(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
+endif()
 add_custom_target(build_tests)
 
 # clang-check and clang-format
