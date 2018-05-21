@@ -7,24 +7,57 @@
 #include "check.h"
 #include "provision.h"
 #include "sslinit.h"
+#ifdef BUILD_OSTREE
+#include "treehub.h"
+#endif
 
 namespace bpo = boost::program_options;
+
+#ifdef BUILD_OSTREE
+void fetchRemoteCmd(const std::vector<std::string> &opts) {
+  std::string inputDir;
+  std::string outDir;
+  std::string branchName;
+  std::string remoteUrl;
+  unsigned int opsPerSec;
+  unsigned int opsNr;
+  unsigned int parallelism;
+  bpo::options_description description("Fetch from ostree");
+  // clang-format off
+  description.add_options()
+      ("inputdir,i", bpo::value<std::string>(&inputDir)->required(), "Directory containig provisioned devices.")
+      ("outputdir,o", bpo::value<std::string>(&outDir)->required(), "Directory where repos will be created")
+      ("branch,b", bpo::value<std::string>(&branchName)->required(), "Name of a branch to pull")
+      ("url,u", bpo::value<std::string>(&remoteUrl)->required(), "Url of the repository")
+      ("number,n", bpo::value<unsigned int>(&opsNr)->default_value(100), "number of operation to execute")
+      ("threads,t", bpo::value<unsigned int>(&parallelism)->default_value(std::thread::hardware_concurrency()), "number of worker threads")
+      ("rate,r", bpo::value<unsigned int>(&opsPerSec)->default_value(50), "repo pulls per second");
+  // clang-format on
+
+  bpo::variables_map vm;
+  bpo::store(bpo::command_line_parser(opts).options(description).run(), vm);
+  bpo::notify(vm);
+
+  const boost::filesystem::path outputPath(outDir);
+  fetchFromOstree(inputDir, outputPath, branchName, remoteUrl, opsPerSec, opsNr, parallelism);
+}
+#endif
 
 void checkForUpdatesCmd(const std::vector<std::string> &opts) {
   namespace bpo = boost::program_options;
   namespace fs = boost::filesystem;
-  uint devicesPerSec;
-  uint opsNr;
-  uint parallelism;
+  unsigned int devicesPerSec;
+  unsigned int opsNr;
+  unsigned int parallelism;
   std::string inputDir;
   std::string outDir;
   bpo::options_description description("Check for update options");
   // clang-format off
   description.add_options()
     ("inputdir,i", bpo::value<std::string>(&inputDir)->required(), "path to the input data")
-    ("rate,r", bpo::value<uint>(&devicesPerSec)->default_value(5), "devices/sec")
-    ("number,n", bpo::value<uint>(&opsNr)->default_value(100), "number of operation to execute")
-    ("threads,t", bpo::value<uint>(&parallelism)->default_value(std::thread::hardware_concurrency()), "number of worker threads");
+    ("rate,r", bpo::value<unsigned int>(&devicesPerSec)->default_value(5), "devices/sec")
+    ("number,n", bpo::value<unsigned int>(&opsNr)->default_value(100), "number of operation to execute")
+    ("threads,t", bpo::value<unsigned int>(&parallelism)->default_value(std::thread::hardware_concurrency()), "number of worker threads");
   // clang-format on
 
   bpo::variables_map vm;
@@ -86,11 +119,13 @@ void setLogLevel(const bpo::variables_map &vm) {
 int main(int argc, char *argv[]) {
   std::srand(std::time(0));
 
-  std::map<std::string, std::function<void(std::vector<std::string>)>> commands{
-      // {"sla", slaCheckCmd},
-      {"provision", provisionDevicesCmd},
-      {"check", checkForUpdatesCmd}
-      // {"pull", pullOSTreeCmd}
+  std::map<std::string, std::function<void(std::vector<std::string>)>> commands{// {"sla", slaCheckCmd},
+                                                                                {"provision", provisionDevicesCmd},
+                                                                                {"check", checkForUpdatesCmd}
+#ifdef BUILD_OSTREE
+                                                                                ,
+                                                                                {"fetch", fetchRemoteCmd}
+#endif
   };
 
   std::stringstream acc;

@@ -4,6 +4,7 @@
 #include <atomic>
 #include <boost/thread/latch.hpp>
 #include <chrono>
+#include <csignal>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -28,7 +29,7 @@ class UnboundedExecutionController : ExecutionController {
 
   void stop() override { stopped = true; }
 
-  bool claim() override { return stopped; }
+  bool claim() override { return !stopped; }
 };
 
 class FixedExecutionController : public ExecutionController {
@@ -52,18 +53,23 @@ class FixedExecutionController : public ExecutionController {
   }
 };
 
-class ThreadJoiner {
-  std::vector<std::thread> &threads;
+class InterruptableExecutionController : public ExecutionController {
+ private:
+  std::atomic_bool stopped;
+  static std::atomic_bool interrupted;
+  static void handleSignal(int) {
+    LOG_INFO << "SIGINT received";
+    interrupted = true;
+  }
 
  public:
-  explicit ThreadJoiner(std::vector<std::thread> &threads_) : threads(threads_) {}
-  ~ThreadJoiner() {
-    for (size_t i = 0; i < threads.size(); i++) {
-      if (threads[i].joinable()) {
-        threads[i].join();
-      }
-    }
-  }
+  InterruptableExecutionController() : stopped{false} {
+    std::signal(SIGINT, InterruptableExecutionController::handleSignal);
+  };
+
+  bool claim() override { return !(interrupted || stopped); }
+
+  void stop() override { stopped = true; }
 };
 
 typedef timer::steady_clock::time_point TimePoint;
@@ -85,7 +91,7 @@ class TaskStartTimeCalculator {
 
 template <typename TaskStream>
 class Executor {
-  ExecutionController &controller;
+  std::unique_ptr<ExecutionController> controller;
   std::vector<std::thread> workers;
   std::vector<Statistics> statistics;
   TaskStartTimeCalculator calculateTaskStartTime;
@@ -96,8 +102,10 @@ class Executor {
     using clock = std::chrono::steady_clock;
     LOG_DEBUG << "Worker created: " << std::this_thread::get_id();
     threadCountDown.count_down();
+    LOG_INFO << "Ready to go...";
     starter.wait();
-    while (controller.claim()) {
+    LOG_INFO << "Go!";
+    while (controller->claim()) {
       auto task = tasks.nextTask();
       const auto intendedStartTime = calculateTaskStartTime();
       if (timer::steady_clock::now() < intendedStartTime) {
@@ -113,8 +121,8 @@ class Executor {
   }
 
  public:
-  Executor(std::vector<TaskStream> &feeds, const unsigned rate, ExecutionController &ctrl)
-      : controller{ctrl},
+  Executor(std::vector<TaskStream> &feeds, const unsigned rate, std::unique_ptr<ExecutionController> ctrl)
+      : controller{std::move(ctrl)},
         workers{},
         statistics(feeds.size()),
         calculateTaskStartTime{rate},
@@ -126,7 +134,7 @@ class Executor {
         workers.push_back(std::thread(&Executor::runWorker, this, std::ref(feeds[i]), std::ref(statistics[i])));
       }
     } catch (...) {
-      controller.stop();
+      controller->stop();
       throw;
     }
   };
@@ -134,9 +142,11 @@ class Executor {
   Statistics run() {
     Statistics summary{};
     // wait till all threads are crerated and ready to go
+    LOG_INFO << "Waiting for threads to start";
     threadCountDown.wait();
     calculateTaskStartTime.start();
     summary.start();
+    LOG_INFO << "Starting tests";
     // start execution
     starter.count_down();
     // wait till all threads finished execution
