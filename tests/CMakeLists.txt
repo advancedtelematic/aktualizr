@@ -1,5 +1,3 @@
-find_program(VALGRIND NAMES valgrind)
-
 if(NOT GTEST_ROOT )
     set(GTEST_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googletest)
 endif()
@@ -64,9 +62,6 @@ if(BUILD_WITH_CODE_COVERAGE)
     target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
-
-configure_file(run-valgrind.in run-valgrind @ONLY)
-SET(RUN_VALGRIND ${CMAKE_CURRENT_BINARY_DIR}/run-valgrind)
 
 if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     # Code coverage disables valgrind, and this test is only checking that

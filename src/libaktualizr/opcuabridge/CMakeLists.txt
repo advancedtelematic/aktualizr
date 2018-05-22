@@ -72,13 +72,5 @@ target_link_libraries(opcuabridge-ostree-repo-sync-server aktualizr_static_lib $
 add_dependencies(build_tests opcuabridge-ostree-repo-sync-server)
 
 add_test(NAME opcuabridge-ostree-repo-sync-test
-            COMMAND ${PROJECT_SOURCE_DIR}/tests/run_opcuabridge_ostree_repo_sync_test.sh
-            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests)
-
-add_test(NAME opcuabridge-ostree-repo-sync-valgrind-test
-            COMMAND ${PROJECT_SOURCE_DIR}/tests/run_opcuabridge_ostree_repo_sync_test.sh
-            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests valgrind)
-
-
-
-aktualizr_source_file_checks(${SOURCES} ${HEADERS})
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/run_opcuabridge_ostree_repo_sync_test.sh
+    ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/tests ${RUN_VALGRIND})
