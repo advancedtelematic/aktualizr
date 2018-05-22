@@ -37,7 +37,7 @@ void Initializer::resetDeviceId() { storage->clearDeviceId(); }
 
 // Postcondition [(serial, hw_id)] is in the storage
 bool Initializer::initEcuSerials() {
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
+  EcuSerials ecu_serials;
 
   // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
   //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
@@ -58,7 +58,7 @@ bool Initializer::initEcuSerials() {
     }
   }
 
-  ecu_serials.emplace_back(primary_ecu_serial_local, primary_ecu_hardware_id);
+  ecu_serials.emplace_back(primary_ecu_serial_local, Uptane::HardwareIdentifier(primary_ecu_hardware_id));
 
   for (auto it = secondary_info.begin(); it != secondary_info.end(); ++it) {
     ecu_serials.emplace_back(it->second->getSerial(), it->second->getHwId());
@@ -154,7 +154,7 @@ InitRetCode Initializer::initEcuRegister() {
     return INIT_RET_STORAGE_FAILURE;
   }
 
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
+  EcuSerials ecu_serials;
   // initEcuSerials should have been called by this point
   if (!storage->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
     return INIT_RET_STORAGE_FAILURE;
@@ -165,7 +165,7 @@ InitRetCode Initializer::initEcuRegister() {
   all_ecus["ecus"] = Json::arrayValue;
   {
     Json::Value primary_ecu;
-    primary_ecu["hardware_identifier"] = ecu_serials[0].second;
+    primary_ecu["hardware_identifier"] = ecu_serials[0].second.ToString();
     primary_ecu["ecu_serial"] = ecu_serials[0].first;
     primary_ecu["clientKey"]["keytype"] = keyTypeToString(keys.getUptaneKeyType());
     primary_ecu["clientKey"]["keyval"]["public"] = primary_public;
@@ -175,7 +175,7 @@ InitRetCode Initializer::initEcuRegister() {
   for (auto it = secondary_info.cbegin(); it != secondary_info.cend(); it++) {
     Json::Value ecu;
     auto public_key = it->second->getPublicKey();
-    ecu["hardware_identifier"] = it->second->getHwId();
+    ecu["hardware_identifier"] = it->second->getHwId().ToString();
     ecu["ecu_serial"] = it->second->getSerial();
     ecu["clientKey"]["keytype"] = keyTypeToString(public_key.first);
     ecu["clientKey"]["keyval"]["public"] = public_key.second;

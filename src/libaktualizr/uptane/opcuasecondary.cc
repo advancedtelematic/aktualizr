@@ -25,9 +25,9 @@ std::string OpcuaSecondary::getSerial() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.recvConfiguration().getSerial();
 }
-std::string OpcuaSecondary::getHwId() {
+Uptane::HardwareIdentifier OpcuaSecondary::getHwId() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
-  return client.recvConfiguration().getHwId();
+  return Uptane::HardwareIdentifier(client.recvConfiguration().getHwId());
 }
 std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};

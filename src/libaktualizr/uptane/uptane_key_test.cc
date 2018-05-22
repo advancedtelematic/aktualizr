@@ -75,7 +75,7 @@ void checkKeyTests(std::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_
   EXPECT_TRUE(primary_public.size() > 0);
   EXPECT_TRUE(primary_private.size() > 0);
 
-  std::vector<std::pair<std::string, std::string> > ecu_serials;
+  EcuSerials ecu_serials;
   EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials));
   EXPECT_EQ(ecu_serials.size(), 3);
 

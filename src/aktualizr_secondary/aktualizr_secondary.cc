@@ -131,7 +131,7 @@ void AktualizrSecondary::stop() { conn_.stop(); }
 
 std::string AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
 
-std::string AktualizrSecondary::getHwIdResp() const { return hardware_id_; }
+Uptane::HardwareIdentifier AktualizrSecondary::getHwIdResp() const { return hardware_id_; }
 
 std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
   return std::make_pair(config_.uptane.key_type, keys_.getUptanePublicKey());

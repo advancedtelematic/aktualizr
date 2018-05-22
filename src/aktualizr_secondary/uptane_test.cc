@@ -21,7 +21,7 @@ TEST(aktualizr_secondary_uptane, getHwId) {
   config.pacman.sysroot = sysroot;
   AktualizrSecondary as(config, storage);
 
-  EXPECT_NE(as.getHwIdResp(), "");
+  EXPECT_NE(as.getHwIdResp(), Uptane::HardwareIdentifier(""));
 }
 
 TEST(aktualizr_secondary_uptane, getPublicKey) {

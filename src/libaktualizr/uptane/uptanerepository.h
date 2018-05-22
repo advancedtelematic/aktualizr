@@ -43,7 +43,7 @@ class Repository {
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) { secondary_info.push_back(sec); }
   std::pair<int, std::vector<Uptane::Target> > getTargets();               // TODO -> director
   std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };  // TODO-> sotauptaneclient
-  void setPrimaryEcuSerialHwId(const std::pair<std::string, std::string> &serials) {
+  void setPrimaryEcuSerialHwId(const std::pair<std::string, Uptane::HardwareIdentifier> &serials) {
     primary_ecu_serial = serials.first;
     primary_hardware_id = serials.second;
   }  // TODO-> a hack to be there until Uptane::Repository and SotaUptaneClient are merged
@@ -69,7 +69,7 @@ class Repository {
   MetaPack meta_;
 
   std::string primary_ecu_serial;
-  std::string primary_hardware_id;
+  Uptane::HardwareIdentifier primary_hardware_id{Uptane::HardwareIdentifier::Unknown()};
 
   std::vector<std::shared_ptr<Uptane::SecondaryInterface> > secondary_info;
 

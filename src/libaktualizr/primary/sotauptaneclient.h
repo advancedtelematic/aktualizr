@@ -64,7 +64,7 @@ class SotaUptaneClient {
 class SerialCompare {
  public:
   explicit SerialCompare(std::string target_in) : target(std::move(target_in)) {}
-  bool operator()(std::pair<std::string, std::string> &in) { return (in.first == target); }
+  bool operator()(std::pair<std::string, Uptane::HardwareIdentifier> &in) { return (in.first == target); }
 
  private:
   std::string target;

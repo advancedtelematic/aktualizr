@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "uptane/tuf.h"
 #include "utilities/types.h"
 
 #include <utility>
@@ -15,8 +16,8 @@ class Configuration {
 
   const std::string& getSerial() const { return serial_; }
   void setSerial(const std::string& serial) { serial_ = serial; }
-  const std::string& getHwId() const { return hwid_; }
-  void setHwId(const std::string& hwid) { hwid_ = hwid; }
+  Uptane::HardwareIdentifier getHwId() const { return hwid_; }
+  void setHwId(const Uptane::HardwareIdentifier& hwid) { hwid_ = hwid; }
   const KeyType& getPublicKeyType() const { return public_key_type_; }
   void setPublicKeyType(const KeyType& public_key_type) { public_key_type_ = public_key_type; }
   const std::string& getPublicKey() const { return public_key_; }
@@ -35,7 +36,7 @@ class Configuration {
 
  protected:
   KeyType public_key_type_{};
-  std::string hwid_;
+  Uptane::HardwareIdentifier hwid_{Uptane::HardwareIdentifier::Unknown()};
   std::string public_key_;
   std::string serial_;
 
@@ -47,14 +48,14 @@ class Configuration {
 
   Json::Value wrapMessage() const {
     Json::Value v;
-    v["hwid"] = getHwId();
+    v["hwid"] = getHwId().ToString();
     v["public_key_type"] = getPublicKeyType();
     v["public_key"] = getPublicKey();
     v["serial"] = getSerial();
     return v;
   }
   void unwrapMessage(Json::Value v) {
-    setHwId(v["hwid"].asString());
+    setHwId(Uptane::HardwareIdentifier(v["hwid"].asString()));
     setPublicKeyType(static_cast<KeyType>(v["public_key_type"].asInt()));
     setPublicKey(v["public_key"].asString());
     setSerial(v["serial"].asString());

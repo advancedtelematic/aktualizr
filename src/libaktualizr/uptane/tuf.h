@@ -5,6 +5,7 @@
  * Base data types that are used in The Update Framework (TUF), part of UPTANE.
  */
 
+#include <functional>
 #include <ostream>
 #include <set>
 #include "uptane/exceptions.h"
@@ -78,6 +79,37 @@ class TimeStamp {
 };
 
 std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
+
+class HardwareIdentifier {
+ public:
+  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
+  static const int kMinLength = 0;
+  static const int kMaxLength = 200;
+
+  static HardwareIdentifier Unknown() { return HardwareIdentifier("Unknown"); }
+  explicit HardwareIdentifier(const std::string &hwid) : hwid_(hwid) {
+    /* if (hwid.length() < kMinLength) {
+      throw std::out_of_range("Hardware Identifier too short");
+    } */
+    if (kMaxLength < hwid.length()) {
+      throw std::out_of_range("Hardware Identifier too long");
+    }
+  }
+
+  std::string ToString() const { return hwid_; }
+
+  bool operator==(const HardwareIdentifier &rhs) const { return hwid_ == rhs.hwid_; }
+  bool operator!=(const HardwareIdentifier &rhs) const { return !(*this == rhs); }
+
+  bool operator<(const HardwareIdentifier &rhs) const { return hwid_ < rhs.hwid_; }
+  friend std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
+  friend struct std::hash<Uptane::HardwareIdentifier>;
+
+ private:
+  std::string hwid_;
+};
+
+std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
 
 /**
  * The hash of a file or TUF metadata.  File hashes/checksums in TUF include the length of the object, in order to
@@ -294,4 +326,12 @@ struct MetaPack {
   Snapshot image_snapshot;
 };
 }  // namespace Uptane
+
+namespace std {
+template <>
+struct hash<Uptane::HardwareIdentifier> {
+  size_t operator()(const Uptane::HardwareIdentifier &hwid) const { return std::hash<std::string>()(hwid.hwid_); }
+};
+}  // namespace std
+
 #endif  // AKTUALIZR_UPTANE_TUF_H_

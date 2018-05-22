@@ -176,7 +176,7 @@ bool SotaUptaneClient::initialize() {
     return false;
   }
 
-  std::vector<std::pair<std::string, std::string> > serials;
+  EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
     return false;
   }
@@ -327,7 +327,7 @@ void SotaUptaneClient::initSecondaries() {
 // Check stored secondaries list against secondaries known to aktualizr via
 // commandline input and legacy interface.
 void SotaUptaneClient::verifySecondaries() {
-  std::vector<std::pair<std::string, std::string> > serials;
+  EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.empty()) {
     LOG_ERROR << "No ECU serials found in storage!";
     return;
@@ -336,7 +336,7 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<MisconfiguredEcu> misconfigured_ecus;
   std::vector<bool> found(serials.size(), false);
   SerialCompare primary_comp(uptane_repo.getPrimaryEcuSerial());
-  std::vector<std::pair<std::string, std::string> >::const_iterator store_it;
+  EcuSerials::const_iterator store_it;
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
@@ -364,7 +364,7 @@ void SotaUptaneClient::verifySecondaries() {
   std::vector<bool>::iterator found_it;
   for (found_it = found.begin(); found_it != found.end(); ++found_it) {
     if (!*found_it) {
-      std::pair<std::string, std::string> not_registered = serials[std::distance(found.begin(), found_it)];
+      auto not_registered = serials[std::distance(found.begin(), found_it)];
       LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
       misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, kOld);
     }

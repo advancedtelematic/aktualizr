@@ -59,7 +59,7 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
     if (device_register_state == "noerrors" && ecu_register_state != "noerrors") {
       // restore a "good" ecu serial in the ecu register fault injection case
       // (the bad value has been cached in storage)
-      std::vector<std::pair<std::string, std::string> > serials;
+      EcuSerials serials;
       store->loadEcuSerials(&serials);
       serials[0].first = conf.provision.primary_ecu_serial;
       store->storeEcuSerials(serials);
