@@ -44,12 +44,13 @@ class ProvisionDeviceTask {
   }
 
   void operator()() {
-    Uptane::Repository repo{config, storage, httpClient};
+    Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     SotaUptaneClient client{config, eventsIn, repo, storage, httpClient};
     try {
       if (client.initialize()) {
-        repo.putManifest(client.AssembleManifest());
+        auto signed_manifest = repo.signManifest(client.AssembleManifest());
+        httpClient.put(config.uptane.director_server + "/manifest", signed_manifest);
       } else {
         LOG_ERROR << "Failed to initialize repository for " << config.storage.path;
       }

@@ -11,7 +11,7 @@
 class EphemeralStorage : public FSStorage {
  public:
   EphemeralStorage(const StorageConfig &config) : FSStorage(config) {}
-  void storeMetadata(const Uptane::MetaPack &) override{};
+  void storeMetadata(const Uptane::RawMetaPack &) override{};
 
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig &config) {
     return std::make_shared<EphemeralStorage>(config);
@@ -31,7 +31,7 @@ class CheckForUpdate {
 
   void operator()() {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
-    Uptane::Repository repo{config, storage, httpClient};
+    Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     SotaUptaneClient client{config, eventsIn, repo, storage, httpClient};
     try {
