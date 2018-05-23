@@ -26,8 +26,8 @@ class EndoptToken : public Token {
 
 class ExplicitToken : public Token {
  public:
-  explicit ExplicitToken(uint8_t tag, ASN1_Class tag_class = kAsn1Context)
-      : Token(expl_tok), tag(tag), tag_class(tag_class) {}
+  explicit ExplicitToken(uint8_t token_tag, ASN1_Class token_tag_class = kAsn1Context)
+      : Token(expl_tok), tag(token_tag), tag_class(token_tag_class) {}
   ~ExplicitToken() override = default;
   uint8_t tag;
   ASN1_Class tag_class;
@@ -35,8 +35,8 @@ class ExplicitToken : public Token {
 
 class PeekExplicitToken : public Token {
  public:
-  explicit PeekExplicitToken(uint8_t* tag = nullptr, ASN1_Class* tag_class = nullptr)
-      : Token(peekexpl_tok), tag(tag), tag_class(tag_class) {}
+  explicit PeekExplicitToken(uint8_t* token_tag = nullptr, ASN1_Class* token_tag_class = nullptr)
+      : Token(peekexpl_tok), tag(token_tag), tag_class(token_tag_class) {}
   ~PeekExplicitToken() override = default;
   uint8_t* tag;
   ASN1_Class* tag_class;

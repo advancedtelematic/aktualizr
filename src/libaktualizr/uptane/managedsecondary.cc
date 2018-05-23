@@ -151,12 +151,12 @@ Json::Value ManagedSecondary::getManifest() {
   return signed_ecu_version;
 }
 
-void ManagedSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key), private_key);
-  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key), public_key);
+void ManagedSecondary::storeKeys(const std::string &pub_key, const std::string &priv_key) {
+  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_private_key), priv_key);
+  Utils::writeFile((sconfig.full_client_dir / sconfig.ecu_public_key), pub_key);
 }
 
-bool ManagedSecondary::loadKeys(std::string *public_key, std::string *private_key) {
+bool ManagedSecondary::loadKeys(std::string *pub_key, std::string *priv_key) {
   boost::filesystem::path public_key_path = sconfig.full_client_dir / sconfig.ecu_public_key;
   boost::filesystem::path private_key_path = sconfig.full_client_dir / sconfig.ecu_private_key;
 
@@ -164,8 +164,8 @@ bool ManagedSecondary::loadKeys(std::string *public_key, std::string *private_ke
     return false;
   }
 
-  *private_key = Utils::readFile(private_key_path.string());
-  *public_key = Utils::readFile(public_key_path.string());
+  *priv_key = Utils::readFile(private_key_path.string());
+  *pub_key = Utils::readFile(public_key_path.string());
   return true;
 }
 }  // namespace Uptane

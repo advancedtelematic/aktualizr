@@ -177,13 +177,13 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
         }
       } else {
         int nestedness = 0;
-        int32_t int_param = 0;
+        int32_t decoded_int = 0;
 
         for (;;) {
           if (data.empty()) {  // end of data before end of sequence
             throw deserialization_error();
           }
-          uint8_t ret = cer_decode_token(data, &endpos, &int_param, nullptr);
+          uint8_t ret = cer_decode_token(data, &endpos, &decoded_int, nullptr);
           data = data.substr(endpos);
           cons_len += endpos;
 
@@ -192,7 +192,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
           }
           if (ret == kAsn1Sequence) {  // TODO: explicit tags (constructed tokens in general)
             // indefininte length, expect an end of sequence marker
-            if (int_param == -1) {
+            if (decoded_int == -1) {
               ++nestedness;
             }
           } else if (ret == kAsn1EndSequence) {

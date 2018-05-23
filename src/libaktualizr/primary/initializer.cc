@@ -13,27 +13,27 @@
 bool Initializer::initDeviceId() {
   // if device_id is already stored, just return
   std::string device_id;
-  if (storage->loadDeviceId(&device_id)) {
+  if (storage_->loadDeviceId(&device_id)) {
     return true;
   }
 
   // if device_id is specified in config, just use it, otherwise generate a  random one
-  device_id = config.device_id;
+  device_id = config_.device_id;
   if (device_id.empty()) {
-    if (config.mode == kAutomatic) {
+    if (config_.mode == kAutomatic) {
       device_id = Utils::genPrettyName();
-    } else if (config.mode == kImplicit) {
-      device_id = keys.getCN();
+    } else if (config_.mode == kImplicit) {
+      device_id = keys_.getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
       return false;
     }
   }
 
-  storage->storeDeviceId(device_id);
+  storage_->storeDeviceId(device_id);
   return true;
 }
-void Initializer::resetDeviceId() { storage->clearDeviceId(); }
+void Initializer::resetDeviceId() { storage_->clearDeviceId(); }
 
 // Postcondition [(serial, hw_id)] is in the storage
 bool Initializer::initEcuSerials() {
@@ -41,16 +41,16 @@ bool Initializer::initEcuSerials() {
 
   // TODO: the assumption now is that the set of connected ECUs doesn't change, but it might obviously
   //   not be the case. ECU discovery seems to be a big story and should be worked on accordingly.
-  if (storage->loadEcuSerials(&ecu_serials)) {
+  if (storage_->loadEcuSerials(&ecu_serials)) {
     return true;
   }
 
-  std::string primary_ecu_serial_local = config.primary_ecu_serial;
+  std::string primary_ecu_serial_local = config_.primary_ecu_serial;
   if (primary_ecu_serial_local.empty()) {
-    primary_ecu_serial_local = Crypto::getKeyId(keys.getUptanePublicKey());
+    primary_ecu_serial_local = Crypto::getKeyId(keys_.getUptanePublicKey());
   }
 
-  std::string primary_ecu_hardware_id = config.primary_ecu_hardware_id;
+  std::string primary_ecu_hardware_id = config_.primary_ecu_hardware_id;
   if (primary_ecu_hardware_id.empty()) {
     primary_ecu_hardware_id = Utils::getHostname();
     if (primary_ecu_hardware_id == "") {
@@ -60,24 +60,24 @@ bool Initializer::initEcuSerials() {
 
   ecu_serials.emplace_back(primary_ecu_serial_local, Uptane::HardwareIdentifier(primary_ecu_hardware_id));
 
-  for (auto it = secondary_info.begin(); it != secondary_info.end(); ++it) {
+  for (auto it = secondary_info_.begin(); it != secondary_info_.end(); ++it) {
     ecu_serials.emplace_back(it->second->getSerial(), it->second->getHwId());
   }
 
-  storage->storeEcuSerials(ecu_serials);
+  storage_->storeEcuSerials(ecu_serials);
   return true;
 }
 
-void Initializer::resetEcuSerials() { storage->clearEcuSerials(); }
+void Initializer::resetEcuSerials() { storage_->clearEcuSerials(); }
 
 // Postcondition: (public, private) is in the storage. It should not be stored until secondaries are provisioned
-bool Initializer::initPrimaryEcuKeys() { return keys.generateUptaneKeyPair().size() != 0u; }
+bool Initializer::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().size() != 0u; }
 
-void Initializer::resetEcuKeys() { storage->clearPrimaryKeys(); }
+void Initializer::resetEcuKeys() { storage_->clearPrimaryKeys(); }
 
 bool Initializer::loadSetTlsCreds() {
-  keys.copyCertsToCurl(&http_client);
-  return keys.isOk();
+  keys_.copyCertsToCurl(&http_client_);
+  return keys_.isOk();
 }
 
 // Postcondition: TLS credentials are in the storage
@@ -86,7 +86,7 @@ InitRetCode Initializer::initTlsCreds() {
     return INIT_RET_OK;
   }
 
-  if (config.mode != kAutomatic) {
+  if (config_.mode != kAutomatic) {
     LOG_ERROR << "Credentials not found";
     return INIT_RET_STORAGE_FAILURE;
   }
@@ -94,18 +94,18 @@ InitRetCode Initializer::initTlsCreds() {
   // Autoprovision is needed and possible => autoprovision
 
   // set bootstrap credentials
-  Bootstrap boot(config.provision_path, config.p12_password);
-  http_client.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
+  Bootstrap boot(config_.provision_path, config_.p12_password);
+  http_client_.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
 
   Json::Value data;
   std::string device_id;
-  if (!storage->loadDeviceId(&device_id)) {
+  if (!storage_->loadDeviceId(&device_id)) {
     LOG_ERROR << "device_id unknown during autoprovisioning process";
     return INIT_RET_STORAGE_FAILURE;
   }
   data["deviceId"] = device_id;
-  data["ttl"] = config.expiry_days;
-  HttpResponse response = http_client.post(config.server + "/devices", data);
+  data["ttl"] = config_.expiry_days;
+  HttpResponse response = http_client_.post(config_.server + "/devices", data);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
@@ -124,7 +124,7 @@ InitRetCode Initializer::initTlsCreds() {
     LOG_ERROR << "Received a malformed P12 package from the server";
     return INIT_RET_BAD_P12;
   }
-  storage->storeTlsCreds(ca, cert, pkey);
+  storage_->storeTlsCreds(ca, cert, pkey);
 
   // set provisioned credentials
   if (!loadSetTlsCreds()) {
@@ -137,18 +137,18 @@ InitRetCode Initializer::initTlsCreds() {
 }
 
 void Initializer::resetTlsCreds() {
-  if (config.mode != kImplicit) {
-    storage->clearTlsCreds();
+  if (config_.mode != kImplicit) {
+    storage_->clearTlsCreds();
   }
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
 InitRetCode Initializer::initEcuRegister() {
-  if (storage->loadEcuRegistered()) {
+  if (storage_->loadEcuRegistered()) {
     return INIT_RET_OK;
   }
 
-  std::string primary_public = keys.getUptanePublicKey();
+  std::string primary_public = keys_.getUptanePublicKey();
 
   if (primary_public.empty()) {
     return INIT_RET_STORAGE_FAILURE;
@@ -156,7 +156,7 @@ InitRetCode Initializer::initEcuRegister() {
 
   EcuSerials ecu_serials;
   // initEcuSerials should have been called by this point
-  if (!storage->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
+  if (!storage_->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
     return INIT_RET_STORAGE_FAILURE;
   }
 
@@ -167,12 +167,12 @@ InitRetCode Initializer::initEcuRegister() {
     Json::Value primary_ecu;
     primary_ecu["hardware_identifier"] = ecu_serials[0].second.ToString();
     primary_ecu["ecu_serial"] = ecu_serials[0].first;
-    primary_ecu["clientKey"]["keytype"] = keyTypeToString(keys.getUptaneKeyType());
+    primary_ecu["clientKey"]["keytype"] = keyTypeToString(keys_.getUptaneKeyType());
     primary_ecu["clientKey"]["keyval"]["public"] = primary_public;
     all_ecus["ecus"].append(primary_ecu);
   }
 
-  for (auto it = secondary_info.cbegin(); it != secondary_info.cend(); it++) {
+  for (auto it = secondary_info_.cbegin(); it != secondary_info_.cend(); it++) {
     Json::Value ecu;
     auto public_key = it->second->getPublicKey();
     ecu["hardware_identifier"] = it->second->getHwId().ToString();
@@ -182,7 +182,7 @@ InitRetCode Initializer::initEcuRegister() {
     all_ecus["ecus"].append(ecu);
   }
 
-  HttpResponse response = http_client.post(config.ecu_registration_endpoint, all_ecus);
+  HttpResponse response = http_client_.post(config_.ecu_registration_endpoint, all_ecus);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&
@@ -193,18 +193,22 @@ InitRetCode Initializer::initEcuRegister() {
     LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
     return INIT_RET_SERVER_FAILURE;
   }
-  // do not call storage->storeEcuRegistered(), it will be called from the top-level Init function after the
+  // do not call storage_->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
   LOG_INFO << "ECUs have been successfully registered to the server";
   return INIT_RET_OK;
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-Initializer::Initializer(const ProvisionConfig& config, const std::shared_ptr<INvStorage>& storage,
-                         HttpInterface& http_client, KeyManager& keys,
+Initializer::Initializer(const ProvisionConfig& config, std::shared_ptr<INvStorage> storage, HttpInterface& http_client,
+                         KeyManager& keys,
                          const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info)
-    : config(config), storage(storage), http_client(http_client), keys(keys), secondary_info(secondary_info) {
-  success = false;
+    : config_(config),
+      storage_(std::move(storage)),
+      http_client_(http_client),
+      keys_(keys),
+      secondary_info_(secondary_info) {
+  success_ = false;
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId()) {
       LOG_ERROR << "Device ID generation failed, abort initialization";
@@ -244,8 +248,8 @@ Initializer::Initializer(const ProvisionConfig& config, const std::shared_ptr<IN
     }
 
     // TODO: acknowledge on server _before_ setting the flag
-    storage->storeEcuRegistered();
-    success = true;
+    storage_->storeEcuRegistered();
+    success_ = true;
     return;
   }
   LOG_ERROR << "Initialization failed after " << MaxInitializationAttempts << " attempts";

@@ -91,12 +91,11 @@ int main(int argc, char **argv) {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
     // isn't really any reason to upload in parallel
-    bool ok = UploadToTreehub(src_repo, push_credentials, commit, cacerts, false, 1);
-
-    if (!ok) {
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, false, 1)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
+
     if (push_credentials.CanSignOffline()) {
       bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
       return static_cast<int>(!ok);

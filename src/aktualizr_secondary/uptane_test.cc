@@ -6,27 +6,27 @@
 #include "config/config.h"
 #include "httpfake.h"
 
-std::shared_ptr<INvStorage> storage;
-AktualizrSecondaryConfig config;
-std::string sysroot;
+std::shared_ptr<INvStorage> test_storage;
+AktualizrSecondaryConfig test_config;
+std::string test_sysroot;
 
 TEST(aktualizr_secondary_uptane, getSerial) {
-  config.pacman.sysroot = sysroot;
-  AktualizrSecondary as(config, storage);
+  test_config.pacman.sysroot = test_sysroot;
+  AktualizrSecondary as(test_config, test_storage);
 
   EXPECT_NE(as.getSerialResp(), "");
 }
 
 TEST(aktualizr_secondary_uptane, getHwId) {
-  config.pacman.sysroot = sysroot;
-  AktualizrSecondary as(config, storage);
+  test_config.pacman.sysroot = test_sysroot;
+  AktualizrSecondary as(test_config, test_storage);
 
   EXPECT_NE(as.getHwIdResp(), Uptane::HardwareIdentifier(""));
 }
 
 TEST(aktualizr_secondary_uptane, getPublicKey) {
-  config.pacman.sysroot = sysroot;
-  AktualizrSecondary as(config, storage);
+  test_config.pacman.sysroot = test_sysroot;
+  AktualizrSecondary as(test_config, test_storage);
 
   KeyType type;
   std::string key;
@@ -54,7 +54,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage, http);
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http);
   EXPECT_TRUE(sota_client.initialize());
 
   std::string arch = sota_client.secondaryTreehubCredentials();
@@ -67,17 +67,17 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   TemporaryDirectory temp_dir;
-  config.network.port = 0;  // random port
-  config.storage.type = kSqlite;
-  config.storage.sqldb_path = temp_dir.Path() / "sql.db";
+  test_config.network.port = 0;  // random port
+  test_config.storage.type = kSqlite;
+  test_config.storage.sqldb_path = temp_dir.Path() / "sql.db";
 
-  storage = INvStorage::newStorage(config.storage, temp_dir.Path());
+  test_storage = INvStorage::newStorage(test_config.storage, temp_dir.Path());
 
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
     return EXIT_FAILURE;
   }
-  sysroot = argv[1];
+  test_sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

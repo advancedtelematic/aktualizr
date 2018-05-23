@@ -16,18 +16,18 @@ enum InitRetCode {
 
 class Initializer {
  public:
-  Initializer(const ProvisionConfig& config, const std::shared_ptr<INvStorage>& storage, HttpInterface& http_client,
+  Initializer(const ProvisionConfig& config, std::shared_ptr<INvStorage> storage, HttpInterface& http_client,
               KeyManager& keys,
               const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info);
-  bool isSuccessful() const { return success; }
+  bool isSuccessful() const { return success_; }
 
  private:
-  const ProvisionConfig& config;
-  std::shared_ptr<INvStorage> storage;
-  HttpInterface& http_client;
-  KeyManager& keys;
-  const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info;
-  bool success;
+  const ProvisionConfig& config_;
+  std::shared_ptr<INvStorage> storage_;
+  HttpInterface& http_client_;
+  KeyManager& keys_;
+  const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_;
+  bool success_;
 
   bool initDeviceId();
   void resetDeviceId();

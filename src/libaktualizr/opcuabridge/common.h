@@ -277,7 +277,7 @@ inline UA_StatusCode ClientRead(UA_Client *client, const char *node_id, MessageT
     MessageT::unwrapMessage(obj, static_cast<const char *>(val->data), val->arrayLength);
     // read binary child node
     UA_Variant *bin_val = UA_Variant_new();
-    UA_StatusCode retval = UA_Client_readValueAttribute(
+    retval = UA_Client_readValueAttribute(
         client, UA_NODEID_STRING(kNSindex, const_cast<char *>(obj->bin_node_id_)), bin_val);
     if (retval == UA_STATUSCODE_GOOD && UA_Variant_hasArrayType(bin_val, &UA_TYPES[UA_TYPES_BYTE])) {
       bin_data->resize(bin_val->arrayLength);
