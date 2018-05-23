@@ -16,10 +16,10 @@ enum InitRetCode {
 
 class Initializer {
  public:
-  Initializer(const ProvisionConfig& config, std::shared_ptr<INvStorage> storage, HttpInterface& http_client,
-              KeyManager& keys,
-              const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info);
-  bool isSuccessful() const { return success_; }
+  Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client_in,
+              KeyManager& keys_in,
+              const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in);
+  bool isSuccessful() const { return success; }
 
  private:
   const ProvisionConfig& config_;

@@ -389,41 +389,46 @@ bool SQLStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::st
   }
 
   const std::string* data = &req_response_table[0]["director_root"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata) {
+  } else if (metadata != nullptr) {
     metadata->director_root = *data;
   }
 
   data = &req_response_table[0]["image_root"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata)
+  } else if (metadata != nullptr) {
     metadata->image_root = *data;
+  }
 
   data = &req_response_table[0]["director_targets"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata)
+  } else if (metadata != nullptr) {
     metadata->director_targets = *data;
+  }
 
   data = &req_response_table[0]["image_targets"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata)
+  } else if (metadata != nullptr) {
     metadata->image_targets = *data;
+  }
 
   data = &req_response_table[0]["image_timestamp"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata)
+  } else if (metadata != nullptr) {
     metadata->image_timestamp = *data;
+  }
 
   data = &req_response_table[0]["image_snapshot"];
-  if (data->empty())
+  if (data->empty()) {
     return false;
-  else if (metadata)
+  } else if (metadata != nullptr) {
     metadata->image_snapshot = *data;
+  }
 
   return true;
 }
@@ -468,14 +473,14 @@ void SQLStorage::storeRootCommon(bool director, const std::string& root, Uptane:
   }
 
   auto delete_statement = db.prepareStatement<int, int>(
-      "DELETE FROM " + tablename + " WHERE (director=? AND version=?);", director, version.version());
+      "DELETE FROM " + tablename + " WHERE (director=? AND version=?);", static_cast<int>(director), version.version());
   if (delete_statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't clear root meta: " << db.errmsg();
     return;
   }
 
   auto statement = db.prepareStatement<SQLBlob, int, int>("INSERT INTO " + tablename + " VALUES (?,?,?);",
-                                                          SQLBlob(root), director, version.version());
+                                                          SQLBlob(root), static_cast<int>(director), version.version());
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set root meta: " << db.errmsg();
@@ -495,7 +500,7 @@ bool SQLStorage::loadRootCommon(bool director, std::string* root, Uptane::Versio
   }
 
   auto statement = db.prepareStatement<int, int>("SELECT root FROM " + tablename + " WHERE (director=? AND version=?);",
-                                                 director, version.version());
+                                                 static_cast<int>(director), version.version());
 
   int result = statement.step();
 
@@ -508,9 +513,9 @@ bool SQLStorage::loadRootCommon(bool director, std::string* root, Uptane::Versio
   }
   std::string data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
 
-  if (data.empty())
+  if (data.empty()) {
     return false;
-  else if (root) {
+  } else if (root != nullptr) {
     *root = std::move(data);
   }
 

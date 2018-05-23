@@ -171,10 +171,11 @@ bool Repository::feedCheckRoot(bool director, Version version) {
     return false;
   }
   // TODO: verify
-  if (director)
+  if (director) {
     meta_.director_root = Uptane::Root("director", Utils::parseJSON(root));
-  else
+  } else {
     meta_.image_root = Uptane::Root("repo", Utils::parseJSON(root));
+  }
 
   storage->storeRoot(director, root, version);
 

@@ -175,7 +175,7 @@ bool FSStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::str
     return false;
   }
 
-  if (metadata) {
+  if (metadata != nullptr) {
     metadata->director_root = Utils::readFile(director_path / ("root.json" + suffix));
     metadata->image_root = Utils::readFile(image_path / ("root.json" + suffix));
     metadata->director_targets = Utils::readFile(director_path / ("targets.json" + suffix));
@@ -218,8 +218,10 @@ bool FSStorage::loadRootCommon(bool director, std::string* root, Uptane::Version
   boost::filesystem::path dir_path =
       Utils::absolutePath(config_.path, config_.uptane_metadata_path) / ((director) ? "director" : "repo");
   boost::filesystem::path file_path = dir_path / (version.RoleFileName(Uptane::Role::Root()) + suffix);
-  if (!boost::filesystem::exists(file_path)) return false;
-  if (root) {
+  if (!boost::filesystem::exists(file_path)) {
+    return false;
+  }
+  if (root != nullptr) {
     *root = Utils::readFile(file_path);
   }
   return true;

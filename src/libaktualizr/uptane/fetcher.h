@@ -28,8 +28,8 @@ struct DownloadMetaStruct {
 
 class Fetcher {
  public:
-  Fetcher(const Config& config, const std::shared_ptr<INvStorage>& storage, HttpInterface& http)
-      : http(http), storage(storage), config(config) {}
+  Fetcher(const Config& config, std::shared_ptr<INvStorage> storage, HttpInterface& http)
+      : http(http), storage(std::move(storage)), config(config) {}
   bool fetchMeta();
   bool fetchRoot(bool director, Version version);
   bool fetchTarget(const Target& target);

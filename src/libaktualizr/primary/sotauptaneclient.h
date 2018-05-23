@@ -51,7 +51,7 @@ class SotaUptaneClient {
   Config &config;
   std::shared_ptr<event::Channel> events_channel;
   Uptane::Repository &uptane_repo;
-  const std::shared_ptr<INvStorage> storage;
+  std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> pacman;
   HttpInterface &http;
   Uptane::Fetcher uptane_fetcher;

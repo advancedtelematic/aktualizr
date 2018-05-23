@@ -29,7 +29,7 @@ class ManagedSecondary : public SecondaryInterface {
   PublicKey getPublicKey() override { return public_key_; }
   bool putMetadata(const RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
-  bool putRoot(const std::string&, bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;

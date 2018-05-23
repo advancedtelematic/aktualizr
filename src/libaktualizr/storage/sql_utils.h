@@ -116,7 +116,7 @@ class SQLite3Guard {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);
   }
 
-  int exec(std::string sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
+  int exec(const std::string& sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
     return exec(sql.c_str(), callback, cb_arg);
   }
 
