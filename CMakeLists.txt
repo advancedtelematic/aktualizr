@@ -268,20 +268,25 @@ include_directories(${LibArchive_INCLUDE_DIR})
 set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_definitions(-fstack-protector-all)
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
     # well, but they also cause problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wlogical-op -Wno-sign-compare)
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wno-sign-compare)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        add_definitions(-Wlogical-op)
+    else ()
+        add_definitions(-Wno-unused-private-field)
+    endif ()
 
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
         add_definitions(-Wshadow)
     endif ()
 
-    if(WARNING_AS_ERROR)
+    if (WARNING_AS_ERROR)
         add_definitions(-Werror)
-    endif()
+    endif ()
 
     if (PEDANTIC_WARNINGS)
         add_definitions(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
