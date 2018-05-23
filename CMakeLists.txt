@@ -346,6 +346,8 @@ add_subdirectory("src/sota_tools")
 add_subdirectory("src/aktualizr_primary")
 add_subdirectory("src/aktualizr_secondary")
 add_subdirectory("src/aktualizr_info")
+add_subdirectory("src/aktualizr_repo")
+
 add_subdirectory("src/aktualizr_check_discovery")
 add_subdirectory("src/cert_provider")
 add_subdirectory("src/implicit_writer")
