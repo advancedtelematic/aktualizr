@@ -270,6 +270,9 @@ add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_compile_options(-fstack-protector-all)
+    # Enable run-time overflow checks. We are not performance-critical enough
+    # for this to be too expensive.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fsanitize=bounds")
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
     # well, but they also cause problems in gtest.
