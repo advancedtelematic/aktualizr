@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
   libsqlite3-0 \
   libssl1.0.0 \
   libstdc++6 \
+  libubsan0 \
   lshw \
   python3
 
