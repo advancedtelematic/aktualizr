@@ -70,6 +70,9 @@ if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
 
+add_aktualizr_test(NAME overflow SOURCES overflow_test.cc)
+set_tests_properties(test_overflow PROPERTIES WILL_FAIL TRUE)
+
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
