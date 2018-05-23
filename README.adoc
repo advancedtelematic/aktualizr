@@ -40,7 +40,7 @@ This client, and the https://github.com/advancedtelematic/rvi_sota_server[GENIVI
 
 The following debian packages are used in the project:
 
-* asn1c
+* asn1c (when building tests)
 * build-essential
 * clang (optional)
 * clang-format-3.8 (optional)
