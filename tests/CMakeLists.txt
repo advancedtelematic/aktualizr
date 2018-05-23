@@ -151,13 +151,13 @@ set_tests_properties(test-secondary-config-with-nonexistent-file
 add_test(NAME test_log_debug
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
 set_tests_properties(test_log_debug
-                     PROPERTIES PASS_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml")
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Final configuration that will be used")
 # Check silent config parsing output with default loglevel. Note that the extra
 # PASS is necessary to ignore the return code.
 add_test(NAME test_log_default
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 set_tests_properties(test_log_default
-                     PROPERTIES FAIL_REGULAR_EXPRESSION "Reading config.*tests/config/minimal.toml"
+                     PROPERTIES FAIL_REGULAR_EXPRESSION "Final configuration that will be used"
                                 PASS_REGULAR_EXPRESSION "Aktualizr version")
 
 # Check invalid logging levels.

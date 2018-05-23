@@ -83,7 +83,7 @@ inline void WriteSectionToStream(T& sec, const std::string& section_name, std::o
 class BaseConfig {
  public:
   void updateFromToml(const boost::filesystem::path& filename) {
-    LOG_DEBUG << "Reading config: " << filename;
+    LOG_INFO << "Reading config: " << filename;
     if (!boost::filesystem::exists(filename)) {
       throw std::runtime_error(filename.string() + " does not exist.");
     }
