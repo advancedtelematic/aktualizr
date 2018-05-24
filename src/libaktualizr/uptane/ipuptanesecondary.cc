@@ -15,17 +15,17 @@ bool IpUptaneSecondary::sendRecv(std::unique_ptr<SecondaryMessage> mes, std::sha
   return pending_messages >> resp;
 }
 
-std::pair<KeyType, std::string> IpUptaneSecondary::getPublicKey() {
+PublicKey IpUptaneSecondary::getPublicKey() {
   std::shared_ptr<SecondaryPacket> resp;
 
   if (!sendRecv(std_::make_unique<SecondaryPublicKeyReq>(), resp) ||
       (resp->msg->mes_type != kSecondaryMesPublicKeyRespTag)) {
-    return std::make_pair(kUnknownKey, "");
+    return PublicKey("", KeyType::kUnknownKey);
   }
 
   auto& pkey_resp = dynamic_cast<SecondaryPublicKeyResp&>(*resp->msg);
 
-  return std::make_pair(pkey_resp.type, pkey_resp.key);
+  return PublicKey(pkey_resp.key, pkey_resp.type);
 }
 
 bool IpUptaneSecondary::putMetadata(const MetaPack& meta_pack) {

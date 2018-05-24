@@ -27,7 +27,7 @@ bool AktualizrSecondaryCommon::uptaneInitialize() {
 
   std::string ecu_serial_local = config_.uptane.ecu_serial;
   if (ecu_serial_local.empty()) {
-    ecu_serial_local = Crypto::getKeyId(keys_.getUptanePublicKey());
+    ecu_serial_local = keys_.UptanePublicKey().KeyId();
   }
 
   std::string ecu_hardware_id = config_.uptane.ecu_hardware_id;

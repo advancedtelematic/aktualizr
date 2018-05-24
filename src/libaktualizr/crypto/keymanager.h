@@ -35,13 +35,14 @@ class KeyManager {
   std::string getCN() const;
   bool isOk() const { return ((getPkey().size() != 0u) && (getCert().size() != 0u) && (getCa().size() != 0u)); }
   std::string generateUptaneKeyPair();
-  std::string getUptanePublicKey() const;
   KeyType getUptaneKeyType() const { return config_.uptane_key_type; }
   Json::Value signTuf(const Json::Value &in_data) const;
 
+  PublicKey UptanePublicKey() const;
+
  private:
   const std::shared_ptr<INvStorage> &backend_;
-  KeyManagerConfig config_;
+  const KeyManagerConfig config_;
   std::unique_ptr<P11EngineGuard> p11_;
   std::unique_ptr<TemporaryFile> tmp_pkey_file;
   std::unique_ptr<TemporaryFile> tmp_cert_file;

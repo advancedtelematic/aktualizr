@@ -89,8 +89,6 @@ struct UptaneConfig {
   boost::filesystem::path legacy_interface{};
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
-  std::string getKeyTypeString() const { return keyTypeToString(key_type); }
-
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
 };

@@ -103,6 +103,10 @@ TEST(IpUptaneConnection, Splitter) {
   reinterpret_cast<sockaddr_in6*>(&primary_addr)->sin6_addr = primary_addr_in;
   reinterpret_cast<sockaddr_in6*>(&primary_addr)->sin6_port = htons(primary_conn.listening_port());
 
+  std::string public_key1, private_key1, public_key2, private_key_2;
+  Crypto::generateKeyPair(KeyType::kRSA2048, &public_key1, &private_key1);
+  Crypto::generateKeyPair(KeyType::kRSA2048, &public_key2, &private_key_2);
+
   std::thread secondary_0_thread = std::thread([&]() {
     std::shared_ptr<SecondaryPacket> pack;
     while (secondary_conn_0.in_channel_ >> pack) {
@@ -110,7 +114,7 @@ TEST(IpUptaneConnection, Splitter) {
       if (pack->msg->mes_type == kSecondaryMesPublicKeyReqTag) {
         SecondaryPublicKeyResp* out_msg_pkey = new SecondaryPublicKeyResp;
         out_msg_pkey->type = kRSA2048;
-        out_msg_pkey->key = "imakey0";
+        out_msg_pkey->key = public_key1;
 
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_pkey};
 
@@ -127,7 +131,7 @@ TEST(IpUptaneConnection, Splitter) {
       if (pack->msg->mes_type == kSecondaryMesPublicKeyReqTag) {
         SecondaryPublicKeyResp* out_msg_pkey = new SecondaryPublicKeyResp;
         out_msg_pkey->type = kRSA2048;
-        out_msg_pkey->key = "imakey1";
+        out_msg_pkey->key = public_key2;
 
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_pkey};
 
@@ -138,11 +142,13 @@ TEST(IpUptaneConnection, Splitter) {
   });
 
   auto res_0 = secondary_0.getPublicKey();
-  EXPECT_EQ(res_0.first, kRSA2048);
-  EXPECT_EQ(res_0.second, "imakey0");
+  PublicKey pk1(public_key1, KeyType::kRSA2048);
+  PublicKey pk2(public_key2, KeyType::kRSA2048);
+
+  EXPECT_EQ(res_0, pk1);
   auto res_1 = secondary_1.getPublicKey();
-  EXPECT_EQ(res_1.first, kRSA2048);
-  EXPECT_EQ(res_1.second, "imakey1");
+  EXPECT_EQ(res_1, pk2);
+  EXPECT_NE(res_1, res_0);
 
   secondary_conn_0.stop();
   secondary_conn_1.stop();

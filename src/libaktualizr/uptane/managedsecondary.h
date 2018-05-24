@@ -24,9 +24,9 @@ class ManagedSecondary : public SecondaryInterface {
     if (!sconfig.ecu_serial.empty()) {
       return sconfig.ecu_serial;
     }
-    return public_key_id;
+    return public_key_.KeyId();
   }
-  std::pair<KeyType, std::string> getPublicKey() override { return std::make_pair(sconfig.key_type, public_key); }
+  PublicKey getPublicKey() override { return public_key_; }
   bool putMetadata(const MetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
   bool putRoot(Uptane::Root root, bool director) override;
@@ -37,9 +37,8 @@ class ManagedSecondary : public SecondaryInterface {
   bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  private:
-  std::string public_key;
+  PublicKey public_key_;
   std::string private_key;
-  std::string public_key_id;
 
   std::string detected_attack;
   std::string expected_target_name;

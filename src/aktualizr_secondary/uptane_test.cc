@@ -28,12 +28,7 @@ TEST(aktualizr_secondary_uptane, getPublicKey) {
   test_config.pacman.sysroot = test_sysroot;
   AktualizrSecondary as(test_config, test_storage);
 
-  KeyType type;
-  std::string key;
-  std::tie(type, key) = as.getPublicKeyResp();
-
-  EXPECT_NE(type, kUnknownKey);
-  EXPECT_NE(key, "");
+  EXPECT_NO_THROW(as.getPublicKeyResp());
 }
 
 TEST(aktualizr_secondary_uptane, credentialsPassing) {

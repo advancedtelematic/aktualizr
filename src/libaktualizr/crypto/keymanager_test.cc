@@ -48,6 +48,7 @@ TEST(KeyManager, SignED25519Tuf) {
 
   storage->storePrimaryKeys(public_key, private_key);
   KeyManager keys(storage, config.keymanagerConfig());
+  keys.loadKeys();
 
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -124,7 +125,7 @@ TEST(KeyManager, SignTufPkcs11) {
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
 
-  EXPECT_TRUE(keys.getUptanePublicKey().size());
+  EXPECT_GT(keys.UptanePublicKey().Value().size(), 0);
   Json::Value signed_json = keys.signTuf(tosign_json);
   EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
   EXPECT_EQ(signed_json["signatures"][0]["keyid"].asString(),

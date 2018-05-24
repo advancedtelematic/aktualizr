@@ -12,7 +12,7 @@ class IpUptaneSecondary : public SecondaryInterface {
   explicit IpUptaneSecondary(const SecondaryConfig& conf) : SecondaryInterface(conf), connection(nullptr) {}
 
   // SecondaryInterface implementation
-  std::pair<KeyType, std::string> getPublicKey() override;
+  PublicKey getPublicKey() override;
   bool putMetadata(const MetaPack& meta_pack) override;
   int32_t getRootVersion(bool director) override;
   bool putRoot(Uptane::Root root, bool director) override;

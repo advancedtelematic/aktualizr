@@ -43,17 +43,19 @@ void AktualizrSecondary::run() {
         auto ret = getPublicKeyResp();
 
         auto* out_msg_pkey = new SecondaryPublicKeyResp;
-        out_msg_pkey->type = ret.first;
-        out_msg_pkey->key = ret.second;
+        out_msg_pkey->type = ret.Type();
+        out_msg_pkey->key = ret.Value();
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_pkey};
         break;
       }
       case kSecondaryMesManifestReqTag: {
-        auto ret = getManifestResp();
+        auto manifest = getManifestResp();
+        LOG_TRACE << "Secondary sending manifest: " << manifest;
         auto* out_msg_man = new SecondaryManifestResp;
         out_msg_man->format = kSerializationJson;
-        out_msg_man->manifest = Utils::jsonToStr(ret);
+        out_msg_man->manifest = Utils::jsonToStr(manifest);
         out_msg = std::unique_ptr<SecondaryMessage>{out_msg_man};
+
         break;
       }
       case kSecondaryMesPutMetaReqTag: {
@@ -123,6 +125,7 @@ void AktualizrSecondary::run() {
     }
 
     std::shared_ptr<SecondaryPacket> out_pkt{new SecondaryPacket{peer_addr, std::move(out_msg)}};
+
     conn_.out_channel_ << out_pkt;
   }
 }
@@ -133,9 +136,7 @@ std::string AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
 
 Uptane::HardwareIdentifier AktualizrSecondary::getHwIdResp() const { return hardware_id_; }
 
-std::pair<KeyType, std::string> AktualizrSecondary::getPublicKeyResp() const {
-  return std::make_pair(config_.uptane.key_type, keys_.getUptanePublicKey());
-}
+PublicKey AktualizrSecondary::getPublicKeyResp() const { return keys_.UptanePublicKey(); }
 
 Json::Value AktualizrSecondary::getManifestResp() const {
   Json::Value manifest = pacman->getManifest(getSerialResp());

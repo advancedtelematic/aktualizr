@@ -25,36 +25,39 @@
 #undef BIO_new_mem_buf
 BIO *BIO_new_mem_buf(const void *, int);
 
-struct PublicKey {
-  enum Type { RSA = 0, ED25519 };
+class PublicKey {
+ public:
   PublicKey() = default;
-  explicit PublicKey(const boost::filesystem::path &path) {
-    value = Utils::readFile(path.string());
-    value = value.substr(0, value.size() - 1);
-    // value = boost::replace_all_copy(value, "\n", "\\n");
-    type = RSA;  // temporary support only RSA
-  }
-  PublicKey(std::string v, const std::string &t) : value(std::move(v)) {
-    std::string type_str = boost::algorithm::to_lower_copy(t);
-    if (type_str == "rsa") {
-      type = RSA;
-      StructGuard<BIO> bufio(
-          BIO_new_mem_buf(reinterpret_cast<const void *>(value.c_str()), static_cast<int>(value.length())), BIO_vfree);
-      StructGuard<::RSA> rsa(PEM_read_bio_RSA_PUBKEY(bufio.get(), nullptr, nullptr, nullptr), RSA_free);
-      key_length = RSA_size(rsa.get());
-    } else if (type_str == "ed25519") {
-      type = ED25519;
-    } else {
-      throw std::runtime_error("unsupported key type: " + t);
-    }
-  }
-  std::string TypeString() const;
-  bool operator==(const PublicKey &rhs) const {
-    return value == rhs.value && type == rhs.type && (type != RSA || key_length == rhs.key_length);
-  }
-  std::string value;
-  Type type{};
-  int key_length{};
+  explicit PublicKey(const boost::filesystem::path &path);
+
+  explicit PublicKey(Json::Value uptane_json);
+
+  PublicKey(std::string value, KeyType type);
+
+  std::string Value() const { return value_; }
+
+  KeyType Type() const { return type_; }
+  /**
+   * Verify a signature using this public key
+   */
+  bool VerifySignature(const std::string &signature, const std::string &message) const;
+  /**
+   * Uptane Json representation of this public key.  Used in root.json
+   * and during provisioning.
+   */
+  Json::Value ToUptane() const;
+
+  std::string KeyId() const;
+  bool operator==(const PublicKey &rhs) const;
+
+  bool operator!=(const PublicKey &rhs) const { return !(*this == rhs); }
+
+ private:
+  // std::string can be implicitly converted to a Json::Value. Make sure that
+  // the Json::Value constructor is not called accidentally.
+  PublicKey(std::string);
+  std::string value_;
+  KeyType type_{kUnknownKey};
 };
 
 class MultiPartHasher {
@@ -101,8 +104,6 @@ class Crypto {
   static std::string RSAPSSSign(ENGINE *engine, const std::string &private_key, const std::string &message);
   static std::string Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &message);
   static std::string ED25519Sign(const std::string &private_key, const std::string &message);
-
-  static bool VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message);
   static bool parseP12(BIO *p12_bio, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
                        std::string *out_ca);
   static bool extractSubjectCN(const std::string &cert, std::string *cn);
@@ -112,7 +113,9 @@ class Crypto {
 
   static bool RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message);
   static bool ED25519Verify(const std::string &public_key, const std::string &signature, const std::string &message);
-  static std::string getKeyId(const std::string &key);
+
+  static bool IsRsaKeyType(KeyType type);
+  static KeyType IdentifyRSAKeyType(const std::string &public_key_pem);
 };
 
 #endif  // CRYPTO_H_

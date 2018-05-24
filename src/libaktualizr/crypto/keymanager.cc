@@ -219,29 +219,11 @@ Json::Value KeyManager::signTuf(const Json::Value &in_data) const {
   signature["sig"] = b64sig;
 
   Json::Value out_data;
-  signature["keyid"] = Crypto::getKeyId(getUptanePublicKey());
+  signature["keyid"] = UptanePublicKey().KeyId();
   out_data["signed"] = in_data;
   out_data["signatures"] = Json::Value(Json::arrayValue);
   out_data["signatures"].append(signature);
   return out_data;
-}
-
-std::string KeyManager::getUptanePublicKey() const {
-  std::string primary_public;
-  if (config_.uptane_key_source == kFile) {
-    if (!backend_->loadPrimaryPublic(&primary_public)) {
-      throw std::runtime_error("Could not get uptane public key!");
-    }
-  } else {
-    if (!built_with_p11) {
-      throw std::runtime_error("Aktualizr was built without pkcs11 support!");
-    }
-    // dummy read to check if the key is present
-    if (!(*p11_)->readUptanePublicKey(&primary_public)) {
-      throw std::runtime_error("Could not get uptane public key!");
-    }
-  }
-  return primary_public;
 }
 
 std::string KeyManager::generateUptaneKeyPair() {
@@ -272,4 +254,22 @@ std::string KeyManager::generateUptaneKeyPair() {
     return primary_public;
   }
   return primary_public;
+}
+
+PublicKey KeyManager::UptanePublicKey() const {
+  std::string primary_public;
+  if (config_.uptane_key_source == kFile) {
+    if (!backend_->loadPrimaryPublic(&primary_public)) {
+      throw std::runtime_error("Could not get uptane public key!");
+    }
+  } else {
+    if (!built_with_p11) {
+      throw std::runtime_error("Aktualizr was built without pkcs11 support!");
+    }
+    // dummy read to check if the key is present
+    if (!(*p11_)->readUptanePublicKey(&primary_public)) {
+      throw std::runtime_error("Could not get uptane public key!");
+    }
+  }
+  return PublicKey(primary_public, config_.uptane_key_type);
 }

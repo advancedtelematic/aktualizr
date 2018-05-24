@@ -31,7 +31,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
       throw SecurityException(repository, "Unsupported key type: " + (*it)["keytype"].asString());
     }
     KeyId keyid = it.key().asString();
-    PublicKey key((*it)["keyval"]["public"].asString(), (*it)["keytype"].asString());
+    PublicKey key(*it);
     keys_[keyid] = key;
   }
 
@@ -86,8 +86,7 @@ Json::Value Root::toJson() const {
   res["keys"] = Json::objectValue;
   std::map<KeyId, PublicKey>::const_iterator key_it;
   for (key_it = keys_.begin(); key_it != keys_.end(); key_it++) {
-    res["keys"][key_it->first]["keytype"] = key_it->second.TypeString();
-    res["keys"][key_it->first]["keyval"]["public"] = key_it->second.value;
+    res["keys"][key_it->first] = key_it->second.ToUptane();
   }
   // assuming that Root object has keys for all targets,
   //   should be a part of verification process
@@ -165,7 +164,7 @@ void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &r
       continue;
     }
 
-    if (Crypto::VerifySignature(keys_[keyid], signature, canonical)) {
+    if (keys_[keyid].VerifySignature(signature, canonical)) {
       valid_signatures++;
     } else {
       LOG_WARNING << "Signature was present but invalid";

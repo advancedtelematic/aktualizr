@@ -19,8 +19,9 @@ void OpcuaServerSecondaryDelegate::handleServerInitialized(opcuabridge::ServerMo
   if (secondary_->uptaneInitialize()) {
     model->configuration_.setSerial(secondary_->ecu_serial_);
     model->configuration_.setHwId(secondary_->hardware_id_);
-    model->configuration_.setPublicKeyType(secondary_->config_.uptane.key_type);
-    model->configuration_.setPublicKey(secondary_->keys_.getUptanePublicKey());
+    PublicKey pk = secondary_->keys_.UptanePublicKey();
+    model->configuration_.setPublicKeyType(pk.Type());
+    model->configuration_.setPublicKey(pk.Value());
 
     fs::path ostree_source_repo = ostree_repo_sync::GetOstreeRepoPath(secondary_->config_.pacman.sysroot);
 

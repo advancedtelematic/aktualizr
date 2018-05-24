@@ -23,7 +23,7 @@ class SecondaryInterface {
   virtual ~SecondaryInterface() = default;
   virtual std::string getSerial() { return sconfig.ecu_serial; }
   virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
-  virtual std::pair<KeyType, std::string> getPublicKey() = 0;
+  virtual PublicKey getPublicKey() = 0;
 
   virtual Json::Value getManifest() = 0;
   virtual bool putMetadata(const MetaPack& meta_pack) = 0;
