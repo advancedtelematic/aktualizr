@@ -155,8 +155,7 @@ void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &r
     }
     std::string keyid = (*sig)["keyid"].asString();
     if (keys_.count(keyid) == 0u) {
-      LOG_INFO << "Signed by unknown keyid, skipping";
-      LOG_TRACE << "Key ID: " << keyid;
+      LOG_DEBUG << "Signed by unknown keyid, " << keyid << ", skipping";
       continue;
     }
 
