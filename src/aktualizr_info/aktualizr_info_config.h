@@ -12,7 +12,7 @@
 // AktualizrInfoConfig::writeToFile() and
 // AktualizrInfoConfig::updateFromPropertyTree().
 
-class AktualizrInfoConfig {
+class AktualizrInfoConfig : public BaseConfig {
  public:
   AktualizrInfoConfig() = default;
   AktualizrInfoConfig(const boost::program_options::variables_map& cmd);
@@ -26,12 +26,9 @@ class AktualizrInfoConfig {
   StorageConfig storage;
 
  private:
-  void updateFromDirs(const std::vector<boost::filesystem::path>& configs);
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void updateFromToml(const boost::filesystem::path& filename);
+  void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
 
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   bool loglevel_from_cmdline{false};
 };
 
