@@ -40,7 +40,7 @@ Json::Value OpcuaSecondary::getManifest() {
   return Utils::parseJSON(std::string(original_manifest.begin(), original_manifest.end()));
 }
 
-bool OpcuaSecondary::putMetadata(const MetaPack& meta_pack) {
+bool OpcuaSecondary::putMetadata(const RawMetaPack& meta_pack) {
   std::vector<opcuabridge::MetadataFile> metadatafiles;
   {
     opcuabridge::MetadataFile mf;

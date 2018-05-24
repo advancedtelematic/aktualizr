@@ -50,11 +50,12 @@ void OpcuaServerSecondaryDelegate::handleOriginalManifestRequested(opcuabridge::
 void OpcuaServerSecondaryDelegate::handleMetaDataFileReceived(opcuabridge::ServerModel* model) {
   std::string json(model->metadatafile_.getMetadata().begin(), model->metadatafile_.getMetadata().end());
   auto metadata = Utils::parseJSON(json);
+  // TODO: parsing as a part of reception is WRONG
   if (metadata != Json::nullValue && metadata.isMember("signed")) {
     if (metadata["signed"]["_type"].asString() == "Root") {
-      received_meta_pack_.director_root = Uptane::Root("director", metadata);
+      received_meta_pack_.director_root = json;
     } else if (metadata["signed"]["_type"].asString() == "Targets") {
-      received_meta_pack_.director_targets = Uptane::Targets(metadata);
+      received_meta_pack_.director_targets = json;
     }
   }
 }
@@ -64,17 +65,18 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   secondary_->detected_attack_.clear();
 
   secondary_->root_ = Uptane::Root(Uptane::Root::kAcceptAll);
-  Uptane::MetaPack meta;
+  Uptane::RawMetaPack meta;
   if (secondary_->storage_->loadMetadata(&meta)) {
-    secondary_->root_ = meta.director_root;
-    secondary_->meta_targets_ = meta.director_targets;
+    // stored metadata is trusted
+    secondary_->root_ = Uptane::Root("director", Utils::parseJSON(meta.director_root));
+    secondary_->meta_targets_ = Uptane::Targets(Utils::parseJSON(meta.director_targets));
   }
 
   try {
-    if (!received_meta_pack_.isConsistent()) {
-      LOG_ERROR << "Uptane security check: metadata pack is not consistent";
-      return;
-    }
+    // TODO: proper root metadata rotation
+    secondary_->root_ =
+        Uptane::Root(now, "director", Utils::parseJSON(received_meta_pack_.director_root), secondary_->root_);
+    Uptane::Targets targets(now, "director", Utils::parseJSON(received_meta_pack_.director_targets), secondary_->root_);
     if (secondary_->meta_targets_.version() > targets.version()) {
       secondary_->detected_attack_ = "Rollback attack detected";
       LOG_ERROR << "Uptane security check: " << secondary_->detected_attack_;

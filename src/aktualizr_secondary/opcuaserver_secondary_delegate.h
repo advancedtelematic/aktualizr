@@ -23,7 +23,7 @@ class OpcuaServerSecondaryDelegate : public opcuabridge::ServerDelegate {
 
  private:
   AktualizrSecondaryCommon* secondary_;
-  Uptane::MetaPack received_meta_pack_;
+  Uptane::RawMetaPack received_meta_pack_;
   TemporaryDirectory ostree_sync_working_repo_dir_;
 };
 
