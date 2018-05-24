@@ -152,7 +152,7 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }
-  meta_targets_ = meta_pack.director_targets;
+  meta_targets_ = targets;
   std::vector<Uptane::Target>::const_iterator it;
   bool target_found = false;
   for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {

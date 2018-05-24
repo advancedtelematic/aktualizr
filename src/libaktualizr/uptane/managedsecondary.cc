@@ -40,7 +40,7 @@ bool ManagedSecondary::putMetadata(const RawMetaPack &meta_pack) {
   detected_attack = "";
 
   current_raw_meta = meta_pack;
-  rawToMeta(); // current_raw_meta -> current_meta
+  rawToMeta();  // current_raw_meta -> current_meta
   if (!current_meta.isConsistent()) {
     return false;
   }
@@ -99,7 +99,6 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
     return false;
   }
   storeMetadata(current_raw_meta);
-  storeMetadata(current_meta);
   return true;
 }
 

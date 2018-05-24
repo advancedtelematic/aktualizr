@@ -201,12 +201,12 @@ InitRetCode Initializer::initEcuRegister() {
 Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
                          HttpInterface& http_client_in, KeyManager& keys_in,
                          const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
-    : config(config_in),
-      storage(std::move(storage_in)),
-      http_client(http_client_in),
-      keys(keys_in),
-      secondary_info(secondary_info_in) {
-  success = false;
+    : config_(config_in),
+      storage_(std::move(storage_in)),
+      http_client_(http_client_in),
+      keys_(keys_in),
+      secondary_info_(secondary_info_in) {
+  success_ = false;
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId()) {
       LOG_ERROR << "Device ID generation failed, abort initialization";
