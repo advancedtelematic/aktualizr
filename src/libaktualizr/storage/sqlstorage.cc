@@ -597,11 +597,13 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
 
     std::string serial = serials[0].first;
     std::string hwid = serials[0].second.ToString();
-    auto statement =
-        db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
-    if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
-      return;
+    {
+      auto statement =
+          db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
+        return;
+      }
     }
 
     EcuSerials::const_iterator it;

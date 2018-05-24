@@ -34,7 +34,7 @@ class ManagedSecondary : public SecondaryInterface {
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
 
-  bool loadKeys(std::string* public_key, std::string* private_key);
+  bool loadKeys(std::string* pub_key, std::string* priv_key);
 
  private:
   std::string public_key;
@@ -51,7 +51,7 @@ class ManagedSecondary : public SecondaryInterface {
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) = 0;
 
-  void storeKeys(const std::string& public_key, const std::string& private_key);
+  void storeKeys(const std::string& pub_key, const std::string& priv_key);
 
   // TODO: implement
   void storeMetadata(const MetaPack& meta_pack) { (void)meta_pack; }
