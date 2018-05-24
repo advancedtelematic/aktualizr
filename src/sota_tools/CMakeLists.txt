@@ -169,7 +169,16 @@ if (BUILD_SOTA_TOOLS)
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-missing-credentials $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
 
-    # Handle passing a random file as credentials.zip
+    add_test(NAME check_not_expired_targets 
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2019-11-17T23:58:40Z ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    add_test(NAME check_expired_targets 
+        COMMAND ${PROJECT_SOURCE_DIR}/tests/run_expired_test.sh 2017-11-17T23:58:40Z ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(check_expired_targets  PROPERTIES WILL_FAIL TRUE)
+
+        # Handle passing a random file as credentials.zip
     add_test(NAME invalid-credentials
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-invalid-credentials $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)

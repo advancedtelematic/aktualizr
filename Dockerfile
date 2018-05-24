@@ -56,7 +56,8 @@ RUN apt-get update && apt-get -y install \
   python3-openssl \
   python3-pip \
   python3-venv \
-  wget
+  wget \
+  zip
 
 # Includes workaround for this bug:
 # https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1501545
