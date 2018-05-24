@@ -125,7 +125,7 @@ set_tests_properties(test_cmdline--something
 add_test(NAME test-no-config-check-message
          COMMAND aktualizr -c non-existent-config.toml)
 set_tests_properties(test-no-config-check-message
-                     PROPERTIES PASS_REGULAR_EXPRESSION "non-existent-config.toml does not exist.")
+                     PROPERTIES PASS_REGULAR_EXPRESSION "Provided config file or directory \"non-existent-config.toml\" does not exist!")
 
 add_test(NAME test-help-with-other-options
          COMMAND aktualizr --help -c someconfig.toml)

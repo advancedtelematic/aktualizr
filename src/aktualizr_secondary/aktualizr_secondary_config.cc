@@ -56,8 +56,15 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::program_options:
     logger.loglevel = cmd["loglevel"].as<int>();
     logger_set_threshold(logger);
   }
+
   if (cmd.count("config") > 0) {
-    updateFromDirs(cmd["config"].as<std::vector<boost::filesystem::path>>());
+    const std::vector<boost::filesystem::path>& configs = cmd["config"].as<std::vector<boost::filesystem::path>>();
+    for (const auto& config : configs) {
+      if (!boost::filesystem::exists(config)) {
+        LOG_ERROR << "Provided config file or directory " << config << " does not exist!";
+      }
+    }
+    updateFromDirs(configs);
   } else {
     updateFromDirs(config_dirs_);
   }
