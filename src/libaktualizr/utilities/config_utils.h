@@ -94,10 +94,12 @@ class BaseConfig {
   virtual void updateFromPropertyTree(const boost::property_tree::ptree& pt) = 0;
 
  protected:
-  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   void updateFromDirs(const std::vector<boost::filesystem::path>& configs) {
     std::map<std::string, boost::filesystem::path> configs_map;
     for (const auto& config : configs) {
+      if (!boost::filesystem::exists(config)) {
+        continue;
+      }
       if (boost::filesystem::is_directory(config)) {
         for (const auto& config_file : Utils::glob((config / "*.toml").string())) {
           configs_map[config_file.filename().string()] = config_file;
@@ -110,6 +112,8 @@ class BaseConfig {
       updateFromToml(config_file.second);
     }
   }
+
+  std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
 };
 
 #endif  // CONFIG_UTILS_H_
