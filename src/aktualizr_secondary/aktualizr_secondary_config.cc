@@ -58,7 +58,7 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::program_options:
   }
 
   if (cmd.count("config") > 0) {
-    const std::vector<boost::filesystem::path>& configs = cmd["config"].as<std::vector<boost::filesystem::path>>();
+    const auto configs = cmd["config"].as<std::vector<boost::filesystem::path>>();
     for (const auto& config : configs) {
       if (!boost::filesystem::exists(config)) {
         LOG_ERROR << "Provided config file or directory " << config << " does not exist!";
