@@ -23,6 +23,7 @@ RUN apt-get update && apt-get -y install \
   lcov \
   libarchive-dev \
   libboost-dev \
+  libboost-iostreams-dev \
   libboost-log-dev \
   libboost-program-options-dev \
   libboost-random-dev \
