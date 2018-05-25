@@ -74,13 +74,12 @@ int main(int argc, char* argv[]) {
   file_data.InitServerNodeset(server);
 
   file_list.setOnAfterWriteCallback([&src_repo_dir, &working_repo_dir]
-    (opcuabridge::FileList* file_list) {
-      if (!file_list->getBlock().empty() && file_list->getBlock()[0] == '\0')
+    (opcuabridge::FileList* file_list_cb) {
+      if (!file_list_cb->getBlock().empty() && file_list_cb->getBlock()[0] == '\0')
         if (!ostree_repo_sync::ArchiveModeRepo(src_repo_dir))
           if (!ostree_repo_sync::LocalPullRepo(working_repo_dir, src_repo_dir))
             LOG_ERROR << "OSTree: local pull to the source repo is failed";
     });
-
   // run server
   UA_StatusCode retval = UA_Server_run(server, &running);
   UA_Server_delete(server);

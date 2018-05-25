@@ -17,7 +17,7 @@ namespace fs = boost::filesystem;
 
 namespace Uptane {
 
-OpcuaSecondary::OpcuaSecondary(const SecondaryConfig& sconfig) : SecondaryInterface(sconfig) {}
+OpcuaSecondary::OpcuaSecondary(const SecondaryConfig& sconfig_in) : SecondaryInterface(sconfig_in) {}
 
 OpcuaSecondary::~OpcuaSecondary() = default;
 
