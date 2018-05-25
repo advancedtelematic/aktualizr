@@ -176,9 +176,11 @@ add_test(NAME test_build_all_off
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
         ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_OSTREE=OFF -DBUILD_DEB=OFF")
 
+# Build with everything. BUILD_OPCUA requires boost::filesystem::relative,
+# which is not in Ubuntu 16.04, so disable it for now
 add_test(NAME test_build_all_on
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON -DBUILD_DEB=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_OPCUA=ON -DBUILD_LOAD_TESTS=ON")
+        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON -DBUILD_DEB=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_LOAD_TESTS=ON")
 
 add_test(NAME test_build_debug
         COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
