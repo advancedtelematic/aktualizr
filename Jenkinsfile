@@ -1,9 +1,48 @@
+// from https://stackoverflow.com/a/48956042
+@NonCPS
+def cancelPreviousBuilds() {
+  /* Needs the following methods in the Jenkins signature approval list
+     (https://jenkins/scriptApproval):
+       method hudson.model.Job getBuilds
+       method hudson.model.Run getNumber
+       method hudson.model.Run isBuilding
+       method jenkins.model.Jenkins getItemByFullName java.lang.String
+       method org.jenkinsci.plugins.workflow.job.WorkflowRun doStop
+       staticMethod jenkins.model.Jenkins getInstance
+       staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods toInteger java.lang.Number
+    Note: `staticMethod jenkins.model.Jenkins getInstance` is marked as dangerous
+  */
+  print "Cancelling outdated running builds"
+  try {
+    def jobName = env.JOB_NAME
+    def buildNumber = env.BUILD_NUMBER.toInteger()
+    /* Get job name */
+    def currentJob = Jenkins.instance.getItemByFullName(jobName)
+
+    /* Iterating over the builds for specific job */
+    for (def build : currentJob.builds) {
+      /* If there is a build that is currently running and it's not current build */
+      if (build.isBuilding() && build.number.toInteger() != buildNumber) {
+        /* Than stopping it */
+        build.doStop()
+      }
+    }
+  } catch (Exception exc) {
+    print "Couldn't stop outdated builds, continuing anyway"
+  }
+}
+
 pipeline {
   agent none
   environment {
     JENKINS_RUN = '1'
   }
   stages {
+    stage('cancel outdated builds') {
+      steps {
+        cancelPreviousBuilds()
+      }
+    }
     stage('test') {
       parallel {
         // run all tests with p11 and collect coverage
