@@ -163,8 +163,11 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
     boost::algorithm::unhex(config_.uptane_key_id, std::back_inserter(id_hex));
 
     for (int i = 0; i < nkeys; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if ((keys[i].id_len == config_.uptane_key_id.length() / 2) &&
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           (memcmp(keys[i].id, id_hex.data(), config_.uptane_key_id.length() / 2) == 0)) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         key = &keys[i];
         break;
       }
@@ -238,7 +241,9 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
     boost::algorithm::unhex(id, std::back_inserter(id_hex));
 
     for (int i = 0; i < ncerts; i++) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if ((certs[i].id_len == id.length() / 2) && (memcmp(certs[i].id, id_hex.data(), id.length() / 2) == 0)) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         cert = &certs[i];
         break;
       }

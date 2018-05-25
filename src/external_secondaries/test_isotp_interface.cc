@@ -243,9 +243,9 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
     return false;
   }
 
-  IsoTpMessage message =
+  IsoTpMessage message_tx =
       isotp_new_send_message(makeCanAf(sa, ta), reinterpret_cast<const uint8_t*>(out.c_str()), out.length());
-  IsoTpSendHandle send_handle = isotp_send(&isotp_shims, &message, nullptr);
+  IsoTpSendHandle send_handle = isotp_send(&isotp_shims, &message_tx, nullptr);
   if (send_handle.completed) {
     if (!send_handle.success) {
       std::cerr << "Message send failed" << std::endl;
@@ -322,13 +322,13 @@ bool TestIsotpInterface::sendRecvUds(const std::string& out, std::string* in, ui
           return false;
         }
 
-        IsoTpMessage message = isotp_continue_receive(&isotp_shims, &recv_handle, f.can_id, f.data, f.can_dlc);
-        if (message.completed && recv_handle.completed) {
+        IsoTpMessage message_rx = isotp_continue_receive(&isotp_shims, &recv_handle, f.can_id, f.data, f.can_dlc);
+        if (message_rx.completed && recv_handle.completed) {
           if (!recv_handle.success) {
             std::cerr << "IsoTp receiving error" << std::endl;
             return false;
           }
-          *in = std::string(reinterpret_cast<const char*>(message.payload), static_cast<size_t>(message.size));
+          *in = std::string(reinterpret_cast<const char*>(message_rx.payload), static_cast<size_t>(message_rx.size));
           return true;
         }
       } else {
