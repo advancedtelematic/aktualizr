@@ -22,7 +22,7 @@ namespace opcuabridge {
 SelectEndPoint::DiscoveredEndPointCacheEntryHash::result_type SelectEndPoint::DiscoveredEndPointCacheEntryHash::
 operator()(SelectEndPoint::DiscoveredEndPointCacheEntryHash::argument_type const& e) const {
   result_type seed = 0;
-  boost::hash_combine(seed, e.serial);
+  boost::hash_combine(seed, std::hash<Uptane::EcuSerial>()(e.serial));
   boost::hash_combine(seed, std::hash<Uptane::HardwareIdentifier>()(e.hwid));
   return seed;
 }
@@ -48,7 +48,7 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
           std::string opcua_server_url = makeOpcuaServerUri(ep.address);
           if (endPointConfirmed(opcua_server_url, sconfig)) {
             discovered_end_points_cache_.insert(DiscoveredEndPointCacheEntry{
-                sconfig.ecu_serial, Uptane::HardwareIdentifier(sconfig.ecu_hardware_id), opcua_server_url});
+                Uptane::EcuSerial(sconfig.ecu_serial), Uptane::HardwareIdentifier(sconfig.ecu_hardware_id), opcua_server_url});
           }
         } else {
           LOG_INFO << "OPC-UA discover secondary: unsupported response from " << ep.address;
@@ -57,7 +57,7 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
     }
   }
   auto ep_it = discovered_end_points_cache_.find(DiscoveredEndPointCacheEntry{
-      sconfig.ecu_serial, Uptane::HardwareIdentifier(sconfig.ecu_hardware_id), std::string()});
+      Uptane::EcuSerial(sconfig.ecu_serial), Uptane::HardwareIdentifier(sconfig.ecu_hardware_id), std::string()});
   if (ep_it != discovered_end_points_cache_.end()) {
     url_ = ep_it->opcua_server_url;
   }
@@ -66,7 +66,7 @@ SelectEndPoint::SelectEndPoint(const Uptane::SecondaryConfig& sconfig) {
 bool SelectEndPoint::endPointConfirmed(const std::string& opcua_server_url,
                                        const Uptane::SecondaryConfig& sconfig) const {
   auto probe_opcua_server_config = Client(opcua_server_url).recvConfiguration();
-  return (probe_opcua_server_config.getSerial() == sconfig.ecu_serial &&
+  return (probe_opcua_server_config.getSerial() == Uptane::EcuSerial(sconfig.ecu_serial) &&
           probe_opcua_server_config.getHwId() == Uptane::HardwareIdentifier(sconfig.ecu_hardware_id));
 }
 

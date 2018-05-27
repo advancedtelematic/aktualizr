@@ -21,7 +21,7 @@ OpcuaSecondary::OpcuaSecondary(const SecondaryConfig& sconfig_in) : SecondaryInt
 
 OpcuaSecondary::~OpcuaSecondary() = default;
 
-std::string OpcuaSecondary::getSerial() {
+Uptane::EcuSerial OpcuaSecondary::getSerial() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return client.recvConfiguration().getSerial();
 }

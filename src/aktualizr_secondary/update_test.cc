@@ -17,7 +17,7 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
       : SecondaryInterface(sconfig_in), secondary(sec) {}
   virtual ~ShortCircuitSecondary() {}
 
-  virtual std::string getSerial() { return secondary.getSerialResp(); }
+  virtual Uptane::EcuSerial getSerial() { return secondary.getSerialResp(); }
   virtual Uptane::HardwareIdentifier getHwId() { return secondary.getHwIdResp(); }
   virtual PublicKey getPublicKey() { return secondary.getPublicKeyResp(); }
   virtual Json::Value getManifest() { return secondary.getManifestResp(); }

@@ -272,7 +272,7 @@ void FSStorage::clearEcuRegistered() { boost::filesystem::remove(Utils::absolute
 
 void FSStorage::storeEcuSerials(const EcuSerials& serials) {
   if (serials.size() >= 1) {
-    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_serial"), serials[0].first);
+    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_serial"), serials[0].first.ToString());
     Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"), serials[0].second.ToString());
 
     boost::filesystem::remove_all(Utils::absolutePath(config_.path, "secondaries_list"));
@@ -302,7 +302,7 @@ bool FSStorage::loadEcuSerials(EcuSerials* serials) {
   }
 
   if (serials != nullptr) {
-    serials->push_back({serial, Uptane::HardwareIdentifier(hw_id)});
+    serials->push_back({Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hw_id)});
   }
 
   // return true for backwards compatibility
@@ -323,7 +323,7 @@ bool FSStorage::loadEcuSerials(EcuSerials* serials) {
       return false;
     }
     if (serials != nullptr) {
-      serials->push_back({serial, Uptane::HardwareIdentifier(hw_id)});
+      serials->push_back({Uptane::EcuSerial(serial), Uptane::HardwareIdentifier(hw_id)});
     }
   }
   file.close();
@@ -341,7 +341,7 @@ void FSStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus
   std::vector<MisconfiguredEcu>::const_iterator it;
   for (it = ecus.begin(); it != ecus.end(); it++) {
     Json::Value ecu;
-    ecu["serial"] = it->serial;
+    ecu["serial"] = it->serial.ToString();
     ecu["hardware_id"] = it->hardware_id.ToString();
     ecu["state"] = it->state;
     json.append(ecu);
@@ -356,7 +356,7 @@ bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   Json::Value content_json = Utils::parseJSONFile(Utils::absolutePath(config_.path, "misconfigured_ecus").string());
 
   for (Json::ValueIterator it = content_json.begin(); it != content_json.end(); ++it) {
-    ecus->push_back(MisconfiguredEcu((*it)["serial"].asString(),
+    ecus->push_back(MisconfiguredEcu(Uptane::EcuSerial((*it)["serial"].asString()),
                                      Uptane::HardwareIdentifier((*it)["hardware_id"].asString()),
                                      static_cast<EcuState>((*it)["state"].asInt())));
   }

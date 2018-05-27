@@ -83,7 +83,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
       return;
     }
     bool target_found = false;
-    secondary_->meta_targets_ = received_meta_pack_.director_targets;
+    secondary_->meta_targets_ = Uptane::Targets(received_meta_pack_.director_targets);
     for (auto it = secondary_->meta_targets_.targets.begin(); it != secondary_->meta_targets_.targets.end(); ++it) {
       if (it->ecu_identifier() == secondary_->ecu_serial_) {
         if (target_found) {

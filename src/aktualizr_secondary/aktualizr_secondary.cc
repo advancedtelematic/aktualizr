@@ -130,7 +130,7 @@ void AktualizrSecondary::run() {
 
 void AktualizrSecondary::stop() { conn_.stop(); }
 
-std::string AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
+Uptane::EcuSerial AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
 
 Uptane::HardwareIdentifier AktualizrSecondary::getHwIdResp() const { return hardware_id_; }
 

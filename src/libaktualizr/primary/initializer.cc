@@ -58,7 +58,8 @@ bool Initializer::initEcuSerials() {
     }
   }
 
-  ecu_serials.emplace_back(primary_ecu_serial_local, Uptane::HardwareIdentifier(primary_ecu_hardware_id));
+  ecu_serials.emplace_back(Uptane::EcuSerial(primary_ecu_serial_local),
+                           Uptane::HardwareIdentifier(primary_ecu_hardware_id));
 
   for (auto it = secondary_info_.begin(); it != secondary_info_.end(); ++it) {
     ecu_serials.emplace_back(it->second->getSerial(), it->second->getHwId());
@@ -161,12 +162,12 @@ InitRetCode Initializer::initEcuRegister() {
   }
 
   Json::Value all_ecus;
-  all_ecus["primary_ecu_serial"] = ecu_serials[0].first;
+  all_ecus["primary_ecu_serial"] = ecu_serials[0].first.ToString();
   all_ecus["ecus"] = Json::arrayValue;
   {
     Json::Value primary_ecu;
     primary_ecu["hardware_identifier"] = ecu_serials[0].second.ToString();
-    primary_ecu["ecu_serial"] = ecu_serials[0].first;
+    primary_ecu["ecu_serial"] = ecu_serials[0].first.ToString();
     primary_ecu["clientKey"] = keys_.UptanePublicKey().ToUptane();
     all_ecus["ecus"].append(primary_ecu);
   }
@@ -175,7 +176,7 @@ InitRetCode Initializer::initEcuRegister() {
     Json::Value ecu;
     auto public_key = it->second->getPublicKey();
     ecu["hardware_identifier"] = it->second->getHwId().ToString();
-    ecu["ecu_serial"] = it->second->getSerial();
+    ecu["ecu_serial"] = it->second->getSerial().ToString();
     ecu["clientKey"] = public_key.ToUptane();
     all_ecus["ecus"].append(ecu);
   }
@@ -198,9 +199,10 @@ InitRetCode Initializer::initEcuRegister() {
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
-                         HttpInterface& http_client_in, KeyManager& keys_in,
-                         const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
+Initializer::Initializer(
+    const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client_in,
+    KeyManager& keys_in,
+    const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
     : config_(config_in),
       storage_(std::move(storage_in)),
       http_client_(http_client_in),

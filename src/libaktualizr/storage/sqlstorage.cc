@@ -661,7 +661,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       return;
     }
 
-    std::string serial = serials[0].first;
+    std::string serial = serials[0].first.ToString();
     std::string hwid = serials[0].second.ToString();
     {
       auto statement =
@@ -675,7 +675,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
     EcuSerials::const_iterator it;
     for (it = serials.begin() + 1; it != serials.end(); it++) {
       auto statement = db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,0);",
-                                                                     it->first, it->second.ToString());
+                                                                     it->first.ToString(), it->second.ToString());
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
@@ -707,7 +707,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    serials->push_back({(*it)["serial"], Uptane::HardwareIdentifier((*it)["hardware_id"])});
+    serials->push_back({Uptane::EcuSerial((*it)["serial"]), Uptane::HardwareIdentifier((*it)["hardware_id"])});
   }
 
   return true;
@@ -748,7 +748,8 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
     std::vector<MisconfiguredEcu>::const_iterator it;
     for (it = ecus.begin(); it != ecus.end(); it++) {
       auto statement = db.prepareStatement<std::string, std::string, int>(
-          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial, it->hardware_id.ToString(), it->state);
+          "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial.ToString(), it->hardware_id.ToString(),
+          it->state);
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
@@ -780,7 +781,8 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
 
   std::vector<std::map<std::string, std::string> >::iterator it;
   for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    ecus->push_back(MisconfiguredEcu((*it)["serial"], Uptane::HardwareIdentifier((*it)["hardware_id"]),
+    ecus->push_back(MisconfiguredEcu(Uptane::EcuSerial((*it)["serial"]),
+                                     Uptane::HardwareIdentifier((*it)["hardware_id"]),
                                      static_cast<EcuState>(std::stoi((*it)["state"]))));
   }
 

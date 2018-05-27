@@ -19,8 +19,8 @@ class Repository {
   Json::Value signManifest(const Json::Value &version_manifests);
   Json::Value signVersionManifest(const Json::Value &primary_version_manifests);
   std::pair<int, std::vector<Uptane::Target> > getTargets();
-  std::string getPrimaryEcuSerial() const { return primary_ecu_serial; };
-  void setPrimaryEcuSerialHwId(const std::pair<std::string, Uptane::HardwareIdentifier> &serials) {
+  Uptane::EcuSerial getPrimaryEcuSerial() const { return primary_ecu_serial; };
+  void setPrimaryEcuSerialHwId(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &serials) {
     primary_ecu_serial = serials.first;
     primary_hardware_id = serials.second;
   }
@@ -45,8 +45,7 @@ class Repository {
   MetaPack meta_;
   Exception last_exception{"", ""};
 
-  std::string primary_ecu_serial;
-
+  Uptane::EcuSerial primary_ecu_serial{Uptane::EcuSerial::Unknown()};
   Uptane::HardwareIdentifier primary_hardware_id{Uptane::HardwareIdentifier::Unknown()};
 };
 }  // namespace Uptane

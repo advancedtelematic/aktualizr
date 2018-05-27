@@ -27,7 +27,7 @@ class SelectEndPoint {
 
  private:
   struct DiscoveredEndPointCacheEntry {
-    std::string serial;
+    Uptane::EcuSerial serial;
     Uptane::HardwareIdentifier hwid;
     std::string opcua_server_url;
   };

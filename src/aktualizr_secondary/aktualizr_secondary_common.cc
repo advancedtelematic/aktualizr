@@ -7,6 +7,7 @@ AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfi
     : config_(config),
       storage_(std::move(storage)),
       keys_(storage_, config.keymanagerConfig()),
+      ecu_serial_(Uptane::EcuSerial::Unknown()),
       hardware_id_(Uptane::HardwareIdentifier::Unknown()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
 }
@@ -38,7 +39,7 @@ bool AktualizrSecondaryCommon::uptaneInitialize() {
     }
   }
 
-  ecu_serials.emplace_back(ecu_serial_local, Uptane::HardwareIdentifier(ecu_hardware_id));
+  ecu_serials.emplace_back(Uptane::EcuSerial(ecu_serial_local), Uptane::HardwareIdentifier(ecu_hardware_id));
   storage_->storeEcuSerials(ecu_serials);
   ecu_serial_ = ecu_serials[0].first;
   hardware_id_ = ecu_serials[0].second;

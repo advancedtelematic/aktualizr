@@ -14,7 +14,7 @@ TEST(aktualizr_secondary_uptane, getSerial) {
   test_config.pacman.sysroot = test_sysroot;
   AktualizrSecondary as(test_config, test_storage);
 
-  EXPECT_NE(as.getSerialResp(), "");
+  EXPECT_NE(as.getSerialResp(), Uptane::EcuSerial("hw"));
 }
 
 TEST(aktualizr_secondary_uptane, getHwId) {

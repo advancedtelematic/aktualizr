@@ -81,7 +81,7 @@ void checkKeyTests(std::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_
 
   std::vector<std::string> public_keys;
   std::vector<std::string> private_keys;
-  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
     if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
         it->second->sconfig.secondary_type != Uptane::kLegacy) {

@@ -231,9 +231,9 @@ TEST(storage, load_store_ecu_serials) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   EcuSerials serials;
-  serials.push_back({"primary", Uptane::HardwareIdentifier("primary_hw")});
-  serials.push_back({"secondary_1", Uptane::HardwareIdentifier("secondary_hw")});
-  serials.push_back({"secondary_2", Uptane::HardwareIdentifier("secondary_hw")});
+  serials.push_back({Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")});
+  serials.push_back({Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")});
+  serials.push_back({Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")});
   storage->storeEcuSerials(serials);
 
   EcuSerials serials_out;
@@ -250,7 +250,8 @@ TEST(storage, load_store_misconfigured_ecus) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   std::vector<MisconfiguredEcu> ecus;
-  ecus.push_back(MisconfiguredEcu("primary", Uptane::HardwareIdentifier("primary_hw"), kNotRegistered));
+  ecus.push_back(
+      MisconfiguredEcu(Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"), kNotRegistered));
 
   storage->storeMisconfiguredEcus(ecus);
 
@@ -259,7 +260,7 @@ TEST(storage, load_store_misconfigured_ecus) {
   EXPECT_TRUE(storage->loadMisconfiguredEcus(&ecus_out));
 
   EXPECT_EQ(ecus_out.size(), ecus.size());
-  EXPECT_EQ(ecus_out[0].serial, std::string("primary"));
+  EXPECT_EQ(ecus_out[0].serial, Uptane::EcuSerial("primary"));
   EXPECT_EQ(ecus_out[0].hardware_id, Uptane::HardwareIdentifier("primary_hw"));
   EXPECT_EQ(ecus_out[0].state, kNotRegistered);
 

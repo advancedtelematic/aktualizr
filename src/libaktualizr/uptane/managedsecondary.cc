@@ -154,7 +154,7 @@ Json::Value ManagedSecondary::getManifest() {
 
   manifest["attacks_detected"] = detected_attack;
   manifest["installed_image"] = installed_image;
-  manifest["ecu_serial"] = getSerial();
+  manifest["ecu_serial"] = getSerial().ToString();
   manifest["previous_timeserver_time"] = "1970-01-01T00:00:00Z";
   manifest["timeserver_time"] = "1970-01-01T00:00:00Z";
 
