@@ -19,21 +19,22 @@ class FetchTask {
   const std::string remoteUrl;
 
   OstreeRepoPtr repo;
+
   void initRepo() {
     GFile *gRepoFile = g_file_new_for_path(repoDir.native().c_str());
+    repo.reset(ostree_repo_new(gRepoFile));
+    g_object_unref(gRepoFile);
+    if (!repo) {
+      throw std::runtime_error("Repo initialization failed");
+    }
 
-    repo = OstreeRepoPtr(ostree_repo_new(gRepoFile));
-    if (!repo) throw std::runtime_error("Repo initialization failed");
     if (!ostree_repo_create(repo.get(), OSTREE_REPO_MODE_ARCHIVE_Z2, NULL, NULL)) {
       throw std::runtime_error("Unable to init repository");
     };
 
     if (!OstreeManager::addRemote(repo.get(), remoteUrl, *keys)) {
-      g_object_unref(repo.get());
-      g_object_unref(gRepoFile);
       throw std::runtime_error("Unable to add remote to the repository");
     };
-    g_object_unref(gRepoFile);
   }
 
  public:
