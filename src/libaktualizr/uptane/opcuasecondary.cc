@@ -29,9 +29,9 @@ Uptane::HardwareIdentifier OpcuaSecondary::getHwId() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   return Uptane::HardwareIdentifier(client.recvConfiguration().getHwId());
 }
-std::pair<KeyType, std::string> OpcuaSecondary::getPublicKey() {
+PublicKey OpcuaSecondary::getPublicKey() {
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
-  return std::make_pair(client.recvConfiguration().getPublicKeyType(), client.recvConfiguration().getPublicKey());
+  return PublicKey(client.recvConfiguration().getPublicKey(), client.recvConfiguration().getPublicKeyType());
 }
 
 Json::Value OpcuaSecondary::getManifest() {

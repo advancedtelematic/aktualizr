@@ -132,16 +132,4 @@ UpdateReport UpdateReport::fromJson(const std::string& json_str) {
 }
 }  // namespace data
 
-std::string keyTypeToString(KeyType type) {
-  switch (type) {
-    case kED25519:
-      return "ED25519";
-    case kRSA2048:
-    case kRSA4096:
-      return "RSA";
-    default:
-      return "UNKNOWN";
-  }
-}
-
 // vim: set tabstop=2 shiftwidth=2 expandtab:

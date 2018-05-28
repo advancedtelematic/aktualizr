@@ -19,15 +19,16 @@ PartialVerificationSecondary::PartialVerificationSecondary(const SecondaryConfig
   boost::filesystem::create_directories(sconfig.metadata_path);
 
   // FIXME Probably we need to generate keys on the secondary
-  if (!loadKeys(&public_key_, &private_key_)) {
-    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key_, &private_key_)) {
+  std::string public_key_string;
+  if (!loadKeys(&public_key_string, &private_key_)) {
+    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key_string, &private_key_)) {
       LOG_ERROR << "Could not generate keys for secondary " << PartialVerificationSecondary::getSerial() << "@"
                 << sconfig.ecu_hardware_id;
       throw std::runtime_error("Unable to generate secondary keys");
     }
-    storeKeys(public_key_, private_key_);
+    storeKeys(public_key_string, private_key_);
   }
-  public_key_id_ = Crypto::getKeyId(public_key_);
+  public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
 bool PartialVerificationSecondary::putMetadata(const MetaPack &meta) {

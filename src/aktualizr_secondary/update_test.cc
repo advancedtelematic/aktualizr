@@ -19,7 +19,7 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
 
   virtual std::string getSerial() { return secondary.getSerialResp(); }
   virtual Uptane::HardwareIdentifier getHwId() { return secondary.getHwIdResp(); }
-  virtual std::pair<KeyType, std::string> getPublicKey() { return secondary.getPublicKeyResp(); }
+  virtual PublicKey getPublicKey() { return secondary.getPublicKeyResp(); }
   virtual Json::Value getManifest() { return secondary.getManifestResp(); }
   virtual bool putMetadata(const Uptane::MetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
   virtual int32_t getRootVersion(bool director) { return secondary.getRootVersionResp(director); }

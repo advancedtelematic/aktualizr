@@ -4,8 +4,14 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
-enum KeyType { kUnknownKey = 0xff, kED25519 = 0, kRSA2048, kRSA4096 };
-std::string keyTypeToString(KeyType type);
+enum KeyType {
+  kED25519 = 0,
+  kFirstKnownKeyType = kED25519,
+  kRSA2048,
+  kRSA4096,
+  kLastKnownKeyType = kRSA4096,
+  kUnknownKey = 0xff
+};
 
 enum CryptoSource { kFile = 0, kPkcs11 };
 

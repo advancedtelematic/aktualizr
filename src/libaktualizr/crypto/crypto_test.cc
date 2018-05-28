@@ -20,6 +20,8 @@
 #endif
 #endif
 
+namespace fs = boost::filesystem;
+
 TEST(crypto, sha256_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result = "7DF106BB55506D91E48AF727CD423B169926BA99DF4BAD53AF4D80E717A1AC9F";
@@ -38,10 +40,10 @@ TEST(crypto, sha512_is_correct) {
 
 TEST(crypto, sign_verify_rsa_file) {
   std::string text = "This is text for sign";
-  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
+  PublicKey pkey(fs::path("tests/test_data/public.key"));
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, private_key, text));
-  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
+  bool signe_is_ok = pkey.VerifySignature(signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
 
@@ -56,10 +58,10 @@ TEST(crypto, sign_verify_rsa_p11) {
   std::string text = "This is text for sign";
   std::string key_content;
   EXPECT_TRUE(p11->readUptanePublicKey(&key_content));
-  PublicKey pkey(key_content, "rsa");
+  PublicKey pkey(key_content, kRSA2048);
   std::string private_key = p11->getUptaneKeyId();
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11->getEngine(), private_key, text));
-  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, text);
+  bool signe_is_ok = pkey.VerifySignature(signature, text);
   EXPECT_TRUE(signe_is_ok);
 }
 
@@ -108,9 +110,9 @@ TEST(crypto, verify_bad_key_no_crash) {
 }
 
 TEST(crypto, verify_bad_sign_no_crash) {
-  PublicKey pkey(Utils::readFile("tests/test_data/public.key"), "rsa");
+  PublicKey pkey(fs::path("tests/test_data/public.key"));
   std::string text = "This is text for sign";
-  bool signe_is_ok = Crypto::VerifySignature(pkey, "this is bad signature", text);
+  bool signe_is_ok = pkey.VerifySignature("this is bad signature", text);
   EXPECT_EQ(signe_is_ok, false);
 }
 
@@ -119,22 +121,19 @@ TEST(crypto, verify_ed25519) {
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());
   root_stream.close();
   std::string signature = "lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
-  PublicKey pkey("cb07563157805c279ec90ccb057f2c3ea6e89200e1e67f8ae66185987ded9b1c", "ed25519");
-  bool signe_is_ok = Crypto::VerifySignature(pkey, signature, Json::FastWriter().write(Utils::parseJSON(text)));
+  PublicKey pkey("cb07563157805c279ec90ccb057f2c3ea6e89200e1e67f8ae66185987ded9b1c", KeyType::kED25519);
+  bool signe_is_ok = pkey.VerifySignature(signature, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_TRUE(signe_is_ok);
 
   std::string signature_bad =
       "33lS1GII6MS2FAPuSzBPHOZbE0wLIRpFhlbaCSgNOJLT1h+69OjaN/YQq16uzoXX3rev/Dhw0Raa4v9xocE8GmBA==";
-  signe_is_ok = Crypto::VerifySignature(pkey, signature_bad, Json::FastWriter().write(Utils::parseJSON(text)));
+  signe_is_ok = pkey.VerifySignature(signature_bad, Json::FastWriter().write(Utils::parseJSON(text)));
   EXPECT_FALSE(signe_is_ok);
 }
 
 TEST(crypto, bad_keytype) {
-  try {
-    PublicKey pkey("somekey", "nosuchtype");
-    FAIL();
-  } catch (std::runtime_error ex) {
-  }
+  PublicKey pkey("somekey", kUnknownKey);
+  EXPECT_EQ(pkey.Type(), kUnknownKey);
 }
 
 TEST(crypto, parsep12) {
@@ -257,6 +256,39 @@ TEST(crypto, generateED25519KeyPair) {
   EXPECT_TRUE(Crypto::generateEDKeyPair(&public_key, &private_key));
   EXPECT_NE(public_key.size(), 0);
   EXPECT_NE(private_key.size(), 0);
+}
+
+TEST(crypto, roundTripViaJson) {
+  std::string public_key;
+  std::string private_key;
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA2048, &public_key, &private_key));
+  PublicKey pk1{public_key, KeyType::kRSA2048};
+  Json::Value json{pk1.ToUptane()};
+  PublicKey pk2(json);
+  EXPECT_EQ(pk1, pk2);
+}
+
+TEST(crypto, publicKeyId) {
+  std::string public_key = "BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3DA93853388FDAC760";
+  PublicKey pk{public_key, kED25519};
+  EXPECT_EQ(pk.KeyId(), "a6d0f6b52ae833175dd7724899507709231723037845715c7677670e0195f850");
+}
+
+TEST(crypto, parseBadPublicKeyJson) {
+  Json::Value o;
+  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+
+  o["keytype"] = 45;
+  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+
+  o["keytype"] = "ED25519";
+  o["keyval"] = "";
+  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+
+  Json::Value keyval;
+  keyval["public"] = 45;
+  o["keyval"] = keyval;
+  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
 }
 
 #ifndef __NO_MAIN__

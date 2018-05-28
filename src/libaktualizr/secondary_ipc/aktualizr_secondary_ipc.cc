@@ -10,7 +10,7 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, KeyType& kt) {
 
   des >> asn1::implicit<kAsn1Enum>(kt_i);
 
-  if (kt_i < kED25519 || kt_i > kRSA4096) {
+  if (kt_i < kFirstKnownKeyType || kt_i > kLastKnownKeyType) {
     throw deserialization_error();
   }
 

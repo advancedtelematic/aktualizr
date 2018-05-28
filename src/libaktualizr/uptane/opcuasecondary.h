@@ -18,7 +18,7 @@ class OpcuaSecondary : public SecondaryInterface {
 
   std::string getSerial() override;
   Uptane::HardwareIdentifier getHwId() override;
-  std::pair<KeyType, std::string> getPublicKey() override;
+  PublicKey getPublicKey() override;
 
   Json::Value getManifest() override;
   bool putMetadata(const MetaPack& meta_pack) override;

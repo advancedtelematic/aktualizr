@@ -12,15 +12,17 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
 
   // TODO: FIX
   // loadMetadata(meta_pack);
-  if (!loadKeys(&public_key, &private_key)) {
-    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key, &private_key)) {
+  std::string public_key_string;
+
+  if (!loadKeys(&public_key_string, &private_key)) {
+    if (!Crypto::generateKeyPair(sconfig.key_type, &public_key_string, &private_key)) {
       LOG_ERROR << "Could not generate rsa keys for secondary " << ManagedSecondary::getSerial() << "@"
                 << sconfig.ecu_hardware_id;
       throw std::runtime_error("Unable to generate secondary rsa keys");
     }
-    storeKeys(public_key, private_key);
+    storeKeys(public_key_string, private_key);
   }
-  public_key_id = Crypto::getKeyId(public_key);
+  public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
 bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
@@ -143,7 +145,7 @@ Json::Value ManagedSecondary::getManifest() {
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
-  signature["keyid"] = public_key_id;
+  signature["keyid"] = public_key_.KeyId();
   signed_ecu_version["signed"] = manifest;
   signed_ecu_version["signatures"] = Json::Value(Json::arrayValue);
   signed_ecu_version["signatures"].append(signature);

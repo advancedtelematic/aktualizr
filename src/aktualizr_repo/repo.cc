@@ -7,14 +7,17 @@ Repo::Repo(boost::filesystem::path path, const std::string &expires) : path_(std
   expiration_time_ = getExpirationTime(expires);
 }
 
-Json::Value Repo::signTuf(const Json::Value &json, const std::string &key) {
-  std::string b64sig = Utils::toBase64(Crypto::Sign(KeyType::kRSA2048, nullptr, key, Json::FastWriter().write(json)));
+Json::Value Repo::signTuf(const std::string &repo_type, const Json::Value &json) {
+  std::string private_key = Utils::readFile(path_ / "keys" / repo_type / "private.key");
+
+  std::string b64sig =
+      Utils::toBase64(Crypto::Sign(KeyType::kRSA2048, nullptr, private_key, Json::FastWriter().write(json)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
 
   Json::Value signed_data;
-  signature["keyid"] = Crypto::getKeyId(key);
+  signature["keyid"] = GetPublicKey(repo_type).KeyId();
 
   signed_data["signed"] = json;
   signed_data["signatures"].append(signature);
@@ -41,36 +44,33 @@ std::string Repo::getExpirationTime(const std::string &expires) {
   }
 }
 
-void Repo::generateRepo(const std::string &name) {
-  boost::filesystem::path keys_dir(path_ / ("keys/" + name));
+void Repo::generateRepo(const std::string &repo_type) {
+  boost::filesystem::path keys_dir(path_ / ("keys/" + repo_type));
   boost::filesystem::create_directories(keys_dir);
 
-  boost::filesystem::path repo_dir(path_ / ("repo/" + name));
+  boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type));
   boost::filesystem::create_directories(repo_dir);
 
   KeyType type{kRSA2048};
-  std::string public_key, private_key;
-  Crypto::generateKeyPair(type, &public_key, &private_key);
+  std::string public_key_string, private_key;
+  Crypto::generateKeyPair(type, &public_key_string, &private_key);
+  PublicKey public_key(public_key_string, type);
   Utils::writeFile(keys_dir / "private.key", private_key);
-  Utils::writeFile(keys_dir / "public.key", public_key);
+  Utils::writeFile(keys_dir / "public.key", public_key_string);
 
   Json::Value root;
   root["_type"] = "Root";
   root["expires"] = expiration_time_;
-  std::string key_id = Crypto::getKeyId(public_key);
-  Json::Value key_item;
-  key_item[key_id]["keytype"] = "rsa";
-  key_item[key_id]["keyval"]["public"] = public_key;
-  root["keys"].append(key_item);
+  root["keys"].append(public_key.ToUptane());
   Json::Value role;
-  role["keyids"].append(key_id);
+  role["keyids"].append(public_key.KeyId());
   role["threshold"] = 1;
   root["roles"]["root"] = role;
   root["roles"]["snapshot"] = role;
   root["roles"]["targets"] = role;
   root["roles"]["timestamp"] = role;
 
-  Json::Value signed_root = signTuf(root, private_key);
+  Json::Value signed_root = signTuf(repo_type, root);
   Utils::writeFile(repo_dir / "root.json", signed_root);
 
   Json::Value targets;
@@ -78,13 +78,13 @@ void Repo::generateRepo(const std::string &name) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  Utils::writeFile(repo_dir / "targets.json", signTuf(targets, private_key));
+  Utils::writeFile(repo_dir / "targets.json", signTuf(repo_type, targets));
 
   Json::Value timestamp;
   timestamp["_type"] = "Timestamp";
   timestamp["expires"] = expiration_time_;
   timestamp["version"] = 1;
-  Utils::writeFile(repo_dir / "timestamp.json", signTuf(timestamp, private_key));
+  Utils::writeFile(repo_dir / "timestamp.json", signTuf(repo_type, timestamp));
 }
 
 void Repo::generateRepo() {
@@ -108,11 +108,11 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
   targets["targets"][target_name]["length"] = Json::UInt64(image.size());
   targets["targets"][target_name]["hashes"]["sha256"] = hash;
   targets["version"] = (targets["version"].asUInt()) + 1;
-  std::string private_key = Utils::readFile(path_ / "keys/image/private.key");
-  Utils::writeFile(repo_dir / "targets.json", signTuf(targets, private_key));
+
+  Utils::writeFile(repo_dir / "targets.json", signTuf("image", targets));
   Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
   timestamp["version"] = (timestamp["version"].asUInt()) + 1;
-  Utils::writeFile(repo_dir / "timestamp.json", signTuf(timestamp, private_key));
+  Utils::writeFile(repo_dir / "timestamp.json", signTuf("image", timestamp));
 }
 
 void Repo::copyTarget(const std::string &target_name) {
@@ -124,5 +124,10 @@ void Repo::copyTarget(const std::string &target_name) {
   director_targets["targets"][target_name] = image_targets["targets"][target_name];
   director_targets["version"] = (director_targets["version"].asUInt()) + 1;
   std::string private_key = Utils::readFile(path_ / "keys/director/private.key");
-  Utils::writeFile(path_ / "repo/director/targets.json", signTuf(director_targets, private_key));
+  Utils::writeFile(path_ / "repo/director/targets.json", signTuf("director", director_targets));
+}
+
+PublicKey Repo::GetPublicKey(const std::string &repo_type) const {
+  std::string public_key_string = Utils::readFile(path_ / "keys" / repo_type / "public.key");
+  return PublicKey(public_key_string, kRSA2048);
 }

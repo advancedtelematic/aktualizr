@@ -10,15 +10,90 @@
 #include "openssl_compat.h"
 #include "utilities/utils.h"
 
-std::string PublicKey::TypeString() const {
-  switch (type) {
-    case RSA:
-      return "rsa";
-    case ED25519:
-      return "ed25519";
-    default:
-      return "UNKNOWN";
+PublicKey::PublicKey(const boost::filesystem::path &path) : value_(Utils::readFile(path)) {
+  type_ = Crypto::IdentifyRSAKeyType(value_);
+}
+PublicKey::PublicKey(Json::Value uptane_json) {
+  if (!uptane_json["keytype"].isString()) {
+    type_ = kUnknownKey;
+    return;
   }
+  if (!uptane_json["keyval"].isObject()) {
+    type_ = kUnknownKey;
+    return;
+  }
+
+  if (!uptane_json["keyval"]["public"].isString()) {
+    type_ = kUnknownKey;
+    return;
+  }
+
+  std::string keytype = uptane_json["keytype"].asString();
+  std::string keyvalue = uptane_json["keyval"]["public"].asString();
+
+  std::transform(keytype.begin(), keytype.end(), keytype.begin(), ::tolower);
+
+  KeyType type;
+  if (keytype == "ed25519") {
+    type = kED25519;
+  } else if (keytype == "rsa") {
+    type = Crypto::IdentifyRSAKeyType(keyvalue);
+    if (type == kUnknownKey) {
+      LOG_WARNING << "Couldn't identify length of RSA key";
+    }
+  } else {
+    type = kUnknownKey;
+  }
+  type_ = type;
+  value_ = keyvalue;
+}
+PublicKey::PublicKey(std::string value, KeyType type) : value_(std::move(value)), type_(type) {
+  if (Crypto::IsRsaKeyType(type)) {
+    if (type != Crypto::IdentifyRSAKeyType(value)) {
+      std::logic_error("RSA key length is incorrect");
+    }
+  }
+}
+
+bool PublicKey::VerifySignature(const std::string &signature, const std::string &message) const {
+  switch (type_) {
+    case kED25519:
+      return Crypto::ED25519Verify(boost::algorithm::unhex(value_), Utils::fromBase64(signature), message);
+    case kRSA2048:
+    case kRSA4096:
+      return Crypto::RSAPSSVerify(value_, Utils::fromBase64(signature), message);
+    default:
+      return false;
+  }
+}
+
+bool PublicKey::operator==(const PublicKey &rhs) const { return value_ == rhs.value_ && type_ == rhs.type_; }
+Json::Value PublicKey::ToUptane() const {
+  Json::Value res;
+  switch (type_) {
+    case kRSA2048:
+    case kRSA4096:
+      res["keytype"] = "RSA";
+      break;
+    case kED25519:
+      res["keytype"] = "ED25519";
+      break;
+    case kUnknownKey:
+      res["keytype"] = "unknown";
+      break;
+    default:
+      throw new std::range_error("Unknown key type in PublicKey::ToUptane");
+  }
+  res["keyval"]["public"] = value_;
+  return res;
+}
+
+std::string PublicKey::KeyId() const {
+  std::string key_content = value_;
+  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
+  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
+  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
+  return keyid;
 }
 
 std::string Crypto::sha256digest(const std::string &text) {
@@ -106,15 +181,6 @@ std::string Crypto::ED25519Sign(const std::string &private_key, const std::strin
   return std::string(reinterpret_cast<char *>(sig), crypto_sign_BYTES);
 }
 
-std::string Crypto::getKeyId(const std::string &key) {
-  std::string key_content = key;
-
-  boost::algorithm::trim_right_if(key_content, boost::algorithm::is_any_of("\n"));
-  std::string keyid = boost::algorithm::hex(Crypto::sha256digest(Json::FastWriter().write(Json::Value(key_content))));
-  std::transform(keyid.begin(), keyid.end(), keyid.begin(), ::tolower);
-  return keyid;
-}
-
 bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &signature, const std::string &message) {
   StructGuard<RSA> rsa(nullptr, RSA_free);
   StructGuard<BIO> bio(BIO_new_mem_buf(const_cast<char *>(public_key.c_str()), static_cast<int>(public_key.size())),
@@ -159,17 +225,6 @@ bool Crypto::ED25519Verify(const std::string &public_key, const std::string &sig
   return crypto_sign_verify_detached(reinterpret_cast<const unsigned char *>(signature.c_str()),
                                      reinterpret_cast<const unsigned char *>(message.c_str()), message.size(),
                                      reinterpret_cast<const unsigned char *>(public_key.c_str())) == 0;
-}
-
-bool Crypto::VerifySignature(const PublicKey &public_key, const std::string &signature, const std::string &message) {
-  if (public_key.type == PublicKey::ED25519) {
-    return ED25519Verify(boost::algorithm::unhex(public_key.value), Utils::fromBase64(signature), message);
-  }
-  if (public_key.type == PublicKey::RSA) {
-    return RSAPSSVerify(public_key.value, Utils::fromBase64(signature), message);
-  }
-  LOG_ERROR << "unsupported keytype: " << public_key.type;
-  return false;
 }
 
 bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string *out_pkey, std::string *out_cert,
@@ -344,4 +399,42 @@ bool Crypto::generateKeyPair(KeyType key_type, std::string *public_key, std::str
     return Crypto::generateEDKeyPair(public_key, private_key);
   }
   return Crypto::generateRSAKeyPair(key_type, public_key, private_key);
+}
+
+bool Crypto::IsRsaKeyType(KeyType type) {
+  switch (type) {
+    case kRSA2048:
+    case kRSA4096:
+      return true;
+    default:
+      return false;
+  }
+}
+KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
+  StructGuard<BIO> bufio(BIO_new_mem_buf(reinterpret_cast<const void *>(public_key_pem.c_str()),
+                                         static_cast<int>(public_key_pem.length())),
+                         BIO_vfree);
+  if (bufio.get() == nullptr) {
+    throw std::runtime_error("BIO_new_mem_buf failed");
+  }
+  StructGuard<::RSA> rsa(PEM_read_bio_RSA_PUBKEY(bufio.get(), nullptr, nullptr, nullptr), RSA_free);
+
+  if (rsa.get() == nullptr) {
+    return kUnknownKey;
+  }
+
+  int key_length = RSA_size(rsa.get()) * 8;
+  // It is not clear from the OpenSSL documentation if RSA_size returns
+  // exactly 2048 or 4096, or if this can vary. For now we will assume that if
+  // OpenSSL has been asked to generate a 'N bit' key, RSA_size() will return
+  // exactly N
+  switch (key_length) {
+    case 2048:
+      return kRSA2048;
+    case 4096:
+      return kRSA4096;
+    default:
+      LOG_WARNING << "Wierd key length:" << key_length;
+      return kUnknownKey;
+  }
 }

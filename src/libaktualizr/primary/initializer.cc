@@ -47,7 +47,7 @@ bool Initializer::initEcuSerials() {
 
   std::string primary_ecu_serial_local = config_.primary_ecu_serial;
   if (primary_ecu_serial_local.empty()) {
-    primary_ecu_serial_local = Crypto::getKeyId(keys_.getUptanePublicKey());
+    primary_ecu_serial_local = keys_.UptanePublicKey().KeyId();
   }
 
   std::string primary_ecu_hardware_id = config_.primary_ecu_hardware_id;
@@ -148,9 +148,9 @@ InitRetCode Initializer::initEcuRegister() {
     return INIT_RET_OK;
   }
 
-  std::string primary_public = keys_.getUptanePublicKey();
+  PublicKey uptane_public_key = keys_.UptanePublicKey();
 
-  if (primary_public.empty()) {
+  if (uptane_public_key.Type() == kUnknownKey) {
     return INIT_RET_STORAGE_FAILURE;
   }
 
@@ -167,8 +167,7 @@ InitRetCode Initializer::initEcuRegister() {
     Json::Value primary_ecu;
     primary_ecu["hardware_identifier"] = ecu_serials[0].second.ToString();
     primary_ecu["ecu_serial"] = ecu_serials[0].first;
-    primary_ecu["clientKey"]["keytype"] = keyTypeToString(keys_.getUptaneKeyType());
-    primary_ecu["clientKey"]["keyval"]["public"] = primary_public;
+    primary_ecu["clientKey"] = keys_.UptanePublicKey().ToUptane();
     all_ecus["ecus"].append(primary_ecu);
   }
 
@@ -177,8 +176,7 @@ InitRetCode Initializer::initEcuRegister() {
     auto public_key = it->second->getPublicKey();
     ecu["hardware_identifier"] = it->second->getHwId().ToString();
     ecu["ecu_serial"] = it->second->getSerial();
-    ecu["clientKey"]["keytype"] = keyTypeToString(public_key.first);
-    ecu["clientKey"]["keyval"]["public"] = public_key.second;
+    ecu["clientKey"] = public_key.ToUptane();
     all_ecus["ecus"].append(ecu);
   }
 

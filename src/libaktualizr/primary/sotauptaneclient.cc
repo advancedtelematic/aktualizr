@@ -139,10 +139,8 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     Json::Value secmanifest = it->second->getManifest();
     if (secmanifest.isMember("signatures") && secmanifest.isMember("signed")) {
       auto public_key = it->second->getPublicKey();
-      PublicKey public_key_object(public_key.second, keyTypeToString(public_key.first));
       std::string canonical = Json::FastWriter().write(secmanifest["signed"]);
-      bool verified =
-          Crypto::VerifySignature(public_key_object, secmanifest["signatures"][0]["sig"].asString(), canonical);
+      bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
       if (verified) {
         result[it->first] = secmanifest;
       } else {
