@@ -67,7 +67,6 @@ The following debian packages are used in the project:
 * libsystemd-dev (when building with systemd support for secondaries)
 * libyaml-cpp-dev (>=0.5.2)
 * python3-dev (when building tests)
-* python3-dateutil
 * python3-openssl (when building tests)
 * python3-venv (when building tests)
 * valgrind (when building tests)

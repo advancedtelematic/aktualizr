@@ -52,7 +52,6 @@ RUN apt-get update && apt-get -y install \
   ostree \
   pkg-config \
   psmisc \
-  python3-dateutil \
   softhsm2 \
   wget
   

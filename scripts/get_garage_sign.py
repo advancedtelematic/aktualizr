@@ -8,7 +8,6 @@ import sys
 import tarfile
 import urllib.request
 import xml.etree.ElementTree as ET
-import dateutil.parser as dp
 
 from pathlib import Path
 
@@ -52,7 +51,7 @@ def main():
             else:
                 name = name_ext
     else:
-        name = sorted(versions, key=(lambda name: dp.parse(versions[name][0])))[-1]
+        name = max(versions, key=(lambda name: (versions[name][0])))
 
     path = args.output.joinpath(name)
     md5_hash = versions[name][1]
