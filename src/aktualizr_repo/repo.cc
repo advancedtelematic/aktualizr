@@ -26,7 +26,7 @@ std::string Repo::getExpirationTime(const std::string &expires) {
     std::smatch match;
     std::regex time_pattern("\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");  // NOLINT(modernize-raw-string-literal)
     if (!std::regex_match(expires, time_pattern)) {
-      throw std::runtime_error("Expiration time has wrong format");
+      throw std::runtime_error("Expiration date has wrong format\n date should be in ISO 8601 UTC format");
     }
     return expires;
   } else {
