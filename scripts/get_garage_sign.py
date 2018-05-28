@@ -51,7 +51,7 @@ def main():
             else:
                 name = name_ext
     else:
-        name = sorted(versions, key=(lambda name: (versions[name][0])))[-1]
+        name = max(versions, key=(lambda name: (versions[name][0])))
 
     path = args.output.joinpath(name)
     md5_hash = versions[name][1]
