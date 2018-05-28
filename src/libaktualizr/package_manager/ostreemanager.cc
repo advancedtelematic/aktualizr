@@ -235,6 +235,26 @@ Uptane::Target OstreeManager::getCurrent() {
   return getUnknown();
 }
 
+bool OstreeManager::imageUpdated() {
+  OstreeSysrootPtr sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+
+  GPtrArray *deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
+
+  OstreeDeployment *pending_deployment;
+  ostree_sysroot_query_deployments_for(sysroot_smart.get(), NULL, &pending_deployment, NULL);
+
+  bool pending_found = false;
+  for (guint i = 0; i < deployments->len; i++) {
+    if (deployments->pdata[i] == pending_deployment) {
+      pending_found = true;
+      break;
+    }
+  }
+
+  g_ptr_array_unref(deployments);
+  return !pending_found;
+}
+
 OstreeDeploymentPtr OstreeManager::getStagedDeployment() {
   OstreeSysrootPtr sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 

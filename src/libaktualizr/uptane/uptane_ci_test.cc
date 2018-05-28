@@ -35,7 +35,8 @@ TEST(UptaneCI, OneCycleUpdate) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage);
-  SotaUptaneClient sota_client(config, NULL, repo, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, NULL, repo, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
   auto manifest = repo.signManifest(sota_client.AssembleManifest());
   EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", manifest).isOk());
@@ -70,7 +71,8 @@ TEST(UptaneCI, CheckKeys) {
   auto storage = INvStorage::newStorage(config.storage);
   HttpClient http;
   Uptane::Repository repo(config, storage);
-  SotaUptaneClient sota_client(config, NULL, repo, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, NULL, repo, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
 
   std::string ca;

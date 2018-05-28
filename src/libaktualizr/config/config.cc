@@ -304,6 +304,7 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopySubtreeFromConfig(storage, "storage", pt);
   CopySubtreeFromConfig(import, "import", pt);
   CopySubtreeFromConfig(telemetry, "telemetry", pt);
+  CopySubtreeFromConfig(bootloader, "bootloader", pt);
 }
 
 void Config::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
@@ -479,6 +480,7 @@ void Config::writeToStream(std::ostream& sink) const {
   WriteSectionToStream(storage, "storage", sink);
   WriteSectionToStream(import, "import", sink);
   WriteSectionToStream(telemetry, "telemetry", sink);
+  WriteSectionToStream(bootloader, "bootloader", sink);
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {

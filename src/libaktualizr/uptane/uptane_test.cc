@@ -502,7 +502,8 @@ TEST(Uptane, AssembleManifestGood) {
 
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage);
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -548,7 +549,8 @@ TEST(Uptane, AssembleManifestBad) {
 
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage);
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -590,7 +592,8 @@ TEST(Uptane, PutManifest) {
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
 
   auto signed_manifest = uptane.signManifest(sota_client.AssembleManifest());
@@ -633,7 +636,8 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http);
+  Bootloader bootloader{conf.bootloader};
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -687,7 +691,8 @@ TEST(Uptane, RunForeverHasUpdates) {
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http);
+  Bootloader bootloader{conf.bootloader};
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -734,7 +739,8 @@ TEST(Uptane, RunForeverInstall) {
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http);
+  Bootloader bootloader{conf.bootloader};
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
   up.runForever(commands_channel);
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
@@ -782,7 +788,8 @@ TEST(Uptane, UptaneSecondaryAdd) {
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -820,7 +827,8 @@ TEST(Uptane, ProvisionOnServer) {
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage);
-  SotaUptaneClient up(config, events_channel, repo, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient up(config, events_channel, repo, storage, http, bootloader);
   up.runForever(commands_channel);
 }
 

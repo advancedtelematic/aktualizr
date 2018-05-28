@@ -119,7 +119,8 @@ TEST(UptaneKey, CheckAllKeys) {
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
+  Bootloader bootloader{config.bootloader};
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
   EXPECT_TRUE(sota_client.initialize());
   checkKeyTests(storage, sota_client);
 }
@@ -140,7 +141,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
+    Bootloader bootloader{config.bootloader};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -152,7 +154,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
+    Bootloader bootloader{config.bootloader};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -170,7 +173,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http);
+    Bootloader bootloader{config.bootloader};
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);

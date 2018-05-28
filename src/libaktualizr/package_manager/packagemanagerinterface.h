@@ -14,6 +14,7 @@ class PackageManagerInterface {
   virtual Json::Value getInstalledPackages() = 0;
   virtual Uptane::Target getCurrent() = 0;
   virtual data::InstallOutcome install(const Uptane::Target& target) const = 0;
+  virtual bool imageUpdated() = 0;
   Uptane::Target getUnknown() {
     Json::Value t_json;
     t_json["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));

@@ -46,7 +46,8 @@ class ProvisionDeviceTask {
   void operator()() {
     Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
-    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient};
+    Bootloader bootloader(config.bootloader);
+    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader};
     try {
       if (client.initialize()) {
         auto signed_manifest = repo.signManifest(client.AssembleManifest());

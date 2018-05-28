@@ -33,7 +33,8 @@ class CheckForUpdate {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
     Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
-    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient};
+    Bootloader bootloader(config.bootloader);
+    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader};
     try {
       std::string pkey;
       std::string cert;

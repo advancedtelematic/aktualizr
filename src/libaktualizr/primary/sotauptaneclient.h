@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "bootloader/bootloader.h"
 #include "commands.h"
 #include "config/config.h"
 #include "events.h"
@@ -21,7 +22,7 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in, Uptane::Repository &repo,
-                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client);
+                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client, const Bootloader &bootloader_in);
 
   bool initialize();
   void getUpdateRequests();
@@ -55,6 +56,7 @@ class SotaUptaneClient {
   std::shared_ptr<PackageManagerInterface> pacman;
   HttpInterface &http;
   Uptane::Fetcher uptane_fetcher;
+  const Bootloader &bootloader;
   int last_targets_version;
   Json::Value operation_result;
   std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
