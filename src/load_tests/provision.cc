@@ -7,7 +7,9 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "context.h"
 #include "executor.h"
+#include "logging/logging.h"
 
 using namespace boost::filesystem;
 using ptree = boost::property_tree::ptree;
@@ -37,8 +39,9 @@ class ProvisionDeviceTask {
   HttpClient httpClient;
 
  public:
-  ProvisionDeviceTask(const path configFile)
-      : config{configFile}, storage{INvStorage::newStorage(config.storage)}, httpClient{} {}
+  ProvisionDeviceTask(const Config cfg) : config{cfg}, storage{INvStorage::newStorage(config.storage)}, httpClient{} {
+    logger_set_threshold(boost::log::trivial::severity_level::trace);
+  }
 
   void operator()() {
     Uptane::Repository repo{config, storage, httpClient};
@@ -62,21 +65,24 @@ class ProvisionDeviceTaskStream {
   boost::uuids::basic_random_generator<boost::random::mt19937> gen;
   const path &dstDir;
   const ptree &cfgTemplate;
+  const int logLevel;
 
  public:
-  ProvisionDeviceTaskStream(const path &dstDir_, const ptree &ct) : gen{}, dstDir{dstDir_}, cfgTemplate{ct} {}
+  ProvisionDeviceTaskStream(const path &dstDir_, const ptree &ct, const int ll)
+      : gen{}, dstDir{dstDir_}, cfgTemplate{ct}, logLevel{ll} {}
 
   ProvisionDeviceTask nextTask() {
     LOG_INFO << "Creating provision device task";
     const boost::uuids::uuid deviceId = gen();
     const path deviceBaseDir = mkDeviceBaseDir(deviceId, dstDir);
     const path deviceCfgPath = writeDeviceConfig(cfgTemplate, deviceBaseDir, deviceId);
-    return ProvisionDeviceTask(deviceCfgPath);
+    return ProvisionDeviceTask(configure(deviceCfgPath, logLevel));
   }
 };
 
 void mkDevices(const path &dstDir, const path bootstrapCredentials, const std::string gw_uri, const size_t parallelism,
-               const uint nr, const uint rate) {
+               const unsigned int nr, const uint rate) {
+  const int severity = loggerGetSeverity();
   ptree cfgTemplate{};
   cfgTemplate.put_child("tls.server", ptree("\"https://" + gw_uri + "\""));
   cfgTemplate.put_child("provision.server", ptree("\"https://" + gw_uri + "\""));
@@ -85,9 +91,9 @@ void mkDevices(const path &dstDir, const path bootstrapCredentials, const std::s
   cfgTemplate.put_child("pacman.type", ptree("\"none\""));
   std::vector<ProvisionDeviceTaskStream> feeds;
   for (size_t i = 0; i < parallelism; i++) {
-    feeds.push_back(ProvisionDeviceTaskStream{dstDir, cfgTemplate});
+    feeds.push_back(ProvisionDeviceTaskStream{dstDir, cfgTemplate, severity});
   }
-  FixedExecutionController execController{nr};
-  Executor<ProvisionDeviceTaskStream> exec{feeds, rate, execController};
+  std::unique_ptr<ExecutionController> execController = std_::make_unique<FixedExecutionController>(nr);
+  Executor<ProvisionDeviceTaskStream> exec{feeds, rate, std::move(execController)};
   exec.run();
 }

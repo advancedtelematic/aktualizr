@@ -75,11 +75,16 @@ class CheckForUpdateTasks {
   CheckForUpdate nextTask() { return CheckForUpdate{configs[gen(rng)]}; }
 };
 
-void checkForUpdates(const boost::filesystem::path &baseDir, const uint rate, const uint nr, const uint parallelism) {
+void checkForUpdates(const boost::filesystem::path &baseDir, const unsigned int rate, const unsigned int nr,
+                     const unsigned int parallelism) {
   LOG_INFO << "Target rate: " << rate << "op/s, operations: " << nr << ", workers: " << parallelism;
-  auto configs = loadDeviceConfigurations(baseDir);
   std::vector<CheckForUpdateTasks> feeds(parallelism, CheckForUpdateTasks{baseDir});
-  FixedExecutionController execController{nr};
-  Executor<CheckForUpdateTasks> exec{feeds, rate, execController};
+  std::unique_ptr<ExecutionController> execController;
+  if (nr == 0) {
+    execController = std_::make_unique<InterruptableExecutionController>();
+  } else {
+    execController = std_::make_unique<FixedExecutionController>(nr);
+  }
+  Executor<CheckForUpdateTasks> exec{feeds, rate, std::move(execController)};
   exec.run();
 }
