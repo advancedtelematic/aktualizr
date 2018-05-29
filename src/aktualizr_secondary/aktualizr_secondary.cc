@@ -148,13 +148,14 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::MetaPack& meta_pack) {
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   detected_attack_.clear();
 
-  root_ = Uptane::Root(now, "director", meta_pack.director_root.original(), root_);
-  Uptane::Targets targets(now, "director", meta_pack.director_targets.original(), root_);
-  if (meta_targets_.version() > targets.version()) {
+  if (!meta_pack.isConsistent()) {
+    return false;
+  }
+  if (meta_targets_.version() > meta_pack.director_targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
   }
-  meta_targets_ = targets;
+  meta_targets_ = meta_pack.director_targets;
   std::vector<Uptane::Target>::const_iterator it;
   bool target_found = false;
   for (it = meta_targets_.targets.begin(); it != meta_targets_.targets.end(); ++it) {

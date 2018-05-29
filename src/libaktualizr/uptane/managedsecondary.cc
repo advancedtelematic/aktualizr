@@ -29,6 +29,9 @@ bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
   current_meta = meta_pack;
+  if (!current_meta.isConsistent()) {
+    return false;
+  }
   storeMetadata(current_meta);
 
   expected_target_name = "";
@@ -77,8 +80,11 @@ bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
                       std::to_string(root.version());
   }
 
-  storeMetadata(current_meta);
+  if (!current_meta.isConsistent()) {
+    return false;
+  }
 
+  storeMetadata(current_meta);
   return true;
 }
 

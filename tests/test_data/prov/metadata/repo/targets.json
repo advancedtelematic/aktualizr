@@ -1,48 +1,363 @@
 
 {
-	"_type" : "Targets",
-	"expires" : "2017-11-05T14:50:27Z",
-	"targets" : 
-	{
-		"5f42ed8a85eb1e52decf4dce259408551f49deeee09915232d5c6009dab12266-5f42ed8a85eb1e52decf4dce259408551f49deeee09915232d5c6009dab12266_1.0" : 
+	"signatures" : 
+	[
+		
 		{
-			"custom" : 
-			{
-				"ecuIdentifier" : "",
-				"targetFormat" : ""
-			},
-			"hashes" : 
-			{
-				"sha256" : "BC7171AB9F219BE71029F1D3D104F7EE11F6E418055A8122FE3BDCB547769AE8"
-			},
-			"length" : 3017
-		},
-		"master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0" : 
-		{
-			"custom" : 
-			{
-				"ecuIdentifier" : "",
-				"targetFormat" : "OSTREE"
-			},
-			"hashes" : 
-			{
-				"sha256" : "863DE625F305413DC3BE306AFAB7C3F39D8713045CFFF812B3AF83F9722851F0"
-			},
-			"length" : 0
-		},
-		"testpack_1.0" : 
-		{
-			"custom" : 
-			{
-				"ecuIdentifier" : "",
-				"targetFormat" : ""
-			},
-			"hashes" : 
-			{
-				"sha256" : "BC7171AB9F219BE71029F1D3D104F7EE11F6E418055A8122FE3BDCB547769AE8"
-			},
-			"length" : 3017
+			"keyid" : "848a526d39328aaece8c8fd933b8c5b9418361c3e515bfd4d84342f35b0efcc0",
+			"method" : "rsassa-pss-sha256",
+			"sig" : "df0NpV/Mdd0NOkDIE4mtn4LFKfReVB/NA21CiR2NF8nx0Hv+zbnctnBrpcE4xzUvTqG5wfF2OswxGwAZmJLSMgBduR+M6sgDRqjhglj/wUM3Cvt6BCg3KM/skkD7aOloA4qW2SfECyfagf3EzNvfhW4gGGxFdk4qb4N5veZrElmE0Fb3xqSvRYzACOy0dnCqE3/JLRhSBGrlz4tZ01eFnvL185O08wh4yG9MiqnC16i1qE7aYJYPuLFgEjDws9UwN1fxofzoUH+F3d/jVD0dFSPJ8bD8Lss79nqlauJ+IqgiuaZE7uRW+7MhR70jiBUHpBCrok59utaw0xE3gE0Ytw=="
 		}
-	},
-	"version" : 4
+	],
+	"signed" : 
+	{
+		"_type" : "Targets",
+		"expires" : "2018-05-11T22:09:52Z",
+		"targets" : 
+		{
+			"selfupdate-1.0_selfupdate-1.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-10T19:02:11Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "selfupdate-1.0",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-10T19:02:11Z",
+					"uri" : null,
+					"version" : "selfupdate-1.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "535b5f326b73368d5438da208467c1cb1b0aa1868fc0133dabf7fdbdde55c7bb"
+				},
+				"length" : 1768492
+			},
+			"selfupdate-1.0_selfupdate-2.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-10T19:40:08Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "selfupdate-1.0",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-10T19:40:08Z",
+					"uri" : null,
+					"version" : "selfupdate-2.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "785747349422c0d668dd3abbe7eceb035f051c3928cbcffbe6eb277db26c634c"
+				},
+				"length" : 1768498
+			},
+			"selfupdate_14" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-23T19:37:36Z",
+					"hardwareIds" : [ "ubuntu", "patriotyk-laptop" ],
+					"name" : "selfupdate",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-23T19:37:36Z",
+					"uri" : null,
+					"version" : "14"
+				},
+				"hashes" : 
+				{
+					"sha256" : "ae8aac15d9b86efc1b7bfa26d67a59465533eb4393177d21edd5929ec571f452"
+				},
+				"length" : 8183750
+			},
+			"selfupdate_15" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-23T19:51:18Z",
+					"hardwareIds" : [ "ubuntu", "patriotyk-laptop" ],
+					"name" : "selfupdate",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-23T19:51:18Z",
+					"uri" : null,
+					"version" : "15"
+				},
+				"hashes" : 
+				{
+					"sha256" : "02564c6a6995f98670055b19a6a90eca502528389a5d7967ade8d096517ed5ab"
+				},
+				"length" : 8184114
+			},
+			"selfupdate_2.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-12T00:27:54Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "selfupdate",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-12T00:27:54Z",
+					"uri" : null,
+					"version" : "2.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "1fc3289584041fb01b7022a7c37da8bac3f92fdf58d6d27114d0ad93d135cb34"
+				},
+				"length" : 1753258
+			},
+			"selfupdate_selfupdate" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-10T18:50:46Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "selfupdate",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-10T18:50:46Z",
+					"uri" : null,
+					"version" : "selfupdate"
+				},
+				"hashes" : 
+				{
+					"sha256" : "90f7d28993a2ce69fd2562393764cdad8f02cef2dce971cc44e5983122fd1eb9"
+				},
+				"length" : 1768500
+			},
+			"test_aktualizr2_1" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-10T15:54:53Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "test_aktualizr2",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-10T15:54:53Z",
+					"uri" : null,
+					"version" : "1"
+				},
+				"hashes" : 
+				{
+					"sha256" : "c9aaad509d712a2fc044050a734d6654fabf293e69586d69c3e79d0c9404d1f6"
+				},
+				"length" : 5176030
+			},
+			"test_aktualizr_1" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-10T15:19:04Z",
+					"hardwareIds" : [ "patriotyk-laptop" ],
+					"name" : "test_aktualizr",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-10T15:19:04Z",
+					"uri" : null,
+					"version" : "1"
+				},
+				"hashes" : 
+				{
+					"sha256" : "c9aaad509d712a2fc044050a734d6654fabf293e69586d69c3e79d0c9404d1f6"
+				},
+				"length" : 5176030
+			},
+			"test_systemd_1.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T16:53:11Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T16:53:11Z",
+					"uri" : null,
+					"version" : "1.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "93dca2afcfad023d4f62c4d7d9bb164c5651d30795da5d7a54f970ef7728c7d0"
+				},
+				"length" : 1764132
+			},
+			"test_systemd_10.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:49:48Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:49:48Z",
+					"uri" : null,
+					"version" : "10.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "c0b9d432eb2bd1919da10129002bb5b879c806838043c7b3af27d34621d535ff"
+				},
+				"length" : 1764418
+			},
+			"test_systemd_11.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:53:13Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:53:13Z",
+					"uri" : null,
+					"version" : "11.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "b437ce54b02622578a64e152ce14d1a8038d2159f87fea8b43e044bc906c6e7b"
+				},
+				"length" : 1764376
+			},
+			"test_systemd_2.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T16:59:38Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T16:59:38Z",
+					"uri" : null,
+					"version" : "2.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "834cc393444e8dca973828cfc605c0eb30d89d08d4766fcdc059f3954b89ad60"
+				},
+				"length" : 1764182
+			},
+			"test_systemd_3.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T17:05:25Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T17:05:25Z",
+					"uri" : null,
+					"version" : "3.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "6faaa9601a6d0de41a7836d0749faec13556843c643264f07b85378a0e494948"
+				},
+				"length" : 1764238
+			},
+			"test_systemd_4.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T20:03:10Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T20:03:10Z",
+					"uri" : null,
+					"version" : "4.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "c2db99568089d7bd2e5cb5ec5e0cbd4170e68b1eae30ba8b44c3968dce9bf0d5"
+				},
+				"length" : 1764286
+			},
+			"test_systemd_5.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T20:37:29Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T20:37:29Z",
+					"uri" : null,
+					"version" : "5.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "f2b0813de5a66ed487aeec8bb5c18fbc88487a9edfa650b4321fcf0e1be48992"
+				},
+				"length" : 1764292
+			},
+			"test_systemd_6.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:01:41Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:01:41Z",
+					"uri" : null,
+					"version" : "6.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "577f47bfd297129a7f989c3e565025ba0a9e9a03ce3ad877a27b3a755a839202"
+				},
+				"length" : 1764332
+			},
+			"test_systemd_7.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:21:12Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:21:12Z",
+					"uri" : null,
+					"version" : "7.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "a7f0a97a1e62c48156894b457b2be3be3b14708f2909d4911cbede8ecd47d096"
+				},
+				"length" : 1764332
+			},
+			"test_systemd_8.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:35:18Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:35:18Z",
+					"uri" : null,
+					"version" : "8.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "d2bf267b06321404dc16152e597d8d39d0bce2fd11da428484301bcee9775792"
+				},
+				"length" : 1764412
+			},
+			"test_systemd_9.0" : 
+			{
+				"custom" : 
+				{
+					"createdAt" : "2018-02-16T21:42:57Z",
+					"hardwareIds" : [ "ubuntu" ],
+					"name" : "test_systemd",
+					"targetFormat" : null,
+					"updatedAt" : "2018-02-16T21:42:57Z",
+					"uri" : null,
+					"version" : "9.0"
+				},
+				"hashes" : 
+				{
+					"sha256" : "7579e82f6e192b7274d7e115d2add56ae146f121d76e0aef26a98a462ebe109c"
+				},
+				"length" : 1764412
+			}
+		},
+		"version" : 21
+	}
 }

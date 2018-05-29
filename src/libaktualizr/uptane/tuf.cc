@@ -17,6 +17,7 @@ using Uptane::Root;
 using Uptane::Target;
 using Uptane::TimeStamp;
 using Uptane::Version;
+using Uptane::MetaPack;
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Version &v) {
   if (v.version_ == Version::ANY_VERSION) {
@@ -250,4 +251,16 @@ Json::Value Uptane::Snapshot::toJson() const {
     res["meta"][it->first]["version"] = it->second;
   }
   return res;
+}
+
+bool MetaPack::isConsistent() const {
+  TimeStamp now(TimeStamp::Now());
+  try {
+    Uptane::Root original_root(director_root);
+    Uptane::Root new_root(now, "director", director_root.original(), new_root);
+    Uptane::Targets(now, "director", director_targets.original(), original_root);
+  } catch (...) {
+    return false;
+  }
+  return true;
 }

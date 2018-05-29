@@ -71,15 +71,17 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   }
 
   try {
-    secondary_->root_ = Uptane::Root(now, "director", received_meta_pack_.director_root.original(), secondary_->root_);
-    Uptane::Targets targets(now, "director", received_meta_pack_.director_targets.original(), secondary_->root_);
+    if (!received_meta_pack_.isConsistent()) {
+      LOG_ERROR << "Uptane security check: metadata pack is not consistent";
+      return;
+    }
     if (secondary_->meta_targets_.version() > targets.version()) {
       secondary_->detected_attack_ = "Rollback attack detected";
       LOG_ERROR << "Uptane security check: " << secondary_->detected_attack_;
       return;
     }
     bool target_found = false;
-    secondary_->meta_targets_ = targets;
+    secondary_->meta_targets_ = received_meta_pack_.director_targets;
     for (auto it = secondary_->meta_targets_.targets.begin(); it != secondary_->meta_targets_.targets.end(); ++it) {
       if (it->ecu_identifier() == secondary_->ecu_serial_) {
         if (target_found) {
