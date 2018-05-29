@@ -94,6 +94,6 @@ void mkDevices(const path &dstDir, const path bootstrapCredentials, const std::s
     feeds.push_back(ProvisionDeviceTaskStream{dstDir, cfgTemplate, severity});
   }
   std::unique_ptr<ExecutionController> execController = std_::make_unique<FixedExecutionController>(nr);
-  Executor<ProvisionDeviceTaskStream> exec{feeds, rate, std::move(execController)};
+  Executor<ProvisionDeviceTaskStream> exec{feeds, rate, std::move(execController), "Provision"};
   exec.run();
 }

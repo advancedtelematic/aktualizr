@@ -59,7 +59,7 @@ class FetchTask {
     options = g_variant_builder_end(&builder);
     GError *error = NULL;
     if (!ostree_repo_pull_with_options(repo.get(), remote, options, NULL, NULL, &error)) {
-      LOG_ERROR << "Failed to pull repo: " << error->message;
+      LOG_ERROR << "Failed to pull repo " << repoDir << ": " << error->message;
       g_error_free(error);
       error = NULL;
     }
@@ -98,6 +98,6 @@ void fetchFromOstree(const fs::path &baseDir, const fs::path &outputDir, const s
                      const unsigned int parallelism) {
   std::vector<FetchFromOstreeTasks> feeds(parallelism, FetchFromOstreeTasks{baseDir, outputDir, branchName, remoteUrl});
   std::unique_ptr<FixedExecutionController> execController = std_::make_unique<FixedExecutionController>(nr);
-  Executor<FetchFromOstreeTasks> exec{feeds, rate, std::move(execController)};
+  Executor<FetchFromOstreeTasks> exec{feeds, rate, std::move(execController), "Fetch"};
   exec.run();
 }
