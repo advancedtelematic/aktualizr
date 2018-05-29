@@ -57,7 +57,7 @@ add_library(testutilities test_utils.cc)
 if(BUILD_WITH_CODE_COVERAGE)
     include(CodeCoverage)
     setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
-    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
+    add_compile_options(-g -O0 -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
@@ -69,6 +69,9 @@ if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
+
+add_aktualizr_test(NAME overflow SOURCES overflow_test.cc)
+set_tests_properties(test_overflow PROPERTIES WILL_FAIL TRUE)
 
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)

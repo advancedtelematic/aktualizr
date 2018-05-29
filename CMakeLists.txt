@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.12)
 cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
@@ -269,27 +269,30 @@ set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_F
 add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
-    add_definitions(-fstack-protector-all)
+    add_compile_options(-fstack-protector-all)
+    # Enable run-time overflow checks. We are not performance-critical enough
+    # for this to be too expensive.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fsanitize=bounds")
     # Enable maximum set of warnings. -Wno-sign-compare is required because of
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
     # well, but they also cause problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wno-sign-compare)
+    add_compile_options(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wno-sign-compare)
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        add_definitions(-Wlogical-op)
+        add_compile_options(-Wlogical-op)
     else ()
-        add_definitions(-Wno-unused-private-field)
+        add_compile_options(-Wno-unused-private-field)
     endif ()
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9" OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9")
-        add_definitions(-Wshadow)
+        add_compile_options(-Wshadow)
     endif ()
 
     if (WARNING_AS_ERROR)
-        add_definitions(-Werror)
+        add_compile_options(-Werror)
     endif ()
 
     if (PEDANTIC_WARNINGS)
-        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
+        add_compile_options(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
     endif (PEDANTIC_WARNINGS)
 endif()
 
@@ -336,9 +339,9 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${SYSTEMD_LIBRARY})
 
 set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
-    if(BUILD_WITH_CODE_COVERAGE)
-        list(APPEND TEST_LIBS gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
+if(BUILD_WITH_CODE_COVERAGE)
+    list(APPEND TEST_LIBS gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 
 include(CTest)
