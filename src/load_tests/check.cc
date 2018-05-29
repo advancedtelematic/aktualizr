@@ -85,6 +85,6 @@ void checkForUpdates(const boost::filesystem::path &baseDir, const unsigned int 
   } else {
     execController = std_::make_unique<FixedExecutionController>(nr);
   }
-  Executor<CheckForUpdateTasks> exec{feeds, rate, std::move(execController)};
+  Executor<CheckForUpdateTasks> exec{feeds, rate, std::move(execController), "Check for updates"};
   exec.run();
 }

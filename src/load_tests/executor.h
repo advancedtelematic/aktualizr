@@ -1,11 +1,15 @@
 #ifndef LT_EXECUTOR_H
 #define LT_EXECUTOR_H
 
+#ifdef BUILD_OSTREE
+#include <glib.h>
+#endif
 #include <atomic>
 #include <boost/thread/latch.hpp>
 #include <chrono>
 #include <csignal>
 #include <functional>
+#include <iostream>
 #include <thread>
 #include <vector>
 #include "logging/logging.h"
@@ -97,14 +101,17 @@ class Executor {
   TaskStartTimeCalculator calculateTaskStartTime;
   boost::latch threadCountDown;
   boost::latch starter;
+  const std::string label;
 
   void runWorker(TaskStream &tasks, Statistics &stats) {
+#ifdef BUILD_OSTREE
+    GMainContext *thread_context = g_main_context_new();
+    g_main_context_push_thread_default(thread_context);
+#endif
     using clock = std::chrono::steady_clock;
-    LOG_DEBUG << "Worker created: " << std::this_thread::get_id();
+    LOG_DEBUG << label << ": Worker created: " << std::this_thread::get_id();
     threadCountDown.count_down();
-    LOG_INFO << "Ready to go...";
     starter.wait();
-    LOG_INFO << "Go!";
     while (controller->claim()) {
       auto task = tasks.nextTask();
       const auto intendedStartTime = calculateTaskStartTime();
@@ -117,17 +124,23 @@ class Executor {
       std::chrono::milliseconds executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
       stats.recordSuccess(executionTime);
     }
-    LOG_DEBUG << "Worker finished execution: " << std::this_thread::get_id();
+    LOG_DEBUG << label << ": Worker finished execution: " << std::this_thread::get_id();
+#ifdef BUILD_OSTREE
+    g_main_context_pop_thread_default(thread_context);
+    g_main_context_unref(thread_context);
+#endif
   }
 
  public:
-  Executor(std::vector<TaskStream> &feeds, const unsigned rate, std::unique_ptr<ExecutionController> ctrl)
+  Executor(std::vector<TaskStream> &feeds, const unsigned rate, std::unique_ptr<ExecutionController> ctrl,
+           const std::string lbl)
       : controller{std::move(ctrl)},
         workers{},
         statistics(feeds.size()),
         calculateTaskStartTime{rate},
         threadCountDown{feeds.size()},
-        starter{1} {
+        starter{1},
+        label{lbl} {
     workers.reserve(feeds.size());
     try {
       for (size_t i = 0; i < feeds.size(); i++) {
@@ -142,11 +155,11 @@ class Executor {
   Statistics run() {
     Statistics summary{};
     // wait till all threads are crerated and ready to go
-    LOG_INFO << "Waiting for threads to start";
+    LOG_INFO << label << ": Waiting for threads to start";
     threadCountDown.wait();
     calculateTaskStartTime.start();
     summary.start();
-    LOG_INFO << "Starting tests";
+    LOG_INFO << label << ": Starting tests";
     // start execution
     starter.count_down();
     // wait till all threads finished execution
@@ -160,6 +173,7 @@ class Executor {
     for (size_t i = 0; i < statistics.size(); i++) {
       summary += statistics[i];
     }
+    std::cout << "Results for: " << label << std::endl;
     summary.print();
     return summary;
   };
