@@ -126,7 +126,7 @@ if [[ $TEST_WITH_INSTALL_DEB_PACKAGES = 1 ]]; then
         make package -j8 || add_failure "make package"
 
         # install garage-deploy
-        cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}"
+        cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}/garage_deploy.deb"
 
         # install aktualizr.deb
         cp ./*aktualizr.deb "${TEST_INSTALL_DESTDIR}/aktualizr.deb"

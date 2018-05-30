@@ -1,0 +1,13 @@
+FROM ubuntu:xenial
+LABEL Description="Garage-deploy deb package testing dockerfile"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update && apt-get install -y \
+  libarchive13 \
+  libcurl3 \
+  libglib2.0-0 \
+  libstdc++6 \
+  openjdk-8-jre
+
+ENTRYPOINT dpkg -i /persistent/garage_deploy.deb && garage-deploy --version && garage-sign --help

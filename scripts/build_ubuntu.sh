@@ -11,7 +11,7 @@ export TEST_WITH_INSTALL_DEB_PACKAGES=1
 export TEST_WITH_OSTREE=0
 export TEST_WITH_TESTSUITE=0
 
-# build and copy aktualizr.deb to $TEST_INSTALL_DESTDIR
+# build and copy aktualizr.deb and garage_deploy.deb to $TEST_INSTALL_DESTDIR
 "${GITREPO_ROOT}/scripts/test.sh"
 
 # copy provisioning data and scripts
