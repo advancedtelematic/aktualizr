@@ -24,10 +24,19 @@ set (GARAGE_PUSH_SRCS
   garage_push.cc
 )
 
+set (SOTA_TOOLS_EXTERNAL_LIBS
+  ${Boost_SYSTEM_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${LibArchive_LIBRARIES}
+  ${CURL_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
+  ${GLIB2_LIBRARIES})
+
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-push ${GARAGE_PUSH_SRCS})
 
-    target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+    target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
 
     if(BUILD_WITH_CODE_COVERAGE)
@@ -45,7 +54,7 @@ set (GARAGE_CHECK_SRCS
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-check ${GARAGE_CHECK_SRCS})
 
-    target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+    target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
     if(BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(garage-check gcov)
@@ -62,7 +71,7 @@ set (GARAGE_DEPLOY_SRCS
 
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
-    target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
+    target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
     if(BUILD_WITH_CODE_COVERAGE)
         target_link_libraries(garage-deploy gcov)
