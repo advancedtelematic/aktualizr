@@ -36,11 +36,11 @@ RUN apt-get update && apt-get -y install \
   libengine-pkcs11-openssl \
   libexpat1-dev \
   libffi-dev \
+  libfuse-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
   liblzma-dev \
-  libostree-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
@@ -48,7 +48,6 @@ RUN apt-get update && apt-get -y install \
   libtool \
   make \
   opensc \
-  ostree \
   pkg-config \
   psmisc \
   python3-dev \
@@ -68,6 +67,16 @@ RUN apt-get update && apt-get -y install \
   libp11-dev \
   softhsm2 \
   valgrind
+
+RUN mkdir ostree
+WORKDIR ostree
+RUN git init && git remote add origin https://github.com/ostreedev/ostree
+RUN git fetch origin v2018.1 && git checkout FETCH_HEAD
+RUN NOCONFIGURE=1 ./autogen.sh
+RUN ./configure CFLAGS='-Wno-error=missing-prototypes' --with-libarchive --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --disable-man --with-builtin-grub2-mkconfig --with-curl --without-soup --prefix=/usr
+RUN make VERBOSE=1 -j4
+RUN make install
+
 RUN useradd testuser
 
 WORKDIR aktualizr

@@ -33,10 +33,12 @@ RUN apt-get update && apt-get -y install \
   libdpkg-dev \
   libengine-pkcs11-openssl \
   libexpat1-dev \
+  libfuse-dev \
   libglib2.0-dev \
   libgpgme11-dev \
   libgtest-dev \
   liblzma-dev \
+  libp11-dev \
   libsodium-dev \
   libsqlite3-dev \
   libssl-dev \
