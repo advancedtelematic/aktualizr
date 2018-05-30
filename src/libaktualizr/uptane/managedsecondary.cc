@@ -25,14 +25,26 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
 }
 
-bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
+void ManagedSecondary::rawToMeta() {
+  // raw meta is trusted
+  current_meta.director_root = Uptane::Root("director", Utils::parseJSON(current_raw_meta.director_root));
+  current_meta.director_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.director_targets));
+  current_meta.image_root = Uptane::Root("repo", Utils::parseJSON(current_raw_meta.image_root));
+  current_meta.image_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.image_targets));
+  current_meta.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(current_raw_meta.image_timestamp));
+  current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
+}
+
+bool ManagedSecondary::putMetadata(const RawMetaPack &meta_pack) {
   // No verification is currently performed, we can add verification in future for testing purposes
   detected_attack = "";
-  current_meta = meta_pack;
+
+  current_raw_meta = meta_pack;
+  rawToMeta();  // current_raw_meta -> current_meta
   if (!current_meta.isConsistent()) {
     return false;
   }
-  storeMetadata(current_meta);
+  storeMetadata(current_raw_meta);
 
   expected_target_name = "";
   expected_target_hashes.clear();
@@ -41,7 +53,7 @@ bool ManagedSecondary::putMetadata(const MetaPack &meta_pack) {
   bool target_found = false;
 
   std::vector<Uptane::Target>::const_iterator it;
-  for (it = meta_pack.director_targets.targets.begin(); it != meta_pack.director_targets.targets.end(); ++it) {
+  for (it = current_meta.director_targets.targets.begin(); it != current_meta.director_targets.targets.end(); ++it) {
     // TODO: what about hardware ID? Also missing in Uptane::Target
     if (it->ecu_identifier() == getSerial()) {
       if (target_found) {
@@ -69,22 +81,24 @@ int ManagedSecondary::getRootVersion(const bool director) {
   return current_meta.image_root.version();
 }
 
-bool ManagedSecondary::putRoot(Uptane::Root root, const bool director) {
+bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
+  std::string &prev_raw_root = (director) ? current_raw_meta.director_root : current_raw_meta.image_root;
+  Uptane::Root new_root = Uptane::Root((director) ? "director" : "repo", Utils::parseJSON(root));
 
   // No verification is currently performed, we can add verification in future for testing purposes
-  if (root.version() == prev_root.version() + 1) {
-    prev_root = root;
+  if (new_root.version() == prev_root.version() + 1) {
+    prev_root = new_root;
+    prev_raw_root = root;
   } else {
     detected_attack = "Tried to update root version " + std::to_string(prev_root.version()) + " with version " +
-                      std::to_string(root.version());
+                      std::to_string(new_root.version());
   }
 
   if (!current_meta.isConsistent()) {
     return false;
   }
-
-  storeMetadata(current_meta);
+  storeMetadata(current_raw_meta);
   return true;
 }
 

@@ -68,11 +68,11 @@ TEST(Uptane, RandomSerial) {
   HttpFake http1(temp_dir1.Path());
   HttpFake http2(temp_dir2.Path());
 
-  Uptane::Repository uptane_1(conf_1, storage_1, http1);
+  Uptane::Repository uptane_1(conf_1, storage_1);
   SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http1);
   EXPECT_TRUE(uptane_client1.initialize());
 
-  Uptane::Repository uptane_2(conf_2, storage_2, http1);
+  Uptane::Repository uptane_2(conf_2, storage_2);
   SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http2);
   EXPECT_TRUE(uptane_client2.initialize());
 
@@ -125,7 +125,7 @@ TEST(Uptane, ReloadSerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
@@ -145,7 +145,7 @@ TEST(Uptane, ReloadSerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
@@ -189,7 +189,7 @@ TEST(Uptane, LegacySerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
@@ -208,7 +208,7 @@ TEST(Uptane, LegacySerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage, http);
+    Uptane::Repository uptane(conf, storage);
     SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));

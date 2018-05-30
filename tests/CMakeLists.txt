@@ -196,7 +196,6 @@ add_test(NAME test_build_release
 
 add_dependencies(qa check)
 
-
 list(REMOVE_DUPLICATES TEST_SOURCES)
 # message("${TEST_SOURCES}")
 aktualizr_source_file_checks(${TEST_SOURCES})

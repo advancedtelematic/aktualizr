@@ -12,7 +12,7 @@ class Exception : public std::logic_error {
   Exception(std::string reponame, const std::string& what_arg)
       : std::logic_error(what_arg.c_str()), reponame_(std::move(reponame)) {}
   ~Exception() noexcept override = default;
-  virtual std::string getName() { return reponame_; };
+  virtual std::string getName() const { return reponame_; };
 
  protected:
   std::string reponame_;

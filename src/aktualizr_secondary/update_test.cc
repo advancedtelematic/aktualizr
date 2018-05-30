@@ -21,9 +21,9 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
   virtual Uptane::HardwareIdentifier getHwId() { return secondary.getHwIdResp(); }
   virtual PublicKey getPublicKey() { return secondary.getPublicKeyResp(); }
   virtual Json::Value getManifest() { return secondary.getManifestResp(); }
-  virtual bool putMetadata(const Uptane::MetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
+  virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
   virtual int32_t getRootVersion(bool director) { return secondary.getRootVersionResp(director); }
-  virtual bool putRoot(Uptane::Root root, bool director) { return secondary.putRootResp(root, director); }
+  virtual bool putRoot(const std::string& root, bool director) { return secondary.putRootResp(root, director); }
   virtual bool sendFirmware(const std::string& data) { return secondary.sendFirmwareResp(data); }
 
  private:
@@ -56,7 +56,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   fs_config.uptane_metadata_path = "metadata";
   FSStorage fs_storage(fs_config);
 
-  Uptane::MetaPack metadata;
+  Uptane::RawMetaPack metadata;
   EXPECT_TRUE(fs_storage.loadMetadata(&metadata));
 
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");

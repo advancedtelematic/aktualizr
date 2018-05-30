@@ -16,3 +16,6 @@ install(FILES secondary/virtualsec.json
         RENAME demo_secondary.json
         PERMISSIONS OWNER_READ OWNER_WRITE
         COMPONENT aktualizr)
+
+install(DIRECTORY DESTINATION /etc/sota/conf.d COMPONENT aktualizr)
+install(DIRECTORY DESTINATION lib/sota/conf.d COMPONENT aktualizr)

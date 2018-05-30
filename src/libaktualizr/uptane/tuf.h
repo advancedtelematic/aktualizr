@@ -51,6 +51,7 @@ class Version {
   Version() : version_(ANY_VERSION) {}
   explicit Version(int v) : version_(v) {}
   std::string RoleFileName(Role role) const;
+  int version() { return version_; }
 
  private:
   static const int ANY_VERSION = -1;
@@ -326,6 +327,16 @@ struct MetaPack {
   Snapshot image_snapshot;
   bool isConsistent() const;
 };
+
+struct RawMetaPack {
+  std::string director_root;
+  std::string director_targets;
+  std::string image_root;
+  std::string image_targets;
+  std::string image_timestamp;
+  std::string image_snapshot;
+};
+
 }  // namespace Uptane
 
 namespace std {

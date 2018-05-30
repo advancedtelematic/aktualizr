@@ -27,9 +27,9 @@ class ManagedSecondary : public SecondaryInterface {
     return public_key_.KeyId();
   }
   PublicKey getPublicKey() override { return public_key_; }
-  bool putMetadata(const MetaPack& meta_pack) override;
+  bool putMetadata(const RawMetaPack& meta_pack) override;
   int getRootVersion(bool director) override;
-  bool putRoot(Uptane::Root root, bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;
@@ -46,15 +46,17 @@ class ManagedSecondary : public SecondaryInterface {
   int64_t expected_target_length{};
 
   MetaPack current_meta;
+  RawMetaPack current_raw_meta;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) = 0;
 
   void storeKeys(const std::string& pub_key, const std::string& priv_key);
+  void rawToMeta();
 
   // TODO: implement
-  void storeMetadata(const MetaPack& meta_pack) { (void)meta_pack; }
-  bool loadMetadata(MetaPack* meta_pack);
+  void storeMetadata(const RawMetaPack& meta_pack) { (void)meta_pack; }
+  bool loadMetadata(RawMetaPack* meta_pack);
 };
 }  // namespace Uptane
 

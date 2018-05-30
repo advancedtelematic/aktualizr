@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
     std::cout << "Storage backend: " << ((storage->type() == kFileSystem) ? "Filesystem" : "Sqlite") << std::endl;
 
-    Uptane::MetaPack pack;
+    Uptane::RawMetaPack pack;
 
     bool has_metadata = storage->loadMetadata(&pack);
 
@@ -89,22 +89,22 @@ int main(int argc, char **argv) {
     if (has_metadata) {
       if (vm.count("images-root") != 0u) {
         std::cout << "image root.json content:" << std::endl;
-        std::cout << pack.image_root.toJson();
+        std::cout << pack.image_root;
       }
 
       if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
-        std::cout << pack.image_targets.toJson();
+        std::cout << pack.image_targets;
       }
 
       if (vm.count("director-root") != 0u) {
         std::cout << "director root.json content:" << std::endl;
-        std::cout << pack.director_root.toJson();
+        std::cout << pack.director_root;
       }
 
       if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
-        std::cout << pack.director_targets.toJson();
+        std::cout << pack.director_targets;
       }
     }
 

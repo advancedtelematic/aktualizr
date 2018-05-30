@@ -11,6 +11,7 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "storage/fsstorage.h"
+#include "uptane/fetcher.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/utils.h"
 
@@ -41,10 +42,25 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   try {
     auto storage = INvStorage::newStorage(config.storage);
     HttpClient http;
-    Uptane::Repository repo(config, storage, http);
-    repo.updateRoot(Uptane::Version(1));
-    repo.getMeta();
-    repo.getTargets();
+    Uptane::Repository repo(config, storage);
+    Uptane::Fetcher fetcher(config, storage, http);
+
+    if (!fetcher.fetchMeta()) return false;
+    if (!fetcher.fetchRoot(true, Uptane::Version(1))) return false;
+    if (!fetcher.fetchRoot(false, Uptane::Version(1))) return false;
+    if (!repo.feedCheckRoot(true, Uptane::Version(1))) {
+      throw repo.getLastException();
+    }
+    if (!repo.feedCheckRoot(false, Uptane::Version(1))) {
+      throw repo.getLastException();
+    }
+    if (!repo.feedCheckMeta()) {
+      throw repo.getLastException();
+    }
+    auto targets = repo.getTargets();
+    for (auto it = targets.second.begin(); it != targets.second.end(); ++it) {
+      fetcher.fetchTarget(*it);
+    }
 
   } catch (Uptane::Exception e) {
     return match_error(vector, &e);

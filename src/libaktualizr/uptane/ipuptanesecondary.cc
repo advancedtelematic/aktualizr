@@ -28,19 +28,19 @@ PublicKey IpUptaneSecondary::getPublicKey() {
   return PublicKey(pkey_resp.key, pkey_resp.type);
 }
 
-bool IpUptaneSecondary::putMetadata(const MetaPack& meta_pack) {
+bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   std::shared_ptr<SecondaryPacket> resp;
   std::unique_ptr<SecondaryPutMetaReq> req{new SecondaryPutMetaReq()};
 
   req->image_meta_present = true;
   req->director_targets_format = kSerializationJson;
-  req->director_targets = Utils::jsonToStr(meta_pack.director_targets.original());
+  req->director_targets = meta_pack.director_targets;
   req->image_snapshot_format = kSerializationJson;
-  req->image_snapshot = Utils::jsonToStr(meta_pack.image_snapshot.original());
+  req->image_snapshot = meta_pack.image_snapshot;
   req->image_timestamp_format = kSerializationJson;
-  req->image_timestamp = Utils::jsonToStr(meta_pack.image_timestamp.original());
+  req->image_timestamp = meta_pack.image_timestamp;
   req->image_targets_format = kSerializationJson;
-  req->image_targets = Utils::jsonToStr(meta_pack.image_targets.original());
+  req->image_targets = meta_pack.image_targets;
 
   return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesPutMetaRespTag) &&
          dynamic_cast<SecondaryPutMetaResp&>(*resp->msg).result;
@@ -59,12 +59,12 @@ int32_t IpUptaneSecondary::getRootVersion(const bool director) {
   return dynamic_cast<SecondaryRootVersionResp&>(*resp->msg).version;
 }
 
-bool IpUptaneSecondary::putRoot(Uptane::Root root, const bool director) {
+bool IpUptaneSecondary::putRoot(const std::string& root, const bool director) {
   std::shared_ptr<SecondaryPacket> resp;
 
   std::unique_ptr<SecondaryPutRootReq> req{new SecondaryPutRootReq()};
   req->root_format = kSerializationJson;
-  req->root = Utils::jsonToStr(root.toJson());
+  req->root = root;
   req->director = director;
 
   return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesPutRootRespTag) &&

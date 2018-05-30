@@ -198,14 +198,14 @@ InitRetCode Initializer::initEcuRegister() {
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
-Initializer::Initializer(const ProvisionConfig& config, std::shared_ptr<INvStorage> storage, HttpInterface& http_client,
-                         KeyManager& keys,
-                         const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info)
-    : config_(config),
-      storage_(std::move(storage)),
-      http_client_(http_client),
-      keys_(keys),
-      secondary_info_(secondary_info) {
+Initializer::Initializer(const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
+                         HttpInterface& http_client_in, KeyManager& keys_in,
+                         const std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
+    : config_(config_in),
+      storage_(std::move(storage_in)),
+      http_client_(http_client_in),
+      keys_(keys_in),
+      secondary_info_(secondary_info_in) {
   success_ = false;
   for (int i = 0; i < MaxInitializationAttempts; i++) {
     if (!initDeviceId()) {

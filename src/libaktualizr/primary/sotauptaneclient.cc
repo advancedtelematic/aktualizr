@@ -24,6 +24,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
       uptane_repo(repo),
       storage(std::move(storage_in)),
       http(http_client),
+      uptane_fetcher(config, storage, http),
       last_targets_version(-1) {
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
 
@@ -192,16 +193,28 @@ void SotaUptaneClient::getUpdateRequests() {
   }
   // Uptane step 2 (download time) is not implemented yet.
   // Uptane step 3 (download metadata)
-  if (!uptane_repo.getMeta()) {
+  if (!uptane_fetcher.fetchMeta()) {
     LOG_ERROR << "could not retrieve metadata";
+    *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+    return;
+  }
+  // Uptane step 3 continued (check metadata)
+  if (!uptane_repo.feedCheckMeta()) {
+    LOG_ERROR << "Metadata check failed";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
     return;
   }
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
-  if ((updates.second.size() != 0u) && updates.first > last_targets_version) {
+  if (!updates.second.empty() && updates.first > last_targets_version) {
     LOG_INFO << "got new updates";
+    for (auto it = updates.second.begin(); it != updates.second.end(); ++it) {
+      // TODO: support downloading encrypted targets from director
+      // TODO: check if the file is already there before downloading
+      // TODO: info on how to download the target should probably be in image's targets, not director's
+      uptane_fetcher.fetchTarget(*it);
+    }
     *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
     last_targets_version = updates.first;  // TODO: What if we fail install targets?
   } else {
@@ -296,8 +309,9 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 bool SotaUptaneClient::putManifest() {
   auto manifest = AssembleManifest();
   if (!hasPendingUpdates(manifest)) {
-    uptane_repo.putManifest(manifest);
-    return true;
+    auto signed_manifest = uptane_repo.signManifest(manifest);
+    HttpResponse response = http.put(config.uptane.director_server + "/manifest", signed_manifest);
+    return response.isOk();
   }
   return false;
 }
@@ -318,7 +332,6 @@ void SotaUptaneClient::initSecondaries() {
       continue;
     }
     secondaries[sec_serial] = sec;
-    uptane_repo.addSecondary(sec);
   }
 }
 
@@ -376,7 +389,11 @@ void SotaUptaneClient::verifySecondaries() {
 void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
   std::vector<Uptane::Target>::const_iterator it;
 
-  Uptane::MetaPack meta = uptane_repo.currentMeta();
+  Uptane::RawMetaPack meta;
+  if (!storage->loadMetadata(&meta)) {
+    LOG_ERROR << "No metadata to send to secondaries";
+    return;
+  }
 
   // target images should already have been downloaded to metadata_path/targets/
   for (it = targets.begin(); it != targets.end(); ++it) {

@@ -25,9 +25,9 @@ class PartialVerificationSecondary : public SecondaryInterface {
   }
   PublicKey getPublicKey() override { return public_key_; }
 
-  bool putMetadata(const MetaPack& meta) override;
+  bool putMetadata(const RawMetaPack& meta) override;
   int getRootVersion(bool director) override;
-  bool putRoot(Uptane::Root root, bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
 
   bool sendFirmware(const std::string& data) override;
   Json::Value getManifest() override;

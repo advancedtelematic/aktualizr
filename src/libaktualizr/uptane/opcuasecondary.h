@@ -21,12 +21,12 @@ class OpcuaSecondary : public SecondaryInterface {
   PublicKey getPublicKey() override;
 
   Json::Value getManifest() override;
-  bool putMetadata(const MetaPack& meta_pack) override;
+  bool putMetadata(const RawMetaPack& meta_pack) override;
 
   bool sendFirmware(const std::string& data) override;
 
   int getRootVersion(bool director) override;
-  bool putRoot(Uptane::Root root, bool director) override;
+  bool putRoot(const std::string& root, bool director) override;
 };
 
 }  // namespace Uptane

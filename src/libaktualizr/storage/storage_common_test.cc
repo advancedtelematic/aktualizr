@@ -84,7 +84,7 @@ TEST(storage, load_store_tls) {
 TEST(storage, load_store_metadata) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
-  Uptane::MetaPack stored_meta;
+  Uptane::RawMetaPack stored_meta;
 
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -106,8 +106,8 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_root;
   meta_root["signed"] = root_json;
-  stored_meta.director_root = Uptane::Root("director", meta_root);
-  stored_meta.image_root = Uptane::Root("repo", meta_root);
+  stored_meta.director_root = Utils::jsonToStr(meta_root);
+  stored_meta.image_root = Utils::jsonToStr(meta_root);
 
   Json::Value targets_json;
   targets_json["_type"] = "Targets";
@@ -123,13 +123,13 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_targets;
   meta_targets["signed"] = targets_json;
-  stored_meta.director_targets = Uptane::Targets(meta_targets);
-  stored_meta.image_targets = Uptane::Targets(meta_targets);
+  stored_meta.director_targets = Utils::jsonToStr(meta_targets);
+  stored_meta.image_targets = Utils::jsonToStr(meta_targets);
 
   Json::Value timestamp_json;
   timestamp_json["signed"]["_type"] = "Timestamp";
   timestamp_json["signed"]["expires"] = "2038-01-19T03:14:06Z";
-  stored_meta.image_timestamp = Uptane::TimestampMeta(timestamp_json);
+  stored_meta.image_timestamp = Utils::jsonToStr(timestamp_json);
 
   Json::Value snapshot_json;
   snapshot_json["_type"] = "Snapshot";
@@ -141,9 +141,9 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_snapshot;
   meta_snapshot["signed"] = snapshot_json;
-  stored_meta.image_snapshot = Uptane::Snapshot(meta_snapshot);
+  stored_meta.image_snapshot = Utils::jsonToStr(meta_snapshot);
 
-  Uptane::MetaPack loaded_meta;
+  Uptane::RawMetaPack loaded_meta;
 
   storage->storeMetadata(stored_meta);
   bool res = storage->loadMetadata(&loaded_meta);
@@ -155,6 +155,59 @@ TEST(storage, load_store_metadata) {
   EXPECT_EQ(stored_meta.image_targets, loaded_meta.image_targets);
   EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
   EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
+
+  storage->storeUncheckedMetadata(stored_meta);
+  res = storage->loadUncheckedMetadata(&loaded_meta);
+
+  EXPECT_TRUE(res);
+  EXPECT_EQ(stored_meta.director_root, loaded_meta.director_root);
+  EXPECT_EQ(stored_meta.director_targets, loaded_meta.director_targets);
+  EXPECT_EQ(stored_meta.image_root, loaded_meta.image_root);
+  EXPECT_EQ(stored_meta.image_targets, loaded_meta.image_targets);
+  EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
+  EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
+
+  boost::filesystem::remove_all(storage_test_dir);
+}
+
+TEST(storage, load_store_root) {
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
+  std::unique_ptr<INvStorage> storage = Storage();
+
+  Json::Value root_json;
+  root_json["_type"] = "Root";
+  root_json["consistent_snapshot"] = false;
+  root_json["expires"] = "2038-01-19T03:14:06Z";
+  root_json["keys"]["firstid"]["keytype"] = "ed25519";
+  root_json["keys"]["firstid"]["keyval"]["public"] = "firstval";
+  root_json["keys"]["secondid"]["keytype"] = "ed25519";
+  root_json["keys"]["secondid"]["keyval"]["public"] = "secondval";
+
+  root_json["roles"]["root"]["threshold"] = 1;
+  root_json["roles"]["root"]["keyids"][0] = "firstid";
+  root_json["roles"]["snapshot"]["threshold"] = 1;
+  root_json["roles"]["snapshot"]["keyids"][0] = "firstid";
+  root_json["roles"]["targets"]["threshold"] = 1;
+  root_json["roles"]["targets"]["keyids"][0] = "firstid";
+  root_json["roles"]["timestamp"]["threshold"] = 1;
+  root_json["roles"]["timestamp"]["keyids"][0] = "firstid";
+
+  Json::Value meta_root;
+  meta_root["signed"] = root_json;
+
+  std::string loaded_root;
+
+  storage->storeRoot(true, Utils::jsonToStr(meta_root), Uptane::Version(2));
+  bool res = storage->loadRoot(true, &loaded_root, Uptane::Version(2));
+
+  EXPECT_TRUE(res);
+  EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
+
+  storage->storeUncheckedRoot(false, Utils::jsonToStr(meta_root), Uptane::Version(15));
+  res = storage->loadUncheckedRoot(false, &loaded_root, Uptane::Version(15));
+
+  EXPECT_TRUE(res);
+  EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
 
   boost::filesystem::remove_all(storage_test_dir);
 }
