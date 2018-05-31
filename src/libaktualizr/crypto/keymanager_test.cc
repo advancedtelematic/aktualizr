@@ -9,7 +9,6 @@
 #include "utilities/utils.h"
 
 #ifdef BUILD_P11
-#include "crypto/p11engine.h"
 #ifndef TEST_PKCS11_MODULE_PATH
 #define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
 #endif
