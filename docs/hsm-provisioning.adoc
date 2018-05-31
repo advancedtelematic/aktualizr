@@ -43,7 +43,19 @@ ifdef::env-github[]
 You can examine the `new_server` function in link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L127[OTA Community Edition's `start.sh`] for one way of generating the cert.
 endif::[]
 ifndef::env-github[]
-With openssl on the command line:
+First, create a directory structure for the keys, and grab sample configurations for the certificates from the OTA Community Edition project:
++
+[source,bash]
+----
+export SERVER_NAME=myservername
+export SERVER_DIR="./${SERVER_NAME}" DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
+mkdir -p "$DEVICES_DIR" certs
+for file in client.cnf device_ca.cnf server.ext client.ext server.cnf server_ca.cnf; do
+  curl -o certs/$file https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/certs/$file
+done
+----
++
+Then, generate the key and cert using openssl on the command line:
 +
 [source,bash]
 ----
@@ -59,7 +71,16 @@ ifdef::env-github[]
 Examine the link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L89[`new_client` function in start.sh] for one way to do that.
 endif::[]
 ifndef::env-github[]
-With openssl on the command line:
+Generate a UUID for the device, and make a directory for it:
++
+[source,bash]
+----
+export DEVICE_UUID=$(uuidgen | tr "[:upper:]" "[:lower:]")
+export device_id=${DEVICE_ID:-${DEVICE_UUID}} device_dir="${DEVICES_DIR}/${DEVICE_UUID}"
+mkdir -p "${device_dir}"
+----
++
+Then, generate the device certificate and key using openssl:
 +
 [source,bash]
 ----
