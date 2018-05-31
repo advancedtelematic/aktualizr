@@ -6,7 +6,8 @@ endif(ASN1C MATCHES ".*-NOTFOUND")
 message(STATUS "Found asn1c: ${ASN1C}")
 
 # -fnative-types is required for compat with asn1c <= 0.9.24
-set(ASN1C_FLAGS ${ASN1C_FLAGS} -fline-refs -fskeletons-copy -fnative-types -pdu=all)
+# -fline-refs isn't available on Ubuntu 16.04
+set(ASN1C_FLAGS ${ASN1C_FLAGS} -fskeletons-copy -fnative-types -pdu=all)
 
 define_property(GLOBAL PROPERTY ASN1_FILES_GLOBAL
                 BRIEF_DOCS "List of all input files for asn1c"
