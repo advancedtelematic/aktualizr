@@ -87,16 +87,20 @@ class Asn1Message {
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
   explicit Asn1Message(AKIpUptaneMes_t** msg) {
-    memmove(&msg_, *msg, sizeof(AKIpUptaneMes_t));
-    free(*msg);  // Be careful. This needs to be the same free used in der_decode
-    *msg = nullptr;
+    if (msg != nullptr && *msg != nullptr) {
+      memmove(&msg_, *msg, sizeof(AKIpUptaneMes_t));
+      free(*msg);  // Be careful. This needs to be the same free() used in der_decode
+      *msg = nullptr;
+    } else {
+      memset(&msg_, 0, sizeof(AKIpUptaneMes_t));
+    }
   }
 };
 
 /**
  * Adaptor to write output of der_encode to a string
  */
-int WriteToString(const void* buffer, size_t size, void* priv);
+int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv);
 
 /**
  * Convert OCTET_STRING_t into std::string

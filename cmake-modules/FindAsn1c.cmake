@@ -43,7 +43,6 @@ function(compile_asn1_lib)
 
     list(REMOVE_ITEM ASN1_GENERATED ${ASN1_GEN_DIR}/converter-example.c ${ASN1_GEN_DIR}/converter-sample.c)
 
-    # hardcoded list of common c files
     add_library(asn1_lib OBJECT ${ASN1_GENERATED})
 
     target_include_directories(asn1_lib

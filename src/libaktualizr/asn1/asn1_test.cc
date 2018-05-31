@@ -72,7 +72,7 @@ TEST(asn1_config, tls_config_asn1cc_to_man) {
   asn_enc_rval_t enc;
   std::string der;
 
-  enc = der_encode(&asn_DEF_AKTlsConfig, &cc_tls_conf, WriteToString, &der);
+  enc = der_encode(&asn_DEF_AKTlsConfig, &cc_tls_conf, Asn1StringAppendCallback, &der);
   EXPECT_NE(enc.encoded, -1);
 
   TlsConfig conf;
@@ -123,7 +123,7 @@ TEST(asn1_uptane_ip, public_key_req_asn1cc_to_man) {
   std::string der;
 
   cc_mes.present = AKIpUptaneMes_PR_publicKeyReq;
-  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, WriteToString, &der);
+  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, Asn1StringAppendCallback, &der);
   EXPECT_NE(enc.encoded, -1);
 
   std::unique_ptr<SecondaryMessage> mes;
@@ -217,13 +217,6 @@ zQIDAQAB\
   EXPECT_EQ(in, out);
 }
 
-int append_to_string(const void* buffer, size_t size, void* application_specific_key) {
-  std::string* v = static_cast<std::string*>(application_specific_key);
-
-  v->append(static_cast<const char*>(buffer), size);
-  return 0;  // Success
-}
-
 TEST(asn1_common, Asn1MessageSimple) {
   // Fill in a message
   Asn1Message::Ptr original(Asn1Message::Empty());
@@ -236,7 +229,7 @@ TEST(asn1_common, Asn1MessageSimple) {
 
   // BER encode
   std::string buffer;
-  der_encode(&asn_DEF_AKIpUptaneMes, &original->msg_, append_to_string, &buffer);
+  der_encode(&asn_DEF_AKIpUptaneMes, &original->msg_, Asn1StringAppendCallback, &buffer);
 
   EXPECT_GT(buffer.size(), 0);
 
@@ -258,6 +251,12 @@ TEST(asn1_common, Asn1MessageSimple) {
   Asn1Message::SubPtr<AKDiscoveryRespMes_t> resp = msg->discoveryResp();
   msg.reset();  // Asn1Message::SubPtr<T> keeps the root object alive
   EXPECT_EQ(ToString(resp->ecuSerial), "serial1234");
+}
+
+TEST(asn1_common, Asn1MessageFromRawNull) {
+  Asn1Message::FromRaw(nullptr);
+  AKIpUptaneMes_t* m = nullptr;
+  Asn1Message::FromRaw(&m);
 }
 
 #ifndef __NO_MAIN__

@@ -60,6 +60,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     Uptane::SecondaryConfig conf;
     AKIpUptaneMes_t *m = nullptr;
     asn_dec_rval_t res = ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, recieved);
+    // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
     if (res.code != RC_OK) {
@@ -75,11 +76,11 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     auto resp = msg->discoveryResp();
     conf.ecu_serial = ToString(resp->ecuSerial);
     conf.ecu_hardware_id = ToString(resp->hwId);
+    conf.ip_addr = sec_address;
     Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
 
     LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
     conf.secondary_type = Uptane::SecondaryType::kIpUptane;
-    conf.ip_addr = sec_address;
 
     secondaries.push_back(conf);
 
@@ -114,7 +115,7 @@ bool IpSecondaryDiscovery::sendRequest() {
   req_msg->port = config_.ipuptane_port;  // Only needed while we have bi-directional connections
 
   std::string buffer;
-  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &m->msg_, WriteToString, &buffer);
+  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &m->msg_, Asn1StringAppendCallback, &buffer);
   if (enc.encoded == -1) {
     LOG_ERROR << "ASN.1 Serialization failed";
     return false;
