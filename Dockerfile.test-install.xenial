@@ -1,5 +1,5 @@
 FROM ubuntu:xenial
-LABEL Description="Aktualizr deb package testing dockerfile"
+LABEL Description="Deb package testing dockerfile"
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -8,12 +8,13 @@ RUN apt-get update && apt-get install -y \
   libarchive13 \
   libc6 \
   libcurl3 \
-  libgcc1 \
+  libglib2.0-0 \
   libsodium18 \
   libsqlite3-0 \
   libssl1.0.0 \
   libstdc++6 \
   lshw \
+  openjdk-8-jre \
   python3
 
-ENTRYPOINT /persistent/test_aktualizr_deb_and_update.sh
+ADD . /
