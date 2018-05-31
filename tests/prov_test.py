@@ -25,47 +25,52 @@ def main():
     return retval
 
 
+CONFIG_TEMPLATE = '''
+        [pacman]
+        type = "none"
+
+        [provision]
+        provision_path = "{creds}"
+
+        [storage]
+        path = "{tmp_dir}"
+        type = "sqlite"
+        sqldb_path = "{db}"
+'''
+
+
 def provision(tmp_dir, build_dir, src_dir, creds_in):
     creds = tmp_dir / creds_in.name
     shutil.copyfile(str(creds_in), str(creds))
     db = tmp_dir / 'sql.db'
     conf = tmp_dir / 'config.toml'
     with conf.open('w') as f:
-        f.write('[pacman]\n')
-        f.write('type = "none"\n')
-        f.write('\n')
-        f.write('[provision]\n')
-        f.write('provision_path = "' + str(creds) + '"\n')
-        f.write('\n')
-        f.write('[storage]\n')
-        f.write('path = "' + str(tmp_dir) + '"\n')
-        f.write('type = "sqlite"\n')
-        f.write('sqldb_path = "' + str(db) + '"\n')
+        f.write(CONFIG_TEMPLATE.format(creds=creds, tmp_dir=tmp_dir, db=db))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
 
-    s = subprocess.Popen([str(akt), '--config', str(conf)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    # Verify that device HAS provisioned.
-    ran_ok = False
-    for delay in [5, 5, 5, 5, 10]:
-        sleep(delay)
-        stdout, stderr, retcode = run_aktualizr_info([str(akt_info), '--config', str(conf)])
-        if retcode == 0 and stderr == b'' and stdout.decode().find('Fetched metadata: yes') >= 0:
-            ran_ok = True
-            break
-    machine = platform.node()
-    if (not b'Device ID: ' in stdout or
-            not b'Primary ecu hardware ID: ' + machine.encode() in stdout or
-            not b'Fetched metadata: yes' in stdout):
-        print('Provisioning failed: ' + stderr.decode() + stdout.decode())
-        return 1
-    p = re.compile(r'Device ID: ([a-z0-9-]*)\n')
-    m = p.search(stdout.decode())
-    if not m or m.lastindex <= 0:
-        print('Device ID could not be read: ' + stderr.decode() + stdout.decode())
-        return 1
-    print('Device successfully provisioned with ID: ' + m.group(1))
+    with subprocess.Popen([str(akt), '--config', str(conf)]) as proc:
+        try:
+            # Verify that device HAS provisioned.
+            for delay in [5, 5, 5, 5, 10]:
+                sleep(delay)
+                stdout, stderr, retcode = run_aktualizr_info([str(akt_info), '--config', str(conf)])
+                if retcode == 0 and stderr == b'' and 'Fetched metadata: yes' in stdout.decode():
+                    break
+            machine = platform.node()
+            if (b'Device ID: ' not in stdout or
+                    b'Primary ecu hardware ID: ' + machine.encode() not in stdout or
+                    b'Fetched metadata: yes' not in stdout):
+                print('Provisioning failed: ' + stderr.decode() + stdout.decode())
+                return 1
+            p = re.compile(r'Device ID: ([a-z0-9-]*)\n')
+            m = p.search(stdout.decode())
+            if not m or m.lastindex <= 0:
+                print('Device ID could not be read: ' + stderr.decode() + stdout.decode())
+                return 1
+            print('Device successfully provisioned with ID: ' + m.group(1))
+        finally:
+            proc.kill()
     return 0
 
 
