@@ -28,7 +28,7 @@ function(compile_asn1_lib)
     endforeach()
     execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${S}
         WORKING_DIRECTORY ${ASN1_GEN_DIR}
-        OUTPUT_QUIET ERROR_QUIET
+        OUTPUT_QUIET
         )
 
     file(GLOB ASN1_GENERATED ${ASN1_GEN_DIR}/*.c)
