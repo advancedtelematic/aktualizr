@@ -241,10 +241,11 @@ bool OstreeManager::imageUpdated() {
   GPtrArray *deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
 
   OstreeDeployment *pending_deployment;
-  ostree_sysroot_query_deployments_for(sysroot_smart.get(), NULL, &pending_deployment, NULL);
+  ostree_sysroot_query_deployments_for(sysroot_smart.get(), nullptr, &pending_deployment, nullptr);
 
   bool pending_found = false;
   for (guint i = 0; i < deployments->len; i++) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     if (deployments->pdata[i] == pending_deployment) {
       pending_found = true;
       break;

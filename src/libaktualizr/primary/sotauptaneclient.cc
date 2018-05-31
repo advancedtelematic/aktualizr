@@ -30,7 +30,9 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
-  if (pacman->imageUpdated()) bootloader.setBootOK();
+  if (pacman->imageUpdated()) {
+    bootloader.setBootOK();
+  }
 
   if (config.discovery.ipuptane) {
     IpSecondaryDiscovery ip_uptane_discovery{config.network};
