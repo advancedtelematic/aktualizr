@@ -2,5 +2,4 @@ ignore:
   - "third_party"
   - "tests"
   - "*_test.cc"
-  - "generated"
   - "src/libaktualizr/third_party"

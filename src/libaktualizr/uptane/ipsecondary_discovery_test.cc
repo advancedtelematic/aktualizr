@@ -23,7 +23,7 @@ TEST(ipsecondary_discovery, test_discovery) {
   conf.ipdiscovery_wait_seconds = 12;
   IpSecondaryDiscovery discoverer(conf);
   std::vector<Uptane::SecondaryConfig> secondaries = discoverer.discover();
-  EXPECT_EQ(secondaries.size(), 2);
+  ASSERT_EQ(secondaries.size(), 2);
   EXPECT_EQ(secondaries[0].ecu_serial, "test_ecu");
   EXPECT_EQ(secondaries[0].ecu_hardware_id, "test_hardware_id");
   EXPECT_EQ(secondaries[1].ecu_serial, "test_ecu2");

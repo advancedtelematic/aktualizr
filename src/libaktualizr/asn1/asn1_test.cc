@@ -7,15 +7,10 @@
 #include <iostream>
 #include <string>
 
-#include <boost/program_options.hpp>
-
-#include "AKIpUptaneMes.h"
-#include "AKTlsConfig.h"
+#include "asn1/asn1_message.h"
 #include "config/config.h"
+#include "der_encoder.h"
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
-
-namespace bpo = boost::program_options;
-boost::filesystem::path build_dir;
 
 void printStringHex(const std::string& s) {
   for (char c : s) {
@@ -37,12 +32,6 @@ bool operator==(const AKTlsConfig& cc_config, const TlsConfig& config) {
 }
 
 bool operator==(const TlsConfig& config, const AKTlsConfig& cc_config) { return cc_config == config; }
-static int write_out(const void* buffer, size_t size, void* priv) {
-  std::string* out_str = (std::string*)priv;
-  out_str->append(std::string((const char*)buffer, size));
-
-  return 0;
-}
 
 TEST(asn1_config, tls_config) {
   TlsConfig conf;
@@ -83,7 +72,7 @@ TEST(asn1_config, tls_config_asn1cc_to_man) {
   asn_enc_rval_t enc;
   std::string der;
 
-  enc = der_encode(&asn_DEF_AKTlsConfig, &cc_tls_conf, write_out, &der);
+  enc = der_encode(&asn_DEF_AKTlsConfig, &cc_tls_conf, Asn1StringAppendCallback, &der);
   EXPECT_NE(enc.encoded, -1);
 
   TlsConfig conf;
@@ -131,11 +120,10 @@ TEST(asn1_uptane_ip, public_key_req_asn1cc_to_man) {
   AKIpUptaneMes_t cc_mes;
   memset(&cc_mes, 0, sizeof(cc_mes));
 
-  asn_enc_rval_t enc;
   std::string der;
 
   cc_mes.present = AKIpUptaneMes_PR_publicKeyReq;
-  enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, write_out, &der);
+  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, Asn1StringAppendCallback, &der);
   EXPECT_NE(enc.encoded, -1);
 
   std::unique_ptr<SecondaryMessage> mes;
@@ -229,15 +217,51 @@ zQIDAQAB\
   EXPECT_EQ(in, out);
 }
 
+TEST(asn1_common, Asn1MessageSimple) {
+  // Fill in a message
+  Asn1Message::Ptr original(Asn1Message::Empty());
+  original->present(AKIpUptaneMes_PR_discoveryResp);
+  Asn1Message::SubPtr<AKDiscoveryRespMes_t> req = original->discoveryResp();
+  {
+    std::string serial = "serial1234";
+    OCTET_STRING_fromBuf(&req->ecuSerial, serial.c_str(), serial.size());
+  }
+
+  // BER encode
+  std::string buffer;
+  der_encode(&asn_DEF_AKIpUptaneMes, &original->msg_, Asn1StringAppendCallback, &buffer);
+
+  EXPECT_GT(buffer.size(), 0);
+
+  // BER decode
+  asn_codec_ctx_t context;
+  memset(&context, 0, sizeof(context));
+
+  AKIpUptaneMes_t* m = nullptr;
+  asn_dec_rval_t res =
+      ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), buffer.c_str(), buffer.size());
+  Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
+
+  // Check decoding succeeded
+  EXPECT_EQ(res.code, RC_OK);
+  EXPECT_EQ(res.consumed, buffer.size());
+
+  // Check results are what we started with
+  EXPECT_EQ(msg->present(), AKIpUptaneMes_PR_discoveryResp);
+  Asn1Message::SubPtr<AKDiscoveryRespMes_t> resp = msg->discoveryResp();
+  msg.reset();  // Asn1Message::SubPtr<T> keeps the root object alive
+  EXPECT_EQ(ToString(resp->ecuSerial), "serial1234");
+}
+
+TEST(asn1_common, Asn1MessageFromRawNull) {
+  Asn1Message::FromRaw(nullptr);
+  AKIpUptaneMes_t* m = nullptr;
+  Asn1Message::FromRaw(&m);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
-
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to the build directory as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  build_dir = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

@@ -22,12 +22,14 @@ IpUptane DEFINITIONS ::= BEGIN
 	}
 
 	AKDiscoveryReqMes ::= SEQUENCE {
+		port INTEGER(0..65535),
 		...
 	}
 
 	AKDiscoveryRespMes ::= SEQUENCE {
-		hwId OCTET STRING,
-		ecuSerial OCTET STRING,
+		ecuSerial UTF8String,
+		hwId UTF8String,
+		port INTEGER(0..65535),
 		...
 	}
 

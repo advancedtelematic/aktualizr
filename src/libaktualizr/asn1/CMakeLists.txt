@@ -1,23 +1,21 @@
 set(SOURCES asn1-cer.cc
-            asn1-cerstream.cc)
+            asn1-cerstream.cc
+            asn1_message.cc)
 
 set(HEADERS asn1-cer.h
-            asn1-cerstream.h)
+            asn1-cerstream.h
+            asn1_message.h)
 
 add_library(asn1 OBJECT ${SOURCES})
 
-include(AddAktualizrTest)
 
-if (ASN1C)
-    # Reference asn1c libraries
-    add_asn1c_lib(${PROJECT_SOURCE_DIR}/tests/asn1-reference/common ${PROJECT_SOURCE_DIR}/tests/asn1-reference/config/cryptosource ${PROJECT_SOURCE_DIR}/tests/asn1-reference/config/tlsconfig)
-    add_asn1c_lib(${PROJECT_SOURCE_DIR}/tests/asn1-reference/uptane/ipuptane_message)
-    compile_asn1_lib()
-    list(APPEND TEST_LIBS asn1_lib)
+compile_asn1_lib(SOURCES
+    messages/common.asn1
+    messages/cryptosource.asn1
+    messages/ipuptane_message.asn1
+    messages/tlsconfig.asn1
+)
 
-    add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc ARGS ${PROJECT_SOURCE_DIR}/build5/tests PROJECT_WORKING_DIRECTORY)
-else ()
-    list(APPEND TEST_SOURCES asn1_test.cc)
-endif ()
+add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
