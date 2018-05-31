@@ -170,7 +170,7 @@ docker build -t advancedtelematic/aktualizr .
 While the default Dockerfile image is usually the best one to use, you can select another one with the `-f <Dockerfile>` flag, e.g.:
 
 ----
-docker build -t advancedtelematic/aktualizr -f Dockerfile.deb-stable .
+docker build -t advancedtelematic/aktualizr -f Dockerfile.noostree .
 ----
 
 Once your docker image is built, Aktualizr can be built and tested with:

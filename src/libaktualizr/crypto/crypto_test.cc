@@ -10,11 +10,11 @@
 #include <boost/filesystem.hpp>
 
 #include "crypto/crypto.h"
+#include "crypto/p11engine.h"
 #include "storage/fsstorage.h"
 #include "utilities/utils.h"
 
 #ifdef BUILD_P11
-#include "crypto/p11engine.h"
 #ifndef TEST_PKCS11_MODULE_PATH
 #define TEST_PKCS11_MODULE_PATH "/usr/local/softhsm/libsofthsm2.so"
 #endif
