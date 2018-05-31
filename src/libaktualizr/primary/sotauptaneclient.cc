@@ -400,8 +400,7 @@ void SotaUptaneClient::sendMetadataToEcus(std::vector<Uptane::Target> targets) {
     auto sec = secondaries.find(it->ecu_identifier());
     if (sec != secondaries.end()) {
       if (!sec->second->putMetadata(meta)) {
-        // connection error while putting metadata
-        continue;
+        LOG_ERROR << "Sending metadata to " << sec->second->getSerial() << " failed";
       }
     }
   }

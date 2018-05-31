@@ -1,55 +1,54 @@
 find_program(ASN1C NAMES asn1c)
 
 if(ASN1C MATCHES ".*-NOTFOUND")
-    message(WARNING "asn1c not found")
+    message(ERROR "asn1c not found")
 endif(ASN1C MATCHES ".*-NOTFOUND")
+message(STATUS "Found asn1c: ${ASN1C}")
 
-if(ASN1C)
-    message(STATUS "Found asn1c: ${ASN1C}")
+# -fnative-types is required for compat with asn1c <= 0.9.24
+set(ASN1C_FLAGS ${ASN1C_FLAGS} -fline-refs -fskeletons-copy -fnative-types -pdu=all)
 
-    # -fnative-types is required for compat with asn1c <= 0.9.24
-    set(ASN1C_FLAGS ${ASN1C_FLAGS} -fskeletons-copy -fnative-types -pdu=all)
+define_property(GLOBAL PROPERTY ASN1_FILES_GLOBAL
+                BRIEF_DOCS "List of all input files for asn1c"
+                FULL_DOCS "List of all input files for asn1c")
 
-    define_property(GLOBAL PROPERTY ASN1_FILES_GLOBAL
-                    BRIEF_DOCS "List of all input files for asn1c"
-                    FULL_DOCS "List of all input files for asn1c")
 
-    function(add_asn1c_lib)
-        set(ASN1_SRCS ${ARGN})
-        foreach(MOD ${ASN1_SRCS})
-	    set_property(GLOBAL APPEND PROPERTY ASN1_FILES_GLOBAL ${MOD}.asn1)
-        endforeach()
-    endfunction()
+function(compile_asn1_lib)
+    set(options)
+    set(oneValueArgs )
+    set(multiValueArgs SOURCES)
+    cmake_parse_arguments(AKTUALIZR_ASN1 "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    function(compile_asn1_lib)
-	    get_property(ASN1_FILES GLOBAL PROPERTY ASN1_FILES_GLOBAL)
-        # clean previously generated files
-        set(ASN1_GEN_DIR ${PROJECT_SOURCE_DIR}/generated/asn1/)
-        file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
+    # clean previously generated files
+    set(ASN1_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/asn1/)
+    file(MAKE_DIRECTORY ${ASN1_GEN_DIR})
+    set(S)
+    foreach(SA ${AKTUALIZR_ASN1_SOURCES})
+        list(APPEND S ${CMAKE_CURRENT_SOURCE_DIR}/${SA})
+    endforeach()
+    execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${S}
+        WORKING_DIRECTORY ${ASN1_GEN_DIR}
+        OUTPUT_QUIET ERROR_QUIET
+        )
 
-        execute_process(COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
-            WORKING_DIRECTORY ${ASN1_GEN_DIR}
-            OUTPUT_QUIET ERROR_QUIET
-            )
+    file(GLOB ASN1_GENERATED ${ASN1_GEN_DIR}/*.c)
 
-        file(GLOB ASN1_GENERATED ${ASN1_GEN_DIR}/*.c)
+    add_custom_command(
+        OUTPUT ${ASN1_GENERATED}
+        COMMAND ${ASN1C} ${ASN1C_FLAGS} ${S}
+        WORKING_DIRECTORY ${ASN1_GEN_DIR}
+        DEPENDS ${S}
+        )
 
-        add_custom_command(
-            OUTPUT ${ASN1_GENERATED}
-            COMMAND ${ASN1C} ${ASN1C_FLAGS} ${ASN1_FILES}
-            WORKING_DIRECTORY ${ASN1_GEN_DIR}
-            DEPENDS ${ASN1_FILES}
-            )
+    list(REMOVE_ITEM ASN1_GENERATED ${ASN1_GEN_DIR}/converter-example.c ${ASN1_GEN_DIR}/converter-sample.c)
 
-        list(REMOVE_ITEM ASN1_GENERATED ${ASN1_GEN_DIR}/converter-example.c ${ASN1_GEN_DIR}/converter-sample.c)
+    # hardcoded list of common c files
+    add_library(asn1_lib OBJECT ${ASN1_GENERATED})
 
-        # hardcoded list of common c files
-        add_library(asn1_lib STATIC ${ASN1_GENERATED})
-
-        target_include_directories(asn1_lib
-            PUBLIC ${ASN1_GEN_DIR})
-        target_compile_options(asn1_lib
-            PRIVATE "-Wno-error"
-            PRIVATE "-w")
-    endfunction()
-endif(ASN1C)
+    target_include_directories(asn1_lib
+        PUBLIC ${ASN1_GEN_DIR})
+    include_directories(${ASN1_GEN_DIR})
+    target_compile_options(asn1_lib
+        PRIVATE "-Wno-error"
+        PRIVATE "-w")
+endfunction()

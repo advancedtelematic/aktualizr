@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <chrono>
 
+#include "AKIpUptaneMes.h"
+#include "asn1/asn1_message.h"
 #include "logging/logging.h"
 
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
@@ -55,25 +57,32 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
 
   while ((recieved = recvfrom(*socket_hdl, rbuf, sizeof(rbuf) - 1, 0, reinterpret_cast<struct sockaddr *>(&sec_address),
                               &sec_addr_len)) != -1) {
-    std::string data(rbuf, recieved);
-    try {
-      Uptane::SecondaryConfig conf;
+    Uptane::SecondaryConfig conf;
+    AKIpUptaneMes_t *m = nullptr;
+    asn_dec_rval_t res = ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, recieved);
+    Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
-      int32_t sec_port;
-      asn1::Deserializer des(data);
-
-      des >> asn1::expl(AKT_DISCOVERY_RESP) >> asn1::seq >> asn1::implicit<kAsn1Utf8String>(conf.ecu_serial) >>
-          asn1::implicit<kAsn1Utf8String>(conf.ecu_hardware_id) >> asn1::implicit<kAsn1Integer>(sec_port) >>
-          asn1::restseq >> asn1::endexpl;
-
-      LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
-      conf.secondary_type = Uptane::SecondaryType::kIpUptane;
-      conf.ip_addr = sec_address;
-      Utils::setSocketPort(&conf.ip_addr, htons(sec_port));
-      secondaries.push_back(conf);
-    } catch (const deserialization_error &ex) {
-      LOG_ERROR << ex.what();
+    if (res.code != RC_OK) {
+      LOG_ERROR << "Failed to parse discovery response message";
+      LOG_ERROR << Utils::toBase64(std::string(rbuf, recieved));
+      continue;
     }
+
+    if (msg->present() != AKIpUptaneMes_PR_discoveryResp) {
+      LOG_ERROR << "Unexpected message type:" << msg->present();
+      continue;
+    }
+    auto resp = msg->discoveryResp();
+    conf.ecu_serial = ToString(resp->ecuSerial);
+    conf.ecu_hardware_id = ToString(resp->hwId);
+    Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
+
+    LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
+    conf.secondary_type = Uptane::SecondaryType::kIpUptane;
+    conf.ip_addr = sec_address;
+
+    secondaries.push_back(conf);
+
     auto now = std::chrono::system_clock::now();
     int left_seconds =
         config_.ipdiscovery_wait_seconds - std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
@@ -99,12 +108,20 @@ bool IpSecondaryDiscovery::sendRequest() {
   sendaddr.sin6_port = htons(config_.ipdiscovery_port);
   inet_pton(AF_INET6, config_.ipdiscovery_host.c_str(), &sendaddr.sin6_addr);
 
-  asn1::Serializer ser;
-  int32_t port_32 = config_.ipuptane_port;
-  ser << asn1::expl(AKT_DISCOVERY_REQ) << asn1::seq << asn1::implicit<kAsn1Integer>(port_32) << asn1::endseq
-      << asn1::endexpl;
-  int numbytes = sendto(*socket_hdl, ser.getResult().c_str(), ser.getResult().size(), 0,
-                        reinterpret_cast<struct sockaddr *>(&sendaddr), sizeof sendaddr);
+  Asn1Message::Ptr m(Asn1Message::Empty());
+  m->present(AKIpUptaneMes_PR_discoveryReq);
+  auto req_msg = m->discoveryReq();
+  req_msg->port = config_.ipuptane_port;  // Only needed while we have bi-directional connections
+
+  std::string buffer;
+  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &m->msg_, WriteToString, &buffer);
+  if (enc.encoded == -1) {
+    LOG_ERROR << "ASN.1 Serialization failed";
+    return false;
+  }
+
+  int numbytes = sendto(*socket_hdl, buffer.c_str(), buffer.size(), 0, reinterpret_cast<struct sockaddr *>(&sendaddr),
+                        sizeof sendaddr);
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
     return false;
