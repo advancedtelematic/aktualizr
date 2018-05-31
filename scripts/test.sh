@@ -25,6 +25,7 @@ TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
 TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
 TEST_SOTA_PACKED_CREDENTIALS=${TEST_SOTA_PACKED_CREDENTIALS:-}
 TEST_DRYRUN=${TEST_DRYRUN:-0}
+TEST_PARALLEL_LEVEL=${TEST_PARALLEL_LEVEL:-6}
 TEST_TESTSUITE_ONLY=${TEST_TESTSUITE_ONLY:-}
 TEST_TESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE:-}
 
@@ -70,10 +71,14 @@ add_fatal_failure() {
     FAILURES+=("$1")
     collect_failures
 }
+run_make() {
+    CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL="${TEST_PARALLEL_LEVEL}" make "-j${TEST_PARALLEL_LEVEL}" "$@"
+}
 
 # Test stages
 mkdir -p "${TEST_BUILD_DIR}"
 cd "${TEST_BUILD_DIR}"
+
 
 if [[ $TEST_WITH_P11 = 1 ]]; then
     echo ">> Setting up P11"
@@ -101,8 +106,8 @@ if [[ $TEST_WITH_STATICTESTS = 1 ]]; then
     echo ">> Running static checks"
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
-        make check-format -k -j8 || add_failure "formatting"
-        make clang-tidy -k -j8 || add_failure "static checks"
+        run_make -k check-format || add_failure "formatting"
+        run_make -k clang-tidy || add_failure "static checks"
         set +x
     fi
 fi
@@ -111,10 +116,10 @@ if [[ $TEST_WITH_BUILD = 1 ]]; then
     echo ">> Building and installing"
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
-        make -j8 || add_fatal_failure "make"
+        run_make || add_fatal_failure "make"
 
         # Check that 'make install' works
-        DESTDIR=/tmp/aktualizr make install -j8 || add_failure "make install"
+        DESTDIR=/tmp/aktualizr run_make install || add_failure "make install"
         set +x
     fi
 fi
@@ -123,7 +128,7 @@ if [[ $TEST_WITH_INSTALL_DEB_PACKAGES = 1 ]]; then
     echo ">> Building debian package"
     if [[ $TEST_DRYRUN != 1 ]]; then
         set -x
-        make package -j8 || add_failure "make package"
+        run_make package || add_failure "make package"
 
         # install garage-deploy
         cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}/garage_deploy.deb"
@@ -139,7 +144,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
         echo ">> Running test suite with coverage"
         if [[ $TEST_DRYRUN != 1 ]]; then
             set -x
-            CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 coverage || add_failure "testsuite with coverage"
+            run_make coverage || add_failure "testsuite with coverage"
 
             if [[ -n $TRAVIS_COMMIT ]]; then
                 bash <(curl -s https://codecov.io/bash) -R "${GITREPO_ROOT}" -s .
@@ -152,7 +157,7 @@ if [[ $TEST_WITH_TESTSUITE = 1 ]]; then
         echo ">> Running test suite"
         if [[ $TEST_DRYRUN != 1 ]]; then
             set -x
-            CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=3 make -j6 check || add_failure "testsuite"
+            run_make check || add_failure "testsuite"
             set +x
         fi
     fi
