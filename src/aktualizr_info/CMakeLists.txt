@@ -1,4 +1,3 @@
-
 set(AKTUALIZR_INFO_SRC main.cc aktualizr_info_config.cc)
 
 set(AKTUALIZR_INFO_HEADERS aktualizr_info_config.h)
@@ -14,6 +13,9 @@ endif(BUILD_WITH_CODE_COVERAGE)
 install(TARGETS aktualizr-info
         COMPONENT aktualizr
         RUNTIME DESTINATION bin)
+
+add_aktualizr_test(NAME aktualizr_info_config
+                   SOURCES aktualizr_info_config.cc aktualizr_info_config_test.cc PROJECT_WORKING_DIRECTORY)
 
 add_test(NAME aktualizr-info-noarguments
     COMMAND ${PROJECT_SOURCE_DIR}/tests/run_aktualizr_info_tests.sh ${CMAKE_CURRENT_BINARY_DIR}/aktualizr-info WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
@@ -40,6 +42,7 @@ add_test(NAME aktualizr-info-images-target
 set_tests_properties(aktualizr-info-images-target PROPERTIES
     PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 
-aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC} ${AKTUALIZR_INFO_HEADERS})
-
+set(AKTUALIZR_INFO_ALL_CHECKS ${AKTUALIZR_INFO_SRC} ${AKTUALIZR_INFO_HEADERS} ${TEST_SOURCES})
+list(REMOVE_DUPLICATES AKTUALIZR_INFO_ALL_CHECKS)
+aktualizr_source_file_checks(${AKTUALIZR_INFO_ALL_CHECKS})
 # vim: set tabstop=4 shiftwidth=4 expandtab:

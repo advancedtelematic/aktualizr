@@ -9,7 +9,7 @@
 #include "logging/logging.h"
 
 // Try to keep the order of config options the same as in
-// AktualizrInfoConfig::writeToFile() and
+// AktualizrInfoConfig::writeToStream() and
 // AktualizrInfoConfig::updateFromPropertyTree().
 
 class AktualizrInfoConfig : public BaseConfig {
@@ -19,7 +19,7 @@ class AktualizrInfoConfig : public BaseConfig {
   explicit AktualizrInfoConfig(const boost::filesystem::path& filename);
 
   void postUpdateValues();
-  void writeToFile(const boost::filesystem::path& filename);
+  void writeToStream(std::ostream& sink) const;
 
   // from primary config
   LoggerConfig logger;
