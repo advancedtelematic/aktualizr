@@ -21,12 +21,17 @@ TEST(aktualizr_secondary_config, config_toml_parsing) {
   EXPECT_TRUE(conf.pacman.packages_file == boost::filesystem::path("/test_packages"));
 }
 
+/* We don't normally dump the config to file, but we do write it to the log. */
 TEST(aktualizr_secondary_config, consistent_toml_empty) {
   TemporaryDirectory temp_dir;
   AktualizrSecondaryConfig config1;
-  config1.writeToFile((temp_dir / "output1.toml").string());
+  std::ofstream sink1((temp_dir / "output1.toml").c_str(), std::ofstream::out);
+  config1.writeToStream(sink1);
+
   AktualizrSecondaryConfig config2((temp_dir / "output1.toml").string());
-  config2.writeToFile((temp_dir / "output2.toml").string());
+  std::ofstream sink2((temp_dir / "output2.toml").c_str(), std::ofstream::out);
+  config2.writeToStream(sink2);
+
   std::string conf_str1 = Utils::readFile((temp_dir / "output1.toml").string());
   std::string conf_str2 = Utils::readFile((temp_dir / "output2.toml").string());
   EXPECT_EQ(conf_str1, conf_str2);

@@ -302,7 +302,7 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  // Keep this order the same as in config.h and Config::writeToFile().
+  // Keep this order the same as in config.h and Config::writeToStream().
   if (!loglevel_from_cmdline) {
     CopySubtreeFromConfig(logger, "logger", pt);
     // If not already set from the commandline, set the loglevel now so that it
@@ -480,18 +480,9 @@ void Config::initLegacySecondaries() {
   }
 }
 
-// This writes out every configuration option, including those set with default
-// and blank values. This may be useful for replicating an exact configuration
-// environment. However, if we were to want to simplify the output file, we
-// could skip blank strings or compare values against a freshly built instance
-// to detect and skip default values.
-void Config::writeToFile(const boost::filesystem::path& filename) const {
-  // Keep this order the same as in config.h and Config::updateFromPropertyTree().
-  std::ofstream sink(filename.c_str(), std::ofstream::out);
-  writeToStream(sink);
-}
-
 void Config::writeToStream(std::ostream& sink) const {
+  // Keep this order the same as in config.h and
+  // Config::updateFromPropertyTree().
   WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(gateway, "gateway", sink);
   WriteSectionToStream(network, "network", sink);
