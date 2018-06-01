@@ -57,7 +57,7 @@ The following debian packages are used in the project:
 * libboost-system-dev (>= 1.58.0)
 * libcurl4-openssl-dev (>= 7.47)
 * libdpkg-dev (when building with Debian packaging support)
-* libostree-dev (when building with OSTree support)
+* libostree-dev (>= 2017.7, when building with OSTree support)
 * libp11-2 (when building with PKCS#11 support)
 * libp11-dev (when building with PKCS#11 support)
 * libpthread-stubs0-dev (>=0.3)
