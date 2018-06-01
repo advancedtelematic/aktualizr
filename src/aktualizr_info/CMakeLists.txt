@@ -42,7 +42,8 @@ add_test(NAME aktualizr-info-images-target
 set_tests_properties(aktualizr-info-images-target PROPERTIES
     PASS_REGULAR_EXPRESSION "image targets.json content:\n\n\\{.*\\}")
 
-set(AKTUALIZR_INFO_ALL_CHECKS ${AKTUALIZR_INFO_SRC} ${AKTUALIZR_INFO_HEADERS} ${TEST_SOURCES})
-list(REMOVE_DUPLICATES AKTUALIZR_INFO_ALL_CHECKS)
-aktualizr_source_file_checks(${AKTUALIZR_INFO_ALL_CHECKS})
+aktualizr_source_file_checks(${AKTUALIZR_INFO_SRC}
+                             ${AKTUALIZR_INFO_HEADERS}
+                             ${TEST_SOURCES})
+
 # vim: set tabstop=4 shiftwidth=4 expandtab:

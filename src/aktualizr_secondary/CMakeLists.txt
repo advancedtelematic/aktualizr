@@ -61,10 +61,6 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     opcuaserver_secondary_delegate.h
     )
 
-set(AKTUALIZR_SECONDARY_ALL_CHECKS ${AKTUALIZR_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_LIB_SRC} ${ALL_AKTUALIZR_SECONDARY_HEADERS}
-                                   ${OPCUA_SECONDARY_SRC})
-list(REMOVE_DUPLICATES AKTUALIZR_SECONDARY_ALL_CHECKS)
-
 include(AddAktualizrTest)
 
 list(APPEND TEST_LIBS aktualizr_secondary_static_lib)
@@ -152,7 +148,10 @@ set_tests_properties(aktualizr_secondary_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
 
-
-aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_ALL_CHECKS} ${TEST_SOURCES})
+aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC}
+                             ${AKTUALIZR_SECONDARY_LIB_SRC}
+                             ${ALL_AKTUALIZR_SECONDARY_HEADERS}
+                             ${OPCUA_SECONDARY_SRC}
+                             ${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

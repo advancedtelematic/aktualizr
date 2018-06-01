@@ -222,6 +222,7 @@ else()
 endif()
 
 function(aktualizr_source_file_checks)
+    list(REMOVE_DUPLICATES ARGN)
     foreach(FILE ${ARGN})
         file(RELATIVE_PATH FULL_FN ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${FILE})
         set(AKTUALIZR_CHECKED_SRCS ${AKTUALIZR_CHECKED_SRCS} ${FULL_FN} CACHE INTERNAL "")
