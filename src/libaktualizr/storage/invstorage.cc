@@ -5,6 +5,23 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
+std::ostream& operator<<(std::ostream& os, const StorageType stype) {
+  std::string stype_str;
+  switch (stype) {
+    case kFileSystem:
+      stype_str = "filesystem";
+      break;
+    case kSqlite:
+      stype_str = "sqlite";
+      break;
+    default:
+      stype_str = "unknown";
+      break;
+  }
+  os << '"' << stype_str << '"';
+  return os;
+}
+
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string storage_type = "filesystem";
   CopyFromConfig(storage_type, "type", pt);

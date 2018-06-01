@@ -16,23 +16,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-std::ostream& operator<<(std::ostream& os, const StorageType stype) {
-  std::string stype_str;
-  switch (stype) {
-    case kFileSystem:
-      stype_str = "filesystem";
-      break;
-    case kSqlite:
-      stype_str = "sqlite";
-      break;
-    default:
-      stype_str = "unknown";
-      break;
-  }
-  os << '"' << stype_str << '"';
-  return os;
-}
-
 std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
@@ -151,6 +134,7 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
   writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
+  // Skip provision.mode since it is dependent on other options.
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
