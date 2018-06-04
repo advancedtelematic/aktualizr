@@ -1,6 +1,7 @@
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 
@@ -9,6 +10,7 @@
 #include "json/json.h"
 #include "logging/logging.h"
 #include "treehub_server.h"
+#include "uptane/tuf.h"
 
 namespace po = boost::program_options;
 using std::string;
@@ -160,6 +162,14 @@ int main(int argc, char **argv) {
   }
 
   Json::Value targets_json = Utils::parseJSON(targets_str);
+  std::string expiry_time_str = targets_json["signed"]["expires"].asString();
+  Uptane::TimeStamp timestamp(expiry_time_str);
+
+  if (timestamp.IsExpiredAt(Uptane::TimeStamp::Now())) {
+    LOG_FATAL << "targets.json has been expired.";
+    return EXIT_FAILURE;
+  }
+
   Json::Value target_list = targets_json["signed"]["targets"];
   for (Json::ValueIterator t_it = target_list.begin(); t_it != target_list.end(); t_it++) {
     if ((*t_it)["hashes"]["sha256"].asString() == ref) {
