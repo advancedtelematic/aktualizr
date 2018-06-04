@@ -61,28 +61,33 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     opcuaserver_secondary_delegate.h
     )
 
-set(AKTUALIZR_SECONDARY_ALL_CHECKS ${AKTUALIZR_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_LIB_SRC} ${ALL_AKTUALIZR_SECONDARY_HEADERS}
-                                   ${OPCUA_SECONDARY_SRC})
-list(REMOVE_DUPLICATES AKTUALIZR_SECONDARY_ALL_CHECKS)
-
 include(AddAktualizrTest)
 
 list(APPEND TEST_LIBS aktualizr_secondary_static_lib)
 
-add_aktualizr_test(NAME aktualizr_secondary_config SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
-add_aktualizr_test(NAME aktualizr_secondary_discovery SOURCES aktualizr_secondary_discovery_test.cc  ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_config
+                   SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_discovery
+                   SOURCES aktualizr_secondary_discovery_test.cc
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
-add_test(NAME aktualizr-secondary-help
-    COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
-
-add_aktualizr_test(NAME aktualizr_secondary_protocol SOURCES protocol_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_protocol
+                   SOURCES protocol_test.cc
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
 
-add_aktualizr_test(NAME aktualizr_secondary_update SOURCES update_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_update
+                   SOURCES update_test.cc
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
 
-add_aktualizr_test(NAME aktualizr_secondary_uptane SOURCES uptane_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_secondary_uptane
+                   SOURCES uptane_test.cc
+                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
+
+add_test(NAME aktualizr-secondary-help
+         COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
 
 # test running the executable with command line option --help
 add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)
@@ -143,7 +148,10 @@ set_tests_properties(aktualizr_secondary_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
 
-
-aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_ALL_CHECKS} ${TEST_SOURCES})
+aktualizr_source_file_checks(${AKTUALIZR_SECONDARY_SRC}
+                             ${AKTUALIZR_SECONDARY_LIB_SRC}
+                             ${ALL_AKTUALIZR_SECONDARY_HEADERS}
+                             ${OPCUA_SECONDARY_SRC}
+                             ${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

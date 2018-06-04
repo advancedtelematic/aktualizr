@@ -43,10 +43,10 @@ add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=1 ${CMAKE_CTEST_COMMAND}
                   )
 
 
-# List of source files to run static analysis on. Automatically
-# appended to by add_aktualizr_test, but anything that doesn't use that must be
-# manually added to this list.
-set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h)
+# List of source files to run static analysis on. Automatically appended to by
+# add_aktualizr_test, but anything that doesn't use that must be manually added
+# to this list.
+set(TEST_SOURCES httpfake.h test_utils.cc test_utils.h uptane_vector_tests.cc)
 
 
 include(CMakeParseArguments)
@@ -73,7 +73,6 @@ endif()
 
 add_executable(aktualizr_uptane_vector_tests uptane_vector_tests.cc)
 target_link_libraries(aktualizr_uptane_vector_tests aktualizr_static_lib ${TEST_LIBS})
-set(TEST_SOURCES ${TEST_SOURCES} uptane_vector_tests.cc)
 
 if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     set(VECTOR_TESTS_ARGS "valgrind")
@@ -196,8 +195,6 @@ add_test(NAME test_build_release
 
 add_dependencies(qa check)
 
-list(REMOVE_DUPLICATES TEST_SOURCES)
-# message("${TEST_SOURCES}")
 aktualizr_source_file_checks(${TEST_SOURCES})
 
 # vim: set tabstop=4 shiftwidth=4 expandtab:

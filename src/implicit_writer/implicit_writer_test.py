@@ -22,19 +22,27 @@ def main(credentials, config_input, output_dir, working_dir):
     url_file = zip_ref.open('autoprov.url', mode='r')
     zip_ref.close()
 
-    # Test server URL consistency:
+    # Parse the output config file:
     server = ''
-    tls = False
+    tls_section = False
+    import_section = False
     for line in conf_file:
         print('LINE:' + str(line))
-        if re.search(rb'tls_cacert_path\s*=', line):
-            root_ca_path = line.split(b'=')[1].strip()[1:-1]
-        elif re.search(rb'^\[tls\]$', line):
-            tls = True
+        if re.search(rb'^\[tls\]$', line):
+            tls_section = True
+            import_section = False
+        elif re.search(rb'^\[import\]$', line):
+            tls_section = False
+            import_section = True
         elif re.search(rb'^\[', line):
-            tls = False
-        elif tls and re.search(rb'server\s*=', line):
+            tls_section = False
+            import_section = False
+        elif tls_section and re.search(rb'server\s*=', line):
             server = line.split(b'=')[1].strip()[1:-1]
+        elif import_section and re.search(rb'tls_cacert_path\s*=', line):
+            root_ca_path = line.split(b'=')[1].strip()[1:-1]
+
+    # Test server URL consistency:
     url = url_file.read()
     if url != server:
         print('Server URL does not match.')

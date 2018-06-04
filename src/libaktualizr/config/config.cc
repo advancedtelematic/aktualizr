@@ -16,23 +16,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-std::ostream& operator<<(std::ostream& os, const StorageType stype) {
-  std::string stype_str;
-  switch (stype) {
-    case kFileSystem:
-      stype_str = "filesystem";
-      break;
-    case kSqlite:
-      stype_str = "sqlite";
-      break;
-    default:
-      stype_str = "unknown";
-      break;
-  }
-  os << '"' << stype_str << '"';
-  return os;
-}
-
 std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
@@ -151,6 +134,7 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, primary_ecu_serial, "primary_ecu_serial");
   writeOption(out_stream, primary_ecu_hardware_id, "primary_ecu_hardware_id");
   writeOption(out_stream, ecu_registration_endpoint, "ecu_registration_endpoint");
+  // Skip provision.mode since it is dependent on other options.
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -302,7 +286,7 @@ void Config::updateFromTomlString(const std::string& contents) {
 }
 
 void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  // Keep this order the same as in config.h and Config::writeToFile().
+  // Keep this order the same as in config.h and Config::writeToStream().
   if (!loglevel_from_cmdline) {
     CopySubtreeFromConfig(logger, "logger", pt);
     // If not already set from the commandline, set the loglevel now so that it
@@ -480,18 +464,9 @@ void Config::initLegacySecondaries() {
   }
 }
 
-// This writes out every configuration option, including those set with default
-// and blank values. This may be useful for replicating an exact configuration
-// environment. However, if we were to want to simplify the output file, we
-// could skip blank strings or compare values against a freshly built instance
-// to detect and skip default values.
-void Config::writeToFile(const boost::filesystem::path& filename) const {
-  // Keep this order the same as in config.h and Config::updateFromPropertyTree().
-  std::ofstream sink(filename.c_str(), std::ofstream::out);
-  writeToStream(sink);
-}
-
 void Config::writeToStream(std::ostream& sink) const {
+  // Keep this order the same as in config.h and
+  // Config::updateFromPropertyTree().
   WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(gateway, "gateway", sink);
   WriteSectionToStream(network, "network", sink);

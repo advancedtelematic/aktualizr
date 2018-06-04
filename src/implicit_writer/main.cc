@@ -83,13 +83,21 @@ int main(int argc, char *argv[]) {
     prefix = commandline_map["prefix"].as<boost::filesystem::path>();
   }
 
-  std::cout << "Reading config file: " << config_in_path << "\n";
   Config config(config_in_path);
 
+  std::cout << "Writing config file: " << config_out_path << "\n";
+  boost::filesystem::path parent_dir = config_out_path.parent_path();
+  if (!parent_dir.empty()) {
+    boost::filesystem::create_directories(parent_dir);
+  }
+  std::ofstream sink(config_out_path.c_str(), std::ofstream::out);
+  sink << "[tls]\n";
+  sink << "server = \"" << Bootstrap::readServerUrl(credentials_path) << "\"\n\n";
+
   if (!no_root) {
-    boost::filesystem::path ca_path(prefix);
-    config.import.tls_cacert_path = "/usr/lib/sota/root.crt";
-    ca_path /= config.import.tls_cacert_path;
+    std::string cacert_path = "/usr/lib/sota/root.crt";
+    sink << "[import]\n";
+    sink << "tls_cacert_path = \"" << cacert_path << "\"\n\n";
 
     std::string server_ca = Bootstrap::readServerCa(credentials_path);
     if (server_ca.empty()) {
@@ -100,22 +108,11 @@ int main(int argc, char *argv[]) {
       std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
     }
 
+    boost::filesystem::path ca_path(prefix);
+    ca_path /= cacert_path;
     std::cout << "Writing root CA: " << ca_path << "\n";
     Utils::writeFile(ca_path, server_ca);
   }
-
-  config.tls.server = Bootstrap::readServerUrl(credentials_path);
-  config.provision.server = config.tls.server;
-  config.uptane.repo_server = config.tls.server + "/repo";
-  config.uptane.director_server = config.tls.server + "/director";
-  config.pacman.ostree_server = config.tls.server + "/treehub";
-
-  std::cout << "Writing config file: " << config_out_path << "\n";
-  boost::filesystem::path parent_dir = config_out_path.parent_path();
-  if (!parent_dir.empty()) {
-    boost::filesystem::create_directories(parent_dir);
-  }
-  config.writeToFile(config_out_path);
 
   return 0;
 }

@@ -26,7 +26,7 @@
 
 enum ProvisionMode { kAutomatic = 0, kImplicit };
 
-// Try to keep the order of config options the same as in Config::writeToFile()
+// Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
 
 struct GatewayConfig {
@@ -114,7 +114,6 @@ class Config : public BaseConfig {
 
   void updateFromTomlString(const std::string& contents);
   void postUpdateValues();
-  void writeToFile(const boost::filesystem::path& filename) const;
   void writeToStream(std::ostream& sink) const;
 
   // Config data structures. Keep logger first so that it is taken into account

@@ -31,7 +31,10 @@ AktualizrInfoConfig::AktualizrInfoConfig(const boost::filesystem::path& filename
   postUpdateValues();
 }
 
-void AktualizrInfoConfig::postUpdateValues() { logger_set_threshold(logger); }
+void AktualizrInfoConfig::postUpdateValues() {
+  logger_set_threshold(logger);
+  LOG_TRACE << "Final configuration that will be used: \n" << (*this);
+}
 
 void AktualizrInfoConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
@@ -41,7 +44,7 @@ void AktualizrInfoConfig::updateFromCommandLine(const boost::program_options::va
 
 void AktualizrInfoConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in aktualizr_info_config.h and
-  // AktualizrInfoConfig::writeToFile().
+  // AktualizrInfoConfig::writeToStream().
 
   // from aktualizr config
   if (!loglevel_from_cmdline) {
@@ -55,18 +58,14 @@ void AktualizrInfoConfig::updateFromPropertyTree(const boost::property_tree::ptr
   CopySubtreeFromConfig(storage, "storage", pt);
 }
 
-std::ostream& operator<<(std::ostream& os, const AktualizrInfoConfig& cfg) {
-  (void)cfg;
-  return os;
-}
-
-void AktualizrInfoConfig::writeToFile(const boost::filesystem::path& filename) {
+void AktualizrInfoConfig::writeToStream(std::ostream& sink) const {
   // Keep this order the same as in aktualizr_info_config.h and
   // AktualizrInfoConfig::updateFromPropertyTree().
-  std::ofstream sink(filename.c_str(), std::ofstream::out);
-  sink << std::boolalpha;
-
-  // from aktualizr config
   WriteSectionToStream(logger, "logger", sink);
   WriteSectionToStream(storage, "storage", sink);
+}
+
+std::ostream& operator<<(std::ostream& os, const AktualizrInfoConfig& cfg) {
+  cfg.writeToStream(os);
+  return os;
 }

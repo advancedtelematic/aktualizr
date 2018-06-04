@@ -222,6 +222,7 @@ else()
 endif()
 
 function(aktualizr_source_file_checks)
+    list(REMOVE_DUPLICATES ARGN)
     foreach(FILE ${ARGN})
         file(RELATIVE_PATH FULL_FN ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${FILE})
         set(AKTUALIZR_CHECKED_SRCS ${AKTUALIZR_CHECKED_SRCS} ${FULL_FN} CACHE INTERNAL "")
@@ -336,9 +337,9 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${SYSTEMD_LIBRARY})
 
 set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
-    if(BUILD_WITH_CODE_COVERAGE)
-        list(APPEND TEST_LIBS gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
+if(BUILD_WITH_CODE_COVERAGE)
+    list(APPEND TEST_LIBS gcov)
+endif(BUILD_WITH_CODE_COVERAGE)
 
 
 include(CTest)
@@ -347,7 +348,7 @@ ENABLE_TESTING()
 add_subdirectory("fuzz")
 add_subdirectory("config")
 if (BUILD_LOAD_TESTS)
-    # HdrHistogram installs support libraries, which creates junk the aktualzr
+    # HdrHistogram installs support libraries, which creates junk the aktualizr
     # recipe would have to remove
     add_subdirectory("third_party/HdrHistogram_c/src")
 endif(BUILD_LOAD_TESTS)

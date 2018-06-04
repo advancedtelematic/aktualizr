@@ -19,7 +19,7 @@ install(TARGETS aktualizr_implicit_writer RUNTIME DESTINATION bin)
 add_test(NAME implicit-writer-help COMMAND aktualizr_implicit_writer --help)
 
 add_test(NAME implicit-writer-test
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_writer_test.py
+    COMMAND ${PROJECT_SOURCE_DIR}/src/implicit_writer/implicit_writer_test.py
     -c ${PROJECT_SOURCE_DIR}/tests/test_data/credentials.zip
     -i ${PROJECT_SOURCE_DIR}/config/sota_implicit_prov.toml
     -o ${CMAKE_CURRENT_BINARY_DIR}/implicit -w ${CMAKE_CURRENT_BINARY_DIR})

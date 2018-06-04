@@ -12,7 +12,7 @@
 #include "package_manager/packagemanagerconfig.h"
 
 // Try to keep the order of config options the same as in
-// AktualizrSecondaryConfig::writeToFile() and
+// AktualizrSecondaryConfig::writeToStream() and
 // AktualizrSecondaryConfig::updateFromPropertyTree().
 
 struct AktualizrSecondaryNetConfig {
@@ -43,7 +43,7 @@ class AktualizrSecondaryConfig : public BaseConfig {
   KeyManagerConfig keymanagerConfig() const;
 
   void postUpdateValues();
-  void writeToFile(const boost::filesystem::path& filename);
+  void writeToStream(std::ostream& sink) const;
 
   // from primary config
   LoggerConfig logger;

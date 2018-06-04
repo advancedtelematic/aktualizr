@@ -82,7 +82,10 @@ KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
 }
 
-void AktualizrSecondaryConfig::postUpdateValues() { logger_set_threshold(logger); }
+void AktualizrSecondaryConfig::postUpdateValues() {
+  logger_set_threshold(logger);
+  LOG_TRACE << "Final configuration that will be used: \n" << (*this);
+}
 
 void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_options::variables_map& cmd) {
   if (cmd.count("loglevel") != 0) {
@@ -110,7 +113,7 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
 
 void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   // Keep this order the same as in aktualizr_secondary_config.h and
-  // AktualizrSecondaryConfig::writeToFile().
+  // AktualizrSecondaryConfig::writeToStream().
 
   // from aktualizr config
   CopySubtreeFromConfig(logger, "logger", pt);
@@ -127,24 +130,19 @@ void AktualizrSecondaryConfig::updateFromPropertyTree(const boost::property_tree
   CopySubtreeFromConfig(storage, "storage", pt);
 }
 
-std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
-  return os << "\tServer listening port: " << cfg.network.port << std::endl;
-}
-
-void AktualizrSecondaryConfig::writeToFile(const boost::filesystem::path& filename) {
+void AktualizrSecondaryConfig::writeToStream(std::ostream& sink) const {
   // Keep this order the same as in aktualizr_secondary_config.h and
   // AktualizrSecondaryConfig::updateFromPropertyTree().
-  std::ofstream sink(filename.c_str(), std::ofstream::out);
-  sink << std::boolalpha;
-
-  // from aktualizr config
   WriteSectionToStream(logger, "logger", sink);
-
   WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(uptane, "uptane", sink);
 
-  // from aktualizr config
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(pacman, "pacman", sink);
   WriteSectionToStream(storage, "storage", sink);
+}
+
+std::ostream& operator<<(std::ostream& os, const AktualizrSecondaryConfig& cfg) {
+  cfg.writeToStream(os);
+  return os;
 }
