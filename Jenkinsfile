@@ -36,6 +36,7 @@ pipeline {
   agent none
   environment {
     JENKINS_RUN = '1'
+    TEST_PARALLEL_LEVEL = '8'
   }
   stages {
     stage('cancel outdated builds') {
