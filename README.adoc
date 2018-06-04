@@ -161,28 +161,36 @@ The report will be output to the `tests/coverage` folder in your `build-coverage
 
 === Building with Docker
 
-A Dockerfile is provided to support building and testing the application without dependencies on your local environment. If you have a working docker client and docker server running on your machine, you can build a docker image with:
+Several Dockerfiles are provided to support building and testing the application without dependencies on your
+local environment.
+
+If you have a working docker client and docker server running on your machine, you can build and run a docker
+image on the default environment with:
 
 ----
-docker build -t advancedtelematic/aktualizr .
+./scripts/run_docker_test.sh Dockerfile
 ----
 
-While the default Dockerfile image is usually the best one to use, you can select another one with the `-f <Dockerfile>` flag, e.g.:
+It will start a shell session inside the container, running as the same UID/GID as on the host system, with
+the current directory mounted as a docker volume. Any local code changes are then immediately in effect
+inside the container and user/group permissions are compatible in the two environments.
+
+Inside the container, the test suite with coverage can be run with:
 
 ----
-docker build -t advancedtelematic/aktualizr -f Dockerfile.noostree .
+TEST_WITH_COVERAGE=1 TEST_WITH_P11=1 TEST_WITH_STATICTESTS=1 ./scripts/test.sh
 ----
 
-Once your docker image is built, Aktualizr can be built and tested with:
+(see the content of link:Jenkinsfile[] and link:scripts/test.sh[] for more testing options)
+
+Alternatively, link:scripts/run_docker_test.sh[] can directly run the test script:
 
 ----
-docker run --rm -it advancedtelematic/aktualizr src/scripts/coverage.sh
-----
-
-The following command will get a shell to perform an interactive build, but note that your local working copy will not be synchronised with the Docker container. The recommended development workflow is perform local cmake builds, but passing `-v $(pwd):/aktualizr-local` to `docker run` is an alternative.
-
-----
-docker run --rm -it advancedtelematic/aktualizr
+./scripts/run_docker_test.sh Dockerfile \
+                            -eTEST_WITH_COVERAGE=1 \
+                            -eTEST_WITH_P11=1 \
+                            -eTEST_WITH_STATICTESTS=1 \
+                            -- ./scripts/test.sh
 ----
 
 === Developing and debugging with an OpenEmbedded system
