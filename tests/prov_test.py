@@ -52,7 +52,7 @@ def provision(tmp_dir, build_dir, src_dir, creds_in):
     with subprocess.Popen([str(akt), '--config', str(conf)]) as proc:
         try:
             # Verify that device HAS provisioned.
-            for delay in [5, 5, 5, 5, 10]:
+            for delay in [5, 5, 5, 5, 10, 10, 10, 10]:
                 sleep(delay)
                 stdout, stderr, retcode = run_aktualizr_info([str(akt_info), '--config', str(conf)])
                 if retcode == 0 and stderr == b'' and 'Fetched metadata: yes' in stdout.decode():
