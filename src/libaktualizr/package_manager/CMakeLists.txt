@@ -13,7 +13,7 @@ aktualizr_source_file_checks(${SOURCES} ${HEADERS})
 # Debian backend
 if(BUILD_DEB)
     target_sources(package_manager PRIVATE debianmanager.cc)
-    add_executable(t_packagemanager_deb debianmanager_test.cc)
+    add_executable(t_packagemanager_deb EXCLUDE_FROM_ALL debianmanager_test.cc)
     add_dependencies(build_tests t_packagemanager_deb)
     target_link_libraries(t_packagemanager_deb aktualizr_static_lib ${TEST_LIBS})
 
