@@ -64,8 +64,7 @@ if(BUILD_WITH_CODE_COVERAGE)
 endif(BUILD_WITH_CODE_COVERAGE)
 
 if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
-    # Code coverage disables valgrind, and this test is only checking that
-    # valgrind finds memory leaks
+    # This test is only checking that valgrind finds memory leaks
     add_aktualizr_test(NAME leak SOURCES leak_test.cc)
     set_tests_properties(test_leak PROPERTIES WILL_FAIL TRUE)
 endif()
