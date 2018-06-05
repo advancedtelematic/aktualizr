@@ -7,6 +7,7 @@
 
 #include "logging/logging.h"
 #include "socket_activation/socket_activation.h"
+#include "utilities/sockaddr_io.h"
 #include "utilities/utils.h"
 
 void IpUptaneConnection::open_socket() {
@@ -52,8 +53,7 @@ void IpUptaneConnection::open_socket() {
 
   socket_hdl_ = std::move(hdl);
 
-  std::string addr_string = Utils::ipDisplayName(*(reinterpret_cast<sockaddr_storage *>(&sa)));
-  LOG_INFO << "Listening on " << addr_string << ":" << listening_port();
+  LOG_INFO << "Listening on " << *(reinterpret_cast<sockaddr_storage *>(&sa));
 }
 
 IpUptaneConnection::IpUptaneConnection(in_port_t in_port, struct in6_addr in_addr)

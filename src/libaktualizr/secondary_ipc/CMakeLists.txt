@@ -1,10 +1,8 @@
 set(SOURCES aktualizr_secondary_ipc.cc
-            ipuptaneconnection.cc
-            ipuptaneconnectionsplitter.cc)
+            ipuptaneconnection.cc)
 
 set(HEADERS aktualizr_secondary_ipc.h
-            ipuptaneconnection.h
-            ipuptaneconnectionsplitter.h)
+            ipuptaneconnection.h)
 
 
 add_library(aktualizr_secondary_ipc OBJECT ${SOURCES})

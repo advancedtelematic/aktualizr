@@ -1,0 +1,183 @@
+#include "socket_server.h"
+
+#include "AKIpUptaneMes.h"
+#include "asn1/asn1_message.h"
+#include "logging/logging.h"
+#include "socket_activation/socket_activation.h"
+#include "utilities/dequeue_buffer.h"
+#include "utilities/sockaddr_io.h"
+
+#include <linux/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
+void SocketServer::Run() {
+  while (true) {
+    int con_fd;
+    std::unique_ptr<sockaddr_storage> peer_sa(new sockaddr_storage);
+    socklen_t other_sasize = sizeof(*peer_sa);
+
+    LOG_DEBUG << "Waiting for connection from client...";
+    if ((con_fd = accept(*socket_, reinterpret_cast<sockaddr *>(peer_sa.get()), &other_sasize)) == -1) {
+      LOG_INFO << "Socket accept failed. aborting";
+      break;
+    }
+    LOG_DEBUG << "Connected...";
+    HandleOneConnection(con_fd);
+    LOG_DEBUG << "Client disconnected";
+  }
+}
+
+void SocketServer::HandleOneConnection(int socket) {
+  bool connection_good = true;
+
+  // Outside the message loop, because one recv() may have parts of 2 messages
+  // Note that one recv() call returning 2+ messages doesn't work at the
+  // moment. This shouldn't be a problem until we have messages that aren't
+  // strictly request/response
+  DequeueBuffer buffer;
+
+  while (connection_good) {
+    // Read an incomming message
+    AKIpUptaneMes_t *m = nullptr;
+    asn_dec_rval_t res;
+    asn_codec_ctx_s context{};
+    size_t received;
+    do {
+      received = recv(socket, buffer.Tail(), buffer.TailSpace(), 0);
+      LOG_TRACE << "Got " << received << " bytes " << Utils::toBase64(std::string(buffer.Tail(), received));
+      buffer.HaveEnqueued(received);
+      res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), buffer.Head(), buffer.Size());
+      buffer.Consume(res.consumed);
+    } while (res.code == RC_WMORE && received > 0);
+    // Note that ber_decode allocates *m even on failure, so this must always be done
+    Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
+
+    if (res.code == RC_OK) {
+      // Figure out what to do with the message
+      Asn1Message::Ptr resp = Asn1Message::Empty();
+      switch (msg->present()) {
+        case AKIpUptaneMes_PR_publicKeyReq: {
+          PublicKey pk = impl_->getPublicKey();
+          resp->present(AKIpUptaneMes_PR_publicKeyResp);
+          auto r = resp->publicKeyResp();
+          r->type = static_cast<AKIpUptaneKeyType_t>(pk.Type());
+          SetString(&r->key, pk.Value());
+        } break;
+        case AKIpUptaneMes_PR_manifestReq: {
+          std::string manifest = Utils::jsonToStr(impl_->getManifest());
+          resp->present(AKIpUptaneMes_PR_manifestResp);
+          auto r = resp->manifestResp();
+          r->manifest.present = manifest_PR_json;
+          SetString(&r->manifest.choice.json, manifest);  // NOLINT
+        } break;
+        case AKIpUptaneMes_PR_putMetaReq: {
+          auto md = msg->putMetaReq();
+          Uptane::RawMetaPack meta_pack;
+          if (md->image.present == image_PR_json) {
+            meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
+            meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
+            meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
+            meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
+          } else {
+            LOG_WARNING << "Images metadata in unknown format:" << md->image.present;
+          }
+
+          if (md->director.present == director_PR_json) {
+            meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
+            meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
+          } else {
+            LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
+          }
+          bool ok;
+          try {
+            ok = impl_->putMetadata(meta_pack);
+          } catch (Uptane::SecurityException &e) {
+            LOG_WARNING << "Rejected metadata push because of security failure" << e.what();
+            ok = false;
+          }
+          resp->present(AKIpUptaneMes_PR_putMetaResp);
+          auto r = resp->putMetaResp();
+          r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
+        } break;
+        case AKIpUptaneMes_PR_sendFirmwareReq: {
+          auto fw = msg->sendFirmwareReq();
+          bool ok = impl_->sendFirmware(ToString(fw->firmware));
+          resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
+          auto r = msg->sendFirmwareResp();
+          r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
+        } break;
+        default:
+          LOG_ERROR << "Unrecognised message type:" << msg->present();
+          connection_good = false;
+      }
+
+      // Send the response
+      if (connection_good) {
+        if (resp->present() != AKIpUptaneMes_PR_NOTHING) {
+          int optval = 0;
+          setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
+          asn_enc_rval_t encode_result = der_encode(&asn_DEF_AKIpUptaneMes, &resp->msg_, Asn1SocketWriteCallback,
+                                                    reinterpret_cast<void *>(&socket));
+          if (encode_result.encoded == -1) {
+            connection_good = false;  // Write error
+          }
+          optval = 1;
+          setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
+        } else {
+          LOG_DEBUG << "Not sending a response to message " << msg->present();
+        }
+      }
+    } else {
+      connection_good = false;
+    }
+  }  // Go back round and read another message
+
+  // Parse error => Shutdown the socket
+  // write error => Shutdown the socket
+  // Timeout on write => shutdown
+}
+
+SocketHandle SocketFromSystemdOrPort(in_port_t port) {
+  if (socket_activation::listen_fds(0) >= 1) {
+    LOG_INFO << "Using socket activation for main service";
+    return SocketHandle(new int(socket_activation::listen_fds_start));
+  }
+
+  LOG_INFO << "Received " << socket_activation::listen_fds(0)
+           << " sockets, not using socket activation for main service";
+
+  // manual socket creation
+  int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
+  if (socket_fd < 0) {
+    throw std::runtime_error("socket creation failed");
+  }
+  SocketHandle hdl(new int(socket_fd));
+  sockaddr_in6 sa{};
+
+  memset(&sa, 0, sizeof(sa));
+  sa.sin6_family = AF_INET6;
+  sa.sin6_port = htons(port);
+  sa.sin6_addr = IN6ADDR_ANY_INIT;
+
+  int v6only = 0;
+  if (setsockopt(*hdl, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only)) < 0) {
+    throw std::system_error(errno, std::system_category(), "setsockopt(IPV6_V6ONLY)");
+  }
+
+  int reuseaddr = 1;
+  if (setsockopt(*hdl, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
+    throw std::system_error(errno, std::system_category(), "setsockopt(SO_REUSEADDR)");
+  }
+
+  if (bind(*hdl, reinterpret_cast<const sockaddr *>(&sa), sizeof(sa)) < 0) {
+    throw std::system_error(errno, std::system_category(), "bind");
+  }
+
+  if (listen(*hdl, SOMAXCONN) < 0) {
+    throw std::system_error(errno, std::system_category(), "listen");
+  }
+
+  LOG_INFO << "Listening on " << Utils::ipGetSockaddr(*hdl);
+  return hdl;
+}

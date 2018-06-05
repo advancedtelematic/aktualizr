@@ -251,7 +251,6 @@ std::string KeyManager::generateUptaneKeyPair() {
     if (primary_public.empty() && !(*p11_)->readUptanePublicKey(&primary_public)) {
       throw std::runtime_error("Could not get uptane keys");
     }
-    return primary_public;
   }
   return primary_public;
 }

@@ -222,10 +222,7 @@ TEST(asn1_common, Asn1MessageSimple) {
   Asn1Message::Ptr original(Asn1Message::Empty());
   original->present(AKIpUptaneMes_PR_discoveryResp);
   Asn1Message::SubPtr<AKDiscoveryRespMes_t> req = original->discoveryResp();
-  {
-    std::string serial = "serial1234";
-    OCTET_STRING_fromBuf(&req->ecuSerial, serial.c_str(), serial.size());
-  }
+  SetString(&req->ecuSerial, "serial1234");
 
   // BER encode
   std::string buffer;

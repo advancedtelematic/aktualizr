@@ -4,6 +4,7 @@
 #include <json/json.h>
 #include <boost/filesystem.hpp>
 
+// Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
 enum KeyType {
   kED25519 = 0,
   kFirstKnownKeyType = kED25519,

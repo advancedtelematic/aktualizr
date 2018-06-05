@@ -60,39 +60,42 @@ class Asn1Message {
     }
   }
 
-#define ASN1_MESSAGE_DEFINE_ACCESSOR(MessageType, FieldName) \
-  SubPtr<MessageType> FieldName() { return Asn1Sub<MessageType>(this, &msg_.choice.FieldName); }
   AKIpUptaneMes_PR present() const { return msg_.present; }
   void present(AKIpUptaneMes_PR present) { msg_.present = present; }
 
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
+#define ASN1_MESSAGE_DEFINE_ACCESSOR(MessageType, FieldName)                                                         \
+  SubPtr<MessageType> FieldName() {                                                                                  \
+    return Asn1Sub<MessageType>(this, &msg_.choice.FieldName); /* NOLINT(cppcoreguidelines-pro-type-union-access) */ \
+  }
+
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryReqMes_t, discoveryReq);
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKDiscoveryRespMes_t, discoveryResp);
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   ASN1_MESSAGE_DEFINE_ACCESSOR(AKPublicKeyReqMes_t, publicKeyReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPublicKeyRespMes_t, publicKeyResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKManifestReqMes_t, manifestReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKManifestRespMes_t, manifestResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaReqMes_t, putMetaReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKPutMetaRespMes_t, putMetaResp);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareReqMes_t, sendFirmwareReq);
+  ASN1_MESSAGE_DEFINE_ACCESSOR(AKSendFirmwareRespMes_t, sendFirmwareResp);
 
   /**
    * The underlying message structure. This is public to simplify calls to
    * der_encode()/der_decode(). The Asn1<T> smart pointers should be used
    * in preference to poking around inside msg_.
    */
-  AKIpUptaneMes_t msg_;
+  AKIpUptaneMes_t msg_{};  // Note that this must be zero-initialized
 
  private:
   int ref_count_{0};
 
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
-  Asn1Message() { memset(&msg_, 0, sizeof(AKIpUptaneMes_t)); }
+  Asn1Message() = default;
 
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
   explicit Asn1Message(AKIpUptaneMes_t** msg) {
     if (msg != nullptr && *msg != nullptr) {
       memmove(&msg_, *msg, sizeof(AKIpUptaneMes_t));
       free(*msg);  // Be careful. This needs to be the same free() used in der_decode
       *msg = nullptr;
-    } else {
-      memset(&msg_, 0, sizeof(AKIpUptaneMes_t));
     }
   }
 };
@@ -103,8 +106,21 @@ class Asn1Message {
 int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv);
 
 /**
+ * Adaptor to write output of der_encode to a socket
+ * priv is a pointer to an int holding the fd
+ */
+int Asn1SocketWriteCallback(const void* buffer, size_t size, void* priv);
+
+/**
  * Convert OCTET_STRING_t into std::string
  */
 std::string ToString(const OCTET_STRING_t& octet_str);
 
+void SetString(OCTET_STRING_t* dest, const std::string& str);
+
+/**
+ * Open a TCP connection to client; send a message and wait for a
+ * response.
+ */
+Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_storage& client);
 #endif  // ASN1_MESSAGE_H_

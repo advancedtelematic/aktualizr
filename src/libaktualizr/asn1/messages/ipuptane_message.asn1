@@ -1,23 +1,33 @@
 IpUptane DEFINITIONS ::= BEGIN
-       	AKIpUptaneKeyType ::= ENUMERATED {
-		rsa(0),
-		ecdsa(1),
-		...
-	}
-	
-	AKIpUptaneMetadataFormat ::= ENUMERATED {
-		json(0),
-		ber(1),
+    -- Keep these in Sync with Uptane::KeyType
+    AKIpUptaneKeyType ::= ENUMERATED {
+		ed25519(0),
+		rsa2048(1),
+		rsa4096(2),
+		unknownKey(255),
 		...
 	}
 
-	AKImageMeta ::= SEQUENCE {
-		imageTimestampFormat AKIpUptaneMetadataFormat,
-		imageTimestamp OCTET STRING,
-		imageSnapshotFormat AKIpUptaneMetadataFormat,
-		imageSnapshot OCTET STRING,
-		imageTargetsFormat AKIpUptaneMetadataFormat,
-		imageTargets OCTET STRING,
+	AKInstallationResult ::= ENUMERATED {
+		success,
+		failure,
+		...
+	}
+	
+
+	-- Json format image repository metadata
+	AKImageMetaJson ::= SEQUENCE {
+		root OCTET STRING,
+		timestamp OCTET STRING,
+		snapshot OCTET STRING,
+		targets OCTET STRING,
+		...
+	}
+
+	-- Json format director metadata
+	AKDirectorMetaJson ::= SEQUENCE {
+		root OCTET STRING,
+		targets OCTET STRING,
 		...
 	}
 
@@ -48,49 +58,36 @@ IpUptane DEFINITIONS ::= BEGIN
 	}
 
 	AKManifestRespMes ::= SEQUENCE {
-		format AKIpUptaneMetadataFormat,
-		manifest OCTET STRING,
+		manifest CHOICE {
+			json OCTET STRING
+		},
 		...
 	}
 	
 
 	AKPutMetaReqMes ::= SEQUENCE {
-		directorTargetsFormat AKIpUptaneMetadataFormat,
-		directorTargets OCTET STRING,
-		imageMeta AKImageMeta OPTIONAL
+		image CHOICE {
+			json AKImageMetaJson
+		},
+		director CHOICE {
+			json AKDirectorMetaJson
+		},
+		...
 	}
 
 	AKPutMetaRespMes ::= SEQUENCE {
-		result BOOLEAN DEFAULT TRUE
-	}
-	
-	AKRootVersionReqMes ::= SEQUENCE {
-		director BOOLEAN,
+		result AKInstallationResult,
 		...
-	}
-
-	AKRootVersionRespMes ::= SEQUENCE {
-		version INTEGER,
-		...
-	}
-
-	AKPutRootReqMes ::= SEQUENCE {
-		director BOOLEAN,
-		rootFormat AKIpUptaneMetadataFormat,
-		root OCTET STRING,
-		...
-	}
-
-	AKPutRootRespMes ::= SEQUENCE {
-		result BOOLEAN DEFAULT TRUE
 	}
 	
 	AKSendFirmwareReqMes ::= SEQUENCE {
-		firmware OCTET STRING
+		firmware OCTET STRING,
+		...
 	}
 	
 	AKSendFirmwareRespMes ::= SEQUENCE {
-		result BOOLEAN DEFAULT TRUE
+		result AKInstallationResult,
+		...
 	}
 
 	AKIpUptaneMes ::= CHOICE {
@@ -102,10 +99,6 @@ IpUptane DEFINITIONS ::= BEGIN
 		manifestResp [5] AKManifestRespMes,
 		putMetaReq [6] AKPutMetaReqMes,
 		putMetaResp [7] AKPutMetaRespMes,
-		rootVersionReq [8] AKRootVersionReqMes,
-		rootVersionResp [9] AKRootVersionRespMes,
-		putRootReq [10] AKPutRootReqMes,
-		putRootResp [11] AKPutRootRespMes,
 		sendFirmwareReq [12] AKSendFirmwareReqMes,
 		sendFirmwareResp [13] AKSendFirmwareRespMes,
 		...

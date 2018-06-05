@@ -27,8 +27,6 @@ class AktualizrSecondaryCommon {
   Uptane::Targets meta_targets_;
   std::string detected_attack_;
   std::unique_ptr<Uptane::Target> target_;
-  std::mutex primaries_mutex;
-  std::map<sockaddr_storage, in_port_t> primaries_map;
 };
 
 #endif  // AKTUALIZR_SECONDARY_COMMON_H_

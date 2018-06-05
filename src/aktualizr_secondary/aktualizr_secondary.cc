@@ -9,11 +9,34 @@
 #include "package_manager/ostreemanager.h"  // TODO: Hide behind PackageManagerInterface
 #endif
 #include "socket_activation/socket_activation.h"
+#include "socket_server.h"
+#include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
+
+class SecondaryAdapter : public Uptane::SecondaryInterface {
+ public:
+  SecondaryAdapter(const Uptane::SecondaryConfig& sconfig_in, AktualizrSecondary& sec)
+      : SecondaryInterface(sconfig_in), secondary(sec) {}
+  ~SecondaryAdapter() override = default;
+
+  Uptane::EcuSerial getSerial() override { return secondary.getSerialResp(); }
+  Uptane::HardwareIdentifier getHwId() override { return secondary.getHwIdResp(); }
+  PublicKey getPublicKey() override { return secondary.getPublicKeyResp(); }
+  Json::Value getManifest() override { return secondary.getManifestResp(); }
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
+  int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
+  bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
+  bool sendFirmware(const std::string& data) override { return secondary.sendFirmwareResp(data); }
+
+ private:
+  AktualizrSecondary& secondary;
+};
 
 AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
                                        const std::shared_ptr<INvStorage>& storage)
-    : AktualizrSecondaryCommon(config, storage), conn_(config.network.port) {
+    : AktualizrSecondaryCommon(config, storage),
+      socket_server_(std_::make_unique<SecondaryAdapter>(Uptane::SecondaryConfig(), *this),
+                     SocketFromSystemdOrPort(config.network.port)) {
   // note: we don't use TlsConfig here and supply the default to
   // KeyManagerConf. Maybe we should figure a cleaner way to do that
   // (split KeyManager?)
@@ -23,112 +46,10 @@ AktualizrSecondary::AktualizrSecondary(const AktualizrSecondaryConfig& config,
   }
 }
 
-void AktualizrSecondary::run() {
-  // listen for messages
-  std::shared_ptr<SecondaryPacket> pkt;
-  while (conn_.in_channel_ >> pkt) {
-    std::unique_lock<std::mutex> lock(primaries_mutex);
+void AktualizrSecondary::run() { socket_server_.Run(); }
 
-    sockaddr_storage& peer_addr = pkt->peer_addr;
-    auto peer_port = primaries_map.find(peer_addr);
-    if (peer_port == primaries_map.end()) {
-      continue;
-    }
-
-    Utils::setSocketPort(&peer_addr, htons(peer_port->second));
-
-    std::unique_ptr<SecondaryMessage> out_msg;
-    switch (pkt->msg->mes_type) {
-      case kSecondaryMesPublicKeyReqTag: {
-        auto ret = getPublicKeyResp();
-
-        auto* out_msg_pkey = new SecondaryPublicKeyResp;
-        out_msg_pkey->type = ret.Type();
-        out_msg_pkey->key = ret.Value();
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_pkey};
-        break;
-      }
-      case kSecondaryMesManifestReqTag: {
-        auto manifest = getManifestResp();
-        LOG_TRACE << "Secondary sending manifest: " << manifest;
-        auto* out_msg_man = new SecondaryManifestResp;
-        out_msg_man->format = kSerializationJson;
-        out_msg_man->manifest = Utils::jsonToStr(manifest);
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_man};
-
-        break;
-      }
-      case kSecondaryMesPutMetaReqTag: {
-        Uptane::RawMetaPack meta_pack;
-
-        auto* in_putmeta = dynamic_cast<SecondaryPutMetaReq*>(&(*pkt->msg));
-        auto* out_msg_putmeta = new SecondaryPutMetaResp;
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_putmeta};
-
-        if (!in_putmeta->image_meta_present) {
-          LOG_ERROR << "Full verification secondary, image meta is expected";
-          out_msg_putmeta->result = false;
-          break;
-        }
-        if (in_putmeta->director_targets_format != kSerializationJson ||
-            in_putmeta->image_targets_format != kSerializationJson ||
-            in_putmeta->image_timestamp_format != kSerializationJson ||
-            in_putmeta->image_snapshot_format != kSerializationJson) {
-          LOG_ERROR << "Only JSON metadata is supported";
-          out_msg_putmeta->result = false;
-          break;
-        }
-
-        meta_pack.director_targets = in_putmeta->director_targets;
-        meta_pack.image_targets = in_putmeta->image_targets;
-        meta_pack.image_timestamp = in_putmeta->image_timestamp;
-        meta_pack.image_snapshot = in_putmeta->image_snapshot;
-        out_msg_putmeta->result = putMetadataResp(meta_pack);
-        break;
-      }
-      case kSecondaryMesRootVersionReqTag: {
-        auto* in_msg_rootversion = dynamic_cast<SecondaryRootVersionReq*>(&(*pkt->msg));
-        auto* out_msg_rootversion = new SecondaryRootVersionResp;
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_rootversion};
-
-        out_msg_rootversion->version = getRootVersionResp(in_msg_rootversion->director);
-        break;
-      }
-      case kSecondaryMesPutRootReqTag: {
-        auto* in_msg_putroot = dynamic_cast<SecondaryPutRootReq*>(&(*pkt->msg));
-        auto* out_msg_putroot = new SecondaryPutRootResp;
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_putroot};
-
-        if (in_msg_putroot->root_format != kSerializationJson) {
-          LOG_ERROR << "Only JSON metadata is supported";
-          out_msg_putroot->result = false;
-          break;
-        }
-
-        out_msg_putroot->result = putRootResp(in_msg_putroot->root, in_msg_putroot->director);
-
-        break;
-      }
-      case kSecondaryMesSendFirmwareReqTag: {
-        auto* in_msg_fw = dynamic_cast<SecondarySendFirmwareReq*>(&(*pkt->msg));
-        auto* out_msg_fw = new SecondarySendFirmwareResp;
-        out_msg = std::unique_ptr<SecondaryMessage>{out_msg_fw};
-
-        out_msg_fw->result = sendFirmwareResp(in_msg_fw->firmware);
-        break;
-      }
-      default:
-        LOG_ERROR << "Unexpected message tag: " << pkt->msg->mes_type;
-        continue;
-    }
-
-    std::shared_ptr<SecondaryPacket> out_pkt{new SecondaryPacket{peer_addr, std::move(out_msg)}};
-
-    conn_.out_channel_ << out_pkt;
-  }
+void AktualizrSecondary::stop() { /* TODO? */
 }
-
-void AktualizrSecondary::stop() { conn_.stop(); }
 
 Uptane::EcuSerial AktualizrSecondary::getSerialResp() const { return ecu_serial_; }
 

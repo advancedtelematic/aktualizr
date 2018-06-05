@@ -8,7 +8,6 @@
 
 #include "logging/logging.h"
 #include "secondary_ipc/ipuptaneconnection.h"
-#include "secondary_ipc/ipuptaneconnectionsplitter.h"
 #include "uptane/ipsecondarydiscovery.h"
 
 namespace po = boost::program_options;
@@ -44,15 +43,14 @@ int main(int argc, char **argv) {
     LOG_INFO << "Discovering finished";
     LOG_INFO << "Found " << discovered.size() << " devices";
     if (discovered.size() != 0u) {
-      LOG_TRACE << "Trying to connect with founded devices and get public key";
+      LOG_TRACE << "Trying to connect with detected devices and get public key";
+
       IpUptaneConnection ip_uptane_connection(config.network.ipuptane_port);
-      IpUptaneConnectionSplitter ip_uptane_splitter(ip_uptane_connection);
 
       std::vector<Uptane::SecondaryConfig>::const_iterator it;
       for (it = discovered.begin(); it != discovered.end(); ++it) {
         std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
         if (it->secondary_type == Uptane::kIpUptane) {
-          ip_uptane_splitter.registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
           auto public_key = sec->getPublicKey();
           LOG_INFO << "Got public key from secondary: " << public_key.ToUptane();
           auto manifest = sec->getManifest();

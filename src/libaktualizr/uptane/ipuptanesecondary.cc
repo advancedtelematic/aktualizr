@@ -1,99 +1,96 @@
 #include "ipuptanesecondary.h"
+#include "asn1/asn1_message.h"
+#include "der_encoder.h"
+#include "logging/logging.h"
 
 #include <memory>
 
 namespace Uptane {
 
-bool IpUptaneSecondary::sendRecv(std::unique_ptr<SecondaryMessage> mes, std::shared_ptr<SecondaryPacket>& resp,
-                                 std::chrono::milliseconds to) {
-  pending_messages.clear();
-  std::shared_ptr<SecondaryPacket> pkt{new SecondaryPacket{sconfig.ip_addr, std::move(mes)}};
-  connection->send(pkt);
-
-  pending_messages.setTimeout(to);
-
-  return pending_messages >> resp;
-}
-
 PublicKey IpUptaneSecondary::getPublicKey() {
-  std::shared_ptr<SecondaryPacket> resp;
+  LOG_INFO << "Getting the public key of a secondary";
+  Asn1Message::Ptr req(Asn1Message::Empty());
 
-  if (!sendRecv(std_::make_unique<SecondaryPublicKeyReq>(), resp) ||
-      (resp->msg->mes_type != kSecondaryMesPublicKeyRespTag)) {
+  req->present(AKIpUptaneMes_PR_publicKeyReq);
+
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_publicKeyResp) {
+    LOG_ERROR << "Failed to get public key response message from secondary";
     return PublicKey("", KeyType::kUnknownKey);
   }
+  auto r = resp->publicKeyResp();
 
-  auto& pkey_resp = dynamic_cast<SecondaryPublicKeyResp&>(*resp->msg);
+  std::string key = ToString(r->key);
 
-  return PublicKey(pkey_resp.key, pkey_resp.type);
+  auto type = static_cast<KeyType>(r->type);
+  return PublicKey(key, type);
 }
 
 bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
-  std::shared_ptr<SecondaryPacket> resp;
-  std::unique_ptr<SecondaryPutMetaReq> req{new SecondaryPutMetaReq()};
+  LOG_INFO << "Sending Uptane metadata to the secondary";
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_putMetaReq);
 
-  req->image_meta_present = true;
-  req->director_targets_format = kSerializationJson;
-  req->director_targets = meta_pack.director_targets;
-  req->image_snapshot_format = kSerializationJson;
-  req->image_snapshot = meta_pack.image_snapshot;
-  req->image_timestamp_format = kSerializationJson;
-  req->image_timestamp = meta_pack.image_timestamp;
-  req->image_targets_format = kSerializationJson;
-  req->image_targets = meta_pack.image_targets;
+  auto m = req->putMetaReq();
+  m->image.present = image_PR_json;
+  SetString(&m->image.choice.json.root, meta_pack.image_root);            // NOLINT
+  SetString(&m->image.choice.json.targets, meta_pack.image_targets);      // NOLINT
+  SetString(&m->image.choice.json.snapshot, meta_pack.image_snapshot);    // NOLINT
+  SetString(&m->image.choice.json.timestamp, meta_pack.image_timestamp);  // NOLINT
 
-  return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesPutMetaRespTag) &&
-         dynamic_cast<SecondaryPutMetaResp&>(*resp->msg).result;
-}
+  m->director.present = director_PR_json;
+  SetString(&m->director.choice.json.root, meta_pack.director_root);        // NOLINT
+  SetString(&m->director.choice.json.targets, meta_pack.director_targets);  // NOLINT
 
-int32_t IpUptaneSecondary::getRootVersion(const bool director) {
-  std::unique_ptr<SecondaryRootVersionReq> req{new SecondaryRootVersionReq()};
-  req->director = director;
+  auto resp = Asn1Rpc(req, getAddr());
 
-  std::shared_ptr<SecondaryPacket> resp;
-
-  if (!sendRecv(std::move(req), resp) || (resp->msg->mes_type != kSecondaryMesRootVersionRespTag)) {
-    return -1;
+  if (resp->present() != AKIpUptaneMes_PR_putMetaResp) {
+    LOG_ERROR << "Failed to get response to sending manifest to secondary";
+    return false;
   }
 
-  return dynamic_cast<SecondaryRootVersionResp&>(*resp->msg).version;
-}
-
-bool IpUptaneSecondary::putRoot(const std::string& root, const bool director) {
-  std::shared_ptr<SecondaryPacket> resp;
-
-  std::unique_ptr<SecondaryPutRootReq> req{new SecondaryPutRootReq()};
-  req->root_format = kSerializationJson;
-  req->root = root;
-  req->director = director;
-
-  return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesPutRootRespTag) &&
-         dynamic_cast<SecondaryPutRootResp&>(*resp->msg).result;
+  auto r = resp->putMetaResp();
+  return r->result == AKInstallationResult_success;
 }
 
 bool IpUptaneSecondary::sendFirmware(const std::string& data) {
-  std::shared_ptr<SecondaryPacket> resp;
-  std::unique_ptr<SecondarySendFirmwareReq> req{new SecondarySendFirmwareReq()};
-  req->firmware = data;
+  LOG_INFO << "Sending firmware` the secondary";
+  Asn1Message::Ptr req(Asn1Message::Empty());
+  req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
-  return sendRecv(std::move(req), resp) && (resp->msg->mes_type != kSecondaryMesSendFirmwareRespTag) &&
-         dynamic_cast<SecondarySendFirmwareResp&>(*resp->msg).result;
+  auto m = req->sendFirmwareReq();
+  SetString(&m->firmware, data);
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
+    LOG_ERROR << "Failed to get response to sending firmware to secondary";
+    return false;
+  }
+
+  auto r = resp->sendFirmwareResp();
+  return r->result == AKInstallationResult_success;
 }
 
 Json::Value IpUptaneSecondary::getManifest() {
-  std::shared_ptr<SecondaryPacket> resp;
+  LOG_INFO << "Getting the manifest key of a secondary";
+  Asn1Message::Ptr req(Asn1Message::Empty());
 
-  if (!sendRecv(std_::make_unique<SecondaryManifestReq>(), resp) ||
-      (resp->msg->mes_type != kSecondaryMesManifestRespTag)) {
+  req->present(AKIpUptaneMes_PR_manifestReq);
+
+  auto resp = Asn1Rpc(req, getAddr());
+
+  if (resp->present() != AKIpUptaneMes_PR_manifestResp) {
+    LOG_ERROR << "Failed to get public key response message from secondary";
     return Json::Value();
   }
+  auto r = resp->manifestResp();
 
-  auto& man_resp = dynamic_cast<SecondaryManifestResp&>(*resp->msg);
-
-  if (man_resp.format != kSerializationJson) {
+  if (r->manifest.present != manifest_PR_json) {
+    LOG_ERROR << "Manifest wasn't in json format";
     return Json::Value();
   }
-
-  return Utils::parseJSON(man_resp.manifest);
+  std::string manifest = ToString(r->manifest.choice.json);  // NOLINT
+  return Utils::parseJSON(manifest);
 }
 }  // namespace Uptane
