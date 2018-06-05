@@ -1,22 +1,12 @@
 #ifndef KEYMANAGER_H_
 #define KEYMANAGER_H_
 
-#include "crypto/p11engine.h"
-#include "http/httpinterface.h"
-#include "storage/invstorage.h"
-#include "utilities/types.h"
-#include "utilities/utils.h"
+#include "keymanager_config.h"
 
-// bundle some parts of the main config together
-// Should be derived by calling Config::keymanagerConfig()
-struct KeyManagerConfig {
-  P11Config p11;
-  CryptoSource tls_ca_source;
-  CryptoSource tls_pkey_source;
-  CryptoSource tls_cert_source;
-  KeyType uptane_key_type;
-  CryptoSource uptane_key_source;
-};
+#include "http/httpinterface.h"
+#include "p11engine.h"
+#include "storage/invstorage.h"
+#include "utilities/utils.h"
 
 class KeyManager {
  public:

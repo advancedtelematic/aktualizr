@@ -2,6 +2,7 @@ set(SOURCES crypto.cc
             keymanager.cc)
 
 set(HEADERS crypto.h
+            keymanager_config.h
             keymanager.h
             openssl_compat.h)
 
@@ -23,4 +24,4 @@ endif(BUILD_P11)
 add_aktualizr_test(NAME crypto SOURCES crypto_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME keymanager SOURCES keymanager_test.cc PROJECT_WORKING_DIRECTORY)
 
-aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11engine.h ${TEST_SOURCES})
+aktualizr_source_file_checks(p11engine.cc p11engine_dummy.cc p11_config.h p11engine.h ${TEST_SOURCES})

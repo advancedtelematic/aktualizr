@@ -5,8 +5,8 @@
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-#include "config/config.h"
-#include "logging/logging.h"
+#include "logging/logging_config.h"
+#include "storage/storage_config.h"
 
 // Try to keep the order of config options the same as in
 // AktualizrInfoConfig::writeToStream() and

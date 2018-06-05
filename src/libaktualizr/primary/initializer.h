@@ -1,4 +1,5 @@
 #include "config/config.h"
+#include "crypto/keymanager.h"
 #include "http/httpinterface.h"
 #include "uptane/secondaryinterface.h"
 

@@ -12,6 +12,7 @@
 #include "json/json.h"
 
 #include "bootstrap/bootstrap.h"
+#include "config/config.h"
 #include "crypto/crypto.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"

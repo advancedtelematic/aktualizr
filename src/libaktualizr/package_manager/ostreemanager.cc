@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <cmath>
 #include <fstream>
 
 #include <gio/gio.h>
