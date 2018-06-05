@@ -7,6 +7,7 @@
 // bundle some parts of the main config together
 // Should be derived by calling Config::keymanagerConfig()
 struct KeyManagerConfig {
+  KeyManagerConfig() = delete;  // only allow construction by initializer list
   P11Config p11;
   CryptoSource tls_ca_source;
   CryptoSource tls_pkey_source;
