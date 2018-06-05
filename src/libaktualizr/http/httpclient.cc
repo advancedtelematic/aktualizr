@@ -23,6 +23,7 @@
  *
  */
 static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp) {
+  assert(contents);
   assert(userp);
   // append the writeback data to the provided string
   (static_cast<std::string*>(userp))->append(static_cast<char*>(contents), size * nmemb);
@@ -80,6 +81,9 @@ HttpClient::~HttpClient() {
 }
 
 HttpResponse HttpClient::get(const std::string& url) {
+  // Clear POSTFIELDS to remove any lingering references to strings that have
+  // probably since been deallocated.
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   LOG_DEBUG << "GET " << url;
