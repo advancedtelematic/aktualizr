@@ -43,7 +43,7 @@ Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> stor
 
 Json::Value Repository::signManifest(const Json::Value& version_manifests) {
   Json::Value manifest;
-  manifest["primary_ecu_serial"] = primary_ecu_serial;
+  manifest["primary_ecu_serial"] = primary_ecu_serial.ToString();
   manifest["ecu_version_manifests"] = version_manifests;
 
   return keys_.signTuf(manifest);

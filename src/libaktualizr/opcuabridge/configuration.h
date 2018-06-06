@@ -14,8 +14,8 @@ class Configuration {
   Configuration() = default;
   virtual ~Configuration() = default;
 
-  const std::string& getSerial() const { return serial_; }
-  void setSerial(const std::string& serial) { serial_ = serial; }
+  const Uptane::EcuSerial& getSerial() const { return serial_; }
+  void setSerial(const Uptane::EcuSerial& serial) { serial_ = serial; }
   Uptane::HardwareIdentifier getHwId() const { return hwid_; }
   void setHwId(const Uptane::HardwareIdentifier& hwid) { hwid_ = hwid; }
   const KeyType& getPublicKeyType() const { return public_key_type_; }
@@ -38,7 +38,7 @@ class Configuration {
   KeyType public_key_type_{};
   Uptane::HardwareIdentifier hwid_{Uptane::HardwareIdentifier::Unknown()};
   std::string public_key_;
-  std::string serial_;
+  Uptane::EcuSerial serial_{Uptane::EcuSerial::Unknown()};
 
   MessageOnBeforeReadCallback<Configuration>::type on_before_read_cb_;
   MessageOnAfterWriteCallback<Configuration>::type on_after_write_cb_;
@@ -51,14 +51,14 @@ class Configuration {
     v["hwid"] = getHwId().ToString();
     v["public_key_type"] = getPublicKeyType();
     v["public_key"] = getPublicKey();
-    v["serial"] = getSerial();
+    v["serial"] = getSerial().ToString();
     return v;
   }
   void unwrapMessage(Json::Value v) {
     setHwId(Uptane::HardwareIdentifier(v["hwid"].asString()));
     setPublicKeyType(static_cast<KeyType>(v["public_key_type"].asInt()));
     setPublicKey(v["public_key"].asString());
-    setSerial(v["serial"].asString());
+    setSerial(Uptane::EcuSerial(v["serial"].asString()));
   }
 
   WRAPMESSAGE_FUCTION_DEFINITION(Configuration)

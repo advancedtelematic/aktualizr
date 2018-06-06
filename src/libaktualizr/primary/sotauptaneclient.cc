@@ -54,7 +54,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target == pacman->getCurrent();
   }
-  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
       secondaries.find(target.ecu_identifier());
   if (map_it != secondaries.end()) {
     // TODO: compare version
@@ -66,7 +66,7 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptane::Target> &targets,
-                                                         const std::string &ecu_id) {
+                                                         const Uptane::EcuSerial &ecu_id) {
   std::vector<Uptane::Target> result;
   for (auto it = targets.begin(); it != targets.end(); ++it) {
     if (it->ecu_identifier() == ecu_id) {
@@ -134,8 +134,8 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     unsigned_ecu_version["custom"] = operation_result;
   }
 
-  result[uptane_repo.getPrimaryEcuSerial()] = uptane_repo.signVersionManifest(unsigned_ecu_version);
-  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
+  result[uptane_repo.getPrimaryEcuSerial().ToString()] = uptane_repo.signVersionManifest(unsigned_ecu_version);
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
     if (secmanifest.isMember("signatures") && secmanifest.isMember("signed")) {
@@ -143,7 +143,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
       std::string canonical = Json::FastWriter().write(secmanifest["signed"]);
       bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
       if (verified) {
-        result[it->first] = secmanifest;
+        result[it->first.ToString()] = secmanifest;
       } else {
         LOG_ERROR << "Secondary manifest verification failed, manifest: " << secmanifest;
       }
@@ -324,8 +324,8 @@ void SotaUptaneClient::initSecondaries() {
       ip_uptane_splitter->registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
     }
 
-    std::string sec_serial = sec->getSerial();
-    std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+    Uptane::EcuSerial sec_serial = sec->getSerial();
+    std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
         secondaries.find(sec_serial);
     if (map_it != secondaries.end()) {
       LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
@@ -356,7 +356,7 @@ void SotaUptaneClient::verifySecondaries() {
     found[std::distance(serials.cbegin(), store_it)] = true;
   }
 
-  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
   for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);

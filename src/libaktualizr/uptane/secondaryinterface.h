@@ -21,7 +21,7 @@ class SecondaryInterface {
  public:
   explicit SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in) {}
   virtual ~SecondaryInterface() = default;
-  virtual std::string getSerial() { return sconfig.ecu_serial; }
+  virtual EcuSerial getSerial() { return Uptane::EcuSerial(sconfig.ecu_serial); }
   virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
   virtual PublicKey getPublicKey() = 0;
 

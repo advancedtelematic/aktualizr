@@ -71,6 +71,11 @@ std::ostream &Uptane::operator<<(std::ostream &os, const HardwareIdentifier &hwi
   return os;
 }
 
+std::ostream &Uptane::operator<<(std::ostream &os, const EcuSerial &ecu_serial) {
+  os << ecu_serial.ecu_serial_;
+  return os;
+}
+
 Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
   if (type == "sha512") {
     type_ = Hash::kSha512;
@@ -103,12 +108,13 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   return os;
 }
 
-Target::Target(std::string filename, const Json::Value &content) : filename_(std::move(filename)), ecu_identifier_("") {
+Target::Target(std::string filename, const Json::Value &content)
+    : filename_(std::move(filename)), ecu_identifier_(EcuSerial::Unknown()) {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
     // TODO: Hardware identifier?
     if (custom.isMember("ecuIdentifier")) {
-      ecu_identifier_ = custom["ecuIdentifier"].asString();
+      ecu_identifier_ = EcuSerial(custom["ecuIdentifier"].asString());
     }
     if (custom.isMember("targetFormat")) {
       type_ = custom["targetFormat"].asString();
@@ -130,7 +136,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
 
 Json::Value Uptane::Target::toJson() const {
   Json::Value res;
-  res["custom"]["ecuIdentifier"] = ecu_identifier_;
+  res["custom"]["ecuIdentifier"] = ecu_identifier_.ToString();
   res["custom"]["targetFormat"] = type_;
 
   std::vector<Uptane::Hash>::const_iterator it;

@@ -61,7 +61,7 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
       // (the bad value has been cached in storage)
       EcuSerials serials;
       store->loadEcuSerials(&serials);
-      serials[0].first = conf.provision.primary_ecu_serial;
+      serials[0].first = Uptane::EcuSerial(conf.provision.primary_ecu_serial);
       store->storeEcuSerials(serials);
     }
 

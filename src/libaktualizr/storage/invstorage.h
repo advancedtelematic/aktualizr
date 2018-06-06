@@ -19,13 +19,13 @@ using load_data_t = bool (INvStorage::*)(std::string*);
 
 typedef std::pair<std::string, bool> InstalledVersion;
 
-typedef std::vector<std::pair<std::string, Uptane::HardwareIdentifier>> EcuSerials;
+typedef std::vector<std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier>> EcuSerials;
 
 enum EcuState { kOld = 0, kNotRegistered };
 struct MisconfiguredEcu {
-  MisconfiguredEcu(std::string serial_in, Uptane::HardwareIdentifier hardware_id_in, EcuState state_in)
+  MisconfiguredEcu(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hardware_id_in, EcuState state_in)
       : serial(std::move(serial_in)), hardware_id(std::move(hardware_id_in)), state(state_in) {}
-  std::string serial;
+  Uptane::EcuSerial serial;
   Uptane::HardwareIdentifier hardware_id;
   EcuState state;
 };

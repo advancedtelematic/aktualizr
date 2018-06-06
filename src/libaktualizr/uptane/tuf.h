@@ -112,6 +112,37 @@ class HardwareIdentifier {
 
 std::ostream &operator<<(std::ostream &os, const HardwareIdentifier &hwid);
 
+class EcuSerial {
+ public:
+  // https://github.com/advancedtelematic/ota-tuf/blob/master/libtuf/src/main/scala/com/advancedtelematic/libtuf/data/TufDataType.scala
+  static const int kMinLength = 1;
+  static const int kMaxLength = 64;
+
+  static EcuSerial Unknown() { return EcuSerial("Unknown"); }
+  explicit EcuSerial(const std::string &ecu_serial) : ecu_serial_(ecu_serial) {
+    if (ecu_serial.length() < kMinLength) {
+      throw std::out_of_range("Ecu serial identifier is too short");
+    }
+    if (kMaxLength < ecu_serial.length()) {
+      throw std::out_of_range("Ecu serial identifier is too long");
+    }
+  }
+
+  std::string ToString() const { return ecu_serial_; }
+
+  bool operator==(const EcuSerial &rhs) const { return ecu_serial_ == rhs.ecu_serial_; }
+  bool operator!=(const EcuSerial &rhs) const { return !(*this == rhs); }
+
+  bool operator<(const EcuSerial &rhs) const { return ecu_serial_ < rhs.ecu_serial_; }
+  friend std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
+  friend struct std::hash<Uptane::EcuSerial>;
+
+ private:
+  std::string ecu_serial_;
+};
+
+std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
+
 /**
  * The hash of a file or TUF metadata.  File hashes/checksums in TUF include the length of the object, in order to
  * defeat infinite download attacks.
@@ -143,7 +174,7 @@ class Target {
   Target(std::string filename, const Json::Value &content);
 
   // TODO: ECU HW ID
-  std::string ecu_identifier() const { return ecu_identifier_; }
+  EcuSerial ecu_identifier() const { return ecu_identifier_; }
   std::string filename() const { return filename_; }
   std::string format() const { return type_; }
   std::string sha256Hash() const;
@@ -154,7 +185,7 @@ class Target {
   int64_t length() const { return length_; }
   Json::Value toJson() const;
 
-  bool IsForSecondary(const std::string &ecuIdentifier) const {
+  bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
     return (length() > 0) && (ecu_identifier() == ecuIdentifier);
   };
 
@@ -189,7 +220,7 @@ class Target {
  private:
   std::string filename_;
   std::string type_;
-  std::string ecu_identifier_;
+  EcuSerial ecu_identifier_{EcuSerial(EcuSerial::Unknown())};
   std::vector<Hash> hashes_;
   int64_t length_;
 };
@@ -343,6 +374,13 @@ namespace std {
 template <>
 struct hash<Uptane::HardwareIdentifier> {
   size_t operator()(const Uptane::HardwareIdentifier &hwid) const { return std::hash<std::string>()(hwid.hwid_); }
+};
+
+template <>
+struct hash<Uptane::EcuSerial> {
+  size_t operator()(const Uptane::EcuSerial &ecu_serial) const {
+    return std::hash<std::string>()(ecu_serial.ecu_serial_);
+  }
 };
 }  // namespace std
 

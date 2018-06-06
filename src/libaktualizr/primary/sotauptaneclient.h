@@ -30,11 +30,11 @@ class SotaUptaneClient {
   std::string secondaryTreehubCredentials() const;
 
   // ecu_serial => secondary*
-  std::map<std::string, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
 
  private:
   bool isInstalled(const Uptane::Target &target);
-  std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const std::string &ecu_id);
+  std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
@@ -65,9 +65,9 @@ class SotaUptaneClient {
 
 class SerialCompare {
  public:
-  explicit SerialCompare(std::string target_in) : target(std::move(target_in)) {}
-  bool operator()(std::pair<std::string, Uptane::HardwareIdentifier> &in) { return (in.first == target); }
+  explicit SerialCompare(Uptane::EcuSerial target_in) : target(std::move(target_in)) {}
+  bool operator()(std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &in) { return (in.first == target); }
 
  private:
-  std::string target;
+  Uptane::EcuSerial target;
 };

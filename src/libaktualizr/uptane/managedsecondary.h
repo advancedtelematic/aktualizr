@@ -20,11 +20,11 @@ class ManagedSecondary : public SecondaryInterface {
  public:
   explicit ManagedSecondary(const SecondaryConfig& sconfig_in);
 
-  std::string getSerial() override {
+  EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
-      return sconfig.ecu_serial;
+      return EcuSerial(sconfig.ecu_serial);
     }
-    return public_key_.KeyId();
+    return EcuSerial(public_key_.KeyId());
   }
   PublicKey getPublicKey() override { return public_key_; }
   bool putMetadata(const RawMetaPack& meta_pack) override;

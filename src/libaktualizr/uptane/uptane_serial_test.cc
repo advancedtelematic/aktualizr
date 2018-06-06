@@ -83,10 +83,10 @@ TEST(Uptane, RandomSerial) {
   EXPECT_TRUE(storage_2->loadEcuSerials(&ecu_serials_2));
   EXPECT_EQ(ecu_serials_1.size(), 2);
   EXPECT_EQ(ecu_serials_2.size(), 2);
-  EXPECT_FALSE(ecu_serials_1[0].first.empty());
-  EXPECT_FALSE(ecu_serials_1[1].first.empty());
-  EXPECT_FALSE(ecu_serials_2[0].first.empty());
-  EXPECT_FALSE(ecu_serials_2[1].first.empty());
+  EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
+  EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
+  EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
+  EXPECT_FALSE(ecu_serials_2[1].first.ToString().empty());
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_NE(ecu_serials_1[1].first, ecu_serials_2[1].first);
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
@@ -130,8 +130,8 @@ TEST(Uptane, ReloadSerial) {
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
-    EXPECT_FALSE(ecu_serials_1[0].first.empty());
-    EXPECT_FALSE(ecu_serials_1[1].first.empty());
+    EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
   }
 
   // Initialize new objects and load serials.
@@ -150,8 +150,8 @@ TEST(Uptane, ReloadSerial) {
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
-    EXPECT_FALSE(ecu_serials_2[0].first.empty());
-    EXPECT_FALSE(ecu_serials_2[1].first.empty());
+    EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.ToString().empty());
   }
 
   EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
@@ -194,9 +194,9 @@ TEST(Uptane, LegacySerial) {
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
-    EXPECT_FALSE(ecu_serials_1[0].first.empty());
-    EXPECT_FALSE(ecu_serials_1[1].first.empty());
-    EXPECT_FALSE(ecu_serials_1[2].first.empty());
+    EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_1[2].first.ToString().empty());
   }
 
   // Initialize new objects and load serials.
@@ -213,9 +213,9 @@ TEST(Uptane, LegacySerial) {
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);
-    EXPECT_FALSE(ecu_serials_2[0].first.empty());
-    EXPECT_FALSE(ecu_serials_2[1].first.empty());
-    EXPECT_FALSE(ecu_serials_2[2].first.empty());
+    EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_2[1].first.ToString().empty());
+    EXPECT_FALSE(ecu_serials_2[2].first.ToString().empty());
   }
 
   EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);

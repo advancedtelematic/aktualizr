@@ -17,11 +17,11 @@ class PartialVerificationSecondary : public SecondaryInterface {
  public:
   explicit PartialVerificationSecondary(const SecondaryConfig& sconfig_in);
 
-  std::string getSerial() override {
+  EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
-      return sconfig.ecu_serial;
+      return Uptane::EcuSerial(sconfig.ecu_serial);
     }
-    return public_key_.KeyId();
+    return Uptane::EcuSerial(public_key_.KeyId());
   }
   PublicKey getPublicKey() override { return public_key_; }
 

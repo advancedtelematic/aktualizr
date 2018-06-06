@@ -16,7 +16,7 @@ class OpcuaSecondary : public SecondaryInterface {
   explicit OpcuaSecondary(const SecondaryConfig& /*sconfig*/);
   ~OpcuaSecondary() override;
 
-  std::string getSerial() override;
+  Uptane::EcuSerial getSerial() override;
   Uptane::HardwareIdentifier getHwId() override;
   PublicKey getPublicKey() override;
 

@@ -22,7 +22,7 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
   void stop() override;
 
   // implementation of primary's SecondaryInterface
-  std::string getSerialResp() const;
+  Uptane::EcuSerial getSerialResp() const;
   Uptane::HardwareIdentifier getHwIdResp() const;
   PublicKey getPublicKeyResp() const;
   Json::Value getManifestResp() const;
