@@ -16,7 +16,7 @@ else()
   message(FATAL_ERROR "Unknown storage type: ${storage_type}")
 endif()
 
-set(HEADERS ${HEADERS} invstorage.h)
+set(HEADERS ${HEADERS} storage_config.h invstorage.h)
 set(SOURCES ${SOURCES} invstorage.cc)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})

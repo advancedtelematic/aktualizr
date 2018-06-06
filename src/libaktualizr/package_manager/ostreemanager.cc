@@ -31,14 +31,14 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
   if (status != nullptr && *status != '\0') {
     LOG_INFO << "ostree-pull: " << status;
   } else if (outstanding_fetches != 0) {
-    float fetched = ostree_async_progress_get_uint(progress, "fetched");
+    guint fetched = ostree_async_progress_get_uint(progress, "fetched");
     guint metadata_fetched = ostree_async_progress_get_uint(progress, "metadata-fetched");
     guint requested = ostree_async_progress_get_uint(progress, "requested");
     if (scanning != 0 || outstanding_metadata_fetches != 0) {
       LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
                << " outstanding: " << outstanding_metadata_fetches;
     } else {
-      guint calculated = round(((fetched) / requested) * 100);
+      guint calculated = (fetched * 100) / requested;
       if (calculated != *percent_complete) {
         LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
         *percent_complete = calculated;

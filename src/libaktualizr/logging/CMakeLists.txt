@@ -6,7 +6,7 @@ else()
   message(FATAL_ERROR "Unknown logger type: ${logger_type}")
 endif()
 
-set(HEADERS logging.h)
+set(HEADERS logging_config.h logging.h)
 
 add_library(logging OBJECT ${SOURCES})
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})

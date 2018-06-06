@@ -9,6 +9,7 @@
 
 #include "bootstrap/bootstrap.h"
 #include "config/config.h"
+#include "crypto/crypto.h"
 #include "test_utils.h"
 #include "utilities/utils.h"
 

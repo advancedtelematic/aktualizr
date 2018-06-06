@@ -4,8 +4,8 @@
 #include <string>
 #include <utility>
 
-#include "config/config.h"
-#include "package_manager/packagemanagerinterface.h"
+#include "packagemanagerconfig.h"
+#include "packagemanagerinterface.h"
 #include "utilities/types.h"
 
 #include "storage/invstorage.h"

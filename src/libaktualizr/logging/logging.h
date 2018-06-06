@@ -2,7 +2,8 @@
 #define SOTA_CLIENT_TOOLS_LOGGING_H_
 
 #include <boost/log/trivial.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+
+#include "logging_config.h"
 
 /** Log an unrecoverable error */
 #define LOG_FATAL BOOST_LOG_TRIVIAL(fatal)
@@ -22,13 +23,6 @@
 
 /** Report very-verbose debugging information */
 #define LOG_TRACE BOOST_LOG_TRIVIAL(trace)
-
-struct LoggerConfig {
-  int loglevel{2};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
 
 // Use like:
 // curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
