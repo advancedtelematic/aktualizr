@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import platform
-import re
-import shutil
 import subprocess
 import sys
 import tempfile
 
 from pathlib import Path
-from time import sleep
+
+import prov_test_common
 
 
 def main():
@@ -26,57 +24,34 @@ def main():
 
 
 CONFIG_TEMPLATE = '''
-        [pacman]
-        type = "none"
+[pacman]
+type = "none"
 
-        [provision]
-        provision_path = "{creds}"
+[provision]
+provision_path = "{creds}"
 
-        [storage]
-        path = "{tmp_dir}"
-        type = "sqlite"
-        sqldb_path = "{db}"
+[storage]
+path = "{tmp_dir}"
+type = "sqlite"
+sqldb_path = "{db}"
 '''
 
 
-def provision(tmp_dir, build_dir, src_dir, creds_in):
-    creds = tmp_dir / creds_in.name
-    shutil.copyfile(str(creds_in), str(creds))
+def provision(tmp_dir, build_dir, src_dir, creds):
     db = tmp_dir / 'sql.db'
-    conf = tmp_dir / 'config.toml'
+    conf = tmp_dir / '20-auto_prov.toml'
     with conf.open('w') as f:
         f.write(CONFIG_TEMPLATE.format(creds=creds, tmp_dir=tmp_dir, db=db))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
 
+    r = 1
     with subprocess.Popen([str(akt), '--config', str(conf)]) as proc:
         try:
-            # Verify that device HAS provisioned.
-            for delay in [5, 5, 5, 5, 10, 10, 10, 10]:
-                sleep(delay)
-                stdout, stderr, retcode = run_aktualizr_info([str(akt_info), '--config', str(conf)])
-                if retcode == 0 and stderr == b'' and 'Fetched metadata: yes' in stdout.decode():
-                    break
-            machine = platform.node()
-            if (b'Device ID: ' not in stdout or
-                    b'Primary ecu hardware ID: ' + machine.encode() not in stdout or
-                    b'Fetched metadata: yes' not in stdout):
-                print('Provisioning failed: ' + stderr.decode() + stdout.decode())
-                return 1
-            p = re.compile(r'Device ID: ([a-z0-9-]*)\n')
-            m = p.search(stdout.decode())
-            if not m or m.lastindex <= 0:
-                print('Device ID could not be read: ' + stderr.decode() + stdout.decode())
-                return 1
-            print('Device successfully provisioned with ID: ' + m.group(1))
+            r = prov_test_common.verify_provisioned(akt_info, conf)
         finally:
             proc.kill()
-    return 0
-
-
-def run_aktualizr_info(command):
-    s = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    return s.stdout, s.stderr, s.returncode
+    return r
 
 
 if __name__ == '__main__':
