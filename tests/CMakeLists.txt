@@ -18,6 +18,7 @@ add_dependencies(build_tests aktualizr)
 
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
+    add_dependencies(build_tests garage-check)
 endif(BUILD_SOTA_TOOLS)
 
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
@@ -25,6 +26,8 @@ include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp"
 add_dependencies(build_tests aktualizr-secondary)
 
 add_dependencies(build_tests aktualizr-info)
+
+add_dependencies(build_tests aktualizr-repo)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
 
