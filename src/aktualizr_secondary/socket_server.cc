@@ -29,15 +29,13 @@ void SocketServer::Run() {
 }
 
 void SocketServer::HandleOneConnection(int socket) {
-  bool connection_good = true;
-
   // Outside the message loop, because one recv() may have parts of 2 messages
   // Note that one recv() call returning 2+ messages doesn't work at the
   // moment. This shouldn't be a problem until we have messages that aren't
   // strictly request/response
   DequeueBuffer buffer;
 
-  while (connection_good) {
+  while (true) {  // Keep reading until we get an error
     // Read an incomming message
     AKIpUptaneMes_t *m = nullptr;
     asn_dec_rval_t res;
@@ -53,83 +51,81 @@ void SocketServer::HandleOneConnection(int socket) {
     // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
-    if (res.code == RC_OK) {
-      // Figure out what to do with the message
-      Asn1Message::Ptr resp = Asn1Message::Empty();
-      switch (msg->present()) {
-        case AKIpUptaneMes_PR_publicKeyReq: {
-          PublicKey pk = impl_->getPublicKey();
-          resp->present(AKIpUptaneMes_PR_publicKeyResp);
-          auto r = resp->publicKeyResp();
-          r->type = static_cast<AKIpUptaneKeyType_t>(pk.Type());
-          SetString(&r->key, pk.Value());
-        } break;
-        case AKIpUptaneMes_PR_manifestReq: {
-          std::string manifest = Utils::jsonToStr(impl_->getManifest());
-          resp->present(AKIpUptaneMes_PR_manifestResp);
-          auto r = resp->manifestResp();
-          r->manifest.present = manifest_PR_json;
-          SetString(&r->manifest.choice.json, manifest);  // NOLINT
-        } break;
-        case AKIpUptaneMes_PR_putMetaReq: {
-          auto md = msg->putMetaReq();
-          Uptane::RawMetaPack meta_pack;
-          if (md->image.present == image_PR_json) {
-            meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
-            meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
-            meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
-            meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
-          } else {
-            LOG_WARNING << "Images metadata in unknown format:" << md->image.present;
-          }
+    if (res.code != RC_OK) {
+      return;  // Either an error or the client closed the socket
+    }
 
-          if (md->director.present == director_PR_json) {
-            meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
-            meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
-          } else {
-            LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
-          }
-          bool ok;
-          try {
-            ok = impl_->putMetadata(meta_pack);
-          } catch (Uptane::SecurityException &e) {
-            LOG_WARNING << "Rejected metadata push because of security failure" << e.what();
-            ok = false;
-          }
-          resp->present(AKIpUptaneMes_PR_putMetaResp);
-          auto r = resp->putMetaResp();
-          r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
-        } break;
-        case AKIpUptaneMes_PR_sendFirmwareReq: {
-          auto fw = msg->sendFirmwareReq();
-          bool ok = impl_->sendFirmware(ToString(fw->firmware));
-          resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
-          auto r = msg->sendFirmwareResp();
-          r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
-        } break;
-        default:
-          LOG_ERROR << "Unrecognised message type:" << msg->present();
-          connection_good = false;
-      }
-
-      // Send the response
-      if (connection_good) {
-        if (resp->present() != AKIpUptaneMes_PR_NOTHING) {
-          int optval = 0;
-          setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
-          asn_enc_rval_t encode_result = der_encode(&asn_DEF_AKIpUptaneMes, &resp->msg_, Asn1SocketWriteCallback,
-                                                    reinterpret_cast<void *>(&socket));
-          if (encode_result.encoded == -1) {
-            connection_good = false;  // Write error
-          }
-          optval = 1;
-          setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
+    // Figure out what to do with the message
+    Asn1Message::Ptr resp = Asn1Message::Empty();
+    switch (msg->present()) {
+      case AKIpUptaneMes_PR_publicKeyReq: {
+        PublicKey pk = impl_->getPublicKey();
+        resp->present(AKIpUptaneMes_PR_publicKeyResp);
+        auto r = resp->publicKeyResp();
+        r->type = static_cast<AKIpUptaneKeyType_t>(pk.Type());
+        SetString(&r->key, pk.Value());
+      } break;
+      case AKIpUptaneMes_PR_manifestReq: {
+        std::string manifest = Utils::jsonToStr(impl_->getManifest());
+        resp->present(AKIpUptaneMes_PR_manifestResp);
+        auto r = resp->manifestResp();
+        r->manifest.present = manifest_PR_json;
+        SetString(&r->manifest.choice.json, manifest);  // NOLINT
+      } break;
+      case AKIpUptaneMes_PR_putMetaReq: {
+        auto md = msg->putMetaReq();
+        Uptane::RawMetaPack meta_pack;
+        if (md->image.present == image_PR_json) {
+          meta_pack.image_root = ToString(md->image.choice.json.root);            // NOLINT
+          meta_pack.image_targets = ToString(md->image.choice.json.targets);      // NOLINT
+          meta_pack.image_snapshot = ToString(md->image.choice.json.snapshot);    // NOLINT
+          meta_pack.image_timestamp = ToString(md->image.choice.json.timestamp);  // NOLINT
         } else {
-          LOG_DEBUG << "Not sending a response to message " << msg->present();
+          LOG_WARNING << "Images metadata in unknown format:" << md->image.present;
         }
+
+        if (md->director.present == director_PR_json) {
+          meta_pack.director_root = ToString(md->director.choice.json.root);        // NOLINT
+          meta_pack.director_targets = ToString(md->director.choice.json.targets);  // NOLINT
+        } else {
+          LOG_WARNING << "Director metadata in unknown format:" << md->director.present;
+        }
+        bool ok;
+        try {
+          ok = impl_->putMetadata(meta_pack);
+        } catch (Uptane::SecurityException &e) {
+          LOG_WARNING << "Rejected metadata push because of security failure" << e.what();
+          ok = false;
+        }
+        resp->present(AKIpUptaneMes_PR_putMetaResp);
+        auto r = resp->putMetaResp();
+        r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
+      } break;
+      case AKIpUptaneMes_PR_sendFirmwareReq: {
+        auto fw = msg->sendFirmwareReq();
+        bool ok = impl_->sendFirmware(ToString(fw->firmware));
+        resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
+        auto r = msg->sendFirmwareResp();
+        r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
+      } break;
+      default:
+        LOG_ERROR << "Unrecognised message type:" << msg->present();
+        return;
+    }
+
+    // Send the response
+    if (resp->present() != AKIpUptaneMes_PR_NOTHING) {
+      int optval = 0;
+      setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
+      asn_enc_rval_t encode_result =
+          der_encode(&asn_DEF_AKIpUptaneMes, &resp->msg_, Asn1SocketWriteCallback, reinterpret_cast<void *>(&socket));
+      if (encode_result.encoded == -1) {
+        return;  // write error
       }
+      optval = 1;
+      setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(int));
     } else {
-      connection_good = false;
+      LOG_DEBUG << "Not sending a response to message " << msg->present();
     }
   }  // Go back round and read another message
 
