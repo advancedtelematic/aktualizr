@@ -82,11 +82,11 @@ add_dependencies(build_tests aktualizr_uptane_vector_tests)
 set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
 
 if(SOTA_PACKED_CREDENTIALS)
-    add_test(NAME test_prov COMMAND ${PROJECT_SOURCE_DIR}/tests/prov_test.py
+    add_test(NAME auto_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/auto_prov_test.py
              --build-dir ${PROJECT_BINARY_DIR}
              --src-dir ${PROJECT_SOURCE_DIR}
              --credentials ${SOTA_PACKED_CREDENTIALS})
-    set_tests_properties(test_prov PROPERTIES LABELS "credentials")
+    set_tests_properties(auto_prov_test PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 
