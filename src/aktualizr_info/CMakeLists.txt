@@ -6,10 +6,6 @@ add_executable(aktualizr-info ${AKTUALIZR_INFO_SRC})
 target_link_libraries(aktualizr-info aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(aktualizr-info gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 install(TARGETS aktualizr-info
         COMPONENT aktualizr
         RUNTIME DESTINATION bin)

@@ -3,10 +3,6 @@ add_executable(aktualizr_implicit_writer main.cc)
 
 target_link_libraries(aktualizr_implicit_writer aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(aktualizr_implicit_writer gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 aktualizr_source_file_checks(main.cc)
 
 # The tests run aktualizr_implicit_writer

@@ -39,11 +39,6 @@ if (BUILD_SOTA_TOOLS)
 
     target_link_libraries(garage-push sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
-
-    if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(garage-push gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
-
     install(TARGETS garage-push RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
@@ -57,10 +52,6 @@ if (BUILD_SOTA_TOOLS)
 
     target_link_libraries(garage-check sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
-    if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(garage-check gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
-
     install(TARGETS garage-check RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
@@ -73,10 +64,6 @@ set (GARAGE_DEPLOY_SRCS
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
     target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
-
-    if(BUILD_WITH_CODE_COVERAGE)
-        target_link_libraries(garage-deploy gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
 
     add_definitions(-DGARAGE_DEPLOY_VERSION="${AKTUALIZR_VERSION}")
 
@@ -145,10 +132,6 @@ if (BUILD_SOTA_TOOLS)
     target_link_libraries(t_rate_controller
                         sota_tools_static_lib
                         ${Boost_LIBRARIES})
-    # Setup coverage for sota_tools_static_lib
-    if(BUILD_WITH_CODE_COVERAGE)
-        target_compile_options(sota_tools_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
-    endif(BUILD_WITH_CODE_COVERAGE)
 
     # Check the --help option works
     add_test(NAME option-help
