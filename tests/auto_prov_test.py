@@ -11,7 +11,7 @@ import prov_test_common
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run a local provisioning test with aktualizr')
+    parser = argparse.ArgumentParser(description='Run a local automatic provisioning test with aktualizr')
     parser.add_argument('--build-dir', '-b', type=Path, default=Path('../build'), help='build directory')
     parser.add_argument('--src-dir', '-s', type=Path, default=Path('../'), help='source directory (parent of src/)')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')

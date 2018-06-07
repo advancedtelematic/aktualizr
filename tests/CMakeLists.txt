@@ -87,6 +87,12 @@ if(SOTA_PACKED_CREDENTIALS)
              --src-dir ${PROJECT_SOURCE_DIR}
              --credentials ${SOTA_PACKED_CREDENTIALS})
     set_tests_properties(auto_prov_test PROPERTIES LABELS "credentials")
+
+    add_test(NAME implicit_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/implicit_prov_test.py
+             --build-dir ${PROJECT_BINARY_DIR}
+             --src-dir ${PROJECT_SOURCE_DIR}
+             --credentials ${SOTA_PACKED_CREDENTIALS})
+    set_tests_properties(implicit_prov_test PROPERTIES LABELS "credentials")
 endif(SOTA_PACKED_CREDENTIALS)
 
 
