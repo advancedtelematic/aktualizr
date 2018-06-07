@@ -14,11 +14,11 @@
 void SocketServer::Run() {
   while (true) {
     int con_fd;
-    std::unique_ptr<sockaddr_storage> peer_sa(new sockaddr_storage);
-    socklen_t other_sasize = sizeof(*peer_sa);
+    sockaddr_storage peer_sa{};
+    socklen_t peer_sa_size = sizeof(sockaddr_storage);
 
     LOG_DEBUG << "Waiting for connection from client...";
-    if ((con_fd = accept(*socket_, reinterpret_cast<sockaddr *>(peer_sa.get()), &other_sasize)) == -1) {
+    if ((con_fd = accept(*socket_, reinterpret_cast<sockaddr *>(&peer_sa), &peer_sa_size)) == -1) {
       LOG_INFO << "Socket accept failed. aborting";
       break;
     }
