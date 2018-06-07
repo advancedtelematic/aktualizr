@@ -31,7 +31,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
       ("config-input,i", bpo::value<boost::filesystem::path>()->required(), "input sota.toml configuration file")
       ("config-output,o", bpo::value<boost::filesystem::path>()->required(), "output sota.toml configuration file")
-      ("prefix,p", bpo::value<boost::filesystem::path>(), "prefix for root CA output path")
+      ("root-ca-path,r", bpo::value<boost::filesystem::path>()->default_value("/usr/lib/sota/root.crt"), "root CA output path")
+      ("prefix,p", bpo::value<boost::filesystem::path>(), "installation prefix for root CA output path")
       ("no-root-ca", "don't overwrite root CA path");
   // clang-format on
 
@@ -76,7 +77,8 @@ int main(int argc, char *argv[]) {
   boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
   boost::filesystem::path config_in_path = commandline_map["config-input"].as<boost::filesystem::path>();
   boost::filesystem::path config_out_path = commandline_map["config-output"].as<boost::filesystem::path>();
-  bool no_root = (commandline_map.count("no-root-ca") != 0);
+  boost::filesystem::path cacert_path = commandline_map["root-ca-path"].as<boost::filesystem::path>();
+  const bool no_root = (commandline_map.count("no-root-ca") != 0);
 
   boost::filesystem::path prefix = "";
   if (commandline_map.count("prefix") != 0) {
@@ -95,9 +97,8 @@ int main(int argc, char *argv[]) {
   sink << "server = \"" << Bootstrap::readServerUrl(credentials_path) << "\"\n\n";
 
   if (!no_root) {
-    std::string cacert_path = "/usr/lib/sota/root.crt";
     sink << "[import]\n";
-    sink << "tls_cacert_path = \"" << cacert_path << "\"\n\n";
+    sink << "tls_cacert_path = \"" << cacert_path.string() << "\"\n\n";
 
     std::string server_ca = Bootstrap::readServerCa(credentials_path);
     if (server_ca.empty()) {
@@ -108,8 +109,7 @@ int main(int argc, char *argv[]) {
       std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
     }
 
-    boost::filesystem::path ca_path(prefix);
-    ca_path /= cacert_path;
+    boost::filesystem::path ca_path(prefix / cacert_path);
     std::cout << "Writing root CA: " << ca_path << "\n";
     Utils::writeFile(ca_path, server_ca);
   }
