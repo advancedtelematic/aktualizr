@@ -17,10 +17,10 @@
 #include "utilities/config_utils.h"
 #include "utilities/types.h"
 
+#include "bootloader/bootloader.h"
 #include "crypto/keymanager_config.h"
 #include "crypto/p11_config.h"
 #include "logging/logging_config.h"
-#include "bootloader/bootloader.h"
 #include "package_manager/packagemanagerconfig.h"
 #include "storage/storage_config.h"
 #include "telemetry/telemetryconfig.h"

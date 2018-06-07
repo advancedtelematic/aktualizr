@@ -1,4 +1,4 @@
-set(HEADERS bootloader.h)
+set(HEADERS bootloader.h bootloader_config.h)
 set(SOURCES bootloader.cc)
 
 aktualizr_source_file_checks(${HEADERS} ${SOURCES})
