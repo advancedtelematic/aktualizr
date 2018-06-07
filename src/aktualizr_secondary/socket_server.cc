@@ -105,7 +105,7 @@ void SocketServer::HandleOneConnection(int socket) {
         auto fw = msg->sendFirmwareReq();
         bool ok = impl_->sendFirmware(ToString(fw->firmware));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
-        auto r = msg->sendFirmwareResp();
+        auto r = resp->sendFirmwareResp();
         r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
       } break;
       default:

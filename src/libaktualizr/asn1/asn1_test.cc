@@ -250,6 +250,20 @@ TEST(asn1_common, Asn1MessageSimple) {
   EXPECT_EQ(ToString(resp->ecuSerial), "serial1234");
 }
 
+TEST(asn1_common, parse) {
+  std::string data = Utils::fromBase64("rAowCAQGaGVsbG8K");
+  // BER decode
+  asn_codec_ctx_t context;
+  memset(&context, 0, sizeof(context));
+
+  AKIpUptaneMes_t* m = nullptr;
+  asn_dec_rval_t res =
+      ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), data.c_str(), data.size());
+  Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
+  EXPECT_EQ(res.code, RC_OK);
+  EXPECT_EQ(AKIpUptaneMes_PR_sendFirmwareReq, msg->present());
+}
+
 TEST(asn1_common, Asn1MessageFromRawNull) {
   Asn1Message::FromRaw(nullptr);
   AKIpUptaneMes_t* m = nullptr;
