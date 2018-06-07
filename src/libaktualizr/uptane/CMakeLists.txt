@@ -8,6 +8,8 @@ set(SOURCES fetcher.cc
     root.cc
     tuf.cc
     uptanerepository.cc
+    directorrepository.cc
+    imagesrepository.cc
     virtualsecondary.cc)
 
 set(HEADERS exceptions.h
@@ -22,6 +24,8 @@ set(HEADERS exceptions.h
     secondaryinterface.h
     tuf.h
     uptanerepository.h
+    directorrepository.h
+    imagesrepository.h
     virtualsecondary.h)
 
 

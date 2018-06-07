@@ -43,9 +43,14 @@ int main(int argc, char **argv) {
     std::cout << "Storage backend: " << ((storage->type() == StorageType::kFileSystem) ? "Filesystem" : "Sqlite")
               << std::endl;
 
-    Uptane::RawMetaPack pack;
-
-    bool has_metadata = storage->loadMetadata(&pack);
+    std::string director_root;
+    std::string director_targets;
+    std::string images_root;
+    std::string images_targets;
+    bool has_metadata = storage->loadRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root());
+    storage->loadRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+    storage->loadRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root());
+    storage->loadRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
 
     std::string device_id;
     if (!storage->loadDeviceId(&device_id)) {
@@ -90,22 +95,22 @@ int main(int argc, char **argv) {
     if (has_metadata) {
       if (vm.count("images-root") != 0u) {
         std::cout << "image root.json content:" << std::endl;
-        std::cout << pack.image_root;
+        std::cout << images_root;
       }
 
       if (vm.count("images-target") != 0u) {
         std::cout << "image targets.json content:" << std::endl;
-        std::cout << pack.image_targets;
+        std::cout << images_targets;
       }
 
       if (vm.count("director-root") != 0u) {
         std::cout << "director root.json content:" << std::endl;
-        std::cout << pack.director_root;
+        std::cout << director_root;
       }
 
       if (vm.count("director-target") != 0u) {
         std::cout << "director targets.json content:" << std::endl;
-        std::cout << pack.director_targets;
+        std::cout << director_targets;
       }
     }
 

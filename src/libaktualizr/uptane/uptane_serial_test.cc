@@ -65,16 +65,22 @@ TEST(Uptane, RandomSerial) {
   HttpFake http1(temp_dir1.Path());
   HttpFake http2(temp_dir2.Path());
 
-  Uptane::Repository uptane_1(conf_1, storage_1);
+  Uptane::DirectorRepository director_repo_1;
+  Uptane::ImagesRepository images_repo_1;
+  Uptane::Manifest uptane_manifest_1{conf_1, storage_1};
   Bootloader bootloader_1{conf_1.bootloader};
   ReportQueue report_queue1(conf_1, http1);
-  SotaUptaneClient uptane_client1(conf_1, nullptr, uptane_1, storage_1, http1, bootloader_1, report_queue1);
+  SotaUptaneClient uptane_client1(conf_1, NULL, director_repo_1, images_repo_1, uptane_manifest_1, storage_1, http1,
+                                  bootloader_1, report_queue1);
   EXPECT_TRUE(uptane_client1.initialize());
 
-  Uptane::Repository uptane_2(conf_2, storage_2);
+  Uptane::DirectorRepository director_repo_2;
+  Uptane::ImagesRepository images_repo_2;
+  Uptane::Manifest uptane_manifest_2{conf_2, storage_2};
   Bootloader bootloader_2{conf_2.bootloader};
   ReportQueue report_queue2(conf_2, http2);
-  SotaUptaneClient uptane_client2(conf_2, nullptr, uptane_2, storage_2, http2, bootloader_2, report_queue2);
+  SotaUptaneClient uptane_client2(conf_2, NULL, director_repo_2, images_repo_2, uptane_manifest_2, storage_2, http1,
+                                  bootloader_2, report_queue2);
   EXPECT_TRUE(uptane_client2.initialize());
 
   EcuSerials ecu_serials_1;
@@ -126,10 +132,13 @@ TEST(Uptane, ReloadSerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage);
+    Uptane::DirectorRepository director_repo;
+    Uptane::ImagesRepository images_repo;
+    Uptane::Manifest uptane_manifest{conf, storage};
     Bootloader bootloader{conf.bootloader};
     ReportQueue report_queue(conf, http);
-    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
+    SotaUptaneClient uptane_client(conf, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
+                                   report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
@@ -148,10 +157,13 @@ TEST(Uptane, ReloadSerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage);
+    Uptane::DirectorRepository director_repo;
+    Uptane::ImagesRepository images_repo;
+    Uptane::Manifest uptane_manifest{conf, storage};
     Bootloader bootloader{conf.bootloader};
     ReportQueue report_queue(conf, http);
-    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
+    SotaUptaneClient uptane_client(conf, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
+                                   report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
@@ -194,10 +206,13 @@ TEST(Uptane, LegacySerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage);
+    Uptane::DirectorRepository director_repo;
+    Uptane::ImagesRepository images_repo;
+    Uptane::Manifest uptane_manifest{conf, storage};
     Bootloader bootloader{conf.bootloader};
     ReportQueue report_queue(conf, http);
-    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
+    SotaUptaneClient uptane_client(conf, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
+                                   report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
@@ -215,10 +230,13 @@ TEST(Uptane, LegacySerial) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage);
+    Uptane::DirectorRepository director_repo;
+    Uptane::ImagesRepository images_repo;
+    Uptane::Manifest uptane_manifest{conf, storage};
     Bootloader bootloader{conf.bootloader};
     ReportQueue report_queue(conf, http);
-    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
+    SotaUptaneClient uptane_client(conf, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
+                                   report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);

@@ -1,0 +1,57 @@
+
+{
+	"signatures" : 
+	[
+		
+		{
+			"keyid" : "aac6eafdf86b4d7fe81b7962d5dc89f40f2cf36211b1322e1adc599f5849aa80",
+			"method" : "rsassa-pss",
+			"sig" : "ojbAjNRNJZFTb129eQcdMw9lJs5l2DFTtC1Kr1gYapy7PK1BAsv3NbMKZGcRpdD8RjM5pkdtZNZyoy7ySOtMbX4SLwWqBHJt4fKjejR9kzrArb2Xa0xY5JjtC7/iO1Kfy5rMzm3wKrWURBOdfBdQD9wLVn888Ppqr+sRCaDzaMwsU05KWnIlxkmSRucRVvc+h7hdo7NJr14o+m7xXiTvMpdaySehyepDo7Bn/+EyoP5spXrH97ibXYOEpv3DFYw4ZifZZnXZGEIIb3hBQpyJfcWnY3XZdq4NpRm/kMQBkkNUhh44MSOOlLQqVE5w+fVKBhT/gaAbGaCzv20MV1+Nqg=="
+		}
+	],
+	"signed" : 
+	{
+		"_type" : "Targets",
+		"expires" : "2021-06-22T10:17:06Z",
+		"targets" : 
+		{
+			"primary_firmware.txt" : 
+			{
+				"custom" : 
+				{
+					"ecuIdentifiers" : 
+					{
+						"CA:FE:A6:D2:84:9D" : 
+						{
+							"hardwareId" : "primary_hw"
+						}
+					}
+				},
+				"hashes" : 
+				{
+					"sha256" : "74e653bbf6c00a88b21f0992159b1002f5af38506e6d2fbc7eb9846711b2d75f"
+				},
+				"length" : 59
+			},
+			"secondary_firmware.txt" : 
+			{
+				"custom" : 
+				{
+					"ecuIdentifiers" : 
+					{
+						"secondary_ecu_serial" : 
+						{
+							"hardwareId" : "secondary_hw"
+						}
+					}
+				},
+				"hashes" : 
+				{
+					"sha256" : "1bbb15aa921ffffd5079567d630f43298dbe5e7cbc1b14e0ccdd6718fde28e47"
+				},
+				"length" : 15
+			}
+		},
+		"version" : 2
+	}
+}

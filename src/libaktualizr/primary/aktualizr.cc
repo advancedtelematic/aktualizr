@@ -43,9 +43,12 @@ int Aktualizr::run() {
   storage->importData(config_.import);
   HttpClient http;
   ReportQueue report_queue(config_, http);
-  Uptane::Repository repo(config_, storage);
+  Uptane::DirectorRepository director_repo;
+  Uptane::ImagesRepository images_repo;
+  Uptane::Manifest uptane_manifest{config_, storage};
   Bootloader bootloader(config_.bootloader);
-  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http, bootloader, report_queue);
+  SotaUptaneClient uptane_client(config_, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
+                                 bootloader, report_queue);
   uptane_client.runForever(commands_channel);
 
   return EXIT_SUCCESS;

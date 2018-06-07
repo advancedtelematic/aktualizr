@@ -10,9 +10,8 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
-#include "uptane/fetcher.h"
-#include "uptane/uptanerepository.h"
 #include "utilities/utils.h"
 
 bool match_error(Json::Value error, Uptane::Exception* e) {
@@ -36,30 +35,24 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = port + "/aktualizr_repos";
-  config.pacman.os = "myos";
-  config.pacman.sysroot = "./sysroot";
+  config.pacman.type = PackageManager::kNone;
+  // config.pacman.os = "myos";
+  // config.pacman.sysroot = "./sysroot";
 
   try {
     auto storage = INvStorage::newStorage(config.storage);
     HttpClient http;
-    Uptane::Repository repo(config, storage);
-    Uptane::Fetcher fetcher(config, storage, http);
+    Uptane::DirectorRepository director_repo;
+    Uptane::ImagesRepository images_repo;
+    Uptane::Manifest uptane_manifest{config, storage};
+    std::shared_ptr<event::Channel> events_channel{new event::Channel};
 
-    if (!fetcher.fetchMeta()) return false;
-    if (!fetcher.fetchRoot(true, Uptane::Version(1))) return false;
-    if (!fetcher.fetchRoot(false, Uptane::Version(1))) return false;
-    if (!repo.feedCheckRoot(true, Uptane::Version(1))) {
-      throw repo.getLastException();
-    }
-    if (!repo.feedCheckRoot(false, Uptane::Version(1))) {
-      throw repo.getLastException();
-    }
-    if (!repo.feedCheckMeta()) {
-      throw repo.getLastException();
-    }
-    auto targets = repo.getTargets();
-    for (auto it = targets.second.begin(); it != targets.second.end(); ++it) {
-      fetcher.fetchTarget(*it);
+    Bootloader bootloader(config.bootloader);
+    ReportQueue report_queue(config, http);
+    SotaUptaneClient uptane_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
+                                   bootloader, report_queue);
+    if (!uptane_client.uptaneIteration()) {
+      throw uptane_client.getLastException();
     }
 
   } catch (Uptane::Exception e) {

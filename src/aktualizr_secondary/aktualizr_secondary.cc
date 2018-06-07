@@ -67,8 +67,9 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   detected_attack_.clear();
 
-  root_ = Uptane::Root(now, "director", Utils::parseJSON(meta_pack.director_root), root_);
-  Uptane::Targets targets(now, "director", Utils::parseJSON(meta_pack.director_targets), root_);
+  // TODO: proper partial verification
+  root_ = Uptane::Root(Uptane::RepositoryType::Director, Utils::parseJSON(meta_pack.director_root), root_);
+  Uptane::Targets targets(Uptane::RepositoryType::Director, Utils::parseJSON(meta_pack.director_targets), root_);
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
@@ -86,22 +87,23 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
       target_ = std_::make_unique<Uptane::Target>(*it);
     }
   }
-  storage_->storeMetadata(meta_pack);
+  storage_->storeRole(meta_pack.director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(),
+                      Uptane::Version(root_.version()));
+  storage_->storeRole(meta_pack.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets(),
+                      Uptane::Version(meta_targets_.version()));
+
   return true;
 }
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
-  Uptane::RawMetaPack meta_pack;
-  if (!storage_->loadMetadata(&meta_pack)) {
-    LOG_ERROR << "Could not load metadata";
+  std::string root_meta;
+  if (!storage_->loadRole(&root_meta, (director) ? Uptane::RepositoryType::Director : Uptane::RepositoryType::Images,
+                          Uptane::Role::Root())) {
+    LOG_ERROR << "Could not load root metadata";
     return -1;
   }
 
-  if (director) {
-    return Uptane::Root("director", Utils::parseJSON(meta_pack.director_root)).version();
-  } else {
-    return Uptane::Root("repo", Utils::parseJSON(meta_pack.image_root)).version();
-  }
+  return Uptane::extractVersionUntrusted(root_meta);
 }
 
 bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {

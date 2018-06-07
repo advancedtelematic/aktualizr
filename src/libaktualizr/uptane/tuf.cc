@@ -108,14 +108,15 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   return os;
 }
 
-Target::Target(std::string filename, const Json::Value &content)
-    : filename_(std::move(filename)), ecu_identifier_(EcuSerial::Unknown()) {
+Target::Target(std::string filename, const Json::Value &content) : filename_(std::move(filename)) {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
-    // TODO: Hardware identifier?
-    if (custom.isMember("ecuIdentifier")) {
-      ecu_identifier_ = EcuSerial(custom["ecuIdentifier"].asString());
+
+    Json::Value ecus = custom["ecuIdentifiers"];
+    for (Json::ValueIterator i = ecus.begin(); i != ecus.end(); ++i) {
+      ecus_.insert({EcuSerial(i.key().asString()), HardwareIdentifier((*i)["hardwareId"].asString())});
     }
+
     if (custom.isMember("targetFormat")) {
       type_ = custom["targetFormat"].asString();
     }
@@ -134,19 +135,6 @@ Target::Target(std::string filename, const Json::Value &content)
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
-Json::Value Uptane::Target::toJson() const {
-  Json::Value res;
-  res["custom"]["ecuIdentifier"] = ecu_identifier_.ToString();
-  res["custom"]["targetFormat"] = type_;
-
-  std::vector<Uptane::Hash>::const_iterator it;
-  for (it = hashes_.begin(); it != hashes_.end(); it++) {
-    res["hashes"][it->TypeString()] = it->HashString();
-  }
-  res["length"] = Json::Value(static_cast<Json::Value::Int64>(length_));
-  return res;
-}
-
 bool Target::MatchWith(const Hash &hash) const {
   return (std::find(hashes_.begin(), hashes_.end(), hash) != hashes_.end());
 }
@@ -161,8 +149,29 @@ std::string Target::sha256Hash() const {
   return std::string();
 }
 
+Json::Value Target::toDebugJson() const {
+  Json::Value res;
+  for (auto it = ecus_.begin(); it != ecus_.cend(); ++it) {
+    res["custom"]["ecuIdentifiers"][it->first.ToString()]["hardwareId"] = it->second.ToString();
+  }
+  res["custom"]["targetFormat"] = type_;
+
+  for (auto it = hashes_.cbegin(); it != hashes_.cend(); ++it) {
+    res["hashes"][it->TypeString()] = it->HashString();
+  }
+  res["length"] = Json::Value(static_cast<Json::Value::Int64>(length_));
+  return res;
+}
+
 std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
-  os << "Target(" << t.filename_ << " ecu_identifier:" << t.ecu_identifier() << " length:" << t.length();
+  os << "Target(" << t.filename_;
+  os << " ecu_identifiers: (";
+
+  for (auto it = t.ecus_.begin(); it != t.ecus_.end(); ++it) {
+    os << it->first;
+  }
+  os << ")"
+     << " length:" << t.length();
   os << " hashes: (";
   for (auto it = t.hashes_.begin(); it != t.hashes_.end(); ++it) {
     os << *it << ", ";
@@ -174,6 +183,7 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Target &t) {
 
 void Uptane::BaseMeta::init(const Json::Value &json) {
   if (!json.isObject() || !json.isMember("signed")) {
+    LOG_ERROR << "BM FAILURE";
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
@@ -183,12 +193,12 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }
 
-Uptane::BaseMeta::BaseMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root) {
+Uptane::BaseMeta::BaseMeta(RepositoryType repo, const Json::Value &json, Root &root) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
 
-  root.UnpackSignedObject(now, repository, json);
+  root.UnpackSignedObject(repo, json);
 
   init(json);
 }
@@ -207,66 +217,92 @@ void Uptane::Targets::init(const Json::Value &json) {
 
 Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) { init(json); }
 
-Uptane::Targets::Targets(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
-    : BaseMeta(now, repository, json, root) {
+Uptane::Targets::Targets(RepositoryType repo, const Json::Value &json, Root &root) : BaseMeta(repo, json, root) {
   init(json);
 }
 
-Json::Value Uptane::Targets::toJson() const {
-  Json::Value res = BaseMeta::toJson();
-  res["_type"] = "Targets";
-
-  std::vector<Uptane::Target>::const_iterator it;
-  for (it = targets.begin(); it != targets.end(); it++) {
-    res["targets"][it->filename()] = it->toJson();
+void Uptane::TimestampMeta::init(const Json::Value &json) {
+  Json::Value hashes_list = json["signed"]["meta"]["snapshot.json"]["hashes"];
+  Json::Value meta_size = json["signed"]["meta"]["snapshot.json"]["length"];
+  Json::Value meta_version = json["signed"]["meta"]["snapshot.json"]["version"];
+  if (!json.isObject() || json["signed"]["_type"] != "Timestamp" || !hashes_list.isObject() ||
+      !meta_size.isIntegral() || !meta_version.isIntegral()) {
+    throw Uptane::InvalidMetadata("", "timestamp", "invalid timestamp.json");
   }
-  return res;
+
+  for (Json::ValueIterator it = hashes_list.begin(); it != hashes_list.end(); ++it) {
+    Hash h(it.key().asString(), (*it).asString());
+    snapshot_hashes_.push_back(h);
+  }
+  snapshot_size_ = meta_size.asInt();
+  snapshot_version_ = meta_version.asInt();
 }
 
-Json::Value Uptane::TimestampMeta::toJson() const {
-  Json::Value res = BaseMeta::toJson();
-  res["_type"] = "Timestamp";
-  // TODO: METAFILES
-  return res;
+Uptane::TimestampMeta::TimestampMeta(const Json::Value &json) : BaseMeta(json) { init(json); }
+
+Uptane::TimestampMeta::TimestampMeta(RepositoryType repo, const Json::Value &json, Root &root)
+    : BaseMeta(repo, json, root) {
+  init(json);
 }
 
 void Uptane::Snapshot::init(const Json::Value &json) {
-  if (!json.isObject() || json["signed"]["_type"] != "Snapshot") {
+  Json::Value hashes_list = json["signed"]["meta"]["targets.json"]["hashes"];
+  Json::Value meta_size = json["signed"]["meta"]["targets.json"]["length"];
+  Json::Value meta_version = json["signed"]["meta"]["targets.json"]["version"];
+
+  if (!json.isObject() || json["signed"]["_type"] != "Snapshot" || !meta_version.isIntegral()) {
     throw Uptane::InvalidMetadata("", "snapshot", "invalid snapshot.json");
   }
 
-  Json::Value meta_list = json["signed"]["meta"];
-  for (Json::ValueIterator m_it = meta_list.begin(); m_it != meta_list.end(); m_it++) {
-    versions[m_it.key().asString()] = (*m_it)["version"].asInt();
+  if (hashes_list.isObject()) {
+    for (Json::ValueIterator it = hashes_list.begin(); it != hashes_list.end(); ++it) {
+      Hash h(it.key().asString(), (*it).asString());
+      targets_hashes_.push_back(h);
+    }
   }
+
+  if (meta_size.isIntegral()) {
+    targets_size_ = meta_size.asInt();
+  } else {
+    targets_size_ = -1;
+  }
+  targets_version_ = meta_version.asInt();
 }
 
 Uptane::Snapshot::Snapshot(const Json::Value &json) : BaseMeta(json) { init(json); }
 
-Uptane::Snapshot::Snapshot(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
-    : BaseMeta(now, repository, json, root) {
+Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, Root &root) : BaseMeta(repo, json, root) {
   init(json);
-}
-
-Json::Value Uptane::Snapshot::toJson() const {
-  Json::Value res = BaseMeta::toJson();
-  res["_type"] = "Snapshot";
-
-  std::map<std::string, int>::const_iterator it;
-  for (it = versions.begin(); it != versions.end(); it++) {
-    res["meta"][it->first]["version"] = it->second;
-  }
-  return res;
 }
 
 bool MetaPack::isConsistent() const {
   TimeStamp now(TimeStamp::Now());
   try {
     Uptane::Root original_root(director_root);
-    Uptane::Root new_root(now, "director", director_root.original(), new_root);
-    Uptane::Targets(now, "director", director_targets.original(), original_root);
+    Uptane::Root new_root(RepositoryType::Director, director_root.original(), new_root);
+    Uptane::Targets(RepositoryType::Director, director_targets.original(), original_root);
   } catch (...) {
     return false;
   }
   return true;
+}
+
+std::string Uptane::RepoString(RepositoryType repo) {
+  switch (repo) {
+    case RepositoryType::Director:
+      return "director";
+    case RepositoryType::Images:
+      return "images";
+    default:
+      return "";
+  }
+}
+
+int Uptane::extractVersionUntrusted(const std::string &meta) {
+  auto version_json = Utils::parseJSON(meta)["signed"]["version"];
+  if (!version_json.isIntegral()) {
+    return -1;
+  } else {
+    return version_json.asInt();
+  }
 }

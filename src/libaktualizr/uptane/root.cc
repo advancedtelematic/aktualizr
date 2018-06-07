@@ -5,30 +5,30 @@
 
 using Uptane::Root;
 
-Root::Root(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
-    : Root(repository, json) {
-  root.UnpackSignedObject(now, repository, json);
-  this->UnpackSignedObject(now, repository, json);
+Root::Root(RepositoryType repo, const Json::Value &json, Root &root) : Root(repo, json) {
+  root.UnpackSignedObject(repo, json);
+  this->UnpackSignedObject(repo, json);
 }
 
-Root::Root(const std::string &repository, const Json::Value &json) : policy_(Policy::kCheck) {
+Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kCheck) {
   if (!json.isObject() || !json.isMember("signed")) {
-    throw Uptane::InvalidMetadata("", "", "invalid metadata json");
+    throw InvalidMetadata("", "", "invalid metadata json");
   }
 
   version_ = json["signed"]["version"].asInt();
+
   expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
   original_object_ = json;
 
   if (!json.isObject() || !json["signed"].isMember("keys") || !json["signed"].isMember("roles")) {
-    throw Uptane::InvalidMetadata(repository, "root", "missing keys/roles field");
+    throw InvalidMetadata(RepoString(repo), "root", "missing keys/roles field");
   }
 
   Json::Value keys = json["signed"]["keys"];
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
     std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
-      throw SecurityException(repository, "Unsupported key type: " + (*it)["keytype"].asString());
+      throw SecurityException(RepoString(repo), "Unsupported key type: " + (*it)["keytype"].asString());
     }
     KeyId keyid = it.key().asString();
     PublicKey key(*it);
@@ -53,7 +53,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(Pol
       // this occurs in Boost 1.62 (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
                 << static_cast<int>(kMinSignatures);
-      throw IllegalThreshold(repository, "The role " + role.ToString() + " had an illegal signature threshold.");
+      throw IllegalThreshold(RepoString(repo), "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
       // static_cast<int> is to stop << taking a reference to kMaxSignatures
@@ -61,7 +61,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(Pol
       // this occurs in Boost 1.62  (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << static_cast<int>(kMaxSignatures)
                 << " < " << requiredThreshold;
-      throw IllegalThreshold(repository, "root.json contains a role that requires too many signatures");
+      throw IllegalThreshold(RepoString(repo), "root.json contains a role that requires too many signatures");
     }
     thresholds_for_role_[role] = requiredThreshold;
 
@@ -73,58 +73,9 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(Pol
   }
 }
 
-Json::Value Root::toJson() const {
-  Json::Value res = BaseMeta::toJson();
+void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &signed_object) {
+  std::string repository = RepoString(repo);
 
-  if (policy_ != Policy::kCheck) {
-    throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
-  }
-
-  res["_type"] = "Root";
-  res["consistent_snapshot"] = false;
-
-  res["keys"] = Json::objectValue;
-  std::map<KeyId, PublicKey>::const_iterator key_it;
-  for (key_it = keys_.begin(); key_it != keys_.end(); key_it++) {
-    res["keys"][key_it->first] = key_it->second.ToUptane();
-  }
-  // assuming that Root object has keys for all targets,
-  //   should be a part of verification process
-  res["roles"]["root"]["keyids"] = Json::arrayValue;
-  res["roles"]["snapshot"]["keyids"] = Json::arrayValue;
-  res["roles"]["targets"]["keyids"] = Json::arrayValue;
-  res["roles"]["timestamp"]["keyids"] = Json::arrayValue;
-
-  std::set<std::pair<Role, KeyId> >::const_iterator role_key_it;
-  for (role_key_it = keys_for_role_.begin(); role_key_it != keys_for_role_.end(); role_key_it++) {
-    res["roles"][role_key_it->first.ToString()]["keyids"].append(role_key_it->second);
-  }
-
-  auto th_it = thresholds_for_role_.find(Role::Root());
-  if (th_it != thresholds_for_role_.end()) {
-    res["roles"]["root"]["threshold"] = th_it->second;
-  }
-
-  th_it = thresholds_for_role_.find(Role::Snapshot());
-  if (th_it != thresholds_for_role_.end()) {
-    res["roles"]["snapshot"]["threshold"] = th_it->second;
-  }
-
-  th_it = thresholds_for_role_.find(Role::Targets());
-  if (th_it != thresholds_for_role_.end()) {
-    res["roles"]["targets"]["threshold"] = th_it->second;
-  }
-
-  th_it = thresholds_for_role_.find(Role::Timestamp());
-  if (th_it != thresholds_for_role_.end()) {
-    res["roles"]["timestamp"]["threshold"] = th_it->second;
-  }
-
-  return res;
-}
-
-void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &repository,
-                                      const Json::Value &signed_object) {
   Uptane::Role role(signed_object["signed"]["_type"].asString());
   if (policy_ == Policy::kAcceptAll) {
     return;
@@ -179,14 +130,6 @@ void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &r
   }
   if (valid_signatures < threshold) {
     throw UnmetThreshold(repository, role.ToString());
-  }
-
-  // TODO: check _type matches role
-  // TODO: check timestamp
-  Uptane::TimeStamp expiry(Uptane::TimeStamp(signed_object["signed"]["expires"].asString()));
-  if (expiry.IsExpiredAt(now)) {
-    LOG_WARNING << "Metadata expired at:" << expiry;
-    throw ExpiredMetadata(repository, role.ToString());
   }
 
   Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));

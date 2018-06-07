@@ -6,48 +6,15 @@
 
 namespace Uptane {
 
-std::string Fetcher::fetchRole(const std::string& base_url, Uptane::Role role, Version version) {
+bool Fetcher::fetchRole(std::string* result, RepositoryType repo, Uptane::Role role, Version version) {
   // TODO: chain-loading root.json
+  std::string base_url = (repo == RepositoryType::Director) ? config.uptane.director_server : config.uptane.repo_server;
   std::string url = base_url + "/" + version.RoleFileName(role);
   HttpResponse response = http.get(url);
   if (!response.isOk()) {
-    throw MissingRepo(url);
-  }
-  return response.body;
-}
-
-bool Fetcher::fetchRoot(bool director, Version version) {
-  std::string root;
-  try {
-    root = fetchRole((director) ? config.uptane.director_server : config.uptane.repo_server, Role::Root(), version);
-  } catch (MissingRepo()) {
-    LOG_WARNING << "Can't connect to the repo";
     return false;
   }
-  storage->storeUncheckedRoot(director, root, version);
-  return true;
-}
-
-bool Fetcher::fetchMeta() {
-  RawMetaPack meta;
-
-  try {
-    meta.director_root = fetchRole(config.uptane.director_server, Role::Root());
-    meta.image_root = fetchRole(config.uptane.repo_server, Role::Root());
-
-    meta.image_timestamp = fetchRole(config.uptane.repo_server, Role::Timestamp(), Version());
-
-    // TODO split fetchMeta into more fine-grained functions to optimize network traffic
-    meta.image_snapshot = fetchRole(config.uptane.repo_server, Role::Snapshot(), Version());
-    meta.image_targets = fetchRole(config.uptane.repo_server, Role::Targets(), Version());
-
-    meta.director_targets = fetchRole(config.uptane.director_server, Role::Targets(), Version());
-  } catch (MissingRepo()) {
-    LOG_WARNING << "Can't connect to the repo";
-    return false;
-  }
-
-  storage->storeUncheckedMetadata(meta);
+  *result = response.body;
   return true;
 }
 
@@ -65,7 +32,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return written_size;
 }
 
-bool Fetcher::fetchTarget(const Target& target) {
+bool Fetcher::fetchVerifyTarget(const Target& target) {
   try {
     if (target.length() > 0) {
       DownloadMetaStruct ds;

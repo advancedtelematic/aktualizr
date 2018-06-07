@@ -139,6 +139,8 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   if (kt.size() != 0u) {
     if (kt == "RSA2048") {
       key_type = KeyType::kRSA2048;
+    } else if (kt == "RSA3072") {
+      key_type = KeyType::kRSA3072;
     } else if (kt == "RSA4096") {
       key_type = KeyType::kRSA4096;
     } else if (kt == "ED25519") {
@@ -368,6 +370,8 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     if (key_type.size() != 0u) {
       if (key_type == "RSA2048") {
         sconfig.key_type = KeyType::kRSA2048;
+      } else if (key_type == "RSA3072") {
+        sconfig.key_type = KeyType::kRSA3072;
       } else if (key_type == "RSA4096") {
         sconfig.key_type = KeyType::kRSA4096;
       } else if (key_type == "ED25519") {

@@ -35,16 +35,15 @@ class SQLStorage : public INvStorage {
   bool loadTlsCa(std::string* ca) override;
   bool loadTlsCert(std::string* cert) override;
   bool loadTlsPkey(std::string* pkey) override;
-  void storeMetadata(const Uptane::RawMetaPack& metadata) override;
-  bool loadMetadata(Uptane::RawMetaPack* metadata) override;
+
+  void storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
+                 Uptane::Version version) override;
+  // NOLINTNEXTLINE(google-default-arguments)
+  bool loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role,
+                Uptane::Version version = Uptane::Version()) override;
+  void clearNonRootMeta(Uptane::RepositoryType repo) override;
   void clearMetadata() override;
-  void storeUncheckedMetadata(const Uptane::RawMetaPack& metadata) override;
-  bool loadUncheckedMetadata(Uptane::RawMetaPack* metadata) override;
-  void clearUncheckedMetadata() override;
-  void storeRoot(bool director, const std::string& root, Uptane::Version version) override;
-  bool loadRoot(bool director, std::string* root, Uptane::Version version) override;
-  void storeUncheckedRoot(bool director, const std::string& root, Uptane::Version version) override;
-  bool loadUncheckedRoot(bool director, std::string* root, Uptane::Version version) override;
+
   void storeDeviceId(const std::string& device_id) override;
   bool loadDeviceId(std::string* device_id) override;
   void clearDeviceId() override;
@@ -75,11 +74,8 @@ class SQLStorage : public INvStorage {
   DbVersion getVersion();  // non-negative integer on success or -1 on error
 
  private:
-  void storeMetadataCommon(const Uptane::RawMetaPack& metadata, const std::string& tablename);
-  bool loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::string& tablename);
-  void clearMetadataCommon(const std::string& tablename);
-  void storeRootCommon(bool director, const std::string& root, Uptane::Version version, const std::string& tablename);
-  bool loadRootCommon(bool director, std::string* root, Uptane::Version version, const std::string& tablename);
+  // request info
+  void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
 };
 
 #endif  // SQLSTORAGE_H_

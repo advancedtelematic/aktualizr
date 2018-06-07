@@ -23,16 +23,15 @@ class FSStorage : public INvStorage {
   bool loadTlsCa(std::string* ca) override;
   bool loadTlsCert(std::string* cert) override;
   bool loadTlsPkey(std::string* pkey) override;
-  void storeMetadata(const Uptane::RawMetaPack& metadata) override;
-  bool loadMetadata(Uptane::RawMetaPack* metadata) override;
+
+  void storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
+                 Uptane::Version version) override;
+  // NOLINTNEXTLINE(google-default-arguments)
+  bool loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role,
+                Uptane::Version version = Uptane::Version()) override;
+  void clearNonRootMeta(Uptane::RepositoryType repo) override;
   void clearMetadata() override;
-  void storeUncheckedMetadata(const Uptane::RawMetaPack& metadata) override;
-  bool loadUncheckedMetadata(Uptane::RawMetaPack* metadata) override;
-  void clearUncheckedMetadata() override;
-  void storeRoot(bool director, const std::string& root, Uptane::Version version) override;
-  bool loadRoot(bool director, std::string* root, Uptane::Version version) override;
-  void storeUncheckedRoot(bool director, const std::string& root, Uptane::Version version) override;
-  bool loadUncheckedRoot(bool director, std::string* root, Uptane::Version version) override;
+
   void storeDeviceId(const std::string& device_id) override;
   bool loadDeviceId(std::string* device_id) override;
   void clearDeviceId() override;
@@ -64,14 +63,13 @@ class FSStorage : public INvStorage {
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
 
+  std::map<std::pair<Uptane::RepositoryType, Uptane::Role>, Uptane::Version> latest_versions;
+
   boost::filesystem::path targetFilepath(const std::string& filename) const;
   bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);
 
-  void storeMetadataCommon(const Uptane::RawMetaPack& metadata, const std::string& suffix);
-  bool loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::string& suffix);
-  void clearMetadataCommon(const std::string& suffix);
-  void storeRootCommon(bool director, const std::string& root, Uptane::Version version, const std::string& suffix);
-  bool loadRootCommon(bool director, std::string* root, Uptane::Version version, const std::string& suffix);
+  bool splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version);
+  Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role);
 };
 
 #endif  // FSSTORAGE_H_

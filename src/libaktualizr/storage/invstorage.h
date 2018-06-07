@@ -102,19 +102,13 @@ class INvStorage {
   virtual bool loadTlsPkey(std::string* cert) = 0;
   virtual void clearTlsCreds() = 0;
 
-  virtual void storeMetadata(const Uptane::RawMetaPack& metadata) = 0;
-  virtual bool loadMetadata(Uptane::RawMetaPack* metadata) = 0;
+  virtual void storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
+                         Uptane::Version version) = 0;
+  // NOLINTNEXTLINE(google-default-arguments)
+  virtual bool loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role,
+                        Uptane::Version version = Uptane::Version()) = 0;
+  virtual void clearNonRootMeta(Uptane::RepositoryType repo) = 0;
   virtual void clearMetadata() = 0;
-
-  virtual void storeUncheckedMetadata(const Uptane::RawMetaPack& metadata) = 0;
-  virtual bool loadUncheckedMetadata(Uptane::RawMetaPack* metadata) = 0;
-  virtual void clearUncheckedMetadata() = 0;
-
-  virtual void storeRoot(bool director, const std::string& root, Uptane::Version version) = 0;
-  virtual bool loadRoot(bool director, std::string* root, Uptane::Version version) = 0;
-
-  virtual void storeUncheckedRoot(bool director, const std::string& root, Uptane::Version version) = 0;
-  virtual bool loadUncheckedRoot(bool director, std::string* root, Uptane::Version version) = 0;
 
   virtual void storeDeviceId(const std::string& device_id) = 0;
   virtual bool loadDeviceId(std::string* device_id) = 0;

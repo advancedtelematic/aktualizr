@@ -57,7 +57,14 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   FSStorage fs_storage(fs_config);
 
   Uptane::RawMetaPack metadata;
-  EXPECT_TRUE(fs_storage.loadMetadata(&metadata));
+  EXPECT_TRUE(fs_storage.loadRole(&metadata.director_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
+  EXPECT_TRUE(
+      fs_storage.loadRole(&metadata.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadRole(&metadata.image_root, Uptane::RepositoryType::Images, Uptane::Role::Root()));
+  EXPECT_TRUE(fs_storage.loadRole(&metadata.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(
+      fs_storage.loadRole(&metadata.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(fs_storage.loadRole(&metadata.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
 
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");
 

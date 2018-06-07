@@ -83,7 +83,6 @@ TEST(storage, load_store_tls) {
 TEST(storage, load_store_metadata) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
-  Uptane::RawMetaPack stored_meta;
 
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -105,8 +104,8 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_root;
   meta_root["signed"] = root_json;
-  stored_meta.director_root = Utils::jsonToStr(meta_root);
-  stored_meta.image_root = Utils::jsonToStr(meta_root);
+  std::string director_root = Utils::jsonToStr(meta_root);
+  std::string images_root = Utils::jsonToStr(meta_root);
 
   Json::Value targets_json;
   targets_json["_type"] = "Targets";
@@ -122,13 +121,13 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_targets;
   meta_targets["signed"] = targets_json;
-  stored_meta.director_targets = Utils::jsonToStr(meta_targets);
-  stored_meta.image_targets = Utils::jsonToStr(meta_targets);
+  std::string director_targets = Utils::jsonToStr(meta_targets);
+  std::string images_targets = Utils::jsonToStr(meta_targets);
 
   Json::Value timestamp_json;
   timestamp_json["signed"]["_type"] = "Timestamp";
   timestamp_json["signed"]["expires"] = "2038-01-19T03:14:06Z";
-  stored_meta.image_timestamp = Utils::jsonToStr(timestamp_json);
+  std::string images_timestamp = Utils::jsonToStr(timestamp_json);
 
   Json::Value snapshot_json;
   snapshot_json["_type"] = "Snapshot";
@@ -140,31 +139,34 @@ TEST(storage, load_store_metadata) {
 
   Json::Value meta_snapshot;
   meta_snapshot["signed"] = snapshot_json;
-  stored_meta.image_snapshot = Utils::jsonToStr(meta_snapshot);
+  std::string images_snapshot = Utils::jsonToStr(meta_snapshot);
 
-  Uptane::RawMetaPack loaded_meta;
+  storage->storeRole(director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(), Uptane::Version(1));
+  storage->storeRole(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets(), Uptane::Version(2));
+  storage->storeRole(images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(), Uptane::Version(1));
+  storage->storeRole(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets(), Uptane::Version(2));
+  storage->storeRole(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp(), Uptane::Version(3));
+  storage->storeRole(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot(), Uptane::Version(4));
 
-  storage->storeMetadata(stored_meta);
-  bool res = storage->loadMetadata(&loaded_meta);
+  std::string loaded_director_root;
+  std::string loaded_director_targets;
+  std::string loaded_images_root;
+  std::string loaded_images_targets;
+  std::string loaded_images_timestamp;
+  std::string loaded_images_snapshot;
 
-  EXPECT_TRUE(res);
-  EXPECT_EQ(stored_meta.director_root, loaded_meta.director_root);
-  EXPECT_EQ(stored_meta.director_targets, loaded_meta.director_targets);
-  EXPECT_EQ(stored_meta.image_root, loaded_meta.image_root);
-  EXPECT_EQ(stored_meta.image_targets, loaded_meta.image_targets);
-  EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
-  EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
-
-  storage->storeUncheckedMetadata(stored_meta);
-  res = storage->loadUncheckedMetadata(&loaded_meta);
-
-  EXPECT_TRUE(res);
-  EXPECT_EQ(stored_meta.director_root, loaded_meta.director_root);
-  EXPECT_EQ(stored_meta.director_targets, loaded_meta.director_targets);
-  EXPECT_EQ(stored_meta.image_root, loaded_meta.image_root);
-  EXPECT_EQ(stored_meta.image_targets, loaded_meta.image_targets);
-  EXPECT_EQ(stored_meta.image_timestamp, loaded_meta.image_timestamp);
-  EXPECT_EQ(stored_meta.image_snapshot, loaded_meta.image_snapshot);
+  EXPECT_TRUE(storage->loadRole(&loaded_director_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
+  EXPECT_TRUE(storage->loadRole(&loaded_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadRole(&loaded_images_root, Uptane::RepositoryType::Images, Uptane::Role::Root()));
+  EXPECT_TRUE(storage->loadRole(&loaded_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadRole(&loaded_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(storage->loadRole(&loaded_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_EQ(director_root, loaded_director_root);
+  EXPECT_EQ(director_targets, loaded_director_targets);
+  EXPECT_EQ(images_root, loaded_images_root);
+  EXPECT_EQ(images_targets, loaded_images_targets);
+  EXPECT_EQ(images_timestamp, loaded_images_timestamp);
+  EXPECT_EQ(images_snapshot, loaded_images_snapshot);
 
   boost::filesystem::remove_all(storage_test_dir);
 }
@@ -196,16 +198,13 @@ TEST(storage, load_store_root) {
 
   std::string loaded_root;
 
-  storage->storeRoot(true, Utils::jsonToStr(meta_root), Uptane::Version(2));
-  bool res = storage->loadRoot(true, &loaded_root, Uptane::Version(2));
-
-  EXPECT_TRUE(res);
+  storage->storeRole(Utils::jsonToStr(meta_root), Uptane::RepositoryType::Director, Uptane::Role::Root(),
+                     Uptane::Version(2));
+  EXPECT_TRUE(
+      storage->loadRole(&loaded_root, Uptane::RepositoryType::Director, Uptane::Role::Root(), Uptane::Version(2)));
   EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
 
-  storage->storeUncheckedRoot(false, Utils::jsonToStr(meta_root), Uptane::Version(15));
-  res = storage->loadUncheckedRoot(false, &loaded_root, Uptane::Version(15));
-
-  EXPECT_TRUE(res);
+  EXPECT_TRUE(storage->loadRole(&loaded_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
   EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
 
   boost::filesystem::remove_all(storage_test_dir);

@@ -60,6 +60,7 @@ bool PublicKey::VerifySignature(const std::string &signature, const std::string 
     case KeyType::kED25519:
       return Crypto::ED25519Verify(boost::algorithm::unhex(value_), Utils::fromBase64(signature), message);
     case KeyType::kRSA2048:
+    case KeyType::kRSA3072:
     case KeyType::kRSA4096:
       return Crypto::RSAPSSVerify(value_, Utils::fromBase64(signature), message);
     default:
@@ -72,6 +73,7 @@ Json::Value PublicKey::ToUptane() const {
   Json::Value res;
   switch (type_) {
     case KeyType::kRSA2048:
+    case KeyType::kRSA3072:
     case KeyType::kRSA4096:
       res["keytype"] = "RSA";
       break;
@@ -326,7 +328,20 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
  *         false if key generation failed
  */
 bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
-  int bits = (key_type == KeyType::kRSA2048) ? 2048 : 4096;
+  int bits;
+  switch (key_type) {
+    case KeyType::kRSA2048:
+      bits = 2048;
+      break;
+    case KeyType::kRSA3072:
+      bits = 3072;
+      break;
+    case KeyType::kRSA4096:
+      bits = 4096;
+      break;
+    default:
+      return false;
+  }
   int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
@@ -404,6 +419,7 @@ bool Crypto::generateKeyPair(KeyType key_type, std::string *public_key, std::str
 bool Crypto::IsRsaKeyType(KeyType type) {
   switch (type) {
     case KeyType::kRSA2048:
+    case KeyType::kRSA3072:
     case KeyType::kRSA4096:
       return true;
     default:
@@ -431,6 +447,8 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
   switch (key_length) {
     case 2048:
       return KeyType::kRSA2048;
+    case 3072:
+      return KeyType::kRSA3072;
     case 4096:
       return KeyType::kRSA4096;
     default:
