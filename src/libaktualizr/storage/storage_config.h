@@ -41,4 +41,17 @@ struct ImportConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
+template <>
+inline void CopyFromConfig(StorageType& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
+  if (value.is_initialized()) {
+    std::string storage_type{StripQuotesFromStrings(value.get())};
+    if (storage_type == "sqlite") {
+      dest = kSqlite;
+    } else {
+      dest = kFileSystem;
+    }
+  }
+}
+
 #endif  // STORAGE_CONFIG_H

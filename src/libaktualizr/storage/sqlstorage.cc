@@ -1122,11 +1122,11 @@ bool SQLStorage::dbMigrate() {
   if (schema_version == (schema_migrations.size() - 1)) {
     return true;
   } else if (schema_version == DbState::kInvalid) {
-    LOG_ERROR << "We point to the wrong sqlite database file.";
+    LOG_ERROR << "Sqlite database file is invalid.";
     return false;
   }
   if (schema_version + 1L >= schema_migrations.size()) {
-    LOG_ERROR << "Only forward migrattions are supported. You cannot migrate to the older chema.";
+    LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
     return false;
   }
   for (schema_version = schema_version + 1; schema_version < schema_migrations.size(); ++schema_version) {

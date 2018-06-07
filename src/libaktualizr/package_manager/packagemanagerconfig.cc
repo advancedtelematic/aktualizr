@@ -2,19 +2,8 @@
 
 #include <boost/log/trivial.hpp>
 
-#include "utilities/config_utils.h"
-
 void PackageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  std::string pm_type = "ostree";
-  CopyFromConfig(pm_type, "type", pt);
-  if (pm_type == "ostree") {
-    type = kOstree;
-  } else if (pm_type == "debian") {
-    type = kDebian;
-  } else {
-    type = kNone;
-  }
-
+  CopyFromConfig(type, "type", pt);
   CopyFromConfig(os, "os", pt);
   CopyFromConfig(sysroot, "sysroot", pt);
   CopyFromConfig(ostree_server, "ostree_server", pt);
