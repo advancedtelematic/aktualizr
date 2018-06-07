@@ -9,6 +9,7 @@
 #include "crypto/keymanager.h"
 #include "secondary_ipc/aktualizr_secondary_ipc.h"
 #include "secondary_ipc/ipuptaneconnection.h"
+#include "socket_server.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"
 #include "utilities/channel.h"
@@ -30,16 +31,12 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
   int32_t getRootVersionResp(bool director) const;
   bool putRootResp(const std::string& root, bool director);
   bool sendFirmwareResp(const std::string& firmware);
-  void addPrimary(sockaddr_storage& addr, in_port_t port) {
-    std::unique_lock<std::mutex> lock(primaries_mutex);
 
-    primaries_map[addr] = port;
-  }
   static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
                                         std::string* pkey, std::string* treehub_server);
 
  private:
-  IpUptaneConnection conn_;
+  SocketServer socket_server_;
 };
 
 #endif  // AKTUALIZR_SECONDARY_H

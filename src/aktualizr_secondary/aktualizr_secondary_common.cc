@@ -10,10 +10,22 @@ AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfi
       ecu_serial_(Uptane::EcuSerial::Unknown()),
       hardware_id_(Uptane::HardwareIdentifier::Unknown()) {
   pacman = PackageManagerFactory::makePackageManager(config_.pacman, storage_);
+
+  // Load Root keys from storage
+  std::string root;
+  storage_->loadRoot(true, &root, Uptane::Version());
+  if (root.size() > 0) {
+    LOG_DEBUG << "Loading root.json:" << root;
+    root_ = Uptane::Root("director", Utils::parseJSON(root));
+  } else {
+    LOG_INFO << "No root.json in local storage, defaulting will accept the first root.json provided";
+    root_ = Uptane::Root(Uptane::Root::kAcceptAll);
+  }
 }
 
 bool AktualizrSecondaryCommon::uptaneInitialize() {
   if (keys_.generateUptaneKeyPair().size() == 0) {
+    LOG_ERROR << "Failed to generate uptane key pair";
     return false;
   }
 

@@ -20,11 +20,6 @@ TEST(aktualizr_secondary_protocol, run_and_stop) {
   auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
 
   AktualizrSecondary as(config, storage);
-
-  std::thread th(&AktualizrSecondary::run, &as);
-
-  as.stop();
-  th.join();
 }
 
 #ifndef __NO_MAIN__

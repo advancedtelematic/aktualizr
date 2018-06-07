@@ -8,6 +8,7 @@
 #include "logging/logging.h"
 #include "socket_activation/socket_activation.h"
 #include "uptane/ipsecondarydiscovery.h"
+#include "utilities/sockaddr_io.h"
 #include "utilities/utils.h"
 
 AktualizrSecondaryDiscovery::AktualizrSecondaryDiscovery(const AktualizrSecondaryNetConfig &config,
@@ -88,7 +89,7 @@ void AktualizrSecondaryDiscovery::run() {
       des >> asn1::expl(AKT_DISCOVERY_REQ) >> asn1::seq >> asn1::implicit<kAsn1Integer>(primary_port) >>
           asn1::restseq >> asn1::endexpl;
 
-      LOG_TRACE << "Got discovery request from " << Utils::ipDisplayName(peer) << ":" << primary_port;
+      LOG_TRACE << "Got discovery request from " << peer;
       std::string smsg;
       asn1::Serializer ser;
       std::string hwid = akt_secondary_.getHwIdResp().ToString();
@@ -102,7 +103,6 @@ void AktualizrSecondaryDiscovery::run() {
                  sa_size) < 0) {
         LOG_ERROR << "send failed: " << std::strerror(errno);
       }
-      akt_secondary_.addPrimary(peer, primary_port);
     } catch (const deserialization_error &exc) {
       LOG_ERROR << exc.what() << " from " << Utils::ipDisplayName(peer);
     }

@@ -222,10 +222,7 @@ TEST(asn1_common, Asn1MessageSimple) {
   Asn1Message::Ptr original(Asn1Message::Empty());
   original->present(AKIpUptaneMes_PR_discoveryResp);
   Asn1Message::SubPtr<AKDiscoveryRespMes_t> req = original->discoveryResp();
-  {
-    std::string serial = "serial1234";
-    OCTET_STRING_fromBuf(&req->ecuSerial, serial.c_str(), serial.size());
-  }
+  SetString(&req->ecuSerial, "serial1234");
 
   // BER encode
   std::string buffer;
@@ -251,6 +248,20 @@ TEST(asn1_common, Asn1MessageSimple) {
   Asn1Message::SubPtr<AKDiscoveryRespMes_t> resp = msg->discoveryResp();
   msg.reset();  // Asn1Message::SubPtr<T> keeps the root object alive
   EXPECT_EQ(ToString(resp->ecuSerial), "serial1234");
+}
+
+TEST(asn1_common, parse) {
+  std::string data = Utils::fromBase64("rAowCAQGaGVsbG8K");
+  // BER decode
+  asn_codec_ctx_t context;
+  memset(&context, 0, sizeof(context));
+
+  AKIpUptaneMes_t* m = nullptr;
+  asn_dec_rval_t res =
+      ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), data.c_str(), data.size());
+  Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
+  EXPECT_EQ(res.code, RC_OK);
+  EXPECT_EQ(AKIpUptaneMes_PR_sendFirmwareReq, msg->present());
 }
 
 TEST(asn1_common, Asn1MessageFromRawNull) {

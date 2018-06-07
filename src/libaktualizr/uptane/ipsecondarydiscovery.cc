@@ -9,6 +9,7 @@
 #include "AKIpUptaneMes.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
+#include "utilities/sockaddr_io.h"
 
 std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::discover() {
   std::vector<Uptane::SecondaryConfig> secondaries;
@@ -79,7 +80,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     conf.ip_addr = sec_address;
     Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
 
-    LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id;
+    LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id << " " << conf.ip_addr;
     conf.secondary_type = Uptane::SecondaryType::kIpUptane;
 
     secondaries.push_back(conf);

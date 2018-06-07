@@ -34,7 +34,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
     config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
                                            ipuptane_secs.end());
     ip_uptane_connection = std_::make_unique<IpUptaneConnection>(config.network.ipuptane_port);
-    ip_uptane_splitter = std_::make_unique<IpUptaneConnectionSplitter>(*ip_uptane_connection);
   }
   initSecondaries();
 }
@@ -320,9 +319,6 @@ void SotaUptaneClient::initSecondaries() {
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
     std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-    if (it->secondary_type == Uptane::kIpUptane) {
-      ip_uptane_splitter->registerSecondary(*dynamic_cast<Uptane::IpUptaneSecondary *>(&(*sec)));
-    }
 
     Uptane::EcuSerial sec_serial = sec->getSerial();
     std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =

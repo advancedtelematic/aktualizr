@@ -5,11 +5,13 @@ set(AKTUALIZR_SECONDARY_LIB_SRC
     aktualizr_secondary_config.cc
     aktualizr_secondary_common.cc
     aktualizr_secondary_discovery.cc
+    socket_server.cc
     )
 
 add_library(aktualizr_secondary_static_lib STATIC
     ${AKTUALIZR_SECONDARY_LIB_SRC}
     $<TARGET_OBJECTS:asn1>
+    $<TARGET_OBJECTS:asn1_lib>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
@@ -35,7 +37,9 @@ if (BUILD_OPCUA)
 endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_secondary_static_lib PUBLIC
-    $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>)
+    $<TARGET_PROPERTY:socket_activation,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:asn1_lib,INCLUDE_DIRECTORIES>
+    )
 
 add_executable(aktualizr-secondary ${AKTUALIZR_SECONDARY_SRC})
 target_link_libraries(aktualizr-secondary
@@ -59,6 +63,7 @@ set(ALL_AKTUALIZR_SECONDARY_HEADERS
     aktualizr_secondary_discovery.h
     aktualizr_secondary_opcua.h
     opcuaserver_secondary_delegate.h
+    socket_server.h
     )
 
 include(AddAktualizrTest)
