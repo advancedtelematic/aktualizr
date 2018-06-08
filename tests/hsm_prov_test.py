@@ -97,7 +97,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     # Verify that HSM is not yet initialized.
     # Not worth checking: setup_hsm will reset where the tokens are stored, and
     # until that happens, these commands will check the wrong directory.
-    pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O']
+    pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O', '--type', 'cert', '--login', '--pin', '1234']
 #    stdout, stderr, retcode = prov_test_common.run_subprocess(pkcs11_command)
 #    if retcode == 0:
 #        print('pkcs11-tool succeeded before initialization: ' + stdout.decode() + stderr.decode())
@@ -130,18 +130,13 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
         sleep(delay)
         p11_out, p11_err, p11_ret = prov_test_common.run_subprocess(pkcs11_command)
         hsm_out, hsm_err, hsm_ret = prov_test_common.run_subprocess(softhsm2_command)
-        if p11_ret == 0 and hsm_ret == 0 and hsm_err == b'':
+        if (p11_ret == 0 and hsm_ret == 0 and b'present token' in p11_err and b'X.509 cert' in p11_out
+                and b'Initialized:      yes' in hsm_out and b'User PIN init.:   yes' in hsm_out and hsm_err == b''):
             ran_ok = True
             break
     if not ran_ok:
         print('pkcs11-tool or softhsm2-tool failed: ' + p11_err.decode() +
                 p11_out.decode() + hsm_err.decode() + hsm_out.decode())
-        return 1
-    if b'present token' not in p11_err or b'X.509 cert' not in p11_out:
-        print('pkcs11-tool failed: ' + p11_err.decode() + p11_out.decode())
-        return 1
-    if b'Initialized:      yes' not in hsm_out or b'User PIN init.:   yes' not in hsm_out:
-        print('softhsm2-tool failed: ' + hsm_err.decode() + hsm_out.decode())
         return 1
 
     # Check that pkcs11 output matches sofhsm output.
