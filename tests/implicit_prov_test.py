@@ -15,13 +15,12 @@ import prov_test_common
 def main():
     parser = argparse.ArgumentParser(description='Run a local implicit provisioning test with aktualizr')
     parser.add_argument('--build-dir', '-b', type=Path, default=Path('../build'), help='build directory')
-    parser.add_argument('--src-dir', '-s', type=Path, default=Path('../'), help='source directory (parent of src/)')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')
     args = parser.parse_args()
 
     retval = 1
     with tempfile.TemporaryDirectory() as tmp_dir:
-        retval = provision(Path(tmp_dir), args.build_dir, args.src_dir, args.credentials)
+        retval = provision(Path(tmp_dir), args.build_dir, args.credentials)
     return retval
 
 
@@ -35,7 +34,7 @@ type = "filesystem"
 '''
 
 
-def provision(tmp_dir, build_dir, src_dir, creds):
+def provision(tmp_dir, build_dir, creds):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
     conf_prov = conf_dir / '20-implicit_prov.toml'
@@ -71,17 +70,17 @@ def provision(tmp_dir, build_dir, src_dir, creds):
                     b'Fetched metadata: no' not in stdout):
                 print('Device already provisioned!? ' + stderr.decode() + stdout.decode())
                 return 1
-
-            # Run cert_provider.
-            stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_cp),
-                '-c', str(creds), '-l', str(tmp_dir), '-s', '-g', str(conf_prov)])
-            if retcode > 0:
-                print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
-                        stderr.decode() + stdout.decode())
-                return retcode
-            print('Device has not yet provisioned (as expected). Running cert_provider.')
         finally:
             proc.kill()
+
+    # Run cert_provider.
+    print('Device has not yet provisioned (as expected). Running cert_provider.')
+    stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_cp),
+        '-c', str(creds), '-l', str(tmp_dir), '-s', '-g', str(conf_prov)])
+    if retcode > 0:
+        print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
+                stderr.decode() + stdout.decode())
+        return retcode
 
     r = 1
     with subprocess.Popen([str(akt), '--config', str(conf_dir)]) as proc:
