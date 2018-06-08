@@ -43,8 +43,6 @@ struct Package {
   static Package fromJson(const std::string& /*json_str*/);
 };
 
-enum UpdateRequestStatus { Pending = 0, InFlight };
-
 struct UpdateAvailable {
   std::string update_id;
   std::string signature;
