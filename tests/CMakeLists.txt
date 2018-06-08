@@ -18,6 +18,7 @@ add_dependencies(build_tests aktualizr)
 
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
+    add_dependencies(build_tests garage-check)
 endif(BUILD_SOTA_TOOLS)
 
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
@@ -25,6 +26,8 @@ include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp"
 add_dependencies(build_tests aktualizr-secondary)
 
 add_dependencies(build_tests aktualizr-info)
+
+add_dependencies(build_tests aktualizr-repo)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
 
@@ -55,11 +58,8 @@ add_library(testutilities test_utils.cc)
 
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
-    include(CodeCoverage)
+    add_definitions(${COVERAGE_COMPILER_FLAGS})
     setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
-    add_definitions(-g -O0 -fprofile-arcs -ftest-coverage)
-    target_compile_options(aktualizr_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
-    target_compile_options(aktualizr_secondary_static_lib PUBLIC -fprofile-arcs -ftest-coverage)
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 

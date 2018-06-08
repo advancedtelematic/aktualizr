@@ -338,6 +338,9 @@ set (AKTUALIZR_EXTERNAL_LIBS
 
 set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
 if(BUILD_WITH_CODE_COVERAGE)
+    set(COVERAGE_EXCLUDES '/usr/include/*' 'build*' 'third_party/*' 'tests/*' '*_test.cc')
+    include(CodeCoverage)
+    set(COVERAGE_COMPILER_FLAGS "--coverage -fprofile-arcs -ftest-coverage" CACHE INTERNAL "")
     list(APPEND TEST_LIBS gcov)
 endif(BUILD_WITH_CODE_COVERAGE)
 
@@ -352,19 +355,7 @@ if (BUILD_LOAD_TESTS)
     # recipe would have to remove
     add_subdirectory("third_party/HdrHistogram_c/src")
 endif(BUILD_LOAD_TESTS)
-add_subdirectory("src/libaktualizr")
-add_subdirectory("src/sota_tools")
-add_subdirectory("src/aktualizr_primary")
-add_subdirectory("src/aktualizr_secondary")
-add_subdirectory("src/aktualizr_info")
-add_subdirectory("src/aktualizr_repo")
-
-add_subdirectory("src/aktualizr_check_discovery")
-add_subdirectory("src/cert_provider")
-add_subdirectory("src/implicit_writer")
-add_subdirectory("src/external_secondaries")
-
-add_subdirectory("src/load_tests")
+add_subdirectory("src")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
 add_subdirectory("docs")

@@ -12,11 +12,6 @@ target_compile_options(example-interface PUBLIC -DECUFLASHER_EXAMPLE)
 add_executable(aktualizr-validate-secondary-interface validate_secondary_interface_test.cc)
 target_link_libraries(aktualizr-validate-secondary-interface ${Boost_LIBRARIES} gtest)
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(example-interface gcov)
-    target_link_libraries(aktualizr-validate-secondary-interface gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 aktualizr_source_file_checks(${MAIN_ECU_INTERFACE_SRC} ${ECU_INTERFACE_HEADERS}
                              example_flasher.cc example_flasher.h validate_secondary_interface_test.cc)
 
@@ -43,10 +38,6 @@ if(BUILD_ISOTP)
                           ${AKTUALIZR_EXTERNAL_LIBS})
     target_compile_options(isotp-test-interface PUBLIC -DECUFLASHER_TEST_ISOTP)
     target_include_directories(isotp-test-interface PUBLIC ${ISOTP_PATH_PREFIX} ${BITFIELD_PATH_PREFIX})
-
-    if(BUILD_WITH_CODE_COVERAGE)
-        target_link_libraries(isotp-test-interface gcov)
-    endif(BUILD_WITH_CODE_COVERAGE)
 
     install(TARGETS isotp-test-interface RUNTIME DESTINATION bin)
 endif(BUILD_ISOTP)

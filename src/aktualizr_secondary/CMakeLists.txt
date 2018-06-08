@@ -47,10 +47,6 @@ target_link_libraries(aktualizr-secondary
     ${AKTUALIZR_EXTERNAL_LIBS}
     )
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(aktualizr-secondary gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 install(TARGETS aktualizr-secondary
         COMPONENT aktualizr
         RUNTIME DESTINATION bin)

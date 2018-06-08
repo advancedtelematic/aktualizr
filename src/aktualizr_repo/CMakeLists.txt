@@ -10,10 +10,6 @@ add_library(aktualizr_repo_lib ${AKTUALIZR_REPO_SRC})
 add_executable(aktualizr-repo main.cc ${AKTUALIZR_REPO_SRC})
 target_link_libraries(aktualizr-repo ${AKTUALIZR_REPO_LIBS})
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(aktualizr-repo gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 install(TARGETS aktualizr-repo
         COMPONENT aktualizr
         RUNTIME DESTINATION bin)

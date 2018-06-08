@@ -5,10 +5,6 @@ set_source_files_properties(main.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-dec
 
 target_link_libraries(aktualizr_cert_provider aktualizr_static_lib ${AKTUALIZR_EXTERNAL_LIBS})
 
-if(BUILD_WITH_CODE_COVERAGE)
-    target_link_libraries(aktualizr_cert_provider gcov)
-endif(BUILD_WITH_CODE_COVERAGE)
-
 aktualizr_source_file_checks(main.cc)
 
 add_dependencies(build_tests aktualizr_cert_provider)
