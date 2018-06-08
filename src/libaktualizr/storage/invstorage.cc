@@ -23,14 +23,7 @@ std::ostream& operator<<(std::ostream& os, const StorageType stype) {
 }
 
 void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  std::string storage_type = "filesystem";
-  CopyFromConfig(storage_type, "type", pt);
-  if (storage_type == "sqlite") {
-    type = kSqlite;
-  } else {
-    type = kFileSystem;
-  }
-
+  CopyFromConfig(type, "type", pt);
   CopyFromConfig(path, "path", pt);
   CopyFromConfig(sqldb_path, "sqldb_path", pt);
   CopyFromConfig(uptane_metadata_path, "uptane_metadata_path", pt);

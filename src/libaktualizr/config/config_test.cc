@@ -215,6 +215,34 @@ TEST(config, config_dirs_two_dirs) {
   EXPECT_EQ(config.provision.provision_path.string(), "y_prov_path");
 }
 
+/* This test is designed to catch a bug in which storage.type and pacman.type
+ * set in the first config file read could be overwritten by the defaults when
+ * reading a second config file. */
+TEST(config, two_config_correctness) {
+  TemporaryDirectory temp_dir;
+  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
+  TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
+  {
+    std::ofstream cs(conf_path_str.c_str(), std::ofstream::app);
+    cs << "type = sqlite\n";
+    cs << "\n[pacman]\ntype = none\n";
+  }
+
+  bpo::variables_map cmd;
+  bpo::options_description description("some text");
+  // clang-format off
+  description.add_options()
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
+  // clang-format on
+
+  const char *argv[] = {"aktualizr", "-c", conf_path_str.c_str(), "-c", "tests/config/minimal.toml"};
+  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
+
+  Config conf(cmd);
+  EXPECT_EQ(conf.storage.type, kSqlite);
+  EXPECT_EQ(conf.pacman.type, kNone);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
