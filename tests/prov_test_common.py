@@ -27,7 +27,7 @@ def verify_provisioned(akt_info, conf):
 
 
 def run_subprocess(command):
-    s = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    s = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     return s.stdout, s.stderr, s.returncode
 
 
