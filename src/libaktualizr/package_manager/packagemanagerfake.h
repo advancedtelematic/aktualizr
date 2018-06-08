@@ -15,6 +15,7 @@ class PackageManagerFake : public PackageManagerInterface {
   Json::Value getInstalledPackages() override;
 
   Uptane::Target getCurrent() override;
+  bool imageUpdated() override { return true; };
 
   data::InstallOutcome install(const Uptane::Target &target) const override;
 

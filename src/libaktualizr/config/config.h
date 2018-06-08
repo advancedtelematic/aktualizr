@@ -17,6 +17,7 @@
 #include "utilities/config_utils.h"
 #include "utilities/types.h"
 
+#include "bootloader/bootloader.h"
 #include "crypto/keymanager_config.h"
 #include "crypto/p11_config.h"
 #include "logging/logging_config.h"
@@ -131,6 +132,7 @@ class Config : public BaseConfig {
   StorageConfig storage;
   ImportConfig import;
   TelemetryConfig telemetry;
+  BootloaderConfig bootloader;
 
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;

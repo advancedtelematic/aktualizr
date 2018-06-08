@@ -1,0 +1,3 @@
+[bootloader]
+rollback_mode = "uboot_masked"
+

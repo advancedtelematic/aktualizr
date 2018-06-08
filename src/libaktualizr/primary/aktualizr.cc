@@ -42,7 +42,8 @@ int Aktualizr::run() {
   storage->importData(config_.import);
   HttpClient http;
   Uptane::Repository repo(config_, storage);
-  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http);
+  Bootloader bootloader(config_.bootloader);
+  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http, bootloader);
   uptane_client.runForever(commands_channel);
 
   return EXIT_SUCCESS;

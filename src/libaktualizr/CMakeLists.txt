@@ -1,5 +1,6 @@
 add_subdirectory("utilities")
 add_subdirectory("asn1")
+add_subdirectory("bootloader")
 add_subdirectory("bootstrap")
 add_subdirectory("config")
 add_subdirectory("crypto")
@@ -20,6 +21,7 @@ endif (BUILD_OPCUA)
 add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:asn1>
     $<TARGET_OBJECTS:asn1_lib>
+    $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:bootstrap>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>

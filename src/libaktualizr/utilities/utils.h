@@ -35,6 +35,8 @@ struct Utils {
   static sockaddr_storage ipGetSockaddr(int fd);
   static std::string ipDisplayName(const sockaddr_storage &saddr);
   static int ipPort(const sockaddr_storage &saddr);
+  static void clearUbootCounter();
+  static void setUbootUpgraded();
   static int shell(const std::string &command, std::string *output, bool include_stderr = false);
   static boost::filesystem::path absolutePath(const boost::filesystem::path &root, const boost::filesystem::path &file);
   static void setSocketPort(sockaddr_storage *addr, in_port_t port);
