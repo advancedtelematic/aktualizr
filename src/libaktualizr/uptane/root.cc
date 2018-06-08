@@ -11,7 +11,7 @@ Root::Root(const TimeStamp &now, const std::string &repository, const Json::Valu
   this->UnpackSignedObject(now, repository, json);
 }
 
-Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCheck) {
+Root::Root(const std::string &repository, const Json::Value &json) : policy_(Policy::Check) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw Uptane::InvalidMetadata("", "", "invalid metadata json");
   }
@@ -76,7 +76,7 @@ Root::Root(const std::string &repository, const Json::Value &json) : policy_(kCh
 Json::Value Root::toJson() const {
   Json::Value res = BaseMeta::toJson();
 
-  if (policy_ != kCheck) {
+  if (policy_ != Policy::Check) {
     throw Uptane::InvalidMetadata("", "root", "json representation will be invalid");
   }
 
@@ -126,13 +126,13 @@ Json::Value Root::toJson() const {
 void Uptane::Root::UnpackSignedObject(const TimeStamp &now, const std::string &repository,
                                       const Json::Value &signed_object) {
   Uptane::Role role(signed_object["signed"]["_type"].asString());
-  if (policy_ == kAcceptAll) {
+  if (policy_ == Policy::AcceptAll) {
     return;
   }
-  if (policy_ == kRejectAll) {
-    throw SecurityException(repository, "Root policy is kRejectAll");
+  if (policy_ == Policy::RejectAll) {
+    throw SecurityException(repository, "Root policy is Policy::RejectAll");
   }
-  assert(policy_ == kCheck);
+  assert(policy_ == Policy::Check);
 
   std::string canonical = Json::FastWriter().write(signed_object["signed"]);
   Json::Value signatures = signed_object["signatures"];

@@ -66,7 +66,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   if (error != nullptr) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
-    return data::InstallOutcome(data::INSTALL_FAILED, "Could not get OSTree repo");
+    return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, "Could not get OSTree repo");
   }
 
   GHashTable *ref_list = nullptr;
@@ -76,7 +76,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
     // should never be greater than 1, but use >= for robustness
     if (length >= 1) {
       LOG_DEBUG << "refhash already pulled";
-      return data::InstallOutcome(data::ALREADY_PROCESSED, "Refhash was already pulled");
+      return data::InstallOutcome(data::UpdateResultCode::ALREADY_PROCESSED, "Refhash was already pulled");
     }
   }
   if (error != nullptr) {
@@ -85,7 +85,7 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   }
 
   if (!OstreeManager::addRemote(repo.get(), ostree_server, keys)) {
-    return data::InstallOutcome(data::INSTALL_FAILED, "Error adding OSTree remote");
+    return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, "Error adding OSTree remote");
   }
 
   g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
@@ -98,14 +98,14 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &percent_complete));
   if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
     LOG_ERROR << "Error of pulling image: " << error->message;
-    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::UpdateResultCode::INSTALL_FAILED, error->message);
     g_error_free(error);
     g_variant_unref(options);
     return install_outcome;
   }
   ostree_async_progress_finish(progress.get());
   g_variant_unref(options);
-  return data::InstallOutcome(data::OK, "Pulling ostree image was successful");
+  return data::InstallOutcome(data::UpdateResultCode::OK, "Pulling ostree image was successful");
 }
 
 data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const {
@@ -124,14 +124,14 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   if (error != nullptr) {
     LOG_ERROR << "could not get repo";
     g_error_free(error);
-    return data::InstallOutcome(data::INSTALL_FAILED, "could not get repo");
+    return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, "could not get repo");
   }
 
   auto origin = StructGuard<GKeyFile>(
       ostree_sysroot_origin_new_from_refspec(sysroot.get(), target.sha256Hash().c_str()), g_key_file_free);
   if (ostree_repo_resolve_rev(repo.get(), target.sha256Hash().c_str(), FALSE, &revision, &error) == 0) {
     LOG_ERROR << error->message;
-    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::UpdateResultCode::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
@@ -139,12 +139,12 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   OstreeDeployment *merge_deployment = ostree_sysroot_get_merge_deployment(sysroot.get(), opt_osname);
   if (merge_deployment == nullptr) {
     LOG_ERROR << "No merge deployment";
-    return data::InstallOutcome(data::INSTALL_FAILED, "No merge deployment");
+    return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, "No merge deployment");
   }
 
   if (ostree_sysroot_prepare_cleanup(sysroot.get(), cancellable, &error) == 0) {
     LOG_ERROR << error->message;
-    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::UpdateResultCode::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
@@ -167,7 +167,7 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
   if (ostree_sysroot_deploy_tree(sysroot.get(), opt_osname, revision, origin.get(), merge_deployment, kargs_strv,
                                  &new_deployment, cancellable, &error) == 0) {
     LOG_ERROR << "ostree_sysroot_deploy_tree: " << error->message;
-    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::UpdateResultCode::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
@@ -176,13 +176,13 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
                                              OSTREE_SYSROOT_SIMPLE_WRITE_DEPLOYMENT_FLAGS_NONE, cancellable,
                                              &error) == 0) {
     LOG_ERROR << "ostree_sysroot_simple_write_deployment:" << error->message;
-    data::InstallOutcome install_outcome(data::INSTALL_FAILED, error->message);
+    data::InstallOutcome install_outcome(data::UpdateResultCode::INSTALL_FAILED, error->message);
     g_error_free(error);
     return install_outcome;
   }
   LOG_INFO << "Performing sync()";
   sync();
-  return data::InstallOutcome(data::OK, "Installation successful");
+  return data::InstallOutcome(data::UpdateResultCode::OK, "Installation successful");
 }
 
 OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage)

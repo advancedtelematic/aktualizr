@@ -26,8 +26,8 @@ Repository::Repository(const Config& config_in, std::shared_ptr<INvStorage> stor
       manifests(Json::arrayValue) {
   RawMetaPack meta_stored;
 
-  meta_.director_root = Root(Root::kAcceptAll);
-  meta_.image_root = Root(Root::kAcceptAll);
+  meta_.director_root = Root(Root::Policy::AcceptAll);
+  meta_.image_root = Root(Root::Policy::AcceptAll);
   if (storage->loadMetadata(&meta_stored)) {
     // stored metadata is trusted
     meta_.director_root = Uptane::Root("director", Utils::parseJSON(meta_stored.director_root));

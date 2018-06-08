@@ -64,7 +64,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   secondary_->detected_attack_.clear();
 
-  secondary_->root_ = Uptane::Root(Uptane::Root::kAcceptAll);
+  secondary_->root_ = Uptane::Root(Uptane::Root::Policy::AcceptAll);
   Uptane::RawMetaPack meta;
   if (secondary_->storage_->loadMetadata(&meta)) {
     // stored metadata is trusted
@@ -123,7 +123,8 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
         secondary_->pacman->setOperationResult(target_to_install.filename(), res_code, message);
       } else {
         secondary_->storage_->saveInstalledVersion(target_to_install);
-        secondary_->pacman->setOperationResult(target_to_install.filename(), data::OK, "Installation successful");
+        secondary_->pacman->setOperationResult(target_to_install.filename(), data::UpdateResultCode::OK,
+                                               "Installation successful");
       }
     });
     long_run_op.detach();

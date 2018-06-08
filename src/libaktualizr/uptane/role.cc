@@ -9,27 +9,27 @@ Role::Role(const std::string &role_name) {
   std::string role_name_lower;
   std::transform(role_name.begin(), role_name.end(), std::back_inserter(role_name_lower), ::tolower);
   if (role_name_lower == "root") {
-    role_ = kRoot;
+    role_ = RoleEnum::Root;
   } else if (role_name_lower == "snapshot") {
-    role_ = kSnapshot;
+    role_ = RoleEnum::Snapshot;
   } else if (role_name_lower == "targets") {
-    role_ = kTargets;
+    role_ = RoleEnum::Targets;
   } else if (role_name_lower == "timestamp") {
-    role_ = kTimestamp;
+    role_ = RoleEnum::Timestamp;
   } else {
-    role_ = kInvalidRole;
+    role_ = RoleEnum::InvalidRole;
   }
 }
 
 std::string Role::ToString() const {
   switch (role_) {
-    case kRoot:
+    case RoleEnum::Root:
       return "root";
-    case kSnapshot:
+    case RoleEnum::Snapshot:
       return "snapshot";
-    case kTargets:
+    case RoleEnum::Targets:
       return "targets";
-    case kTimestamp:
+    case RoleEnum::Timestamp:
       return "timestamp";
     default:
       return "invalidrole";

@@ -14,13 +14,12 @@ boost::filesystem::path storage_test_dir;
 StorageConfig storage_test_config;
 
 std::unique_ptr<INvStorage> Storage(const StorageConfig &config) {
-  if (config.type == kFileSystem) {
+  if (config.type == StorageType::FileSystem) {
     return std::unique_ptr<INvStorage>(new FSStorage(config));
-  } else if (config.type == kSqlite) {
+  } else if (config.type == StorageType::Sqlite) {
     return std::unique_ptr<INvStorage>(new SQLStorage(config));
   } else {
-    std::cout << "Invalid config type: " << config.type << "\n";
-    return std::unique_ptr<INvStorage>(nullptr);
+    throw std::runtime_error("Invalid config type");
   }
 }
 
@@ -30,7 +29,7 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
   StorageConfig config;
 
   config.type = type;
-  if (type == kFileSystem) {
+  if (type == StorageType::FileSystem) {
     config.path = storage_dir;
     config.uptane_metadata_path = "metadata";
     config.uptane_public_key_path = "test_primary.pub";
@@ -38,10 +37,10 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
     config.tls_pkey_path = "test_tls.pkey";
     config.tls_clientcert_path = "test_tls.cert";
     config.tls_cacert_path = "test_tls.ca";
-  } else if (config.type == kSqlite) {
+  } else if (config.type == StorageType::Sqlite) {
     config.sqldb_path = storage_dir / "test.db";
   } else {
-    std::cout << "Invalid config type: " << config.type << "\n";
+    throw std::runtime_error("Invalid config type");
   }
   return config;
 }
@@ -250,8 +249,8 @@ TEST(storage, load_store_misconfigured_ecus) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   std::vector<MisconfiguredEcu> ecus;
-  ecus.push_back(
-      MisconfiguredEcu(Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"), kNotRegistered));
+  ecus.push_back(MisconfiguredEcu(Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"),
+                                  EcuState::NotRegistered));
 
   storage->storeMisconfiguredEcus(ecus);
 
@@ -262,7 +261,7 @@ TEST(storage, load_store_misconfigured_ecus) {
   EXPECT_EQ(ecus_out.size(), ecus.size());
   EXPECT_EQ(ecus_out[0].serial, Uptane::EcuSerial("primary"));
   EXPECT_EQ(ecus_out[0].hardware_id, Uptane::HardwareIdentifier("primary_hw"));
-  EXPECT_EQ(ecus_out[0].state, kNotRegistered);
+  EXPECT_EQ(ecus_out[0].state, EcuState::NotRegistered);
 
   storage->clearMisconfiguredEcus();
   ecus_out.clear();
@@ -419,13 +418,13 @@ int main(int argc, char **argv) {
   std::cout << "Running tests for FSStorage" << std::endl;
   TemporaryDirectory temp_dir1;
   storage_test_dir = temp_dir1.Path();
-  storage_test_config = MakeConfig(kFileSystem, storage_test_dir);
+  storage_test_config = MakeConfig(StorageType::FileSystem, storage_test_dir);
   int res_fs = RUN_ALL_TESTS();
 
   std::cout << "Running tests for SQLStorage" << std::endl;
   TemporaryDirectory temp_dir2;
   storage_test_dir = temp_dir2.Path();
-  storage_test_config = MakeConfig(kSqlite, storage_test_dir);
+  storage_test_config = MakeConfig(StorageType::Sqlite, storage_test_dir);
   int res_sql = RUN_ALL_TESTS();
 
   return res_fs || res_sql;  // 0 indicates success

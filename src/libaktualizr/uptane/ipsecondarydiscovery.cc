@@ -81,7 +81,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
 
     LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id << " " << conf.ip_addr;
-    conf.secondary_type = Uptane::SecondaryType::kIpUptane;
+    conf.secondary_type = Uptane::SecondaryType::IpUptane;
 
     secondaries.push_back(conf);
 

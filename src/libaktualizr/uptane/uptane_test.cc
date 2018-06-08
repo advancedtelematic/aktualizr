@@ -40,7 +40,7 @@ TEST(Uptane, Verify) {
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
   HttpResponse response = http.get(http.tls_server + "/director/root.json");
-  Uptane::Root root(Uptane::Root::kAcceptAll);
+  Uptane::Root root(Uptane::Root::Policy::AcceptAll);
   Uptane::Root(now, "director", response.getJson(), root);
 }
 
@@ -56,7 +56,7 @@ TEST(Uptane, VerifyDataBad) {
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json.removeMember("signatures");
 
-  Uptane::Root root(Uptane::Root::kAcceptAll);
+  Uptane::Root root(Uptane::Root::Policy::AcceptAll);
   EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::UnmetThreshold);
 }
 
@@ -73,7 +73,7 @@ TEST(Uptane, VerifyDataUnknownType) {
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
 
-  Uptane::Root root(Uptane::Root::kAcceptAll);
+  Uptane::Root root(Uptane::Root::Policy::AcceptAll);
   EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::SecurityException);
 }
 
@@ -90,7 +90,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
 
-  Uptane::Root root(Uptane::Root::kAcceptAll);
+  Uptane::Root root(Uptane::Root::Policy::AcceptAll);
   EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::UnmetThreshold);
 }
 
@@ -106,7 +106,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
   Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
-    Uptane::Root root(Uptane::Root::kAcceptAll);
+    Uptane::Root root(Uptane::Root::Policy::AcceptAll);
     Uptane::Root(now, "director", data_json, root);
     FAIL();
   } catch (Uptane::IllegalThreshold ex) {
@@ -460,12 +460,12 @@ TEST(Uptane, InitializeFail) {
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository uptane(conf, storage);
 
-  http.provisioningResponse = ProvisionFailure;
+  http.provisioningResponse = ProvisioningResult::Failure;
   KeyManager keys(storage, conf.keymanagerConfig());
   Initializer initializer(conf.provision, storage, http, keys, {});
 
   bool result = initializer.isSuccessful();
-  http.provisioningResponse = ProvisionOK;
+  http.provisioningResponse = ProvisioningResult::OK;
   EXPECT_FALSE(result);
 }
 
@@ -481,14 +481,14 @@ TEST(Uptane, AssembleManifestGood) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::Automatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::None;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -522,14 +522,14 @@ TEST(Uptane, AssembleManifestBad) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::Automatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::None;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -571,14 +571,14 @@ TEST(Uptane, PutManifest) {
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::Automatic;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::None;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -671,7 +671,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.pacman.sysroot = sysroot;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -763,17 +763,17 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.repo_server = http.tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::Automatic;
   config.uptane.repo_server = http.tls_server + "/repo";
   config.tls.server = http.tls_server;
   config.provision.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::None;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
@@ -858,7 +858,7 @@ TEST(Uptane, fs_to_sql_full) {
   int result = system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
   (void)result;
   StorageConfig config;
-  config.type = kSqlite;
+  config.type = StorageType::Sqlite;
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
@@ -979,7 +979,7 @@ TEST(Uptane, fs_to_sql_partial) {
   boost::filesystem::copy_file("tests/test_data/prov/ecukey.pub", temp_dir.Path() / "ecukey.pub");
 
   StorageConfig config;
-  config.type = kSqlite;
+  config.type = StorageType::Sqlite;
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
   config.sqldb_path = temp_dir.Path() / "database.db";
@@ -1118,7 +1118,7 @@ TEST(Uptane, getMetaCorrectStorage) {
   Config config;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = kSqlite;
+  config.storage.type = StorageType::Sqlite;
   config.storage.path = temp_dir.Path();
   config.storage.sqldb_path = temp_dir / "db.sqlite";
 
@@ -1142,7 +1142,7 @@ TEST(Uptane, krejectallTest) {
   Config config;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = kSqlite;
+  config.storage.type = StorageType::Sqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
 
   config.provision.device_id = "device_id";
@@ -1161,7 +1161,7 @@ TEST(Uptane, VerifyMetaTest) {
   Config config;
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = kSqlite;
+  config.storage.type = StorageType::Sqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
 
   config.provision.device_id = "device_id";
@@ -1209,8 +1209,8 @@ TEST(Uptane, Pkcs11Provision) {
   Config config;
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
-  config.tls.cert_source = kPkcs11;
-  config.tls.pkey_source = kPkcs11;
+  config.tls.cert_source = CryptoSource::Pkcs11;
+  config.tls.pkey_source = CryptoSource::Pkcs11;
   config.p11.module = TEST_PKCS11_MODULE_PATH;
   config.p11.pass = "1234";
   config.p11.tls_clientcert_id = "01";

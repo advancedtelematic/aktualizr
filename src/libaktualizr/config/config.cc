@@ -16,26 +16,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-std::ostream& operator<<(std::ostream& os, const KeyType kt) {
-  std::string kt_str;
-  switch (kt) {
-    case kRSA2048:
-      kt_str = "RSA2048";
-      break;
-    case kRSA4096:
-      kt_str = "RSA4096";
-      break;
-    case kED25519:
-      kt_str = "ED25519";
-      break;
-    default:
-      kt_str = "unknown";
-      break;
-  }
-  os << '"' << kt_str << '"';
-  return os;
-}
-
 void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(socket, "socket", pt);
 }
@@ -83,25 +63,25 @@ void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   std::string tls_source = "file";
   CopyFromConfig(tls_source, "ca_source", pt);
   if (tls_source == "pkcs11") {
-    ca_source = kPkcs11;
+    ca_source = CryptoSource::Pkcs11;
   } else {
-    ca_source = kFile;
+    ca_source = CryptoSource::File;
   }
 
   tls_source = "file";
   CopyFromConfig(tls_source, "cert_source", pt);
   if (tls_source == "pkcs11") {
-    cert_source = kPkcs11;
+    cert_source = CryptoSource::Pkcs11;
   } else {
-    cert_source = kFile;
+    cert_source = CryptoSource::File;
   }
 
   tls_source = "file";
   CopyFromConfig(tls_source, "pkey_source", pt);
   if (tls_source == "pkcs11") {
-    pkey_source = kPkcs11;
+    pkey_source = CryptoSource::Pkcs11;
   } else {
-    pkey_source = kFile;
+    pkey_source = CryptoSource::File;
   }
 }
 
@@ -146,20 +126,20 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   std::string ks = "file";
   CopyFromConfig(ks, "key_source", pt);
   if (ks == "pkcs11") {
-    key_source = kPkcs11;
+    key_source = CryptoSource::Pkcs11;
   } else {
-    key_source = kFile;
+    key_source = CryptoSource::File;
   }
 
   std::string kt;
   CopyFromConfig(kt, "key_type", pt);
   if (kt.size() != 0u) {
     if (kt == "RSA2048") {
-      key_type = kRSA2048;
+      key_type = KeyType::RSA2048;
     } else if (kt == "RSA4096") {
-      key_type = kRSA4096;
+      key_type = KeyType::RSA4096;
     } else if (kt == "ED25519") {
-      key_type = kED25519;
+      key_type = KeyType::ED25519;
     }
   }
 
@@ -233,7 +213,7 @@ void Config::postUpdateValues() {
   logger_set_threshold(logger);
 
   if (provision.provision_path.empty()) {
-    provision.mode = kImplicit;
+    provision.mode = ProvisionMode::Implicit;
   }
 
   if (tls.server.empty()) {
@@ -355,14 +335,14 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
 
     std::string stype = config_json["secondary_type"].asString();
     if (stype == "virtual") {
-      sconfig.secondary_type = Uptane::kVirtual;
+      sconfig.secondary_type = Uptane::SecondaryType::Virtual;
     } else if (stype == "legacy") {
       LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
       continue;
     } else if (stype == "ip_uptane") {
-      sconfig.secondary_type = Uptane::kIpUptane;
+      sconfig.secondary_type = Uptane::SecondaryType::IpUptane;
     } else if (stype == "opcua_uptane") {
-      sconfig.secondary_type = Uptane::kOpcuaUptane;
+      sconfig.secondary_type = Uptane::SecondaryType::OpcuaUptane;
     } else {
       LOG_ERROR << "Unrecognized secondary type: " << stype;
       continue;
@@ -382,11 +362,11 @@ void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sc
     std::string key_type = config_json["key_type"].asString();
     if (key_type.size() != 0u) {
       if (key_type == "RSA2048") {
-        sconfig.key_type = kRSA2048;
+        sconfig.key_type = KeyType::RSA2048;
       } else if (key_type == "RSA4096") {
-        sconfig.key_type = kRSA4096;
+        sconfig.key_type = KeyType::RSA4096;
       } else if (key_type == "ED25519") {
-        sconfig.key_type = kED25519;
+        sconfig.key_type = KeyType::ED25519;
       }
     }
     uptane.secondary_configs.push_back(sconfig);
@@ -430,7 +410,7 @@ void Config::initLegacySecondaries() {
   std::string buffer;
   while (std::getline(ss, buffer, '\n')) {
     Uptane::SecondaryConfig sconfig;
-    sconfig.secondary_type = Uptane::kLegacy;
+    sconfig.secondary_type = Uptane::SecondaryType::Legacy;
     std::vector<std::string> ecu_info;
     boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
     if (ecu_info.size() == 0) {
@@ -484,7 +464,7 @@ void Config::writeToStream(std::ostream& sink) const {
 }
 
 asn1::Serializer& operator<<(asn1::Serializer& ser, CryptoSource cs) {
-  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(cs));
+  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(static_cast<int>(cs)));
 
   return ser;
 }
@@ -500,7 +480,7 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, CryptoSource& cs) {
   int32_t cs_i;
   des >> asn1::implicit<kAsn1Enum>(cs_i);
 
-  if (cs_i < kFile || cs_i > kPkcs11) {
+  if (cs_i < static_cast<int>(CryptoSource::File) || cs_i > static_cast<int>(CryptoSource::Pkcs11)) {
     throw deserialization_error();
   }
 

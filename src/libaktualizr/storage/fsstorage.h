@@ -54,7 +54,7 @@ class FSStorage : public INvStorage {
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;
   void removeTargetFile(const std::string& filename) override;
   void cleanUp() override;
-  StorageType type() override { return kFileSystem; };
+  StorageType type() override { return StorageType::FileSystem; };
 
   friend class FSTargetWHandle;
   friend class FSTargetRHandle;

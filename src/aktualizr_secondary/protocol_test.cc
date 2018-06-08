@@ -13,7 +13,7 @@ TEST(aktualizr_secondary_protocol, run_and_stop) {
   TemporaryDirectory temp_dir;
   AktualizrSecondaryConfig config = conf;
   config.network.port = 0;  // random port
-  config.storage.type = kSqlite;
+  config.storage.type = StorageType::Sqlite;
   config.storage.sqldb_path = temp_dir.Path() / "sql.db";
 
   config.pacman.sysroot = sysroot;

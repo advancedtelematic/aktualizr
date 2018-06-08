@@ -8,17 +8,17 @@ using std::string;
 
 int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubServer &treehub) {
   switch (creds.GetMethod()) {
-    case AUTH_BASIC: {
+    case AuthMethod::BASIC: {
       treehub.SetAuthBasic(creds.GetAuthUser(), creds.GetAuthPassword());
       treehub.ca_certs(cacerts);
       break;
     }
 
-    case OAUTH2: {
+    case AuthMethod::OAUTH2: {
       OAuth2 oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), cacerts);
 
       if (!creds.GetClientId().empty()) {
-        if (oauth2.Authenticate() != AUTHENTICATION_SUCCESS) {
+        if (oauth2.Authenticate() != AuthenticationResult::SUCCESS) {
           LOG_FATAL << "Authentication with oauth2 failed";
           return EXIT_FAILURE;
         }
@@ -33,16 +33,16 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       treehub.ca_certs(cacerts);
       break;
     }
-    case CERT: {
+    case AuthMethod::CERT: {
       treehub.SetCerts(creds.GetRootCert(), creds.GetClientCert(), creds.GetClientKey());
       break;
     }
-    case AUTH_NONE:
+    case AuthMethod::NONE:
       treehub.ca_certs(cacerts);  // Setup ca certificate because curl by default check ca certs
       break;
 
     default: {
-      LOG_FATAL << "Unexpected authentication method value " << creds.GetMethod();
+      LOG_FATAL << "Unexpected authentication method value " << static_cast<int>(creds.GetMethod());
       return EXIT_FAILURE;
     }
   }

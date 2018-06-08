@@ -24,20 +24,20 @@ void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::propert
   std::string ks = "file";
   CopyFromConfig(ks, "key_source", pt);
   if (ks == "pkcs11") {
-    key_source = kPkcs11;
+    key_source = CryptoSource::Pkcs11;
   } else {
-    key_source = kFile;
+    key_source = CryptoSource::File;
   }
 
   std::string kt;
   CopyFromConfig(kt, "key_type", pt);
   if (kt.size() != 0u) {
     if (kt == "RSA2048") {
-      key_type = kRSA2048;
+      key_type = KeyType::RSA2048;
     } else if (kt == "RSA4096") {
-      key_type = kRSA4096;
+      key_type = KeyType::RSA4096;
     } else if (kt == "ED25519") {
-      key_type = kED25519;
+      key_type = KeyType::ED25519;
     }
   }
 }
@@ -79,7 +79,8 @@ AktualizrSecondaryConfig::AktualizrSecondaryConfig(const boost::filesystem::path
 
 KeyManagerConfig AktualizrSecondaryConfig::keymanagerConfig() const {
   // Note: use dummy values for tls key sources
-  return KeyManagerConfig{p11, kFile, kFile, kFile, uptane.key_type, uptane.key_source};
+  return KeyManagerConfig{
+      p11, CryptoSource::File, CryptoSource::File, CryptoSource::File, uptane.key_type, uptane.key_source};
 }
 
 void AktualizrSecondaryConfig::postUpdateValues() {

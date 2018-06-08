@@ -17,13 +17,12 @@
 StorageType storage_test_type;
 
 std::unique_ptr<INvStorage> Storage(const StorageConfig& config) {
-  if (config.type == kFileSystem) {
+  if (config.type == StorageType::FileSystem) {
     return std::unique_ptr<INvStorage>(new FSStorage(config));
-  } else if (config.type == kSqlite) {
+  } else if (config.type == StorageType::Sqlite) {
     return std::unique_ptr<INvStorage>(new SQLStorage(config));
   } else {
-    std::cout << "Invalid config type: " << config.type << "\n";
-    return std::unique_ptr<INvStorage>(nullptr);
+    throw std::runtime_error("Invalid config type");
   }
 }
 
@@ -31,7 +30,7 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
   StorageConfig config;
 
   config.type = type;
-  if (type == kFileSystem) {
+  if (type == StorageType::FileSystem) {
     config.path = storage_dir;
     config.uptane_metadata_path = "metadata";
     config.uptane_public_key_path = "test_primary.pub";
@@ -39,10 +38,10 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
     config.tls_pkey_path = "test_tls.pkey";
     config.tls_clientcert_path = "test_tls.cert";
     config.tls_cacert_path = "test_tls.ca";
-  } else if (config.type == kSqlite) {
+  } else if (config.type == StorageType::Sqlite) {
     config.sqldb_path = storage_dir / "test.db";
   } else {
-    std::cout << "Invalid config type: " << config.type << "\n";
+    throw std::runtime_error("Invalid config type");
   }
   return config;
 }
@@ -124,13 +123,13 @@ void atomic_test() {
 
 TEST(DISABLED_storage_atomic, fs) {
   // broken on FS storage: public and private parts are stored in two different files
-  storage_test_type = kFileSystem;
+  storage_test_type = StorageType::FileSystem;
   atomic_test();
 }
 
 TEST(DISABLED_storage_atomic, sql) {
   // disabled for now because it uses too much resources for CI
-  storage_test_type = kSqlite;
+  storage_test_type = StorageType::Sqlite;
   atomic_test();
 }
 

@@ -27,8 +27,8 @@ struct AktualizrSecondaryNetConfig {
 struct AktualizrSecondaryUptaneConfig {
   std::string ecu_serial;
   std::string ecu_hardware_id;
-  CryptoSource key_source{kFile};
-  KeyType key_type{kRSA2048};
+  CryptoSource key_source{CryptoSource::File};
+  KeyType key_type{KeyType::RSA2048};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

@@ -11,7 +11,7 @@ Json::Value Repo::signTuf(const std::string &repo_type, const Json::Value &json)
   std::string private_key = Utils::readFile(path_ / "keys" / repo_type / "private.key");
 
   std::string b64sig =
-      Utils::toBase64(Crypto::Sign(KeyType::kRSA2048, nullptr, private_key, Json::FastWriter().write(json)));
+      Utils::toBase64(Crypto::Sign(KeyType::RSA2048, nullptr, private_key, Json::FastWriter().write(json)));
   Json::Value signature;
   signature["method"] = "rsassa-pss";
   signature["sig"] = b64sig;
@@ -51,7 +51,7 @@ void Repo::generateRepo(const std::string &repo_type) {
   boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type));
   boost::filesystem::create_directories(repo_dir);
 
-  KeyType type{kRSA2048};
+  KeyType type{KeyType::RSA2048};
   std::string public_key_string, private_key;
   Crypto::generateKeyPair(type, &public_key_string, &private_key);
   PublicKey public_key(public_key_string, type);
@@ -129,5 +129,5 @@ void Repo::copyTarget(const std::string &target_name) {
 
 PublicKey Repo::GetPublicKey(const std::string &repo_type) const {
   std::string public_key_string = Utils::readFile(path_ / "keys" / repo_type / "public.key");
-  return PublicKey(public_key_string, kRSA2048);
+  return PublicKey(public_key_string, KeyType::RSA2048);
 }

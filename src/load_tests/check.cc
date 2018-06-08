@@ -40,7 +40,7 @@ class CheckForUpdate {
       std::string cert;
       std::string ca;
       if (storage->loadTlsCreds(&ca, &cert, &pkey)) {
-        httpClient.setCerts(ca, kFile, cert, kFile, pkey, kFile);
+        httpClient.setCerts(ca, CryptoSource::File, cert, CryptoSource::File, pkey, CryptoSource::File);
         LOG_DEBUG << "Getting targets";
         client.getUpdateRequests();
       } else {

@@ -15,15 +15,15 @@ class SecondaryFactory {
  public:
   static std::shared_ptr<SecondaryInterface> makeSecondary(const SecondaryConfig& sconfig) {
     switch (sconfig.secondary_type) {
-      case kVirtual:
+      case SecondaryType::Virtual:
         return std::make_shared<VirtualSecondary>(sconfig);
         break;
-      case kLegacy:
+      case SecondaryType::Legacy:
         return std::make_shared<LegacySecondary>(sconfig);
         break;
-      case kIpUptane:
+      case SecondaryType::IpUptane:
         return std::make_shared<IpUptaneSecondary>(sconfig);
-      case kOpcuaUptane:
+      case SecondaryType::OpcuaUptane:
 #ifdef OPCUA_SECONDARY_ENABLED
         return std::make_shared<OpcuaSecondary>(sconfig);
 #else
@@ -31,7 +31,7 @@ class SecondaryFactory {
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
 #endif
       default:
-        LOG_ERROR << "Unrecognized secondary type: " << sconfig.secondary_type;
+        LOG_ERROR << "Unrecognized secondary type: " << static_cast<int>(sconfig.secondary_type);
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
     }
   }

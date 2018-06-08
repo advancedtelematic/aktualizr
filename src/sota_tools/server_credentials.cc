@@ -42,7 +42,7 @@ std::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
 }
 
 ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_path)
-    : method_(AUTH_NONE), credentials_path_(credentials_path) {
+    : method_(AuthMethod::NONE), credentials_path_(credentials_path) {
   bool found_config = false;
 
   std::unique_ptr<std::stringstream> json_stream;
@@ -98,17 +98,17 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
     }
 
     if (optional<ptree &> ap_pt = pt.get_child_optional("oauth2")) {
-      method_ = OAUTH2;
+      method_ = AuthMethod::OAUTH2;
       auth_server_ = ap_pt->get<std::string>("server", "");
       client_id_ = ap_pt->get<std::string>("client_id", "");
       client_secret_ = ap_pt->get<std::string>("client_secret", "");
     } else if (optional<ptree &> ba_pt = pt.get_child_optional("basic_auth")) {
-      method_ = AUTH_BASIC;
+      method_ = AuthMethod::BASIC;
       auth_user_ = ba_pt->get<std::string>("user", "");
       auth_password_ = ba_pt->get<std::string>("password", kPassword);
     } else if (pt.get<bool>("certificate_auth", false)) {
       if ((client_cert_.size() != 0u) && (client_key_.size() != 0u) && (root_cert_.size() != 0u)) {
-        method_ = CERT;
+        method_ = AuthMethod::CERT;
       } else {
         throw BadCredentialsContent(
             "treehub.json requires certificate authentication, but credential archive, didn't include all or "

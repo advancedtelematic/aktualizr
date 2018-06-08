@@ -7,10 +7,10 @@
 
 #include "utilities/config_utils.h"
 
-enum PackageManager { kNone = 0, kOstree, kDebian };
+enum class PackageManager { None = 0, Ostree, Debian };
 
 struct PackageConfig {
-  PackageManager type{kOstree};
+  PackageManager type{PackageManager::Ostree};
   std::string os;
   boost::filesystem::path sysroot;
   std::string ostree_server;
@@ -27,11 +27,11 @@ inline void CopyFromConfig(PackageManager& dest, const std::string& option_name,
   if (value.is_initialized()) {
     std::string pm_type{StripQuotesFromStrings(value.get())};
     if (pm_type == "ostree") {
-      dest = kOstree;
+      dest = PackageManager::Ostree;
     } else if (pm_type == "debian") {
-      dest = kDebian;
+      dest = PackageManager::Debian;
     } else {
-      dest = kNone;
+      dest = PackageManager::None;
     }
   }
 }

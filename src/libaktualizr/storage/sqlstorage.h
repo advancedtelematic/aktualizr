@@ -10,8 +10,8 @@
 extern const std::vector<std::string> schema_migrations;
 extern const std::string current_schema;
 
-enum SQLReqId { kSqlGetSimple, kSqlGetTable };
-enum DbState { kEmpty = -1, kInvalid = -2 };
+enum class SQLReqId { GetSimple, GetTable };
+enum class DbVersion : int32_t { Empty = -1, Invalid = -2 };
 
 class SQLStorage : public INvStorage {
  public:
@@ -65,13 +65,13 @@ class SQLStorage : public INvStorage {
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;
   void removeTargetFile(const std::string& filename) override;
   void cleanUp() override;
-  StorageType type() override { return kSqlite; };
+  StorageType type() override { return StorageType::Sqlite; };
 
   std::string getTableSchemaFromDb(const std::string& tablename);
 
   bool dbMigrate();
   bool dbInit();
-  int getVersion();  // non-negative integer on success or -1 on error
+  DbVersion getVersion();  // non-negative integer on success or -1 on error
 
  private:
   // request info

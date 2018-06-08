@@ -343,7 +343,7 @@ void FSStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus
     Json::Value ecu;
     ecu["serial"] = it->serial.ToString();
     ecu["hardware_id"] = it->hardware_id.ToString();
-    ecu["state"] = it->state;
+    ecu["state"] = static_cast<int>(it->state);
     json.append(ecu);
   }
   Utils::writeFile(Utils::absolutePath(config_.path, "misconfigured_ecus"), Json::FastWriter().write(json));

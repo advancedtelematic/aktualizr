@@ -96,7 +96,7 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
   curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
-  if (ca_source == kPkcs11) {
+  if (ca_source == CryptoSource::Pkcs11) {
     throw std::runtime_error("Accessing CA certificate on PKCS11 devices isn't currently supported");
   }
   std::unique_ptr<TemporaryFile> tmp_ca_file = std_::make_unique<TemporaryFile>("tls-ca");
@@ -104,31 +104,31 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
   curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
   tls_ca_file = std::move_if_noexcept(tmp_ca_file);
 
-  if (cert_source == kPkcs11) {
+  if (cert_source == CryptoSource::Pkcs11) {
     curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
-  } else {  // cert_source == kFile
+  } else {  // cert_source == CryptoSource::File
     std::unique_ptr<TemporaryFile> tmp_cert_file = std_::make_unique<TemporaryFile>("tls-cert");
     tmp_cert_file->PutContents(cert);
     curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
     tls_cert_file = std::move_if_noexcept(tmp_cert_file);
   }
-  pkcs11_cert = (cert_source == kPkcs11);
+  pkcs11_cert = (cert_source == CryptoSource::Pkcs11);
 
-  if (pkey_source == kPkcs11) {
+  if (pkey_source == CryptoSource::Pkcs11) {
     curl_easy_setopt(curl, CURLOPT_SSLENGINE, "pkcs11");
     curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
     curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
-  } else {  // pkey_source == kFile
+  } else {  // pkey_source == CryptoSource::File
     std::unique_ptr<TemporaryFile> tmp_pkey_file = std_::make_unique<TemporaryFile>("tls-pkey");
     tmp_pkey_file->PutContents(pkey);
     curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
     curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
     tls_pkey_file = std::move_if_noexcept(tmp_pkey_file);
   }
-  pkcs11_key = (pkey_source == kPkcs11);
+  pkcs11_key = (pkey_source == CryptoSource::Pkcs11);
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {

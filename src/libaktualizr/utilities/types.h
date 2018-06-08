@@ -5,24 +5,37 @@
 #include <boost/filesystem.hpp>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
-enum KeyType {
-  kED25519 = 0,
-  kFirstKnownKeyType = kED25519,
-  kRSA2048,
-  kRSA4096,
-  kLastKnownKeyType = kRSA4096,
-  kUnknownKey = 0xff
-};
+enum class KeyType { ED25519 = 0, FirstKnown = ED25519, RSA2048, RSA4096, LastKnown = RSA4096, Unknown = 0xff };
 
-enum CryptoSource { kFile = 0, kPkcs11 };
+inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
+  std::string kt_str;
+  switch (kt) {
+    case KeyType::RSA2048:
+      kt_str = "RSA2048";
+      break;
+    case KeyType::RSA4096:
+      kt_str = "RSA4096";
+      break;
+    case KeyType::ED25519:
+      kt_str = "ED25519";
+      break;
+    default:
+      kt_str = "unknown";
+      break;
+  }
+  os << '"' << kt_str << '"';
+  return os;
+}
+
+enum class CryptoSource { File = 0, Pkcs11 };
 
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
-    case kFile:
+    case CryptoSource::File:
       cs_str = "file";
       break;
-    case kPkcs11:
+    case CryptoSource::Pkcs11:
       cs_str = "pkcs11";
       break;
     default:
@@ -62,7 +75,7 @@ struct DownloadComplete {
   static DownloadComplete fromJson(const std::string& json_str);
 };
 
-enum UpdateResultCode {
+enum class UpdateResultCode {
   /// Operation executed successfully
   OK = 0,
   /// Operation has already been processed
@@ -111,14 +124,16 @@ typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
 struct UpdateReport;
 struct OperationResult {
-  OperationResult() : result_code(OK) {}
+  OperationResult() : result_code(UpdateResultCode::OK) {}
   OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
   std::string id;
   UpdateResultCode result_code{};
   std::string result_text;
   Json::Value toJson();
   UpdateReport toReport();
-  bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
+  bool isSuccess() {
+    return result_code == UpdateResultCode::OK || result_code == UpdateResultCode::ALREADY_PROCESSED;
+  };
   InstallOutcome toOutcome();
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);

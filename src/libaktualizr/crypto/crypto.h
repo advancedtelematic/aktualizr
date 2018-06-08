@@ -57,7 +57,7 @@ class PublicKey {
   // the Json::Value constructor is not called accidentally.
   PublicKey(std::string);
   std::string value_;
-  KeyType type_{kUnknownKey};
+  KeyType type_{KeyType::Unknown};
 };
 
 class MultiPartHasher {

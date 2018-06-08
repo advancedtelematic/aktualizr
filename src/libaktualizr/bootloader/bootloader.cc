@@ -6,10 +6,10 @@
 std::ostream& operator<<(std::ostream& os, const RollbackMode mode) {
   std::string mode_s;
   switch (mode) {
-    case kUbootGeneric:
+    case RollbackMode::UbootGeneric:
       mode_s = "uboot_generic";
       break;
-    case kUbootMasked:
+    case RollbackMode::UbootMasked:
       mode_s = "uboot_masked";
       break;
     default:
@@ -24,11 +24,11 @@ void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree&
   std::string mode_s;
   CopyFromConfig(mode_s, "rollback_mode", pt);
   if (mode_s == "uboot_generic") {
-    rollback_mode = kUbootGeneric;
+    rollback_mode = RollbackMode::UbootGeneric;
   } else if (mode_s == "uboot_masked") {
-    rollback_mode = kUbootMasked;
+    rollback_mode = RollbackMode::UbootMasked;
   } else {
-    rollback_mode = kBootloaderNone;
+    rollback_mode = RollbackMode::BootloaderNone;
   }
 }
 
@@ -39,14 +39,14 @@ void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
 void Bootloader::setBootOK() const {
   std::string sink;
   switch (config_.rollback_mode) {
-    case kBootloaderNone:
+    case RollbackMode::BootloaderNone:
       break;
-    case kUbootGeneric:
+    case RollbackMode::UbootGeneric:
       if (Utils::shell("fw_setenv bootcount 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting bootcount";
       }
       break;
-    case kUbootMasked:
+    case RollbackMode::UbootMasked:
       if (Utils::shell("fw_setenv bootcount 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting bootcount";
       }
@@ -62,9 +62,9 @@ void Bootloader::setBootOK() const {
 void Bootloader::updateNotify() const {
   std::string sink;
   switch (config_.rollback_mode) {
-    case kBootloaderNone:
+    case RollbackMode::BootloaderNone:
       break;
-    case kUbootGeneric:
+    case RollbackMode::UbootGeneric:
       if (Utils::shell("fw_setenv bootcount 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting bootcount";
       }
@@ -72,7 +72,7 @@ void Bootloader::updateNotify() const {
         LOG_WARNING << "Failed resetting rollback flag";
       }
       break;
-    case kUbootMasked:
+    case RollbackMode::UbootMasked:
       if (Utils::shell("fw_setenv bootcount 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting bootcount";
       }
