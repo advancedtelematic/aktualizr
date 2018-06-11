@@ -86,20 +86,20 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
   try {
     return pacman->install(target);
   } catch (std::exception &ex) {
-    return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, ex.what());
+    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, ex.what());
   }
 }
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
       config.pacman.type == PackageManager::kOstree) {
-    data::InstallOutcome outcome(data::UpdateResultCode::VALIDATION_FAILED,
+    data::InstallOutcome outcome(data::UpdateResultCode::kValidationFailed,
                                  "Cannot install a non-OSTree package on an OSTree system");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
   } else {
     data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     operation_result["operation_result"] = result.toJson();
-    if (result.result_code == data::UpdateResultCode::OK) {
+    if (result.result_code == data::UpdateResultCode::kOk) {
       storage->saveInstalledVersion(target);
     }
   }
@@ -165,7 +165,7 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
     if (manifest["signed"].isMember("custom")) {
       auto status =
           static_cast<data::UpdateResultCode>(manifest["signed"]["custom"]["operation_result"]["result_code"].asUInt());
-      if (status == data::UpdateResultCode::IN_PROGRESS) {
+      if (status == data::UpdateResultCode::kInProgress) {
         return true;
       }
     }
@@ -271,7 +271,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
               bootloader.updateNotify();
               PackageInstallSetResult(*it);
             } else {
-              data::InstallOutcome outcome(data::UpdateResultCode::ALREADY_PROCESSED, "Package already installed");
+              data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
               operation_result["operation_result"] =
                   data::OperationResult::fromOutcome(it->filename(), outcome).toJson();
             }

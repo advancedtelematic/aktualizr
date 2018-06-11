@@ -15,7 +15,7 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
       object_name_(object_name),
       repo_(repo),
       refcount_(0),
-      is_on_server_(PresenceOnServer::OBJECT_STATE_UNKNOWN),
+      is_on_server_(PresenceOnServer::kObjectStateUnknown),
 
       curl_handle_(nullptr),
       form_post_(nullptr) {
@@ -31,12 +31,12 @@ void OSTreeObject::AddParent(OSTreeObject *parent, std::list<OSTreeObject::ptr>:
 }
 
 void OSTreeObject::ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it) {
-  assert((*child_it)->is_on_server() == PresenceOnServer::OBJECT_PRESENT);
+  assert((*child_it)->is_on_server() == PresenceOnServer::kObjectPresent);
   children_.erase(child_it);
 }
 
 void OSTreeObject::NotifyParents(RequestPool &pool) {
-  assert(is_on_server_ == PresenceOnServer::OBJECT_PRESENT);
+  assert(is_on_server_ == PresenceOnServer::kObjectPresent);
 
   for (parentref parent : parents_) {
     parent.first->ChildNotify(parent.second);
@@ -48,7 +48,7 @@ void OSTreeObject::NotifyParents(RequestPool &pool) {
 
 void OSTreeObject::AppendChild(const OSTreeObject::ptr &child) {
   // the child could be already queried/uploaded by another parent
-  if (child->is_on_server() == PresenceOnServer::OBJECT_PRESENT) {
+  if (child->is_on_server() == PresenceOnServer::kObjectPresent) {
     return;
   }
 
@@ -155,7 +155,7 @@ void OSTreeObject::PopulateChildren() {
 
 void OSTreeObject::QueryChildren(RequestPool &pool) {
   for (const OSTreeObject::ptr &child : children_) {
-    if (child->is_on_server() == PresenceOnServer::OBJECT_STATE_UNKNOWN) {
+    if (child->is_on_server() == PresenceOnServer::kObjectStateUnknown) {
       pool.AddQuery(child);
     }
   }
@@ -167,7 +167,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
-  current_operation_ = CurrentOp::OSTREE_OBJECT_PRESENCE_CHECK;
+  current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
 
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
@@ -190,14 +190,14 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
     LOG_INFO << "Uploading " << object_name_;
   } else {
     LOG_INFO << "Would upload " << object_name_;
-    is_on_server_ = PresenceOnServer::OBJECT_PRESENT;
+    is_on_server_ = PresenceOnServer::kObjectPresent;
     return;
   }
   assert(!curl_handle_);
 
   curl_handle_ = curl_easy_init();
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
-  current_operation_ = CurrentOp::OSTREE_OBJECT_UPLOADING;
+  current_operation_ = CurrentOp::kOstreeObjectUploading;
   // TODO: error checking
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
@@ -229,14 +229,14 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
 
   long rescode = 0;  // NOLINT
   curl_easy_getinfo(curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
-  if (current_operation_ == CurrentOp::OSTREE_OBJECT_PRESENCE_CHECK) {
+  if (current_operation_ == CurrentOp::kOstreeObjectPresenceCheck) {
     if (rescode == 200) {
       LOG_INFO << "Already Present:" << object_name_;
-      is_on_server_ = PresenceOnServer::OBJECT_PRESENT;
+      is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else if (rescode == 404) {
-      is_on_server_ = PresenceOnServer::OBJECT_MISSING;
+      is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kOk;
       try {
         PopulateChildren();
@@ -250,7 +250,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
         pool.Abort();
       }
     } else {
-      is_on_server_ = PresenceOnServer::OBJECT_STATE_UNKNOWN;
+      is_on_server_ = PresenceOnServer::kObjectStateUnknown;
       LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
       LOG_DEBUG << "Http response code:" << rescode;
       LOG_DEBUG << http_response_.str();
@@ -258,25 +258,25 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       pool.AddQuery(this);
     }
 
-  } else if (current_operation_ == CurrentOp::OSTREE_OBJECT_UPLOADING) {
+  } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
     // TODO: check that http_response_ matches the object hash
     curl_formfree(form_post_);
     form_post_ = nullptr;
     if (rescode == 200) {
       LOG_TRACE << "OSTree upload successful";
-      is_on_server_ = PresenceOnServer::OBJECT_PRESENT;
+      is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else if (rescode == 409) {
       LOG_DEBUG << "OSTree upload reported a 409 Conflict, possibly due to concurrent uploads";
-      is_on_server_ = PresenceOnServer::OBJECT_PRESENT;
+      is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else {
       LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
       LOG_DEBUG << "Http response code:" << rescode;
       LOG_DEBUG << http_response_.str();
-      is_on_server_ = PresenceOnServer::OBJECT_MISSING;
+      is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kTemporaryFailure;
       pool.AddUpload(this);
     }

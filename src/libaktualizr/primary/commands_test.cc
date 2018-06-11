@@ -71,7 +71,7 @@ TEST(command, AbortDownload_event_from_json) {
 TEST(command, SendUpdateReport_comand_to_json) {
   data::OperationResult operation_result;
   operation_result.id = "testid23";
-  operation_result.result_code = data::UpdateResultCode::NOT_FOUND;
+  operation_result.result_code = data::UpdateResultCode::kNotFound;
   operation_result.result_text = "text";
   std::vector<data::OperationResult> operation_results;
   operation_results.push_back(operation_result);
@@ -89,7 +89,7 @@ TEST(command, SendUpdateReport_comand_to_json) {
   EXPECT_EQ(json["fields"][0]["update_id"].asString(), "request_id");
   EXPECT_EQ(json["fields"][0]["operation_results"][0]["id"].asString(), "testid23");
   EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_code"].asUInt(),
-            static_cast<int>(data::UpdateResultCode::NOT_FOUND));
+            static_cast<int>(data::UpdateResultCode::kNotFound));
   EXPECT_EQ(json["fields"][0]["operation_results"][0]["result_text"].asString(), "text");
 }
 
@@ -102,7 +102,7 @@ TEST(command, SendUpdateReport_comand_from_json) {
 
   EXPECT_EQ(comand.variant, "SendUpdateReport");
   EXPECT_EQ(comand.update_report.operation_results[0].id, "testid23");
-  EXPECT_EQ(comand.update_report.operation_results[0].result_code, data::UpdateResultCode::NOT_FOUND);
+  EXPECT_EQ(comand.update_report.operation_results[0].result_code, data::UpdateResultCode::kNotFound);
   EXPECT_EQ(comand.update_report.operation_results[0].result_text, "text");
   EXPECT_EQ(comand.update_report.update_id, "request_id");
 }

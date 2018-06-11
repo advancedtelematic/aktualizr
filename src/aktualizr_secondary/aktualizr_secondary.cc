@@ -138,7 +138,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
     std::tie(res_code, message) =
         OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_->sha256Hash());
 
-    if (res_code != data::UpdateResultCode::OK) {
+    if (res_code != data::UpdateResultCode::kOk) {
       LOG_ERROR << "Could not pull from OSTree (" << static_cast<int>(res_code) << "): " << message;
       return false;
     }
@@ -149,7 +149,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
   }
 
   std::tie(res_code, message) = pacman->install(*target_);
-  if (res_code != data::UpdateResultCode::OK) {
+  if (res_code != data::UpdateResultCode::kOk) {
     LOG_ERROR << "Could not install target (" << static_cast<int>(res_code) << "): " << message;
     return false;
   }

@@ -8,17 +8,17 @@ using std::string;
 
 int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubServer &treehub) {
   switch (creds.GetMethod()) {
-    case AuthMethod::BASIC: {
+    case AuthMethod::kBasic: {
       treehub.SetAuthBasic(creds.GetAuthUser(), creds.GetAuthPassword());
       treehub.ca_certs(cacerts);
       break;
     }
 
-    case AuthMethod::OAUTH2: {
+    case AuthMethod::kOauth2: {
       OAuth2 oauth2(creds.GetAuthServer(), creds.GetClientId(), creds.GetClientSecret(), cacerts);
 
       if (!creds.GetClientId().empty()) {
-        if (oauth2.Authenticate() != AuthenticationResult::SUCCESS) {
+        if (oauth2.Authenticate() != AuthenticationResult::kSuccess) {
           LOG_FATAL << "Authentication with oauth2 failed";
           return EXIT_FAILURE;
         }
@@ -33,11 +33,11 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       treehub.ca_certs(cacerts);
       break;
     }
-    case AuthMethod::CERT: {
+    case AuthMethod::kCert: {
       treehub.SetCerts(creds.GetRootCert(), creds.GetClientCert(), creds.GetClientKey());
       break;
     }
-    case AuthMethod::NONE:
+    case AuthMethod::kNone:
       treehub.ca_certs(cacerts);  // Setup ca certificate because curl by default check ca certs
       break;
 

@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-enum class AuthenticationResult { SUCCESS = 0, FAILURE };
+enum class AuthenticationResult { kSuccess = 0, kFailure };
 
 class OAuth2 {
  public:

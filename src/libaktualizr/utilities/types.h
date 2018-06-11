@@ -77,54 +77,54 @@ struct DownloadComplete {
 
 enum class UpdateResultCode {
   /// Operation executed successfully
-  OK = 0,
+  kOk = 0,
   /// Operation has already been processed
-  ALREADY_PROCESSED,
+  kAlreadyProcessed,
   /// Dependency failure during package install, upgrade, or removal
-  DEPENDENCY_FAILURE,
+  kDependencyFailure,
   /// Update image integrity has been compromised
-  VALIDATION_FAILED,
+  kValidationFailed,
   /// Package installation failed
-  INSTALL_FAILED,
+  kInstallFailed,
   /// Package upgrade failed
-  UPGRADE_FAILED,
+  kUpgradeFailed,
   /// Package removal failed
-  REMOVAL_FAILED,
+  kRemovalFailed,
   /// The module loader could not flash its managed module
-  FLASH_FAILED,
+  kFlashFailed,
   /// Partition creation failed
-  CREATE_PARTITION_FAILED,
+  kCreatePartitionFailed,
   /// Partition deletion failed
-  DELETE_PARTITION_FAILED,
+  kDeletePartitionFailed,
   /// Partition resize failed
-  RESIZE_PARTITION_FAILED,
+  kResizePartitionFailed,
   /// Partition write failed
-  WRITE_PARTITION_FAILED,
+  kWritePartitionFailed,
   /// Partition patching failed
-  PATCH_PARTITION_FAILED,
+  kPatchPartitionFailed,
   /// User declined the update
-  USER_DECLINED,
+  kUserDeclined,
   /// Software was blacklisted
-  SOFTWARE_BLACKLISTED,
+  kSoftwareBlacklisted,
   /// Ran out of disk space
-  DISK_FULL,
+  kDiskFull,
   /// Software package not found
-  NOT_FOUND,
+  kNotFound,
   /// Tried to downgrade to older version
-  OLD_VERSION,
+  kOldVersion,
   /// SWM Internal integrity error
-  INTERNAL_ERROR,
+  kInternalError,
   /// Other error
-  GENERAL_ERROR,
+  kGeneralError,
   /// Updating process in progress
-  IN_PROGRESS
+  kInProgress
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
 struct UpdateReport;
 struct OperationResult {
-  OperationResult() : result_code(UpdateResultCode::OK) {}
+  OperationResult() : result_code(UpdateResultCode::kOk) {}
   OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
   std::string id;
   UpdateResultCode result_code{};
@@ -132,7 +132,7 @@ struct OperationResult {
   Json::Value toJson();
   UpdateReport toReport();
   bool isSuccess() {
-    return result_code == UpdateResultCode::OK || result_code == UpdateResultCode::ALREADY_PROCESSED;
+    return result_code == UpdateResultCode::kOk || result_code == UpdateResultCode::kAlreadyProcessed;
   };
   InstallOutcome toOutcome();
   static OperationResult fromJson(const std::string& json_str);

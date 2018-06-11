@@ -32,7 +32,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
-  EXPECT_EQ(result.first, data::UpdateResultCode::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
@@ -58,7 +58,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
-  EXPECT_EQ(result.first, data::UpdateResultCode::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
@@ -79,7 +79,7 @@ TEST(OstreeManager, InstallBadUri) {
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);
   data::InstallOutcome result = ostree.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }
 

@@ -118,12 +118,12 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
       data::UpdateResultCode res_code;
       std::string message;
       std::tie(res_code, message) = secondary_->pacman->install(target_to_install);
-      if (res_code != data::UpdateResultCode::OK) {
+      if (res_code != data::UpdateResultCode::kOk) {
         LOG_ERROR << "Could not install target (" << res_code << "): " << message;
         secondary_->pacman->setOperationResult(target_to_install.filename(), res_code, message);
       } else {
         secondary_->storage_->saveInstalledVersion(target_to_install);
-        secondary_->pacman->setOperationResult(target_to_install.filename(), data::UpdateResultCode::OK,
+        secondary_->pacman->setOperationResult(target_to_install.filename(), data::UpdateResultCode::kOk,
                                                "Installation successful");
       }
     });

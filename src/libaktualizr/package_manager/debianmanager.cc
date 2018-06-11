@@ -44,10 +44,10 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   if (status == 0) {
     LOG_INFO << "... Installation of Debian package successful";
     storage_->saveInstalledVersion(target);
-    return data::InstallOutcome(data::UpdateResultCode::OK, "Installing debian package was successful");
+    return data::InstallOutcome(data::UpdateResultCode::kOk, "Installing debian package was successful");
   }
   LOG_ERROR << "... Installation of Debian package failed";
-  return data::InstallOutcome(data::UpdateResultCode::INSTALL_FAILED, output);
+  return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, output);
 }
 
 Uptane::Target DebianManager::getCurrent() {

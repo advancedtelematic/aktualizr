@@ -46,9 +46,9 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
 
   do {
     request_pool.Loop(dryrun);
-  } while (root_object->is_on_server() != PresenceOnServer::OBJECT_PRESENT && !request_pool.is_stopped());
+  } while (root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped());
 
-  if (root_object->is_on_server() == PresenceOnServer::OBJECT_PRESENT) {
+  if (root_object->is_on_server() == PresenceOnServer::kObjectPresent) {
     if (!dryrun) {
       LOG_INFO << "Upload to Treehub complete after " << request_pool.total_requests_made() << " requests";
     } else {
@@ -58,7 +58,7 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
     LOG_ERROR << "One or more errors while pushing";
   }
 
-  return root_object->is_on_server() == PresenceOnServer::OBJECT_PRESENT;
+  return root_object->is_on_server() == PresenceOnServer::kObjectPresent;
 }
 
 bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::string &name, const OSTreeHash &hash,

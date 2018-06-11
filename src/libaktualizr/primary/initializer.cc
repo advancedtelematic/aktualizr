@@ -84,12 +84,12 @@ bool Initializer::loadSetTlsCreds() {
 // Postcondition: TLS credentials are in the storage
 InitRetCode Initializer::initTlsCreds() {
   if (loadSetTlsCreds()) {
-    return InitRetCode::OK;
+    return InitRetCode::kOk;
   }
 
   if (config_.mode != ProvisionMode::kAutomatic) {
     LOG_ERROR << "Credentials not found";
-    return InitRetCode::STORAGE_FAILURE;
+    return InitRetCode::kStorageFailure;
   }
 
   // Autoprovision is needed and possible => autoprovision
@@ -103,7 +103,7 @@ InitRetCode Initializer::initTlsCreds() {
   std::string device_id;
   if (!storage_->loadDeviceId(&device_id)) {
     LOG_ERROR << "device_id unknown during autoprovisioning process";
-    return InitRetCode::STORAGE_FAILURE;
+    return InitRetCode::kStorageFailure;
   }
   data["deviceId"] = device_id;
   data["ttl"] = config_.expiry_days;
@@ -112,10 +112,10 @@ InitRetCode Initializer::initTlsCreds() {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
       LOG_ERROR << "Device id" << device_id << "is occupied";
-      return InitRetCode::OCCUPIED;
+      return InitRetCode::kOccupied;
     }
     LOG_ERROR << "Autoprovisioning failed, response: " << response.body;
-    return InitRetCode::SERVER_FAILURE;
+    return InitRetCode::kServerFailure;
   }
 
   std::string pkey;
@@ -124,18 +124,18 @@ InitRetCode Initializer::initTlsCreds() {
   StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), response.body.size()), BIO_vfree);
   if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
     LOG_ERROR << "Received a malformed P12 package from the server";
-    return InitRetCode::BAD_P12;
+    return InitRetCode::kBadP12;
   }
   storage_->storeTlsCreds(ca, cert, pkey);
 
   // set provisioned credentials
   if (!loadSetTlsCreds()) {
     LOG_ERROR << "Failed to set provisioned credentials";
-    return InitRetCode::STORAGE_FAILURE;
+    return InitRetCode::kStorageFailure;
   }
 
   LOG_INFO << "Provisioned successfully on Device Gateway";
-  return InitRetCode::OK;
+  return InitRetCode::kOk;
 }
 
 void Initializer::resetTlsCreds() {
@@ -147,19 +147,19 @@ void Initializer::resetTlsCreds() {
 // Postcondition: "ECUs registered" flag set in the storage
 InitRetCode Initializer::initEcuRegister() {
   if (storage_->loadEcuRegistered()) {
-    return InitRetCode::OK;
+    return InitRetCode::kOk;
   }
 
   PublicKey uptane_public_key = keys_.UptanePublicKey();
 
   if (uptane_public_key.Type() == KeyType::kUnknown) {
-    return InitRetCode::STORAGE_FAILURE;
+    return InitRetCode::kStorageFailure;
   }
 
   EcuSerials ecu_serials;
   // initEcuSerials should have been called by this point
   if (!storage_->loadEcuSerials(&ecu_serials) || ecu_serials.size() < 1) {
-    return InitRetCode::STORAGE_FAILURE;
+    return InitRetCode::kStorageFailure;
   }
 
   Json::Value all_ecus;
@@ -188,15 +188,15 @@ InitRetCode Initializer::initEcuRegister() {
     if (resp_code.isString() &&
         (resp_code.asString() == "ecu_already_registered" || resp_code.asString() == "device_already_registered")) {
       LOG_ERROR << "Some ECU is already registered";
-      return InitRetCode::OCCUPIED;
+      return InitRetCode::kOccupied;
     }
     LOG_ERROR << "Error registering device on Uptane, response: " << response.body;
-    return InitRetCode::SERVER_FAILURE;
+    return InitRetCode::kServerFailure;
   }
   // do not call storage_->storeEcuRegistered(), it will be called from the top-level Init function after the
   // acknowledgement
   LOG_INFO << "ECUs have been successfully registered to the server";
-  return InitRetCode::OK;
+  return InitRetCode::kOk;
 }
 
 // Postcondition: "ECUs registered" flag set in the storage
@@ -219,12 +219,12 @@ Initializer::Initializer(
     InitRetCode ret_code = initTlsCreds();
     // if a device with the same ID has already been registered to the server,
     // generate a new one
-    if (ret_code == InitRetCode::OCCUPIED) {
+    if (ret_code == InitRetCode::kOccupied) {
       resetDeviceId();
       LOG_INFO << "Device name is already registered, restart";
       continue;
     }
-    if (ret_code != InitRetCode::OK) {
+    if (ret_code != InitRetCode::kOk) {
       LOG_ERROR << "Autoprovisioning failed, abort initialization";
       return;
     }
@@ -241,9 +241,9 @@ Initializer::Initializer(
     ret_code = initEcuRegister();
     // if ECUs with same ID have been registered to the server, we don't have a
     // clear remediation path right now, just ignore the error
-    if (ret_code == InitRetCode::OCCUPIED) {
+    if (ret_code == InitRetCode::kOccupied) {
       LOG_INFO << "ECU serial is already registered";
-    } else if (ret_code != InitRetCode::OK) {
+    } else if (ret_code != InitRetCode::kOk) {
       LOG_ERROR << "ECU registration failed, abort initialization";
       return;
     }
