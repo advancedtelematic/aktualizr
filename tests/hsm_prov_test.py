@@ -19,11 +19,13 @@ def main():
     parser.add_argument('--src-dir', '-s', type=Path, default=Path('../'), help='source directory (parent of src/)')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')
     parser.add_argument('--pkcs11-module', '-p', type=Path, default=Path('/usr/lib/softhsm/libsofthsm2.so'), help='path to PKCS#11 library module')
+    parser.add_argument('--setup-hsm', '-H', action="store_true", help='Run setup_hsm.sh script for local test')
     args = parser.parse_args()
 
     retval = 1
     with tempfile.TemporaryDirectory() as tmp_dir:
-        retval = provision(Path(tmp_dir), args.build_dir, args.src_dir, args.credentials, args.pkcs11_module)
+        retval = provision(Path(tmp_dir), args.build_dir, args.src_dir,
+                args.credentials, args.pkcs11_module, args.setup_hsm)
     return retval
 
 
@@ -54,7 +56,7 @@ tls_pkey_path = "token/pkey.pem"
 '''
 
 
-def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
+def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
     conf_prov = conf_dir / '20-sota_hsm_prov.toml'
@@ -94,19 +96,11 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
         finally:
             proc.kill()
 
-    # Verify that HSM is not yet initialized.
-    # Not worth checking: setup_hsm will reset where the tokens are stored, and
-    # until that happens, these commands will check the wrong directory.
-    pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O', '--type', 'cert', '--login', '--pin', '1234']
-#    stdout, stderr, retcode = prov_test_common.run_subprocess(pkcs11_command)
-#    if retcode == 0:
-#        print('pkcs11-tool succeeded before initialization: ' + stdout.decode() + stderr.decode())
-#        return 1
-    softhsm2_command = ['softhsm2-util', '--show-slots']
-#    stdout, stderr, retcode = prov_test_common.run_subprocess(softhsm2_command)
-#    if retcode == 0:
-#        print('softhsm2-tool succeeded before initialization: ' + stdout.decode() + stderr.decode())
-#        return 1
+    # Unlike in meta-updater's oe-selftest, don't check if the HSM is already
+    # initialized. If setup_hsm.sh was already run, it *should* be initialized.
+    # If we run it from this script below, the script will reset where the
+    # tokens are stored, and until that happens, we would be checking the wrong
+    # directory.
 
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
@@ -117,14 +111,17 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
                 stderr.decode() + stdout.decode())
         return retcode
 
-    env = os.environ
-    env['TOKEN_DIR'] = str(token_dir)
-    stdout, stderr, retcode = prov_test_common.run_subprocess([str(setup_hsm)], env=env)
-    if retcode > 0:
-        print('setup_hsm.sh failed: ' + stdout.decode() + stderr.decode())
-        return 1
+    if setup_hsm:
+        env = os.environ
+        env['TOKEN_DIR'] = str(token_dir)
+        stdout, stderr, retcode = prov_test_common.run_subprocess([str(setup_hsm)], env=env)
+        if retcode > 0:
+            print('setup_hsm.sh failed: ' + stdout.decode() + stderr.decode())
+            return 1
 
     # Verify that HSM is able to initialize.
+    pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O', '--type', 'cert', '--login', '--pin', '1234']
+    softhsm2_command = ['softhsm2-util', '--show-slots']
     ran_ok = False
     for delay in [5, 5, 5, 5, 10]:
         sleep(delay)
