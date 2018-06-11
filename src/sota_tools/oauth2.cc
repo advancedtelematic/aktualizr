@@ -50,14 +50,14 @@ AuthenticationResult OAuth2::Authenticate() {
     try {
       read_json(body, pt);
       token_ = pt.get("access_token", "");
-      res = AUTHENTICATION_SUCCESS;
+      res = AuthenticationResult::kSuccess;
     } catch (const json_parser_error &e) {
       token_ = "";
-      res = AUTHENTICATION_FAILURE;
+      res = AuthenticationResult::kFailure;
     }
   } else {
     // TODO: , be more specfic about the failure cases
-    res = AUTHENTICATION_FAILURE;
+    res = AuthenticationResult::kFailure;
   }
   curl_easy_cleanup(curl_handle);
 

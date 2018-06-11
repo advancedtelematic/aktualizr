@@ -75,7 +75,7 @@ InstallOutcome OperationResult::toOutcome() { return InstallOutcome(result_code,
 Json::Value OperationResult::toJson() {
   Json::Value json;
   json["id"] = id;
-  json["result_code"] = result_code;
+  json["result_code"] = static_cast<int>(result_code);
   json["result_text"] = result_text;
   return json;
 }

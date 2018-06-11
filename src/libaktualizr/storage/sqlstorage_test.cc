@@ -110,7 +110,7 @@ TEST(sqlstorage, MigrationVersionCheck) {
   config.sqldb_path = temp_dir.Path() / "test.db";
   SQLStorage storage(config);
 
-  EXPECT_EQ(storage.getVersion(), schema_migrations.size() - 1);
+  EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), schema_migrations.size() - 1);
 }
 
 TEST(sqlstorage, WrongDatabaseCheck) {
@@ -124,7 +124,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   }
 
   SQLStorage storage(config);
-  EXPECT_EQ(storage.getVersion(), -2);
+  EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
 }
 
 #ifndef __NO_MAIN__

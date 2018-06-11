@@ -19,7 +19,7 @@ AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfi
     root_ = Uptane::Root("director", Utils::parseJSON(root));
   } else {
     LOG_INFO << "No root.json in local storage, defaulting will accept the first root.json provided";
-    root_ = Uptane::Root(Uptane::Root::kAcceptAll);
+    root_ = Uptane::Root(Uptane::Root::Policy::kAcceptAll);
   }
 }
 

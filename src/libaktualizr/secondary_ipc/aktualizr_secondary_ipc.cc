@@ -2,7 +2,7 @@
 
 /* (De)serialization of KeyType might be moved to types.cc if needed elsewhere */
 asn1::Serializer& operator<<(asn1::Serializer& ser, KeyType kt) {
-  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(kt));
+  ser << asn1::implicit<kAsn1Enum>(static_cast<const int32_t&>(static_cast<int>(kt)));
   return ser;
 }
 asn1::Deserializer& operator>>(asn1::Deserializer& des, KeyType& kt) {
@@ -10,7 +10,7 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, KeyType& kt) {
 
   des >> asn1::implicit<kAsn1Enum>(kt_i);
 
-  if (kt_i < kFirstKnownKeyType || kt_i > kLastKnownKeyType) {
+  if (kt_i < static_cast<int>(KeyType::kFirstKnown) || kt_i > static_cast<int>(KeyType::kLastKnown)) {
     throw deserialization_error();
   }
 

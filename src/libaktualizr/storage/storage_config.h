@@ -9,10 +9,10 @@
 
 #include "utilities/config_utils.h"
 
-enum StorageType { kFileSystem = 0, kSqlite };
+enum class StorageType { kFileSystem = 0, kSqlite };
 
 struct StorageConfig {
-  StorageType type{kFileSystem};
+  StorageType type{StorageType::kFileSystem};
   boost::filesystem::path path{"/var/sota"};
 
   // FS storage
@@ -47,9 +47,9 @@ inline void CopyFromConfig(StorageType& dest, const std::string& option_name, co
   if (value.is_initialized()) {
     std::string storage_type{StripQuotesFromStrings(value.get())};
     if (storage_type == "sqlite") {
-      dest = kSqlite;
+      dest = StorageType::kSqlite;
     } else {
-      dest = kFileSystem;
+      dest = StorageType::kFileSystem;
     }
   }
 }

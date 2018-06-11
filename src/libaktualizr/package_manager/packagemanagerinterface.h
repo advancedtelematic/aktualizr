@@ -36,7 +36,7 @@ class PackageManagerInterface {
     unsigned_ecu_version["timeserver_time"] = "1970-01-01T00:00:00Z";
     {
       std::lock_guard<std::mutex> guard(mutex_);
-      if (latest_operation_result_.result_code != data::UpdateResultCode::OK) {
+      if (latest_operation_result_.result_code != data::UpdateResultCode::kOk) {
         unsigned_ecu_version["custom"]["operation_result"] = latest_operation_result_.toJson();
       }
     }

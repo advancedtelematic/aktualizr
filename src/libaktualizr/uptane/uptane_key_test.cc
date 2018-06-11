@@ -26,16 +26,16 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.primary_ecu_serial = "testecuserial";
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::kAutomatic;
   config.tls.server = tls_server;
   config.uptane.repo_server = tls_server + "/repo";
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
   config.storage.uptane_private_key_path = "private.key";
   config.storage.uptane_public_key_path = "public.key";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::kNone;
 
-  ecu_config1.secondary_type = Uptane::kVirtual;
+  ecu_config1.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config1.partial_verifying = false;
   ecu_config1.full_client_dir = temp_dir.Path();
   ecu_config1.ecu_serial = "secondary_ecu_serial1";
@@ -47,7 +47,7 @@ void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::
   ecu_config1.metadata_path = temp_dir / "secondary1_metadata";
   config.uptane.secondary_configs.push_back(ecu_config1);
 
-  ecu_config2.secondary_type = Uptane::kVirtual;
+  ecu_config2.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config2.partial_verifying = false;
   ecu_config2.full_client_dir = temp_dir.Path();
   ecu_config2.ecu_serial = "secondary_ecu_serial2";
@@ -83,8 +83,8 @@ void checkKeyTests(std::shared_ptr<INvStorage>& storage, SotaUptaneClient& sota_
   std::vector<std::string> private_keys;
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
-    if (it->second->sconfig.secondary_type != Uptane::kVirtual &&
-        it->second->sconfig.secondary_type != Uptane::kLegacy) {
+    if (it->second->sconfig.secondary_type != Uptane::SecondaryType::kVirtual &&
+        it->second->sconfig.secondary_type != Uptane::SecondaryType::kLegacy) {
       continue;
     }
     std::shared_ptr<Uptane::ManagedSecondary> managed =

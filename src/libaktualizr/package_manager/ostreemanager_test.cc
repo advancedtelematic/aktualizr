@@ -20,7 +20,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.ostree_server = "bad-url";
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
@@ -32,7 +32,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
-  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
@@ -40,7 +40,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;
   config.pacman.ostree_server = "bad-url";
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
@@ -58,7 +58,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   keys.loadKeys();
   data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
 
-  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
@@ -69,7 +69,7 @@ TEST(OstreeManager, InstallBadUri) {
   Uptane::Target target("branch-name-hash", target_json);
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = "metadata";
@@ -79,14 +79,14 @@ TEST(OstreeManager, InstallBadUri) {
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);
   data::InstallOutcome result = ostree.install(target);
-  EXPECT_EQ(result.first, data::INSTALL_FAILED);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }
 
 TEST(OstreeManager, BadSysroot) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = "sysroot-that-is-missing";
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
@@ -96,7 +96,7 @@ TEST(OstreeManager, BadSysroot) {
 TEST(OstreeManager, ParseInstalledPackages) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.pacman.packages_file = "tests/test_data/package.manifest";
   config.storage.path = temp_dir.Path();
@@ -115,7 +115,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
 TEST(OstreeManager, AddRemoteNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 
@@ -154,7 +154,7 @@ TEST(OstreeManager, AddRemoteNoCreds) {
 TEST(OstreeManager, AddRemoteWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;
-  config.pacman.type = kOstree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
 

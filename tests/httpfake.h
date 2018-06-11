@@ -12,12 +12,15 @@
 #include "http/httpinterface.h"
 #include "utilities/utils.h"
 
-enum ProvisioningResult { ProvisionOK, ProvisionFailure };
+enum class ProvisioningResult { kOK, kFailure };
 
 class HttpFake : public HttpInterface {
  public:
   HttpFake(const boost::filesystem::path &test_dir_in, const bool is_initialized = false)
-      : provisioningResponse(ProvisionOK), test_dir(test_dir_in), manifest_count(0), ecu_registered(is_initialized) {
+      : provisioningResponse(ProvisioningResult::kOK),
+        test_dir(test_dir_in),
+        manifest_count(0),
+        ecu_registered(is_initialized) {
     boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
     boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");
   }
@@ -81,7 +84,7 @@ class HttpFake : public HttpInterface {
       }
     }
     Utils::writeFile((test_dir / "post.json").string(), data);
-    if (provisioningResponse == ProvisionOK) {
+    if (provisioningResponse == ProvisioningResult::kOK) {
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else {
       return HttpResponse("", 400, CURLE_OK, "");

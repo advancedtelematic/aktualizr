@@ -13,12 +13,9 @@
 class OSTreeRepo;
 class RequestPool;
 
-enum PresenceOnServer { OBJECT_STATE_UNKNOWN, OBJECT_PRESENT, OBJECT_MISSING, OBJECT_INPROGRESS };
+enum class PresenceOnServer { kObjectStateUnknown, kObjectPresent, kObjectMissing, kObjectInProgress };
 
-enum CurrentOp {
-  OSTREE_OBJECT_UPLOADING,
-  OSTREE_OBJECT_PRESENCE_CHECK,
-};
+enum class CurrentOp { kOstreeObjectUploading, kOstreeObjectPresenceCheck };
 
 /**
  * Broad categories for server response codes.
@@ -51,7 +48,7 @@ class OSTreeObject {
   void QueryChildren(RequestPool& pool);
   void NotifyParents(RequestPool& pool);
   void ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it);
-  void LaunchNotify() { is_on_server_ = OBJECT_INPROGRESS; }
+  void LaunchNotify() { is_on_server_ = PresenceOnServer::kObjectInProgress; }
 
   std::chrono::steady_clock::time_point RequestStartTime() const { return request_start_time_; }
 

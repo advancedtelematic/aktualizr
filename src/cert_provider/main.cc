@@ -436,7 +436,8 @@ int main(int argc, char* argv[]) {
     serverUrl = Bootstrap::readServerUrl(credentials_path);
 
     std::cout << "Provisioning against server...\n";
-    http.setCerts(boot.getCa(), kFile, boot.getCert(), kFile, boot.getPkey(), kFile);
+    http.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
+                  CryptoSource::kFile);
     HttpResponse response = http.post(serverUrl + "/devices", data);
     if (!response.isOk()) {
       Json::Value resp_code = response.getJson()["code"];

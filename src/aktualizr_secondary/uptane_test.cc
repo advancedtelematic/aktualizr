@@ -41,11 +41,11 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   config.storage.uptane_public_key_path = "public.key";
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   config.provision.provision_path = temp_dir / "cred.zip";
-  config.provision.mode = kAutomatic;
+  config.provision.mode = ProvisionMode::kAutomatic;
   config.provision.primary_ecu_serial = "testecuserial";
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
-  config.pacman.type = kNone;
+  config.pacman.type = PackageManager::kNone;
 
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 
   TemporaryDirectory temp_dir;
   test_config.network.port = 0;  // random port
-  test_config.storage.type = kSqlite;
+  test_config.storage.type = StorageType::kSqlite;
   test_config.storage.sqldb_path = temp_dir.Path() / "sql.db";
 
   test_storage = INvStorage::newStorage(test_config.storage, temp_dir.Path());

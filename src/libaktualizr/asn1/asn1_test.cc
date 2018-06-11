@@ -25,9 +25,9 @@ std::string CCString(OCTET_STRING_t par) { return std::string((const char*)par.b
 bool operator==(const AKTlsConfig& cc_config, const TlsConfig& config) {
   if (config.server != CCString(cc_config.server)) return false;
   if (config.server_url_path.string() != CCString(cc_config.serverUrlPath)) return false;
-  if (config.ca_source != cc_config.caSource) return false;
-  if (config.pkey_source != cc_config.pkeySource) return false;
-  if (config.cert_source != cc_config.certSource) return false;
+  if (static_cast<int>(config.ca_source) != cc_config.caSource) return false;
+  if (static_cast<int>(config.pkey_source) != cc_config.pkeySource) return false;
+  if (static_cast<int>(config.cert_source) != cc_config.certSource) return false;
   return true;
 }
 
@@ -38,9 +38,9 @@ TEST(asn1_config, tls_config) {
 
   conf.server = "https://example.com";
   conf.server_url_path = "";
-  conf.ca_source = kFile;
-  conf.pkey_source = kPkcs11;
-  conf.cert_source = kPkcs11;
+  conf.ca_source = CryptoSource::kFile;
+  conf.pkey_source = CryptoSource::kPkcs11;
+  conf.cert_source = CryptoSource::kPkcs11;
 
   asn1::Serializer ser;
   ser << conf;
@@ -65,9 +65,9 @@ TEST(asn1_config, tls_config_asn1cc_to_man) {
   std::string server_url_path = "";
   EXPECT_EQ(0, OCTET_STRING_fromBuf(&cc_tls_conf.serverUrlPath, server_url_path.c_str(), server_url_path.length()));
 
-  cc_tls_conf.caSource = kFile;
-  cc_tls_conf.pkeySource = kPkcs11;
-  cc_tls_conf.certSource = kPkcs11;
+  cc_tls_conf.caSource = static_cast<int>(CryptoSource::kFile);
+  cc_tls_conf.pkeySource = static_cast<int>(CryptoSource::kPkcs11);
+  cc_tls_conf.certSource = static_cast<int>(CryptoSource::kPkcs11);
 
   asn_enc_rval_t enc;
   std::string der;
@@ -87,9 +87,9 @@ TEST(asn1_config, tls_config_man_to_asn1cc) {
 
   conf.server = "https://example.com";
   conf.server_url_path = "";
-  conf.ca_source = kFile;
-  conf.pkey_source = kPkcs11;
-  conf.cert_source = kPkcs11;
+  conf.ca_source = CryptoSource::kFile;
+  conf.pkey_source = CryptoSource::kPkcs11;
+  conf.cert_source = CryptoSource::kPkcs11;
 
   asn1::Serializer ser;
 

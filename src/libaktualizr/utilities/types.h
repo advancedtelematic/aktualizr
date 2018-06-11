@@ -5,24 +5,37 @@
 #include <boost/filesystem.hpp>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
-enum KeyType {
-  kED25519 = 0,
-  kFirstKnownKeyType = kED25519,
-  kRSA2048,
-  kRSA4096,
-  kLastKnownKeyType = kRSA4096,
-  kUnknownKey = 0xff
-};
+enum class KeyType { kED25519 = 0, kFirstKnown = kED25519, kRSA2048, kRSA4096, kLastKnown = kRSA4096, kUnknown = 0xff };
 
-enum CryptoSource { kFile = 0, kPkcs11 };
+inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
+  std::string kt_str;
+  switch (kt) {
+    case KeyType::kRSA2048:
+      kt_str = "RSA2048";
+      break;
+    case KeyType::kRSA4096:
+      kt_str = "RSA4096";
+      break;
+    case KeyType::kED25519:
+      kt_str = "ED25519";
+      break;
+    default:
+      kt_str = "unknown";
+      break;
+  }
+  os << '"' << kt_str << '"';
+  return os;
+}
+
+enum class CryptoSource { kFile = 0, kPkcs11 };
 
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
-    case kFile:
+    case CryptoSource::kFile:
       cs_str = "file";
       break;
-    case kPkcs11:
+    case CryptoSource::kPkcs11:
       cs_str = "pkcs11";
       break;
     default:
@@ -43,8 +56,6 @@ struct Package {
   static Package fromJson(const std::string& /*json_str*/);
 };
 
-enum UpdateRequestStatus { Pending = 0, InFlight };
-
 struct UpdateAvailable {
   std::string update_id;
   std::string signature;
@@ -64,63 +75,65 @@ struct DownloadComplete {
   static DownloadComplete fromJson(const std::string& json_str);
 };
 
-enum UpdateResultCode {
+enum class UpdateResultCode {
   /// Operation executed successfully
-  OK = 0,
+  kOk = 0,
   /// Operation has already been processed
-  ALREADY_PROCESSED,
+  kAlreadyProcessed,
   /// Dependency failure during package install, upgrade, or removal
-  DEPENDENCY_FAILURE,
+  kDependencyFailure,
   /// Update image integrity has been compromised
-  VALIDATION_FAILED,
+  kValidationFailed,
   /// Package installation failed
-  INSTALL_FAILED,
+  kInstallFailed,
   /// Package upgrade failed
-  UPGRADE_FAILED,
+  kUpgradeFailed,
   /// Package removal failed
-  REMOVAL_FAILED,
+  kRemovalFailed,
   /// The module loader could not flash its managed module
-  FLASH_FAILED,
+  kFlashFailed,
   /// Partition creation failed
-  CREATE_PARTITION_FAILED,
+  kCreatePartitionFailed,
   /// Partition deletion failed
-  DELETE_PARTITION_FAILED,
+  kDeletePartitionFailed,
   /// Partition resize failed
-  RESIZE_PARTITION_FAILED,
+  kResizePartitionFailed,
   /// Partition write failed
-  WRITE_PARTITION_FAILED,
+  kWritePartitionFailed,
   /// Partition patching failed
-  PATCH_PARTITION_FAILED,
+  kPatchPartitionFailed,
   /// User declined the update
-  USER_DECLINED,
+  kUserDeclined,
   /// Software was blacklisted
-  SOFTWARE_BLACKLISTED,
+  kSoftwareBlacklisted,
   /// Ran out of disk space
-  DISK_FULL,
+  kDiskFull,
   /// Software package not found
-  NOT_FOUND,
+  kNotFound,
   /// Tried to downgrade to older version
-  OLD_VERSION,
+  kOldVersion,
   /// SWM Internal integrity error
-  INTERNAL_ERROR,
+  kInternalError,
   /// Other error
-  GENERAL_ERROR,
+  kGeneralError,
   /// Updating process in progress
-  IN_PROGRESS
+  kInProgress
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
 struct UpdateReport;
 struct OperationResult {
-  OperationResult() : result_code(OK) {}
+  OperationResult() : result_code(UpdateResultCode::kOk) {}
   OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
   std::string id;
   UpdateResultCode result_code{};
   std::string result_text;
   Json::Value toJson();
   UpdateReport toReport();
-  bool isSuccess() { return result_code == OK || result_code == ALREADY_PROCESSED; };
+  bool isSuccess() {
+    return result_code == UpdateResultCode::kOk || result_code == UpdateResultCode::kAlreadyProcessed;
+  };
   InstallOutcome toOutcome();
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);

@@ -5,15 +5,7 @@
 
 const int MaxInitializationAttempts = 3;
 
-enum InitRetCode {
-  INIT_RET_OK,
-  INIT_RET_OCCUPIED,
-  INIT_RET_SERVER_FAILURE,
-  INIT_RET_STORAGE_FAILURE,
-  INIT_RET_SECONDARY_FAILURE,
-  INIT_RET_BAD_P12,
-  INIT_RET_PKCS11_FAILURE
-};
+enum class InitRetCode { kOk, kOccupied, kServerFailure, kStorageFailure, kSecondaryFailure, kBadP12, kPkcs11Failure };
 
 class Initializer {
  public:

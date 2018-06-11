@@ -35,7 +35,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   TemporaryDirectory temp_dir_sec;
   AktualizrSecondaryConfig config;
   config.network.port = 0;
-  config.storage.type = kSqlite;
+  config.storage.type = StorageType::kSqlite;
   config.storage.sqldb_path = temp_dir_sec / "sql.db";
   config.pacman.sysroot = sysroot;
   auto storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
@@ -51,7 +51,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   int ret = system((std::string("cp -rf tests/test_data/secondary_meta/* ") + temp_dir.PathString()).c_str());
   (void)ret;
   StorageConfig fs_config;
-  fs_config.type = kFileSystem;
+  fs_config.type = StorageType::kFileSystem;
   fs_config.path = temp_dir.Path();
   fs_config.uptane_metadata_path = "metadata";
   FSStorage fs_storage(fs_config);

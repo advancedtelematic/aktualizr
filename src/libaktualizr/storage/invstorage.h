@@ -21,7 +21,8 @@ typedef std::pair<std::string, bool> InstalledVersion;
 
 typedef std::vector<std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier>> EcuSerials;
 
-enum EcuState { kOld = 0, kNotRegistered };
+enum class EcuState { kOld = 0, kNotRegistered };
+
 struct MisconfiguredEcu {
   MisconfiguredEcu(Uptane::EcuSerial serial_in, Uptane::HardwareIdentifier hardware_id_in, EcuState state_in)
       : serial(std::move(serial_in)), hardware_id(std::move(hardware_id_in)), state(state_in) {}

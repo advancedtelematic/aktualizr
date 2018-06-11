@@ -23,19 +23,19 @@ void TreehubServer::SetToken(const string& token) {
 
   auth_header_contents_ = "Authorization: Bearer " + token;
   auth_header_.data = const_cast<char*>(auth_header_contents_.c_str());
-  method_ = OAUTH2;
+  method_ = AuthMethod::kOauth2;
 }
 
 void TreehubServer::SetCerts(const std::string& root_cert, const std::string& client_cert,
                              const std::string& client_key) {
-  method_ = CERT;
+  method_ = AuthMethod::kCert;
   root_cert_ = root_cert;
   client_cert_path_.PutContents(client_cert);
   client_key_path_.PutContents(client_key);
 }
 
 void TreehubServer::SetAuthBasic(const std::string& username, const std::string& password) {
-  method_ = AUTH_BASIC;
+  method_ = AuthMethod::kBasic;
   username_ = username;
   password_ = password;
 }
@@ -58,14 +58,14 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
   curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
   // If we need authentication but don't have an OAuth2 token, fall back to
   // legacy username/password.
-  if (method_ == AUTH_BASIC || method_ == CERT) {
+  if (method_ == AuthMethod::kBasic || method_ == AuthMethod::kCert) {
     curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     curl_easy_setopt(curl_handle, CURLOPT_USERNAME, username_.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
 
   std::string all_root_certs;
-  if (method_ == CERT) {
+  if (method_ == AuthMethod::kCert) {
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
     curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);

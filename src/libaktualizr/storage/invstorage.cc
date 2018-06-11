@@ -8,10 +8,10 @@
 std::ostream& operator<<(std::ostream& os, const StorageType stype) {
   std::string stype_str;
   switch (stype) {
-    case kFileSystem:
+    case StorageType::kFileSystem:
       stype_str = "filesystem";
       break;
-    case kSqlite:
+    case StorageType::kSqlite:
       stype_str = "sqlite";
       break;
     default:
@@ -128,10 +128,10 @@ void INvStorage::importData(const ImportConfig& import_config) {
 
 std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
   switch (config.type) {
-    case kSqlite:
+    case StorageType::kSqlite:
       if (!boost::filesystem::exists(config.sqldb_path)) {
         StorageConfig old_config;
-        old_config.type = kFileSystem;
+        old_config.type = StorageType::kFileSystem;
         old_config.path = path;
 
         std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
@@ -140,7 +140,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
         return sql_storage;
       }
       return std::make_shared<SQLStorage>(config);
-    case kFileSystem:
+    case StorageType::kFileSystem:
     default:
       return std::make_shared<FSStorage>(config);
   }

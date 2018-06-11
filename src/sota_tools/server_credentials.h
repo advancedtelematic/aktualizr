@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <string>
 
-enum AuthMethod { AUTH_NONE = 0, AUTH_BASIC, OAUTH2, CERT };
+enum class AuthMethod { kNone = 0, kBasic, kOauth2, kCert };
 
 class BadCredentialsContent : public std::runtime_error {
  public:

@@ -12,7 +12,7 @@
 
 TEST(PackageManagerFactory, Debian_Install_Good) {
   Config config;
-  config.pacman.type = kDebian;
+  config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
@@ -33,14 +33,14 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "good.deb", 2);
   std::stringstream("ab") >> *fhandle;
 
-  EXPECT_EQ(pacman->install(target).first, data::OK);
+  EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kOk);
   std::vector<Uptane::Target> versions_loaded;
   EXPECT_EQ(pacman->getCurrent(), target);
 }
 
 TEST(PackageManagerFactory, Debian_Install_Bad) {
   Config config;
-  config.pacman.type = kDebian;
+  config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
@@ -54,7 +54,7 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "bad.deb", 2);
   std::stringstream("ab") >> *fhandle;
 
-  EXPECT_EQ(pacman->install(target).first, data::INSTALL_FAILED);
+  EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(pacman->install(target).second, std::string("Error installing"));
 }
 

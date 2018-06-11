@@ -46,7 +46,7 @@ TEST(Uptane, RandomSerial) {
 
   // add secondaries
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir1.Path() / "sec_1";
   ecu_config.ecu_serial = "";
@@ -105,7 +105,7 @@ TEST(Uptane, ReloadSerial) {
   EcuSerials ecu_serials_2;
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::kVirtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path() / "sec";
   ecu_config.ecu_serial = "";

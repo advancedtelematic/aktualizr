@@ -15,16 +15,16 @@ PublicKey::PublicKey(const boost::filesystem::path &path) : value_(Utils::readFi
 }
 PublicKey::PublicKey(Json::Value uptane_json) {
   if (!uptane_json["keytype"].isString()) {
-    type_ = kUnknownKey;
+    type_ = KeyType::kUnknown;
     return;
   }
   if (!uptane_json["keyval"].isObject()) {
-    type_ = kUnknownKey;
+    type_ = KeyType::kUnknown;
     return;
   }
 
   if (!uptane_json["keyval"]["public"].isString()) {
-    type_ = kUnknownKey;
+    type_ = KeyType::kUnknown;
     return;
   }
 
@@ -35,14 +35,14 @@ PublicKey::PublicKey(Json::Value uptane_json) {
 
   KeyType type;
   if (keytype == "ed25519") {
-    type = kED25519;
+    type = KeyType::kED25519;
   } else if (keytype == "rsa") {
     type = Crypto::IdentifyRSAKeyType(keyvalue);
-    if (type == kUnknownKey) {
+    if (type == KeyType::kUnknown) {
       LOG_WARNING << "Couldn't identify length of RSA key";
     }
   } else {
-    type = kUnknownKey;
+    type = KeyType::kUnknown;
   }
   type_ = type;
   value_ = keyvalue;
@@ -57,10 +57,10 @@ PublicKey::PublicKey(std::string value, KeyType type) : value_(std::move(value))
 
 bool PublicKey::VerifySignature(const std::string &signature, const std::string &message) const {
   switch (type_) {
-    case kED25519:
+    case KeyType::kED25519:
       return Crypto::ED25519Verify(boost::algorithm::unhex(value_), Utils::fromBase64(signature), message);
-    case kRSA2048:
-    case kRSA4096:
+    case KeyType::kRSA2048:
+    case KeyType::kRSA4096:
       return Crypto::RSAPSSVerify(value_, Utils::fromBase64(signature), message);
     default:
       return false;
@@ -71,14 +71,14 @@ bool PublicKey::operator==(const PublicKey &rhs) const { return value_ == rhs.va
 Json::Value PublicKey::ToUptane() const {
   Json::Value res;
   switch (type_) {
-    case kRSA2048:
-    case kRSA4096:
+    case KeyType::kRSA2048:
+    case KeyType::kRSA4096:
       res["keytype"] = "RSA";
       break;
-    case kED25519:
+    case KeyType::kED25519:
       res["keytype"] = "ED25519";
       break;
-    case kUnknownKey:
+    case KeyType::kUnknown:
       res["keytype"] = "unknown";
       break;
     default:
@@ -168,7 +168,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
 }
 
 std::string Crypto::Sign(KeyType key_type, ENGINE *engine, const std::string &private_key, const std::string &message) {
-  if (key_type == kED25519) {
+  if (key_type == KeyType::kED25519) {
     return Crypto::ED25519Sign(boost::algorithm::unhex(private_key), message);
   }
   return Crypto::RSAPSSSign(engine, private_key, message);
@@ -326,7 +326,7 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
  *         false if key generation failed
  */
 bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
-  int bits = (key_type == kRSA2048) ? 2048 : 4096;
+  int bits = (key_type == KeyType::kRSA2048) ? 2048 : 4096;
   int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
@@ -395,7 +395,7 @@ bool Crypto::generateEDKeyPair(std::string *public_key, std::string *private_key
 }
 
 bool Crypto::generateKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
-  if (key_type == kED25519) {
+  if (key_type == KeyType::kED25519) {
     return Crypto::generateEDKeyPair(public_key, private_key);
   }
   return Crypto::generateRSAKeyPair(key_type, public_key, private_key);
@@ -403,8 +403,8 @@ bool Crypto::generateKeyPair(KeyType key_type, std::string *public_key, std::str
 
 bool Crypto::IsRsaKeyType(KeyType type) {
   switch (type) {
-    case kRSA2048:
-    case kRSA4096:
+    case KeyType::kRSA2048:
+    case KeyType::kRSA4096:
       return true;
     default:
       return false;
@@ -420,7 +420,7 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
   StructGuard<::RSA> rsa(PEM_read_bio_RSA_PUBKEY(bufio.get(), nullptr, nullptr, nullptr), RSA_free);
 
   if (rsa.get() == nullptr) {
-    return kUnknownKey;
+    return KeyType::kUnknown;
   }
 
   int key_length = RSA_size(rsa.get()) * 8;
@@ -430,11 +430,11 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
   // exactly N
   switch (key_length) {
     case 2048:
-      return kRSA2048;
+      return KeyType::kRSA2048;
     case 4096:
-      return kRSA4096;
+      return KeyType::kRSA4096;
     default:
       LOG_WARNING << "Wierd key length:" << key_length;
-      return kUnknownKey;
+      return KeyType::kUnknown;
   }
 }

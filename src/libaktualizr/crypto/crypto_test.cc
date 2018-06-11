@@ -58,7 +58,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   std::string text = "This is text for sign";
   std::string key_content;
   EXPECT_TRUE(p11->readUptanePublicKey(&key_content));
-  PublicKey pkey(key_content, kRSA2048);
+  PublicKey pkey(key_content, KeyType::kRSA2048);
   std::string private_key = p11->getUptaneKeyId();
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(p11->getEngine(), private_key, text));
   bool signe_is_ok = pkey.VerifySignature(signature, text);
@@ -132,8 +132,8 @@ TEST(crypto, verify_ed25519) {
 }
 
 TEST(crypto, bad_keytype) {
-  PublicKey pkey("somekey", kUnknownKey);
-  EXPECT_EQ(pkey.Type(), kUnknownKey);
+  PublicKey pkey("somekey", KeyType::kUnknown);
+  EXPECT_EQ(pkey.Type(), KeyType::kUnknown);
 }
 
 TEST(crypto, parsep12) {
@@ -237,7 +237,7 @@ TEST(crypto, parsep12_FAIL) {
 TEST(crypto, generateRSA2048KeyPair) {
   std::string public_key;
   std::string private_key;
-  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA2048, &public_key, &private_key));
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(KeyType::kRSA2048, &public_key, &private_key));
   EXPECT_NE(public_key.size(), 0);
   EXPECT_NE(private_key.size(), 0);
 }
@@ -245,7 +245,7 @@ TEST(crypto, generateRSA2048KeyPair) {
 TEST(crypto, generateRSA4096KeyPair) {
   std::string public_key;
   std::string private_key;
-  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA4096, &public_key, &private_key));
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(KeyType::kRSA4096, &public_key, &private_key));
   EXPECT_NE(public_key.size(), 0);
   EXPECT_NE(private_key.size(), 0);
 }
@@ -261,7 +261,7 @@ TEST(crypto, generateED25519KeyPair) {
 TEST(crypto, roundTripViaJson) {
   std::string public_key;
   std::string private_key;
-  EXPECT_TRUE(Crypto::generateRSAKeyPair(kRSA2048, &public_key, &private_key));
+  EXPECT_TRUE(Crypto::generateRSAKeyPair(KeyType::kRSA2048, &public_key, &private_key));
   PublicKey pk1{public_key, KeyType::kRSA2048};
   Json::Value json{pk1.ToUptane()};
   PublicKey pk2(json);
@@ -270,25 +270,25 @@ TEST(crypto, roundTripViaJson) {
 
 TEST(crypto, publicKeyId) {
   std::string public_key = "BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3DA93853388FDAC760";
-  PublicKey pk{public_key, kED25519};
+  PublicKey pk{public_key, KeyType::kED25519};
   EXPECT_EQ(pk.KeyId(), "a6d0f6b52ae833175dd7724899507709231723037845715c7677670e0195f850");
 }
 
 TEST(crypto, parseBadPublicKeyJson) {
   Json::Value o;
-  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+  EXPECT_EQ(PublicKey{o}.Type(), KeyType::kUnknown);
 
   o["keytype"] = 45;
-  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+  EXPECT_EQ(PublicKey{o}.Type(), KeyType::kUnknown);
 
   o["keytype"] = "ED25519";
   o["keyval"] = "";
-  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+  EXPECT_EQ(PublicKey{o}.Type(), KeyType::kUnknown);
 
   Json::Value keyval;
   keyval["public"] = 45;
   o["keyval"] = keyval;
-  EXPECT_EQ(PublicKey{o}.Type(), kUnknownKey);
+  EXPECT_EQ(PublicKey{o}.Type(), KeyType::kUnknown);
 }
 
 #ifndef __NO_MAIN__

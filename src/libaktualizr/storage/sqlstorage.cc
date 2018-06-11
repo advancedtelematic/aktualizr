@@ -41,7 +41,7 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
     return;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get count of keys table: " << db.errmsg();
@@ -72,7 +72,7 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT public FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get public key: " << db.errmsg();
@@ -98,7 +98,7 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT private FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get private key: " << db.errmsg();
@@ -144,7 +144,7 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     return;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -171,7 +171,7 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     return;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -198,7 +198,7 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     return;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -225,7 +225,7 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
 
-  request = kSqlGetTable;
+  request = SQLReqId::kGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
@@ -270,7 +270,7 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT ca_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
@@ -296,7 +296,7 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT client_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
@@ -322,7 +322,7 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT client_pkey FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get client_pkey: " << db.errmsg();
@@ -378,7 +378,7 @@ bool SQLStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::st
     return false;
   }
 
-  request = kSqlGetTable;
+  request = SQLReqId::kGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM " + tablename + ";", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
@@ -559,7 +559,7 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT device_id FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
@@ -614,7 +614,7 @@ bool SQLStorage::loadEcuRegistered() {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT is_registered FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
@@ -695,7 +695,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
     return false;
   }
 
-  request = kSqlGetTable;
+  request = SQLReqId::kGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM ecu_serials ORDER BY is_primary DESC;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get ecu_serials: " << db.errmsg();
@@ -749,7 +749,7 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
     for (it = ecus.begin(); it != ecus.end(); it++) {
       auto statement = db.prepareStatement<std::string, std::string, int>(
           "INSERT INTO misconfigured_ecus VALUES (?,?,?);", it->serial.ToString(), it->hardware_id.ToString(),
-          it->state);
+          static_cast<int>(it->state));
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set misconfigured_ecus: " << db.errmsg();
@@ -769,7 +769,7 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
     return false;
   }
 
-  request = kSqlGetTable;
+  request = SQLReqId::kGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM misconfigured_ecus;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get misconfigured_ecus: " << db.errmsg();
@@ -851,7 +851,7 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
     return current_hash;
   }
 
-  request = kSqlGetTable;
+  request = SQLReqId::kGetTable;
   req_response_table.clear();
   if (db.exec("SELECT * FROM installed_versions;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
@@ -1118,21 +1118,26 @@ bool SQLStorage::dbMigrate() {
     return false;
   }
 
-  int schema_version = getVersion();
-  if (schema_version == (schema_migrations.size() - 1)) {
-    return true;
-  } else if (schema_version == DbState::kInvalid) {
+  DbVersion schema_version = getVersion();
+
+  if (schema_version == DbVersion::kInvalid) {
     LOG_ERROR << "Sqlite database file is invalid.";
     return false;
   }
-  if (schema_version + 1L >= schema_migrations.size()) {
+
+  auto schema_num_version = static_cast<int32_t>(schema_version);
+  if (schema_num_version == current_schema_version) {
+    return true;
+  }
+
+  if (schema_num_version > current_schema_version) {
     LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
     return false;
   }
-  for (schema_version = schema_version + 1; schema_version < schema_migrations.size(); ++schema_version) {
-    if (db.exec(schema_migrations[schema_version].c_str(), nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version" << (schema_version - 1) << " to version " << schema_version << ": "
-                << db.errmsg();
+
+  for (int k = schema_num_version + 1; k <= current_schema_version; k++) {
+    if (db.exec(schema_migrations[k].c_str(), nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't migrate db from version" << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }
   }
@@ -1147,7 +1152,7 @@ bool SQLStorage::dbInit() {
     return false;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   if (db.exec("SELECT count(*) FROM device_info;", callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get number of rows in device_info: " << db.errmsg();
@@ -1164,36 +1169,36 @@ bool SQLStorage::dbInit() {
   return db.commitTransaction();
 }
 
-int SQLStorage::getVersion() {
+DbVersion SQLStorage::getVersion() {
   SQLite3Guard db(config_.sqldb_path.c_str());
 
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
-    return DbState::kInvalid;
+    return DbVersion::kInvalid;
   }
 
-  request = kSqlGetSimple;
+  request = SQLReqId::kGetSimple;
   req_response.clear();
   std::string req = std::string("SELECT count(*) FROM sqlite_master WHERE type='table';");
   if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get tables count: " << db.errmsg();
-    return DbState::kInvalid;
+    return DbVersion::kInvalid;
   }
   if (std::stoi(req_response["result"]) == 0) {
-    return DbState::kEmpty;
+    return DbVersion::kEmpty;
   }
 
   req_response.clear();
   req = std::string("SELECT version FROM version LIMIT 1;");
   if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
     LOG_ERROR << "Can't get database version: " << db.errmsg();
-    return DbState::kInvalid;
+    return DbVersion::kInvalid;
   }
 
   try {
-    return std::stoi(req_response["result"]);
+    return DbVersion(std::stoi(req_response["result"]));
   } catch (const std::exception&) {
-    return DbState::kInvalid;
+    return DbVersion::kInvalid;
   }
 }
 
@@ -1201,7 +1206,7 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
   auto* instance = static_cast<SQLStorage*>(instance_);
 
   switch (instance->request) {
-    case kSqlGetSimple: {
+    case SQLReqId::kGetSimple: {
       (void)numcolumns;
       (void)columns;
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -1211,7 +1216,7 @@ int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** 
       }
       break;
     }
-    case kSqlGetTable: {
+    case SQLReqId::kGetTable: {
       std::map<std::string, std::string> row;
       for (int i = 0; i < numcolumns; ++i) {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
