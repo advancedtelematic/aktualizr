@@ -72,6 +72,12 @@ int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(static_cast<boost::log::trivial::severity_level>(2));
 
+  // Suppress the following clang-tidy warning:
+  // /usr/include/boost/detail/basic_pointerbuf.hpp
+  // error: Call to virtual function during construction
+  // [clang-analyzer-optin.cplusplus.VirtualCall,-warnings-as-errors]
+  // basic_pointerbuf() : base_type() { setbuf(0, 0); }
+  // NOLINTNEXTLINE(clang-analyzer-optin.cplusplus.VirtualCall)
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
   boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
