@@ -1126,16 +1126,16 @@ bool SQLStorage::dbMigrate() {
   }
 
   auto schema_num_version = static_cast<int32_t>(schema_version);
-  if (schema_num_version == (schema_migrations.size() - 1)) {
+  if (schema_num_version == current_schema_version) {
     return true;
   }
 
-  if (schema_num_version + 1L >= schema_migrations.size()) {
+  if (schema_num_version > current_schema_version) {
     LOG_ERROR << "Only forward migrations are supported. You cannot migrate to an older schema.";
     return false;
   }
 
-  for (size_t k = schema_num_version + 1; k < schema_migrations.size(); ++k) {
+  for (int k = schema_num_version + 1; k <= current_schema_version; k++) {
     if (db.exec(schema_migrations[k].c_str(), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version" << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;

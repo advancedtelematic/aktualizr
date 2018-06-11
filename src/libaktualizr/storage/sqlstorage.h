@@ -9,6 +9,7 @@
 
 extern const std::vector<std::string> schema_migrations;
 extern const std::string current_schema;
+extern const int current_schema_version;
 
 enum class SQLReqId { GetSimple, GetTable };
 enum class DbVersion : int32_t { Empty = -1, Invalid = -2 };

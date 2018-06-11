@@ -56,3 +56,4 @@ if __name__ == '__main__':
         current_schema = open(os.path.join(sql_folder, "schema.sql"), 'r').read()
         current_schema_escaped = escape_string(current_schema)
         header_file.write('extern const std::string current_schema = "%s";' % current_schema_escaped);
+        header_file.write('extern const int current_schema_version = %u;' % (len(migration_list)-1));
