@@ -21,13 +21,13 @@ void PackageConfig::writeToStream(std::ostream& out_stream) const {
 std::ostream& operator<<(std::ostream& os, PackageManager pm) {
   std::string pm_str;
   switch (pm) {
-    case PackageManager::Ostree:
+    case PackageManager::kOstree:
       pm_str = "ostree";
       break;
-    case PackageManager::Debian:
+    case PackageManager::kDebian:
       pm_str = "debian";
       break;
-    case PackageManager::None:
+    case PackageManager::kNone:
     default:
       pm_str = "none";
       break;

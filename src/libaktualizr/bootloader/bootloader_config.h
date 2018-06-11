@@ -4,10 +4,10 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <ostream>
 
-enum class RollbackMode { BootloaderNone = 0, UbootGeneric, UbootMasked };
+enum class RollbackMode { kBootloaderNone = 0, kUbootGeneric, kUbootMasked };
 
 struct BootloaderConfig {
-  RollbackMode rollback_mode{RollbackMode::BootloaderNone};
+  RollbackMode rollback_mode{RollbackMode::kBootloaderNone};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

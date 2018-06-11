@@ -92,7 +92,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
-      config.pacman.type == PackageManager::Ostree) {
+      config.pacman.type == PackageManager::kOstree) {
     data::InstallOutcome outcome(data::UpdateResultCode::VALIDATION_FAILED,
                                  "Cannot install a non-OSTree package on an OSTree system");
     operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
@@ -357,7 +357,7 @@ void SotaUptaneClient::verifySecondaries() {
   store_it = std::find_if(serials.begin(), serials.end(), primary_comp);
   if (store_it == serials.end()) {
     LOG_ERROR << "Primary ECU serial " << uptane_repo.getPrimaryEcuSerial() << " not found in storage!";
-    misconfigured_ecus.emplace_back(store_it->first, store_it->second, EcuState::Old);
+    misconfigured_ecus.emplace_back(store_it->first, store_it->second, EcuState::kOld);
   } else {
     found[std::distance(serials.cbegin(), store_it)] = true;
   }
@@ -369,7 +369,7 @@ void SotaUptaneClient::verifySecondaries() {
     if (store_it == serials.end()) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
-      misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), EcuState::NotRegistered);
+      misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), EcuState::kNotRegistered);
     } else if (found[std::distance(serials.cbegin(), store_it)]) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
@@ -383,7 +383,7 @@ void SotaUptaneClient::verifySecondaries() {
     if (!*found_it) {
       auto not_registered = serials[std::distance(found.begin(), found_it)];
       LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
-      misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, EcuState::Old);
+      misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, EcuState::kOld);
     }
   }
   storage->storeMisconfiguredEcus(misconfigured_ecus);
@@ -421,7 +421,7 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
       continue;
     }
 
-    if (sec->second->sconfig.secondary_type == Uptane::SecondaryType::OpcuaUptane) {
+    if (sec->second->sconfig.secondary_type == Uptane::SecondaryType::kOpcuaUptane) {
       Json::Value data;
       data["sysroot_path"] = config.pacman.sysroot.string();
       data["ref_hash"] = it->sha256Hash();
@@ -447,8 +447,8 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
 }
 
 std::string SotaUptaneClient::secondaryTreehubCredentials() const {
-  if (config.tls.pkey_source != CryptoSource::File || config.tls.cert_source != CryptoSource::File ||
-      config.tls.ca_source != CryptoSource::File) {
+  if (config.tls.pkey_source != CryptoSource::kFile || config.tls.cert_source != CryptoSource::kFile ||
+      config.tls.ca_source != CryptoSource::kFile) {
     LOG_ERROR << "Cannot send OSTree update to a secondary when not using file as credential sources";
     return "";
   }

@@ -124,7 +124,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   }
 
   SQLStorage storage(config);
-  EXPECT_EQ(storage.getVersion(), DbVersion::Invalid);
+  EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
 }
 
 #ifndef __NO_MAIN__

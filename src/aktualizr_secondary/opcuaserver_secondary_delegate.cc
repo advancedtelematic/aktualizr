@@ -64,7 +64,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   secondary_->detected_attack_.clear();
 
-  secondary_->root_ = Uptane::Root(Uptane::Root::Policy::AcceptAll);
+  secondary_->root_ = Uptane::Root(Uptane::Root::Policy::kAcceptAll);
   Uptane::RawMetaPack meta;
   if (secondary_->storage_->loadMetadata(&meta)) {
     // stored metadata is trusted

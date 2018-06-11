@@ -12,12 +12,12 @@
 #include "http/httpinterface.h"
 #include "utilities/utils.h"
 
-enum class ProvisioningResult { OK, Failure };
+enum class ProvisioningResult { kOK, kFailure };
 
 class HttpFake : public HttpInterface {
  public:
   HttpFake(const boost::filesystem::path &test_dir_in, const bool is_initialized = false)
-      : provisioningResponse(ProvisioningResult::OK),
+      : provisioningResponse(ProvisioningResult::kOK),
         test_dir(test_dir_in),
         manifest_count(0),
         ecu_registered(is_initialized) {
@@ -84,7 +84,7 @@ class HttpFake : public HttpInterface {
       }
     }
     Utils::writeFile((test_dir / "post.json").string(), data);
-    if (provisioningResponse == ProvisioningResult::OK) {
+    if (provisioningResponse == ProvisioningResult::kOK) {
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else {
       return HttpResponse("", 400, CURLE_OK, "");

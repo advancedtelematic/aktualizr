@@ -61,7 +61,7 @@ struct SecondaryPublicKeyResp : public SecondaryMessage {
 
   friend asn1::Serializer& operator<<(asn1::Serializer& ser, const SecondaryPublicKeyResp& data);
   friend asn1::Deserializer& operator>>(asn1::Deserializer& des, SecondaryPublicKeyResp& data);
-  KeyType type{KeyType::RSA2048};
+  KeyType type{KeyType::kRSA2048};
   std::string key;
 };
 

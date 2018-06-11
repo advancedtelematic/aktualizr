@@ -12,7 +12,7 @@
 
 TEST(PackageManagerFactory, Debian_Install_Good) {
   Config config;
-  config.pacman.type = PackageManager::Debian;
+  config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
@@ -40,7 +40,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
 
 TEST(PackageManagerFactory, Debian_Install_Bad) {
   Config config;
-  config.pacman.type = PackageManager::Debian;
+  config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);

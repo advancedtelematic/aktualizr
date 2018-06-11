@@ -25,10 +25,10 @@ TEST(UptaneCI, OneCycleUpdate) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::Automatic;
+  config.provision.mode = ProvisionMode::kAutomatic;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = temp_dir.Path();
-  config.pacman.type = PackageManager::Ostree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = sysroot;
   config.postUpdateValues();  // re-run copy of urls
 
@@ -48,15 +48,15 @@ TEST(UptaneCI, CheckKeys) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/minimal.toml");
   config.provision.provision_path = credentials;
-  config.provision.mode = ProvisionMode::Automatic;
+  config.provision.mode = ProvisionMode::kAutomatic;
   config.storage.path = temp_dir.Path();
-  config.pacman.type = PackageManager::Ostree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = sysroot;
   config.postUpdateValues();  // re-run copy of urls
   boost::filesystem::remove_all(config.storage.path);
 
   Uptane::SecondaryConfig ecu_config;
-  ecu_config.secondary_type = Uptane::SecondaryType::Virtual;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "";
@@ -91,8 +91,8 @@ TEST(UptaneCI, CheckKeys) {
 
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
-    if (it->second->sconfig.secondary_type != Uptane::SecondaryType::Virtual &&
-        it->second->sconfig.secondary_type != Uptane::SecondaryType::Legacy) {
+    if (it->second->sconfig.secondary_type != Uptane::SecondaryType::kVirtual &&
+        it->second->sconfig.secondary_type != Uptane::SecondaryType::kLegacy) {
       continue;
     }
     std::shared_ptr<Uptane::ManagedSecondary> managed =

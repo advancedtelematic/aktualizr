@@ -30,7 +30,7 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
   TemporaryDirectory temp_dir;
   conf.storage.type = storage_type;
   conf.storage.path = temp_dir.Path();
-  if (storage_type == StorageType::Sqlite) {
+  if (storage_type == StorageType::kSqlite) {
     conf.storage.sqldb_path = temp_dir / "test.db";
   }
   conf.provision.expiry_days = device_register_state;
@@ -77,76 +77,76 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
 // Clang tries to cram these all on single lines, which is ugly.
 // clang-format off
 TEST(UptaneNetwork, device_drop_request) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "drop_request", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "drop_request", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_drop_body) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "drop_body", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "drop_body", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_503) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "status_503", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "status_503", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_408) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "status_408", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "status_408", "noerrors"));
 }
 
 TEST(UptaneNetwork, ecu_drop_request) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "noerrors", "drop_request"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "drop_request"));
 }
 
 TEST(UptaneNetwork, ecu_503) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "noerrors", "status_503"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "status_503"));
 }
 
 TEST(UptaneNetwork, ecu_408) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "noerrors", "status_408"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "status_408"));
 }
 
 TEST(UptaneNetwork, no_connection) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "noconnection", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noconnection", "noerrors"));
 }
 
 TEST(UptaneNetwork, no_errors) {
-  EXPECT_TRUE(doTestInit(StorageType::FileSystem, "noerrors", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "noerrors"));
 }
 
 //The same tests but with sqlite backend
 TEST(UptaneNetwork, device_drop_request_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "drop_request", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "drop_request", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_drop_body_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "drop_body", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "drop_body", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_503_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "status_503", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "status_503", "noerrors"));
 }
 
 TEST(UptaneNetwork, device_408_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "status_408", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "status_408", "noerrors"));
 }
 
 TEST(UptaneNetwork, ecu_drop_request_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "noerrors", "drop_request"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "drop_request"));
 }
 
 TEST(UptaneNetwork, ecu_503_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "noerrors", "status_503"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "status_503"));
 }
 
 TEST(UptaneNetwork, ecu_408_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "noerrors", "status_408"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "status_408"));
 }
 
 TEST(UptaneNetwork, no_connection_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "noconnection", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noconnection", "noerrors"));
 }
 
 TEST(UptaneNetwork, no_errors_sqlite) {
-  EXPECT_TRUE(doTestInit(StorageType::Sqlite, "noerrors", "noerrors"));
+  EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "noerrors"));
 }
 // clang-format on
 

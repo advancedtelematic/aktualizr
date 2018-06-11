@@ -10,7 +10,7 @@ asn1::Deserializer& operator>>(asn1::Deserializer& des, KeyType& kt) {
 
   des >> asn1::implicit<kAsn1Enum>(kt_i);
 
-  if (kt_i < static_cast<int>(KeyType::FirstKnown) || kt_i > static_cast<int>(KeyType::LastKnown)) {
+  if (kt_i < static_cast<int>(KeyType::kFirstKnown) || kt_i > static_cast<int>(KeyType::kLastKnown)) {
     throw deserialization_error();
   }
 

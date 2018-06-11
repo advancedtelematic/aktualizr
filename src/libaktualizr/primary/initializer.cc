@@ -20,9 +20,9 @@ bool Initializer::initDeviceId() {
   // if device_id is specified in config, just use it, otherwise generate a  random one
   device_id = config_.device_id;
   if (device_id.empty()) {
-    if (config_.mode == ProvisionMode::Automatic) {
+    if (config_.mode == ProvisionMode::kAutomatic) {
       device_id = Utils::genPrettyName();
-    } else if (config_.mode == ProvisionMode::Implicit) {
+    } else if (config_.mode == ProvisionMode::kImplicit) {
       device_id = keys_.getCN();
     } else {
       LOG_ERROR << "Unknown provisioning method";
@@ -87,7 +87,7 @@ InitRetCode Initializer::initTlsCreds() {
     return InitRetCode::OK;
   }
 
-  if (config_.mode != ProvisionMode::Automatic) {
+  if (config_.mode != ProvisionMode::kAutomatic) {
     LOG_ERROR << "Credentials not found";
     return InitRetCode::STORAGE_FAILURE;
   }
@@ -96,8 +96,8 @@ InitRetCode Initializer::initTlsCreds() {
 
   // set bootstrap credentials
   Bootstrap boot(config_.provision_path, config_.p12_password);
-  http_client_.setCerts(boot.getCa(), CryptoSource::File, boot.getCert(), CryptoSource::File, boot.getPkey(),
-                        CryptoSource::File);
+  http_client_.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
+                        CryptoSource::kFile);
 
   Json::Value data;
   std::string device_id;
@@ -139,7 +139,7 @@ InitRetCode Initializer::initTlsCreds() {
 }
 
 void Initializer::resetTlsCreds() {
-  if (config_.mode != ProvisionMode::Implicit) {
+  if (config_.mode != ProvisionMode::kImplicit) {
     storage_->clearTlsCreds();
   }
 }
@@ -152,7 +152,7 @@ InitRetCode Initializer::initEcuRegister() {
 
   PublicKey uptane_public_key = keys_.UptanePublicKey();
 
-  if (uptane_public_key.Type() == KeyType::Unknown) {
+  if (uptane_public_key.Type() == KeyType::kUnknown) {
     return InitRetCode::STORAGE_FAILURE;
   }
 

@@ -78,11 +78,11 @@ std::ostream &Uptane::operator<<(std::ostream &os, const EcuSerial &ecu_serial) 
 
 Hash::Hash(const std::string &type, const std::string &hash) : hash_(boost::algorithm::to_upper_copy(hash)) {
   if (type == "sha512") {
-    type_ = Hash::Type::Sha512;
+    type_ = Hash::Type::kSha512;
   } else if (type == "sha256") {
-    type_ = Hash::Type::Sha256;
+    type_ = Hash::Type::kSha256;
   } else {
-    type_ = Hash::Type::UnknownAlgorithm;
+    type_ = Hash::Type::kUnknownAlgorithm;
   }
 }
 
@@ -92,9 +92,9 @@ bool Hash::operator==(const Hash &other) const { return type_ == other.type_ && 
 
 std::string Hash::TypeString() const {
   switch (type_) {
-    case Type::Sha256:
+    case Type::kSha256:
       return "sha256";
-    case Type::Sha512:
+    case Type::kSha512:
       return "sha512";
     default:
       return "unknown";
@@ -154,7 +154,7 @@ bool Target::MatchWith(const Hash &hash) const {
 std::string Target::sha256Hash() const {
   std::vector<Uptane::Hash>::const_iterator it;
   for (it = hashes_.begin(); it != hashes_.end(); it++) {
-    if (it->type() == Hash::Type::Sha256) {
+    if (it->type() == Hash::Type::kSha256) {
       return boost::algorithm::to_lower_copy(it->HashString());
     }
   }

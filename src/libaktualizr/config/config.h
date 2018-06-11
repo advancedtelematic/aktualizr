@@ -26,7 +26,7 @@
 #include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
 
-enum class ProvisionMode { Automatic = 0, Implicit };
+enum class ProvisionMode { kAutomatic = 0, kImplicit };
 
 // Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
@@ -55,9 +55,9 @@ struct NetworkConfig {
 struct TlsConfig {
   std::string server;
   boost::filesystem::path server_url_path;
-  CryptoSource ca_source{CryptoSource::File};
-  CryptoSource pkey_source{CryptoSource::File};
-  CryptoSource cert_source{CryptoSource::File};
+  CryptoSource ca_source{CryptoSource::kFile};
+  CryptoSource pkey_source{CryptoSource::kFile};
+  CryptoSource cert_source{CryptoSource::kFile};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;
@@ -71,7 +71,7 @@ struct ProvisionConfig {
   std::string p12_password;
   std::string expiry_days{"36000"};
   boost::filesystem::path provision_path;
-  ProvisionMode mode{ProvisionMode::Automatic};
+  ProvisionMode mode{ProvisionMode::kAutomatic};
   std::string device_id;
   std::string primary_ecu_serial;
   std::string primary_ecu_hardware_id;
@@ -86,8 +86,8 @@ struct UptaneConfig {
   uint64_t polling_sec{10u};
   std::string director_server;
   std::string repo_server;
-  CryptoSource key_source{CryptoSource::File};
-  KeyType key_type{KeyType::RSA2048};
+  CryptoSource key_source{CryptoSource::kFile};
+  KeyType key_type{KeyType::kRSA2048};
   boost::filesystem::path legacy_interface{};
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 

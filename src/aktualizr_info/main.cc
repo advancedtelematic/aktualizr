@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     AktualizrInfoConfig config(vm);
 
     std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-    std::cout << "Storage backend: " << ((storage->type() == StorageType::FileSystem) ? "Filesystem" : "Sqlite")
+    std::cout << "Storage backend: " << ((storage->type() == StorageType::kFileSystem) ? "Filesystem" : "Sqlite")
               << std::endl;
 
     Uptane::RawMetaPack pack;
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
       std::vector<MisconfiguredEcu>::const_iterator it;
       for (it = misconfigured_ecus.begin(); it != misconfigured_ecus.end(); ++it) {
         std::cout << "   '" << it->serial << "' with hardware_id '" << it->hardware_id << "' "
-                  << (it->state == EcuState::Old ? "has been removed from config" : "not registered yet") << std::endl;
+                  << (it->state == EcuState::kOld ? "has been removed from config" : "not registered yet") << std::endl;
       }
     }
 

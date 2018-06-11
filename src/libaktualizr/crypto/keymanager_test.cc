@@ -18,7 +18,7 @@ TEST(KeyManager, SignTuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
   Config config;
-  config.uptane.key_type = KeyType::RSA2048;
+  config.uptane.key_type = KeyType::kRSA2048;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
@@ -40,7 +40,7 @@ TEST(KeyManager, SignED25519Tuf) {
       "A93853388FDAC760";
   std::string public_key = "BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3DA93853388FDAC760";
   Config config;
-  config.uptane.key_type = KeyType::ED25519;
+  config.uptane.key_type = KeyType::kED25519;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
@@ -117,7 +117,7 @@ TEST(KeyManager, SignTufPkcs11) {
   p11_conf.uptane_key_id = "03";
   Config config;
   config.p11 = p11_conf;
-  config.uptane.key_source = CryptoSource::Pkcs11;
+  config.uptane.key_source = CryptoSource::kPkcs11;
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
@@ -140,9 +140,9 @@ TEST(KeyManager, InitPkcs11Valid) {
   p11_conf.tls_pkey_id = "02";
   p11_conf.tls_clientcert_id = "01";
   config.p11 = p11_conf;
-  config.tls.ca_source = CryptoSource::File;
-  config.tls.pkey_source = CryptoSource::Pkcs11;
-  config.tls.cert_source = CryptoSource::Pkcs11;
+  config.tls.ca_source = CryptoSource::kFile;
+  config.tls.pkey_source = CryptoSource::kPkcs11;
+  config.tls.cert_source = CryptoSource::kPkcs11;
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();

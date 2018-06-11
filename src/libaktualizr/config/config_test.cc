@@ -26,7 +26,7 @@ TEST(config, config_initialized_values) {
 TEST(config, config_toml_parsing) {
   Config conf("tests/config/basic.toml");
 
-  EXPECT_EQ(conf.pacman.type, PackageManager::None);
+  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
 }
 
 TEST(config, config_toml_parsing_empty_file) {
@@ -107,7 +107,7 @@ TEST(config, secondary_config) {
 
   Config conf(cmd);
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 1);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::Virtual);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::kVirtual);
   EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "demo-virtual");
   // If not provided, serial is not generated until SotaUptaneClient is initialized.
   EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
@@ -115,10 +115,10 @@ TEST(config, secondary_config) {
 
 void checkSecondaryConfig(const Config &conf) {
   EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::Legacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::kLegacy);
   EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
   EXPECT_FALSE(conf.uptane.secondary_configs[0].ecu_serial.empty());
-  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::SecondaryType::Legacy);
+  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::SecondaryType::kLegacy);
   EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
   // If not provided, serial is not generated until SotaUptaneClient is initialized.
   EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
@@ -158,12 +158,12 @@ TEST(config, legacy_interface_config) {
  */
 TEST(config, implicit_mode) {
   Config config;
-  EXPECT_EQ(config.provision.mode, ProvisionMode::Implicit);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 }
 
 TEST(config, automatic_mode) {
   Config config("tests/config/basic.toml");
-  EXPECT_EQ(config.provision.mode, ProvisionMode::Automatic);
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kAutomatic);
 }
 
 /* We don't normally dump the config to file anymore, but we do write it to the
@@ -239,8 +239,8 @@ TEST(config, two_config_correctness) {
   bpo::store(bpo::parse_command_line(5, argv, description), cmd);
 
   Config conf(cmd);
-  EXPECT_EQ(conf.storage.type, StorageType::Sqlite);
-  EXPECT_EQ(conf.pacman.type, PackageManager::None);
+  EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
+  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
 }
 
 #ifndef __NO_MAIN__

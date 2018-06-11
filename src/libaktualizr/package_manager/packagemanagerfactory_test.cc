@@ -14,7 +14,7 @@ boost::filesystem::path sysroot;
 
 TEST(PackageManagerFactory, Ostree) {
   Config config;
-  config.pacman.type = PackageManager::Ostree;
+  config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = sysroot;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
@@ -31,7 +31,7 @@ TEST(PackageManagerFactory, Ostree) {
 
 TEST(PackageManagerFactory, Debian) {
   Config config;
-  config.pacman.type = PackageManager::Debian;
+  config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
@@ -50,7 +50,7 @@ TEST(PackageManagerFactory, None) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
-  config.pacman.type = PackageManager::None;
+  config.pacman.type = PackageManager::kNone;
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
 }

@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
       std::vector<Uptane::SecondaryConfig>::const_iterator it;
       for (it = discovered.begin(); it != discovered.end(); ++it) {
         std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-        if (it->secondary_type == Uptane::SecondaryType::IpUptane) {
+        if (it->secondary_type == Uptane::SecondaryType::kIpUptane) {
           auto public_key = sec->getPublicKey();
           LOG_INFO << "Got public key from secondary: " << public_key.ToUptane();
           auto manifest = sec->getManifest();

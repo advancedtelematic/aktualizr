@@ -11,12 +11,12 @@ struct DownloadMetaStruct {
   int64_t expected_length{};
   int64_t downloaded_length{};
   StorageTargetWHandle* fhandle{};
-  Hash::Type hash_type{Hash::Type::UnknownAlgorithm};
+  Hash::Type hash_type{Hash::Type::kUnknownAlgorithm};
   MultiPartHasher& hasher() {
     switch (hash_type) {
-      case Hash::Type::Sha256:
+      case Hash::Type::kSha256:
         return sha256_hasher;
-      case Hash::Type::Sha512:
+      case Hash::Type::kSha512:
         return sha512_hasher;
       default:
         throw std::runtime_error("Unknown hash algorithm");

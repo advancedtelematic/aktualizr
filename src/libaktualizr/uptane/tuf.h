@@ -20,11 +20,11 @@ using KeyId = std::string;
  */
 class Role {
  public:
-  static Role Root() { return Role{RoleEnum::Root}; }
-  static Role Snapshot() { return Role{RoleEnum::Snapshot}; }
-  static Role Targets() { return Role{RoleEnum::Targets}; }
-  static Role Timestamp() { return Role{RoleEnum::Timestamp}; }
-  static Role InvalidRole() { return Role{RoleEnum::InvalidRole}; }
+  static Role Root() { return Role{RoleEnum::kRoot}; }
+  static Role Snapshot() { return Role{RoleEnum::kSnapshot}; }
+  static Role Targets() { return Role{RoleEnum::kTargets}; }
+  static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
+  static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
   explicit Role(const std::string & /*role_name*/);
   std::string ToString() const;
   bool operator==(const Role &other) const { return role_ == other.role_; }
@@ -34,7 +34,7 @@ class Role {
   friend std::ostream &operator<<(std::ostream &os, const Role &t);
 
  private:
-  enum class RoleEnum { Root, Snapshot, Targets, Timestamp, InvalidRole };
+  enum class RoleEnum { kRoot, kSnapshot, kTargets, kTimestamp, kInvalidRole };
 
   explicit Role(RoleEnum role) : role_(role) {}
 
@@ -150,12 +150,12 @@ std::ostream &operator<<(std::ostream &os, const EcuSerial &ecu_serial);
 class Hash {
  public:
   // order corresponds algorithm priority
-  enum class Type { Sha256, Sha512, UnknownAlgorithm };
+  enum class Type { kSha256, kSha512, kUnknownAlgorithm };
 
   Hash(const std::string &type, const std::string &hash);
   Hash(Type type, const std::string &hash);
 
-  bool HaveAlgorithm() const { return type_ != Type::UnknownAlgorithm; }
+  bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
   std::string TypeString() const;
   Type type() const;
@@ -259,11 +259,11 @@ class BaseMeta {
 // Implemented in uptane/root.cc
 class Root : public BaseMeta {
  public:
-  enum class Policy { RejectAll, AcceptAll, Check };
+  enum class Policy { kRejectAll, kAcceptAll, kCheck };
   /**
    * An empty Root, that either accepts or rejects everything
    */
-  explicit Root(Policy policy = Policy::RejectAll) : policy_(policy) { version_ = 0; }
+  explicit Root(Policy policy = Policy::kRejectAll) : policy_(policy) { version_ = 0; }
   /**
    * A 'real' root that implements TUF signature validation
    * @param repository - The name of the repository (only used to improve the error messages)

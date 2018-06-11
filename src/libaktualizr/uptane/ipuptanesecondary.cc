@@ -17,7 +17,7 @@ PublicKey IpUptaneSecondary::getPublicKey() {
 
   if (resp->present() != AKIpUptaneMes_PR_publicKeyResp) {
     LOG_ERROR << "Failed to get public key response message from secondary";
-    return PublicKey("", KeyType::Unknown);
+    return PublicKey("", KeyType::kUnknown);
   }
   auto r = resp->publicKeyResp();
 

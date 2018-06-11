@@ -15,19 +15,19 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
     const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage) {
   (void)storage;
   switch (pconfig.type) {
-    case PackageManager::Ostree:
+    case PackageManager::kOstree:
 #ifdef BUILD_OSTREE
       return std::make_shared<OstreeManager>(pconfig, storage);
 #else
       throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif
-    case PackageManager::Debian:
+    case PackageManager::kDebian:
 #ifdef BUILD_DEB
       return std::make_shared<DebianManager>(pconfig, storage);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif
-    case PackageManager::None:
+    case PackageManager::kNone:
       return std::make_shared<PackageManagerFake>(storage);
     default:
       LOG_ERROR << "Unrecognized package manager type: " << static_cast<int>(pconfig.type);

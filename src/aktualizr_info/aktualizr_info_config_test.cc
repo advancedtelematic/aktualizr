@@ -6,14 +6,14 @@
 TEST(aktualizr_info_config, config_initialized_values) {
   AktualizrInfoConfig conf;
 
-  EXPECT_EQ(conf.storage.type, StorageType::FileSystem);
+  EXPECT_EQ(conf.storage.type, StorageType::kFileSystem);
   EXPECT_EQ(conf.storage.path, "/var/sota");
 }
 
 TEST(aktualizr_info_config, config_toml_parsing) {
   AktualizrInfoConfig conf("config/sota_autoprov.toml");
 
-  EXPECT_EQ(conf.storage.type, StorageType::Sqlite);
+  EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
   EXPECT_EQ(conf.storage.sqldb_path, "/var/sota/sql.db");
 }
 

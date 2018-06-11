@@ -15,7 +15,7 @@
 namespace Uptane {
 
 PartialVerificationSecondary::PartialVerificationSecondary(const SecondaryConfig &sconfig_in)
-    : SecondaryInterface(sconfig_in), root_(Root::Policy::AcceptAll) {
+    : SecondaryInterface(sconfig_in), root_(Root::Policy::kAcceptAll) {
   boost::filesystem::create_directories(sconfig.metadata_path);
 
   // FIXME Probably we need to generate keys on the secondary

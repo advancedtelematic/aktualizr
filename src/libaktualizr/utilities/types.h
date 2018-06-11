@@ -5,18 +5,18 @@
 #include <boost/filesystem.hpp>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
-enum class KeyType { ED25519 = 0, FirstKnown = ED25519, RSA2048, RSA4096, LastKnown = RSA4096, Unknown = 0xff };
+enum class KeyType { kED25519 = 0, kFirstKnown = kED25519, kRSA2048, kRSA4096, kLastKnown = kRSA4096, kUnknown = 0xff };
 
 inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
-    case KeyType::RSA2048:
+    case KeyType::kRSA2048:
       kt_str = "RSA2048";
       break;
-    case KeyType::RSA4096:
+    case KeyType::kRSA4096:
       kt_str = "RSA4096";
       break;
-    case KeyType::ED25519:
+    case KeyType::kED25519:
       kt_str = "ED25519";
       break;
     default:
@@ -27,15 +27,15 @@ inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   return os;
 }
 
-enum class CryptoSource { File = 0, Pkcs11 };
+enum class CryptoSource { kFile = 0, kPkcs11 };
 
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
-    case CryptoSource::File:
+    case CryptoSource::kFile:
       cs_str = "file";
       break;
-    case CryptoSource::Pkcs11:
+    case CryptoSource::kPkcs11:
       cs_str = "pkcs11";
       break;
     default:
