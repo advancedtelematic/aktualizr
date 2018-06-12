@@ -7,7 +7,6 @@
 #include "uptane/secondaryinterface.h"
 
 #include "logging/logging.h"
-#include "secondary_ipc/ipuptaneconnection.h"
 #include "uptane/ipsecondarydiscovery.h"
 
 namespace po = boost::program_options;
@@ -44,8 +43,7 @@ int main(int argc, char **argv) {
     LOG_INFO << "Found " << discovered.size() << " devices";
     if (discovered.size() != 0u) {
       LOG_TRACE << "Trying to connect with detected devices and get public key";
-
-      IpUptaneConnection ip_uptane_connection(config.network.ipuptane_port);
+      bool all_ok = true;
 
       std::vector<Uptane::SecondaryConfig>::const_iterator it;
       for (it = discovered.begin(); it != discovered.end(); ++it) {
@@ -62,16 +60,26 @@ int main(int argc, char **argv) {
               LOG_INFO << "Manifest has been successfully verified";
             } else {
               LOG_INFO << "Manifest verification failed";
+              all_ok = false;
             }
           } else {
             LOG_INFO << "Manifest is corrupted or not signed";
+            all_ok = false;
           }
         }
-      }
-      exit(EXIT_SUCCESS);
-    }
-    LOG_INFO << "Exiting";
+      }  // foreach secondary
 
+      if (all_ok) {
+        LOG_INFO << "All secondaries provided valid manifests";
+        return EXIT_SUCCESS;
+      } else {
+        LOG_WARNING << "One or more secondaries did not return a correct manifest";
+        return EXIT_FAILURE;
+      }
+    } else {
+      LOG_INFO << "No secondaries were discovered";
+      return EXIT_FAILURE;
+    }
   } catch (const po::error &o) {
     std::cout << o.what() << std::endl;
     std::cout << desc;
