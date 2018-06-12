@@ -273,7 +273,7 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
 
 class SSHRunner {
  public:
-  SSHRunner(std::string target, bool skip_checks, int port = 22)
+  SSHRunner(std::string target, const bool skip_checks, const int port = 22)
       : target_(std::move(target)), skip_checks_(skip_checks), port_(port) {}
 
   void runCmd(const std::string& cmd) const {
@@ -326,6 +326,16 @@ class SSHRunner {
   int port_;
 };
 
+void copyLocal(const boost::filesystem::path& src, const boost::filesystem::path& dest) {
+  boost::filesystem::path dest_dir = dest.parent_path();
+  if (boost::filesystem::exists(dest_dir)) {
+    boost::filesystem::remove(dest);
+  } else {
+    boost::filesystem::create_directory(dest_dir);
+  }
+  boost::filesystem::copy_file(src, dest);
+}
+
 int main(int argc, char* argv[]) {
   logger_init();
   SSL_load_error_strings();
@@ -342,8 +352,8 @@ int main(int argc, char* argv[]) {
   if (commandline_map.count("port") != 0) {
     port = (commandline_map["port"].as<int>());
   }
-  bool provide_ca = commandline_map.count("root-ca") != 0;
-  bool provide_url = commandline_map.count("server-url") != 0;
+  const bool provide_ca = commandline_map.count("root-ca") != 0;
+  const bool provide_url = commandline_map.count("server-url") != 0;
   boost::filesystem::path local_dir;
   if (commandline_map.count("local") != 0) {
     local_dir = commandline_map["local"].as<boost::filesystem::path>();
@@ -352,7 +362,7 @@ int main(int argc, char* argv[]) {
   if (commandline_map.count("config") != 0) {
     config_path = commandline_map["config"].as<std::vector<boost::filesystem::path>>();
   }
-  bool skip_checks = commandline_map.count("skip-checks") != 0;
+  const bool skip_checks = commandline_map.count("skip-checks") != 0;
 
   boost::filesystem::path device_ca_path = "";
   if (commandline_map.count("device-ca") != 0) {
@@ -476,25 +486,13 @@ int main(int argc, char* argv[]) {
 
   if (!local_dir.empty()) {
     std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
-    if (boost::filesystem::exists(local_dir)) {
-      boost::filesystem::remove(local_dir / pkey_file);
-      boost::filesystem::remove(local_dir / cert_file);
-      if (provide_ca) {
-        boost::filesystem::remove(local_dir / ca_file);
-      }
-      if (provide_url) {
-        boost::filesystem::remove(local_dir / url_file);
-      }
-    } else {
-      boost::filesystem::create_directory(local_dir);
-    }
-    boost::filesystem::copy_file(tmp_pkey_file.PathString(), local_dir / pkey_file);
-    boost::filesystem::copy_file(tmp_cert_file.PathString(), local_dir / cert_file);
+    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file);
+    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file);
     if (provide_ca) {
-      boost::filesystem::copy_file(tmp_ca_file.PathString(), local_dir / ca_file);
+      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file);
     }
     if (provide_url) {
-      boost::filesystem::copy_file(tmp_url_file.PathString(), local_dir / url_file);
+      copyLocal(tmp_url_file.PathString(), local_dir / url_file);
     }
     std::cout << "...success\n";
   }
