@@ -222,6 +222,7 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &updates
       uptane_fetcher.fetchTarget(*it);
     }
     *events_channel << std::make_shared<event::DownloadComplete>(updates);
+    sendDownloadReport();                  // TODO: use return value?
   } else {
     LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
@@ -327,6 +328,29 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
       *events_channel << std::make_shared<event::Error>(ex.what());
     }
   }
+}
+
+bool SotaUptaneClient::sendDownloadReport() {
+  Uptane::RawMetaPack meta;
+  if (!storage->loadMetadata(&meta)) {
+    LOG_ERROR << "Unable to load metadata.";
+    return false;
+  }
+  Json::Value report_array(Json::arrayValue);
+  Json::Value report;
+  report["id"] = Utils::randomUuid();
+  report["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+  report["eventType"]["id"] = "DownloadComplete";
+  report["eventType"]["version"] = 1;
+  report["event"] = meta.director_targets;
+  report_array.append(report);
+
+  HttpResponse response = http.post(config.tls.server + "/events", report_array);
+  if (response.http_status_code == 404) {
+    LOG_ERROR << "Download report post returned 404. Server does not support this feature.";
+    return true;
+  }
+  return response.isOk();
 }
 
 bool SotaUptaneClient::putManifest() {
