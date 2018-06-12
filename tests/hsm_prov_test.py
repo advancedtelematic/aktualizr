@@ -72,7 +72,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
 
     # Run implicit_writer (equivalent to aktualizr-hsm-prov.bb).
     stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_iw),
-        '-c', str(creds), '--no-root-ca', '-i', str(conf_prov), '-o', str(conf_server)])
+        '-c', str(creds), '--no-root-ca', '-o', str(conf_server)])
     if retcode > 0:
         print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
                 stderr.decode() + stdout.decode())

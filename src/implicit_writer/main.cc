@@ -29,7 +29,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr_implicit_writer version")
       ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
-      ("config-input,i", bpo::value<boost::filesystem::path>()->required(), "input sota.toml configuration file")
       ("config-output,o", bpo::value<boost::filesystem::path>()->required(), "output sota.toml configuration file")
       ("root-ca-path,r", bpo::value<boost::filesystem::path>()->default_value("/usr/lib/sota/root.crt"), "root CA output path")
       ("prefix,p", bpo::value<boost::filesystem::path>(), "installation prefix for root CA output path")
@@ -81,7 +80,6 @@ int main(int argc, char *argv[]) {
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
   boost::filesystem::path credentials_path = commandline_map["credentials"].as<boost::filesystem::path>();
-  boost::filesystem::path config_in_path = commandline_map["config-input"].as<boost::filesystem::path>();
   boost::filesystem::path config_out_path = commandline_map["config-output"].as<boost::filesystem::path>();
   boost::filesystem::path cacert_path = commandline_map["root-ca-path"].as<boost::filesystem::path>();
   const bool no_root = (commandline_map.count("no-root-ca") != 0);
@@ -90,8 +88,6 @@ int main(int argc, char *argv[]) {
   if (commandline_map.count("prefix") != 0) {
     prefix = commandline_map["prefix"].as<boost::filesystem::path>();
   }
-
-  Config config(config_in_path);
 
   std::cout << "Writing config file: " << config_out_path << "\n";
   boost::filesystem::path parent_dir = config_out_path.parent_path();
