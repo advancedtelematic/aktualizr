@@ -18,14 +18,16 @@
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
                                    Uptane::Repository &repo, std::shared_ptr<INvStorage> storage_in,
-                                   HttpInterface &http_client, const Bootloader &bootloader_in)
+                                   HttpInterface &http_client, const Bootloader &bootloader_in,
+                                   ReportQueue &report_queue_in)
     : config(config_in),
       events_channel(std::move(std::move(events_channel_in))),
       uptane_repo(repo),
       storage(std::move(storage_in)),
       http(http_client),
       uptane_fetcher(config, storage, http),
-      bootloader(bootloader_in) {
+      bootloader(bootloader_in),
+      report_queue(report_queue_in) {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -222,7 +224,7 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &updates
       uptane_fetcher.fetchTarget(*it);
     }
     *events_channel << std::make_shared<event::DownloadComplete>(updates);
-    sendDownloadReport();                  // TODO: use return value?
+    sendDownloadReport();
   } else {
     LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
@@ -330,27 +332,20 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
   }
 }
 
-bool SotaUptaneClient::sendDownloadReport() {
+void SotaUptaneClient::sendDownloadReport() {
   Uptane::RawMetaPack meta;
   if (!storage->loadMetadata(&meta)) {
     LOG_ERROR << "Unable to load metadata.";
-    return false;
+    return;
   }
-  Json::Value report_array(Json::arrayValue);
-  Json::Value report;
-  report["id"] = Utils::randomUuid();
-  report["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  report["eventType"]["id"] = "DownloadComplete";
-  report["eventType"]["version"] = 1;
-  report["event"] = meta.director_targets;
-  report_array.append(report);
+  auto report = std_::make_unique<Json::Value>();
+  (*report)["id"] = Utils::randomUuid();
+  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+  (*report)["eventType"]["id"] = "DownloadComplete";
+  (*report)["eventType"]["version"] = 1;
+  (*report)["event"] = meta.director_targets;
 
-  HttpResponse response = http.post(config.tls.server + "/events", report_array);
-  if (response.http_status_code == 404) {
-    LOG_ERROR << "Download report post returned 404. Server does not support this feature.";
-    return true;
-  }
-  return response.isOk();
+  report_queue.enqueue(std::move(report));
 }
 
 bool SotaUptaneClient::putManifest() {

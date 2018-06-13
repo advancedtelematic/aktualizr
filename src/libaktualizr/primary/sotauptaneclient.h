@@ -1,6 +1,7 @@
 #include <json/json.h>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "events.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "uptane/fetcher.h"
 #include "uptane/ipsecondarydiscovery.h"
@@ -20,7 +22,8 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in, Uptane::Repository &repo,
-                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client, const Bootloader &bootloader_in);
+                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client, const Bootloader &bootloader_in,
+                   ReportQueue &report_queue_in);
 
   bool initialize();
   bool updateMeta();
@@ -47,7 +50,7 @@ class SotaUptaneClient {
   void sendMetadataToEcus(std::vector<Uptane::Target> targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
   bool hasPendingUpdates(const Json::Value &manifests);
-  bool sendDownloadReport();
+  void sendDownloadReport();
   bool putManifest();
 
   Config &config;
@@ -58,6 +61,7 @@ class SotaUptaneClient {
   HttpInterface &http;
   Uptane::Fetcher uptane_fetcher;
   const Bootloader &bootloader;
+  ReportQueue &report_queue;
   Json::Value operation_result;
   std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
