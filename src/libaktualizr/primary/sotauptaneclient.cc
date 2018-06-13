@@ -39,7 +39,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
     auto ipuptane_secs = ip_uptane_discovery.discover();
     config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
                                            ipuptane_secs.end());
-    ip_uptane_connection = std_::make_unique<IpUptaneConnection>(config.network.ipuptane_port);
   }
   initSecondaries();
 }

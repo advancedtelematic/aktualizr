@@ -11,7 +11,6 @@
 #include "events.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "secondary_ipc/ipuptaneconnection.h"
 #include "storage/invstorage.h"
 #include "uptane/fetcher.h"
 #include "uptane/ipsecondarydiscovery.h"
@@ -58,7 +57,6 @@ class SotaUptaneClient {
   const Bootloader &bootloader;
   int last_targets_version;
   Json::Value operation_result;
-  std::unique_ptr<IpUptaneConnection> ip_uptane_connection;
   std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
 };
