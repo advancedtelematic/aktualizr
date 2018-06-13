@@ -9,9 +9,10 @@ import sys
 import zipfile
 
 
-def main(credentials, config_input, output_dir, working_dir):
+def main(credentials, output_dir, working_dir):
     config_output = output_dir + '/sota.toml'
-    ret = subprocess.call([working_dir + '/aktualizr_implicit_writer', '-c', credentials, '-i', config_input, '-o', config_output, '-p', output_dir])
+    ret = subprocess.call([working_dir + '/aktualizr_implicit_writer',
+        '-c', credentials, '-o', config_output, '-p', output_dir])
     if ret != 0:
         print('failed:' + str(ret))
         sys.exit(ret)
@@ -67,9 +68,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(os.path.basename(__file__))
     parser.add_argument('-c', '--credentials', help='zipped credentials file',
                         required=True)
-    parser.add_argument('-i', '--config-input', help='input sota.toml configuration file', required=True)
     parser.add_argument('-o', '--output-dir', help='output directory', default='.')
     parser.add_argument('-w', '--working-dir', help='working directory', default='.')
     args = parser.parse_args()
 
-    main(args.credentials, args.config_input, args.output_dir, args.working_dir)
+    main(args.credentials, args.output_dir, args.working_dir)

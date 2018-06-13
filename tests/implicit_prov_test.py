@@ -49,7 +49,7 @@ def provision(tmp_dir, build_dir, creds):
     # Run implicit_writer (equivalent to aktualizr-implicit-prov.bb).
     cacert_path = tmp_dir / 'root.crt'
     stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_iw),
-        '-c', str(creds), '-i', str(conf_prov), '-o', str(conf_server), '-r', str(cacert_path)])
+        '-c', str(creds), '-o', str(conf_server), '-r', str(cacert_path)])
     if retcode > 0:
         print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
                 stderr.decode() + stdout.decode())

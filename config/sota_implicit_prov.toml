@@ -1,5 +1,2 @@
-[tls]
-server_url_path = "/var/sota/gateway.url"
-
 [storage]
 type = "filesystem"
