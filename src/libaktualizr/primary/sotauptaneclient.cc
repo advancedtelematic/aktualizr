@@ -25,8 +25,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
       storage(std::move(storage_in)),
       http(http_client),
       uptane_fetcher(config, storage, http),
-      bootloader(bootloader_in),
-      last_targets_version(-1) {
+      bootloader(bootloader_in) {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -43,17 +42,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
   initSecondaries();
 }
 
-void SotaUptaneClient::schedulePoll(const std::shared_ptr<command::Channel> &commands_channel) {
-  uint64_t polling_sec = config.uptane.polling_sec;
-  std::thread([polling_sec, commands_channel, this]() {
-    std::this_thread::sleep_for(std::chrono::seconds(polling_sec));
-    *commands_channel << std::make_shared<command::GetUpdateRequests>();
-    if (shutdown) {
-      return;
-    }
-  }).detach();
-}
-
 bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   if (target.ecu_identifier() == uptane_repo.getPrimaryEcuSerial()) {
     return target == pacman->getCurrent();
@@ -61,11 +49,12 @@ bool SotaUptaneClient::isInstalled(const Uptane::Target &target) {
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
       secondaries.find(target.ecu_identifier());
   if (map_it != secondaries.end()) {
-    // TODO: compare version
-    return true;
+    std::vector<Uptane::Target> installed_targets;
+    storage->loadInstalledVersions(&installed_targets);
+    return (std::find(installed_targets.begin(), installed_targets.end(), target) != installed_targets.end());
   }
   // TODO: iterate through secondaries, compare version when found, throw exception otherwise
-  LOG_ERROR << "Multiple secondaries found with the same serial: " << map_it->second->getSerial();
+  // LOG_ERROR << "Multiple secondaries found with the same serial: " << map_it->second->getSerial();
   return false;
 }
 
@@ -190,38 +179,49 @@ bool SotaUptaneClient::initialize() {
   return true;
 }
 
-void SotaUptaneClient::getUpdateRequests() {
+bool SotaUptaneClient::updateMeta() {
   reportNetworkInfo();
   // Uptane step 1 (build the vehicle version manifest):
   if (!putManifest()) {
-    return;
+    LOG_ERROR << "could not put manifest";
+    return false;
   }
   // Uptane step 2 (download time) is not implemented yet.
   // Uptane step 3 (download metadata)
   if (!uptane_fetcher.fetchMeta()) {
     LOG_ERROR << "could not retrieve metadata";
-    *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
-    return;
+    return false;
   }
   // Uptane step 3 continued (check metadata)
   if (!uptane_repo.feedCheckMeta()) {
     LOG_ERROR << "Metadata check failed";
-    *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
-    return;
+    return false;
   }
+  return true;
+}
+
+std::vector<Uptane::Target> SotaUptaneClient::checkNewUpdates() {
+  std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
+  std::vector<Uptane::Target> new_updates;
+  for (const auto &target : updates.second) {
+    if (!isInstalled(target)) {
+      new_updates.push_back(target);
+    }
+  }
+  return new_updates;
+}
+
+void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &updates) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
-  std::pair<int, std::vector<Uptane::Target> > updates = uptane_repo.getTargets();
-  if (!updates.second.empty() && updates.first > last_targets_version) {
-    LOG_INFO << "got new updates";
-    for (auto it = updates.second.begin(); it != updates.second.end(); ++it) {
+  if (!updates.empty()) {
+    for (auto it = updates.begin(); it != updates.end(); ++it) {
       // TODO: support downloading encrypted targets from director
       // TODO: check if the file is already there before downloading
       // TODO: info on how to download the target should probably be in image's targets, not director's
       uptane_fetcher.fetchTarget(*it);
     }
-    *events_channel << std::make_shared<event::UptaneTargetsUpdated>(updates.second);
-    last_targets_version = updates.first;  // TODO: What if we fail install targets?
+    *events_channel << std::make_shared<event::DownloadComplete>(updates);
   } else {
     LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
@@ -237,20 +237,32 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 
   verifySecondaries();
   LOG_DEBUG << "... provisioned OK";
-  reportHwInfo();
-  reportInstalledPackages();
-  reportNetworkInfo();
-
-  schedulePoll(commands_channel);
 
   std::shared_ptr<command::BaseCommand> command;
   while (*commands_channel >> command) {
     LOG_INFO << "got " + command->variant + " command";
-
     try {
-      if (command->variant == "GetUpdateRequests") {
-        schedulePoll(commands_channel);
-        getUpdateRequests();
+      if (command->variant == "SendDeviceData") {
+        reportHwInfo();
+        reportInstalledPackages();
+        reportNetworkInfo();
+        *events_channel << std::make_shared<event::SendDeviceDataComplete>();
+      } else if (command->variant == "FetchMeta") {
+        if (updateMeta()) {
+          *events_channel << std::make_shared<event::FetchMetaComplete>();
+        } else {
+          *events_channel << std::make_shared<event::Error>("Could not update metadata.");
+        }
+      } else if (command->variant == "CheckUpdates") {
+        std::vector<Uptane::Target> updates = checkNewUpdates();
+        if (!updates.empty()) {
+          *events_channel << std::make_shared<event::UpdateAvailable>(updates);
+        } else {
+          *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+        }
+      } else if (command->variant == "StartDownload") {
+        std::vector<Uptane::Target> updates = command->toChild<command::StartDownload>()->updates;
+        downloadImages(updates);
       } else if (command->variant == "UptaneInstall") {
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
         operation_result = Json::nullValue;
@@ -282,9 +294,12 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         }
 
         sendImagesToEcus(updates);
+        *events_channel << std::make_shared<event::InstallComplete>();
+
         // Not required for Uptane, but used to send a status code to the
         // director.
         if (!putManifest()) {
+          LOG_ERROR << "Could not put manifest";
           continue;
         }
 
@@ -304,12 +319,12 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         return;
       }
 
-    } catch (const Uptane::Exception &e) {
-      LOG_ERROR << e.what();
-      *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+    } catch (const Uptane::Exception &ex) {
+      LOG_ERROR << ex.what();
+      *events_channel << std::make_shared<event::Error>(ex.what());
     } catch (const std::exception &ex) {
       LOG_ERROR << "Unknown exception was thrown: " << ex.what();
-      *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
+      *events_channel << std::make_shared<event::Error>(ex.what());
     }
   }
 }

@@ -29,6 +29,10 @@ inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
 
 enum class CryptoSource { kFile = 0, kPkcs11 };
 
+enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall };
+RunningMode RunningModeFromString(const std::string& mode);
+std::string StringFromRunningMode(RunningMode mode);
+
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;
   switch (cs) {
@@ -54,25 +58,6 @@ struct Package {
   std::string version;
   Json::Value toJson();
   static Package fromJson(const std::string& /*json_str*/);
-};
-
-struct UpdateAvailable {
-  std::string update_id;
-  std::string signature;
-  std::string description;
-  bool request_confirmation{};
-  uint64_t size{};
-  Json::Value toJson();
-  static UpdateAvailable fromJson(const std::string& json_str);
-  static UpdateAvailable fromJson(const Json::Value& json);
-};
-
-struct DownloadComplete {
-  std::string update_id;
-  std::string update_image;
-  std::string signature;
-  Json::Value toJson();
-  static DownloadComplete fromJson(const std::string& json_str);
 };
 
 enum class UpdateResultCode {
@@ -122,7 +107,6 @@ enum class UpdateResultCode {
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 
-struct UpdateReport;
 struct OperationResult {
   OperationResult() : result_code(UpdateResultCode::kOk) {}
   OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
@@ -130,7 +114,6 @@ struct OperationResult {
   UpdateResultCode result_code{};
   std::string result_text;
   Json::Value toJson();
-  UpdateReport toReport();
   bool isSuccess() {
     return result_code == UpdateResultCode::kOk || result_code == UpdateResultCode::kAlreadyProcessed;
   };
@@ -139,12 +122,6 @@ struct OperationResult {
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };
 
-struct UpdateReport {
-  UpdateRequestId update_id;
-  std::vector<data::OperationResult> operation_results;
-  Json::Value toJson();
-  static UpdateReport fromJson(const std::string& json_str);
-};
 }  // namespace data
 
 #endif

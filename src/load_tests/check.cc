@@ -42,7 +42,7 @@ class CheckForUpdate {
       if (storage->loadTlsCreds(&ca, &cert, &pkey)) {
         httpClient.setCerts(ca, CryptoSource::kFile, cert, CryptoSource::kFile, pkey, CryptoSource::kFile);
         LOG_DEBUG << "Getting targets";
-        client.getUpdateRequests();
+        client.updateMeta();
       } else {
         LOG_ERROR << "Unable to load device's credentials";
       }
