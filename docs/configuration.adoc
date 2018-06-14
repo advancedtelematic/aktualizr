@@ -38,7 +38,7 @@ Config options for networking and secondary device detection by the primary.
 | `socket_commands_path`     | `"/tmp/sota-commands.socket"`          | Path to a socket to be used for transmitting commands.
 | `socket_events_path`       | `"/tmp/sota-events.socket"`            | Path to a socket to be used for transmitting events.
 | `socket_events`            | `"DownloadComplete", "DownloadFailed"` | Events to broadcast to connected sockets.
-| `ipdiscovery_host`         | `"::ffff:127.0.0.1"`                   | Subnetmask for primary to broadcast for secondary discovery.
+| `ipdiscovery_host`         | `"127.0.0.1"`                          | Subnetmask for primary to broadcast for secondary discovery.
 | `ipdiscovery_port`         | `9031`                                 | Port for primary to broadcast for secondary discovery.
 | `ipdiscovery_wait_seconds` | `10`                                   | Seconds to wait for secondaries to respond to discovery broadcast message.
 | `ipuptane_port`            | `9030`                                 | Port to listen on for incoming messages

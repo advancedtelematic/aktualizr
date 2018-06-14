@@ -8,4 +8,4 @@ type = "sqlite"
 ipuptane = true
 
 [network]
-ipdiscovery_host = "::ffff:10.0.3.255"
+ipdiscovery_host = "10.0.3.255"
