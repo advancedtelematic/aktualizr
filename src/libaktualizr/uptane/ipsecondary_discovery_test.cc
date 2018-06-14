@@ -18,7 +18,7 @@ std::string port;
 
 TEST(ipsecondary_discovery, test_discovery) {
   NetworkConfig conf;
-  conf.ipdiscovery_host = "::ffff:127.0.0.1";
+  conf.ipdiscovery_host = "127.0.0.1";
   conf.ipdiscovery_port = std::stoi(port);
   conf.ipdiscovery_wait_seconds = 12;
   IpSecondaryDiscovery discoverer(conf);

@@ -1,6 +1,7 @@
 #include "ipsecondarydiscovery.h"
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -105,10 +106,27 @@ bool IpSecondaryDiscovery::sendRequest() {
     LOG_ERROR << "Could not setup socket for broadcast: " << std::strerror(errno);
     return false;
   }
-  struct sockaddr_in6 sendaddr {};
-  sendaddr.sin6_family = AF_INET6;
-  sendaddr.sin6_port = htons(config_.ipdiscovery_port);
-  inet_pton(AF_INET6, config_.ipdiscovery_host.c_str(), &sendaddr.sin6_addr);
+
+  struct sockaddr_storage sendaddr {};
+
+  struct addrinfo *servinfo;
+  struct addrinfo hints {};
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_flags = AI_ADDRCONFIG;
+  int rv;
+  if ((rv = getaddrinfo(config_.ipdiscovery_host.c_str(), std::to_string(config_.ipdiscovery_port).c_str(), &hints,
+                        &servinfo)) != 0) {
+    LOG_ERROR << "Could not resolve " << config_.ipdiscovery_host << ": " << gai_strerror(rv);
+    return false;
+  }
+  if (servinfo == nullptr) {
+    LOG_ERROR << "Could not resolve " << config_.ipdiscovery_host;
+    return false;
+  }
+  // FIXME: try all addrinfo results?
+  memcpy(&sendaddr, servinfo->ai_addr, servinfo->ai_addrlen);
+  freeaddrinfo(servinfo);
 
   Asn1Message::Ptr m(Asn1Message::Empty());
   m->present(AKIpUptaneMes_PR_discoveryReq);

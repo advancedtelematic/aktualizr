@@ -434,7 +434,7 @@ KeyType Crypto::IdentifyRSAKeyType(const std::string &public_key_pem) {
     case 4096:
       return KeyType::kRSA4096;
     default:
-      LOG_WARNING << "Wierd key length:" << key_length;
+      LOG_WARNING << "Weird key length:" << key_length;
       return KeyType::kUnknown;
   }
 }
