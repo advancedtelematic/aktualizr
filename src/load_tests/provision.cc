@@ -1,15 +1,18 @@
 #include "provision.h"
-#include <config/config.h>
-#include <http/httpclient.h>
-#include <primary/events.h>
-#include <primary/sotauptaneclient.h>
-#include <uptane/uptanerepository.h>
+
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
+#include "config/config.h"
 #include "context.h"
 #include "executor.h"
+#include "http/httpclient.h"
 #include "logging/logging.h"
+#include "primary/events.h"
+#include "primary/reportqueue.h"
+#include "primary/sotauptaneclient.h"
+#include "uptane/uptanerepository.h"
 
 using namespace boost::filesystem;
 using ptree = boost::property_tree::ptree;
@@ -47,7 +50,8 @@ class ProvisionDeviceTask {
     Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     Bootloader bootloader(config.bootloader);
-    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader};
+    ReportQueue report_queue(config, httpClient);
+    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader, report_queue};
     try {
       if (client.initialize()) {
         auto signed_manifest = repo.signManifest(client.AssembleManifest());

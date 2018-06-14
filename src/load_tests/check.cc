@@ -1,9 +1,12 @@
 #include "check.h"
+
 #include <random>
 #include <string>
+
 #include "context.h"
 #include "executor.h"
 #include "primary/events.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "uptane/uptanerepository.h"
@@ -34,7 +37,8 @@ class CheckForUpdate {
     Uptane::Repository repo{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     Bootloader bootloader(config.bootloader);
-    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader};
+    ReportQueue report_queue(config, httpClient);
+    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader, report_queue};
     try {
       std::string pkey;
       std::string cert;

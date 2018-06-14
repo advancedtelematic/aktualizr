@@ -13,6 +13,7 @@
 #include "httpfake.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "test_utils.h"
@@ -503,7 +504,8 @@ TEST(Uptane, AssembleManifestGood) {
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -550,7 +552,8 @@ TEST(Uptane, AssembleManifestBad) {
   auto storage = std::make_shared<FSStorage>(config.storage);
   Uptane::Repository uptane(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -593,7 +596,8 @@ TEST(Uptane, PutManifest) {
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, NULL, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   auto signed_manifest = uptane.signManifest(sota_client.AssembleManifest());
@@ -638,7 +642,8 @@ TEST(Uptane, RunForeverNoUpdates) {
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
   Bootloader bootloader{conf.bootloader};
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
+  ReportQueue report_queue(conf, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -698,7 +703,8 @@ TEST(Uptane, RunForeverHasUpdates) {
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
   Bootloader bootloader{conf.bootloader};
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
+  ReportQueue report_queue(conf, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -748,7 +754,8 @@ TEST(Uptane, RunForeverInstall) {
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
   Bootloader bootloader{conf.bootloader};
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader);
+  ReportQueue report_queue(conf, http);
+  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
@@ -797,7 +804,8 @@ TEST(Uptane, UptaneSecondaryAdd) {
   Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -837,7 +845,8 @@ TEST(Uptane, ProvisionOnServer) {
   *commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient up(config, events_channel, repo, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient up(config, events_channel, repo, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 }
 
