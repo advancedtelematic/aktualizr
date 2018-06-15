@@ -14,9 +14,6 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "asn1/asn1-cerstream.h"
-#include "utilities/config_utils.h"
-#include "utilities/types.h"
-
 #include "bootloader/bootloader.h"
 #include "crypto/keymanager_config.h"
 #include "crypto/p11_config.h"
@@ -25,6 +22,8 @@
 #include "storage/storage_config.h"
 #include "telemetry/telemetryconfig.h"
 #include "uptane/secondaryconfig.h"
+#include "utilities/config_utils.h"
+#include "utilities/types.h"
 
 enum class ProvisionMode { kAutomatic = 0, kImplicit };
 
@@ -107,10 +106,7 @@ class Config : public BaseConfig {
   Config();
   explicit Config(const boost::program_options::variables_map& cmd);
   explicit Config(const boost::filesystem::path& filename);
-  explicit Config(const std::vector<boost::filesystem::path>& config_dirs) {
-    updateFromDirs(config_dirs);
-    postUpdateValues();
-  }
+  explicit Config(const std::vector<boost::filesystem::path>& config_dirs);
 
   KeyManagerConfig keymanagerConfig() const;
 

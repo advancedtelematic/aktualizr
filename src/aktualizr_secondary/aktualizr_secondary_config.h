@@ -10,6 +10,7 @@
 #include "logging/logging_config.h"
 #include "package_manager/packagemanagerconfig.h"
 #include "storage/storage_config.h"
+#include "utilities/config_utils.h"
 
 // Try to keep the order of config options the same as in
 // AktualizrSecondaryConfig::writeToStream() and
