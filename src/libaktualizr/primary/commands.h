@@ -87,6 +87,7 @@ class UptaneInstall : public BaseCommand {
   static UptaneInstall fromJson(const std::string& json_str);
 
   std::vector<Uptane::Target> packages;
+  std::string toJson() override;
 
  private:
   explicit UptaneInstall(const Json::Value& json);

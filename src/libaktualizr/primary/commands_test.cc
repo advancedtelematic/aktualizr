@@ -26,25 +26,6 @@ TEST(command, FetchMeta_command_to_json) {
   EXPECT_EQ(json["variant"].asString(), "FetchMeta");
 }
 
-TEST(command, StartDownload_command_to_json) {
-  Json::Value target_json;
-  target_json["custom"]["ecuIdentifier"] = "ecu1";
-  target_json["hashes"]["sha256"] = "12AB";
-  target_json["length"] = 1;
-  Uptane::Target target("test", target_json);
-  std::vector<Uptane::Target> targets;
-  targets.push_back(target);
-  command::StartDownload command(targets);
-
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(command.toJson(), json);
-
-  EXPECT_EQ(json["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
-  EXPECT_EQ(json["fields"][0]["test"]["hashes"]["sha256"], "12AB");
-  EXPECT_EQ(json["variant"].asString(), "StartDownload");
-}
-
 TEST(command, StartDownload_command_from_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifier"] = "ecu1";
@@ -58,12 +39,43 @@ TEST(command, StartDownload_command_from_json) {
   Json::Value val;
   Json::Reader reader;
   reader.parse(start_download.toJson(), val);
+
+  EXPECT_EQ(val["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
+  EXPECT_EQ(val["fields"][0]["test"]["hashes"]["sha256"], "12AB");
+  EXPECT_EQ(val["variant"].asString(), "StartDownload");
+
   auto command = std::static_pointer_cast<command::StartDownload>(command::BaseCommand::fromJson(val));
 
   EXPECT_EQ(command->variant, "StartDownload");
   EXPECT_EQ(command->updates[0].ecu_identifier().ToString(), "ecu1");
   EXPECT_EQ(command->updates[0].filename(), "test");
   EXPECT_EQ(command->updates[0].sha256Hash(), "12ab");
+}
+
+TEST(command, UptaneInstall_command_from_json) {
+  Json::Value target_json;
+  target_json["custom"]["ecuIdentifier"] = "ecu1";
+  target_json["hashes"]["sha256"] = "12AB";
+  target_json["length"] = 1;
+  Uptane::Target target("test", target_json);
+  std::vector<Uptane::Target> targets;
+  targets.push_back(target);
+  command::UptaneInstall uptane_install(targets);
+
+  Json::Value val;
+  Json::Reader reader;
+  reader.parse(uptane_install.toJson(), val);
+
+  EXPECT_EQ(val["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
+  EXPECT_EQ(val["fields"][0]["test"]["hashes"]["sha256"], "12AB");
+  EXPECT_EQ(val["variant"].asString(), "UptaneInstall");
+
+  auto command = std::static_pointer_cast<command::UptaneInstall>(command::BaseCommand::fromJson(val));
+
+  EXPECT_EQ(command->variant, "UptaneInstall");
+  EXPECT_EQ(command->packages[0].ecu_identifier().ToString(), "ecu1");
+  EXPECT_EQ(command->packages[0].filename(), "test");
+  EXPECT_EQ(command->packages[0].sha256Hash(), "12ab");
 }
 
 TEST(command, Shutdown_command_from_json) {

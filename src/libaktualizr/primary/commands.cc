@@ -68,4 +68,14 @@ UptaneInstall::UptaneInstall(const Json::Value& json) : UptaneInstall(std::vecto
   }
 }
 
+std::string UptaneInstall::toJson() {
+  Json::Value json;
+  Json::Value targets;
+  for (const auto& target : packages) {
+    targets[target.filename()] = target.toJson();
+  }
+  json["fields"].append(targets);
+  return BaseCommand::toJson(json);
+}
+
 }  // namespace command
