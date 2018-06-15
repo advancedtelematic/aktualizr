@@ -3,18 +3,24 @@
 #include <utility>
 namespace event {
 
-Json::Value BaseEvent::toBaseJson() {
+std::string BaseEvent::toJson() {
   Json::Value json;
+  return BaseEvent::toJson(json);
+}
+
+std::string BaseEvent::toJson(Json::Value json) {
   json["variant"] = variant;
-  json["fields"] = Json::Value(Json::arrayValue);
-  return json;
+  if (!json.isMember("fields")) {
+    json["fields"] = Json::Value(Json::arrayValue);
+  }
+  return Json::FastWriter().write(json);
 }
 
 Error::Error(std::string message_in) : message(std::move(message_in)) { variant = "Error"; }
 std::string Error::toJson() {
-  Json::Value json = BaseEvent::toBaseJson();
+  Json::Value json;
   json["fields"].append(message);
-  return Json::FastWriter().write(json);
+  return BaseEvent::toJson(json);
 }
 
 Error Error::fromJson(const std::string& json_str) {
@@ -24,51 +30,62 @@ Error Error::fromJson(const std::string& json_str) {
   return Error(json["fields"][0].asString());
 }
 
-UpdateAvailable::UpdateAvailable(data::UpdateAvailable ua_in) : update_vailable(std::move(ua_in)) {
+UpdateAvailable::UpdateAvailable(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
   variant = "UpdateAvailable";
 }
 
+SendDeviceDataComplete::SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
+
 std::string UpdateAvailable::toJson() {
-  Json::Value json = toBaseJson();
-  json["fields"].append(update_vailable.toJson());
-  return Json::FastWriter().write(json);
+  Json::Value json;
+  Json::Value targets;
+  for (const auto& target : updates) {
+    targets[target.filename()] = target.toJson();
+  }
+  json["fields"].append(targets);
+  return BaseEvent::toJson(json);
 }
 
 UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
-  return UpdateAvailable(data::UpdateAvailable::fromJson(Json::FastWriter().write(json["fields"][0])));
+  std::vector<Uptane::Target> updates;
+  for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
+    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
+  }
+  return UpdateAvailable(updates);
 }
 
-DownloadComplete::DownloadComplete(data::DownloadComplete dc_in) : download_complete(std::move(dc_in)) {
+FetchMetaComplete::FetchMetaComplete() { variant = "FetchMetaComplete"; }
+
+UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
+
+DownloadComplete::DownloadComplete(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
   variant = "DownloadComplete";
 }
 
 std::string DownloadComplete::toJson() {
-  Json::Value json = toBaseJson();
-  json["fields"].append(download_complete.toJson());
-  return Json::FastWriter().write(json);
+  Json::Value json;
+  Json::Value targets;
+  for (const auto& target : updates) {
+    targets[target.filename()] = target.toJson();
+  }
+  json["fields"].append(targets);
+  return BaseEvent::toJson(json);
 }
 
 DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
-  return DownloadComplete(data::DownloadComplete::fromJson(Json::FastWriter().write(json["fields"][0])));
+  std::vector<Uptane::Target> updates;
+  for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
+    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
+  }
+  return DownloadComplete(updates);
 }
 
-InstalledSoftwareNeeded::InstalledSoftwareNeeded() { variant = "InstalledSoftwareNeeded"; }
+InstallComplete::InstallComplete() { variant = "InstallComplete"; }
 
-std::string InstalledSoftwareNeeded::toJson() { return Json::FastWriter().write(toBaseJson()); }
-
-UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
-
-std::string UptaneTimestampUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
-
-UptaneTargetsUpdated::UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in) : packages(std::move(packages_in)) {
-  variant = "UptaneTargetsUpdated";
-}
-
-std::string UptaneTargetsUpdated::toJson() { return Json::FastWriter().write(toBaseJson()); }
 }  // namespace event

@@ -49,7 +49,7 @@ class Configuration {
   Json::Value wrapMessage() const {
     Json::Value v;
     v["hwid"] = getHwId().ToString();
-    v["public_key_type"] = getPublicKeyType();
+    v["public_key_type"] = static_cast<int>(getPublicKeyType());
     v["public_key"] = getPublicKey();
     v["serial"] = getSerial().ToString();
     return v;

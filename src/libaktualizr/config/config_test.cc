@@ -19,7 +19,7 @@ boost::filesystem::path build_dir;
 TEST(config, config_initialized_values) {
   Config conf;
 
-  EXPECT_EQ(conf.uptane.polling, true);
+  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kFull);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 }
 
@@ -33,15 +33,15 @@ TEST(config, config_toml_parsing_empty_file) {
   Config conf;
   conf.updateFromTomlString("");
 
-  EXPECT_EQ(conf.uptane.polling, true);
+  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kFull);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 }
 
 TEST(config, config_toml_int) {
   Config conf;
-  conf.updateFromTomlString("[uptane]\npolling = false\npolling_sec = 99\n");
+  conf.updateFromTomlString("[uptane]\nrunning_mode = once\npolling_sec = 99\n");
 
-  EXPECT_EQ(conf.uptane.polling, false);
+  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kOnce);
   EXPECT_EQ(conf.uptane.polling_sec, 99u);
 }
 TEST(config, config_toml_netport) {

@@ -21,7 +21,7 @@ TEST(EventsTest, broadcasted) {
   NetworkConfig network_conf;
   network_conf.socket_commands_path = (temp_dir.Path() / "sota-commands.socket").string();
   network_conf.socket_events_path = (temp_dir.Path() / "sota-events.socket").string();
-  network_conf.socket_events.push_back("InstalledSoftwareNeeded");
+  network_conf.socket_events.push_back("InstallComplete");
   Config conf;
   conf.network = network_conf;
 
@@ -33,12 +33,12 @@ TEST(EventsTest, broadcasted) {
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(std::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
+  gateway.processEvent(std::make_shared<event::InstallComplete>());
   sleep(1);
   std::ifstream file_stream((temp_dir.Path() / "sota-events.socket.txt").c_str());
   std::string content;
   std::getline(file_stream, content);
-  EXPECT_EQ("{\"fields\":[],\"variant\":\"InstalledSoftwareNeeded\"}", content);
+  EXPECT_EQ("{\"fields\":[],\"variant\":\"InstallComplete\"}", content);
 }
 
 TEST(EventsTest, not_broadcasted) {
@@ -57,7 +57,7 @@ TEST(EventsTest, not_broadcasted) {
       (socket_path / "events.py").string() + " " + (temp_dir.Path() / "sota-events.socket").string() + " &";
   EXPECT_EQ(system(cmd.c_str()), 0);
   sleep(1);
-  gateway.processEvent(std::make_shared<event::InstalledSoftwareNeeded>(event::InstalledSoftwareNeeded()));
+  gateway.processEvent(std::make_shared<event::InstallComplete>());
   sleep(1);
   std::ifstream file_stream((temp_dir.Path() / "sota-events.socket.txt").c_str());
   std::string content;

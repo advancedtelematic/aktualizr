@@ -618,7 +618,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.uptane.polling_sec = 1;
+  conf.uptane.running_mode = RunningMode::kFull;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
@@ -629,9 +629,10 @@ TEST(Uptane, RunForeverNoUpdates) {
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  *commands_channel << std::make_shared<command::GetUpdateRequests>();
-  *commands_channel << std::make_shared<command::GetUpdateRequests>();
-  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::FetchMeta>();
+  *commands_channel << std::make_shared<command::CheckUpdates>();
+  *commands_channel << std::make_shared<command::FetchMeta>();
+  *commands_channel << std::make_shared<command::CheckUpdates>();
   *commands_channel << std::make_shared<command::Shutdown>();
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -644,11 +645,15 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   EXPECT_TRUE(events_channel->hasValues());
   *events_channel >> event;
-  EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
+  EXPECT_EQ(event->variant, "FetchMetaComplete");
 
   EXPECT_TRUE(events_channel->hasValues());
   *events_channel >> event;
-  EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+  EXPECT_EQ(event->variant, "UpdateAvailable");
+
+  EXPECT_TRUE(events_channel->hasValues());
+  *events_channel >> event;
+  EXPECT_EQ(event->variant, "FetchMetaComplete");
 
   EXPECT_TRUE(events_channel->hasValues());
   *events_channel >> event;
@@ -687,7 +692,8 @@ TEST(Uptane, RunForeverHasUpdates) {
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::FetchMeta>();
+  *commands_channel << std::make_shared<command::CheckUpdates>();
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
@@ -698,12 +704,14 @@ TEST(Uptane, RunForeverHasUpdates) {
   std::shared_ptr<event::BaseEvent> event;
   EXPECT_TRUE(events_channel->hasValues());
   *events_channel >> event;
-  EXPECT_EQ(event->variant, "UptaneTargetsUpdated");
-  event::UptaneTargetsUpdated* targets_event = static_cast<event::UptaneTargetsUpdated*>(event.get());
-  EXPECT_EQ(targets_event->packages.size(), 2u);
-  EXPECT_EQ(targets_event->packages[0].filename(),
+  EXPECT_EQ(event->variant, "FetchMetaComplete");
+  *events_channel >> event;
+  EXPECT_EQ(event->variant, "UpdateAvailable");
+  event::UpdateAvailable* targets_event = static_cast<event::UpdateAvailable*>(event.get());
+  EXPECT_EQ(targets_event->updates.size(), 2u);
+  EXPECT_EQ(targets_event->updates[0].filename(),
             "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
-  EXPECT_EQ(targets_event->packages[1].filename(), "secondary_firmware.txt");
+  EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
 }
 
 std::vector<Uptane::Target> makePackage(const std::string& serial) {
@@ -823,7 +831,8 @@ TEST(Uptane, ProvisionOnServer) {
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
   std::vector<Uptane::Target> packages_to_install = makePackage(config.provision.primary_ecu_serial);
-  *commands_channel << std::make_shared<command::GetUpdateRequests>();
+  *commands_channel << std::make_shared<command::FetchMeta>();
+  *commands_channel << std::make_shared<command::StartDownload>(packages_to_install);
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   Uptane::Repository repo(config, storage);

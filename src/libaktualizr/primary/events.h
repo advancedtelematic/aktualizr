@@ -15,8 +15,8 @@ class BaseEvent {
  public:
   virtual ~BaseEvent() = default;
   std::string variant;
-  Json::Value toBaseJson();
-  virtual std::string toJson() = 0;
+  virtual std::string toJson(Json::Value json);
+  virtual std::string toJson();
 };
 using Channel = Channel<std::shared_ptr<BaseEvent> >;
 
@@ -28,41 +28,43 @@ class Error : public BaseEvent {
   static Error fromJson(const std::string& /*json_str*/);
 };
 
+class FetchMetaComplete : public BaseEvent {
+ public:
+  explicit FetchMetaComplete();
+};
+
+class SendDeviceDataComplete : public BaseEvent {
+ public:
+  explicit SendDeviceDataComplete();
+};
+
 class UpdateAvailable : public BaseEvent {
  public:
-  data::UpdateAvailable update_vailable;
-  explicit UpdateAvailable(data::UpdateAvailable ua_in);
+  std::vector<Uptane::Target> updates;
+  explicit UpdateAvailable(std::vector<Uptane::Target> updates_in);
   std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
-};
-
-class DownloadComplete : public BaseEvent {
- public:
-  explicit DownloadComplete(data::DownloadComplete dc_in);
-  data::DownloadComplete download_complete;
-  std::string toJson() override;
-  static DownloadComplete fromJson(const std::string& json_str);
-};
-
-class InstalledSoftwareNeeded : public BaseEvent {
- public:
-  InstalledSoftwareNeeded();
-  std::string toJson() override;
 };
 
 class UptaneTimestampUpdated : public BaseEvent {
  public:
   UptaneTimestampUpdated();
-  std::string toJson() override;
 };
 
-class UptaneTargetsUpdated : public BaseEvent {
+class DownloadComplete : public BaseEvent {
  public:
-  std::vector<Uptane::Target> packages;
+  std::vector<Uptane::Target> updates;
   std::string toJson() override;
 
-  explicit UptaneTargetsUpdated(std::vector<Uptane::Target> packages_in);
+  explicit DownloadComplete(std::vector<Uptane::Target> updates_in);
+  static DownloadComplete fromJson(const std::string& json_str);
 };
+
+class InstallComplete : public BaseEvent {
+ public:
+  explicit InstallComplete();
+};
+
 }  // namespace event
 
 #endif

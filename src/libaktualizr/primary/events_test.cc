@@ -17,51 +17,41 @@ TEST(event, Error_event_to_json) {
 }
 
 TEST(event, UpdateAvailable_event_to_json) {
-  data::UpdateAvailable ua;
-  ua.update_id = "id4";
-  ua.signature = "sign";
-  ua.description = "this is description";
-  ua.request_confirmation = true;
-  ua.size = 5000;
-
-  event::UpdateAvailable event(ua);
+  Json::Value target_json;
+  target_json["custom"]["ecuIdentifier"] = "ecu1";
+  target_json["hashes"]["sha256"] = "12AB";
+  target_json["length"] = 1;
+  Uptane::Target target("test", target_json);
+  std::vector<Uptane::Target> targets;
+  targets.push_back(target);
+  event::UpdateAvailable event(targets);
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
+  EXPECT_EQ(json["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
+  EXPECT_EQ(json["fields"][0]["test"]["hashes"]["sha256"], "12AB");
   EXPECT_EQ(json["variant"].asString(), "UpdateAvailable");
-  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "id4");
-  EXPECT_EQ(json["fields"][0]["signature"].asString(), "sign");
-  EXPECT_EQ(json["fields"][0]["description"].asBool(), true);
 }
 
 TEST(event, DownloadComplete_event_to_json) {
-  data::DownloadComplete dc;
-  dc.update_id = "updateid123";
-  dc.update_image = "some text";
-  dc.signature = "sign";
-
-  event::DownloadComplete event(dc);
+  Json::Value target_json;
+  target_json["custom"]["ecuIdentifier"] = "ecu1";
+  target_json["hashes"]["sha256"] = "12AB";
+  target_json["length"] = 1;
+  Uptane::Target target("test", target_json);
+  std::vector<Uptane::Target> targets;
+  targets.push_back(target);
+  event::DownloadComplete event(targets);
 
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
+  EXPECT_EQ(json["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
+  EXPECT_EQ(json["fields"][0]["test"]["hashes"]["sha256"], "12AB");
   EXPECT_EQ(json["variant"].asString(), "DownloadComplete");
-  EXPECT_EQ(json["fields"][0]["update_id"].asString(), "updateid123");
-  EXPECT_EQ(json["fields"][0]["update_image"].asString(), "some text");
-  EXPECT_EQ(json["fields"][0]["signature"].asString(), "sign");
-}
-
-TEST(event, InstalledSoftwareNeeded_event_to_json) {
-  event::InstalledSoftwareNeeded event;
-
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(event.toJson(), json);
-
-  EXPECT_EQ(json["variant"].asString(), "InstalledSoftwareNeeded");
 }
 
 TEST(event, UptaneTimestampUpdated_event_to_json) {
@@ -74,22 +64,13 @@ TEST(event, UptaneTimestampUpdated_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
 }
 
-TEST(event, UptaneTargetsUpdated_event_to_json) {
-  Json::Value target_json;
-  target_json["ecu_serial"] = "test1";
-  target_json["ref_name"] = "test2";
-  target_json["description"] = "test3";
-  target_json["pull_uri"] = "test4";
-  Uptane::Target package("test_package", target_json);
-  std::vector<Uptane::Target> packages;
-
-  packages.push_back(package);
-  event::UptaneTargetsUpdated event(packages);
+TEST(event, InstallComplete_event_to_json) {
+  event::InstallComplete event;
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  EXPECT_EQ(json["variant"].asString(), "UptaneTargetsUpdated");
+  EXPECT_EQ(json["variant"].asString(), "InstallComplete");
 }
 
 TEST(event, Error_event_from_json) {
@@ -100,30 +81,37 @@ TEST(event, Error_event_from_json) {
 }
 
 TEST(event, UpdateAvailable_event_from_json) {
-  std::string json =
-      "{\"fields\":[{\"description\":\"this is "
-      "description\",\"request_confirmation\":true,\"signature\":\"sign\","
-      "\"size\":5000,\"update_id\":\"id4\"}],\"variant\":\"UpdateAvailable\"}";
-  event::UpdateAvailable event = event::UpdateAvailable::fromJson(json);
+  Json::Value target_json;
+  target_json["custom"]["ecuIdentifier"] = "ecu1";
+  target_json["hashes"]["sha256"] = "12ab";
+  target_json["length"] = 1;
+  Uptane::Target target("test", target_json);
+  std::vector<Uptane::Target> targets;
+  targets.push_back(target);
+  event::UpdateAvailable update_available(targets);
+  event::UpdateAvailable event = event::UpdateAvailable::fromJson(update_available.toJson());
 
   EXPECT_EQ(event.variant, "UpdateAvailable");
-  EXPECT_EQ(event.update_vailable.description, "this is description");
-  EXPECT_EQ(event.update_vailable.request_confirmation, true);
-  EXPECT_EQ(event.update_vailable.signature, "sign");
-  EXPECT_EQ(event.update_vailable.size, 5000u);
-  EXPECT_EQ(event.update_vailable.update_id, "id4");
+  EXPECT_EQ(event.updates[0].ecu_identifier().ToString(), "ecu1");
+  EXPECT_EQ(event.updates[0].filename(), "test");
+  EXPECT_EQ(event.updates[0].sha256Hash(), "12ab");
 }
 
 TEST(event, DownloadComplete_event_from_json) {
-  std::string json =
-      "{\"fields\":[{\"signature\":\"sign\",\"update_id\":\"updateid123\","
-      "\"update_image\":\"some text\"}],\"variant\":\"DownloadComplete\"}";
-  event::DownloadComplete event = event::DownloadComplete::fromJson(json);
+  Json::Value target_json;
+  target_json["custom"]["ecuIdentifier"] = "ecu1";
+  target_json["hashes"]["sha256"] = "12ab";
+  target_json["length"] = 1;
+  Uptane::Target target("test", target_json);
+  std::vector<Uptane::Target> targets;
+  targets.push_back(target);
+  event::DownloadComplete update_available(targets);
+  event::DownloadComplete event = event::DownloadComplete::fromJson(update_available.toJson());
 
   EXPECT_EQ(event.variant, "DownloadComplete");
-  EXPECT_EQ(event.download_complete.signature, "sign");
-  EXPECT_EQ(event.download_complete.update_id, "updateid123");
-  EXPECT_EQ(event.download_complete.update_image, "some text");
+  EXPECT_EQ(event.updates[0].ecu_identifier().ToString(), "ecu1");
+  EXPECT_EQ(event.updates[0].filename(), "test");
+  EXPECT_EQ(event.updates[0].sha256Hash(), "12ab");
 }
 
 #ifndef __NO_MAIN__

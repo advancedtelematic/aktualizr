@@ -82,7 +82,7 @@ struct ProvisionConfig {
 };
 
 struct UptaneConfig {
-  bool polling{true};
+  RunningMode running_mode{RunningMode::kFull};
   uint64_t polling_sec{10u};
   std::string director_server;
   std::string repo_server;

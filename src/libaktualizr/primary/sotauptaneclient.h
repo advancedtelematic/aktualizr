@@ -23,7 +23,10 @@ class SotaUptaneClient {
                    std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client, const Bootloader &bootloader_in);
 
   bool initialize();
-  void getUpdateRequests();
+  bool updateMeta();
+  std::vector<Uptane::Target> checkNewUpdates();
+  void downloadImages(const std::vector<Uptane::Target> &updates);
+
   void runForever(const std::shared_ptr<command::Channel> &commands_channel);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
@@ -38,7 +41,6 @@ class SotaUptaneClient {
   void PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
-  void schedulePoll(const std::shared_ptr<command::Channel> &commands_channel);
   void reportNetworkInfo();
   void initSecondaries();
   void verifySecondaries();
@@ -55,7 +57,6 @@ class SotaUptaneClient {
   HttpInterface &http;
   Uptane::Fetcher uptane_fetcher;
   const Bootloader &bootloader;
-  int last_targets_version;
   Json::Value operation_result;
   std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
