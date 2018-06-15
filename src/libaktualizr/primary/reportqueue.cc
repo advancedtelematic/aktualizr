@@ -19,27 +19,28 @@ ReportQueue::~ReportQueue() {
 }
 
 void ReportQueue::run() {
+  // Check if queue is nonempty. If so, move any reports to the Json array and
+  // try to send it to the server. Clear the Json array only if the send
+  // succeeds.
+  Json::Value report_array(Json::arrayValue);
   while (!shutdown_) {
-    bool more = false;
     std::unique_lock<std::mutex> thread_lock(thread_mutex_);
     if (!report_queue_.empty()) {
-      Json::Value report_array(Json::arrayValue);
       std::lock_guard<std::mutex> queue_lock(queue_mutex_);
-      report_array.append(*report_queue_.front());
+      while (!report_queue_.empty()) {
+        report_array.append(*report_queue_.front());
+        report_queue_.pop();
+      }
+    }
+    if (report_array.size() > 0) {
       HttpResponse response = http.post(config.tls.server + "/events", report_array);
       // 404 implies the server does not support this feature. Nothing we can
       // do, just move along.
       if (response.isOk() || response.http_status_code == 404) {
-        report_queue_.pop();
-        if (!report_queue_.empty()) {
-          more = true;
-        }
+        report_array = Json::arrayValue;
       }
     }
-    // Skip sleeping if there is more to send and the last send was successful.
-    if (!more) {
-      cv_.wait_for(thread_lock, std::chrono::seconds(10));
-    }
+    cv_.wait_for(thread_lock, std::chrono::seconds(10));
   }
 }
 
