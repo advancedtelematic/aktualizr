@@ -9,9 +9,7 @@
 TEST(command, Shutdown_command_to_json) {
   command::Shutdown command;
 
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(command.toJson(), json);
+  Json::Value json = command.toJson();
 
   EXPECT_EQ(json["variant"].asString(), "Shutdown");
 }
@@ -19,14 +17,12 @@ TEST(command, Shutdown_command_to_json) {
 TEST(command, FetchMeta_command_to_json) {
   command::FetchMeta command;
 
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(command.toJson(), json);
+  Json::Value json = command.toJson();
 
   EXPECT_EQ(json["variant"].asString(), "FetchMeta");
 }
 
-TEST(command, StartDownload_command_from_json) {
+TEST(command, StartDownload_command_to_and_from_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifier"] = "ecu1";
   target_json["hashes"]["sha256"] = "12AB";
@@ -36,9 +32,7 @@ TEST(command, StartDownload_command_from_json) {
   targets.push_back(target);
   command::StartDownload start_download(targets);
 
-  Json::Value val;
-  Json::Reader reader;
-  reader.parse(start_download.toJson(), val);
+  Json::Value val = start_download.toJson();
 
   EXPECT_EQ(val["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
   EXPECT_EQ(val["fields"][0]["test"]["hashes"]["sha256"], "12AB");
@@ -52,7 +46,7 @@ TEST(command, StartDownload_command_from_json) {
   EXPECT_EQ(command->updates[0].sha256Hash(), "12ab");
 }
 
-TEST(command, UptaneInstall_command_from_json) {
+TEST(command, UptaneInstall_command_to_and_from_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifier"] = "ecu1";
   target_json["hashes"]["sha256"] = "12AB";
@@ -62,9 +56,7 @@ TEST(command, UptaneInstall_command_from_json) {
   targets.push_back(target);
   command::UptaneInstall uptane_install(targets);
 
-  Json::Value val;
-  Json::Reader reader;
-  reader.parse(uptane_install.toJson(), val);
+  Json::Value val = uptane_install.toJson();
 
   EXPECT_EQ(val["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
   EXPECT_EQ(val["fields"][0]["test"]["hashes"]["sha256"], "12AB");

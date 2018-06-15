@@ -14,8 +14,7 @@ namespace command {
 class BaseCommand {
  public:
   std::string variant;
-  virtual std::string toJson();
-  virtual std::string toJson(Json::Value json);
+  virtual Json::Value toJson();
   virtual ~BaseCommand() = default;
   static std::shared_ptr<BaseCommand> fromJson(const Json::Value& json);
   template <typename T>
@@ -25,6 +24,7 @@ class BaseCommand {
 
  protected:
   BaseCommand(std::string v) : variant(std::move(v)) {}
+  virtual Json::Value toJson(const Json::Value& json);
 };
 using Channel = Channel<std::shared_ptr<BaseCommand> >;
 
@@ -73,7 +73,7 @@ class StartDownload : public BaseCommand {
   explicit StartDownload(std::vector<Uptane::Target> updates_in);
 
   std::vector<Uptane::Target> updates;
-  std::string toJson() override;
+  Json::Value toJson() override;
 
  private:
   explicit StartDownload(const Json::Value& json);
@@ -84,10 +84,9 @@ class StartDownload : public BaseCommand {
 class UptaneInstall : public BaseCommand {
  public:
   explicit UptaneInstall(std::vector<Uptane::Target> packages_in);
-  static UptaneInstall fromJson(const std::string& json_str);
 
   std::vector<Uptane::Target> packages;
-  std::string toJson() override;
+  Json::Value toJson() override;
 
  private:
   explicit UptaneInstall(const Json::Value& json);

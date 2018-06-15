@@ -4,17 +4,18 @@
 
 namespace command {
 
-std::string BaseCommand::toJson() {
+Json::Value BaseCommand::toJson() {
   Json::Value json = Json::Value();
   return BaseCommand::toJson(json);
 }
 
-std::string BaseCommand::toJson(Json::Value json) {
-  json["variant"] = variant;
-  if (!json.isMember("fields")) {
-    json["fields"] = Json::Value(Json::arrayValue);
+Json::Value BaseCommand::toJson(const Json::Value& json) {
+  Json::Value j(json);
+  j["variant"] = variant;
+  if (!j.isMember("fields")) {
+    j["fields"] = Json::Value(Json::arrayValue);
   }
-  return Json::FastWriter().write(json);
+  return j;
 }
 
 std::shared_ptr<BaseCommand> BaseCommand::fromJson(const Json::Value& json) {
@@ -49,7 +50,7 @@ StartDownload::StartDownload(const Json::Value& json) : StartDownload(std::vecto
   }
 }
 
-std::string StartDownload::toJson() {
+Json::Value StartDownload::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : updates) {
@@ -68,7 +69,7 @@ UptaneInstall::UptaneInstall(const Json::Value& json) : UptaneInstall(std::vecto
   }
 }
 
-std::string UptaneInstall::toJson() {
+Json::Value UptaneInstall::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : packages) {
