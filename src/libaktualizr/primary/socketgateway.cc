@@ -45,6 +45,15 @@ SocketGateway::~SocketGateway() {
   unlink(config.network.socket_commands_path.c_str());
 }
 
+Json::Value jsonFromPicoJson(const picojson::value &item) {
+  Json::Reader reader;
+  Json::Value json;
+  std::string data = item.serialize(false);
+  reader.parse(data, json);
+
+  return json;
+}
+
 void SocketGateway::commandsWorker(int socket, const std::shared_ptr<command::Channel> &channel) {
   const int buff_size = 512;
   char buf[buff_size];
@@ -64,7 +73,7 @@ void SocketGateway::commandsWorker(int socket, const std::shared_ptr<command::Ch
     if (picojson::_parse(ctx, in)) {
       data.erase(data.begin(), in.cur());
       try {
-        *channel << command::BaseCommand::fromPicoJson(item);
+        *channel << command::BaseCommand::fromJson(jsonFromPicoJson(item));
       } catch (...) {
         LOG_ERROR << "failed command deserealization: " << item.serialize();
       }

@@ -2,31 +2,31 @@
 
 #include <string>
 
-#include "picojson.h"
+#include <json/json.h>
 
 #include "primary/commands.h"
 
-TEST(command, Shutdown_comand_to_json) {
-  command::Shutdown comand;
+TEST(command, Shutdown_command_to_json) {
+  command::Shutdown command;
 
   Json::Reader reader;
   Json::Value json;
-  reader.parse(comand.toJson(), json);
+  reader.parse(command.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "Shutdown");
 }
 
-TEST(command, FetchMeta_comand_to_json) {
-  command::FetchMeta comand;
+TEST(command, FetchMeta_command_to_json) {
+  command::FetchMeta command;
 
   Json::Reader reader;
   Json::Value json;
-  reader.parse(comand.toJson(), json);
+  reader.parse(command.toJson(), json);
 
   EXPECT_EQ(json["variant"].asString(), "FetchMeta");
 }
 
-TEST(command, StartDownload_comand_to_json) {
+TEST(command, StartDownload_command_to_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifier"] = "ecu1";
   target_json["hashes"]["sha256"] = "12AB";
@@ -34,18 +34,18 @@ TEST(command, StartDownload_comand_to_json) {
   Uptane::Target target("test", target_json);
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
-  command::StartDownload comand(targets);
+  command::StartDownload command(targets);
 
   Json::Reader reader;
   Json::Value json;
-  reader.parse(comand.toJson(), json);
+  reader.parse(command.toJson(), json);
 
   EXPECT_EQ(json["fields"][0]["test"]["custom"]["ecuIdentifier"], "ecu1");
   EXPECT_EQ(json["fields"][0]["test"]["hashes"]["sha256"], "12AB");
   EXPECT_EQ(json["variant"].asString(), "StartDownload");
 }
 
-TEST(command, StartDownload_command_from_pico_json) {
+TEST(command, StartDownload_command_from_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifier"] = "ecu1";
   target_json["hashes"]["sha256"] = "12AB";
@@ -55,37 +55,40 @@ TEST(command, StartDownload_command_from_pico_json) {
   targets.push_back(target);
   command::StartDownload start_download(targets);
 
-  picojson::value val;
-  picojson::parse(val, start_download.toJson());
-  auto comand = std::static_pointer_cast<command::StartDownload>(command::BaseCommand::fromPicoJson(val));
+  Json::Value val;
+  Json::Reader reader;
+  reader.parse(start_download.toJson(), val);
+  auto command = std::static_pointer_cast<command::StartDownload>(command::BaseCommand::fromJson(val));
 
-  EXPECT_EQ(comand->variant, "StartDownload");
-  EXPECT_EQ(comand->updates[0].ecu_identifier().ToString(), "ecu1");
-  EXPECT_EQ(comand->updates[0].filename(), "test");
-  EXPECT_EQ(comand->updates[0].sha256Hash(), "12ab");
+  EXPECT_EQ(command->variant, "StartDownload");
+  EXPECT_EQ(command->updates[0].ecu_identifier().ToString(), "ecu1");
+  EXPECT_EQ(command->updates[0].filename(), "test");
+  EXPECT_EQ(command->updates[0].sha256Hash(), "12ab");
 }
 
-TEST(command, Shutdown_command_from_pico_json) {
+TEST(command, Shutdown_command_from_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"Shutdown\"}";
 
-  picojson::value val;
-  picojson::parse(val, json);
-  std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+  Json::Value val;
+  Json::Reader reader;
+  reader.parse(json, val);
+  std::shared_ptr<command::BaseCommand> command = command::BaseCommand::fromJson(val);
 
-  EXPECT_EQ(comand->variant, "Shutdown");
+  EXPECT_EQ(command->variant, "Shutdown");
 }
 
-TEST(command, Nonexistent_command_from_pico_json) {
+TEST(command, Nonexistent_command_from_json) {
   std::string json =
       "{\"fields\":[],"
       "\"variant\":\"Nonexistent\"}";
 
-  picojson::value val;
-  picojson::parse(val, json);
+  Json::Value val;
+  Json::Reader reader;
+  reader.parse(json, val);
   try {
-    std::shared_ptr<command::BaseCommand> comand = command::BaseCommand::fromPicoJson(val);
+    std::shared_ptr<command::BaseCommand> command = command::BaseCommand::fromJson(val);
   } catch (std::runtime_error e) {
     ASSERT_STREQ(e.what(), "wrong command variant = Nonexistent");
   }
