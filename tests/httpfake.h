@@ -5,6 +5,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
+#include <string>
 
 #include "json/json.h"
 
@@ -82,6 +83,28 @@ class HttpFake : public HttpInterface {
           return HttpResponse("{\"code\":\"ecu_already_registered\"}", 409, CURLE_OK, "");
         }
       }
+    } else if (url == "reportqueue/SingleEvent/events") {
+      EXPECT_EQ(data[0]["eventType"]["id"], "DownloadComplete");
+      EXPECT_EQ(data[0]["event"], "SingleEvent");
+      ++events_seen;
+      return HttpResponse("", 200, CURLE_OK, "");
+    } else if (url.find("reportqueue/MultipleEvents") == 0) {
+      for (int i = 0; i < data.size(); ++i) {
+        EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
+        EXPECT_EQ(data[i]["event"], "MultipleEvents" + std::to_string(events_seen++));
+      }
+      return HttpResponse("", 200, CURLE_OK, "");
+    } else if (url.find("reportqueue/FailureRecovery") == 0) {
+      if (data.size() < 10) {
+        return HttpResponse("", 400, CURLE_OK, "");
+      } else {
+        for (int i = 0; i < data.size(); ++i) {
+          EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
+          EXPECT_EQ(data[i]["event"], "FailureRecovery" + std::to_string(i));
+        }
+        events_seen = data.size();
+        return HttpResponse("", 200, CURLE_OK, "");
+      }
     }
     Utils::writeFile((test_dir / "post.json").string(), data);
     if (provisioningResponse == ProvisioningResult::kOK) {
@@ -143,6 +166,7 @@ class HttpFake : public HttpInterface {
   ProvisioningResult provisioningResponse;
   const std::string test_manifest = "test_aktualizr_manifest.txt";
   const std::string tls_server = "https://tlsserver.com";
+  int events_seen = 0;
 
  private:
   /**
