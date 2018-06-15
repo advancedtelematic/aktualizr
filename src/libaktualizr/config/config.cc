@@ -181,6 +181,12 @@ Config::Config(const boost::filesystem::path& filename) {
   postUpdateValues();
 }
 
+Config::Config(const std::vector<boost::filesystem::path>& config_dirs) {
+  checkDirs(config_dirs);
+  updateFromDirs(config_dirs);
+  postUpdateValues();
+}
+
 Config::Config(const boost::program_options::variables_map& cmd) {
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
@@ -192,11 +198,7 @@ Config::Config(const boost::program_options::variables_map& cmd) {
 
   if (cmd.count("config") > 0) {
     const auto configs = cmd["config"].as<std::vector<boost::filesystem::path>>();
-    for (const auto& config : configs) {
-      if (!boost::filesystem::exists(config)) {
-        LOG_ERROR << "Provided config file or directory " << config << " does not exist!";
-      }
-    }
+    checkDirs(configs);
     updateFromDirs(configs);
   } else {
     updateFromDirs(config_dirs_);

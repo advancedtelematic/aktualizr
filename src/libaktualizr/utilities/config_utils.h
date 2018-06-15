@@ -85,7 +85,7 @@ class BaseConfig {
   void updateFromToml(const boost::filesystem::path& filename) {
     LOG_INFO << "Reading config: " << filename;
     if (!boost::filesystem::exists(filename)) {
-      throw std::runtime_error(filename.string() + " does not exist.");
+      throw std::runtime_error("Config file " + filename.string() + " does not exist.");
     }
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(filename.string(), pt);
@@ -110,6 +110,14 @@ class BaseConfig {
     }
     for (const auto& config_file : configs_map) {
       updateFromToml(config_file.second);
+    }
+  }
+
+  void checkDirs(const std::vector<boost::filesystem::path>& configs) {
+    for (const auto& config : configs) {
+      if (!boost::filesystem::exists(config)) {
+        throw std::runtime_error("Config directory " + config.string() + " does not exist.");
+      }
     }
   }
 
