@@ -4,58 +4,53 @@
 
 namespace command {
 
-std::string BaseCommand::toJson() {
+Json::Value BaseCommand::toJson() {
   Json::Value json = Json::Value();
   return BaseCommand::toJson(json);
 }
 
-std::string BaseCommand::toJson(Json::Value json) {
-  json["variant"] = variant;
-  if (!json.isMember("fields")) {
-    json["fields"] = Json::Value(Json::arrayValue);
+Json::Value BaseCommand::toJson(const Json::Value& json) {
+  Json::Value j(json);
+  j["variant"] = variant;
+  if (!j.isMember("fields")) {
+    j["fields"] = Json::Value(Json::arrayValue);
   }
-  return Json::FastWriter().write(json);
+  return j;
 }
 
-std::shared_ptr<BaseCommand> BaseCommand::fromPicoJson(const picojson::value& json) {
-  std::string variant = json.get("variant").to_str();
-  std::string data = json.serialize(false);
-  if (variant == "Shutdown") {
-    return std::make_shared<Shutdown>();
-  }
-  if (variant == "SendDeviceData") {
-    return std::make_shared<SendDeviceData>();
-  }
-  if (variant == "FetchMeta") {
-    return std::make_shared<FetchMeta>();
-  }
-  if (variant == "CheckUpdates") {
-    return std::make_shared<CheckUpdates>();
-  }
-  if (variant == "StartDownload") {
-    return std::static_pointer_cast<BaseCommand>(std::make_shared<StartDownload>(StartDownload::fromJson(data)));
-  }
-  if (variant == "UptaneInstall") {
-    return std::static_pointer_cast<BaseCommand>(std::make_shared<UptaneInstall>(UptaneInstall::fromJson(data)));
-  }
-  throw std::runtime_error("wrong command variant = " + variant);
+std::shared_ptr<BaseCommand> BaseCommand::fromJson(const Json::Value& json) {
+  std::string v = json["variant"].asString();
+  BaseCommand* com;
 
-  return std::make_shared<BaseCommand>();
+  if (v == "Shutdown") {
+    com = new Shutdown(json);
+  } else if (v == "SendDeviceData") {
+    com = new SendDeviceData(json);
+  } else if (v == "FetchMeta") {
+    com = new FetchMeta(json);
+  } else if (v == "CheckUpdates") {
+    com = new CheckUpdates(json);
+  } else if (v == "StartDownload") {
+    com = new StartDownload(json);
+  } else if (v == "UptaneInstall") {
+    com = new UptaneInstall(json);
+  } else {
+    throw std::runtime_error("wrong command variant = " + v);
+  }
+
+  return std::shared_ptr<BaseCommand>(com);
 }
 
-Shutdown::Shutdown() { variant = "Shutdown"; }
+StartDownload::StartDownload(std::vector<Uptane::Target> updates_in)
+    : BaseCommand("StartDownload"), updates(std::move(updates_in)) {}
 
-FetchMeta::FetchMeta() { variant = "FetchMeta"; }
-
-CheckUpdates::CheckUpdates() { variant = "CheckUpdates"; }
-
-SendDeviceData::SendDeviceData() { variant = "SendDeviceData"; }
-
-StartDownload::StartDownload(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
-  variant = "StartDownload";
+StartDownload::StartDownload(const Json::Value& json) : StartDownload(std::vector<Uptane::Target>()) {
+  for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
+    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
+  }
 }
 
-std::string StartDownload::toJson() {
+Json::Value StartDownload::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : updates) {
@@ -65,29 +60,23 @@ std::string StartDownload::toJson() {
   return BaseCommand::toJson(json);
 }
 
-StartDownload StartDownload::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  std::vector<Uptane::Target> updates;
+UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in)
+    : BaseCommand("UptaneInstall"), packages(std::move(packages_in)) {}
+
+UptaneInstall::UptaneInstall(const Json::Value& json) : UptaneInstall(std::vector<Uptane::Target>()) {
   for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
-    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
+    packages.emplace_back(Uptane::Target(it.key().asString(), *it));
   }
-  return StartDownload(updates);
 }
 
-UptaneInstall::UptaneInstall(std::vector<Uptane::Target> packages_in) : packages(std::move(packages_in)) {
-  variant = "UptaneInstall";
-}
-UptaneInstall UptaneInstall::fromJson(const std::string& json_str) {
-  Json::Reader reader;
+Json::Value UptaneInstall::toJson() {
   Json::Value json;
-  reader.parse(json_str, json);
-  std::vector<Uptane::Target> updates;
-  for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
-    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
+  Json::Value targets;
+  for (const auto& target : packages) {
+    targets[target.filename()] = target.toJson();
   }
-  return UptaneInstall(updates);
+  json["fields"].append(targets);
+  return BaseCommand::toJson(json);
 }
 
 }  // namespace command
