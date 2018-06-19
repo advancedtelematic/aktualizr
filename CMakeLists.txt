@@ -1,4 +1,8 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.5)
+# CMAKE_EXPORT_COMPILE_COMMANDS requires 3.5
+# CMAKE_CXX_STANDARD and CMAKE_CXX_EXTENSIONS require 3.1.3
+
+# GLOB_RECURSE calls should not follow symlinks by default:
 cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
