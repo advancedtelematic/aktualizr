@@ -43,29 +43,22 @@ class FetchMeta : public BaseCommand {
   FetchMeta() : BaseCommand("FetchMeta") {}
 
  private:
-  explicit FetchMeta(const Json::Value& /* json */) : FetchMeta() {}
-
   friend BaseCommand;
 };
 
 class CheckUpdates : public BaseCommand {
  public:
   CheckUpdates() : BaseCommand("CheckUpdates") {}
-
- private:
-  explicit CheckUpdates(const Json::Value& /* json */) : CheckUpdates() {}
-
-  friend BaseCommand;
 };
 
 class SendDeviceData : public BaseCommand {
-  friend BaseCommand;
-
  public:
   SendDeviceData() : BaseCommand("SendDeviceData") {}
+};
 
- private:
-  explicit SendDeviceData(const Json::Value& /* json */) : SendDeviceData() {}
+class PutManifest : public BaseCommand {
+ public:
+  PutManifest() : BaseCommand("PutManifest") {}
 };
 
 class StartDownload : public BaseCommand {

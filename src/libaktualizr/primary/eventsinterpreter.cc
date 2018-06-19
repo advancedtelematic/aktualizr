@@ -55,8 +55,14 @@ void EventsInterpreter::run() {
       } else {
         *commands_channel << std::make_shared<command::Shutdown>();
       }
+    } else if (event->variant == "InstallComplete") {
+      if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce) {
+        *commands_channel << std::make_shared<command::PutManifest>();
+      } else {
+        *commands_channel << std::make_shared<command::Shutdown>();
+      }
     }
-    if (event->variant == "UptaneTimestampUpdated" || event->variant == "InstallComplete" ||
+    if (event->variant == "UptaneTimestampUpdated" || event->variant == "PutManifestComplete" ||
         event->variant == "Error") {
       // These events indicates the end of pooling cycle
       if (config.uptane.running_mode == RunningMode::kFull) {

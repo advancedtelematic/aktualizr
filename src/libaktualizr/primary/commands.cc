@@ -25,11 +25,11 @@ std::shared_ptr<BaseCommand> BaseCommand::fromJson(const Json::Value& json) {
   if (v == "Shutdown") {
     com = new Shutdown(json);
   } else if (v == "SendDeviceData") {
-    com = new SendDeviceData(json);
+    com = new SendDeviceData();
   } else if (v == "FetchMeta") {
-    com = new FetchMeta(json);
+    com = new FetchMeta();
   } else if (v == "CheckUpdates") {
-    com = new CheckUpdates(json);
+    com = new CheckUpdates();
   } else if (v == "StartDownload") {
     com = new StartDownload(json);
   } else if (v == "UptaneInstall") {

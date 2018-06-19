@@ -750,6 +750,7 @@ TEST(Uptane, RunForeverInstall) {
 
   std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
+  *commands_channel << std::make_shared<command::PutManifest>();
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Uptane::Repository repo(conf, storage);
