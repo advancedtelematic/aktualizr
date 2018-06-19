@@ -511,7 +511,7 @@ bool SQLStorage::loadRootCommon(bool director, std::string* root, Uptane::Versio
     LOG_ERROR << "Can't get root meta: " << db.errmsg();
     return false;
   }
-  std::string data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+  auto data = statement.get_result_col_str(0);
 
   if (data.empty()) {
     return false;
@@ -1013,7 +1013,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    sqlite3_int64 row_id = sqlite3_column_int64(statement.get(), 0);
+    auto row_id = statement.get_result_col_int(0);
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
       LOG_ERROR << "Could not open blob: " << db_.errmsg();
@@ -1107,7 +1107,7 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
     return "";
   }
 
-  return std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement.get(), 0))) + ";";
+  return statement.get_result_col_str(0) + ";";
 }
 
 bool SQLStorage::dbMigrate() {
