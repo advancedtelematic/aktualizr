@@ -75,14 +75,6 @@ class SQLStorage : public INvStorage {
   DbVersion getVersion();  // non-negative integer on success or -1 on error
 
  private:
-  // request info
-  SQLReqId request{};
-  std::map<std::string, std::string> req_params;
-  std::map<std::string, std::string> req_response;
-  std::vector<std::map<std::string, std::string> > req_response_table;
-
-  static int callback(void* instance_, int numcolumns, char** values, char** columns);
-
   void storeMetadataCommon(const Uptane::RawMetaPack& metadata, const std::string& tablename);
   bool loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::string& tablename);
   void clearMetadataCommon(const std::string& tablename);

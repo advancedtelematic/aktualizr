@@ -4,6 +4,8 @@
 #include <list>
 #include <memory>
 
+#include <boost/optional.hpp>
+
 #include <sqlite3.h>
 
 #include "logging/logging.h"
@@ -19,6 +21,12 @@ struct SQLZeroBlob {
   size_t size;
 };
 
+class SQLException : public std::runtime_error {
+ public:
+  SQLException() : std::runtime_error("SQL error") {}
+  ~SQLException() noexcept override = default;
+};
+
 class SQLiteStatement {
  public:
   template <typename... Types>
@@ -28,7 +36,7 @@ class SQLiteStatement {
 
     if (sqlite3_prepare_v2(db_, zSql.c_str(), -1, &statement, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Could not prepare statement: " << sqlite3_errmsg(db_);
-      throw std::runtime_error("SQLite fatal error");
+      throw SQLException();
     }
     stmt_.reset(statement);
 
@@ -39,20 +47,22 @@ class SQLiteStatement {
   inline int step() const { return sqlite3_step(stmt_.get()); }
 
   // get results
-  inline std::string get_result_col_blob(int iCol) {
+  inline boost::optional<std::string> get_result_col_blob(int iCol) {
     auto b = reinterpret_cast<const char*>(sqlite3_column_blob(stmt_.get(), iCol));
     if (b == nullptr) {
-      return "";
+      return boost::none;
     }
     return std::string(b);
   }
-  inline std::string get_result_col_str(int iCol) {
+
+  inline boost::optional<std::string> get_result_col_str(int iCol) {
     auto b = reinterpret_cast<const char*>(sqlite3_column_text(stmt_.get(), iCol));
     if (b == nullptr) {
-      return "";
+      return boost::none;
     }
     return std::string(b);
   }
+
   inline int64_t get_result_col_int(int iCol) { return sqlite3_column_int64(stmt_.get(), iCol); }
 
  private:
