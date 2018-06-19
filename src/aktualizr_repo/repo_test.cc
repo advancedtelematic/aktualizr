@@ -48,7 +48,8 @@ TEST(aktualizr_repo, copy_image) {
   Repo repo(temp_dir.Path(), "");
   repo.generateRepo();
   repo.addImage(temp_dir.Path() / "repo/director/manifest");
-  repo.copyTarget("manifest");
+  repo.addTarget("manifest", "test-hw", "test-serial");
+  repo.signTargets();
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
