@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #include <gtest/gtest.h>
 
 #include <map>
@@ -14,6 +10,7 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "uptane/managedsecondary.h"
@@ -120,7 +117,8 @@ TEST(UptaneKey, CheckAllKeys) {
   Uptane::Repository uptane(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   checkKeyTests(storage, sota_client);
 }
@@ -142,7 +140,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     Bootloader bootloader{config.bootloader};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
+    ReportQueue report_queue(config, http);
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -155,7 +154,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     Bootloader bootloader{config.bootloader};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
+    ReportQueue report_queue(config, http);
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -174,7 +174,8 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     Uptane::Repository uptane(config, storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     Bootloader bootloader{config.bootloader};
-    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader);
+    ReportQueue report_queue(config, http);
+    SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);

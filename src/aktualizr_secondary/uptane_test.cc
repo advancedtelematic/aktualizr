@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "aktualizr_secondary.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 
 #include "config/config.h"
@@ -50,7 +51,8 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Repository uptane(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   std::string arch = sota_client.secondaryTreehubCredentials();

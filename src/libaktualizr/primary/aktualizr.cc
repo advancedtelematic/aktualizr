@@ -10,6 +10,7 @@
 #include "events.h"
 #include "eventsinterpreter.h"
 #include "http/httpclient.h"
+#include "reportqueue.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "utilities/channel.h"
@@ -41,9 +42,10 @@ int Aktualizr::run() {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
   HttpClient http;
+  ReportQueue report_queue(config_, http);
   Uptane::Repository repo(config_, storage);
   Bootloader bootloader(config_.bootloader);
-  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http, bootloader);
+  SotaUptaneClient uptane_client(config_, events_channel, repo, storage, http, bootloader, report_queue);
   uptane_client.runForever(commands_channel);
 
   return EXIT_SUCCESS;

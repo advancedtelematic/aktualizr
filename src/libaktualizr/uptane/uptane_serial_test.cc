@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -14,6 +10,7 @@
 
 #include "httpfake.h"
 #include "logging/logging.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "test_utils.h"
@@ -70,12 +67,14 @@ TEST(Uptane, RandomSerial) {
 
   Uptane::Repository uptane_1(conf_1, storage_1);
   Bootloader bootloader_1{conf_1.bootloader};
-  SotaUptaneClient uptane_client1(conf_1, NULL, uptane_1, storage_1, http1, bootloader_1);
+  ReportQueue report_queue1(conf_1, http1);
+  SotaUptaneClient uptane_client1(conf_1, nullptr, uptane_1, storage_1, http1, bootloader_1, report_queue1);
   EXPECT_TRUE(uptane_client1.initialize());
 
   Uptane::Repository uptane_2(conf_2, storage_2);
   Bootloader bootloader_2{conf_2.bootloader};
-  SotaUptaneClient uptane_client2(conf_2, NULL, uptane_2, storage_2, http2, bootloader_2);
+  ReportQueue report_queue2(conf_2, http2);
+  SotaUptaneClient uptane_client2(conf_2, nullptr, uptane_2, storage_2, http2, bootloader_2, report_queue2);
   EXPECT_TRUE(uptane_client2.initialize());
 
   EcuSerials ecu_serials_1;
@@ -129,7 +128,8 @@ TEST(Uptane, ReloadSerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage);
     Bootloader bootloader{conf.bootloader};
-    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http, bootloader);
+    ReportQueue report_queue(conf, http);
+    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
@@ -150,7 +150,8 @@ TEST(Uptane, ReloadSerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage);
     Bootloader bootloader{conf.bootloader};
-    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http, bootloader);
+    ReportQueue report_queue(conf, http);
+    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
@@ -195,7 +196,8 @@ TEST(Uptane, LegacySerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage);
     Bootloader bootloader{conf.bootloader};
-    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http, bootloader);
+    ReportQueue report_queue(conf, http);
+    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
@@ -215,7 +217,8 @@ TEST(Uptane, LegacySerial) {
     HttpFake http(temp_dir.Path());
     Uptane::Repository uptane(conf, storage);
     Bootloader bootloader{conf.bootloader};
-    SotaUptaneClient uptane_client(conf, NULL, uptane, storage, http, bootloader);
+    ReportQueue report_queue(conf, http);
+    SotaUptaneClient uptane_client(conf, nullptr, uptane, storage, http, bootloader, report_queue);
     EXPECT_TRUE(uptane_client.initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);

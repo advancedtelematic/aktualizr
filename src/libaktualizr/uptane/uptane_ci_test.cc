@@ -12,6 +12,7 @@
 #include "package_manager/ostreemanager.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/fsstorage.h"
 #include "uptane/managedsecondary.h"
@@ -36,7 +37,8 @@ TEST(UptaneCI, OneCycleUpdate) {
   HttpClient http;
   Uptane::Repository repo(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, NULL, repo, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, repo, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   auto manifest = repo.signManifest(sota_client.AssembleManifest());
   EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", manifest).isOk());
@@ -72,7 +74,8 @@ TEST(UptaneCI, CheckKeys) {
   HttpClient http;
   Uptane::Repository repo(config, storage);
   Bootloader bootloader{config.bootloader};
-  SotaUptaneClient sota_client(config, NULL, repo, storage, http, bootloader);
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, nullptr, repo, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   std::string ca;
