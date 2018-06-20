@@ -1,0 +1,22 @@
+= Programatically Triggering Polling
+
+Aktualizr normally runs as a systemd service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
+
+It is also possible to trigger the update cycle manually. This is done by stopping the systemd service and running aktualizr with the `--running-mode=once` option or by setting `running_mode = once` in the `[uptane]` configuration section.
+
+When disabling polling via a configuration file fragment, be warned that the default systemd service file shipped with Aktualizr will attempt to automatically restart the service when it exits.
+
+Please note that the following interface may change significantly in the future, possibly to a socket or D-BUS API.
+
+To run the update cycle manually, first stop and disable the aktualizr background service:
+
+    systemctl stop aktualizr && systemctl disable aktualizr
+
+Assuming aktualizr is being built using Yocto and meta-updater, the systemd service can also be disabled by default by adding the following to `local.conf`:
+
+    SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
+
+With the background service disabled, trigger an update cycle by running the following command:
+
+    aktualizr --running-mode=once
+
