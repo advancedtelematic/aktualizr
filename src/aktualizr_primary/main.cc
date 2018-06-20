@@ -34,7 +34,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("running-mode", bpo::value<std::string>()->default_value("full"), "running mode of aktualizr, could be one of: full, once, check, download, or install")
+      ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, check, download, or install")
       ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
