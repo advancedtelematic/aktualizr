@@ -45,17 +45,6 @@ Copyright 2011-2014 Kazuho Oku</text>
 FilesAnalyzed: false
 
 
-PackageName: boost-system
-SPDXID: SPDXRef-boost-system
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>© Copyright Beman Dawes, 1999</text>
-FilesAnalyzed: false
-
-
 PackageName: boost-filesystem
 SPDXID: SPDXRef-boost-filesystem
 PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2

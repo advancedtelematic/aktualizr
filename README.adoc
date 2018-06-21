@@ -56,7 +56,6 @@ The following debian packages are used in the project:
 * libboost-filesystem-dev (>= 1.58.0)
 * libboost-log-dev (>= 1.58.0)
 * libboost-program-options-dev (>= 1.58.0)
-* libboost-system-dev (>= 1.58.0)
 * libboost-serialization-dev (>= 1.58.0, when building with OPCUA support)
 * libboost-iostreams-dev (>= 1.58.0, when building with OPCUA support)
 * libcurl4-openssl-dev (>= 7.47)

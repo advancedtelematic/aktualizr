@@ -38,7 +38,7 @@ unset(AKTUALIZR_CHECKED_SRCS CACHE)
 
 # find all required libraries
 set(Boost_USE_STATIC_LIBS ON)
-set(BOOST_COMPONENTS log_setup log filesystem program_options system )
+set(BOOST_COMPONENTS log_setup log filesystem program_options)
 
 if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
