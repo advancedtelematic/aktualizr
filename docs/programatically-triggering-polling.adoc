@@ -20,3 +20,40 @@ With the background service disabled, trigger an update cycle by running the fol
 
     aktualizr --running-mode=once
 
+
+== Separately running individual update stages
+
+It is sometimes necessary to download an update when the is network connectivity then perform the installation later, without relying on the network. Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.
+
+To use this mode, follow the same instruction above to disable the aktualizr systemd service, then instead of running `aktualizr --running-mode=once`, do the following:
+
+Fetch the Uptane metadata:
+
+    aktualizr --running-mode=check
+
+Download an update:
+
+    aktualizr --running-mode=download
+
+After this point the installation can proceed without network connectivity. If you are using a hardware device, unplug the cable. Under Qemu (for example using the  `meta-updater/scripts/run-qemu-ota --no-gui` script), the following commands on the Qemu console can be used to disable the network:
+
+    (qemu) info network
+    hub 0
+    \ hub0port1: e1000.0: index=0,type=nic,model=e1000,macaddr=ca:fe:6a:ee:98:fa
+    \ hub0port0: user.0: index=0,type=user,net=10.0.2.0,restrict=off
+    (qemu) set_link user.0 off
+    (qemu) set_link e1000.0 off
+
+Now install the update and reboot:
+
+    aktualizr --running-mode=install
+    reboot
+
+Now renable the network:
+
+    (qemu) set_link user.0 on
+    (qemu) set_link e1000.0 on
+
+And report the update results:
+
+    aktualizr --running-mode=check
