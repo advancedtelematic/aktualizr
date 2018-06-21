@@ -597,11 +597,16 @@ TEST(Uptane, PutManifest) {
   Uptane::Repository uptane(config, storage);
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
+  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
-  auto signed_manifest = uptane.signManifest(sota_client.AssembleManifest());
-  EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", signed_manifest).isOk());
+  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
+
+  *commands_channel << std::make_shared<command::PutManifest>();
+  *commands_channel << std::make_shared<command::Shutdown>();
+  sota_client.runForever(commands_channel);
+
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http.test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / http.test_manifest).string());
 
@@ -758,17 +763,7 @@ TEST(Uptane, RunForeverInstall) {
   SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
-
-  Json::Value json;
-  Json::Reader reader;
-  std::ifstream ks((temp_dir.Path() / http.test_manifest).c_str());
-  std::string mnfst_str((std::istreambuf_iterator<char>(ks)), std::istreambuf_iterator<char>());
-
-  reader.parse(mnfst_str, json);
-  EXPECT_EQ(json["signatures"].size(), 1u);
-  EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifests"].size(), 1u);
+  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {

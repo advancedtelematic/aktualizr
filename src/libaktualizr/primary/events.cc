@@ -36,6 +36,8 @@ UpdateAvailable::UpdateAvailable(std::vector<Uptane::Target> updates_in) : updat
 
 SendDeviceDataComplete::SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
 
+PutManifestComplete::PutManifestComplete() { variant = "PutManifestComplete"; }
+
 std::string UpdateAvailable::toJson() {
   Json::Value json;
   Json::Value targets;

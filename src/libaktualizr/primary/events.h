@@ -38,6 +38,11 @@ class SendDeviceDataComplete : public BaseEvent {
   explicit SendDeviceDataComplete();
 };
 
+class PutManifestComplete : public BaseEvent {
+ public:
+  explicit PutManifestComplete();
+};
+
 class UpdateAvailable : public BaseEvent {
  public:
   std::vector<Uptane::Target> updates;

@@ -249,7 +249,14 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         reportHwInfo();
         reportInstalledPackages();
         reportNetworkInfo();
+        putManifest();
         *events_channel << std::make_shared<event::SendDeviceDataComplete>();
+      } else if (command->variant == "PutManifest") {
+        if (!putManifest()) {
+          *events_channel << std::make_shared<event::Error>("Could not put manifest.");
+        } else {
+          *events_channel << std::make_shared<event::PutManifestComplete>();
+        }
       } else if (command->variant == "FetchMeta") {
         if (updateMeta()) {
           *events_channel << std::make_shared<event::FetchMetaComplete>();
@@ -298,13 +305,6 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 
         sendImagesToEcus(updates);
         *events_channel << std::make_shared<event::InstallComplete>();
-
-        // Not required for Uptane, but used to send a status code to the
-        // director.
-        if (!putManifest()) {
-          LOG_ERROR << "Could not put manifest";
-          continue;
-        }
 
         // FIXME how to deal with reboot if we have a pending secondary update?
         boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";

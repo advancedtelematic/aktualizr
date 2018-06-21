@@ -43,6 +43,9 @@ TEST(event, RunningMode_full) {
   EXPECT_EQ(command->variant, "UptaneInstall");
   *events_channel << std::make_shared<event::InstallComplete>();
   *commands_channel >> command;
+  EXPECT_EQ(command->variant, "PutManifest");
+  *events_channel << std::make_shared<event::PutManifestComplete>();
+  *commands_channel >> command;
   EXPECT_EQ(command->variant, "FetchMeta");
 
   // Try again but without updates now
@@ -89,6 +92,9 @@ TEST(event, RunningMode_once) {
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "UptaneInstall");
   *events_channel << std::make_shared<event::InstallComplete>();
+  *commands_channel >> command;
+  EXPECT_EQ(command->variant, "PutManifest");
+  *events_channel << std::make_shared<event::PutManifestComplete>();
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "Shutdown");
 }
