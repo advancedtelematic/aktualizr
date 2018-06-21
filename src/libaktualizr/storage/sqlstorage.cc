@@ -41,19 +41,20 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
     return;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM primary_keys;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT count(*) FROM primary_keys;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of keys table: " << db.errmsg();
     return;
   }
+
   const char* req;
-  if (std::stoi(req_response["result"]) != 0) {
+  if (statement.get_result_col_int(0) != 0) {
     req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
   } else {
     req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
   }
-  auto statement = db.prepareStatement<std::string>(req, public_key, private_key);
+
+  statement = db.prepareStatement<std::string>(req, public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set primary keys: " << db.errmsg();
     return;
@@ -72,19 +73,19 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT public FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT public FROM primary_keys LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get public key: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto pub = statement.get_result_col_str(0);
+  if (pub == boost::none) {
     return false;
   }
 
   if (public_key != nullptr) {
-    *public_key = req_response["result"];
+    *public_key = std::move(pub.value());
   }
 
   return true;
@@ -98,19 +99,19 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT private FROM primary_keys LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT private FROM primary_keys LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get private key: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto priv = statement.get_result_col_str(0);
+  if (priv == boost::none) {
     return false;
   }
 
   if (private_key != nullptr) {
-    *private_key = req_response["result"];
+    *private_key = std::move(priv.value());
   }
 
   return true;
@@ -144,19 +145,20 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     return;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
+
   const char* req;
-  if (std::stoi(req_response["result"]) != 0) {
+  if (statement.get_result_col_int(0) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET ca_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(ca_cert) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(ca));
+
+  statement = db.prepareStatement<SQLBlob>(req, SQLBlob(ca));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
@@ -171,19 +173,20 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     return;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
+
   const char* req;
-  if (std::stoi(req_response["result"]) != 0) {
+  if (statement.get_result_col_int(0) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET client_cert = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_cert) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(cert));
+
+  statement = db.prepareStatement<SQLBlob>(req, SQLBlob(cert));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
@@ -198,19 +201,20 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     return;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM tls_creds;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
     return;
   }
+
   const char* req;
-  if (std::stoi(req_response["result"]) != 0) {
+  if (statement.get_result_col_int(0) != 0) {
     req = "UPDATE OR REPLACE tls_creds SET client_pkey = ?;";
   } else {
     req = "INSERT INTO tls_creds(client_pkey) VALUES (?);";
   }
-  auto statement = db.prepareStatement<SQLBlob>(req, SQLBlob(pkey));
+
+  statement = db.prepareStatement<SQLBlob>(req, SQLBlob(pkey));
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
@@ -225,26 +229,31 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
 
-  request = SQLReqId::kGetTable;
-  req_response_table.clear();
-  if (db.exec("SELECT * FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT ca_cert, client_cert, client_pkey FROM tls_creds LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
     return false;
   }
 
-  if (req_response_table.empty()) {
+  std::string ca_v, cert_v, pkey_v;
+  try {
+    ca_v = statement.get_result_col_str(0).value();
+    cert_v = statement.get_result_col_str(1).value();
+    pkey_v = statement.get_result_col_str(2).value();
+  } catch (boost::bad_optional_access) {
     return false;
   }
 
   if (ca != nullptr) {
-    *ca = req_response_table[0]["ca_cert"];
+    *ca = std::move(ca_v);
   }
   if (cert != nullptr) {
-    *cert = req_response_table[0]["client_cert"];
+    *cert = std::move(cert_v);
   }
   if (pkey != nullptr) {
-    *pkey = req_response_table[0]["client_pkey"];
+    *pkey = std::move(pkey_v);
   }
+
   return true;
 }
 
@@ -270,19 +279,19 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT ca_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT ca_cert FROM tls_creds LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto ca_r = statement.get_result_col_str(0);
+  if (ca_r == boost::none) {
     return false;
   }
 
   if (ca != nullptr) {
-    *ca = req_response["result"];
+    *ca = std::move(ca_r.value());
   }
 
   return true;
@@ -296,19 +305,19 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT client_cert FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT client_cert FROM tls_creds LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto cert_r = statement.get_result_col_str(0);
+  if (cert_r == boost::none) {
     return false;
   }
 
   if (cert != nullptr) {
-    *cert = req_response["result"];
+    *cert = std::move(cert_r.value());
   }
 
   return true;
@@ -322,19 +331,20 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT client_pkey FROM tls_creds LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT client_pkey FROM tls_creds LIMIT 1;");
+
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get client_pkey: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto pkey_r = statement.get_result_col_str(0);
+  if (pkey_r == boost::none) {
     return false;
   }
 
   if (pkey != nullptr) {
-    *pkey = req_response["result"];
+    *pkey = std::move(pkey_r.value());
   }
 
   return true;
@@ -378,56 +388,52 @@ bool SQLStorage::loadMetadataCommon(Uptane::RawMetaPack* metadata, const std::st
     return false;
   }
 
-  request = SQLReqId::kGetTable;
-  req_response_table.clear();
-  if (db.exec("SELECT * FROM " + tablename + ";", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement(
+      "SELECT director_root, image_root, director_targets, image_targets, image_timestamp, image_snapshot FROM " +
+      tablename + ";");
+
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) {
+
+  Uptane::RawMetaPack new_metadata;
+  try {
+    new_metadata.director_root = statement.get_result_col_str(0).value();
+    if (new_metadata.director_root.empty()) {
+      return false;
+    }
+
+    new_metadata.image_root = statement.get_result_col_str(1).value();
+    if (new_metadata.image_root.empty()) {
+      return false;
+    }
+
+    new_metadata.director_targets = statement.get_result_col_str(2).value();
+    if (new_metadata.director_targets.empty()) {
+      return false;
+    }
+
+    new_metadata.image_targets = statement.get_result_col_str(3).value();
+    if (new_metadata.image_targets.empty()) {
+      return false;
+    }
+
+    new_metadata.image_timestamp = statement.get_result_col_str(4).value();
+    if (new_metadata.image_timestamp.empty()) {
+      return false;
+    }
+
+    new_metadata.image_snapshot = statement.get_result_col_str(5).value();
+    if (new_metadata.image_snapshot.empty()) {
+      return false;
+    }
+  } catch (boost::bad_optional_access) {
     return false;
   }
 
-  const std::string* data = &req_response_table[0]["director_root"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->director_root = *data;
-  }
-
-  data = &req_response_table[0]["image_root"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->image_root = *data;
-  }
-
-  data = &req_response_table[0]["director_targets"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->director_targets = *data;
-  }
-
-  data = &req_response_table[0]["image_targets"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->image_targets = *data;
-  }
-
-  data = &req_response_table[0]["image_timestamp"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->image_timestamp = *data;
-  }
-
-  data = &req_response_table[0]["image_snapshot"];
-  if (data->empty()) {
-    return false;
-  } else if (metadata != nullptr) {
-    metadata->image_snapshot = *data;
+  if (metadata != nullptr) {
+    *metadata = new_metadata;
   }
 
   return true;
@@ -511,12 +517,15 @@ bool SQLStorage::loadRootCommon(bool director, std::string* root, Uptane::Versio
     LOG_ERROR << "Can't get root meta: " << db.errmsg();
     return false;
   }
-  std::string data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
 
-  if (data.empty()) {
+  auto data = statement.get_result_col_str(0);
+
+  if (data == boost::none || data.value().empty()) {
     return false;
-  } else if (root != nullptr) {
-    *root = std::move(data);
+  }
+
+  if (root != nullptr) {
+    *root = std::move(data.value());
   }
 
   return true;
@@ -559,19 +568,19 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT device_id FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT device_id FROM device_info LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
+  auto did = statement.get_result_col_str(0);
+  if (did == boost::none) {
     return false;
   }
 
   if (device_id != nullptr) {
-    *device_id = req_response["result"];
+    *device_id = std::move(did.value());
   }
 
   return true;
@@ -614,18 +623,13 @@ bool SQLStorage::loadEcuRegistered() {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT is_registered FROM device_info LIMIT 1;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT is_registered FROM device_info LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
 
-  if (req_response.find("result") == req_response.end()) {
-    return false;
-  }
-
-  return std::stoi(req_response["result"]) != 0;
+  return statement.get_result_col_int(0) != 0;
 }
 
 void SQLStorage::clearEcuRegistered() {
@@ -695,22 +699,31 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
     return false;
   }
 
-  request = SQLReqId::kGetTable;
-  req_response_table.clear();
-  if (db.exec("SELECT * FROM ecu_serials ORDER BY is_primary DESC;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT serial, hardware_id FROM ecu_serials ORDER BY is_primary DESC;");
+  int statement_state;
+
+  EcuSerials new_serials;
+  bool empty = true;
+  while ((statement_state = statement.step()) == SQLITE_ROW) {
+    try {
+      new_serials.emplace_back(Uptane::EcuSerial(statement.get_result_col_str(0).value()),
+                               Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()));
+      empty = false;
+    } catch (boost::bad_optional_access) {
+      return false;
+    }
+  }
+
+  if (statement_state != SQLITE_DONE) {
     LOG_ERROR << "Can't get ecu_serials: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) {
-    return false;
+
+  if (serials != nullptr) {
+    *serials = std::move(new_serials);
   }
 
-  std::vector<std::map<std::string, std::string> >::iterator it;
-  for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    serials->push_back({Uptane::EcuSerial((*it)["serial"]), Uptane::HardwareIdentifier((*it)["hardware_id"])});
-  }
-
-  return true;
+  return !empty;
 }
 
 void SQLStorage::clearEcuSerials() {
@@ -769,24 +782,32 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
     return false;
   }
 
-  request = SQLReqId::kGetTable;
-  req_response_table.clear();
-  if (db.exec("SELECT * FROM misconfigured_ecus;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT serial, hardware_id, state FROM misconfigured_ecus;");
+  int statement_state;
+
+  std::vector<MisconfiguredEcu> new_ecus;
+  bool empty = true;
+  while ((statement_state = statement.step()) == SQLITE_ROW) {
+    try {
+      new_ecus.emplace_back(Uptane::EcuSerial(statement.get_result_col_str(0).value()),
+                            Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()),
+                            static_cast<EcuState>(statement.get_result_col_int(2)));
+      empty = false;
+    } catch (boost::bad_optional_access) {
+      return false;
+    }
+  }
+
+  if (statement_state != SQLITE_DONE) {
     LOG_ERROR << "Can't get misconfigured_ecus: " << db.errmsg();
     return false;
   }
-  if (req_response_table.empty()) {
-    return false;
+
+  if (ecus != nullptr) {
+    *ecus = std::move(new_ecus);
   }
 
-  std::vector<std::map<std::string, std::string> >::iterator it;
-  for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    ecus->push_back(MisconfiguredEcu(Uptane::EcuSerial((*it)["serial"]),
-                                     Uptane::HardwareIdentifier((*it)["hardware_id"]),
-                                     static_cast<EcuState>(std::stoi((*it)["state"]))));
-  }
-
-  return true;
+  return !empty;
 }
 
 void SQLStorage::clearMisconfiguredEcus() {
@@ -851,27 +872,43 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
     return current_hash;
   }
 
-  request = SQLReqId::kGetTable;
-  req_response_table.clear();
-  if (db.exec("SELECT * FROM installed_versions;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT name, hash, length, is_current FROM installed_versions;");
+  int statement_state;
+
+  std::vector<Uptane::Target> new_installed_versions;
+  std::string new_hash;
+  while ((statement_state = statement.step()) == SQLITE_ROW) {
+    try {
+      Json::Value installed_version;
+      auto name = statement.get_result_col_str(0).value();
+      auto hash = statement.get_result_col_str(1).value();
+      auto length = statement.get_result_col_int(2);
+      auto is_current = statement.get_result_col_int(3) != 0;
+
+      installed_version["hashes"]["sha256"] = hash;
+      installed_version["length"] = Json::UInt64(length);
+      if (is_current) {
+        new_hash = hash;
+      }
+      std::string filename = name;
+      new_installed_versions.emplace_back(filename, installed_version);
+    } catch (boost::bad_optional_access) {
+      LOG_ERROR << "Incompleted installed version, keeping old one";
+      return current_hash;
+    }
+  }
+
+  if (new_hash != "") {
+    current_hash = new_hash;
+  }
+
+  if (statement_state != SQLITE_DONE) {
     LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
     return current_hash;
   }
-  if (req_response_table.empty()) {
-    return current_hash;
-  }
 
-  std::vector<std::map<std::string, std::string> >::iterator it;
-  for (it = req_response_table.begin(); it != req_response_table.end(); ++it) {
-    Json::Value installed_version;
-    installed_version["hashes"]["sha256"] = (*it)["hash"];
-    installed_version["length"] = Json::UInt64(std::stoll((*it)["length"]));
-    if (std::stoi((*it)["is_current"]) != 0) {
-      current_hash = (*it)["hash"];
-    }
-    std::string filename = (*it)["name"];
-    Uptane::Target target(filename, installed_version);
-    installed_versions->push_back(target);
+  if (installed_versions != nullptr) {
+    *installed_versions = std::move(new_installed_versions);
   }
 
   return current_hash;
@@ -1013,7 +1050,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    sqlite3_int64 row_id = sqlite3_column_int64(statement.get(), 0);
+    auto row_id = statement.get_result_col_int(0);
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
       LOG_ERROR << "Could not open blob: " << db_.errmsg();
@@ -1107,7 +1144,12 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
     return "";
   }
 
-  return std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement.get(), 0))) + ";";
+  auto schema = statement.get_result_col_str(0);
+  if (schema == boost::none) {
+    return "";
+  }
+
+  return schema.value() + ";";
 }
 
 bool SQLStorage::dbMigrate() {
@@ -1152,14 +1194,14 @@ bool SQLStorage::dbInit() {
     return false;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  if (db.exec("SELECT count(*) FROM device_info;", callback, this) != SQLITE_OK) {
+  auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
+
+  if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get number of rows in device_info: " << db.errmsg();
     return false;
   }
 
-  if (std::stoi(req_response["result"]) < 1) {
+  if (statement.get_result_col_int(0) < 1) {
     if (db.exec("INSERT INTO device_info DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
       return false;
@@ -1177,59 +1219,30 @@ DbVersion SQLStorage::getVersion() {
     return DbVersion::kInvalid;
   }
 
-  request = SQLReqId::kGetSimple;
-  req_response.clear();
-  std::string req = std::string("SELECT count(*) FROM sqlite_master WHERE type='table';");
-  if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get tables count: " << db.errmsg();
-    return DbVersion::kInvalid;
-  }
-  if (std::stoi(req_response["result"]) == 0) {
-    return DbVersion::kEmpty;
-  }
-
-  req_response.clear();
-  req = std::string("SELECT version FROM version LIMIT 1;");
-  if (db.exec(req.c_str(), callback, this) != SQLITE_OK) {
-    LOG_ERROR << "Can't get database version: " << db.errmsg();
-    return DbVersion::kInvalid;
-  }
-
   try {
-    return DbVersion(std::stoi(req_response["result"]));
-  } catch (const std::exception&) {
+    auto statement = db.prepareStatement("SELECT count(*) FROM sqlite_master WHERE type='table';");
+    if (statement.step() != SQLITE_ROW) {
+      LOG_ERROR << "Can't get tables count: " << db.errmsg();
+      return DbVersion::kInvalid;
+    }
+
+    if (statement.get_result_col_int(0) == 0) {
+      return DbVersion::kEmpty;
+    }
+
+    statement = db.prepareStatement("SELECT version FROM version LIMIT 1;");
+
+    if (statement.step() != SQLITE_ROW) {
+      LOG_ERROR << "Can't get database version: " << db.errmsg();
+      return DbVersion::kInvalid;
+    }
+
+    try {
+      return DbVersion(statement.get_result_col_int(0));
+    } catch (const std::exception&) {
+      return DbVersion::kInvalid;
+    }
+  } catch (SQLException) {
     return DbVersion::kInvalid;
   }
-}
-
-int SQLStorage::callback(void* instance_, int numcolumns, char** values, char** columns) {
-  auto* instance = static_cast<SQLStorage*>(instance_);
-
-  switch (instance->request) {
-    case SQLReqId::kGetSimple: {
-      (void)numcolumns;
-      (void)columns;
-      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-      if (values[0] != nullptr) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        instance->req_response["result"] = values[0];
-      }
-      break;
-    }
-    case SQLReqId::kGetTable: {
-      std::map<std::string, std::string> row;
-      for (int i = 0; i < numcolumns; ++i) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        if (values[i] != nullptr) {
-          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-          row[columns[i]] = values[i];
-        }
-      }
-      instance->req_response_table.push_back(row);
-      break;
-    }
-    default:
-      return -1;
-  }
-  return 0;
 }
