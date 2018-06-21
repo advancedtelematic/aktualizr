@@ -44,10 +44,6 @@ if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
 endif(BUILD_OPCUA)
 
-if(BUILD_LOAD_TESTS)
-    list(APPEND BOOST_COMPONENTS thread)
-endif(BUILD_LOAD_TESTS)
-
 find_package(PkgConfig REQUIRED)
 find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 find_package(CURL REQUIRED)
