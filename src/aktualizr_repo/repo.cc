@@ -70,20 +70,41 @@ void Repo::generateRepo(const std::string &repo_type) {
   root["roles"]["targets"] = role;
   root["roles"]["timestamp"] = role;
 
-  Json::Value signed_root = signTuf(repo_type, root);
+  std::string signed_root = Utils::jsonToStr(signTuf(repo_type, root));
   Utils::writeFile(repo_dir / "root.json", signed_root);
+  Utils::writeFile(repo_dir / "1.root.json", signed_root);
 
   Json::Value targets;
   targets["_type"] = "Targets";
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  Utils::writeFile(repo_dir / "targets.json", signTuf(repo_type, targets));
+  std::string signed_targets = Utils::jsonToStr(signTuf(repo_type, targets));
+  Utils::writeFile(repo_dir / "targets.json", signed_targets);
+
+  Json::Value snapshot;
+  snapshot["_type"] = "Snaphsot";
+  snapshot["expires"] = expiration_time_;
+  snapshot["version"] = 1;
+  snapshot["meta"]["root.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_root)));
+  snapshot["meta"]["root.json"]["length"] = static_cast<Json::UInt>(signed_root.length());
+  snapshot["meta"]["root.json"]["version"] = 1;
+  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
+  snapshot["meta"]["targets.json"]["version"] = 1;
+  std::string signed_snapshot = Utils::jsonToStr(signTuf(repo_type, snapshot));
+  Utils::writeFile(repo_dir / "snapshot", signed_snapshot);
 
   Json::Value timestamp;
   timestamp["_type"] = "Timestamp";
   timestamp["expires"] = expiration_time_;
   timestamp["version"] = 1;
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
+  timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json", signTuf(repo_type, timestamp));
 }
 
@@ -109,22 +130,50 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
   targets["targets"][target_name]["hashes"]["sha256"] = hash;
   targets["version"] = (targets["version"].asUInt()) + 1;
 
-  Utils::writeFile(repo_dir / "targets.json", signTuf("image", targets));
+  std::string signed_targets = Utils::jsonToStr(signTuf("image", targets));
+  Utils::writeFile(repo_dir / "targets.json", signed_targets);
+
+  Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
+  snapshot["version"] = (snapshot["version"].asUInt()) + 1;
+  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
+  snapshot["meta"]["targets.json"]["version"] = targets["version"].asUInt();
+  std::string signed_snapshot = Utils::jsonToStr(signTuf("image", snapshot));
+  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
+
   Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
   timestamp["version"] = (timestamp["version"].asUInt()) + 1;
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
+  timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
   Utils::writeFile(repo_dir / "timestamp.json", signTuf("image", timestamp));
 }
 
-void Repo::copyTarget(const std::string &target_name) {
+void Repo::addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial) {
   Json::Value image_targets = Utils::parseJSONFile(path_ / "repo/image/targets.json")["signed"];
   if (!image_targets["targets"].isMember(target_name)) {
     throw std::runtime_error("No such " + target_name + " target in the image repository");
   }
   Json::Value director_targets = Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"];
+  if (boost::filesystem::exists(path_ / "repo/director/staging/targets.json")) {
+    director_targets = Utils::parseJSONFile(path_ / "repo/director/staging/targets.json");
+  } else {
+    director_targets = Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"];
+  }
   director_targets["targets"][target_name] = image_targets["targets"][target_name];
-  director_targets["version"] = (director_targets["version"].asUInt()) + 1;
+  director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
+  director_targets["version"] =
+      (Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"]["version"].asUInt()) + 1;
+  Utils::writeFile(path_ / "repo/director/staging/targets.json", director_targets);
+}
+
+void Repo::signTargets() {
   std::string private_key = Utils::readFile(path_ / "keys/director/private.key");
-  Utils::writeFile(path_ / "repo/director/targets.json", signTuf("director", director_targets));
+  Json::Value targets_unsigned = Utils::parseJSONFile(path_ / "repo/director/staging/targets.json");
+  Utils::writeFile(path_ / "repo/director/targets.json", signTuf("director", targets_unsigned));
+  boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
 }
 
 PublicKey Repo::GetPublicKey(const std::string &repo_type) const {

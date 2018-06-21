@@ -12,9 +12,11 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("command", po::value<std::string>(), "generate|image|target")
+    ("command", po::value<std::string>(), "generate|image|addtarget|signtargets")
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<std::string>(), "path to the image")
+    ("hwid", po::value<std::string>(), "target hardware identifier")
+    ("serial", po::value<std::string>(), "target ECU serial")
     ("expires", po::value<std::string>(), "expiration time");
   // clang-format on
 
@@ -47,8 +49,10 @@ int main(int argc, char **argv) {
         repo.generateRepo();
       } else if (command == "image") {
         repo.addImage(vm["filename"].as<std::string>());
-      } else if (command == "target") {
-        repo.copyTarget(vm["filename"].as<std::string>());
+      } else if (command == "addtarget") {
+        repo.addTarget(vm["filename"].as<std::string>(), vm["hwid"].as<std::string>(), vm["serial"].as<std::string>());
+      } else if (command == "signtargets") {
+        repo.signTargets();
       } else {
         std::cout << desc << std::endl;
         exit(EXIT_FAILURE);

@@ -10,7 +10,8 @@ class Repo {
   Repo(boost::filesystem::path path, const std::string &expires);
   void generateRepo();
   void addImage(const boost::filesystem::path &image_path);
-  void copyTarget(const std::string &target_name);
+  void addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial);
+  void signTargets();
 
  private:
   void generateKeys();
