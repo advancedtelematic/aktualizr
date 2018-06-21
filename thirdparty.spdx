@@ -1,56 +1,94 @@
 DocumentNamespace: https://github.com/advancedtelematic/aktualizr/
 DocumentName: SPDX-third_party
 SPDXID: SPDXRef-DOCUMENT
-Creator: Person: Serhiy Stetskovych (patriotyk@gmail.com)
+Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-picojson
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-open62541
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program_options
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-serialization
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-iostreams
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libcurl
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-openssl
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libarchive
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libsodium
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libostree
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-sqlite3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-asn1c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libp11
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-systemd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-dpkg
+
 
 PackageName: googletest
 SPDXID: SPDXRef-googletest
 PackageVersion: 1.8.0
 PackageDownloadLocation: https://github.com/google/googletest/archive/release-1.8.0.zip
 PackageHomePage: https://github.com/google/googletest
-PackageLicenseConcluded: LicenseRef-GoogleLicense
-PackageLicenseDeclared: LicenseRef-GoogleLicense
-PackageLicenseInfoFromFiles: LicenseRef-GoogleLicense
+PackageLicenseConcluded: BSD-3-Clause
+PackageLicenseDeclared: BSD-3-Clause
+PackageLicenseInfoFromFiles: BSD-3-Clause
 PackageCopyrightText: <text>Copyright 2008, Google Inc.
 All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Testing only.</text>
+
 
 PackageName: jsoncpp
 SPDXID: SPDXRef-jsoncpp
-PackageVersion: 0.6.0
+PackageVersion: 1.6.0
 PackageDownloadLocation: https://github.com/open-source-parsers/jsoncpp/archive/1.6.0.zip
 PackageHomePage: https://github.com/open-source-parsers/jsoncpp
-PackageLicenseConcluded: LicenseRef-jsoncpp
-PackageLicenseDeclared: LicenseRef-jsoncpp
-PackageLicenseInfoFromFiles: LicenseRef-jsoncpp
-PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur</text>
+PackageLicenseConcluded: (MIT OR LicenseRef-jsoncpp-public-domain)
+PackageLicenseDeclared: (MIT OR LicenseRef-jsoncpp-public-domain)
+PackageLicenseInfoFromFiles: MIT
+PackageLicenseInfoFromFiles: LicenseRef-jsoncpp-public-domain
+PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur and The JsonCpp Authors</text>
 FilesAnalyzed: false
+
 
 PackageName: picojson
 SPDXID: SPDXRef-picojson
 PackageVersion: 1.3.0
 PackageDownloadLocation: https://github.com/kazuho/picojson/archive/v1.3.0.zip
 PackageHomePage: https://github.com/kazuho/picojson
-PackageLicenseConcluded: LicenseRef-picojson
-PackageLicenseDeclared: LicenseRef-picojson
-PackageLicenseInfoFromFiles: LicenseRef-picojson
+PackageLicenseConcluded: BSD-2-Clause
+PackageLicenseDeclared: BSD-2-Clause
+PackageLicenseInfoFromFiles: BSD-2-Clause
 PackageCopyrightText: <text>Copyright 2009-2010 Cybozu Labs, Inc.
 Copyright 2011-2014 Kazuho Oku</text>
 FilesAnalyzed: false
 
 
-PackageName: boost-system
-SPDXID: SPDXRef-boost-system
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>© Copyright Beman Dawes</text>
+PackageName: HdrHistogram_c
+SPDXID: SPDXRef-HdrHistogram_c
+PackageDownloadLocation: https://github.com/HdrHistogram/HdrHistogram_c/archive/0.9.7.tar.gz
+PackageHomePage: https://github.com/HdrHistogram/HdrHistogram_c
+PackageLicenseConcluded: BSD-2-Clause
+PackageLicenseDeclared: BSD-2-Clause
+PackageLicenseInfoFromFiles: BSD-2-Clause
+PackageCopyrightText: <text>Copyright (c) 2012, 2013, 2014 Gil Tene
+Copyright (c) 2014 Michael Barker
+Copyright (c) 2014 Matt Warren
+All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Testing only.</text>
+
+
+PackageName: open62541
+SPDXID: SPDXRef-open62541
+PackageDownloadLocation: https://github.com/open62541/open62541/archive/0.3-rc2.tar.gz
+PackageHomePage: https://open62541.org/
+PackageLicenseConcluded: MPL-2.0
+PackageLicenseDeclared: MPL-2.0
+PackageLicenseInfoFromFiles: MPL-2.0
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: boost-filesystem
@@ -60,19 +98,7 @@ PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>© Copyright Beman Dawes</text>
-FilesAnalyzed: false
-
-
-PackageName: boost-thread
-SPDXID: SPDXRef-boost-thread
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>Copyright © 2007 -11 Anthony Williams
-Copyright © 2011 -16 Vicente J. Botet Escriba</text>
+PackageCopyrightText: <text>© Copyright Beman Dawes, 2002-2005</text>
 FilesAnalyzed: false
 
 
@@ -98,75 +124,56 @@ PackageCopyrightText: <text>Copyright © 2007-2016 Andrey Semashev</text>
 FilesAnalyzed: false
 
 
-PackageName: boost-regex
-SPDXID: SPDXRef-boost-regex
+PackageName: boost-serialization
+SPDXID: SPDXRef-boost-serialization
 PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
 PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>Copyright © 1998-2013 John Maddock</text>
+PackageCopyrightText: <text>© Copyright Robert Ramey 2002-2004</text>
 FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
-PackageName: boost-chrono
-SPDXID: SPDXRef-boost-chrono
+
+PackageName: boost-iostreams
+SPDXID: SPDXRef-boost-iostreams
 PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
 PackageHomePage: http://www.boost.org/
 PackageLicenseConcluded: BSL-1.0
 PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>Copyright © 2008 Howard Hinnant
-Copyright © 2006, 2008 Beman Dawes
-Copyright © 2009-2013 Vicente J. Botet Escriba</text>
+PackageCopyrightText: <text>© Copyright 2008 CodeRage, LLC
+© Copyright 2004-2007 Jonathan Turkanis</text>
 FilesAnalyzed: false
-
-
-PackageName: boost-date_time
-SPDXID: SPDXRef-boost-date_time
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>Copyright © 2001-2005 CrystalClear Software, Inc</text>
-FilesAnalyzed: false
-
-
-
-PackageName: boost-random
-SPDXID: SPDXRef-boost-random
-PackageDownloadLocation: https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.bz2
-PackageHomePage: http://www.boost.org/
-PackageLicenseConcluded: BSL-1.0
-PackageLicenseDeclared: BSL-1.0
-PackageLicenseInfoFromFiles: BSL-1.0
-PackageCopyrightText: <text>Copyright © 2000-2005 Jens Maurer
-Copyright © 2009, 2010 Steven Watanabe</text>
-FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: libcurl
 SPDXID: SPDXRef-libcurl
 PackageDownloadLocation: https://github.com/curl/curl/archive/master.zip
 PackageHomePage: https://curl.haxx.se
-PackageLicenseConcluded: LicenseRef-curl
-PackageLicenseDeclared: LicenseRef-curl
-PackageLicenseInfoFromFiles: LicenseRef-curl
-PackageCopyrightText: <text>Copyright (c) 1996 - 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.</text>
+PackageLicenseConcluded: curl
+PackageLicenseDeclared: curl
+PackageLicenseInfoFromFiles: curl
+PackageCopyrightText: <text>Copyright (c) 1996 - 2018, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.
+All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: openssl
 SPDXID: SPDXRef-openssl
 PackageDownloadLocation: https://github.com/openssl/openssl/archive/master.zip
 PackageHomePage: https://www.openssl.org/
-PackageLicenseConcluded: LicenseRef-openssl
-PackageLicenseDeclared: LicenseRef-openssl
-PackageLicenseInfoFromFiles: LicenseRef-openssl
-PackageCopyrightText: <text>Copyright (c) 1998-2016 The OpenSSL Project
+PackageLicenseConcluded: OpenSSL
+PackageLicenseDeclared: OpenSSL
+PackageLicenseInfoFromFiles: OpenSSL
+PackageCopyrightText: <text>Copyright (c) 1998-2018 The OpenSSL Project
 Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
 All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libarchive
@@ -180,6 +187,8 @@ PackageCopyrightText: <text>The libarchive distribution as a whole is Copyright 
 and is subject to the copyright notice reproduced at the bottom of
 this file.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
+
 
 PackageName: libsodium
 SPDXID: SPDXRef-libsodium
@@ -188,50 +197,86 @@ PackageHomePage: https://download.libsodium.org/doc/
 PackageLicenseConcluded: ISC
 PackageLicenseDeclared: ISC
 PackageLicenseInfoFromFiles: ISC
-PackageCopyrightText: <text>Copyright (c) 2013-2017
+PackageCopyrightText: <text>Copyright (c) 2013-2018
 Frank Denis <j at pureftpd dot org></text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
-PackageName: ostree
-SPDXID: SPDXRef-ostree
+PackageName: libostree
+SPDXID: SPDXRef-libostree
 PackageDownloadLocation: https://github.com/ostreedev/ostree/archive/master.zip
 PackageHomePage: https://ostree.readthedocs.io/en/latest/
-PackageLicenseConcluded: GPL-2.0+
-PackageLicenseDeclared: GPL-2.0+
-PackageLicenseInfoFromFiles: GPL-2.0+
-PackageCopyrightText: <text>Copyright (C) 1991 Free Software Foundation, Inc.</text>
+PackageLicenseConcluded: LGPL-2.0-or-later
+PackageLicenseDeclared: LGPL-2.0-or-later
+PackageLicenseInfoFromFiles: LGPL-2.0-or-later
+PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
-LicenseID: LicenseRef-GoogleLicense
-ExtractedText: <text>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
+PackageName: sqlite3
+SPDXID: SPDXRef-sqlite3
+PackageDownloadLocation: http://www.sqlite.org/2018/sqlite-autoconf-3230100.tar.gz
+PackageHomePage: https://www.sqlite.org/
+PackageLicenseConcluded: LicenseRef-sqlite-public-domain
+PackageLicenseDeclared: LicenseRef-sqlite-public-domain
+PackageLicenseInfoFromFiles: LicenseRef-sqlite-public-domain
+PackageCopyrightText: <text>SQLite is in the Public Domain</text>
+FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
-    * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-    * Neither the name of Google Inc. nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</text>
+PackageName: asn1c
+SPDXID: SPDXRef-asn1c
+PackageDownloadLocation: https://github.com/vlm/asn1c/archive/v0.9.28.tar.gz
+PackageHomePage: http://lionet.info/asn1c/
+PackageLicenseConcluded: BSD-2-Clause
+PackageLicenseDeclared: BSD-2-Clause
+PackageLicenseInfoFromFiles: BSD-2-Clause
+PackageCopyrightText: <text>Copyright (c) 2003-2017 Lev Walkin <vlm@lionet.info> and contributors.</text>
+FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
-LicenseID: LicenseRef-jsoncpp
+
+PackageName: libp11
+SPDXID: SPDXRef-libp11
+PackageDownloadLocation: https://github.com/OpenSC/libp11/archive/libp11-0.4.7.tar.gz
+PackageHomePage: https://github.com/OpenSC/libp11
+PackageLicenseConcluded: LGPL-2.1-or-later
+PackageLicenseDeclared: LGPL-2.1-or-later
+PackageLicenseInfoFromFiles: LGPL-2.1-or-later
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
+
+
+PackageName: dpkg
+SPDXID: SPDXRef-dpkg
+PackageDownloadLocation: http://http.debian.net/debian/pool/main/d/dpkg/dpkg_1.19.0.5.tar.xz
+PackageHomePage: https://packages.debian.org/source/sid/dpkg
+PackageLicenseConcluded: GPL-2.0-or-later
+PackageLicenseDeclared: GPL-2.0-or-later
+PackageLicenseInfoFromFiles: GPL-2.0-or-later
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
+
+
+PackageName: systemd
+SPDXID: SPDXRef-systemd
+PackageDownloadLocation: https://github.com/systemd/systemd/archive/v238.tar.gz
+PackageHomePage: http://www.freedesktop.org/wiki/Software/systemd
+PackageLicenseConcluded: (GPL-2.0-only AND LGPL-2.1-only)
+PackageLicenseDeclared: (GPL-2.0-only AND LGPL-2.1-only)
+PackageLicenseInfoFromFiles: GPL-2.0-only
+PackageLicenseInfoFromFiles: LGPL-2.1-only
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
+
+
+LicenseID: LicenseRef-jsoncpp-public-domain
 ExtractedText: <text>The JsonCpp library's source code, including accompanying documentation,
 tests and demonstration applications, are licensed under the following
 conditions...
@@ -247,213 +292,8 @@ released under the terms of the MIT License (see below).
 In jurisdictions which recognize Public Domain property, the user of this
 software may choose to accept it either as 1) Public Domain, 2) under the
 conditions of the MIT License (see below), or 3) under the terms of dual
-Public Domain/MIT License conditions described here, as they choose.
+Public Domain/MIT License conditions described here, as they choose.</text>
 
-The MIT License is about as close to Public Domain as a license can get, and is
-described in clear, concise terms at:
-
-   http://en.wikipedia.org/wiki/MIT_License
-
-The full text of the MIT License follows:
-
-========================================================================
-Copyright (c) 2007-2010 Baptiste Lepilleur
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use, copy,
-modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-========================================================================
-(END LICENSE TEXT)
-
-The MIT license is compatible with both the GPL and commercial
-software, affording one all of the rights of Public Domain with the
-minor nuisance of being required to keep the above copyright notice
-and license text in the source code. Note also that by accepting the
-Public Domain "license" you can re-license your copy using whatever
-license you like.</text>
-
-
-LicenseID: LicenseRef-picojson
-ExtractedText: <text>Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.</text>
-
-
-
-LicenseID: LicenseRef-curl
-ExtractedText: <text>COPYRIGHT AND PERMISSION NOTICE
-
-Copyright (c) 1996 - 2017, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.
-
-All rights reserved.
-
-Permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of a copyright holder shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization of the copyright holder.</text>
-
-
-LicenseID: LicenseRef-openssl
-ExtractedText: <text>
-  LICENSE ISSUES
-  ==============
-
-  The OpenSSL toolkit stays under a double license, i.e. both the conditions of
-  the OpenSSL License and the original SSLeay license apply to the toolkit.
-  See below for the actual license texts.
-
-  OpenSSL License
-  ---------------
-
-/* ====================================================================
- * Copyright (c) 1998-2017 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
-
- Original SSLeay License
- -----------------------
-
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
- */
-</text>
 
 LicenseID: LicenseRef-libarchive
 ExtractedText: <text>The libarchive distribution as a whole is Copyright by Tim Kientzle
@@ -515,3 +355,19 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</text>
+
+
+LicenseID: LicenseRef-sqlite-public-domain
+ExtractedText: <text>SQLite Is Public Domain
+
+All of the code and documentation in SQLite has been dedicated to the public domain by the authors. All code authors, and representatives of the companies they work for, have signed affidavits dedicating their contributions to the public domain and originals of those signed affidavits are stored in a firesafe at the main offices of Hwaci. Anyone is free to copy, modify, publish, use, compile, sell, or distribute the original SQLite code, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.
+
+The previous paragraph applies to the deliverable code and documentation in SQLite - those parts of the SQLite library that you actually bundle and ship with a larger application. Some scripts used as part of the build process (for example the "configure" scripts generated by autoconf) might fall under other open-source licenses. Nothing from these build scripts ever reaches the final deliverable SQLite library, however, and so the licenses associated with those scripts should not be a factor in assessing your rights to copy and use the SQLite library.
+
+All of the deliverable code in SQLite has been written from scratch. No code has been taken from other projects or from the open internet. Every line of code can be traced back to its original author, and all of those authors have public domain dedications on file. So the SQLite code base is clean and is uncontaminated with licensed code from other projects.
+Open-Source, not Open-Contribution
+
+SQLite is open-source, meaning that you can make as many copies of it as you want and do whatever you want with those copies, without limitation. But SQLite is not open-contribution. In order to keep SQLite in the public domain and ensure that the code does not become contaminated with proprietary or licensed content, the project does not accept patches from unknown persons.
+
+All of the code in SQLite is original, having been written specifically for use by SQLite. No code has been copied from unknown sources on the internet.
+</text>

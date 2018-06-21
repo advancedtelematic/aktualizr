@@ -40,11 +40,13 @@ This client, and the https://github.com/advancedtelematic/rvi_sota_server[GENIVI
 
 The following debian packages are used in the project:
 
-* asn1c (when building tests)
+* asn1c
 * build-essential
 * clang (optional)
+* clang-check-3.8 (optional)
 * clang-format-3.8 (optional)
-* cmake (>= 3.5.1)
+* clang-tidy-3.8 (optional)
+* cmake (>= 3.5)
 * curl (>= 7.47)
 * doxygen (when building additional documentation)
 * graphviz (when building additional documentation)
@@ -54,7 +56,8 @@ The following debian packages are used in the project:
 * libboost-filesystem-dev (>= 1.58.0)
 * libboost-log-dev (>= 1.58.0)
 * libboost-program-options-dev (>= 1.58.0)
-* libboost-system-dev (>= 1.58.0)
+* libboost-serialization-dev (>= 1.58.0, when building with OPCUA support)
+* libboost-iostreams-dev (>= 1.58.0, when building with OPCUA support)
 * libcurl4-openssl-dev (>= 7.47)
 * libdpkg-dev (when building with Debian packaging support)
 * libostree-dev (>= 2017.7, when building with OSTree support)
@@ -65,7 +68,6 @@ The following debian packages are used in the project:
 * libsqlite3-dev
 * libssl-dev
 * libsystemd-dev (when building with systemd support for secondaries)
-* libyaml-cpp-dev (>=0.5.2)
 * python3-dev (when building tests)
 * python3-openssl (when building tests)
 * python3-venv (when building tests)
