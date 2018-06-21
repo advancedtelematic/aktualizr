@@ -5,6 +5,23 @@ Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-picojson
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-open62541
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-filesystem
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program_options
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-log
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-serialization
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-iostreams
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libcurl
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-openssl
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libarchive
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libsodium
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libostree
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-sqlite3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-asn1c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-libp11
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-systemd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-dpkg
 
 
 PackageName: googletest
@@ -18,16 +35,18 @@ PackageLicenseInfoFromFiles: BSD-3-Clause
 PackageCopyrightText: <text>Copyright 2008, Google Inc.
 All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Testing only.</text>
 
 
 PackageName: jsoncpp
 SPDXID: SPDXRef-jsoncpp
-PackageVersion: 0.6.0
+PackageVersion: 1.6.0
 PackageDownloadLocation: https://github.com/open-source-parsers/jsoncpp/archive/1.6.0.zip
 PackageHomePage: https://github.com/open-source-parsers/jsoncpp
-PackageLicenseConcluded: LicenseRef-jsoncpp
-PackageLicenseDeclared: LicenseRef-jsoncpp
-PackageLicenseInfoFromFiles: LicenseRef-jsoncpp
+PackageLicenseConcluded: (MIT OR LicenseRef-jsoncpp-public-domain)
+PackageLicenseDeclared: (MIT OR LicenseRef-jsoncpp-public-domain)
+PackageLicenseInfoFromFiles: MIT
+PackageLicenseInfoFromFiles: LicenseRef-jsoncpp-public-domain
 PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur and The JsonCpp Authors</text>
 FilesAnalyzed: false
 
@@ -43,6 +62,33 @@ PackageLicenseInfoFromFiles: BSD-2-Clause
 PackageCopyrightText: <text>Copyright 2009-2010 Cybozu Labs, Inc.
 Copyright 2011-2014 Kazuho Oku</text>
 FilesAnalyzed: false
+
+
+PackageName: HdrHistogram_c
+SPDXID: SPDXRef-HdrHistogram_c
+PackageDownloadLocation: https://github.com/HdrHistogram/HdrHistogram_c/archive/0.9.7.tar.gz
+PackageHomePage: https://github.com/HdrHistogram/HdrHistogram_c
+PackageLicenseConcluded: BSD-2-Clause
+PackageLicenseDeclared: BSD-2-Clause
+PackageLicenseInfoFromFiles: BSD-2-Clause
+PackageCopyrightText: <text>Copyright (c) 2012, 2013, 2014 Gil Tene
+Copyright (c) 2014 Michael Barker
+Copyright (c) 2014 Matt Warren
+All rights reserved.</text>
+FilesAnalyzed: false
+PackageComment: <text>Testing only.</text>
+
+
+PackageName: open62541
+SPDXID: SPDXRef-open62541
+PackageDownloadLocation: https://github.com/open62541/open62541/archive/0.3-rc2.tar.gz
+PackageHomePage: https://open62541.org/
+PackageLicenseConcluded: MPL-2.0
+PackageLicenseDeclared: MPL-2.0
+PackageLicenseInfoFromFiles: MPL-2.0
+PackageCopyrightText: <text>NONE</text>
+FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: boost-filesystem
@@ -87,6 +133,7 @@ PackageLicenseDeclared: BSL-1.0
 PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>© Copyright Robert Ramey 2002-2004</text>
 FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: boost-iostreams
@@ -99,6 +146,7 @@ PackageLicenseInfoFromFiles: BSL-1.0
 PackageCopyrightText: <text>© Copyright 2008 CodeRage, LLC
 © Copyright 2004-2007 Jonathan Turkanis</text>
 FilesAnalyzed: false
+PackageComment: <text>OPCUA only.</text>
 
 
 PackageName: libcurl
@@ -111,6 +159,7 @@ PackageLicenseInfoFromFiles: curl
 PackageCopyrightText: <text>Copyright (c) 1996 - 2018, Daniel Stenberg, daniel@haxx.se, and many contributors, see the THANKS file.
 All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: openssl
@@ -124,6 +173,7 @@ PackageCopyrightText: <text>Copyright (c) 1998-2018 The OpenSSL Project
 Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
 All rights reserved.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libarchive
@@ -137,6 +187,7 @@ PackageCopyrightText: <text>The libarchive distribution as a whole is Copyright 
 and is subject to the copyright notice reproduced at the bottom of
 this file.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libsodium
@@ -149,6 +200,7 @@ PackageLicenseInfoFromFiles: ISC
 PackageCopyrightText: <text>Copyright (c) 2013-2018
 Frank Denis <j at pureftpd dot org></text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libostree
@@ -160,6 +212,7 @@ PackageLicenseDeclared: LGPL-2.0-or-later
 PackageLicenseInfoFromFiles: LGPL-2.0-or-later
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: sqlite3
@@ -171,6 +224,7 @@ PackageLicenseDeclared: LicenseRef-sqlite-public-domain
 PackageLicenseInfoFromFiles: LicenseRef-sqlite-public-domain
 PackageCopyrightText: <text>SQLite is in the Public Domain</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: asn1c
@@ -182,6 +236,7 @@ PackageLicenseDeclared: BSD-2-Clause
 PackageLicenseInfoFromFiles: BSD-2-Clause
 PackageCopyrightText: <text>Copyright (c) 2003-2017 Lev Walkin <vlm@lionet.info> and contributors.</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: libp11
@@ -193,6 +248,7 @@ PackageLicenseDeclared: LGPL-2.1-or-later
 PackageLicenseInfoFromFiles: LGPL-2.1-or-later
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: dpkg
@@ -204,6 +260,7 @@ PackageLicenseDeclared: GPL-2.0-or-later
 PackageLicenseInfoFromFiles: GPL-2.0-or-later
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
 PackageName: systemd
@@ -216,9 +273,10 @@ PackageLicenseInfoFromFiles: GPL-2.0-only
 PackageLicenseInfoFromFiles: LGPL-2.1-only
 PackageCopyrightText: <text>NONE</text>
 FilesAnalyzed: false
+PackageComment: <text>Dynamically linked.</text>
 
 
-LicenseID: LicenseRef-jsoncpp
+LicenseID: LicenseRef-jsoncpp-public-domain
 ExtractedText: <text>The JsonCpp library's source code, including accompanying documentation,
 tests and demonstration applications, are licensed under the following
 conditions...
@@ -234,46 +292,7 @@ released under the terms of the MIT License (see below).
 In jurisdictions which recognize Public Domain property, the user of this
 software may choose to accept it either as 1) Public Domain, 2) under the
 conditions of the MIT License (see below), or 3) under the terms of dual
-Public Domain/MIT License conditions described here, as they choose.
-
-The MIT License is about as close to Public Domain as a license can get, and is
-described in clear, concise terms at:
-
-   http://en.wikipedia.org/wiki/MIT_License
-
-The full text of the MIT License follows:
-
-========================================================================
-Copyright (c) 2007-2010 Baptiste Lepilleur
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use, copy,
-modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-========================================================================
-(END LICENSE TEXT)
-
-The MIT license is compatible with both the GPL and commercial
-software, affording one all of the rights of Public Domain with the
-minor nuisance of being required to keep the above copyright notice
-and license text in the source code. Note also that by accepting the
-Public Domain "license" you can re-license your copy using whatever
-license you like.</text>
+Public Domain/MIT License conditions described here, as they choose.</text>
 
 
 LicenseID: LicenseRef-libarchive
