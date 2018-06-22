@@ -61,7 +61,7 @@ void Repo::generateRepo(const std::string &repo_type) {
   Json::Value root;
   root["_type"] = "Root";
   root["expires"] = expiration_time_;
-  root["keys"].append(public_key.ToUptane());
+  root["keys"][public_key.KeyId()] = public_key.ToUptane();
   Json::Value role;
   role["keyids"].append(public_key.KeyId());
   role["threshold"] = 1;
@@ -83,7 +83,7 @@ void Repo::generateRepo(const std::string &repo_type) {
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 
   Json::Value snapshot;
-  snapshot["_type"] = "Snaphsot";
+  snapshot["_type"] = "Snapshot";
   snapshot["expires"] = expiration_time_;
   snapshot["version"] = 1;
   snapshot["meta"]["root.json"]["hashes"]["sha256"] =
@@ -95,7 +95,7 @@ void Repo::generateRepo(const std::string &repo_type) {
   snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = 1;
   std::string signed_snapshot = Utils::jsonToStr(signTuf(repo_type, snapshot));
-  Utils::writeFile(repo_dir / "snapshot", signed_snapshot);
+  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
 
   Json::Value timestamp;
   timestamp["_type"] = "Timestamp";
