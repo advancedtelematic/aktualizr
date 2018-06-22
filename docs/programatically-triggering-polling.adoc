@@ -23,7 +23,7 @@ With the background service disabled, trigger an update cycle by running the fol
 
 == Separately running individual update stages
 
-It is sometimes necessary to download an update when the is network connectivity then perform the installation later, without relying on the network. Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.
+It is sometimes necessary to download an update when there is network connectivity then perform the installation later, without relying on the network. Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.
 
 To use this mode, follow the same instruction above to disable the aktualizr systemd service, then instead of running `aktualizr --running-mode=once`, do the following:
 
