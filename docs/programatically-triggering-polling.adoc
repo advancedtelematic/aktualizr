@@ -1,12 +1,12 @@
-= Programatically Triggering Polling
+= Selectively triggering aktualizr
 
 Aktualizr normally runs as a systemd service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
 
-It is also possible to trigger the update cycle manually. This is done by stopping the systemd service and running aktualizr with the `--running-mode=once` option or by setting `running_mode = once` in the `[uptane]` configuration section.
+It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option (or by setting `running_mode` in the `[uptane]` configuration section).
 
-When disabling polling via a configuration file fragment, be warned that the default systemd service file shipped with Aktualizr will attempt to automatically restart the service when it exits.
-
-Please note that the following interface may change significantly in the future, possibly to a socket or D-BUS API.
+[NOTE]
+====
+To selectively trigger aktualizr, you should disable the systemd service; a continuously-running aktualizr will interfere with the manual triggering.
 
 To run the update cycle manually, first stop and disable the aktualizr background service:
 
@@ -15,45 +15,46 @@ To run the update cycle manually, first stop and disable the aktualizr backgroun
 Assuming aktualizr is being built using Yocto and meta-updater, the systemd service can also be disabled by default by adding the following to `local.conf`:
 
     SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
+====
 
-With the background service disabled, trigger an update cycle by running the following command:
+WARNING: This interface may change in the future, possibly to a socket- or dbus-based system.
+
+== Triggering an entire update cycle
+
+An update cycle consists of:
+
+. Polling the server for updates and downloading (and verifying) update metadata
+. Downloading (and verifying) any update binaries available
+. Installing the update
+. Reporting the install results
+
+To trigger the whole cycle, use
 
     aktualizr --running-mode=once
 
+== Triggering individual update stages
 
-== Separately running individual update stages
+It might not be desirable to always trigger a complete update cycle. For example, you may want to check for updates and download them, but get user permission before installing. Or, you may want to download an update when there is network connectivity then perform the installation later, without relying on the network. (Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.)
 
-It is sometimes necessary to download an update when there is network connectivity then perform the installation later, without relying on the network. Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.
-
-To use this mode, follow the same instruction above to disable the aktualizr systemd service, then instead of running `aktualizr --running-mode=once`, do the following:
+=== Triggering an update check
 
 Fetch the Uptane metadata:
 
     aktualizr --running-mode=check
 
+=== Downloading an available update
+
 Download an update:
 
     aktualizr --running-mode=download
 
-After this point the installation can proceed without network connectivity. If you are using a hardware device, unplug the cable. Under Qemu (for example using the  `meta-updater/scripts/run-qemu-ota --no-gui` script), the following commands on the Qemu console can be used to disable the network:
-
-    (qemu) info network
-    hub 0
-    \ hub0port1: e1000.0: index=0,type=nic,model=e1000,macaddr=ca:fe:6a:ee:98:fa
-    \ hub0port0: user.0: index=0,type=user,net=10.0.2.0,restrict=off
-    (qemu) set_link user.0 off
-    (qemu) set_link e1000.0 off
-
-Now install the update and reboot:
+=== Installing downloaded update(s)
 
     aktualizr --running-mode=install
-    reboot
 
-Now renable the network:
+=== Reporting installation results
 
-    (qemu) set_link user.0 on
-    (qemu) set_link e1000.0 on
-
-And report the update results:
+Installation reports are sent when aktualizr polls the server for updates, so the `check` running-mode should be used again after installing:
 
     aktualizr --running-mode=check
+
