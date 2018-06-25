@@ -1,0 +1,60 @@
+= Selectively triggering aktualizr
+
+Aktualizr normally runs as a systemd service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
+
+It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option (or by setting `running_mode` in the `[uptane]` configuration section).
+
+[NOTE]
+====
+To selectively trigger aktualizr, you should disable the systemd service; a continuously-running aktualizr will interfere with the manual triggering.
+
+To run the update cycle manually, first stop and disable the aktualizr background service:
+
+    systemctl stop aktualizr && systemctl disable aktualizr
+
+Assuming aktualizr is being built using Yocto and meta-updater, the systemd service can also be disabled by default by adding the following to `local.conf`:
+
+    SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
+====
+
+WARNING: This interface may change in the future, possibly to a socket- or dbus-based system.
+
+== Triggering an entire update cycle
+
+An update cycle consists of:
+
+. Polling the server for updates and downloading (and verifying) update metadata
+. Downloading (and verifying) any update binaries available
+. Installing the update
+. Reporting the install results
+
+To trigger the whole cycle, use
+
+    aktualizr --running-mode=once
+
+== Triggering individual update stages
+
+It might not be desirable to always trigger a complete update cycle. For example, you may want to check for updates and download them, but get user permission before installing. Or, you may want to download an update when there is network connectivity then perform the installation later, without relying on the network. (Note that aktualizr is always _safe_ against network drops. The worst that can happen if the network becomes unavailable is that the update will fail and need to be retried later.)
+
+=== Triggering an update check
+
+Fetch the Uptane metadata:
+
+    aktualizr --running-mode=check
+
+=== Downloading an available update
+
+Download an update:
+
+    aktualizr --running-mode=download
+
+=== Installing downloaded update(s)
+
+    aktualizr --running-mode=install
+
+=== Reporting installation results
+
+Installation reports are sent when aktualizr polls the server for updates, so the `check` running-mode should be used again after installing:
+
+    aktualizr --running-mode=check
+
