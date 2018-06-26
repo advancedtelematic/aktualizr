@@ -14,6 +14,11 @@
 
 #include "crypto/openssl_compat.h"
 
+struct WriteStringArg {
+  std::string out;
+  int64_t limit{0};
+};
+
 /*****************************************************************************/
 /**
  * \par Description:
@@ -26,7 +31,13 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   assert(contents);
   assert(userp);
   // append the writeback data to the provided string
-  (static_cast<std::string*>(userp))->append(static_cast<char*>(contents), size * nmemb);
+  auto* arg = static_cast<WriteStringArg*>(userp);
+  if (arg->limit > 0) {
+    if (arg->out.length() + size * nmemb > arg->limit) {
+      return 0;
+    }
+  }
+  (static_cast<WriteStringArg*>(userp))->out.append(static_cast<char*>(contents), size * nmemb);
 
   // return size of written data
   return size * nmemb;
@@ -80,14 +91,21 @@ HttpClient::~HttpClient() {
   curl_easy_cleanup(curl);
 }
 
-HttpResponse HttpClient::get(const std::string& url) {
+HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+  if (maxsize >= 0) {
+    // it will only take effect if the server declares the size in advance,
+    //    writeString callback takes care of the other case
+    curl_easy_setopt(curl, CURLOPT_MAXFILESIZE_LARGE, maxsize);
+  }
+  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   LOG_DEBUG << "GET " << url;
-  return perform(curl, RETRY_TIMES);
+  return perform(curl, RETRY_TIMES, maxsize);
 }
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
@@ -137,7 +155,7 @@ HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
   std::string data_str = Json::FastWriter().write(data);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data_str.c_str());
   LOG_TRACE << "post request body:" << data;
-  return perform(curl, RETRY_TIMES);
+  return perform(curl, RETRY_TIMES, HttpInterface::kPostRespLimit);
 }
 
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
@@ -158,17 +176,18 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
   curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
   curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOG_TRACE << "put request body:" << data;
-  HttpResponse result = perform(curl_put, RETRY_TIMES);
+  HttpResponse result = perform(curl_put, RETRY_TIMES, HttpInterface::kPutRespLimit);
   curl_easy_cleanup(curl_put);
   return result;
 }
 
-HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
-  std::string response_str;
-  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response_str);
+HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t size_limit) {
+  WriteStringArg response_arg;
+  response_arg.limit = size_limit;
+  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response_arg);
   CURLcode result = curl_easy_perform(curl_handler);
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
-  HttpResponse response(response_str, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+  HttpResponse response(response_arg.out, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
     std::ostringstream error_message;
     error_message << "curl error " << response.curl_code << " (http code " << response.http_status_code
@@ -176,7 +195,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times) {
     LOG_ERROR << error_message.str();
     if (retry_times != 0) {
       sleep(1);
-      response = perform(curl_handler, --retry_times);
+      response = perform(curl_handler, --retry_times, size_limit);
     }
   }
   LOG_TRACE << "response: " << response.body;
@@ -200,6 +219,8 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);
   curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, userp);
+  curl_easy_setopt(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curl_easy_setopt(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
 
   CURLcode result = curl_easy_perform(curl_download);
   curl_easy_getinfo(curl_download, CURLINFO_RESPONSE_CODE, &http_code);

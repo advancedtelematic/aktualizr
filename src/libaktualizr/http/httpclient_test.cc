@@ -17,15 +17,32 @@ TEST(CopyConstructorTest, copied) {
   HttpClient http;
   HttpClient http_copy(http);
   std::string path = "/path/1/2/3";
-  Json::Value resp = http_copy.get(server + path).getJson();
+  Json::Value resp = http_copy.get(server + path, HttpInterface::kNoLimit).getJson();
   EXPECT_EQ(resp["path"].asString(), path);
 }
 
 TEST(GetTest, get_performed) {
   HttpClient http;
   std::string path = "/path/1/2/3";
-  Json::Value response = http.get(server + path).getJson();
+  Json::Value response = http.get(server + path, HttpInterface::kNoLimit).getJson();
   EXPECT_EQ(response["path"].asString(), path);
+}
+
+TEST(GetTest, download_size_limit) {
+  HttpClient http;
+  std::string path = "/large_file";
+  HttpResponse resp = http.get(server + path, 1024);
+  std::cout << "RESP SIZE " << resp.body.length() << std::endl;
+  EXPECT_EQ(resp.curl_code, CURLE_WRITE_ERROR);
+}
+
+TEST(GetTest, download_speed_limit) {
+  HttpClient http;
+  std::string path = "/slow_file";
+
+  http.overrideSpeedLimitParams(3, 5000);
+  HttpResponse resp = http.get(server + path, HttpInterface::kNoLimit);
+  EXPECT_EQ(resp.curl_code, CURLE_OPERATION_TIMEDOUT);
 }
 
 TEST(PostTest, post_performed) {

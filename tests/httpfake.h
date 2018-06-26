@@ -40,7 +40,9 @@ class HttpFake : public HttpInterface {
     (void)pkey_source;
   }
 
-  HttpResponse get(const std::string &url) {
+  HttpResponse get(const std::string &url, int64_t maxsize) {
+    (void)maxsize;
+
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
       boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());

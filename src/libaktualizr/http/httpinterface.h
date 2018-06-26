@@ -29,13 +29,16 @@ class HttpInterface {
  public:
   HttpInterface() = default;
   virtual ~HttpInterface() = default;
-  virtual HttpResponse get(const std::string &url) = 0;
+  virtual HttpResponse get(const std::string &url, int64_t maxsize) = 0;
   virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
   virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) = 0;
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
+  static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data
+  static constexpr int64_t kPostRespLimit = 64 * 1024;
+  static constexpr int64_t kPutRespLimit = 64 * 1024;
 };
 
 #endif  // HTTPINTERFACE_H_

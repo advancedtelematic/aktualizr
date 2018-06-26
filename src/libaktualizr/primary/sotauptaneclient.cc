@@ -202,8 +202,8 @@ bool SotaUptaneClient::updateDirectorMeta() {
         return false;
       }
     } else {
-      if (!uptane_fetcher.fetchRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(),
-                                    Uptane::Version(1))) {
+      if (!uptane_fetcher.fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                    Uptane::Role::Root(), Uptane::Version(1))) {
         return false;
       }
       if (!director_repo.initRoot(director_root)) {
@@ -217,15 +217,16 @@ bool SotaUptaneClient::updateDirectorMeta() {
   // Update Director Root Metadata
   {
     std::string director_root;
-    if (!uptane_fetcher.fetchLatestRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
+    if (!uptane_fetcher.fetchLatestRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                        Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_root);
     int local_version = director_repo.rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!uptane_fetcher.fetchRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(),
-                                    Uptane::Version(version))) {
+      if (!uptane_fetcher.fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                    Uptane::Role::Root(), Uptane::Version(version))) {
         return false;
       }
 
@@ -246,7 +247,8 @@ bool SotaUptaneClient::updateDirectorMeta() {
   {
     std::string director_targets;
 
-    if (!uptane_fetcher.fetchLatestRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+    if (!uptane_fetcher.fetchLatestRole(&director_targets, Uptane::kMaxDirectorTargetsSize,
+                                        Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_targets);
@@ -290,8 +292,8 @@ bool SotaUptaneClient::updateImagesMeta() {
         return false;
       }
     } else {
-      if (!uptane_fetcher.fetchRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(),
-                                    Uptane::Version(1))) {
+      if (!uptane_fetcher.fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                    Uptane::Role::Root(), Uptane::Version(1))) {
         return false;
       }
       if (!images_repo.initRoot(images_root)) {
@@ -305,15 +307,16 @@ bool SotaUptaneClient::updateImagesMeta() {
   // Update Image Roots Metadata
   {
     std::string images_root;
-    if (!uptane_fetcher.fetchLatestRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                        Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_root);
     int local_version = images_repo.rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!uptane_fetcher.fetchRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(),
-                                    Uptane::Version(version))) {
+      if (!uptane_fetcher.fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                    Uptane::Role::Root(), Uptane::Version(version))) {
         return false;
       }
       if (!images_repo.verifyRoot(images_root)) {
@@ -334,7 +337,8 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_timestamp;
 
-    if (!uptane_fetcher.fetchLatestRole(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_timestamp, Uptane::kMaxTimestampSize, Uptane::RepositoryType::Images,
+                                        Uptane::Role::Timestamp())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_timestamp);
@@ -368,7 +372,9 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_snapshot;
 
-    if (!uptane_fetcher.fetchLatestRole(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
+    int64_t snapshot_size = (images_repo.snapshotSize() > 0) ? images_repo.snapshotSize() : Uptane::kMaxSnapshotSize;
+    if (!uptane_fetcher.fetchLatestRole(&images_snapshot, snapshot_size, Uptane::RepositoryType::Images,
+                                        Uptane::Role::Snapshot())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_snapshot);
@@ -404,7 +410,9 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_targets;
 
-    if (!uptane_fetcher.fetchLatestRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
+    int64_t targets_size = (images_repo.targetsSize() > 0) ? images_repo.targetsSize() : Uptane::kMaxImagesTargetsSize;
+    if (!uptane_fetcher.fetchLatestRole(&images_targets, targets_size, Uptane::RepositoryType::Images,
+                                        Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_targets);
@@ -738,7 +746,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
         LOG_WARNING << "Couldn't find root meta in the storage, trying remote repo";
-        if (!uptane_fetcher.fetchRole(&root, repo, Uptane::Role::Root(), Uptane::Version(v))) {
+        if (!uptane_fetcher.fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
           // TODO: looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next secondary";
           return;

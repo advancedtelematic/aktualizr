@@ -230,7 +230,7 @@ class Target {
   std::string type_;
   std::map<EcuSerial, HardwareIdentifier> ecus_;
   std::vector<Hash> hashes_;
-  int64_t length_;
+  int64_t length_{0};
 };
 
 std::ostream &operator<<(std::ostream &os, const Target &t);

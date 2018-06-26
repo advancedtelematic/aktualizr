@@ -38,7 +38,7 @@ TEST(Uptane, Verify) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  HttpResponse response = http.get(http.tls_server + "/director/root.json");
+  HttpResponse response = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit);
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
   Uptane::Root(Uptane::RepositoryType::Director, response.getJson(), root);
 }
@@ -52,7 +52,7 @@ TEST(Uptane, VerifyDataBad) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json.removeMember("signatures");
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
@@ -68,7 +68,7 @@ TEST(Uptane, VerifyDataUnknownType) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
 
@@ -85,7 +85,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
 
@@ -102,7 +102,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);

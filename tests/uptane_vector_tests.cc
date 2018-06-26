@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
    * debug. */
   const std::string port = argv[2];
   const std::string address = "http://127.0.0.1:" + port + "/";
-  const Json::Value json_vectors = http_client.get(address).getJson();
+  const Json::Value json_vectors = http_client.get(address, HttpInterface::kNoLimit).getJson();
   int passed = 0;
   int failed = 0;
   for (Json::ValueConstIterator it = json_vectors.begin(); it != json_vectors.end(); it++) {

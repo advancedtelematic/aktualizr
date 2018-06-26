@@ -13,6 +13,7 @@ class ImagesRepository : public RepositoryCommon {
 
   bool verifyTargets(const std::string& targets_raw);
   bool targetsExpired() { return targets.isExpired(TimeStamp::Now()); }
+  int64_t targetsSize() { return snapshot.targets_size(); }
   std::unique_ptr<Uptane::Target> getTarget(const Uptane::Target& director_target);
 
   bool verifyTimestamp(const std::string& timestamp_raw);
@@ -20,6 +21,7 @@ class ImagesRepository : public RepositoryCommon {
 
   bool verifySnapshot(const std::string& snapshot_raw);
   bool snapshotExpired() { return snapshot.isExpired(TimeStamp::Now()); }
+  int64_t snapshotSize() { return timestamp.snapshot_size(); }
 
   Exception getLastException() const { return last_exception; }
 

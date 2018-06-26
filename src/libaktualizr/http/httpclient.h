@@ -2,6 +2,7 @@
 #define HTTPCLIENT_H_
 
 #include <curl/curl.h>
+#include <gtest/gtest.h>
 #include <memory>
 #include "json/json.h"
 
@@ -27,7 +28,7 @@ class HttpClient : public HttpInterface {
   HttpClient();
   HttpClient(const HttpClient & /*curl_in*/);
   ~HttpClient() override;
-  HttpResponse get(const std::string &url) override;
+  HttpResponse get(const std::string &url, int64_t maxsize) override;
   HttpResponse post(const std::string &url, const Json::Value &data) override;
   HttpResponse put(const std::string &url, const Json::Value &data) override;
 
@@ -37,6 +38,7 @@ class HttpClient : public HttpInterface {
   long http_code{};  // NOLINT
 
  private:
+  FRIEND_TEST(GetTest, download_speed_limit);
   /**
    * These are here to catch a common programming error where a Json::Value is
    * implicitly constructed from a std::string. By having an private overload
@@ -49,7 +51,7 @@ class HttpClient : public HttpInterface {
   static CurlGlobalInitWrapper manageCurlGlobalInit_;
   CURL *curl;
   curl_slist *headers;
-  HttpResponse perform(CURL *curl_handler, int retry_times);
+  HttpResponse perform(CURL *curl_handler, int retry_times, int64_t size_limit);
   std::string user_agent;
 
   static CURLcode sslCtxFunction(CURL *handle, void *sslctx, void *parm);
@@ -57,6 +59,15 @@ class HttpClient : public HttpInterface {
   std::unique_ptr<TemporaryFile> tls_cert_file;
   std::unique_ptr<TemporaryFile> tls_pkey_file;
   static const int RETRY_TIMES = 2;
+  static const long kSpeedLimitTimeInterval = 60L;   // NOLINT
+  static const long kSpeedLimitBytesPerSec = 5000L;  // NOLINT
+
+  long speed_limit_time_interval_{kSpeedLimitTimeInterval};                // NOLINT
+  long speed_limit_bytes_per_sec_{kSpeedLimitBytesPerSec};                 // NOLINT
+  void overrideSpeedLimitParams(long time_interval, long bytes_per_sec) {  // NOLINT
+    speed_limit_time_interval_ = time_interval;
+    speed_limit_bytes_per_sec_ = bytes_per_sec;
+  }
   bool pkcs11_key{false};
   bool pkcs11_cert{false};
 };
