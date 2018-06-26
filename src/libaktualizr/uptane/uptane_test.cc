@@ -347,110 +347,6 @@ TEST(Uptane, PetNameCreation) {
   }
 }
 
-/**
- * \verify{\tst{49}} Check that aktualizr fails on expired metadata
- */
-/*TEST(Uptane, Expires) {
-  TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-
-  auto storage = INvStorage::newStorage(config.storage);
-
-  Uptane::Root root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/repo/repo/director/root.json"));
-
-  // Check that we don't fail on good metadata.
-  EXPECT_NO_THROW(
-      Uptane::Targets(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/repo/repo/director/targets_noupdates.json"), root));
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json"), root),
-      Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(
-      Uptane::Targets(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/targets_expired.json"), root),
-      Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(Uptane::TimestampMeta(Uptane::RepositoryType::Director,
-                                     Utils::parseJSONFile("tests/test_data/bad_metadata/timestamp_expired.json"), root),
-               Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(Uptane::Snapshot(Uptane::RepositoryType::Director,
-                                Utils::parseJSONFile("tests/test_data/bad_metadata/snapshot_expired.json"), root),
-               Uptane::ExpiredMetadata);
-}*/
-
-/**
- * \verify{\tst{52}} Check that aktualizr fails on bad threshold
- */
-/*TEST(Uptane, Threshold) {
-  TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-
-  auto storage = INvStorage::newStorage(config.storage);
-
-  Uptane::Root root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/repo/repo/director/root.json"));
-
-  // Check that we don't fail on good metadata.
-  EXPECT_NO_THROW(
-      Uptane::Targets(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/repo/repo/director/targets_noupdates.json"), root));
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director,
-                            Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-32768.json"), root),
-               Uptane::IllegalThreshold);
-
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director,
-                            Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-2147483648.json"), root),
-               Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-                   Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-9223372036854775808.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.9.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(Uptane::RepositoryType::Director,
-Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
-}*/
-
 TEST(Uptane, InitializeFail) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
@@ -1176,7 +1072,7 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
-/*TEST(Uptane, krejectallTest) {
+TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
   HttpFake http(temp_dir.Path());
@@ -1185,65 +1081,17 @@ TEST(Uptane, LoadVersion) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = StorageType::kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
+  config.pacman.type = PackageManager::kNone;
 
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
-  Uptane::Fetcher fetcher(config, storage, http);
-  EXPECT_TRUE(fetcher.fetchMeta());
-  EXPECT_TRUE(uptane.feedCheckMeta());
-}*/
-
-/*TEST(Uptane, VerifyMetaTest) {
-  TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = StorageType::kSqlite;
-  config.storage.sqldb_path = temp_dir / "db.sqlite";
-
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
-
-  Json::Value targets_file = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
-  Uptane::Targets director_targets_good(targets_file);
-  Uptane::Targets image_targets_good(targets_file);
-
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, image_targets_good));
-
-  Json::Value big_length = targets_file;
-  big_length["signed"]["targets"]["secondary_firmware.txt"]["length"] = 16;
-
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(big_length), image_targets_good));
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(big_length)));
-
-  Json::Value no_target = targets_file;
-  no_target["signed"]["targets"].removeMember("secondary_firmware.txt");
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(no_target)));
-  EXPECT_TRUE(uptane.verifyMetaTargets(Uptane::Targets(no_target), image_targets_good));
-
-  Json::Value wrong_name = targets_file;
-  wrong_name["signed"]["targets"].removeMember("secondary_firmware.txt");
-  wrong_name["signed"]["targets"]["secondary_firmware_wrong"] =
-      targets_file["signed"]["targets"]["secondary_firmware.txt"];
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(wrong_name)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(wrong_name), image_targets_good));
-
-  Json::Value wrong_hash = targets_file;
-  wrong_hash["signed"]["targets"]["secondary_firmware.txt"]["hashes"]["sha256"] = "wrong_hash";
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(wrong_hash)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(wrong_hash), image_targets_good));
-
-  Json::Value more_hashes = targets_file;
-  more_hashes["signed"]["targets"]["secondary_firmware_wrong"]["hashes"]["sha1024"] = "new_hash";
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(more_hashes)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(more_hashes), image_targets_good));
-}*/
+  Uptane::Manifest uptane_manifest{config, storage};
+  Bootloader bootloader{config.bootloader};
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
+  EXPECT_TRUE(sota_client.uptaneIteration());
+}
 
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {

@@ -14,6 +14,14 @@
 #include "storage/fsstorage.h"
 #include "utilities/utils.h"
 
+/**
+ * \verify{\tst{49}} Check that aktualizr fails on expired metadata
+ */
+
+/**
+ * \verify{\tst{52}} Check that aktualizr fails on bad threshold
+ */
+
 bool match_error(Json::Value error, Uptane::Exception* e) {
   if (error["director"]["update"]["err_msg"].asString() == e->what() ||
       error["director"]["targets"][e->getName()]["err_msg"].asString() == e->what() ||
