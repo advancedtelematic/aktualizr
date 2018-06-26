@@ -17,14 +17,11 @@
 #include "utilities/utils.h"
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                                   Uptane::DirectorRepository &director_repo_in,
-                                   Uptane::ImagesRepository &images_repo_in, Uptane::Manifest &uptane_manifest_in,
-                                   std::shared_ptr<INvStorage> storage_in, HttpInterface &http_client,
-                                   const Bootloader &bootloader_in, ReportQueue &report_queue_in)
+                                   Uptane::Manifest &uptane_manifest_in, std::shared_ptr<INvStorage> storage_in,
+                                   HttpInterface &http_client, const Bootloader &bootloader_in,
+                                   ReportQueue &report_queue_in)
     : config(config_in),
       events_channel(std::move(std::move(events_channel_in))),
-      director_repo(director_repo_in),
-      images_repo(images_repo_in),
       uptane_manifest(uptane_manifest_in),
       storage(std::move(storage_in)),
       http(http_client),
@@ -199,7 +196,7 @@ bool SotaUptaneClient::updateDirectorMeta() {
   // Load Initial Director Root Metadata
   {
     std::string director_root;
-    if (storage->loadRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
+    if (storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director)) {
       if (!director_repo.initRoot(director_root)) {
         last_exception = director_repo.getLastException();
         return false;
@@ -213,14 +210,14 @@ bool SotaUptaneClient::updateDirectorMeta() {
         last_exception = director_repo.getLastException();
         return false;
       }
-      storage->storeRole(director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(), Uptane::Version(1));
+      storage->storeRoot(director_root, Uptane::RepositoryType::Director, Uptane::Version(1));
     }
   }
 
   // Update Director Root Metadata
   {
     std::string director_root;
-    if (!uptane_fetcher.fetchRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
+    if (!uptane_fetcher.fetchLatestRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_root);
@@ -236,8 +233,7 @@ bool SotaUptaneClient::updateDirectorMeta() {
         last_exception = director_repo.getLastException();
         return false;
       }
-      storage->storeRole(director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(),
-                         Uptane::Version(version));
+      storage->storeRoot(director_root, Uptane::RepositoryType::Director, Uptane::Version(version));
       storage->clearNonRootMeta(Uptane::RepositoryType::Director);
     }
 
@@ -250,14 +246,14 @@ bool SotaUptaneClient::updateDirectorMeta() {
   {
     std::string director_targets;
 
-    if (!uptane_fetcher.fetchRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+    if (!uptane_fetcher.fetchLatestRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_targets);
 
     int local_version;
     std::string director_targets_stored;
-    if (storage->loadRole(&director_targets_stored, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+    if (storage->loadNonRoot(&director_targets_stored, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
       local_version = Uptane::extractVersionUntrusted(director_targets_stored);
     } else {
       local_version = -1;
@@ -273,8 +269,7 @@ bool SotaUptaneClient::updateDirectorMeta() {
     } else if (local_version == remote_version) {
       return true;
     }
-    storage->storeRole(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets(),
-                       Uptane::Version(remote_version));
+    storage->storeNonRoot(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
     if (director_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("director", "targets");
       return false;
@@ -289,7 +284,7 @@ bool SotaUptaneClient::updateImagesMeta() {
   // Load Initial Images Root Metadata
   {
     std::string images_root;
-    if (storage->loadRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+    if (storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Images)) {
       if (!images_repo.initRoot(images_root)) {
         last_exception = images_repo.getLastException();
         return false;
@@ -303,14 +298,14 @@ bool SotaUptaneClient::updateImagesMeta() {
         last_exception = images_repo.getLastException();
         return false;
       }
-      storage->storeRole(images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(), Uptane::Version(1));
+      storage->storeRoot(images_root, Uptane::RepositoryType::Images, Uptane::Version(1));
     }
   }
 
   // Update Image Roots Metadata
   {
     std::string images_root;
-    if (!uptane_fetcher.fetchRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_root);
@@ -325,7 +320,7 @@ bool SotaUptaneClient::updateImagesMeta() {
         last_exception = images_repo.getLastException();
         return false;
       }
-      storage->storeRole(images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(), Uptane::Version(version));
+      storage->storeRoot(images_root, Uptane::RepositoryType::Images, Uptane::Version(version));
       storage->clearNonRootMeta(Uptane::RepositoryType::Images);
     }
 
@@ -339,14 +334,14 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_timestamp;
 
-    if (!uptane_fetcher.fetchRole(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_timestamp);
 
     int local_version;
     std::string images_timestamp_stored;
-    if (storage->loadRole(&images_timestamp_stored, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
+    if (storage->loadNonRoot(&images_timestamp_stored, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
       local_version = Uptane::extractVersionUntrusted(images_timestamp_stored);
     } else {
       local_version = -1;
@@ -362,8 +357,7 @@ bool SotaUptaneClient::updateImagesMeta() {
     } else if (local_version == remote_version) {
       return true;
     }
-    storage->storeRole(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp(),
-                       Uptane::Version(remote_version));
+    storage->storeNonRoot(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
     if (images_repo.timestampExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "timestamp");
       return false;
@@ -374,14 +368,14 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_snapshot;
 
-    if (!uptane_fetcher.fetchRole(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_snapshot);
 
     int local_version;
     std::string images_snapshot_stored;
-    if (storage->loadRole(&images_snapshot_stored, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
+    if (storage->loadNonRoot(&images_snapshot_stored, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
       local_version = Uptane::extractVersionUntrusted(images_snapshot_stored);
     } else {
       local_version = -1;
@@ -398,8 +392,7 @@ bool SotaUptaneClient::updateImagesMeta() {
       return false;
     }
 
-    storage->storeRole(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot(),
-                       Uptane::Version(remote_version));
+    storage->storeNonRoot(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
     if (images_repo.snapshotExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "snapshot");
@@ -411,14 +404,14 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_targets;
 
-    if (!uptane_fetcher.fetchRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
+    if (!uptane_fetcher.fetchLatestRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_targets);
 
     int local_version;
     std::string images_targets_stored;
-    if (storage->loadRole(&images_targets_stored, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
+    if (storage->loadNonRoot(&images_targets_stored, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
       local_version = Uptane::extractVersionUntrusted(images_targets_stored);
     } else {
       local_version = -1;
@@ -433,8 +426,7 @@ bool SotaUptaneClient::updateImagesMeta() {
       last_exception = images_repo.getLastException();
       return false;
     }
-    storage->storeRole(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets(),
-                       Uptane::Version(remote_version));
+    storage->storeNonRoot(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
 
     if (images_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
@@ -640,7 +632,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 
 void SotaUptaneClient::sendDownloadReport() {
   std::string director_targets;
-  if (!storage->loadRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+  if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
     LOG_ERROR << "Unable to load director targets metadata";
     return;
   }
@@ -733,7 +725,7 @@ void SotaUptaneClient::verifySecondaries() {
 void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary) {
   std::string latest_root;
 
-  if (!storage->loadRole(&latest_root, repo, Uptane::Role::Root())) {
+  if (!storage->loadLatestRoot(&latest_root, repo)) {
     LOG_ERROR << "No root metadata to send";
     return;
   }
@@ -744,7 +736,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
   if (sec_root_version >= 0) {
     for (int v = sec_root_version + 1; v <= last_root_version; v++) {
       std::string root;
-      if (!storage->loadRole(&root, repo, Uptane::Role::Root(), Uptane::Version(v))) {
+      if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
         LOG_WARNING << "Couldn't find root meta in the storage, trying remote repo";
         if (!uptane_fetcher.fetchRole(&root, repo, Uptane::Role::Root(), Uptane::Version(v))) {
           // TODO: looks problematic, robust procedure needs to be defined
@@ -764,27 +756,27 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
 // TODO: the function blocks until it updates all the secondaries. Consider non-blocking operation.
 void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &targets) {
   Uptane::RawMetaPack meta;
-  if (!storage->loadRole(&meta.director_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
+  if (!storage->loadLatestRoot(&meta.director_root, Uptane::RepositoryType::Director)) {
     LOG_ERROR << "No director root metadata to send";
     return;
   }
-  if (!storage->loadRole(&meta.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+  if (!storage->loadNonRoot(&meta.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
     LOG_ERROR << "No director targets metadata to send";
     return;
   }
-  if (!storage->loadRole(&meta.image_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+  if (!storage->loadNonRoot(&meta.image_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
     LOG_ERROR << "No images root metadata to send";
     return;
   }
-  if (!storage->loadRole(&meta.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
+  if (!storage->loadNonRoot(&meta.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
     LOG_ERROR << "No images timestamp metadata to send";
     return;
   }
-  if (!storage->loadRole(&meta.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
+  if (!storage->loadNonRoot(&meta.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
     LOG_ERROR << "No images snapshot metadata to send";
     return;
   }
-  if (!storage->loadRole(&meta.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
+  if (!storage->loadNonRoot(&meta.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
     LOG_ERROR << "No images targets metadata to send";
     return;
   }

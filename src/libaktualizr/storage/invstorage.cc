@@ -182,25 +182,26 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
 
   // migrate latest versions of all metadata
   for (auto role : Uptane::Role::Roles()) {
+    if (role == Uptane::Role::Root()) {
+      continue;
+    }
+
     std::string meta;
     for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-      if (fs_storage->loadRole(&meta, repo, role)) {
-        int version = Uptane::extractVersionUntrusted(meta);
-        if (version >= 0) {
-          sql_storage->storeRole(meta, repo, role, Uptane::Version(version));
-        }
+      if (fs_storage->loadNonRoot(&meta, repo, role)) {
+        sql_storage->storeNonRoot(meta, repo, role);
       }
     }
   }
   // additionally migrate the whole root metadata chain
   std::string latest_root;
   for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-    if (fs_storage->loadRole(&latest_root, Uptane::RepositoryType::Director, Uptane::Role::Root())) {
+    if (fs_storage->loadLatestRoot(&latest_root, Uptane::RepositoryType::Director)) {
       int latest_version = Uptane::extractVersionUntrusted(latest_root);
-      for (int version = 0; version < latest_version; ++version) {
+      for (int version = 0; version <= latest_version; ++version) {
         std::string root;
-        if (fs_storage->loadRole(&root, repo, Uptane::Role::Root(), Uptane::Version(version))) {
-          sql_storage->storeRole(root, repo, Uptane::Role::Root(), Uptane::Version(version));
+        if (fs_storage->loadRoot(&root, repo, Uptane::Version(version))) {
+          sql_storage->storeRoot(root, repo, Uptane::Version(version));
         }
       }
     }

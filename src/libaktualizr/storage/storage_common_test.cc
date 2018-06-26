@@ -141,12 +141,12 @@ TEST(storage, load_store_metadata) {
   meta_snapshot["signed"] = snapshot_json;
   std::string images_snapshot = Utils::jsonToStr(meta_snapshot);
 
-  storage->storeRole(director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(), Uptane::Version(1));
-  storage->storeRole(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets(), Uptane::Version(2));
-  storage->storeRole(images_root, Uptane::RepositoryType::Images, Uptane::Role::Root(), Uptane::Version(1));
-  storage->storeRole(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets(), Uptane::Version(2));
-  storage->storeRole(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp(), Uptane::Version(3));
-  storage->storeRole(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot(), Uptane::Version(4));
+  storage->storeRoot(director_root, Uptane::RepositoryType::Director, Uptane::Version(1));
+  storage->storeNonRoot(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  storage->storeRoot(images_root, Uptane::RepositoryType::Images, Uptane::Version(1));
+  storage->storeNonRoot(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  storage->storeNonRoot(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  storage->storeNonRoot(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   std::string loaded_director_root;
   std::string loaded_director_targets;
@@ -155,12 +155,14 @@ TEST(storage, load_store_metadata) {
   std::string loaded_images_timestamp;
   std::string loaded_images_snapshot;
 
-  EXPECT_TRUE(storage->loadRole(&loaded_director_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
-  EXPECT_TRUE(storage->loadRole(&loaded_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_TRUE(storage->loadRole(&loaded_images_root, Uptane::RepositoryType::Images, Uptane::Role::Root()));
-  EXPECT_TRUE(storage->loadRole(&loaded_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
-  EXPECT_TRUE(storage->loadRole(&loaded_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
-  EXPECT_TRUE(storage->loadRole(&loaded_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_TRUE(storage->loadLatestRoot(&loaded_director_root, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(
+      storage->loadNonRoot(&loaded_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadLatestRoot(&loaded_images_root, Uptane::RepositoryType::Images));
+  EXPECT_TRUE(storage->loadNonRoot(&loaded_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(
+      storage->loadNonRoot(&loaded_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(storage->loadNonRoot(&loaded_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
   EXPECT_EQ(director_root, loaded_director_root);
   EXPECT_EQ(director_targets, loaded_director_targets);
   EXPECT_EQ(images_root, loaded_images_root);
@@ -198,13 +200,11 @@ TEST(storage, load_store_root) {
 
   std::string loaded_root;
 
-  storage->storeRole(Utils::jsonToStr(meta_root), Uptane::RepositoryType::Director, Uptane::Role::Root(),
-                     Uptane::Version(2));
-  EXPECT_TRUE(
-      storage->loadRole(&loaded_root, Uptane::RepositoryType::Director, Uptane::Role::Root(), Uptane::Version(2)));
+  storage->storeRoot(Utils::jsonToStr(meta_root), Uptane::RepositoryType::Director, Uptane::Version(2));
+  EXPECT_TRUE(storage->loadRoot(&loaded_root, Uptane::RepositoryType::Director, Uptane::Version(2)));
   EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
 
-  EXPECT_TRUE(storage->loadRole(&loaded_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
+  EXPECT_TRUE(storage->loadLatestRoot(&loaded_root, Uptane::RepositoryType::Director));
   EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
 
   boost::filesystem::remove_all(storage_test_dir);

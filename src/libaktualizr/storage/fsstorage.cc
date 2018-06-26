@@ -85,28 +85,24 @@ FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStor
 
   boost::filesystem::path images_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
-  // migrate from old unversioned Uptane meta
+  // migrate from old unversioned Uptane root meta
   {
-    for (auto role : Uptane::Role::Roles()) {
-      for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-        boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director) ? director_path : images_path;
-        boost::filesystem::path meta_path = meta_dir / Uptane::Version().RoleFileName(role);
-        if (boost::filesystem::exists(meta_path)) {
-          std::string data = Utils::readFile(meta_path);
-          Uptane::Version version{Uptane::extractVersionUntrusted(data)};
-          boost::filesystem::remove(meta_path);
-          if (version.version() >= 0) {
-            Utils::writeFile(meta_dir / version.RoleFileName(role), data);
-          }
+    for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
+      boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director) ? director_path : images_path;
+      boost::filesystem::path meta_path = meta_dir / Uptane::Version().RoleFileName(Uptane::Role::Root());
+      if (boost::filesystem::exists(meta_path)) {
+        std::string data = Utils::readFile(meta_path);
+        Uptane::Version version{Uptane::extractVersionUntrusted(data)};
+        boost::filesystem::remove(meta_path);
+        if (version.version() >= 0) {
+          Utils::writeFile(meta_dir / version.RoleFileName(Uptane::Role::Root()), data);
         }
       }
     }
   }
 
-  for (auto role : Uptane::Role::Roles()) {
-    latest_versions[{Uptane::RepositoryType::Director, role}] = findMaxVersion(director_path, role);
-    latest_versions[{Uptane::RepositoryType::Images, role}] = findMaxVersion(images_path, role);
-  }
+  latest_director_root = findMaxVersion(director_path, Uptane::Role::Root());
+  latest_images_root = findMaxVersion(images_path, Uptane::Role::Root());
 }
 
 void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
@@ -222,17 +218,20 @@ bool FSStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, conf
 
 bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
 
-void FSStorage::storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
-                          Uptane::Version version) {
+void FSStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) {
   boost::filesystem::path metafile;
+  Uptane::Version* latest_version;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
-      metafile =
-          Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" / version.RoleFileName(role);
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
+                 version.RoleFileName(Uptane::Role::Root());
+      latest_version = &latest_director_root;
       break;
 
     case (Uptane::RepositoryType::Images):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" / version.RoleFileName(role);
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
+                 version.RoleFileName(Uptane::Role::Root());
+      latest_version = &latest_images_root;
       break;
 
     default:
@@ -240,35 +239,83 @@ void FSStorage::storeRole(const std::string& data, Uptane::RepositoryType repo, 
   }
 
   Utils::writeFile(metafile, data);
-  if (version.version() > latest_versions[{repo, role}].version()) {
-    latest_versions[{repo, role}] = version;
+  if (version.version() > latest_version->version()) {
+    *latest_version = version;
   }
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
-bool FSStorage::loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role, Uptane::Version version) {
-  if (version.version() < 0) {
-    version = Uptane::Version(latest_versions[{repo, role}]);  // all combinations are initialized in the constructor
+void FSStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) {
+  boost::filesystem::path metafile;
+  switch (repo) {
+    case (Uptane::RepositoryType::Director):
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
+                 Uptane::Version().RoleFileName(role);
+      break;
+
+    case (Uptane::RepositoryType::Images):
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
+                 Uptane::Version().RoleFileName(role);
+      break;
+
+    default:
+      return;
+  }
+
+  Utils::writeFile(metafile, data);
+}
+
+bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
+  boost::filesystem::path metafile;
+  switch (repo) {
+    case (Uptane::RepositoryType::Director):
+      if (version.version() < 0) {
+        version = latest_director_root;
+      }
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
+                 version.RoleFileName(Uptane::Role::Root());
+      break;
+
+    case (Uptane::RepositoryType::Images):
+      if (version.version() < 0) {
+        version = latest_director_root;
+      }
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
+                 version.RoleFileName(Uptane::Role::Root());
+      break;
+
+    default:
+      return false;
   }
 
   if (version.version() < 0) {
     return false;
   }
 
+  if (!boost::filesystem::exists(metafile)) {
+    return false;
+  }
+
+  *data = Utils::readFile(metafile);
+  return true;
+}
+
+bool FSStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
-      metafile =
-          Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" / version.RoleFileName(role);
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
+                 Uptane::Version().RoleFileName(role);
       break;
 
     case (Uptane::RepositoryType::Images):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" / version.RoleFileName(role);
+      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
+                 Uptane::Version().RoleFileName(role);
       break;
 
     default:
       return false;
   }
+
   if (!boost::filesystem::exists(metafile)) {
     return false;
   }

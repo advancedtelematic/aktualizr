@@ -87,18 +87,16 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
       target_ = std_::make_unique<Uptane::Target>(*it);
     }
   }
-  storage_->storeRole(meta_pack.director_root, Uptane::RepositoryType::Director, Uptane::Role::Root(),
-                      Uptane::Version(root_.version()));
-  storage_->storeRole(meta_pack.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets(),
-                      Uptane::Version(meta_targets_.version()));
+  storage_->storeRoot(meta_pack.director_root, Uptane::RepositoryType::Director, Uptane::Version(root_.version()));
+  storage_->storeNonRoot(meta_pack.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
 
   return true;
 }
 
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   std::string root_meta;
-  if (!storage_->loadRole(&root_meta, (director) ? Uptane::RepositoryType::Director : Uptane::RepositoryType::Images,
-                          Uptane::Role::Root())) {
+  if (!storage_->loadLatestRoot(&root_meta,
+                                (director) ? Uptane::RepositoryType::Director : Uptane::RepositoryType::Images)) {
     LOG_ERROR << "Could not load root metadata";
     return -1;
   }

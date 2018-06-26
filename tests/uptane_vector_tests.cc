@@ -42,15 +42,12 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   try {
     auto storage = INvStorage::newStorage(config.storage);
     HttpClient http;
-    Uptane::DirectorRepository director_repo;
-    Uptane::ImagesRepository images_repo;
     Uptane::Manifest uptane_manifest{config, storage};
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
 
     Bootloader bootloader(config.bootloader);
     ReportQueue report_queue(config, http);
-    SotaUptaneClient uptane_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                                   bootloader, report_queue);
+    SotaUptaneClient uptane_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
     if (!uptane_client.uptaneIteration()) {
       throw uptane_client.getLastException();
     }

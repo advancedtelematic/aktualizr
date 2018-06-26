@@ -13,7 +13,7 @@ AktualizrSecondaryCommon::AktualizrSecondaryCommon(const AktualizrSecondaryConfi
 
   // Load Root keys from storage
   std::string root;
-  storage_->loadRole(&root, Uptane::RepositoryType::Director, Uptane::Role::Root());
+  storage_->loadLatestRoot(&root, Uptane::RepositoryType::Director);
   if (root.size() > 0) {
     LOG_DEBUG << "Loading root.json:" << root;
     root_ = Uptane::Root(Uptane::RepositoryType::Director, Utils::parseJSON(root));

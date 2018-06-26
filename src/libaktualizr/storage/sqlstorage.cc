@@ -85,10 +85,8 @@ SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   }
 
   try {
-    for (auto role : Uptane::Role::Roles()) {
-      cleanMetaVersion(Uptane::RepositoryType::Director, role);
-      cleanMetaVersion(Uptane::RepositoryType::Images, role);
-    }
+    cleanMetaVersion(Uptane::RepositoryType::Director, Uptane::Role::Root());
+    cleanMetaVersion(Uptane::RepositoryType::Images, Uptane::Role::Root());
   } catch (...) {
     LOG_ERROR << "SQLite database metadata version migration failed";
   }
@@ -411,8 +409,7 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
   return true;
 }
 
-void SQLStorage::storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
-                           Uptane::Version version) {
+void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) {
   SQLite3Guard db(config_.sqldb_path.c_str());
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
@@ -425,15 +422,16 @@ void SQLStorage::storeRole(const std::string& data, Uptane::RepositoryType repo,
 
   auto del_statement =
       db.prepareStatement<int, int, int>("DELETE FROM meta WHERE (repo=? AND meta_type=? AND version=?);",
-                                         static_cast<int>(repo), role.ToInt(), version.version());
+                                         static_cast<int>(repo), Uptane::Role::Root().ToInt(), version.version());
 
   if (del_statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    LOG_ERROR << "Can't clear root metadata: " << db.errmsg();
     return;
   }
 
-  auto ins_statement = db.prepareStatement<SQLBlob, int, int, int>(
-      "INSERT INTO meta VALUES (?, ?, ?, ?);", SQLBlob(data), static_cast<int>(repo), role.ToInt(), version.version());
+  auto ins_statement = db.prepareStatement<SQLBlob, int, int, int>("INSERT INTO meta VALUES (?, ?, ?, ?);",
+                                                                   SQLBlob(data), static_cast<int>(repo),
+                                                                   Uptane::Role::Root().ToInt(), version.version());
 
   if (ins_statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't add metadata: " << db.errmsg();
@@ -443,8 +441,38 @@ void SQLStorage::storeRole(const std::string& data, Uptane::RepositoryType repo,
   db.commitTransaction();
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
-bool SQLStorage::loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role, Uptane::Version version) {
+void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (!db.beginTransaction()) {
+    return;
+  }
+
+  auto del_statement = db.prepareStatement<int, int>("DELETE FROM meta WHERE (repo=? AND meta_type=?);",
+                                                     static_cast<int>(repo), role.ToInt());
+
+  if (del_statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't clear metadata: " << db.errmsg();
+    return;
+  }
+
+  auto ins_statement =
+      db.prepareStatement<SQLBlob, int, int, int>("INSERT INTO meta VALUES (?, ?, ?, ?);", SQLBlob(data),
+                                                  static_cast<int>(repo), role.ToInt(), Uptane::Version().version());
+
+  if (ins_statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't add metadata: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
   SQLite3Guard db(config_.sqldb_path.c_str());
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
@@ -455,7 +483,7 @@ bool SQLStorage::loadRole(std::string* data, Uptane::RepositoryType repo, Uptane
   if (version.version() < 0) {
     auto statement = db.prepareStatement<int, int>(
         "SELECT meta FROM meta WHERE (repo=? AND meta_type=?) ORDER BY version DESC LIMIT 1;", static_cast<int>(repo),
-        role.ToInt());
+        Uptane::Role::Root().ToInt());
     int result = statement.step();
 
     if (result == SQLITE_DONE) {
@@ -469,7 +497,7 @@ bool SQLStorage::loadRole(std::string* data, Uptane::RepositoryType repo, Uptane
   } else {
     auto statement =
         db.prepareStatement<int, int, int>("SELECT meta FROM meta WHERE (repo=? AND meta_type=? AND version=?);",
-                                           static_cast<int>(repo), role.ToInt(), version.version());
+                                           static_cast<int>(repo), Uptane::Role::Root().ToInt(), version.version());
 
     int result = statement.step();
 
@@ -482,6 +510,30 @@ bool SQLStorage::loadRole(std::string* data, Uptane::RepositoryType repo, Uptane
     }
     *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
   }
+
+  return true;
+}
+
+bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return false;
+  }
+
+  auto statement = db.prepareStatement<int, int>(
+      "SELECT meta FROM meta WHERE (repo=? AND meta_type=?) ORDER BY version DESC LIMIT 1;", static_cast<int>(repo),
+      role.ToInt());
+  int result = statement.step();
+
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "Meta not present";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get meta: " << db.errmsg();
+    return false;
+  }
+  *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
 
   return true;
 }

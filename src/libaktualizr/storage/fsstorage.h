@@ -24,11 +24,10 @@ class FSStorage : public INvStorage {
   bool loadTlsCert(std::string* cert) override;
   bool loadTlsPkey(std::string* pkey) override;
 
-  void storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
-                 Uptane::Version version) override;
-  // NOLINTNEXTLINE(google-default-arguments)
-  bool loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role,
-                Uptane::Version version = Uptane::Version()) override;
+  void storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) override;
+  bool loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) override;
+  void storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) override;
+  bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) override;
   void clearNonRootMeta(Uptane::RepositoryType repo) override;
   void clearMetadata() override;
 
@@ -63,7 +62,8 @@ class FSStorage : public INvStorage {
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
 
-  std::map<std::pair<Uptane::RepositoryType, Uptane::Role>, Uptane::Version> latest_versions;
+  Uptane::Version latest_director_root;
+  Uptane::Version latest_images_root;
 
   boost::filesystem::path targetFilepath(const std::string& filename) const;
   bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);

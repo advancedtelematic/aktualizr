@@ -114,15 +114,12 @@ TEST(UptaneKey, CheckAllKeys) {
   initKeyTests(config, ecu_config1, ecu_config2, temp_dir, http.tls_server);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest(config, storage);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
 
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                               bootloader, report_queue);
+  SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   checkKeyTests(storage, sota_client);
 }
@@ -143,12 +140,9 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
     Bootloader bootloader{config.bootloader};
-    Uptane::DirectorRepository director_repo;
-    Uptane::ImagesRepository images_repo;
     Uptane::Manifest uptane_manifest(config, storage);
     ReportQueue report_queue(config, http);
-    SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                                 bootloader, report_queue);
+    SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -159,13 +153,10 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
-    Uptane::DirectorRepository director_repo;
-    Uptane::ImagesRepository images_repo;
     Uptane::Manifest uptane_manifest(config, storage);
     Bootloader bootloader{config.bootloader};
     ReportQueue report_queue(config, http);
-    SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                                 bootloader, report_queue);
+    SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);
@@ -182,13 +173,10 @@ TEST(UptaneKey, RecoverWithoutKeys) {
   {
     auto storage = INvStorage::newStorage(config.storage);
     std::shared_ptr<event::Channel> events_channel{new event::Channel};
-    Uptane::DirectorRepository director_repo;
-    Uptane::ImagesRepository images_repo;
     Uptane::Manifest uptane_manifest(config, storage);
     Bootloader bootloader{config.bootloader};
     ReportQueue report_queue(config, http);
-    SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                                 bootloader, report_queue);
+    SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
 
     EXPECT_TRUE(sota_client.initialize());
     checkKeyTests(storage, sota_client);

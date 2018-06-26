@@ -35,13 +35,10 @@ TEST(UptaneCI, OneCycleUpdate) {
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   HttpClient http;
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                               report_queue);
+  SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   auto manifest = uptane_manifest.signManifest(sota_client.AssembleManifest());
   EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", manifest).isOk());
@@ -73,13 +70,10 @@ TEST(UptaneCI, CheckKeys) {
 
   auto storage = INvStorage::newStorage(config.storage);
   HttpClient http;
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                               report_queue);
+  SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   std::string ca;

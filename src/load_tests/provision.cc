@@ -47,14 +47,11 @@ class ProvisionDeviceTask {
   }
 
   void operator()() {
-    Uptane::ImagesRepository images_repo;
-    Uptane::DirectorRepository director_repo;
     Uptane::Manifest manifest{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     Bootloader bootloader(config.bootloader);
     ReportQueue report_queue(config, httpClient);
-    SotaUptaneClient client(config, eventsIn, director_repo, images_repo, manifest, storage, httpClient, bootloader,
-                            report_queue);
+    SotaUptaneClient client(config, eventsIn, manifest, storage, httpClient, bootloader, report_queue);
     try {
       if (client.initialize()) {
         auto signed_manifest = manifest.signManifest(client.AssembleManifest());

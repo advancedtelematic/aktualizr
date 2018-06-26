@@ -47,10 +47,10 @@ int main(int argc, char **argv) {
     std::string director_targets;
     std::string images_root;
     std::string images_targets;
-    bool has_metadata = storage->loadRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root());
-    storage->loadRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
-    storage->loadRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root());
-    storage->loadRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+    bool has_metadata = storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director);
+    storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Images);
+    storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+    storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
 
     std::string device_id;
     if (!storage->loadDeviceId(&device_id)) {

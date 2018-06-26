@@ -508,13 +508,10 @@ TEST(Uptane, AssembleManifestGood) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                               report_queue);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -559,13 +556,10 @@ TEST(Uptane, AssembleManifestBad) {
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, NULL, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                               report_queue);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -606,15 +600,12 @@ TEST(Uptane, PutManifest) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
 
   ReportQueue report_queue(config, http);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                               bootloader, report_queue);
+  SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
@@ -663,12 +654,9 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   Bootloader bootloader{conf.bootloader};
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{conf, storage};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                      report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -729,12 +717,9 @@ TEST(Uptane, RunForeverHasUpdates) {
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
   Bootloader bootloader{conf.bootloader};
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{conf, storage};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                      report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
@@ -782,13 +767,10 @@ TEST(Uptane, RunForeverInstall) {
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{conf, storage};
   Bootloader bootloader{conf.bootloader};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                      report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
@@ -824,14 +806,11 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http,
-                               bootloader, report_queue);
+  SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -870,13 +849,10 @@ TEST(Uptane, ProvisionOnServer) {
   *commands_channel << std::make_shared<command::StartDownload>(packages_to_install);
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
-  Uptane::DirectorRepository director_repo;
-  Uptane::ImagesRepository images_repo;
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient up(config, events_channel, director_repo, images_repo, uptane_manifest, storage, http, bootloader,
-                      report_queue);
+  SotaUptaneClient up(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 }
 
@@ -943,12 +919,12 @@ TEST(Uptane, fs_to_sql_full) {
   std::string images_timestamp;
   std::string images_snapshot;
 
-  EXPECT_TRUE(fs_storage.loadRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root()));
-  EXPECT_TRUE(fs_storage.loadRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root()));
-  EXPECT_TRUE(fs_storage.loadRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadRole(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
-  EXPECT_TRUE(fs_storage.loadRole(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Images));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
 
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -959,11 +935,11 @@ TEST(Uptane, fs_to_sql_full) {
   boost::filesystem::path image_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "director";
   EXPECT_TRUE(boost::filesystem::exists(director_path / "1.root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(director_path / "0.targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "targets.json"));
   EXPECT_TRUE(boost::filesystem::exists(image_path / "1.root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(image_path / "21.targets.json"));
-  EXPECT_TRUE(boost::filesystem::exists(image_path / "21.timestamp.json"));
-  EXPECT_TRUE(boost::filesystem::exists(image_path / "21.snapshot.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "timestamp.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "snapshot.json"));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "device_id")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "is_registered")));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "primary_ecu_serial")));
@@ -1016,12 +992,12 @@ TEST(Uptane, fs_to_sql_full) {
   std::string sql_images_timestamp;
   std::string sql_images_snapshot;
 
-  sql_storage->loadRole(&sql_director_root, Uptane::RepositoryType::Director, Uptane::Role::Root());
-  sql_storage->loadRole(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
-  sql_storage->loadRole(&sql_images_root, Uptane::RepositoryType::Images, Uptane::Role::Root());
-  sql_storage->loadRole(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
-  sql_storage->loadRole(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
-  sql_storage->loadRole(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director);
+  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Images);
+  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);
@@ -1084,12 +1060,12 @@ TEST(Uptane, fs_to_sql_partial) {
   std::string images_timestamp;
   std::string images_snapshot;
 
-  fs_storage.loadRole(&director_root, Uptane::RepositoryType::Director, Uptane::Role::Root());
-  fs_storage.loadRole(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
-  fs_storage.loadRole(&images_root, Uptane::RepositoryType::Images, Uptane::Role::Root());
-  fs_storage.loadRole(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
-  fs_storage.loadRole(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
-  fs_storage.loadRole(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+  fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director);
+  fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Images);
+  fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -1126,12 +1102,12 @@ TEST(Uptane, fs_to_sql_partial) {
   std::string sql_images_timestamp;
   std::string sql_images_snapshot;
 
-  sql_storage->loadRole(&sql_director_root, Uptane::RepositoryType::Director, Uptane::Role::Root());
-  sql_storage->loadRole(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
-  sql_storage->loadRole(&sql_images_root, Uptane::RepositoryType::Images, Uptane::Role::Root());
-  sql_storage->loadRole(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
-  sql_storage->loadRole(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
-  sql_storage->loadRole(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director);
+  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Images);
+  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);

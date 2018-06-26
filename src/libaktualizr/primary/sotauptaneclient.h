@@ -24,7 +24,6 @@
 class SotaUptaneClient {
  public:
   SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                   Uptane::DirectorRepository &director_repo_in, Uptane::ImagesRepository &images_repo_in,
                    Uptane::Manifest &uptane_manifest_in, std::shared_ptr<INvStorage> storage_in,
                    HttpInterface &http_client, const Bootloader &bootloader_in, ReportQueue &report_queue_in);
 
@@ -63,8 +62,8 @@ class SotaUptaneClient {
 
   Config &config;
   std::shared_ptr<event::Channel> events_channel;
-  Uptane::DirectorRepository &director_repo;
-  Uptane::ImagesRepository &images_repo;
+  Uptane::DirectorRepository director_repo;
+  Uptane::ImagesRepository images_repo;
   Uptane::Manifest &uptane_manifest;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> pacman;

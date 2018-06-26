@@ -102,11 +102,13 @@ class INvStorage {
   virtual bool loadTlsPkey(std::string* cert) = 0;
   virtual void clearTlsCreds() = 0;
 
-  virtual void storeRole(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role,
-                         Uptane::Version version) = 0;
-  // NOLINTNEXTLINE(google-default-arguments)
-  virtual bool loadRole(std::string* data, Uptane::RepositoryType repo, Uptane::Role role,
-                        Uptane::Version version = Uptane::Version()) = 0;
+  virtual void storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) = 0;
+  virtual bool loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) = 0;
+  bool loadLatestRoot(std::string* data, Uptane::RepositoryType repo) {
+    return loadRoot(data, repo, Uptane::Version());
+  };
+  virtual void storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) = 0;
+  virtual bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) = 0;
   virtual void clearNonRootMeta(Uptane::RepositoryType repo) = 0;
   virtual void clearMetadata() = 0;
 

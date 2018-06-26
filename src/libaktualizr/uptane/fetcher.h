@@ -33,7 +33,10 @@ class Fetcher {
   // bool fetchMeta();
   // bool fetchRoot(bool director, Version version);
   bool fetchVerifyTarget(const Target& target);
-  bool fetchRole(std::string* result, RepositoryType repo, Uptane::Role role, Version version = Version());
+  bool fetchRole(std::string* result, RepositoryType repo, Uptane::Role role, Version version);
+  bool fetchLatestRole(std::string* result, RepositoryType repo, Uptane::Role role) {
+    return fetchRole(result, repo, role, Version());
+  }
 
  private:
   HttpInterface& http;
