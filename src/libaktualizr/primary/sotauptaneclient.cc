@@ -826,11 +826,7 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
         continue;
       }
 
-      std::stringstream sstr;
-      sstr << *storage->openTargetFile(targets_it->filename());
-      std::string fw = sstr.str();
-
-      if (fw.empty()) {
+      if (targets_it->format().empty() || targets_it->format() == "OSTREE") {
         // empty firmware means OSTree secondaries: pack credentials instead
         std::string creds_archive = secondaryTreehubCredentials();
         if (creds_archive.empty()) {
@@ -838,6 +834,9 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
         }
         sec->second->sendFirmware(creds_archive);
       } else {
+        std::stringstream sstr;
+        sstr << *storage->openTargetFile(targets_it->filename());
+        std::string fw = sstr.str();
         sec->second->sendFirmware(fw);
       }
     }

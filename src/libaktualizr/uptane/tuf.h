@@ -190,8 +190,7 @@ class Target {
   int64_t length() const { return length_; }
 
   bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
-    return (length() > 0) &&
-           (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
+    return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
               return pair.first == ecuIdentifier;
             }) != ecus_.cend());
   };
