@@ -14,23 +14,23 @@ TEST(Root, RootValidates) {
   LOG_INFO << "Root is:" << initial_root;
 
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
-  Uptane::Root root(now, "director", initial_root, root1);
+  Uptane::Root root(Uptane::RepositoryType::Director, initial_root, root1);
 
-  EXPECT_NO_THROW(Uptane::Root(now, "director", initial_root, root));
+  EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root));
 }
 
 TEST(Root, RootJsonNoKeys) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   initial_root["signed"].removeMember("keys");
-  EXPECT_THROW(Uptane::Root(now, "director", initial_root, root1), Uptane::InvalidMetadata);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root1), Uptane::InvalidMetadata);
 }
 
 TEST(Root, RootJsonNoRoles) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   initial_root["signed"].removeMember("roles");
-  EXPECT_THROW(Uptane::Root(now, "director", initial_root, root1), Uptane::InvalidMetadata);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root1), Uptane::InvalidMetadata);
 }
 
 /**
@@ -42,8 +42,8 @@ TEST(Root, RootJsonRsassaPssSha256) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/rsassa-pss-sha256/root.json");
   LOG_INFO << "Root is:" << initial_root;
 
-  Uptane::Root root(now, "director", initial_root, root1);
-  EXPECT_NO_THROW(Uptane::Root(now, "director", initial_root, root));
+  Uptane::Root root(Uptane::RepositoryType::Director, initial_root, root1);
+  EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root));
 }
 
 TEST(TimeStamp, Parsing) {

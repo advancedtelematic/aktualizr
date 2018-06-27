@@ -47,14 +47,14 @@ class ProvisionDeviceTask {
   }
 
   void operator()() {
-    Uptane::Repository repo{config, storage};
+    Uptane::Manifest manifest{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
     Bootloader bootloader(config.bootloader);
     ReportQueue report_queue(config, httpClient);
-    SotaUptaneClient client{config, eventsIn, repo, storage, httpClient, bootloader, report_queue};
+    SotaUptaneClient client(config, eventsIn, manifest, storage, httpClient, bootloader, report_queue);
     try {
       if (client.initialize()) {
-        auto signed_manifest = repo.signManifest(client.AssembleManifest());
+        auto signed_manifest = manifest.signManifest(client.AssembleManifest());
         httpClient.put(config.uptane.director_server + "/manifest", signed_manifest);
       } else {
         LOG_ERROR << "Failed to initialize repository for " << config.storage.path;

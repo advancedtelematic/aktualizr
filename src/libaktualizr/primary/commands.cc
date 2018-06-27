@@ -54,7 +54,7 @@ Json::Value StartDownload::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : updates) {
-    targets[target.filename()] = target.toJson();
+    targets[target.filename()] = target.toDebugJson();
   }
   json["fields"].append(targets);
   return BaseCommand::toJson(json);
@@ -73,7 +73,7 @@ Json::Value UptaneInstall::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : packages) {
-    targets[target.filename()] = target.toJson();
+    targets[target.filename()] = target.toDebugJson();
   }
   json["fields"].append(targets);
   return BaseCommand::toJson(json);

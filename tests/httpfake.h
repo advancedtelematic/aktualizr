@@ -22,8 +22,10 @@ class HttpFake : public HttpInterface {
         test_dir(test_dir_in),
         manifest_count(0),
         ecu_registered(is_initialized) {
-    boost::filesystem::copy_directory("tests/test_data/repo", metadata_path.Path() / "repo");
-    boost::filesystem::copy_directory("tests/test_data/director", metadata_path.Path() / "director");
+    // boost::filesystem::copy_directory("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
+    // boost::filesystem::copy_directory("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
+    Utils::copyDir("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
+    Utils::copyDir("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
   }
 
   ~HttpFake() {}
@@ -38,30 +40,62 @@ class HttpFake : public HttpInterface {
     (void)pkey_source;
   }
 
-  HttpResponse get(const std::string &url) {
+  HttpResponse get(const std::string &url, int64_t maxsize) {
+    (void)maxsize;
+
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
       boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
       std::cout << "filetoopen: " << path << "\n\n\n";
-      if (url.find("timestamp.json") != std::string::npos) {
-        std::cout << "CHECK PATH: " << (metadata_path.Path() / "timestamp.json").string() << "\n";
+      if (url.find("repo/timestamp.json") != std::string::npos) {
+        std::cout << "CHECK PATH: " << path.string() << "\n";
         if (boost::filesystem::exists(path)) {
-          boost::filesystem::copy_file("tests/test_data/timestamp2.json", path,
+          std::cout << "SERVE TIMESTAMP NOUPDATES FROM: " << path.string() << "\n";
+          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
                                        boost::filesystem::copy_option::overwrite_if_exists);
         } else {
-          boost::filesystem::copy_file("tests/test_data/timestamp1.json", path,
+          std::cout << "SERVE TIMESTAMP HASUPDATES FROM: " << path.string() << "\n";
+          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
                                        boost::filesystem::copy_option::overwrite_if_exists);
         }
         return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
-      } else if (url.find("targets.json") != std::string::npos) {
+      } else if (url.find("repo/targets.json") != std::string::npos) {
         Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
-        if (timestamp["signed"]["version"].asInt64() == 2) {
-          return HttpResponse(Utils::readFile("tests/test_data/targets_noupdates.json"), 200, CURLE_OK, "");
+        if (timestamp["signed"]["version"].asInt64() == 4) {
+          std::cout << "SERVE NOUPDATES FROM: " << path.string() << "\n";
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
         } else {
-          return HttpResponse(Utils::readFile("tests/test_data/targets_hasupdates.json"), 200, CURLE_OK, "");
+          std::cout << "SERVE HASUPDATES FROM: " << path.string() << "\n";
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
+      } else if (url.find("director/targets.json") != std::string::npos) {
+        if (boost::filesystem::exists(metadata_path.Path() / "repo/timestamp.json")) {
+          std::cout << "SERVE NOUPDATES FROM: " << path.string() << "\n";
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
+        } else {
+          std::cout << "SERVE HASUPDATES FROM: " << path.string() << "\n";
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
+        }
+
+      } else if (url.find("snapshot.json") != std::string::npos) {
+        if (boost::filesystem::exists(path)) {
+          std::cout << "SERVE SNAPSHOT NOUPDATES FROM: " << path.string() << "\n";
+          boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
+        } else {
+          std::cout << "SERVE SNAPSHOT HASUPDATES FROM: " << path.string() << "\n";
+          boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
+        }
+        return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else {
-        return HttpResponse(Utils::readFile("tests/test_data/" + url.substr(tls_server.size())), 200, CURLE_OK, "");
+        if (boost::filesystem::exists(path)) {
+          std::cout << "serving: " << path << "\n";
+          return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
+        } else {
+          std::cout << "not found: " << path << "\n";
+          return HttpResponse({}, 404, CURLE_OK, "");
+        }
       }
     }
     return HttpResponse(url, 200, CURLE_OK, "");
@@ -153,7 +187,7 @@ class HttpFake : public HttpInterface {
     (void)callback;
     (void)userp;
     std::cout << "URL: " << url << "\n";
-    boost::filesystem::path path = test_dir / url.substr(url.rfind("/targets/") + 9);
+    boost::filesystem::path path = metadata_path / "repo/targets" / url.substr(url.rfind("/targets/") + 9);
     std::cout << "filetoopen: " << path << "\n\n\n";
 
     std::string content = Utils::readFile(path.string());

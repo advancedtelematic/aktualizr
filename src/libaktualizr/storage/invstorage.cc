@@ -180,9 +180,31 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
     sql_storage->storeInstalledVersions(installed_versions, current_hash);
   }
 
-  Uptane::RawMetaPack metadata;
-  if (fs_storage->loadMetadata(&metadata)) {
-    sql_storage->storeMetadata(metadata);
+  // migrate latest versions of all metadata
+  for (auto role : Uptane::Role::Roles()) {
+    if (role == Uptane::Role::Root()) {
+      continue;
+    }
+
+    std::string meta;
+    for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
+      if (fs_storage->loadNonRoot(&meta, repo, role)) {
+        sql_storage->storeNonRoot(meta, repo, role);
+      }
+    }
+  }
+  // additionally migrate the whole root metadata chain
+  std::string latest_root;
+  for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
+    if (fs_storage->loadLatestRoot(&latest_root, Uptane::RepositoryType::Director)) {
+      int latest_version = Uptane::extractVersionUntrusted(latest_root);
+      for (int version = 0; version <= latest_version; ++version) {
+        std::string root;
+        if (fs_storage->loadRoot(&root, repo, Uptane::Version(version))) {
+          sql_storage->storeRoot(root, repo, Uptane::Version(version));
+        }
+      }
+    }
   }
 
   // if everything is ok, remove old files.

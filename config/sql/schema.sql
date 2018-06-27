@@ -8,18 +8,7 @@ CREATE TABLE primary_keys(private TEXT, public TEXT);
 CREATE TABLE tls_creds(ca_cert BLOB, ca_cert_format TEXT,
                        client_cert BLOB, client_cert_format TEXT,
                        client_pkey BLOB, client_pkey_format TEXT);
-CREATE TABLE root_meta(root BLOB NOT NULL, director INTEGER NOT NULL CHECK (director IN (0,1)), version INTEGER NOT NULL);
-CREATE TABLE meta(director_root BLOB NOT NULL,
-                  director_targets BLOB NOT NULL,
-                  image_root BLOB NOT NULL,
-                  image_targets BLOB NOT NULL,
-                  image_timestamp BLOB NOT NULL,
-                  image_snapshot BLOB NOT NULL);
+CREATE TABLE meta(meta BLOB NOT NULL, repo INTEGER NOT NULL, meta_type INTEGER NOT NULL, version INTEGER NOT NULL, UNIQUE(repo, meta_type, version));
 CREATE TABLE target_images(filename TEXT UNIQUE, image_data BLOB NOT NULL);
-CREATE TABLE rawmeta(director_root BLOB NOT NULL,
-                  director_targets BLOB NOT NULL,
-                  image_root BLOB NOT NULL,
-                  image_targets BLOB NOT NULL,
-                  image_timestamp BLOB NOT NULL,
-                  image_snapshot BLOB NOT NULL);
-CREATE TABLE root_rawmeta(root BLOB NOT NULL, director INTEGER NOT NULL CHECK (director IN (0,1)), version INTEGER NOT NULL);
+CREATE TABLE repo_types(repo INTEGER NOT NULL, repo_string TEXT NOT NULL);
+CREATE TABLE meta_types(meta INTEGER NOT NULL, meta_string TEXT NOT NULL);

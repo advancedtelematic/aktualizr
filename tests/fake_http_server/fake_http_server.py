@@ -3,6 +3,7 @@
 import sys
 import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from time import sleep
 
 last_fails = False
 
@@ -25,6 +26,17 @@ class Handler(BaseHTTPRequestHandler):
                 if auth_list[0] == 'Bearer' and auth_list[1] == 'token':
                     self.wfile.write(b'{"status": "good"}')
             self.wfile.write(b'{}')
+        elif self.path == '/large_file':
+            self.send_response(200)
+            self.end_headers()
+            for i in range(2048):
+              self.wfile.write(b'@')
+        elif self.path == '/slow_file':
+            self.send_response(200)
+            self.end_headers()
+            for i in range(5):
+              self.wfile.write(b'aa')
+              sleep(1)
         else:
             if not last_fails:
                 self.send_response(503)

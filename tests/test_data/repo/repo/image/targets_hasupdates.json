@@ -1,0 +1,37 @@
+
+{
+	"signatures" : 
+	[
+		
+		{
+			"keyid" : "34380a2430be4315e9a2fb9fd6cde99d669c6a7833bee59333172b615a53895a",
+			"method" : "rsassa-pss",
+			"sig" : "EFAZE6TIzNEoDJRauPIogji0iMGe96Y17ncHh0jcZ6COsDQTwKkg9xpYQxASAV1D6EqfmpGiLx8VNjjrelTdZrsBt4Tk/WHswXKL39aRbVDoPdbJUQrl6yogkCv61I1+GF60K/VlJNFuJLx8xbkZixeoAjHrWFw2SubEBBgicU0OvUTtjiKkLN/AII/Z82ArXD9Kyj8wUaYw/w4tyR80+34GEK11XtVr3EYmpKxfIopH26A/4hsbqEPSEtJxsSojRuIIZD386s5vBbfIaYbSMtdlNFhue+lEhSasAOMI7BR+tVHDyqjIqmDjijRPtfLEBlBBJRlMuQtvDuz2IcYWKg=="
+		}
+	],
+	"signed" : 
+	{
+		"_type" : "Targets",
+		"expires" : "2021-06-22T10:17:06Z",
+		"targets" : 
+		{
+			"primary_firmware.txt" : 
+			{
+				"hashes" : 
+				{
+					"sha256" : "74e653bbf6c00a88b21f0992159b1002f5af38506e6d2fbc7eb9846711b2d75f"
+				},
+				"length" : 59
+			},
+			"secondary_firmware.txt" : 
+			{
+				"hashes" : 
+				{
+					"sha256" : "1bbb15aa921ffffd5079567d630f43298dbe5e7cbc1b14e0ccdd6718fde28e47"
+				},
+				"length" : 15
+			}
+		},
+		"version" : 3
+	}
+}

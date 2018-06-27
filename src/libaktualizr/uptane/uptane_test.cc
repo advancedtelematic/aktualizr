@@ -29,8 +29,6 @@
 
 boost::filesystem::path sysroot;
 
-const Uptane::TimeStamp now("2017-01-01T01:00:00Z");
-
 TEST(Uptane, Verify) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
@@ -40,9 +38,9 @@ TEST(Uptane, Verify) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  HttpResponse response = http.get(http.tls_server + "/director/root.json");
+  HttpResponse response = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit);
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  Uptane::Root(now, "director", response.getJson(), root);
+  Uptane::Root(Uptane::RepositoryType::Director, response.getJson(), root);
 }
 
 TEST(Uptane, VerifyDataBad) {
@@ -54,11 +52,11 @@ TEST(Uptane, VerifyDataBad) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json.removeMember("signatures");
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::UnmetThreshold);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::UnmetThreshold);
 }
 
 TEST(Uptane, VerifyDataUnknownType) {
@@ -70,12 +68,12 @@ TEST(Uptane, VerifyDataUnknownType) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json["signatures"][0]["method"] = "badsignature";
   data_json["signatures"][1]["method"] = "badsignature";
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::SecurityException);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::SecurityException);
 }
 
 TEST(Uptane, VerifyDataBadKeyId) {
@@ -87,12 +85,12 @@ TEST(Uptane, VerifyDataBadKeyId) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
 
   data_json["signatures"][0]["keyid"] = "badkeyid";
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(now, "director", data_json, root), Uptane::UnmetThreshold);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::UnmetThreshold);
 }
 
 TEST(Uptane, VerifyDataBadThreshold) {
@@ -104,11 +102,11 @@ TEST(Uptane, VerifyDataBadThreshold) {
 
   config.storage.path = temp_dir.Path();
   auto storage = INvStorage::newStorage(config.storage);
-  Json::Value data_json = http.get(http.tls_server + "/director/root.json").getJson();
+  Json::Value data_json = http.get(http.tls_server + "/director/root.json", HttpInterface::kNoLimit).getJson();
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-    Uptane::Root(now, "director", data_json, root);
+    Uptane::Root(Uptane::RepositoryType::Director, data_json, root);
     FAIL();
   } catch (Uptane::IllegalThreshold ex) {
   } catch (Uptane::UnmetThreshold ex) {
@@ -282,7 +280,6 @@ TEST(Uptane, PetNameCreation) {
   {
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir.Path());
-    Uptane::Repository uptane(conf, storage);
 
     KeyManager keys(storage, conf.keymanagerConfig());
     Initializer initializer(conf.provision, storage, http, keys, {});
@@ -340,7 +337,6 @@ TEST(Uptane, PetNameCreation) {
 
     auto storage = INvStorage::newStorage(conf.storage);
     HttpFake http(temp_dir3.Path());
-    Uptane::Repository uptane(conf, storage);
     KeyManager keys(storage, conf.keymanagerConfig());
     Initializer initializer(conf.provision, storage, http, keys, {});
 
@@ -349,99 +345,6 @@ TEST(Uptane, PetNameCreation) {
     EXPECT_TRUE(boost::filesystem::exists(temp_dir3.Path() / "device_id"));
     EXPECT_EQ(Utils::readFile(temp_dir3.Path() / "device_id"), test_name2);
   }
-}
-
-/**
- * \verify{\tst{49}} Check that aktualizr fails on expired metadata
- */
-TEST(Uptane, Expires) {
-  TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-
-  auto storage = INvStorage::newStorage(config.storage);
-
-  Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json"));
-
-  // Check that we don't fail on good metadata.
-  EXPECT_NO_THROW(
-      Uptane::Targets(now, "director", Utils::parseJSONFile("tests/test_data/targets_noupdates.json"), root));
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_expired.json"), root),
-      Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(
-      Uptane::Targets(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/targets_expired.json"), root),
-      Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(Uptane::TimestampMeta(now, "director",
-                                     Utils::parseJSONFile("tests/test_data/bad_metadata/timestamp_expired.json"), root),
-               Uptane::ExpiredMetadata);
-
-  EXPECT_THROW(Uptane::Snapshot(now, "director",
-                                Utils::parseJSONFile("tests/test_data/bad_metadata/snapshot_expired.json"), root),
-               Uptane::ExpiredMetadata);
-}
-
-/**
- * \verify{\tst{52}} Check that aktualizr fails on bad threshold
- */
-TEST(Uptane, Threshold) {
-  TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-
-  config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-
-  auto storage = INvStorage::newStorage(config.storage);
-
-  Uptane::Root root("director", Utils::parseJSONFile("tests/test_data/director/root.json"));
-
-  // Check that we don't fail on good metadata.
-  EXPECT_NO_THROW(
-      Uptane::Targets(now, "director", Utils::parseJSONFile("tests/test_data/targets_noupdates.json"), root));
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(Uptane::Root(now, "director",
-                            Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-32768.json"), root),
-               Uptane::IllegalThreshold);
-
-  EXPECT_THROW(Uptane::Root(now, "director",
-                            Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-2147483648.json"), root),
-               Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director",
-                   Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-9223372036854775808.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.9.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_0.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
-
-  EXPECT_THROW(
-      Uptane::Root(now, "director", Utils::parseJSONFile("tests/test_data/bad_metadata/root_treshold_-1.json"), root),
-      Uptane::IllegalThreshold);
 }
 
 TEST(Uptane, InitializeFail) {
@@ -459,7 +362,6 @@ TEST(Uptane, InitializeFail) {
   conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository uptane(conf, storage);
 
   http.provisioningResponse = ProvisioningResult::kFailure;
   KeyManager keys(storage, conf.keymanagerConfig());
@@ -502,10 +404,10 @@ TEST(Uptane, AssembleManifestGood) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::Repository uptane(config, storage);
+  Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -550,10 +452,10 @@ TEST(Uptane, AssembleManifestBad) {
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
   auto storage = std::make_shared<FSStorage>(config.storage);
-  Uptane::Repository uptane(config, storage);
+  Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane, storage, http, bootloader, report_queue);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   Json::Value manifest = sota_client.AssembleManifest();
@@ -594,11 +496,12 @@ TEST(Uptane, PutManifest) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
+  Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
+
   ReportQueue report_queue(config, http);
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
+  SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
 
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
@@ -628,6 +531,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.running_mode = RunningMode::kFull;
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
   conf.storage.uptane_private_key_path = "private.key";
@@ -645,28 +549,29 @@ TEST(Uptane, RunForeverNoUpdates) {
   *commands_channel << std::make_shared<command::Shutdown>();
 
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage);
   Bootloader bootloader{conf.bootloader};
+  Uptane::Manifest uptane_manifest{conf, storage};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
 
+  events_channel->setTimeout(std::chrono::milliseconds(1000));
   EXPECT_TRUE(events_channel->hasValues());
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "FetchMetaComplete");
 
   EXPECT_TRUE(events_channel->hasValues());
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "UpdateAvailable");
 
   EXPECT_TRUE(events_channel->hasValues());
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "FetchMetaComplete");
 
   EXPECT_TRUE(events_channel->hasValues());
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
 }
 
@@ -678,6 +583,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = "metadata";
@@ -690,7 +596,7 @@ TEST(Uptane, RunForeverHasUpdates) {
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
   ecu_config.ecu_serial = "secondary_ecu_serial";
-  ecu_config.ecu_hardware_id = "secondary_hardware";
+  ecu_config.ecu_hardware_id = "secondary_hw";
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
   ecu_config.firmware_path = temp_dir / "firmware.txt";
@@ -706,29 +612,28 @@ TEST(Uptane, RunForeverHasUpdates) {
   *commands_channel << std::make_shared<command::CheckUpdates>();
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage);
   Bootloader bootloader{conf.bootloader};
+  Uptane::Manifest uptane_manifest{conf, storage};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   std::shared_ptr<event::BaseEvent> event;
   EXPECT_TRUE(events_channel->hasValues());
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "FetchMetaComplete");
-  *events_channel >> event;
+  EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "UpdateAvailable");
   event::UpdateAvailable* targets_event = static_cast<event::UpdateAvailable*>(event.get());
   EXPECT_EQ(targets_event->updates.size(), 2u);
-  EXPECT_EQ(targets_event->updates[0].filename(),
-            "agl-ota-qemux86-64-a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
+  EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
   EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
 }
 
-std::vector<Uptane::Target> makePackage(const std::string& serial) {
+std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
-  ot_json["custom"]["ecuIdentifier"] = serial;
+  ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
   ot_json["custom"]["targetFormat"] = "OSTREE";
   ot_json["length"] = 0;
   ot_json["hashes"]["sha256"] = serial;
@@ -741,6 +646,7 @@ TEST(Uptane, RunForeverInstall) {
   TemporaryDirectory temp_dir;
   HttpFake http(temp_dir.Path());
   conf.provision.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_hardware_id = "testecuhwid";
   conf.uptane.director_server = http.tls_server + "/director";
   conf.uptane.repo_server = http.tls_server + "/repo";
   conf.uptane.polling_sec = 1;
@@ -753,14 +659,14 @@ TEST(Uptane, RunForeverInstall) {
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  std::vector<Uptane::Target> packages_to_install = makePackage("testostree");
+  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  Uptane::Repository repo(conf, storage);
+  Uptane::Manifest uptane_manifest{conf, storage};
   Bootloader bootloader{conf.bootloader};
   ReportQueue report_queue(conf, http);
-  SotaUptaneClient up(conf, events_channel, repo, storage, http, bootloader, report_queue);
+  SotaUptaneClient up(conf, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 
   EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
@@ -796,11 +702,11 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
+  Uptane::Manifest uptane_manifest{config, storage};
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, events_channel, uptane, storage, http, bootloader, report_queue);
+  SotaUptaneClient sota_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
@@ -833,15 +739,16 @@ TEST(Uptane, ProvisionOnServer) {
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  std::vector<Uptane::Target> packages_to_install = makePackage(config.provision.primary_ecu_serial);
+  std::vector<Uptane::Target> packages_to_install =
+      makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
   *commands_channel << std::make_shared<command::FetchMeta>();
   *commands_channel << std::make_shared<command::StartDownload>(packages_to_install);
   *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
   *commands_channel << std::make_shared<command::Shutdown>();
-  Uptane::Repository repo(config, storage);
+  Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
-  SotaUptaneClient up(config, events_channel, repo, storage, http, bootloader, report_queue);
+  SotaUptaneClient up(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
   up.runForever(commands_channel);
 }
 
@@ -901,11 +808,20 @@ TEST(Uptane, fs_to_sql_full) {
   std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
-  Uptane::RawMetaPack metadata;
-  fs_storage.loadMetadata(&metadata);
+  std::string director_root;
+  std::string director_targets;
+  std::string images_root;
+  std::string images_targets;
+  std::string images_timestamp;
+  std::string images_snapshot;
 
-  std::cout << "CONFIG.PATH: " << config.path << std::endl;
-  std::cout << "CONFIG.UPTANE_PUBLIC_KEY_PATH: " << config.uptane_public_key_path << std::endl;
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Images));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.tls_cacert_path)));
@@ -914,10 +830,10 @@ TEST(Uptane, fs_to_sql_full) {
 
   boost::filesystem::path image_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "repo";
   boost::filesystem::path director_path = Utils::absolutePath(config.path, config.uptane_metadata_path) / "director";
-  EXPECT_TRUE(boost::filesystem::exists(director_path / "root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(director_path / "1.root.json"));
   EXPECT_TRUE(boost::filesystem::exists(director_path / "targets.json"));
-  EXPECT_TRUE(boost::filesystem::exists(director_path / "root.json"));
-  EXPECT_TRUE(boost::filesystem::exists(director_path / "targets.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "1.root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(image_path / "targets.json"));
   EXPECT_TRUE(boost::filesystem::exists(image_path / "timestamp.json"));
   EXPECT_TRUE(boost::filesystem::exists(image_path / "snapshot.json"));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, "device_id")));
@@ -965,8 +881,19 @@ TEST(Uptane, fs_to_sql_full) {
   std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
-  Uptane::RawMetaPack sql_metadata;
-  sql_storage->loadMetadata(&sql_metadata);
+  std::string sql_director_root;
+  std::string sql_director_targets;
+  std::string sql_images_root;
+  std::string sql_images_targets;
+  std::string sql_images_timestamp;
+  std::string sql_images_snapshot;
+
+  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director);
+  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Images);
+  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);
@@ -978,12 +905,12 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_EQ(sql_ecu_registered, ecu_registered);
   EXPECT_EQ(sql_installed_versions, installed_versions);
 
-  EXPECT_EQ(sql_metadata.director_root, metadata.director_root);
-  EXPECT_EQ(sql_metadata.director_targets, metadata.director_targets);
-  EXPECT_EQ(sql_metadata.image_root, metadata.image_root);
-  EXPECT_EQ(sql_metadata.image_targets, metadata.image_targets);
-  EXPECT_EQ(sql_metadata.image_timestamp, metadata.image_timestamp);
-  EXPECT_EQ(sql_metadata.image_snapshot, metadata.image_snapshot);
+  EXPECT_EQ(sql_director_root, director_root);
+  EXPECT_EQ(sql_director_targets, director_targets);
+  EXPECT_EQ(sql_images_root, images_root);
+  EXPECT_EQ(sql_images_targets, images_targets);
+  EXPECT_EQ(sql_images_timestamp, images_timestamp);
+  EXPECT_EQ(sql_images_snapshot, images_snapshot);
 }
 
 TEST(Uptane, fs_to_sql_partial) {
@@ -1022,8 +949,19 @@ TEST(Uptane, fs_to_sql_partial) {
   std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
 
-  Uptane::RawMetaPack metadata;
-  fs_storage.loadMetadata(&metadata);
+  std::string director_root;
+  std::string director_targets;
+  std::string images_root;
+  std::string images_targets;
+  std::string images_timestamp;
+  std::string images_snapshot;
+
+  fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director);
+  fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Images);
+  fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_public_key_path)));
   EXPECT_TRUE(boost::filesystem::exists(Utils::absolutePath(config.path, config.uptane_private_key_path)));
@@ -1053,8 +991,19 @@ TEST(Uptane, fs_to_sql_partial) {
   std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
 
-  Uptane::RawMetaPack sql_metadata;
-  sql_storage->loadMetadata(&sql_metadata);
+  std::string sql_director_root;
+  std::string sql_director_targets;
+  std::string sql_images_root;
+  std::string sql_images_targets;
+  std::string sql_images_timestamp;
+  std::string sql_images_snapshot;
+
+  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director);
+  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Images);
+  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);
@@ -1066,12 +1015,12 @@ TEST(Uptane, fs_to_sql_partial) {
   EXPECT_EQ(sql_ecu_registered, ecu_registered);
   EXPECT_EQ(sql_installed_versions, installed_versions);
 
-  EXPECT_EQ(sql_metadata.director_root, metadata.director_root);
-  EXPECT_EQ(sql_metadata.director_targets, metadata.director_targets);
-  EXPECT_EQ(sql_metadata.image_root, metadata.image_root);
-  EXPECT_EQ(sql_metadata.image_targets, metadata.image_targets);
-  EXPECT_EQ(sql_metadata.image_timestamp, metadata.image_timestamp);
-  EXPECT_EQ(sql_metadata.image_snapshot, metadata.image_snapshot);
+  EXPECT_EQ(sql_director_root, director_root);
+  EXPECT_EQ(sql_director_targets, director_targets);
+  EXPECT_EQ(sql_images_root, images_root);
+  EXPECT_EQ(sql_images_targets, images_targets);
+  EXPECT_EQ(sql_images_timestamp, images_timestamp);
+  EXPECT_EQ(sql_images_snapshot, images_snapshot);
 }
 
 TEST(Uptane, SaveVersion) {
@@ -1085,7 +1034,6 @@ TEST(Uptane, SaveVersion) {
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(config, storage);
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -1111,7 +1059,6 @@ TEST(Uptane, LoadVersion) {
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   HttpFake http(temp_dir.Path());
-  Uptane::Repository uptane(config, storage);
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -1125,29 +1072,6 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
-TEST(Uptane, getMetaCorrectStorage) {
-  TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = StorageType::kSqlite;
-  config.storage.path = temp_dir.Path();
-  config.storage.sqldb_path = temp_dir / "db.sqlite";
-
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage, temp_dir.Path());
-  Uptane::Fetcher fetcher(config, storage, http);
-  EXPECT_TRUE(fetcher.fetchMeta());
-
-  // check that we indeed have stored the new metadata
-  Uptane::RawMetaPack new_meta;
-  storage->loadUncheckedMetadata(&new_meta);
-  Uptane::Root new_root{"director", Utils::parseJSON(new_meta.director_root)};
-  EXPECT_EQ(new_root.version(), 1);
-}
-
 TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
   boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
@@ -1157,64 +1081,16 @@ TEST(Uptane, krejectallTest) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = StorageType::kSqlite;
   config.storage.sqldb_path = temp_dir / "db.sqlite";
+  config.pacman.type = PackageManager::kNone;
 
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
-  Uptane::Fetcher fetcher(config, storage, http);
-  EXPECT_TRUE(fetcher.fetchMeta());
-  EXPECT_TRUE(uptane.feedCheckMeta());
-}
-
-TEST(Uptane, VerifyMetaTest) {
-  TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
-  HttpFake http(temp_dir.Path());
-  Config config;
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
-  config.storage.type = StorageType::kSqlite;
-  config.storage.sqldb_path = temp_dir / "db.sqlite";
-
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Repository uptane(config, storage);
-
-  Json::Value targets_file = Utils::parseJSONFile("tests/test_data/targets_hasupdates.json");
-  Uptane::Targets director_targets_good(targets_file);
-  Uptane::Targets image_targets_good(targets_file);
-
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, image_targets_good));
-
-  Json::Value big_length = targets_file;
-  big_length["signed"]["targets"]["secondary_firmware.txt"]["length"] = 16;
-
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(big_length), image_targets_good));
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(big_length)));
-
-  Json::Value no_target = targets_file;
-  no_target["signed"]["targets"].removeMember("secondary_firmware.txt");
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(no_target)));
-  EXPECT_TRUE(uptane.verifyMetaTargets(Uptane::Targets(no_target), image_targets_good));
-
-  Json::Value wrong_name = targets_file;
-  wrong_name["signed"]["targets"].removeMember("secondary_firmware.txt");
-  wrong_name["signed"]["targets"]["secondary_firmware_wrong"] =
-      targets_file["signed"]["targets"]["secondary_firmware.txt"];
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(wrong_name)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(wrong_name), image_targets_good));
-
-  Json::Value wrong_hash = targets_file;
-  wrong_hash["signed"]["targets"]["secondary_firmware.txt"]["hashes"]["sha256"] = "wrong_hash";
-  EXPECT_FALSE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(wrong_hash)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(wrong_hash), image_targets_good));
-
-  Json::Value more_hashes = targets_file;
-  more_hashes["signed"]["targets"]["secondary_firmware_wrong"]["hashes"]["sha1024"] = "new_hash";
-  EXPECT_TRUE(uptane.verifyMetaTargets(director_targets_good, Uptane::Targets(more_hashes)));
-  EXPECT_FALSE(uptane.verifyMetaTargets(Uptane::Targets(more_hashes), image_targets_good));
+  Uptane::Manifest uptane_manifest{config, storage};
+  Bootloader bootloader{config.bootloader};
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
+  EXPECT_TRUE(sota_client.uptaneIteration());
 }
 
 #ifdef BUILD_P11

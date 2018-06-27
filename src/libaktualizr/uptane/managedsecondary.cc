@@ -27,9 +27,9 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
 
 void ManagedSecondary::rawToMeta() {
   // raw meta is trusted
-  current_meta.director_root = Uptane::Root("director", Utils::parseJSON(current_raw_meta.director_root));
+  current_meta.director_root = Uptane::Root(RepositoryType::Director, Utils::parseJSON(current_raw_meta.director_root));
   current_meta.director_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.director_targets));
-  current_meta.image_root = Uptane::Root("repo", Utils::parseJSON(current_raw_meta.image_root));
+  current_meta.image_root = Uptane::Root(RepositoryType::Images, Utils::parseJSON(current_raw_meta.image_root));
   current_meta.image_targets = Uptane::Targets(Utils::parseJSON(current_raw_meta.image_targets));
   current_meta.image_timestamp = Uptane::TimestampMeta(Utils::parseJSON(current_raw_meta.image_timestamp));
   current_meta.image_snapshot = Uptane::Snapshot(Utils::parseJSON(current_raw_meta.image_snapshot));
@@ -55,7 +55,7 @@ bool ManagedSecondary::putMetadata(const RawMetaPack &meta_pack) {
   std::vector<Uptane::Target>::const_iterator it;
   for (it = current_meta.director_targets.targets.begin(); it != current_meta.director_targets.targets.end(); ++it) {
     // TODO: what about hardware ID? Also missing in Uptane::Target
-    if (it->ecu_identifier() == getSerial()) {
+    if (it->ecus().find(getSerial()) != it->ecus().end()) {
       if (target_found) {
         detected_attack = "Duplicate entry for this ECU";
         break;
@@ -84,7 +84,8 @@ int ManagedSecondary::getRootVersion(const bool director) {
 bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   Uptane::Root &prev_root = (director) ? current_meta.director_root : current_meta.image_root;
   std::string &prev_raw_root = (director) ? current_raw_meta.director_root : current_raw_meta.image_root;
-  Uptane::Root new_root = Uptane::Root((director) ? "director" : "repo", Utils::parseJSON(root));
+  Uptane::Root new_root =
+      Uptane::Root((director) ? RepositoryType::Director : RepositoryType::Images, Utils::parseJSON(root));
 
   // No verification is currently performed, we can add verification in future for testing purposes
   if (new_root.version() == prev_root.version() + 1) {

@@ -14,6 +14,9 @@
 
 namespace Uptane {
 
+enum class RepositoryType { Unknown = -1, Images = 0, Director = 1 };
+std::string RepoString(RepositoryType repo);
+
 using KeyId = std::string;
 /**
  * TUF Roles
@@ -25,8 +28,11 @@ class Role {
   static Role Targets() { return Role{RoleEnum::kTargets}; }
   static Role Timestamp() { return Role{RoleEnum::kTimestamp}; }
   static Role InvalidRole() { return Role{RoleEnum::kInvalidRole}; }
+  static std::vector<Role> Roles() { return {Root(), Snapshot(), Targets(), Timestamp()}; }
+
   explicit Role(const std::string & /*role_name*/);
   std::string ToString() const;
+  int ToInt() const { return static_cast<int>(role_); }
   bool operator==(const Role &other) const { return role_ == other.role_; }
   bool operator!=(const Role &other) const { return !(*this == other); }
   bool operator<(const Role &other) const { return role_ < other.role_; }
@@ -34,7 +40,7 @@ class Role {
   friend std::ostream &operator<<(std::ostream &os, const Role &t);
 
  private:
-  enum class RoleEnum { kRoot, kSnapshot, kTargets, kTimestamp, kInvalidRole };
+  enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {}
 
@@ -173,8 +179,7 @@ class Target {
  public:
   Target(std::string filename, const Json::Value &content);
 
-  // TODO: ECU HW ID
-  EcuSerial ecu_identifier() const { return ecu_identifier_; }
+  const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }
   std::string format() const { return type_; }
   std::string sha256Hash() const;
@@ -183,10 +188,12 @@ class Target {
   bool MatchWith(const Hash &hash) const;
 
   int64_t length() const { return length_; }
-  Json::Value toJson() const;
 
   bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
-    return (length() > 0) && (ecu_identifier() == ecuIdentifier);
+    return (length() > 0) &&
+           (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {
+              return pair.first == ecuIdentifier;
+            }) != ecus_.cend());
   };
 
   bool operator==(const Target &t2) const {
@@ -215,14 +222,15 @@ class Target {
     return oneMatchingHash;
   }
 
+  Json::Value toDebugJson() const;
   friend std::ostream &operator<<(std::ostream &os, const Target &t);
 
  private:
   std::string filename_;
   std::string type_;
-  EcuSerial ecu_identifier_{EcuSerial(EcuSerial::Unknown())};
+  std::map<EcuSerial, HardwareIdentifier> ecus_;
   std::vector<Hash> hashes_;
-  int64_t length_;
+  int64_t length_{0};
 };
 
 std::ostream &operator<<(std::ostream &os, const Target &t);
@@ -234,18 +242,13 @@ class BaseMeta {
   BaseMeta() = default;
   ;
   explicit BaseMeta(const Json::Value &json);
-  BaseMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
+  BaseMeta(RepositoryType repo, const Json::Value &json, Root &root);
   int version() const { return version_; }
   TimeStamp expiry() const { return expiry_; }
+  bool isExpired(const TimeStamp &now) const { return expiry_.IsExpiredAt(now); }
   Json::Value original() const { return original_object_; }
 
   bool operator==(const BaseMeta &rhs) const { return version_ == rhs.version() && expiry_ == rhs.expiry(); }
-  Json::Value toJson() const {
-    Json::Value res;
-    res["expires"] = expiry_.ToString();
-    res["version"] = version_;
-    return res;
-  }
 
  protected:
   int version_ = {-1};
@@ -266,11 +269,11 @@ class Root : public BaseMeta {
   explicit Root(Policy policy = Policy::kRejectAll) : policy_(policy) { version_ = 0; }
   /**
    * A 'real' root that implements TUF signature validation
-   * @param repository - The name of the repository (only used to improve the error messages)
+   * @param repo - Repository type (only used to improve the error messages)
    * @param json - The contents of the 'signed' portion
    */
-  Root(const std::string &repository, const Json::Value &json);
-  Root(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
+  Root(RepositoryType repo, const Json::Value &json);
+  Root(RepositoryType repo, const Json::Value &json, Root &root);
 
   /**
    * Take a JSON blob that contains a signatures/signed component that is supposedly for a given role, and check that is
@@ -282,13 +285,12 @@ class Root : public BaseMeta {
    * * "expires" is in the past (vs 'now')
    * * The blob has valid signatures from enough keys to cross the threshold for this role
    * @param now - The current time (for signature expiry)
-   * @param repository - The name of the repository (only used to improve the error messages)
+   * @param repo - Repository type (only used to improve the error messages)
    * @param role
    * @param signed_object
    * @return
    */
-  void UnpackSignedObject(const TimeStamp &now, const std::string &repository, const Json::Value &signed_object);
-  Json::Value toJson() const;
+  void UnpackSignedObject(RepositoryType repo, const Json::Value &signed_object);
   bool operator==(const Root &rhs) const {
     return version_ == rhs.version_ && expiry_ == rhs.expiry_ && keys_ == rhs.keys_ &&
            keys_for_role_ == rhs.keys_for_role_ && thresholds_for_role_ == rhs.thresholds_for_role_ &&
@@ -308,10 +310,9 @@ class Root : public BaseMeta {
 class Targets : public BaseMeta {
  public:
   explicit Targets(const Json::Value &json);
-  Targets(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
+  Targets(RepositoryType repo, const Json::Value &json, Root &root);
   Targets() = default;
   ;
-  Json::Value toJson() const;
 
   std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {
@@ -324,29 +325,40 @@ class Targets : public BaseMeta {
 
 class TimestampMeta : public BaseMeta {
  public:
-  // TODO: add METAFILES section
-  explicit TimestampMeta(const Json::Value &json) : BaseMeta(json) {}
-  TimestampMeta(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root)
-      : BaseMeta(now, repository, json, root){};
+  explicit TimestampMeta(const Json::Value &json);
+  TimestampMeta(RepositoryType repo, const Json::Value &json, Root &root);
   TimestampMeta() = default;
   ;
-  Json::Value toJson() const;
+  std::vector<Hash> snapshot_hashes() const { return snapshot_hashes_; };
+  int64_t snapshot_size() const { return snapshot_size_; };
+  int snapshot_version() const { return snapshot_version_; };
+
+ private:
+  void init(const Json::Value &json);
+
+  std::vector<Hash> snapshot_hashes_;
+  int64_t snapshot_size_{0};
+  int snapshot_version_{-1};
 };
 
 class Snapshot : public BaseMeta {
  public:
-  std::map<std::string, int> versions;
   explicit Snapshot(const Json::Value &json);
-  Snapshot(const TimeStamp &now, const std::string &repository, const Json::Value &json, Root &root);
+  Snapshot(RepositoryType repo, const Json::Value &json, Root &root);
   Snapshot() = default;
-  ;
-  Json::Value toJson() const;
+  std::vector<Hash> targets_hashes() const { return targets_hashes_; };
+  int64_t targets_size() const { return targets_size_; };
+  int targets_version() const { return targets_version_; };
   bool operator==(const Snapshot &rhs) const {
-    return version_ == rhs.version() && expiry_ == rhs.expiry() && versions == rhs.versions;
+    return version_ == rhs.version() && expiry_ == rhs.expiry() && targets_size_ == rhs.targets_size_ &&
+           targets_version_ == rhs.targets_version_ && targets_hashes_ == rhs.targets_hashes_;
   }
 
  private:
   void init(const Json::Value &json);
+  int64_t targets_size_{0};
+  int targets_version_{-1};
+  std::vector<Hash> targets_hashes_;
 };
 
 struct MetaPack {
@@ -367,6 +379,8 @@ struct RawMetaPack {
   std::string image_timestamp;
   std::string image_snapshot;
 };
+
+int extractVersionUntrusted(const std::string &meta);  // returns negative number if parsing fails
 
 }  // namespace Uptane
 

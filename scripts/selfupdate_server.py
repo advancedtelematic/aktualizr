@@ -11,7 +11,7 @@ class Handler(BaseHTTPRequestHandler):
         print("GET: " + self.path)
         self.send_response(200)
         self.end_headers()
-        with open("/persistent/fake_root" + self.path, "rb") as fl:
+        with open("/persistent/fake_root/repo/" + self.path, "rb") as fl:
             self.wfile.write(bytearray(fl.read()))
 
     def do_POST(self):

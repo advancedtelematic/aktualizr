@@ -35,8 +35,9 @@ bool PartialVerificationSecondary::putMetadata(const RawMetaPack &meta) {
   TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
-  root_ = Uptane::Root(now, "director", Utils::parseJSON(meta.director_root), root_);
-  Uptane::Targets targets(now, "director", Utils::parseJSON(meta.director_targets), root_);
+  // TODO: check for expiration and version downgrade
+  root_ = Uptane::Root(RepositoryType::Director, Utils::parseJSON(meta.director_root), root_);
+  Uptane::Targets targets(RepositoryType::Director, Utils::parseJSON(meta.director_targets), root_);
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;

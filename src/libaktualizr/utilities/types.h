@@ -5,13 +5,24 @@
 #include <boost/filesystem.hpp>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
-enum class KeyType { kED25519 = 0, kFirstKnown = kED25519, kRSA2048, kRSA4096, kLastKnown = kRSA4096, kUnknown = 0xff };
+enum class KeyType {
+  kED25519 = 0,
+  kFirstKnown = kED25519,
+  kRSA2048,
+  kRSA3072,
+  kRSA4096,
+  kLastKnown = kRSA4096,
+  kUnknown = 0xff
+};
 
 inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   std::string kt_str;
   switch (kt) {
     case KeyType::kRSA2048:
       kt_str = "RSA2048";
+      break;
+    case KeyType::kRSA3072:
+      kt_str = "RSA3072";
       break;
     case KeyType::kRSA4096:
       kt_str = "RSA4096";
