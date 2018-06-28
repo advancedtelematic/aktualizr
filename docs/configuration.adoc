@@ -40,7 +40,7 @@ Config options for networking and secondary device detection by the primary.
 | `socket_events`            | `"DownloadComplete", "DownloadFailed"` | Events to broadcast to connected sockets.
 | `ipdiscovery_host`         | `"127.0.0.1"`                          | Subnetmask for primary to broadcast for secondary discovery.
 | `ipdiscovery_port`         | `9031`                                 | Port for primary to broadcast for secondary discovery.
-| `ipdiscovery_wait_seconds` | `10`                                   | Seconds to wait for secondaries to respond to discovery broadcast message.
+| `ipdiscovery_wait_seconds` | `2`                                   | Seconds to wait for secondaries to respond to discovery broadcast message.
 | `ipuptane_port`            | `9030`                                 | Port to listen on for incoming messages
 
 |==========================================================================================
@@ -57,7 +57,7 @@ Options for using a PKCS#11 compliant device for storing cryptographic keys. Not
 | `uptane_key_id`      |         | Key ID of the Uptane key in the HSM.
 | `tls_cacert_id`      |         | Key ID of the TLS root CA certificate for authenticating the server.
 | `tls_pkey_id`        |         | Key ID of the client's TLS private key.
-| `tls_client_cert_id` |         | Key ID of the client's TLS certificate.
+| `tls_clientcert_id`  |         | Key ID of the client's TLS certificate.
 |==========================================================================================
 
 == `tls`
@@ -81,13 +81,17 @@ Note that `server_url_path` is only used if `server` is empty. If both are empty
 Options for how the device is provisioned with the backend.
 
 [options="header"]
-|=====================================================================================
-| Name             | Default   | Description
-| `server`         |           | Server provisioning URL. If empty, set to `tls.server`.
-| `provision_path` |           | Path to an archive containing provisioning data. See link:credentials.adoc[] for the specification of the contents of this file.
-| `p12_password`   |           | Password for PKCS#12 encryption.
-| `expiry_days`    | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
-|=====================================================================================
+|==========================================================================================
+| Name                        | Default   | Description
+| `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
+| `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
+| `provision_path`            |           | Path to an archive containing provisioning data. See link:credentials.adoc[] for the specification of the contents of this file.
+| `p12_password`              |           | Password for PKCS#12 encryption.
+| `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
+| `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
+| `primary_ecu_serial`        |           | Serial number of the primary ECU. If left empty, a random serial will be generated.
+| `ecu_registration_endpoint` |           | Ecu provisioning URL. If empty, set to `uptane.director_server` with `/ecus` appended.
+|==========================================================================================
 
 If you intend to provision with a server by using https://github.com/advancedtelematic/meta-updater[meta-updater], you will probably want to set `provision.provision_path = "/var/sota/sota_provisioning_credentials.zip"`.
 
@@ -98,15 +102,12 @@ Options for Uptane.
 [options="header"]
 |==========================================================================================
 | Name                      | Default      | Description
-| `running_mode`            | `full`       | Continuously poll the server (`full`) or only poll once and exit (`once`).
+| `running_mode`            | `full`       | Continuously poll the server (`full`), perform a full update cycle once and exit (`once`), only check for updates (`check`), only download updates (`download`) or only install updates (`install`).
 | `polling_sec`             | `10`         | Interval between polls (in seconds).
-| `device_id`               |              | Device ID of the primary ECU. If left empty, a random name will be generated.
-| `primary_ecu_serial`      |              | Serial number of the primary ECU. If left empty, a random serial will be generated.
-| `primary_ecu_hardware_id` |              | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
 | `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
-| `key_type`                | `"RSA2048"` | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA4096"`.
+| `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
 | `legacy_interface`        |              | Path to an executable interface for communicating with legacy secondary ECUs. See link:legacysecondary.adoc[] for more information.
 |==========================================================================================
 
@@ -162,8 +163,8 @@ Options for importing data from the filesystem into the storage. Most useful if 
 | `uptane_private_key_path` |         | Path to the device's private key.
 | `uptane_public_key_path`  |         | Path to the device's public key.
 | `tls_cacert_path`         |         | Path to the TLS root CA certificate.
-| `tls_pkey_id`             |         | Path to the TLS private key.
-| `tls_clientcert_id`       |         | Path to the TLS client certificate.
+| `tls_pkey_path`           |         | Path to the TLS private key.
+| `tls_clientcert_path`     |         | Path to the TLS client certificate.
 |==========================================================================================
 
 == `telemetry`
