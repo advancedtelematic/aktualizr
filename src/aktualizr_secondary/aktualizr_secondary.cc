@@ -146,6 +146,10 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
     LOG_ERROR << "Could not pull from OSTree. Aktualizr was built without OSTree support!";
     return false;
 #endif
+  } else {
+    // TODO save debian package here.
+    LOG_ERROR << "Installation of non ostree images is not suppotrted yet.";
+    return false;
   }
 
   std::tie(res_code, message) = pacman->install(*target_);
@@ -153,7 +157,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
     LOG_ERROR << "Could not install target (" << static_cast<int>(res_code) << "): " << message;
     return false;
   }
-
+  storage_->saveInstalledVersion(*target_);
   return true;
 }
 
