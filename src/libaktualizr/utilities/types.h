@@ -38,6 +38,25 @@ inline std::ostream& operator<<(std::ostream& os, const KeyType kt) {
   return os;
 }
 
+inline std::istream& operator>>(std::istream& is, KeyType& kt) {
+  std::string kt_str;
+
+  is >> kt_str;
+
+  if (kt_str == "\"RSA2048\"") {
+    kt = KeyType::kRSA2048;
+  } else if (kt_str == "\"RSA3072\"") {
+    kt = KeyType::kRSA3072;
+  } else if (kt_str == "\"RSA4096\"") {
+    kt = KeyType::kRSA4096;
+  } else if (kt_str == "\"ED25519\"") {
+    kt = KeyType::kED25519;
+  } else {
+    kt = KeyType::kUnknown;
+  }
+  return is;
+}
+
 enum class CryptoSource { kFile = 0, kPkcs11 };
 
 enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall };
