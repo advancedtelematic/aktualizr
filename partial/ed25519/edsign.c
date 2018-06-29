@@ -166,6 +166,8 @@ void edsign_sign(uint8_t *signature, const uint8_t *pub,
 static uint8_t edsign_verify_finalize(struct sha512_state* s, const uint8_t *signature,
 				      const uint8_t *pub, const uint8_t *message)
 {
+        (void) message;
+
 	struct ed25519_pt p;
 	struct ed25519_pt q;
 	uint8_t lhs[F25519_SIZE];

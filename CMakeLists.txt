@@ -380,6 +380,7 @@ if (BUILD_LOAD_TESTS)
     add_definitions(-Wconversion)
 endif(BUILD_LOAD_TESTS)
 add_subdirectory("src")
+add_subdirectory("partial")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)
 
 add_subdirectory("docs")

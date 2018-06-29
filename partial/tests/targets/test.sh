@@ -27,7 +27,7 @@ echo "./verify_targets ${SIGNEDFILE} ${KEYFILE} 1 0 01:02:03:04:05:06 abc-def ac
 ./verify_targets ${SIGNEDFILE} ${KEYFILE} 1 0 01:02:03:04:05:06 abc-def ac51637364cff0f6802e087c8c6a51f1925384af639214282a67e093495ef746d8f1c2326cf7182a1067fd69f6049247f509a95a533032f9565c905ce4c5d5fe
 CODE=$?
 
-#rm -r ${TMP}
+rm -r ${TMP}
 
 if [ "$1" = "pass" ]; then
 	[ "${CODE}" -eq 0 ]

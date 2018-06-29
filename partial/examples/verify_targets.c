@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
 #include "targets.h"
@@ -71,7 +71,7 @@ static bool hash_matches(const uint8_t* bin_hash, const char* text_hash) {
 	return true;
 }
 
-/* verify_targets targets.json keys.txt <threshold> <prev_version> <ecu_id> <hardware_id> <expected_hash>*/
+//verify_targets targets.json keys.txt <threshold> <prev_version> <ecu_id> <hardware_id> <expected_hash>
 int main(int argc, const char** argv) {
 	FILE* keys_file = fopen(argv[2], "r");
 
@@ -132,3 +132,4 @@ int main(int argc, const char** argv) {
 	else
 		return 1;
 }
+*/

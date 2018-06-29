@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(uptane-partial C ASM)
-if(MACHINE)
-	if(${MACHINE} STREQUAL "kea128")
+if(LIBUPTINY_MACHINE)
+	if(${LIBUPTINY_MACHINE} STREQUAL "kea128")
 		find_path(
 			NXP_TOOLCHAIN_PATH
 			NAMES Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc
@@ -67,22 +66,21 @@ set(C25519_HEADERS ed25519/ed25519.h
 	ed25519/sha512.h
 	)
 
-set(UPTANE_SOURCES uptane/crypto.c
-	uptane/targets.c
-	uptane/uptane_time.c
-	uptane/readjson.c
+set(UPTANE_SOURCES libuptiny/base64.c
+	libuptiny/uptane_time.c
+	extern/jsmn/jsmn.c
 	)
 
-set(UPTANE_HEADERS uptane/crypto.h
-	uptane/targets.h
-	uptane/uptane_time.h
-	uptane/readjson.h
+set(UPTANE_HEADERS libuptiny/base64.h
+	libuptiny/crypto.h
+	extern/jsmn/jsmn.h
+	libuptiny/uptane_time.h
 	)
 
 set(LIBRARY_SOURCES ${C25519_SOURCES} ${UPTANE_SOURCES})
 set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
 
-include_directories(. ed25519 uptane)
+include_directories(. ed25519 libuptiny)
 add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
 target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
@@ -96,17 +94,18 @@ set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
 	extern/isotp-c/deps/bitfield-c/src/bitfield/bitfield.c
 	)
 add_library(isotp_lib STATIC ${ISOTP_SOURCES})
-target_compile_options(isotp_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+target_compile_options(isotp_lib PUBLIC -Os -g -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
 # Machine is not set, building tests to run in Linux environment
-if(NOT MACHINE)
+if(NOT LIBUPTINY_MACHINE)
 	enable_testing()
 
-	add_executable(verify_targets examples/verify_targets.c)
-	target_link_libraries(verify_targets uptane_partial_lib)
-	target_compile_options(verify_targets PUBLIC -O0 -g)
-	set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
+	#add_executable(verify_targets examples/verify_targets.c)
+	#target_link_libraries(verify_targets uptane_partial_lib)
+	#target_compile_options(verify_targets PUBLIC -O0 -g)
+	#set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
+        add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
 	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
 	add_executable(sign ${C25519_SOURCES} examples/sign.c)
 
