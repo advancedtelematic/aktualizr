@@ -8,14 +8,14 @@
 class Repo {
  public:
   Repo(boost::filesystem::path path, const std::string &expires);
-  void generateRepo();
+  void generateRepo(KeyType key_type = KeyType::kRSA2048);
   void addImage(const boost::filesystem::path &image_path);
   void addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial);
   void signTargets();
 
  private:
   void generateKeys();
-  void generateRepo(const std::string &repo_type);
+  void generateRepo(const std::string &repo_type, KeyType key_type);
   Json::Value signTuf(const std::string &repo_type, const Json::Value &json);
   std::string getExpirationTime(const std::string &expires);
 

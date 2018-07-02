@@ -17,7 +17,8 @@ int main(int argc, char **argv) {
     ("filename", po::value<std::string>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
     ("serial", po::value<std::string>(), "target ECU serial")
-    ("expires", po::value<std::string>(), "expiration time");
+    ("expires", po::value<std::string>(), "expiration time")
+    ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type");
   // clang-format on
 
   po::positional_options_description positionalOptions;
@@ -46,7 +47,11 @@ int main(int argc, char **argv) {
       Repo repo(vm["path"].as<boost::filesystem::path>(), expiration_time);
       std::string command = vm["command"].as<std::string>();
       if (command == "generate") {
-        repo.generateRepo();
+        std::string key_type_arg = vm["keytype"].as<std::string>();
+        std::istringstream key_type_str{std::string("\"") + key_type_arg + "\""};
+        KeyType key_type;
+        key_type_str >> key_type;
+        repo.generateRepo(key_type);
       } else if (command == "image") {
         repo.addImage(vm["filename"].as<std::string>());
       } else if (command == "addtarget") {

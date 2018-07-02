@@ -9,11 +9,24 @@ Repo::Repo(boost::filesystem::path path, const std::string &expires) : path_(std
 
 Json::Value Repo::signTuf(const std::string &repo_type, const Json::Value &json) {
   std::string private_key = Utils::readFile(path_ / "keys" / repo_type / "private.key");
+  std::istringstream key_type_str{Utils::readFile(path_ / "keys" / repo_type / "key_type")};
+  KeyType key_type;
+  key_type_str >> key_type;
 
-  std::string b64sig =
-      Utils::toBase64(Crypto::Sign(KeyType::kRSA2048, nullptr, private_key, Json::FastWriter().write(json)));
+  std::string b64sig = Utils::toBase64(Crypto::Sign(key_type, nullptr, private_key, Json::FastWriter().write(json)));
   Json::Value signature;
-  signature["method"] = "rsassa-pss";
+  switch (key_type) {
+    case KeyType::kRSA2048:
+    case KeyType::kRSA3072:
+    case KeyType::kRSA4096:
+      signature["method"] = "rsassa-pss";
+      break;
+    case KeyType::kED25519:
+      signature["method"] = "ed25519";
+      break;
+    default:
+      throw std::runtime_error("Unknown key type");
+  }
   signature["sig"] = b64sig;
 
   Json::Value signed_data;
@@ -44,19 +57,22 @@ std::string Repo::getExpirationTime(const std::string &expires) {
   }
 }
 
-void Repo::generateRepo(const std::string &repo_type) {
+void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   boost::filesystem::path keys_dir(path_ / ("keys/" + repo_type));
   boost::filesystem::create_directories(keys_dir);
 
   boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type));
   boost::filesystem::create_directories(repo_dir);
 
-  KeyType type{KeyType::kRSA2048};
   std::string public_key_string, private_key;
-  Crypto::generateKeyPair(type, &public_key_string, &private_key);
-  PublicKey public_key(public_key_string, type);
+  Crypto::generateKeyPair(key_type, &public_key_string, &private_key);
+  PublicKey public_key(public_key_string, key_type);
+
+  std::stringstream key_str;
+  key_str << key_type;
   Utils::writeFile(keys_dir / "private.key", private_key);
   Utils::writeFile(keys_dir / "public.key", public_key_string);
+  Utils::writeFile(keys_dir / "key_type", key_str.str());
 
   Json::Value root;
   root["_type"] = "Root";
@@ -108,10 +124,10 @@ void Repo::generateRepo(const std::string &repo_type) {
   Utils::writeFile(repo_dir / "timestamp.json", signTuf(repo_type, timestamp));
 }
 
-void Repo::generateRepo() {
-  generateRepo("director");
+void Repo::generateRepo(KeyType key_type) {
+  generateRepo("director", key_type);
   Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
-  generateRepo("image");
+  generateRepo("image", key_type);
 }
 
 void Repo::addImage(const boost::filesystem::path &image_path) {
@@ -178,5 +194,9 @@ void Repo::signTargets() {
 
 PublicKey Repo::GetPublicKey(const std::string &repo_type) const {
   std::string public_key_string = Utils::readFile(path_ / "keys" / repo_type / "public.key");
-  return PublicKey(public_key_string, KeyType::kRSA2048);
+  std::istringstream key_type_str{Utils::readFile(path_ / "keys" / repo_type / "key_type")};
+  KeyType key_type;
+  key_type_str >> key_type;
+
+  return PublicKey(public_key_string, key_type);
 }
