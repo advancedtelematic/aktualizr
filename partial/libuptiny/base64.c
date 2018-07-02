@@ -1,9 +1,5 @@
 #include "base64.h"
 
-// DEBUG
-#include "stdio.h"
-// DEBUG
-
 /* Bitfields are not used to be as cross-platform as possible */
 
 static inline uint8_t encode_6bit(uint8_t sextet) {
@@ -74,7 +70,7 @@ static inline uint8_t decode_sym(char symbol) {
     return 52 + symbol - '0';
   } else if(symbol == '+') {
     return 62;
-  } else if(symbol == '+') {
+  } else if(symbol == '/') {
     return 63;
   } else if(symbol == '=') {
     return B64_SYM_PAD;
@@ -89,7 +85,6 @@ static inline uint8_t decode_sym(char symbol) {
 static inline int decode_quadruple(const char *base64, uint8_t *out) {
   uint8_t sym;
   sym = decode_sym(base64[0]);
-  printf("SYM1: %c : %02X\n", base64[0], sym);
 
   if(sym == B64_SYM_EOL) {
     return 0;
@@ -99,7 +94,6 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
   out[0] = sym << 2;
 
   sym = decode_sym(base64[1]);
-  printf("SYM2: %c : %02X\n",base64[1], sym);
   if(sym & B64_SYM_FAIL_MASK) {
     return -1;
   }
@@ -107,7 +101,6 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
   out[1] = sym << 4;
 
   sym = decode_sym(base64[2]);
-  printf("SYM3: %c : %02X\n",base64[2], sym);
   if(sym == B64_SYM_PAD) {
     return 1;
   }
@@ -118,7 +111,6 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
   out[2] = sym << 6;
 
   sym = decode_sym(base64[3]);
-  printf("SYM4: %c : %02X\n",base64[3], sym);
   if(sym == B64_SYM_PAD) {
     return 2;
   }
@@ -130,9 +122,9 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
   return 3;
 }
 
-ssize_t base64_decode(const char *base64, uint8_t *out) {
+ssize_t base64_decode(const char *base64, size_t base64_len, uint8_t *out) {
   ssize_t size = 0;
-  for(int i = 0;; i+=4) {
+  for(int i = 0; i < base64_len; i+=4) {
     int res = decode_quadruple(base64+i, out+size);
     if(res < 0) {
       return -1;
@@ -142,5 +134,6 @@ ssize_t base64_decode(const char *base64, uint8_t *out) {
       size += 3;
     }
   }
+  return size;
 }
 

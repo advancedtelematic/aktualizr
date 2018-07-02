@@ -1,6 +1,10 @@
 #ifndef AKTUALIZR_PARTIAL_UPTANE_TIME_H_
 #define AKTUALIZR_PARTIAL_UPTANE_TIME_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 typedef struct {
@@ -13,5 +17,9 @@ typedef struct {
 } uptane_time_t;
 
 bool uptane_time_greater(uptane_time_t l, uptane_time_t r);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*AKTUALIZR_PARTIAL_UPTANE_TIME_H_*/

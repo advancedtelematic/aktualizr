@@ -67,20 +67,25 @@ set(C25519_HEADERS ed25519/ed25519.h
 	)
 
 set(UPTANE_SOURCES libuptiny/base64.c
+	libuptiny/crypto.c
+	libuptiny/signatures.c
 	libuptiny/uptane_time.c
+	libuptiny/utils.c
 	extern/jsmn/jsmn.c
 	)
 
 set(UPTANE_HEADERS libuptiny/base64.h
 	libuptiny/crypto.h
-	extern/jsmn/jsmn.h
+	libuptiny/signatures.h
 	libuptiny/uptane_time.h
+	libuptiny/utils.h
+	extern/jsmn/jsmn.h
 	)
 
 set(LIBRARY_SOURCES ${C25519_SOURCES} ${UPTANE_SOURCES})
 set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
 
-include_directories(. ed25519 libuptiny)
+include_directories(. ed25519 libuptiny extern)
 add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
 target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
@@ -106,6 +111,7 @@ if(NOT LIBUPTINY_MACHINE)
 	#set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
+        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/common_data.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c extern/jsmn/jsmn.c tests/test_state.cc tests/signatures_test.cc)
 	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
 	add_executable(sign ${C25519_SOURCES} examples/sign.c)
 
