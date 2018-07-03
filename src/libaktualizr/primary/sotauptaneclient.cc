@@ -268,10 +268,10 @@ bool SotaUptaneClient::updateDirectorMeta() {
 
     if (local_version > remote_version) {
       return false;
-    } else if (local_version == remote_version) {
-      return true;
+    } else if (local_version < remote_version) {
+      storage->storeNonRoot(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
     }
-    storage->storeNonRoot(director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+
     if (director_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("director", "targets");
       return false;
@@ -304,7 +304,7 @@ bool SotaUptaneClient::updateImagesMeta() {
     }
   }
 
-  // Update Image Roots Metadata
+  // Update Image Root Metadata
   {
     std::string images_root;
     if (!uptane_fetcher.fetchLatestRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
@@ -358,10 +358,10 @@ bool SotaUptaneClient::updateImagesMeta() {
 
     if (local_version > remote_version) {
       return false;
-    } else if (local_version == remote_version) {
-      return true;
+    } else if (local_version < remote_version) {
+      storage->storeNonRoot(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
     }
-    storage->storeNonRoot(images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
+
     if (images_repo.timestampExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "timestamp");
       return false;
@@ -387,18 +387,16 @@ bool SotaUptaneClient::updateImagesMeta() {
       local_version = -1;
     }
 
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version == remote_version) {
-      return true;
-    }
-
     if (!images_repo.verifySnapshot(images_snapshot)) {
       last_exception = images_repo.getLastException();
       return false;
     }
 
-    storage->storeNonRoot(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage->storeNonRoot(images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+    }
 
     if (images_repo.snapshotExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "snapshot");
@@ -425,16 +423,16 @@ bool SotaUptaneClient::updateImagesMeta() {
       local_version = -1;
     }
 
-    if (local_version > remote_version) {
-      return false;
-    } else if (local_version == remote_version) {
-      return true;
-    }
     if (!images_repo.verifyTargets(images_targets)) {
       last_exception = images_repo.getLastException();
       return false;
     }
-    storage->storeNonRoot(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+
+    if (local_version > remote_version) {
+      return false;
+    } else if (local_version < remote_version) {
+      storage->storeNonRoot(images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
+    }
 
     if (images_repo.targetsExpired()) {
       last_exception = Uptane::ExpiredMetadata("repo", "targets");
@@ -451,6 +449,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       Uptane::EcuSerial ecu_serial = ecus_it->first;
       Uptane::HardwareIdentifier hw_id = ecus_it->second;
+
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
@@ -465,7 +464,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
 
       auto images_it = installed_images.find(ecu_serial);
       if (images_it == installed_images.end()) {
-        LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
+        LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
         is_new = false;
         break;
       }
@@ -525,7 +524,7 @@ bool SotaUptaneClient::uptaneIteration() {
   LOG_INFO << "got new updates";
 
   if (!updateImagesMeta()) {
-    LOG_ERROR << "Failed to update image metadata";
+    LOG_ERROR << "Failed to update images metadata: " << last_exception.what();
     return false;
   }
 
