@@ -14,6 +14,7 @@
 
 namespace Uptane {
 
+/** This must match the repo_type table in sqlstorage */
 enum class RepositoryType { Unknown = -1, Images = 0, Director = 1 };
 std::string RepoString(RepositoryType repo);
 
@@ -40,6 +41,7 @@ class Role {
   friend std::ostream &operator<<(std::ostream &os, const Role &t);
 
  private:
+  /** This must match the meta_types table in sqlstorage */
   enum class RoleEnum { kRoot = 0, kSnapshot = 1, kTargets = 2, kTimestamp = 3, kInvalidRole = -1 };
 
   explicit Role(RoleEnum role) : role_(role) {}
