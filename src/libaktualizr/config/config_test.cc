@@ -224,8 +224,19 @@ TEST(config, two_config_correctness) {
   TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
   {
     std::ofstream cs(conf_path_str.c_str(), std::ofstream::app);
-    cs << "type = sqlite\n";
-    cs << "\n[pacman]\ntype = none\n";
+    cs << "type = \"sqlite\"\n";
+    cs << "\n";
+    cs << "[pacman]\n";
+    cs << "type = \"none\"\n";
+    cs << "\n";
+    cs << "[tls]\n";
+    cs << "ca_source = \"pkcs11\"\n";
+    cs << "pkey_source = \"pkcs11\"\n";
+    cs << "cert_source = \"pkcs11\"\n";
+    cs << "\n";
+    cs << "[uptane]\n";
+    cs << "key_source = \"pkcs11\"\n";
+    cs << "key_type = \"ED25519\"\n";
   }
 
   bpo::variables_map cmd;
@@ -241,6 +252,11 @@ TEST(config, two_config_correctness) {
   Config conf(cmd);
   EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
   EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
+  EXPECT_EQ(conf.tls.ca_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.tls.pkey_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.tls.cert_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.uptane.key_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
 }
 
 #ifndef __NO_MAIN__
