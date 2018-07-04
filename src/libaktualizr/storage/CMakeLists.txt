@@ -29,8 +29,8 @@ add_library(storage OBJECT ${SOURCES})
 
 add_aktualizr_test(NAME storage_atomic SOURCES storage_atomic_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME sql_utils SOURCES sql_utils_test.cc PROJECT_WORKING_DIRECTORY)
-add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc sql_schemas.cc PROJECT_WORKING_DIRECTORY
-                   ARGS ${PROJECT_SOURCE_DIR}/config/schemas)
+add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc sql_schemas.cc
+                   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/test)
 list(REMOVE_ITEM TEST_SOURCES sql_schemas.cc)
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
