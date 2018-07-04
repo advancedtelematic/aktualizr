@@ -26,14 +26,14 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
     for (const auto& it : timestamp.snapshot_hashes()) {
       switch (it.type()) {
         case Hash::Type::kSha256:
-          if (boost::algorithm::hex(Crypto::sha256digest(snapshot_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(snapshot_raw))) != it) {
             LOG_ERROR << "Hash verification for snapshot metadata failed";
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
-          if (boost::algorithm::hex(Crypto::sha512digest(snapshot_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(snapshot_raw))) != it) {
             LOG_ERROR << "Hash verification for snapshot metadata failed";
             return false;
           }
@@ -65,14 +65,14 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
     for (const auto& it : snapshot.targets_hashes()) {
       switch (it.type()) {
         case Hash::Type::kSha256:
-          if (boost::algorithm::hex(Crypto::sha256digest(targets_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(targets_raw))) != it) {
             LOG_ERROR << "Hash verification for targets metadata failed";
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
-          if (boost::algorithm::hex(Crypto::sha512digest(targets_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(targets_raw))) != it) {
             LOG_ERROR << "Hash verification for targets metadata failed";
             return false;
           }
