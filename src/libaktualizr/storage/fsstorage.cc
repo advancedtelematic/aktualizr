@@ -295,7 +295,9 @@ bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane:
     return false;
   }
 
-  *data = Utils::readFile(metafile);
+  if (data != nullptr) {
+    *data = Utils::readFile(metafile);
+  }
   return true;
 }
 
@@ -320,7 +322,9 @@ bool FSStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Upta
     return false;
   }
 
-  *data = Utils::readFile(metafile);
+  if (data != nullptr) {
+    *data = Utils::readFile(metafile);
+  }
   return true;
 }
 
