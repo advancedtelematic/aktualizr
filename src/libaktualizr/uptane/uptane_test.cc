@@ -1074,9 +1074,10 @@ TEST(Uptane, LoadVersion) {
 
 TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/kRejectAll.db", temp_dir / "db.sqlite");
   HttpFake http(temp_dir.Path());
+
   Config config;
+  config.storage.path = temp_dir.Path();
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = StorageType::kSqlite;
@@ -1091,6 +1092,63 @@ TEST(Uptane, krejectallTest) {
   ReportQueue report_queue(config, http);
   SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
   EXPECT_TRUE(sota_client.uptaneIteration());
+}
+
+TEST(Uptane, restoreVerify) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config("tests/config/basic.toml");
+  config.storage.path = temp_dir.Path();
+  config.uptane.director_server = http.tls_server + "/unstable/director";
+  config.uptane.repo_server = http.tls_server + "/unstable/repo";
+  config.pacman.type = PackageManager::kNone;
+  config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_public_key_path = "public.key";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage);
+  Uptane::Manifest uptane_manifest{config, storage};
+  Bootloader bootloader{config.bootloader};
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
+
+  EXPECT_TRUE(sota_client.initialize());
+  sota_client.AssembleManifest();
+  // 1st attempt, don't get anything
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
+
+  // 2nd attempt, get director root.json
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+
+  // 3rd attempt, get director targets.json
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Images));
+
+  // 4th attempt, get images root.json
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Images));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+
+  // 5th attempt, get images timestamp.json
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+
+  // 6th attempt, get images snapshot.json
+  EXPECT_FALSE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+
+  // 7th attempt, get images targets.json, successful iteration
+  EXPECT_TRUE(sota_client.uptaneIteration());
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
 }
 
 #ifdef BUILD_P11
