@@ -338,6 +338,8 @@ std::string Utils::jsonToStr(const Json::Value &json) {
   return ss.str();
 }
 
+std::string Utils::jsonToCanonicalStr(const Json::Value &json) { return Json::FastWriter().write(json); }
+
 Json::Value Utils::getHardwareInfo() {
   std::string result;
   int exit_code = shell("lshw -json", &result);
