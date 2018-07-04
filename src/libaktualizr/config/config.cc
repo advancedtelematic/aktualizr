@@ -47,6 +47,14 @@ inline void CopyFromConfig(CryptoSource& dest, const std::string& option_name, c
   }
 }
 
+template <>
+inline void CopyFromConfig(RunningMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
+  if (value.is_initialized()) {
+    dest = RunningModeFromString(StripQuotesFromStrings(value.get()));
+  }
+}
+
 void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(socket, "socket", pt);
 }
@@ -57,6 +65,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(socket_commands_path, "socket_commands_path", pt);
   CopyFromConfig(socket_events_path, "socket_events_path", pt);
 
+  // TODO: fix this to support multiple config files (if we care):
   boost::optional<std::string> events_string = pt.get_optional<std::string>("socket_events");
   if (events_string.is_initialized()) {
     std::string e = Utils::stripQuotes(events_string.get());
@@ -73,6 +82,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, socket_commands_path, "socket_commands_path");
   writeOption(out_stream, socket_events_path, "socket_events_path");
+  // TODO: fix this to support multiple config files (if we care):
   std::string events_str;
   for (auto it = socket_events.begin(); it != socket_events.end(); ++it) {
     events_str += *it;
@@ -128,10 +138,7 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  std::string r_mode;
-  CopyFromConfig(r_mode, "running_mode", pt);
-  running_mode = RunningModeFromString(r_mode);
-
+  CopyFromConfig(running_mode, "running_mode", pt);
   CopyFromConfig(polling_sec, "polling_sec", pt);
   CopyFromConfig(director_server, "director_server", pt);
   CopyFromConfig(repo_server, "repo_server", pt);

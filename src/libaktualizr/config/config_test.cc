@@ -235,6 +235,7 @@ TEST(config, two_config_correctness) {
     cs << "cert_source = \"pkcs11\"\n";
     cs << "\n";
     cs << "[uptane]\n";
+    cs << "running_mode = \"check\"\n";
     cs << "key_source = \"pkcs11\"\n";
     cs << "key_type = \"ED25519\"\n";
   }
@@ -255,6 +256,7 @@ TEST(config, two_config_correctness) {
   EXPECT_EQ(conf.tls.ca_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.tls.pkey_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.tls.cert_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kCheck);
   EXPECT_EQ(conf.uptane.key_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
 }
