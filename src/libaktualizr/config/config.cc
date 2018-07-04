@@ -15,46 +15,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-template <>
-inline void CopyFromConfig(KeyType& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    std::string key_type{StripQuotesFromStrings(value.get())};
-    if (key_type == "RSA2048") {
-      dest = KeyType::kRSA2048;
-    } else if (key_type == "RSA3072") {
-      dest = KeyType::kRSA3072;
-    } else if (key_type == "RSA4096") {
-      dest = KeyType::kRSA4096;
-    } else if (key_type == "ED25519") {
-      dest = KeyType::kED25519;
-    } else {
-      dest = KeyType::kUnknown;
-    }
-  }
-}
-
-template <>
-inline void CopyFromConfig(CryptoSource& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    std::string crypto_source{StripQuotesFromStrings(value.get())};
-    if (crypto_source == "pkcs11") {
-      dest = CryptoSource::kPkcs11;
-    } else {
-      dest = CryptoSource::kFile;
-    }
-  }
-}
-
-template <>
-inline void CopyFromConfig(RunningMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    dest = RunningModeFromString(StripQuotesFromStrings(value.get()));
-  }
-}
-
 void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(socket, "socket", pt);
 }
