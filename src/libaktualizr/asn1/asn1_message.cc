@@ -4,7 +4,12 @@
 #include "utilities/sockaddr_io.h"
 #include "utilities/utils.h"
 
-#include <linux/tcp.h>
+#include <netinet/tcp.h>
+
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 #include <sys/socket.h>
 #include <sys/types.h>
 
