@@ -709,6 +709,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
           *events_channel << std::make_shared<event::Error>("Could not update metadata.");
         }
       } else if (command->variant == "CheckUpdates") {
+        AssembleManifest();  // populates list of connected devices and installed images
         std::vector<Uptane::Target> updates;
         if (!uptaneOfflineIteration(&updates)) {
           LOG_ERROR << "Invalid UPTANE metadata in storage";
