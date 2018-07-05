@@ -442,6 +442,125 @@ bool SotaUptaneClient::updateImagesMeta() {
   return true;
 }
 
+bool SotaUptaneClient::checkDirectorMetaOffline() {
+  director_repo.resetMeta();
+  // Load Director Root Metadata
+  {
+    std::string director_root;
+    if (!storage->loadLatestRoot(&director_root, Uptane::RepositoryType::Director)) {
+      return false;
+    }
+
+    if (!director_repo.initRoot(director_root)) {
+      last_exception = director_repo.getLastException();
+      return false;
+    }
+
+    if (director_repo.rootExpired()) {
+      last_exception = Uptane::ExpiredMetadata("director", "root");
+      return false;
+    }
+  }
+
+  // Load Director Targets Metadata
+  {
+    std::string director_targets;
+
+    if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+      return false;
+    }
+
+    if (!director_repo.verifyTargets(director_targets)) {
+      last_exception = director_repo.getLastException();
+      return false;
+    }
+
+    if (director_repo.targetsExpired()) {
+      last_exception = Uptane::ExpiredMetadata("director", "targets");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool SotaUptaneClient::checkImagesMetaOffline() {
+  images_repo.resetMeta();
+  // Load Images Root Metadata
+  {
+    std::string images_root;
+    if (!storage->loadLatestRoot(&images_root, Uptane::RepositoryType::Images)) {
+      return false;
+    }
+
+    if (!images_repo.initRoot(images_root)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (images_repo.rootExpired()) {
+      last_exception = Uptane::ExpiredMetadata("repo", "root");
+      return false;
+    }
+  }
+
+  // Load Images Timestamp Metadata
+  {
+    std::string images_timestamp;
+    if (!storage->loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp())) {
+      return false;
+    }
+
+    if (!images_repo.verifyTimestamp(images_timestamp)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (images_repo.timestampExpired()) {
+      last_exception = Uptane::ExpiredMetadata("repo", "timestamp");
+      return false;
+    }
+  }
+
+  // Load Images Snapshot Metadata
+  {
+    std::string images_snapshot;
+
+    if (!storage->loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot())) {
+      return false;
+    }
+
+    if (!images_repo.verifySnapshot(images_snapshot)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (images_repo.snapshotExpired()) {
+      last_exception = Uptane::ExpiredMetadata("repo", "snapshot");
+      return false;
+    }
+  }
+
+  // Load Images Targets Metadata
+  {
+    std::string images_targets;
+    if (!storage->loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets())) {
+      return false;
+    }
+
+    if (!images_repo.verifyTargets(images_targets)) {
+      last_exception = images_repo.getLastException();
+      return false;
+    }
+
+    if (images_repo.targetsExpired()) {
+      last_exception = Uptane::ExpiredMetadata("repo", "targets");
+      return false;
+    }
+  }
+  return true;
+}
+
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
   std::vector<Uptane::Target> targets = director_repo.getTargets();
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
@@ -506,14 +625,13 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
 }
 
 bool SotaUptaneClient::uptaneIteration() {
-  // Uptane step 1 (build the vehicle version manifest):
   if (!updateDirectorMeta()) {
     LOG_ERROR << "Failed to update director metadata: " << last_exception.what();
     return false;
   }
   std::vector<Uptane::Target> targets;
   if (!getNewTargets(&targets)) {
-    LOG_ERROR << "Inconsistency between director and images targets metadata";
+    LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
     return false;
   }
 
@@ -528,6 +646,33 @@ bool SotaUptaneClient::uptaneIteration() {
     return false;
   }
 
+  return true;
+}
+
+bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets) {
+  if (!checkDirectorMetaOffline()) {
+    LOG_ERROR << "Failed to check director metadata: " << last_exception.what();
+    return false;
+  }
+  std::vector<Uptane::Target> tmp_targets;
+  if (!getNewTargets(&tmp_targets)) {
+    LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
+    return false;
+  }
+
+  if (tmp_targets.empty()) {
+    *targets = std::move(tmp_targets);
+    return true;
+  }
+
+  LOG_INFO << "got new updates";
+
+  if (!checkImagesMetaOffline()) {
+    LOG_ERROR << "Failed to check images metadata: " << last_exception.what();
+    return false;
+  }
+
+  *targets = std::move(tmp_targets);
   return true;
 }
 
@@ -565,8 +710,8 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         }
       } else if (command->variant == "CheckUpdates") {
         std::vector<Uptane::Target> updates;
-        if (!getNewTargets(&updates)) {
-          LOG_ERROR << "Inconsistency between director and images targets metadata";
+        if (!uptaneOfflineIteration(&updates)) {
+          LOG_ERROR << "Invalid UPTANE metadata in storage";
         } else {
           if (!updates.empty()) {
             *events_channel << std::make_shared<event::UpdateAvailable>(updates);

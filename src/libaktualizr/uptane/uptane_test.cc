@@ -1151,6 +1151,38 @@ TEST(Uptane, restoreVerify) {
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
 }
 
+TEST(Uptane, offlineIteration) {
+  TemporaryDirectory temp_dir;
+  HttpFake http(temp_dir.Path());
+  Config config("tests/config/basic.toml");
+  config.storage.path = temp_dir.Path();
+  config.uptane.director_server = http.tls_server + "director";
+  config.uptane.repo_server = http.tls_server + "repo";
+  config.pacman.type = PackageManager::kNone;
+  config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
+  config.storage.uptane_metadata_path = "metadata";
+  config.storage.uptane_private_key_path = "private.key";
+  config.storage.uptane_public_key_path = "public.key";
+  config.postUpdateValues();
+  auto storage = INvStorage::newStorage(config.storage);
+  Uptane::Manifest uptane_manifest{config, storage};
+  Bootloader bootloader{config.bootloader};
+  ReportQueue report_queue(config, http);
+  SotaUptaneClient sota_client(config, NULL, uptane_manifest, storage, http, bootloader, report_queue);
+
+  EXPECT_TRUE(sota_client.initialize());
+  sota_client.AssembleManifest();
+
+  std::vector<Uptane::Target> targets_online;
+  EXPECT_TRUE(sota_client.uptaneIteration());
+  EXPECT_TRUE(sota_client.getNewTargets(&targets_online));
+
+  std::vector<Uptane::Target> targets_offline;
+  EXPECT_TRUE(sota_client.uptaneOfflineIteration(&targets_offline));
+  EXPECT_EQ(targets_online, targets_offline);
+}
+
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {
   Config config;
