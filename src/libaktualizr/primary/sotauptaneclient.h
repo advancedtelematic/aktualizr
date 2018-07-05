@@ -1,3 +1,4 @@
+#include <gtest/gtest.h>
 #include <json/json.h>
 #include <atomic>
 #include <map>
@@ -30,6 +31,7 @@ class SotaUptaneClient {
   bool initialize();
   bool updateMeta();
   bool uptaneIteration();
+  bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets);
   bool downloadImages(const std::vector<Uptane::Target> &targets);
   void runForever(const std::shared_ptr<command::Channel> &commands_channel);
   Json::Value AssembleManifest();
@@ -40,6 +42,7 @@ class SotaUptaneClient {
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
 
  private:
+  FRIEND_TEST(Uptane, offlineIteration);
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
@@ -59,6 +62,8 @@ class SotaUptaneClient {
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool updateImagesMeta();
+  bool checkImagesMetaOffline();
+  bool checkDirectorMetaOffline();
 
   Config &config;
   std::shared_ptr<event::Channel> events_channel;

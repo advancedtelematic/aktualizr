@@ -508,7 +508,9 @@ bool SQLStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane
       LOG_ERROR << "Can't get meta: " << db.errmsg();
       return false;
     }
-    *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+    if (data != nullptr) {
+      *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+    }
   }
 
   return true;
@@ -533,7 +535,9 @@ bool SQLStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Upt
     LOG_ERROR << "Can't get meta: " << db.errmsg();
     return false;
   }
-  *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+  if (data != nullptr) {
+    *data = std::string(reinterpret_cast<const char*>(sqlite3_column_blob(statement.get(), 0)));
+  }
 
   return true;
 }

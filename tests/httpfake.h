@@ -22,8 +22,6 @@ class HttpFake : public HttpInterface {
         test_dir(test_dir_in),
         manifest_count(0),
         ecu_registered(is_initialized) {
-    // boost::filesystem::copy_directory("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
-    // boost::filesystem::copy_directory("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
     Utils::copyDir("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
     Utils::copyDir("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
   }
@@ -45,49 +43,63 @@ class HttpFake : public HttpInterface {
 
     std::cout << "URL:" << url << "\n";
     if (url.find(tls_server) == 0) {
-      boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
+      boost::filesystem::path path;
+      if (url.find("unstable/") != std::string::npos) {
+        if (unstable_valid_count >= unstable_valid_num) {
+          ++unstable_valid_num;
+          unstable_valid_count = 0;
+          return HttpResponse({}, 503, CURLE_OK, "");
+        } else {
+          ++unstable_valid_count;
+          path = metadata_path.Path() / url.substr(tls_server.size() + std::string("unstable/").length());
+        }
+      } else {
+        path = metadata_path.Path() / url.substr(tls_server.size());
+      }
       std::cout << "filetoopen: " << path << "\n\n\n";
       if (url.find("repo/timestamp.json") != std::string::npos) {
-        std::cout << "CHECK PATH: " << path.string() << "\n";
-        if (boost::filesystem::exists(path)) {
-          std::cout << "SERVE TIMESTAMP NOUPDATES FROM: " << path.string() << "\n";
-          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
-                                       boost::filesystem::copy_option::overwrite_if_exists);
+        // "Unstable" requests always give "hasupdates" metadata set
+        if (url.find("unstable/") == std::string::npos) {
+          if (boost::filesystem::exists(path)) {
+            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          } else {
+            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          }
+          return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
         } else {
-          std::cout << "SERVE TIMESTAMP HASUPDATES FROM: " << path.string() << "\n";
-          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
-                                       boost::filesystem::copy_option::overwrite_if_exists);
+          return HttpResponse(Utils::readFile(metadata_path.Path() / "repo/timestamp_hasupdates.json"), 200, CURLE_OK,
+                              "");
         }
-        return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else if (url.find("repo/targets.json") != std::string::npos) {
         Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
         if (timestamp["signed"]["version"].asInt64() == 4) {
-          std::cout << "SERVE NOUPDATES FROM: " << path.string() << "\n";
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
         } else {
-          std::cout << "SERVE HASUPDATES FROM: " << path.string() << "\n";
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
       } else if (url.find("director/targets.json") != std::string::npos) {
         if (boost::filesystem::exists(metadata_path.Path() / "repo/timestamp.json")) {
-          std::cout << "SERVE NOUPDATES FROM: " << path.string() << "\n";
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
         } else {
-          std::cout << "SERVE HASUPDATES FROM: " << path.string() << "\n";
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
 
       } else if (url.find("snapshot.json") != std::string::npos) {
-        if (boost::filesystem::exists(path)) {
-          std::cout << "SERVE SNAPSHOT NOUPDATES FROM: " << path.string() << "\n";
-          boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
-                                       boost::filesystem::copy_option::overwrite_if_exists);
+        // "Unstable" requests always give "hasupdates" metadata set
+        if (url.find("unstable/") == std::string::npos) {
+          if (boost::filesystem::exists(path)) {
+            boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          } else {
+            boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          }
+          return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
         } else {
-          std::cout << "SERVE SNAPSHOT HASUPDATES FROM: " << path.string() << "\n";
-          boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
-                                       boost::filesystem::copy_option::overwrite_if_exists);
+          return HttpResponse(Utils::readFile(path.parent_path() / "snapshot_hasupdates.json"), 200, CURLE_OK, "");
         }
-        return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else {
         if (boost::filesystem::exists(path)) {
           std::cout << "serving: " << path << "\n";
@@ -216,6 +228,9 @@ class HttpFake : public HttpInterface {
   TemporaryDirectory metadata_path;
   int manifest_count;
   bool ecu_registered;
+
+  int unstable_valid_num{0};
+  int unstable_valid_count{0};
 };
 
 #endif  // HTTPFAKE_H_

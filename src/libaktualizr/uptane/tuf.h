@@ -165,6 +165,7 @@ class Hash {
 
   bool HaveAlgorithm() const { return type_ != Type::kUnknownAlgorithm; }
   bool operator==(const Hash &other) const;
+  bool operator!=(const Hash &other) const { return !operator==(other); }
   std::string TypeString() const;
   Type type() const;
   std::string HashString() const { return hash_; }

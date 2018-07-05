@@ -22,18 +22,19 @@ bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
 
 bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   try {
+    std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(snapshot_raw));
     bool hash_exists = false;
     for (const auto& it : timestamp.snapshot_hashes()) {
       switch (it.type()) {
         case Hash::Type::kSha256:
-          if (boost::algorithm::hex(Crypto::sha256digest(snapshot_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
             LOG_ERROR << "Hash verification for snapshot metadata failed";
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
-          if (boost::algorithm::hex(Crypto::sha512digest(snapshot_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
             LOG_ERROR << "Hash verification for snapshot metadata failed";
             return false;
           }
@@ -61,18 +62,19 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
 
 bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
   try {
+    std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(targets_raw));
     bool hash_exists = false;
     for (const auto& it : snapshot.targets_hashes()) {
       switch (it.type()) {
         case Hash::Type::kSha256:
-          if (boost::algorithm::hex(Crypto::sha256digest(targets_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha256, boost::algorithm::hex(Crypto::sha256digest(canonical))) != it) {
             LOG_ERROR << "Hash verification for targets metadata failed";
             return false;
           }
           hash_exists = true;
           break;
         case Hash::Type::kSha512:
-          if (boost::algorithm::hex(Crypto::sha512digest(targets_raw)) != it.HashString()) {
+          if (Hash(Hash::Type::kSha512, boost::algorithm::hex(Crypto::sha512digest(canonical))) != it) {
             LOG_ERROR << "Hash verification for targets metadata failed";
             return false;
           }
