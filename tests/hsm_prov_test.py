@@ -91,7 +91,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
                     b'Couldn\'t load ECU serials' not in stdout or
                     b'Provisioned on server: no' not in stdout or
                     b'Fetched metadata: no' not in stdout):
-                print('Device already provisioned!? ' + stderr.decode() + stdout.decode())
+                print('Error: aktualizr failure or device already provisioned: \n' + stderr.decode() + stdout.decode())
                 return 1
         finally:
             proc.kill()
