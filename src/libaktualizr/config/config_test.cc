@@ -215,6 +215,18 @@ TEST(config, config_dirs_two_dirs) {
   EXPECT_EQ(config.provision.provision_path.string(), "y_prov_path");
 }
 
+void checkConfigExpectations(const Config &conf) {
+  EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
+  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
+  EXPECT_EQ(conf.tls.ca_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.tls.pkey_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.tls.cert_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kCheck);
+  EXPECT_EQ(conf.uptane.key_source, CryptoSource::kPkcs11);
+  EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
+  EXPECT_EQ(conf.bootloader.rollback_mode, RollbackMode::kUbootMasked);
+}
+
 /* This test is designed to catch a bug in which storage.type and pacman.type
  * set in the first config file read could be overwritten by the defaults when
  * reading a second config file. */
@@ -250,19 +262,16 @@ TEST(config, two_config_correctness) {
     ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
   // clang-format on
 
-  const char *argv[] = {"aktualizr", "-c", conf_path_str.c_str(), "-c", "tests/config/minimal.toml"};
-  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
+  const char *argv1[] = {"aktualizr", "-c", conf_path_str.c_str(), "-c", "tests/config/minimal.toml"};
+  bpo::store(bpo::parse_command_line(5, argv1, description), cmd);
+  Config conf1(cmd);
+  checkConfigExpectations(conf1);
 
-  Config conf(cmd);
-  EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
-  EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
-  EXPECT_EQ(conf.tls.ca_source, CryptoSource::kPkcs11);
-  EXPECT_EQ(conf.tls.pkey_source, CryptoSource::kPkcs11);
-  EXPECT_EQ(conf.tls.cert_source, CryptoSource::kPkcs11);
-  EXPECT_EQ(conf.uptane.running_mode, RunningMode::kCheck);
-  EXPECT_EQ(conf.uptane.key_source, CryptoSource::kPkcs11);
-  EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
-  EXPECT_EQ(conf.bootloader.rollback_mode, RollbackMode::kUbootMasked);
+  // Try the reverse order, too, just to make sure.
+  const char *argv2[] = {"aktualizr", "-c", "tests/config/minimal.toml", "-c", conf_path_str.c_str()};
+  bpo::store(bpo::parse_command_line(5, argv2, description), cmd);
+  Config conf2(cmd);
+  checkConfigExpectations(conf2);
 }
 
 #ifndef __NO_MAIN__
