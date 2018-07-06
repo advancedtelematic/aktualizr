@@ -12,7 +12,6 @@
 
 #include "bootstrap/bootstrap.h"
 #include "config.h"
-#include "utilities/config_utils.h"
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
@@ -26,6 +25,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
   CopyFromConfig(socket_commands_path, "socket_commands_path", pt);
   CopyFromConfig(socket_events_path, "socket_events_path", pt);
 
+  // TODO: fix this to support multiple config files (if we care):
   boost::optional<std::string> events_string = pt.get_optional<std::string>("socket_events");
   if (events_string.is_initialized()) {
     std::string e = Utils::stripQuotes(events_string.get());
@@ -42,6 +42,7 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, socket_commands_path, "socket_commands_path");
   writeOption(out_stream, socket_events_path, "socket_events_path");
+  // TODO: fix this to support multiple config files (if we care):
   std::string events_str;
   for (auto it = socket_events.begin(); it != socket_events.end(); ++it) {
     events_str += *it;
@@ -59,30 +60,9 @@ void NetworkConfig::writeToStream(std::ostream& out_stream) const {
 void TlsConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(server, "server", pt);
   CopyFromConfig(server_url_path, "server_url_path", pt);
-
-  std::string tls_source = "file";
-  CopyFromConfig(tls_source, "ca_source", pt);
-  if (tls_source == "pkcs11") {
-    ca_source = CryptoSource::kPkcs11;
-  } else {
-    ca_source = CryptoSource::kFile;
-  }
-
-  tls_source = "file";
-  CopyFromConfig(tls_source, "cert_source", pt);
-  if (tls_source == "pkcs11") {
-    cert_source = CryptoSource::kPkcs11;
-  } else {
-    cert_source = CryptoSource::kFile;
-  }
-
-  tls_source = "file";
-  CopyFromConfig(tls_source, "pkey_source", pt);
-  if (tls_source == "pkcs11") {
-    pkey_source = CryptoSource::kPkcs11;
-  } else {
-    pkey_source = CryptoSource::kFile;
-  }
+  CopyFromConfig(ca_source, "ca_source", pt);
+  CopyFromConfig(cert_source, "cert_source", pt);
+  CopyFromConfig(pkey_source, "pkey_source", pt);
 }
 
 void TlsConfig::writeToStream(std::ostream& out_stream) const {
@@ -118,36 +98,12 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  std::string r_mode;
-  CopyFromConfig(r_mode, "running_mode", pt);
-  running_mode = RunningModeFromString(r_mode);
-
+  CopyFromConfig(running_mode, "running_mode", pt);
   CopyFromConfig(polling_sec, "polling_sec", pt);
   CopyFromConfig(director_server, "director_server", pt);
   CopyFromConfig(repo_server, "repo_server", pt);
-
-  std::string ks = "file";
-  CopyFromConfig(ks, "key_source", pt);
-  if (ks == "pkcs11") {
-    key_source = CryptoSource::kPkcs11;
-  } else {
-    key_source = CryptoSource::kFile;
-  }
-
-  std::string kt;
-  CopyFromConfig(kt, "key_type", pt);
-  if (kt.size() != 0u) {
-    if (kt == "RSA2048") {
-      key_type = KeyType::kRSA2048;
-    } else if (kt == "RSA3072") {
-      key_type = KeyType::kRSA3072;
-    } else if (kt == "RSA4096") {
-      key_type = KeyType::kRSA4096;
-    } else if (kt == "ED25519") {
-      key_type = KeyType::kED25519;
-    }
-  }
-
+  CopyFromConfig(key_source, "key_source", pt);
+  CopyFromConfig(key_type, "key_type", pt);
   CopyFromConfig(legacy_interface, "legacy_interface", pt);
   // uptane.secondary_configs is populated by processing secondary configs from
   // the commandline and uptane.legacy_interface.

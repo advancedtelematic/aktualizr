@@ -223,8 +223,10 @@ Initializer::Initializer(
       resetDeviceId();
       LOG_INFO << "Device name is already registered, restart";
       continue;
-    }
-    if (ret_code != InitRetCode::kOk) {
+    } else if (ret_code == InitRetCode::kStorageFailure) {
+      LOG_ERROR << "Error reading existing provisioning data from storage";
+      return;
+    } else if (ret_code != InitRetCode::kOk) {
       LOG_ERROR << "Autoprovisioning failed, abort initialization";
       return;
     }

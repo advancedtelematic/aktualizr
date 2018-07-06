@@ -417,15 +417,18 @@ bool FSStorage::loadEcuSerials(EcuSerials* serials) {
   std::string buf;
   std::string serial;
   std::string hw_id;
-  if (!boost::filesystem::exists((Utils::absolutePath(config_.path, "primary_ecu_serial")))) {
+
+  const boost::filesystem::path serial_path = Utils::absolutePath(config_.path, "primary_ecu_serial");
+  if (!boost::filesystem::exists(serial_path)) {
     return false;
   }
-  serial = Utils::readFile(Utils::absolutePath(config_.path, "primary_ecu_serial").string());
+  serial = Utils::readFile(serial_path.string());
   // use default hardware ID for backwards compatibility
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"))) {
+  const boost::filesystem::path hw_id_path = Utils::absolutePath(config_.path, "primary_ecu_hardware_id");
+  if (!boost::filesystem::exists(hw_id_path)) {
     hw_id = Utils::getHostname();
   } else {
-    hw_id = Utils::readFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id").string());
+    hw_id = Utils::readFile(hw_id_path.string());
   }
 
   if (serials != nullptr) {
@@ -433,10 +436,11 @@ bool FSStorage::loadEcuSerials(EcuSerials* serials) {
   }
 
   // return true for backwards compatibility
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "secondaries_list"))) {
+  const boost::filesystem::path sec_list_path = Utils::absolutePath(config_.path, "secondaries_list");
+  if (!boost::filesystem::exists(sec_list_path)) {
     return true;
   }
-  std::ifstream file(Utils::absolutePath(config_.path, "secondaries_list").c_str());
+  std::ifstream file(sec_list_path.c_str());
   while (std::getline(file, buf)) {
     size_t tab = buf.find('\t');
     serial = buf.substr(0, tab);

@@ -57,11 +57,11 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
   return is;
 }
 
-enum class CryptoSource { kFile = 0, kPkcs11 };
-
 enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall };
 RunningMode RunningModeFromString(const std::string& mode);
 std::string StringFromRunningMode(RunningMode mode);
+
+enum class CryptoSource { kFile = 0, kPkcs11 };
 
 inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   std::string cs_str;

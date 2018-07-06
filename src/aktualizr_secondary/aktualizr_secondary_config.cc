@@ -2,8 +2,6 @@
 
 #include <sstream>
 
-#include "utilities/config_utils.h"
-
 void AktualizrSecondaryNetConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(port, "port", pt);
   CopyFromConfig(discovery, "discovery", pt);
@@ -19,27 +17,8 @@ void AktualizrSecondaryNetConfig::writeToStream(std::ostream& out_stream) const 
 void AktualizrSecondaryUptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(ecu_serial, "ecu_serial", pt);
   CopyFromConfig(ecu_hardware_id, "ecu_hardware_id", pt);
-
-  // TODO: de-duplicate this from config.cc
-  std::string ks = "file";
-  CopyFromConfig(ks, "key_source", pt);
-  if (ks == "pkcs11") {
-    key_source = CryptoSource::kPkcs11;
-  } else {
-    key_source = CryptoSource::kFile;
-  }
-
-  std::string kt;
-  CopyFromConfig(kt, "key_type", pt);
-  if (kt.size() != 0u) {
-    if (kt == "RSA2048") {
-      key_type = KeyType::kRSA2048;
-    } else if (kt == "RSA4096") {
-      key_type = KeyType::kRSA4096;
-    } else if (kt == "ED25519") {
-      key_type = KeyType::kED25519;
-    }
-  }
+  CopyFromConfig(key_source, "key_source", pt);
+  CopyFromConfig(key_type, "key_type", pt);
 }
 
 void AktualizrSecondaryUptaneConfig::writeToStream(std::ostream& out_stream) const {
