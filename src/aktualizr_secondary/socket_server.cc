@@ -7,7 +7,7 @@
 #include "utilities/dequeue_buffer.h"
 #include "utilities/sockaddr_io.h"
 
-#include <linux/tcp.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 

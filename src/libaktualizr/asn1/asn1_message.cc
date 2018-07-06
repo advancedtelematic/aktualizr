@@ -4,7 +4,7 @@
 #include "utilities/sockaddr_io.h"
 #include "utilities/utils.h"
 
-#include <linux/tcp.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -13,6 +13,12 @@ int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv) {
   out_str->append(std::string(static_cast<const char*>(buffer), size));
   return 0;
 }
+
+#ifdef MSG_NOSIGNAL
+constexpr int flags_no_signal = MSG_NOSIGNAL;
+#else
+constexpr int flags_no_signal = 0; // OS X
+#endif
 
 /**
  * Adaptor to write output of der_encode to a socket
@@ -29,7 +35,7 @@ int Asn1SocketWriteCallback(const void* buffer, size_t size, void* priv) {
 
   while (len > 0) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    ssize_t written = send(*sock, b + pos, len, MSG_NOSIGNAL);
+    ssize_t written = send(*sock, b + pos, len, flags_no_signal);
     if (written < 0) {
       LOG_ERROR << "write: " << std::strerror(errno);
       return 1;
