@@ -17,7 +17,7 @@ int Asn1StringAppendCallback(const void* buffer, size_t size, void* priv) {
 #ifdef MSG_NOSIGNAL
 constexpr int flags_no_signal = MSG_NOSIGNAL;
 #else
-constexpr int flags_no_signal = 0; // OS X
+constexpr int flags_no_signal = 0;  // OS X
 #endif
 
 /**
