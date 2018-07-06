@@ -92,14 +92,14 @@ if(SOTA_PACKED_CREDENTIALS)
              --credentials ${SOTA_PACKED_CREDENTIALS})
     set_tests_properties(implicit_prov_test PROPERTIES LABELS "credentials")
 
-    if(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
-        add_test(NAME hsm_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/hsm_prov_test.py
-            --build-dir ${PROJECT_BINARY_DIR}
-            --src-dir ${PROJECT_SOURCE_DIR}
-            --credentials ${SOTA_PACKED_CREDENTIALS}
-            --pkcs11-module ${TEST_PKCS11_MODULE_PATH})
-        set_tests_properties(hsm_prov_test PROPERTIES LABELS "credentials")
-    endif(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
+#    if(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
+#        add_test(NAME hsm_prov_test COMMAND ${PROJECT_SOURCE_DIR}/tests/hsm_prov_test.py
+#            --build-dir ${PROJECT_BINARY_DIR}
+#            --src-dir ${PROJECT_SOURCE_DIR}
+#            --credentials ${SOTA_PACKED_CREDENTIALS}
+#            --pkcs11-module ${TEST_PKCS11_MODULE_PATH})
+#        set_tests_properties(hsm_prov_test PROPERTIES LABELS "credentials")
+#    endif(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
 endif(SOTA_PACKED_CREDENTIALS)
 
 
