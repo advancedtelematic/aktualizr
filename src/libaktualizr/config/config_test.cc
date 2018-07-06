@@ -238,6 +238,9 @@ TEST(config, two_config_correctness) {
     cs << "running_mode = \"check\"\n";
     cs << "key_source = \"pkcs11\"\n";
     cs << "key_type = \"ED25519\"\n";
+    cs << "\n";
+    cs << "[bootloader]\n";
+    cs << "rollback_mode = \"uboot_masked\"\n";
   }
 
   bpo::variables_map cmd;
@@ -259,6 +262,7 @@ TEST(config, two_config_correctness) {
   EXPECT_EQ(conf.uptane.running_mode, RunningMode::kCheck);
   EXPECT_EQ(conf.uptane.key_source, CryptoSource::kPkcs11);
   EXPECT_EQ(conf.uptane.key_type, KeyType::kED25519);
+  EXPECT_EQ(conf.bootloader.rollback_mode, RollbackMode::kUbootMasked);
 }
 
 #ifndef __NO_MAIN__

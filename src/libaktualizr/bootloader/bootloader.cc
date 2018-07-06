@@ -20,16 +20,23 @@ std::ostream& operator<<(std::ostream& os, const RollbackMode mode) {
   return os;
 }
 
-void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  std::string mode_s;
-  CopyFromConfig(mode_s, "rollback_mode", pt);
-  if (mode_s == "uboot_generic") {
-    rollback_mode = RollbackMode::kUbootGeneric;
-  } else if (mode_s == "uboot_masked") {
-    rollback_mode = RollbackMode::kUbootMasked;
-  } else {
-    rollback_mode = RollbackMode::kBootloaderNone;
+template <>
+inline void CopyFromConfig(RollbackMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
+  if (value.is_initialized()) {
+    std::string mode{StripQuotesFromStrings(value.get())};
+    if (mode == "uboot_generic") {
+      dest = RollbackMode::kUbootGeneric;
+    } else if (mode == "uboot_masked") {
+      dest = RollbackMode::kUbootMasked;
+    } else {
+      dest = RollbackMode::kBootloaderNone;
+    }
   }
+}
+
+void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(rollback_mode, "rollback_mode", pt);
 }
 
 void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
