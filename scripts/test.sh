@@ -20,6 +20,7 @@ TEST_WITH_OSTREE=${TEST_WITH_OSTREE:-1}
 TEST_WITH_DEB=${TEST_WITH_DEB:-1}
 TEST_WITH_LOAD_TESTS=${TEST_WITH_LOAD_TESTS:-0}
 
+TEST_CC=${TEST_CC:-gcc}
 TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
 TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
 TEST_SOTA_PACKED_CREDENTIALS=${TEST_SOTA_PACKED_CREDENTIALS:-}
@@ -97,9 +98,16 @@ fi
 
 echo ">> Running CMake"
 if [[ $TEST_DRYRUN != 1 ]]; then
+    (
+    if [[ $TEST_CC = gcc ]]; then
+        export CC=gcc CXX=g++
+    elif [[ $TEST_CC = clang ]]; then
+        export CC=clang CXX=clang++
+    fi
+
     set -x
     cmake "${CMAKE_ARGS[@]}" "${GITREPO_ROOT}" || add_fatal_failure "cmake configure"
-    set +x
+    )
 fi
 
 if [[ $TEST_WITH_STATICTESTS = 1 ]]; then

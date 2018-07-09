@@ -108,6 +108,7 @@ pipeline {
           }
           environment {
             TEST_BUILD_DIR = 'build-openssl11'
+            TEST_CC = 'clang'
             // should run with valgrind but some leaks are still unfixed
             // TEST_CMAKE_BUILD_TYPE = 'Valgrind'
             TEST_CMAKE_BUILD_TYPE = 'Debug'
