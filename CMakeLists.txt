@@ -296,6 +296,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     # problems in gtest. -Wswitch-default and -Wconversion would be nice as
     # well, but they also cause problems in gtest.
     add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wno-sign-compare)
+    # only for CXX, gcc doesn't like that when building C...
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor")
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         add_definitions(-Wlogical-op)
     else ()
