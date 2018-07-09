@@ -7,6 +7,12 @@ cmake_policy(SET CMP0009 NEW)
 
 project(aktualizr)
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+    set(BUILD_SYSTEMD_DEFAULT ON)
+else()
+    set(BUILD_SYSTEMD_DEFAULT OFF)
+endif()
+
 option(WARNING_AS_ERROR "Treat warnings as errors" ON)
 option(PEDANTIC_WARNINGS "Compile with pedantic warnings" OFF)
 option(BUILD_WITH_CODE_COVERAGE "Enable gcov code coverage" OFF)
@@ -16,14 +22,9 @@ option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
+option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ${BUILD_SYSTEMD_DEFAULT})
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
-
-find_package(Systemd)
-
-if (SYSTEMD_FOUND)
-    option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
-endif()
 
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
