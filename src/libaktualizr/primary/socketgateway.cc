@@ -75,7 +75,7 @@ void SocketGateway::commandsWorker(int socket, const std::shared_ptr<command::Ch
       try {
         *channel << command::BaseCommand::fromJson(jsonFromPicoJson(item));
       } catch (...) {
-        LOG_ERROR << "failed command deserealization: " << item.serialize();
+        LOG_ERROR << "failed command deserialization: " << item.serialize();
       }
     }
   }

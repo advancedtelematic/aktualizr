@@ -32,7 +32,7 @@ TEST(ReportQueue, SingleEvent) {
   HttpFake http(temp_dir.Path());
   ReportQueue report_queue(config, http);
 
-  report_queue.enqueue(std::move(makeEvent("SingleEvent")));
+  report_queue.enqueue(makeEvent("SingleEvent"));
 
   // Wait at most 30 seconds for the message to get processed.
   int counter = 0;
@@ -55,7 +55,7 @@ TEST(ReportQueue, MultipleEvents) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(std::move(makeEvent("MultipleEvents" + std::to_string(i))));
+    report_queue.enqueue(makeEvent("MultipleEvents" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.
@@ -80,7 +80,7 @@ TEST(ReportQueue, FailureRecovery) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(std::move(makeEvent("FailureRecovery" + std::to_string(i))));
+    report_queue.enqueue(makeEvent("FailureRecovery" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.

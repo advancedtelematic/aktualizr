@@ -16,9 +16,15 @@ option(BUILD_P11 "Support for key storage in a HSM via PKCS#11" OFF)
 option(BUILD_SOTA_TOOLS "Set to ON to build SOTA tools" OFF)
 option(BUILD_ISOTP "Set to ON to build ISO-TP" OFF)
 option(BUILD_OPCUA "Set to ON to compile with OPC-UA protocol support" OFF)
-option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
 option(BUILD_LOAD_TESTS "Set to ON to build load tests" OFF)
 option(INSTALL_LIB "Set to ON to install library and headers" OFF)
+
+find_package(Systemd)
+
+if (SYSTEMD_FOUND)
+    option(BUILD_SYSTEMD "Set to ON to compile with systemd additional support" ON)
+endif()
+
 set(SOTA_PACKED_CREDENTIALS "" CACHE STRING "Credentials.zip for tests involving the server")
 
 set(TESTSUITE_ONLY "" CACHE STRING "Only run tests matching this list of labels")
@@ -43,6 +49,16 @@ set(BOOST_COMPONENTS log_setup log filesystem program_options)
 if(BUILD_OPCUA)
     list(APPEND BOOST_COMPONENTS serialization iostreams)
 endif(BUILD_OPCUA)
+
+# Mac brew library install paths
+
+if(EXISTS /usr/local/opt/openssl)
+  list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/openssl)
+endif()
+
+if(EXISTS /usr/local/opt/libarchive)
+  list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/libarchive)
+endif()
 
 find_package(PkgConfig REQUIRED)
 find_package(Boost 1.57.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
@@ -123,6 +139,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 SET(CMAKE_CXX_FLAGS_VALGRIND "-O1 -g")
 SET(CMAKE_C_FLAGS_VALGRIND "-O1 -g")
 
+# prevent visibility warnings from the linker
+if (APPLE)
+  link_libraries("-Wl,-w")
+endif()
 
 ################ QA RULES
 add_custom_target(qa)

@@ -6,7 +6,7 @@ The `sota_local.toml` configuration file sets the package manager to `PackageMan
 
     # From the build directory
     mkdir sota-prov
-    src/aktualizr --config ../config/sota_local.toml
+    src/aktualizr_primary/aktualizr --config ../config/sota_local.toml
 
 For VS code, there is a `launch.json` provided in the `.vscode` directory.  This assumes that the cmake build directory is `build`.
 
@@ -29,7 +29,7 @@ Edit ../config/basic.toml to point `provision_path` to your automatic provisioni
 
     wget https://s3.eu-central-1.amazonaws.com/pw-dropbox/ostree-sysroot.tar.gz
     tar -xf ostree-sysroot.tar.gz
-    src/aktualizr --config ../config/basic.toml
+    src/aktualizr_primary/aktualizr --config ../config/basic.toml
 
 == Debuging secondaries update
 To do it, You need to create temporary OSTree environment described above and add `sysroot` and `os` to your config file:
