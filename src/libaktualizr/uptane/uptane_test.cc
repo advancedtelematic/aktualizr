@@ -1086,7 +1086,7 @@ TEST(Uptane, krejectallTest) {
 
   config.provision.device_id = "device_id";
   config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
+  auto storage = INvStorage::newStorage(config.storage, "");
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
