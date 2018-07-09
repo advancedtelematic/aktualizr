@@ -123,6 +123,7 @@ inline void WriteSectionToStream(T& sec, const std::string& section_name, std::o
 
 class BaseConfig {
  public:
+  virtual ~BaseConfig() = default;
   void updateFromToml(const boost::filesystem::path& filename) {
     LOG_INFO << "Reading config: " << filename;
     if (!boost::filesystem::exists(filename)) {

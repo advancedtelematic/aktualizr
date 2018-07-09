@@ -11,7 +11,7 @@ env:
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_TESTSUITE_ONLY=crypto"
 - DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
-  DARGS="-eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
+  DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
 - DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh
 services:
 - docker

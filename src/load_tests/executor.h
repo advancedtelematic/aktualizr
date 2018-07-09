@@ -19,6 +19,7 @@ namespace timer = std::chrono;
 
 class ExecutionController {
  public:
+  virtual ~ExecutionController() = default;
   virtual void stop() = 0;
 
   virtual bool claim() = 0;
