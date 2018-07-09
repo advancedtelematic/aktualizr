@@ -72,6 +72,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 }
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
+  Json::Value operation_result;
   if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
       config.pacman.type == PackageManager::kOstree) {
     data::InstallOutcome outcome(data::UpdateResultCode::kValidationFailed,
@@ -84,6 +85,7 @@ void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
       storage->saveInstalledVersion(target);
     }
   }
+  storage->storeInstallationResult(Json::FastWriter().write(operation_result));
 }
 
 void SotaUptaneClient::reportHwInfo() {
@@ -118,8 +120,10 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   installed_images.clear();
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_manifest.getPrimaryEcuSerial());
 
-  if (operation_result != Json::nullValue) {
-    unsigned_ecu_version["custom"] = operation_result;
+  std::string operation_result;
+  storage->loadInstallationResult(&operation_result);
+  if (!operation_result.empty()) {
+    unsigned_ecu_version["custom"] = Utils::parseJSON(operation_result);
   }
 
   installed_images[uptane_manifest.getPrimaryEcuSerial()] = unsigned_ecu_version["filepath"].asString();
@@ -726,7 +730,6 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
       } else if (command->variant == "UptaneInstall") {
         // install images
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
-        operation_result = Json::nullValue;
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
         //   6 - send metadata to all the ECUs
@@ -744,8 +747,10 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
               PackageInstallSetResult(*it);
             } else {
               data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
+              Json::Value operation_result;
               operation_result["operation_result"] =
                   data::OperationResult::fromOutcome(it->filename(), outcome).toJson();
+              storage->storeInstallationResult(Json::FastWriter().write(operation_result));
             }
             break;
           }

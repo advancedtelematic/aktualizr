@@ -59,6 +59,10 @@ class SQLStorage : public INvStorage {
                               const std::string& current_hash) override;
   std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) override;
   void clearInstalledVersions() override;
+  void storeInstallationResult(const std::string& installation_result) override;
+  bool loadInstallationResult(std::string* installation_result) override;
+  void clearInstallationResult() override;
+
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                            size_t size) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;

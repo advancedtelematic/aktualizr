@@ -133,6 +133,10 @@ class INvStorage {
   virtual std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
+  virtual void storeInstallationResult(const std::string& installation_result) = 0;
+  virtual bool loadInstallationResult(std::string* installation_result) = 0;
+  virtual void clearInstallationResult() = 0;
+
   // Incremental file API
   virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
                                                                    size_t size) = 0;

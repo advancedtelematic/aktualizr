@@ -340,7 +340,7 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
 
   auto statement = db.prepareStatement("SELECT ca_cert FROM tls_creds LIMIT 1;");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get device ID: " << db.errmsg();
+    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
     return false;
   }
 
@@ -366,7 +366,7 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
 
   auto statement = db.prepareStatement("SELECT client_cert FROM tls_creds LIMIT 1;");
   if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get device ID: " << db.errmsg();
+    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
     return false;
   }
 
@@ -953,6 +953,62 @@ void SQLStorage::clearInstalledVersions() {
   }
 }
 
+void SQLStorage::storeInstallationResult(const std::string& installation_result) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  auto statement =
+      db.prepareStatement<std::string>("UPDATE OR REPLACE installation_result SET result = ?;", installation_result);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set installation_result: " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadInstallationResult(std::string* installation_result) {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return false;
+  }
+
+  auto statement = db.prepareStatement("SELECT result FROM installation_result LIMIT 1;");
+  if (statement.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get installation_result: " << db.errmsg();
+    return false;
+  }
+
+  auto did = statement.get_result_col_str(0);
+  if (did == boost::none) {
+    return false;
+  }
+
+  if (installation_result != nullptr) {
+    *installation_result = std::move(did.value());
+  }
+
+  return true;
+}
+
+void SQLStorage::clearInstallationResult() {
+  SQLite3Guard db(config_.sqldb_path.c_str());
+
+  if (db.get_rc() != SQLITE_OK) {
+    LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (db.exec("UPDATE OR REPLACE installation_result SET result = NULL;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear installation_result: " << db.errmsg();
+    return;
+  }
+}
+
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, std::string filename, size_t size)
@@ -1220,15 +1276,25 @@ bool SQLStorage::dbInit() {
   }
 
   auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
-
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get number of rows in device_info: " << db.errmsg();
     return false;
   }
-
   if (statement.get_result_col_int(0) < 1) {
     if (db.exec("INSERT INTO device_info DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
+      return false;
+    }
+  }
+
+  auto statement2 = db.prepareStatement("SELECT count(*) FROM installation_result;");
+  if (statement2.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get number of rows in installation_result: " << db.errmsg();
+    return false;
+  }
+  if (statement2.get_result_col_int(0) < 1) {
+    if (db.exec("INSERT INTO installation_result DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't set default values to installation_result: " << db.errmsg();
       return false;
     }
   }

@@ -8,6 +8,7 @@
 #include "logging/logging.h"
 #include "storage/fsstorage.h"
 #include "storage/sqlstorage.h"
+#include "utilities/types.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path storage_test_dir;
@@ -277,6 +278,28 @@ TEST(storage, load_store_ecu_registered) {
 
   storage->clearEcuRegistered();
   EXPECT_FALSE(storage->loadEcuRegistered());
+  boost::filesystem::remove_all(storage_test_dir);
+}
+
+TEST(storage, load_store_installation_result) {
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
+  std::unique_ptr<INvStorage> storage = Storage();
+  data::InstallOutcome outcome(data::UpdateResultCode::kGeneralError, "some failure");
+  Json::Value operation_result;
+  operation_result["operation_result"] = data::OperationResult::fromOutcome("target_filename", outcome).toJson();
+  std::string result_str = Json::FastWriter().write(operation_result);
+  storage->storeInstallationResult(result_str);
+
+  std::string installation_result;
+  EXPECT_TRUE(storage->loadInstallationResult(&installation_result));
+  EXPECT_EQ(installation_result, result_str);
+  Json::Value read_result = Utils::parseJSON(installation_result);
+  EXPECT_EQ(read_result["operation_result"]["id"], "target_filename");
+  EXPECT_EQ(read_result["operation_result"]["result_code"], static_cast<int>(data::UpdateResultCode::kGeneralError));
+  EXPECT_EQ(read_result["operation_result"]["result_text"], "some failure");
+
+  storage->clearInstallationResult();
+  EXPECT_FALSE(storage->loadInstallationResult(NULL));
   boost::filesystem::remove_all(storage_test_dir);
 }
 

@@ -76,7 +76,6 @@ class SotaUptaneClient {
   Uptane::Fetcher uptane_fetcher;
   const Bootloader &bootloader;
   ReportQueue &report_queue;
-  Json::Value operation_result;
   std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
