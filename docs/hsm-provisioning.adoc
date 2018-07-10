@@ -101,9 +101,9 @@ openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -sh
 SOTA_CLIENT_FEATURES = "hsm"
 SOTA_CLIENT_PROV = "aktualizr-hsm-prov"
 ----
-. Build a standard image using bitbake.
+. Build a standard image using bitbake. Make sure an ssh server is installed; usually you can do this with `IMAGE_INSTALL_append = " dropbear "`.
 . Boot the image.
-. Copy the device credentials and device gateway root CA certificate to the device's HSM. For the QEMU simulated HSM:
+. Copy the device credentials and device gateway root CA certificate to the device's HSM. For the QEMU simulated HSM, enter the device directory whose credentials you wish to copy, then do:
 +
 ----
 scp -P 2222 -pr ./ root@localhost:/var/sota/token
