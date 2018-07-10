@@ -1,8 +1,10 @@
 #include "invstorage.h"
-#include "fsstorage.h"
-#include "sqlstorage.h"
 
+#include <unistd.h>
+
+#include "fsstorage.h"
 #include "logging/logging.h"
+#include "sqlstorage.h"
 #include "utilities/utils.h"
 
 std::ostream& operator<<(std::ostream& os, const StorageType stype) {
@@ -129,7 +131,12 @@ void INvStorage::importData(const ImportConfig& import_config) {
 std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
   switch (config.type) {
     case StorageType::kSqlite:
-      if (!boost::filesystem::exists(config.sqldb_path)) {
+      if (!boost::filesystem::exists(config.sqldb_path) && boost::filesystem::exists(path)) {
+        if (access(path.c_str(), R_OK | W_OK | X_OK) != 0) {
+          LOG_ERROR << "Cannot read prior filesystem configuration from " << path
+                    << " due to insufficient permissions.";
+          return std::make_shared<SQLStorage>(config);
+        }
         StorageConfig old_config;
         old_config.type = StorageType::kFileSystem;
         old_config.path = path;

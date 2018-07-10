@@ -13,7 +13,7 @@ ExampleFlasher::ExampleFlasher(const unsigned int loglevel) : loglevel_(loglevel
   // Use /var/sota if it is available and accessible to the current user.
   // Generally this is true for devices but not hosts.
   if (boost::filesystem::exists("/var/sota")) {
-    if (access("/var/sota", R_OK & W_OK & X_OK) == 0) {
+    if (access("/var/sota", R_OK | W_OK | X_OK) != 0) {
       filename = "/tmp/example_serial";
     } else {
       filename = "/var/sota/example_serial";
