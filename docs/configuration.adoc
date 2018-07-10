@@ -1,12 +1,16 @@
 = Configuration
+:aktualizr-github-url: https://github.com/advancedtelematic/aktualizr/tree/master
+ifdef::env-github[]
+:aktualizr-github-url: ..
+endif::[]
 
-Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). If `--config` is not specified on the command line, aktualizr searches `/usr/lib/sota/conf.d` and `/etc/sota/conf.d/` for files ending in a `.toml` extension. Aktualizr searches for and processes these config files in systemd style, meaning that if multiple files are found with the same name, the last one found overrules and hides the others. Files are then processed in alphabetical order, so if a config option is specified in multiple files, the last entry found overrules the others. If an option is left unspecified in a file processed after another file in which it was specified, it is not overruled.
+Aktualizr is configured via `.toml` config files. One or more files or directories can be passed to the application via the `--config` flag (one per file or directory). If `--config` is not specified on the command line, aktualizr searches `/usr/lib/sota/conf.d` and `/etc/sota/conf.d/` for files with a `.toml` extension. Aktualizr searches for and processes these config files in systemd style, meaning that if multiple files are found with the same name, the last one found overrules and hides the others. Files are then processed in alphabetical order, so if a config option is specified in multiple files, the last entry found overrules the others. If an option is left unspecified in a file processed after another file in which it was specified, it is not overruled.
 
-Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:../config/[], link:../tests/config/[], and link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[].
+Example config files used by unit tests, continuous integration tests, and https://github.com/advancedtelematic/meta-updater[meta-updater] recipes can be found in link:{aktualizr-github-url}/config/[], link:{aktualizr-github-url}/tests/config/[], and link:https://github.com/advancedtelematic/meta-updater/tree/rocko/recipes-sota/config/files[].
 
 All fields are optional, and most have reasonable defaults that should be used unless you have a particular need to do otherwise.
 
-Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:../src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
+Some options can also be set on the command line. The command line input always takes precedence over the config files. See link:{aktualizr-github-url}/src/aktualizr_primary/main.cc[] (or run `aktualizr --help`) for the available command line options.
 
 == `logger`
 
@@ -47,7 +51,9 @@ Config options for networking and secondary device detection by the primary.
 
 == `p11`
 
-Options for using a PKCS#11 compliant device for storing cryptographic keys. Note that the key ID options require the corresponding options in the `tls` or `uptane` section to be set to `pkcs11`.
+Options for using a PKCS#11 compliant device for storing cryptographic keys.
+
+NOTE: The key ID options require the corresponding options in the `tls` or `uptane` section to be set to `pkcs11`.
 
 [options="header"]
 |==========================================================================================
@@ -85,7 +91,7 @@ Options for how the device is provisioned with the backend.
 | Name                        | Default   | Description
 | `server`                    |           | Server provisioning URL. If empty, set to `tls.server`.
 | `primary_ecu_hardware_id`   |           | The hardware ID of the primary ECU (e.g., `"raspberry-pi"`). If left empty, the hostname of the device will be used.
-| `provision_path`            |           | Path to an archive containing provisioning data. See link:credentials.adoc[] for the specification of the contents of this file.
+| `provision_path`            |           | Path to an archive containing provisioning data. See link:{aktualizr-github-url}/docs/credentials.adoc[] for the specification of the contents of this file.
 | `p12_password`              |           | Password for PKCS#12 encryption.
 | `expiry_days`               | `"36000"` | Provided in the `ttl` field of the device provisioning request sent to the server.
 | `device_id`                 |           | Device ID of the primary ECU. If left empty, a random name will be generated.
@@ -108,7 +114,7 @@ Options for Uptane.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
 | `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
-| `legacy_interface`        |              | Path to an executable interface for communicating with legacy secondary ECUs. See link:legacysecondary.adoc[] for more information.
+| `legacy_interface`        |              | Path to an executable interface for communicating with legacy secondary ECUs. See link:{aktualizr-github-url}/docs/legacysecondary.adoc[] for more information.
 |==========================================================================================
 
 == `discovery`
@@ -169,7 +175,7 @@ Options for importing data from the filesystem into the storage. Most useful if 
 
 == `telemetry`
 
-Options for configuration how aktualizr communicates with the server.
+Options for configuring how aktualizr communicates with the server.
 
 [options="header"]
 |==========================================================================================
