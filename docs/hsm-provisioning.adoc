@@ -90,9 +90,9 @@ endif::[]
 . Add the internal root CA certificate of the device gateway the device will connect to. To get the device gateway's certificate, use openssl:
 +
 ----
-export device_gateway=https://your-gateway-url # for ATS Garage, looks something like
+export device_gateway=your-gateway-url # for ATS Garage, looks something like
     # a3378fca-4e4c-4a5d-b1c2-d5c5ec35b3c2.tcpgw.prod01.advancedtelematic.com
-openssl s_client -connect $device_gateway:8000 -servername $device_gateway -showcerts | \
+openssl s_client -connect ${device_gateway}:8000 -servername $device_gateway -showcerts | \
   sed -n '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > root.crt
 ----
 . Add the following lines to your `conf/local.conf`:
