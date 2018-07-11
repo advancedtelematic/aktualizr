@@ -77,6 +77,7 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   Json::Value root;
   root["_type"] = "Root";
   root["expires"] = expiration_time_;
+  root["version"] = 1;
   root["keys"][public_key.KeyId()] = public_key.ToUptane();
   Json::Value role;
   role["keyids"].append(public_key.KeyId());
