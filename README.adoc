@@ -73,12 +73,23 @@ The following debian packages are used in the project:
 * python3-venv (when building tests)
 * valgrind (when building tests)
 
+==== Mac support
+
+On a Mac, building aktualizr with a link:https://brew.sh[brew] package manager
+standard installation is partially supported. You can install the necessary dependencies
+with brew as follows:
+
+----
+brew install asn1c boost cmake libarchive libsodium pkgconfig
+----
+
 === Building
 
 This project uses *git submodules*. To checkout the code:
 
 ----
 git clone --recursive https://github.com/advancedtelematic/aktualizr
+cd aktualizr
 ----
 
 If you had an old checkout, forgot to include `--recursive` or need to update the submodules, run:
