@@ -1,14 +1,15 @@
 #ifndef INVSTORAGE_H_
 #define INVSTORAGE_H_
 
-#include <boost/filesystem.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "uptane/tuf.h"
+#include <boost/filesystem.hpp>
 
 #include "storage_config.h"
+#include "uptane/tuf.h"
+#include "utilities/types.h"
 
 class INvStorage;
 class FSStorage;
@@ -133,8 +134,8 @@ class INvStorage {
   virtual std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) = 0;
   virtual void clearInstalledVersions() = 0;
 
-  virtual void storeInstallationResult(const std::string& installation_result) = 0;
-  virtual bool loadInstallationResult(std::string* installation_result) = 0;
+  virtual void storeInstallationResult(const data::OperationResult& result) = 0;
+  virtual bool loadInstallationResult(data::OperationResult* result) = 0;
   virtual void clearInstallationResult() = 0;
 
   // Incremental file API

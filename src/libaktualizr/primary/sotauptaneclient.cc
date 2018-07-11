@@ -72,20 +72,19 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 }
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
-  Json::Value operation_result;
+  data::OperationResult result;
   if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
       config.pacman.type == PackageManager::kOstree) {
     data::InstallOutcome outcome(data::UpdateResultCode::kValidationFailed,
                                  "Cannot install a non-OSTree package on an OSTree system");
-    operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
+    result = data::OperationResult::fromOutcome(target.filename(), outcome);
   } else {
-    data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
-    operation_result["operation_result"] = result.toJson();
+    result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     if (result.result_code == data::UpdateResultCode::kOk) {
       storage->saveInstalledVersion(target);
     }
   }
-  storage->storeInstallationResult(Json::FastWriter().write(operation_result));
+  storage->storeInstallationResult(result);
 }
 
 void SotaUptaneClient::reportHwInfo() {
@@ -120,10 +119,10 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   installed_images.clear();
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_manifest.getPrimaryEcuSerial());
 
-  std::string operation_result;
-  storage->loadInstallationResult(&operation_result);
-  if (!operation_result.empty()) {
-    unsigned_ecu_version["custom"] = Utils::parseJSON(operation_result);
+  data::OperationResult installation_result;
+  storage->loadInstallationResult(&installation_result);
+  if (!installation_result.id.empty()) {
+    unsigned_ecu_version["custom"]["operation_result"] = installation_result.toJson();
   }
 
   installed_images[uptane_manifest.getPrimaryEcuSerial()] = unsigned_ecu_version["filepath"].asString();
@@ -747,10 +746,8 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
               PackageInstallSetResult(*it);
             } else {
               data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
-              Json::Value operation_result;
-              operation_result["operation_result"] =
-                  data::OperationResult::fromOutcome(it->filename(), outcome).toJson();
-              storage->storeInstallationResult(Json::FastWriter().write(operation_result));
+              data::OperationResult result(it->filename(), outcome);
+              storage->storeInstallationResult(result);
             }
             break;
           }

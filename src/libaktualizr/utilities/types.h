@@ -140,14 +140,15 @@ typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
 struct OperationResult {
   OperationResult() : result_code(UpdateResultCode::kOk) {}
   OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
+  OperationResult(std::string id_in, InstallOutcome outcome_in);
   std::string id;
   UpdateResultCode result_code{};
   std::string result_text;
-  Json::Value toJson();
-  bool isSuccess() {
+  Json::Value toJson() const;
+  bool isSuccess() const {
     return result_code == UpdateResultCode::kOk || result_code == UpdateResultCode::kAlreadyProcessed;
   };
-  InstallOutcome toOutcome();
+  InstallOutcome toOutcome() const;
   static OperationResult fromJson(const std::string& json_str);
   static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
 };

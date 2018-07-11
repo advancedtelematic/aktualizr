@@ -547,17 +547,18 @@ void FSStorage::clearInstalledVersions() {
   }
 }
 
-void FSStorage::storeInstallationResult(const std::string& installation_result) {
-  Utils::writeFile(Utils::absolutePath(config_.path, "installation_result"), installation_result);
+void FSStorage::storeInstallationResult(const data::OperationResult& result) {
+  Utils::writeFile(Utils::absolutePath(config_.path, "installation_result"), result.toJson());
 }
 
-bool FSStorage::loadInstallationResult(std::string* installation_result) {
+bool FSStorage::loadInstallationResult(data::OperationResult* result) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installation_result").string())) {
     return false;
   }
 
-  if (installation_result != nullptr) {
-    *installation_result = Utils::readFile(Utils::absolutePath(config_.path, "installation_result").string());
+  if (result != nullptr) {
+    *result = data::OperationResult::fromJson(
+        Utils::readFile(Utils::absolutePath(config_.path, "installation_result").string()));
   }
   return true;
 }

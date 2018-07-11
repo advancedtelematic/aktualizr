@@ -285,19 +285,14 @@ TEST(storage, load_store_installation_result) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   data::InstallOutcome outcome(data::UpdateResultCode::kGeneralError, "some failure");
-  Json::Value operation_result;
-  operation_result["operation_result"] = data::OperationResult::fromOutcome("target_filename", outcome).toJson();
-  std::string result_str = Json::FastWriter().write(operation_result);
-  storage->storeInstallationResult(result_str);
+  data::OperationResult result("target_filename", outcome);
+  storage->storeInstallationResult(result);
 
-  std::string installation_result;
-  EXPECT_TRUE(storage->loadInstallationResult(&installation_result));
-  EXPECT_EQ(installation_result, result_str);
-  Json::Value read_result = Utils::parseJSON(installation_result);
-  EXPECT_EQ(read_result["operation_result"]["id"], "target_filename");
-  EXPECT_EQ(read_result["operation_result"]["result_code"], static_cast<int>(data::UpdateResultCode::kGeneralError));
-  EXPECT_EQ(read_result["operation_result"]["result_text"], "some failure");
-
+  data::OperationResult result_out;
+  EXPECT_TRUE(storage->loadInstallationResult(&result_out));
+  EXPECT_EQ(result.id, result_out.id);
+  EXPECT_EQ(result.result_code, result_out.result_code);
+  EXPECT_EQ(result.result_text, result_out.result_text);
   storage->clearInstallationResult();
   EXPECT_FALSE(storage->loadInstallationResult(NULL));
   boost::filesystem::remove_all(storage_test_dir);
