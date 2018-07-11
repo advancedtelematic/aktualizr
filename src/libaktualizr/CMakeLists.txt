@@ -43,3 +43,5 @@ endif (BUILD_OPCUA)
 
 target_include_directories(aktualizr_static_lib PUBLIC
     $<TARGET_PROPERTY:package_manager,INCLUDE_DIRECTORIES>)
+
+aktualizr_source_file_checks(aktualizr_api.h)

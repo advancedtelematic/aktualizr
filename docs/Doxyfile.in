@@ -786,11 +786,38 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../src \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@ \
                          @CMAKE_CURRENT_SOURCE_DIR@/../tests \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../src/uptane/
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_check_discovery \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_info \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_primary \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_repo \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_secondary \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/cert_provider \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/external_secondaries \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/implicit_writer \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/asn1 \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/asn1/messages \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/bootloader \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/bootstrap \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/config \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/crypto \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/http \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/logging \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/opcuabridge \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/package_manager \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/primary \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/secondary_ipc \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/socket_activation \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/storage \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/storage/test \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/telemetry \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/uptane \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/utilities \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/load_tests \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/sota_tools
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
