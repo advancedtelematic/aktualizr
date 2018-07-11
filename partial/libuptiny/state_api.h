@@ -14,15 +14,17 @@ extern "C" {
 
 typedef enum {ROLE_ROOT, ROLE_TARGETS} uptane_role_t;
 
+#define ROOT_MAX_KEYS 16
+
 typedef struct {
-  int version;
+  int32_t version;
   uptane_time_t expires;
-  int root_threshold;
-  int root_keys_num;
-  crypto_key_t **root_keys;
-  int targets_threshold;
-  int targets_keys_num;
-  crypto_key_t **targets_keys;
+  int32_t root_threshold;
+  int32_t root_keys_num;
+  crypto_key_t *root_keys[ROOT_MAX_KEYS];
+  int32_t targets_threshold;
+  int32_t targets_keys_num;
+  crypto_key_t *targets_keys[ROOT_MAX_KEYS];
 } uptane_root_t;
 
 /* Does not represent the whole targets metadata, only what's needed for this ECU */
@@ -34,7 +36,7 @@ typedef struct {
   uint32_t length;
 } uptane_target_t;
 
-const uptane_root_t* state_get_root(void);
+uptane_root_t* state_get_root(void);
 void state_set_root(const uptane_root_t* root);
 
 #ifdef __cplusplus

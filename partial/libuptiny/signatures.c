@@ -13,6 +13,8 @@
   ]
 */
 
+#define DEBUG
+
 #include "signatures.h"
 #include "base64.h"
 #include "crypto.h"
@@ -28,21 +30,6 @@ extern const unsigned int token_pool_size;
 crypto_key_t **meta_keys;
 int meta_keys_num;
 
-static crypto_key_t *find_key(const char* key_id, int len) {
-  if (len != (CRYPTO_KEYID_LEN * 2)) {
-    return NULL;
-  }
-
-  for(int i = 0; i < meta_keys_num; i++) {
-    if(hex_bin_cmp(key_id, len, meta_keys[i]->keyid) == 0) {
-      return meta_keys[i];
-    }
-  }
-  
-  DEBUG_PRINTF("Key not found: %.*s\n", len, key_id);
-  return NULL;
-}
-
 static inline int parse_sig (const char *json_sig, unsigned int *pos, crypto_key_and_signature_t* sig) {
   unsigned int idx = *pos;
 
@@ -50,12 +37,12 @@ static inline int parse_sig (const char *json_sig, unsigned int *pos, crypto_key
     DEBUG_PRINTF("Object expected\n");
     return -1;
   }
+  int size = token_pool[idx].size;
+  ++idx; // consume object token
 
   bool key_found = false;
   bool sig_found = false;
-  int size = token_pool[idx].size;
   uint8_t sig_buf[CRYPTO_SIGNATURE_LEN + 2]; // '+2' because base64 operates in 3 byte granularity
-  ++idx; // consume object token
   for (int i = 0; i < size; ++i) {
     if ((token_pool[idx].end - token_pool[idx].start) == 5 && (strncmp("keyid", json_sig+token_pool[idx].start, 5) == 0)) {
       ++idx; //  consume name token
@@ -63,7 +50,7 @@ static inline int parse_sig (const char *json_sig, unsigned int *pos, crypto_key
           DEBUG_PRINTF("Key ID is not a string\n");
           idx = consume_recursive_json(idx);
       } else {
-        crypto_key_t* key = find_key(json_sig + token_pool[idx].start, token_pool[idx].end - token_pool[idx].start);
+        const crypto_key_t* key = find_key(json_sig + token_pool[idx].start, token_pool[idx].end - token_pool[idx].start, meta_keys, meta_keys_num);
         if (key) {
           sig->key = key;
           key_found = true;
@@ -105,7 +92,7 @@ static inline int parse_sig (const char *json_sig, unsigned int *pos, crypto_key
 }
 
 int uptane_parse_signatures(uptane_role_t role, const char *signatures, size_t len, crypto_key_and_signature_t *output, int max_sigs) {
-  const uptane_root_t* root_meta = state_get_root();
+  uptane_root_t* root_meta = state_get_root();
   if(role == ROLE_ROOT) {
     meta_keys = root_meta->root_keys;
     meta_keys_num = root_meta->root_keys_num;

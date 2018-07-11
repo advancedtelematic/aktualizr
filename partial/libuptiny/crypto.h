@@ -20,7 +20,7 @@ typedef struct {
   uint8_t hash[CRYPTO_MAX_HASH_LEN];
 } crypto_hash_t;
 
-typedef enum {ED25519} crypto_algorithm_t;
+typedef enum {CRYPTO_ALG_UNKNOWN = -1, ED25519} crypto_algorithm_t;
 typedef struct {
 	crypto_algorithm_t key_type;
 	uint8_t keyid[CRYPTO_KEYID_LEN];
@@ -44,7 +44,8 @@ void crypto_verify_init(crypto_verify_ctx_t* ctx, crypto_key_and_signature_t* si
 void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, int len);
 bool crypto_verify_result(crypto_verify_ctx_t* ctx);
 
-bool crypto_keytype_supported(const char* keytype);
+crypto_algorithm_t crypto_str_to_keytype(const char* keytype, int len);
+crypto_key_t *find_key(const char* key_id, int len, crypto_key_t **keys, int num_keys);
 
 #ifdef __cplusplus
 }

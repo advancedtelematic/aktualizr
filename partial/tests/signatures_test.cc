@@ -12,7 +12,7 @@ TEST(tiny_signatures, parse_simple) {
 
   EXPECT_EQ(uptane_parse_signatures(ROLE_ROOT, signatures_str.c_str(), signatures_str.length(), sigs, 10), 1);
   EXPECT_TRUE(sigs[0].key != nullptr);
-  EXPECT_TRUE(sigs[0].key->key_type == ED25519);
+  EXPECT_EQ(sigs[0].key->key_type, ED25519);
   std::string sig_in_str = Utils::fromBase64("zrzJqjJS1RhikRZohH5/m0x1DeK2na+O7u6Zhx8o7kctruiayGyevnDuA45zPIUR5tQAZ85a1BwDX6BaazgXCw==");
   std::string sig_parsed = std::string(reinterpret_cast<char*>(sigs[0].sig), CRYPTO_SIGNATURE_LEN);
   EXPECT_EQ(sig_in_str, sig_parsed);

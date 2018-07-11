@@ -1,4 +1,5 @@
 #include "state_api.h"
+#include <memory>
 
 crypto_key_t key = {
   .key_type = ED25519,
@@ -8,23 +9,35 @@ crypto_key_t key = {
 
 crypto_key_t *keys[] = {&key};
 
-uptane_root_t stored_root = {
-  .version = 0,
-  .expires = {.year = 2038, .month = 1, .day = 1, .hour = 0, .minute = 0, .second = 0},
-  .root_threshold  = 1,
-  .root_keys_num = 1,
-  .root_keys = keys,
-  .targets_threshold = 1,
-  .targets_keys_num = 1,
-  .targets_keys = keys,
-};
-
+std::unique_ptr<uptane_root_t> stored_root;
 extern "C" {
-  const uptane_root_t* state_get_root(void) {
-    return &stored_root;
+  uptane_root_t* state_get_root(void) {
+    if( !stored_root ) {
+      stored_root = std::unique_ptr<uptane_root_t>(new uptane_root_t);
+      stored_root->version = 0;
+      stored_root->expires = {2038, 1, 1, 0, 0, 0};
+      stored_root->root_threshold = 1;
+      stored_root->root_keys_num = 1; 
+      stored_root->root_keys[0] = &key;
+      stored_root->targets_threshold = 1;
+      stored_root->targets_keys_num = 1; 
+      stored_root->targets_keys[0] = &key;
+    }
+    return stored_root.get();
   }
 
   void state_set_root(const uptane_root_t* root) {
-    stored_root = *root;
+    stored_root->version = root->version;
+    stored_root->expires = root->expires;
+    stored_root->root_threshold = root->root_threshold;
+    stored_root->root_keys_num = root->root_keys_num;
+    for(int i = 0; i < root->root_keys_num; ++i) { 
+      stored_root->root_keys[i] = root->root_keys[i];
+    }
+    stored_root->targets_threshold = 1;
+    stored_root->targets_keys_num = 1; 
+    for(int i = 0; i < root->targets_keys_num; ++i) { 
+      stored_root->targets_keys[i] = root->targets_keys[i];
+    }
   }
 }

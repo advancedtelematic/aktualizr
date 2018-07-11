@@ -54,3 +54,63 @@ int hex_bin_cmp(const char *hex_string, int hex_len, const uint8_t *bin_data) {
   return 0;
 }
 
+bool dec2int(const char *dec_string, int dec_len, int32_t *out) {
+  int32_t res = 0;
+  bool neg = 0;
+  int i = 0;
+  if(dec_string[0] == '-') {
+    neg = 1;
+    ++i;
+  }
+
+  for(;i < dec_len; i++) {
+    if (dec_string[i] < '0' || dec_string[i] > '9') {
+      return false;
+    }
+    res *= 10;
+    res += dec_string[i] - '0';
+  }
+
+  *out = ((neg) ? -res : res);
+  return true;
+}
+
+/* Time format in UPTANE: YYYY-MM-DDThh:mm:ssZ. The function ignores delimiters. */
+bool str2time(const char *time_string, int time_len, uptane_time_t* out) {
+  int32_t num;
+
+  if(time_len != 20) {
+    return false;
+  }
+
+  if(!dec2int(time_string, 4, &num)) {
+    return false;
+  }
+  out->year = num;
+
+  if(!dec2int(time_string+5, 2, &num)) {
+    return false;
+  }
+  out->month = num;
+
+  if(!dec2int(time_string+8, 2, &num)) {
+    return false;
+  }
+  out->day = num;
+
+  if(!dec2int(time_string+11, 2, &num)) {
+    return false;
+  }
+  out->hour = num;
+
+  if(!dec2int(time_string+14, 2, &num)) {
+    return false;
+  }
+  out->minute = num;
+
+  if(!dec2int(time_string+17, 2, &num)) {
+    return false;
+  }
+  out->second = num;
+  return true;
+}

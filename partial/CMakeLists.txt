@@ -68,6 +68,7 @@ set(C25519_HEADERS ed25519/ed25519.h
 
 set(UPTANE_SOURCES libuptiny/base64.c
 	libuptiny/crypto.c
+	libuptiny/root_signed.c
 	libuptiny/signatures.c
 	libuptiny/uptane_time.c
 	libuptiny/utils.c
@@ -76,6 +77,7 @@ set(UPTANE_SOURCES libuptiny/base64.c
 
 set(UPTANE_HEADERS libuptiny/base64.h
 	libuptiny/crypto.h
+	libuptiny/root_signed.h
 	libuptiny/signatures.h
 	libuptiny/uptane_time.h
 	libuptiny/utils.h
@@ -111,7 +113,8 @@ if(NOT LIBUPTINY_MACHINE)
 	#set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
-        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/common_data.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c extern/jsmn/jsmn.c tests/test_state.cc tests/signatures_test.cc)
+        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c tests/test_state.cc tests/signatures_test.cc tests/test_common_data.cc)
+        add_aktualizr_test(NAME tiny_signed_root SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/root_signed.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c tests/test_state.cc tests/root_signed_test.cc tests/test_common_data.cc)
 	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
 	add_executable(sign ${C25519_SOURCES} examples/sign.c)
 
