@@ -34,5 +34,7 @@ add_aktualizr_test(NAME sqlstorage SOURCES sqlstorage_test.cc sql_schemas.cc
 list(REMOVE_ITEM TEST_SOURCES sql_schemas.cc)
 add_aktualizr_test(NAME storage SOURCES storage_common_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_test(NAME test_schema_migration
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/schema_migration_test.sh ${PROJECT_SOURCE_DIR}/config/sql)
 
 aktualizr_source_file_checks(${TEST_SOURCES})
