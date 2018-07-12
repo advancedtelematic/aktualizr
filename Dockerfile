@@ -55,6 +55,7 @@ RUN apt-get update && apt-get -y install \
   python3-openssl \
   python3-pip \
   python3-venv \
+  sqlite3 \
   wget \
   zip
 
