@@ -62,7 +62,7 @@ RUN apt-get update && apt-get -y install \
 # Includes workaround for this bug:
 # https://bugs.launchpad.net/ubuntu/+source/valgrind/+bug/1501545
 # https://stackoverflow.com/questions/37032339/valgrind-unrecognised-instruction
-RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
 RUN apt-get update && apt-get -y install \
   libp11-2 \
   libp11-dev \
