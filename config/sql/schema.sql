@@ -19,4 +19,4 @@ INSERT INTO meta_types(rowid,meta,meta_string) VALUES(3,2,'targets');
 INSERT INTO meta_types(rowid,meta,meta_string) VALUES(4,3,'timestamp');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(1,0,'images');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(2,1,'director');
-CREATE TABLE installation_result(id TEXT, result_code INTEGER NOT NULL DEFAULT 0, result_text TEXT);
+CREATE TABLE installation_result(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), id TEXT, result_code INTEGER NOT NULL DEFAULT 0, result_text TEXT);

@@ -962,8 +962,8 @@ void SQLStorage::storeInstallationResult(const data::OperationResult& result) {
   }
 
   auto statement = db.prepareStatement<std::string, int, std::string>(
-      "UPDATE OR REPLACE installation_result SET (id, result_code, result_text) = (?,?,?);", result.id,
-      static_cast<int>(result.result_code), result.result_text);
+      "INSERT OR REPLACE INTO installation_result (unique_mark, id, result_code, result_text) VALUES (0,?,?,?);",
+      result.id, static_cast<int>(result.result_code), result.result_text);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set installation_result: " << db.errmsg();
     return;
@@ -1012,8 +1012,7 @@ void SQLStorage::clearInstallationResult() {
     return;
   }
 
-  if (db.exec("UPDATE OR REPLACE installation_result SET (id, result_code, result_text) = (NULL,0,NULL);", nullptr,
-              nullptr) != SQLITE_OK) {
+  if (db.exec("DELETE FROM installation_result;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear installation_result: " << db.errmsg();
     return;
   }
@@ -1293,18 +1292,6 @@ bool SQLStorage::dbInit() {
   if (statement.get_result_col_int(0) < 1) {
     if (db.exec("INSERT INTO device_info DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
-      return false;
-    }
-  }
-
-  auto statement2 = db.prepareStatement("SELECT count(*) FROM installation_result;");
-  if (statement2.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get number of rows in installation_result: " << db.errmsg();
-    return false;
-  }
-  if (statement2.get_result_col_int(0) < 1) {
-    if (db.exec("INSERT INTO installation_result DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't set default values to installation_result: " << db.errmsg();
       return false;
     }
   }
