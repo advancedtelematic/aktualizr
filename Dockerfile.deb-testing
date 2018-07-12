@@ -61,6 +61,7 @@ RUN apt-get update && apt-get -y install \
   python3-openssl \
   python3-venv \
   softhsm2 \
+  sqlite3 \
   valgrind \
   wget
 

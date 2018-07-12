@@ -18,7 +18,7 @@ typedef boost::tokenizer<boost::char_separator<char> > sql_tokenizer;
 static std::map<std::string, std::string> parseSchema() {
   std::map<std::string, std::string> result;
   std::vector<std::string> tokens;
-  enum { STATE_INIT, STATE_CREATE, STATE_TABLE, STATE_NAME };
+  enum { STATE_INIT, STATE_CREATE, STATE_INSERT, STATE_TABLE, STATE_NAME };
   boost::char_separator<char> sep(" \"\t\r\n", "(),;");
   std::string schema(current_schema);
   sql_tokenizer tok(schema, sep);
@@ -28,26 +28,38 @@ static std::map<std::string, std::string> parseSchema() {
   std::string value;
   for (sql_tokenizer::iterator it = tok.begin(); it != tok.end(); ++it) {
     std::string token = *it;
-    if (value.empty())
+    if (value.empty()) {
       value = token;
-    else
+    } else {
       value = value + " " + token;
+    }
     switch (parsing_state) {
       case STATE_INIT:
-        if (token != "CREATE") {
-          return std::map<std::string, std::string>();
+        if (token == "CREATE") {
+          parsing_state = STATE_CREATE;
+        } else if (token == "INSERT") {
+          parsing_state = STATE_INSERT;
+        } else {
+          return {};
         }
-        parsing_state = STATE_CREATE;
         break;
       case STATE_CREATE:
         if (token != "TABLE") {
-          return std::map<std::string, std::string>();
+          return {};
         }
         parsing_state = STATE_TABLE;
         break;
+      case STATE_INSERT:
+        // do not take these into account
+        if (token == ";") {
+          key.clear();
+          value.clear();
+          parsing_state = STATE_INIT;
+        }
+        break;
       case STATE_TABLE:
         if (token == "(" || token == ")" || token == "," || token == ";") {
-          return std::map<std::string, std::string>();
+          return {};
         }
         key = token;
         parsing_state = STATE_NAME;
@@ -80,6 +92,10 @@ static bool tableSchemasEqual(const std::string& left, const std::string& right)
 
 static bool dbSchemaCheck(SQLStorage& storage) {
   std::map<std::string, std::string> tables = parseSchema();
+  if (tables.empty()) {
+    LOG_ERROR << "Could not parse schema";
+    return false;
+  }
 
   for (std::map<std::string, std::string>::iterator it = tables.begin(); it != tables.end(); ++it) {
     std::string schema_from_db = storage.getTableSchemaFromDb(it->first);

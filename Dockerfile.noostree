@@ -52,10 +52,11 @@ RUN apt-get update && apt-get -y install \
   python3-gi \
   python3-openssl \
   python3-venv \
+  sqlite3 \
   valgrind \
   wget
 
-RUN echo "deb http://mirrors.kernel.org/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu/ artful main multiverse restricted universe" > /etc/apt/sources.list.d/artful.list
 RUN apt-get update && apt-get -y install \
   libp11-2 \
   libp11-dev \

@@ -71,6 +71,7 @@ The following debian packages are used in the project:
 * python3-dev (when building tests)
 * python3-openssl (when building tests)
 * python3-venv (when building tests)
+* sqlite3 (when building tests)
 * valgrind (when building tests)
 
 ==== Mac support
