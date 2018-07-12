@@ -1,4 +1,5 @@
 CREATE TABLE version(version INTEGER);
+INSERT INTO version(rowid,version) VALUES(1,6);
 CREATE TABLE device_info(device_id TEXT, is_registered INTEGER NOT NULL DEFAULT 0 CHECK (is_registered IN (0,1)));
 CREATE TABLE ecu_serials(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, is_primary INTEGER NOT NULL CHECK (is_primary IN (0,1)));
 CREATE TABLE misconfigured_ecus(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, state INTEGER NOT NULL CHECK (state IN (0,1)));
@@ -12,3 +13,9 @@ CREATE TABLE meta(meta BLOB NOT NULL, repo INTEGER NOT NULL, meta_type INTEGER N
 CREATE TABLE target_images(filename TEXT UNIQUE, image_data BLOB NOT NULL);
 CREATE TABLE repo_types(repo INTEGER NOT NULL, repo_string TEXT NOT NULL);
 CREATE TABLE meta_types(meta INTEGER NOT NULL, meta_string TEXT NOT NULL);
+INSERT INTO meta_types(rowid,meta,meta_string) VALUES(1,0,'root');
+INSERT INTO meta_types(rowid,meta,meta_string) VALUES(2,1,'snapshot');
+INSERT INTO meta_types(rowid,meta,meta_string) VALUES(3,2,'targets');
+INSERT INTO meta_types(rowid,meta,meta_string) VALUES(4,3,'timestamp');
+INSERT INTO repo_types(rowid,repo,repo_string) VALUES(1,0,'images');
+INSERT INTO repo_types(rowid,repo,repo_string) VALUES(2,1,'director');
