@@ -1,9 +1,9 @@
 /**
 \file
 
-Externally facing API for Aktualizr.
+Externally facing API for \aktualizr.
 
-Aktualizr is designed to be run as a standalone component on an embedded system and manage the entire software update
+\aktualizr is designed to be run as a standalone component on an embedded system and manage the entire software update
 process. This is suitable for simple cases, but falls short in more complex environments. For example:
 
 - User consent for updates
@@ -13,7 +13,7 @@ process. This is suitable for simple cases, but falls short in more complex envi
 Some of these are not always necessary. Many users today are satisified with applications (Google Docs/GMail, Office
 365, Chrome) that automatically update without user interaction. For these products the designer takes on the
 responsibility of making updates seamless, both in terms of zero downtime for the user and that there are no significant
-regressions. That is not always the case, and Aktualizr is designed to also work in constrained environments where
+regressions. That is not always the case, and \aktualizr is designed to also work in constrained environments where
 updates may make a vehicle undrivable for an extended period of time.
 
 Functional Requirements
@@ -27,24 +27,33 @@ Functional Requirements
 Non-functional Requirements
 ===========================
 
-1. Since these interfaces are often proprietry and under NDA, the implementation must be kept separate from the
-Aktualizr tree.
+1. Since in-vehicle interfaces are often proprietary and under NDA, the implementation must be kept separate from the
+\aktualizr tree.
 2. It should be possible to have the integration performed by a separate team
 3. Flexibility and simple integration into new environments.
 
 Overview
 ========
 
-The Aktualizr performs all its operations in a background thread, and all the operations except aktualizr_init() and
+The \aktualizr performs all its operations in a background thread, and all the operations except aktualizr_init() and
 aktualizr_free() are asynchronous. Notifications occur via callbacks. These calls are made synchronously from
-Aktualizr's background thread, so they should complete quickly. Normally the callback will only post a notification the
+\aktualizr's background thread, so they should complete quickly. Normally the callback will only post a notification the
 application's main event loop.
+
+
+Configuration
+=============
+A configuration object is assembed by is built by calling aktualizr_config_init() then loading configuration files or
+directories with aktualizr_config_load(). After all the configuration options are loaded, the configuration object is
+passed to aktualizr_init().
+
+The configuration cannot be changed after it has been passed to aktualizr_init()
 
 
 Rejected Alternatives
 =====================
 
-It would be possible to allow other components to interface with Aktualizr via
+It would be possible to allow other components to interface with \aktualizr via
 a IPC interface such as D-Bus or Sockets. This would have the some advantages,
 such as:
 
@@ -64,30 +73,36 @@ It would still be possible to write a wrapper that would expose libaktualizr
 via an IPC mechanism, but this can be written with a specific use-case and IPC
 technology in mind.
 
-\nosubgrouping
 */
 
 struct aktualizr_struct;
 
 /**
- * Aktualizr Handle
+ * \aktualizr handle
  */
 typedef aktualizr_struct* aktualizr_t;
 
+struct aktualizr_update_state_struct;
+
+/**
+ * A snapshot of the current update state
+ */
+typedef aktualizr_update_state_struct* aktualizr_update_state_t;
+
 struct aktualizr_config_struct;
 
-/** Aktualizr configuration object Handle */
+/** \aktualizr configuration object handle */
 typedef aktualizr_config_struct* aktualizr_config_t;
 
 /**
- * Aktualizr API result code.
+ * \aktualizr API result code.
  */
 typedef enum {
   /** The operation completed successfully */
   AKTUALIZR_OK = 0,
   /** The operation cannot be started because an existing operation is in progress */
   AKTUALIZR_ALREADY_IN_PROGRESS,
-  /** The operation cannot be performed with the current Aktualizr configuration */
+  /** The operation cannot be performed with the current \aktualizr configuration */
   AKTUALIZR_BAD_CONFIG,
   /** The device is not provisioned, and provisioning isn't possible and/or wasn't requested */
   AKTUALIZR_NOT_PROVISIONED,
@@ -101,6 +116,8 @@ typedef enum {
  * This interface is expected to be used by a UI, therefore transient errors
  * like network failure are not exposed here. The system--not the user--will be
  * responsible for retrying in those cases.
+ * Future, finer grained categories will be exposed via new enumerations, not
+ * be extending this one.
  */
 typedef enum {
   /** The system is up-to-date with respect to the most recent metadata downloaded. */
@@ -132,7 +149,7 @@ typedef enum {
    * An update is already installed, but a reboot is required to start using it.
    */
   AKTUALIZR_UPDATE_AWAITING_REBOOT
-} aktualizr_update_state_t;
+} aktualizr_update_ui_category_t;
 
 /**
  * Parameter to \ref aktualizr_run_update to control how much of the update
@@ -150,21 +167,26 @@ typedef enum {
 
 } aktualizr_poll_operation_t;
 
-/** Callback type for \ref aktualizr_set_state_change_callback */
+/**
+ * Callback type for \ref aktualizr_set_state_change_callback
+ * aktualizr_update_state_t is owned by the caller. Call
+ * aktualizr_update_state_ref if if will be used past the end of this callback.
+ */
 typedef void (*aktualizr_callback_t)(void* clientp, aktualizr_update_state_t);
 
+///
 /// \name Main API
 /// \{
 
 /**
- * Create a new Aktualizr software updater.
+ * Create a new \aktualizr software updater.
  * If polling is enabled in the configuration, this will start polling the
  * update server in the background.
  */
 aktualizr_t aktualizr_init(aktualizr_config_t configuration);
 
 /**
- * Shutdown Aktualizr. No other calls to this API may be made after this call.
+ * Shutdown \aktualizr. No other calls to this API may be made after this call.
  */
 void aktualizr_free(aktualizr_t aktualizr);
 
@@ -172,7 +194,7 @@ void aktualizr_free(aktualizr_t aktualizr);
  * Register to be notified when updates are available, downloading or installing.
  * It is not possible to register to multiple callbacks. Passing NULL as a
  * callback will disable state change notifications.
- * \param aktualizr Aktualizr handle
+ * \param aktualizr \aktualizr handle
  * \param callback The callback to call, or 'NULL' to disable notifications
  * \param userdata Opaque user handle that is passed to the callback
  */
@@ -180,39 +202,62 @@ void aktualizr_set_state_change_callback(aktualizr_t aktualizr, aktualizr_callba
 
 /**
  * The current state of the update process.
+ * The returned aktualizr_update_state_t is owned by the caller, and needs to
+ * be disposed using aktualizr_update_state_unref.
  */
 aktualizr_update_state_t aktualizr_get_update_state(aktualizr_t aktualizr);
 
 /**
  * Perform an update cycle.
- * If Aktualizr isn't currently idle (for example if a polling operation is already in progress) then
- * an \ref AKTUALIZR_ALREADY_IN_PROGRESS error is returned.
+ * If \aktualizr isn't currently idle (for example if a polling operation is
+ * already in progress) then \ref AKTUALIZR_ALREADY_IN_PROGRESS is returned.
  */
 aktualizr_res_t aktualizr_run_update(aktualizr_t aktualizr, aktualizr_poll_operation_t operation);
 
-/**
- * Report system information to the server.
- * This includes network, hardware and installed package information.
- * \todo Async? Queued?
- */
-aktualizr_res_t aktualizr_report_system_information(aktualizr_t aktualizr);
-
-///
 /// \}
-///
-
-///
-/// \name Aktualizr Configuration
+/// \name \aktualizr Update State
 /// \{
 
 /**
- * Create a new configuration object, which is used to build Aktualizr's
+ * Increment the reference count for aktualizr_update_state_t.
+ * This may be used to keep an aktualizr_update_state_t alive beyond the end of
+ * the aktualizr_set_state_change_callback() callback.
+ */
+void aktualizr_update_state_ref(aktualizr_update_state_t update_state);
+
+/**
+ * Decrement the reference count for aktualizr_update_state_t.
+ * This must be called to displose the object returned by
+ * aktualizr_get_update_state.
+ */
+void aktualizr_update_state_unref(aktualizr_update_state_t update_state);
+
+/**
+ * Return the high-level category of this update state snapshot.
+ */
+aktualizr_update_ui_category_t aktualizr_update_state_ui_category(aktualizr_update_state_t state);
+
+/**
+ * A one-line description of the update suitable for display to the user.
+ * This might be the filename, or a short description of the package suitable
+ * for display like "Downloading %s".
+ * The returned string is owned by the aktualizr_update_state_t. It shouldn't
+ * be free'd and is only valid while aktualizr_update_state_t is valid.
+ */
+const char* aktualizr_update_state_description(aktualizr_update_state_t state);
+
+/// \}
+/// \name \aktualizr Configuration
+/// \{
+
+/**
+ * Create a new configuration object, which is used to build \aktualizr's
  * configuration.
  */
 aktualizr_config_t aktualizr_config_init();
 
 /**
- * Free an Aktualizr configuration object.
+ * Free an \aktualizr configuration object.
  * This is needed regardless of whether it is passed to \ref aktualizr_init.
  */
 void aktualizr_config_free(aktualizr_config_t config);
@@ -238,4 +283,6 @@ aktualizr_res_t aktualizr_config_set_string(aktualizr_config_t config, char* sec
  */
 aktualizr_res_t aktualizr_config_set_int(aktualizr_config_t config, char* section, char* option, int value);
 
+///
 /// \}
+///
