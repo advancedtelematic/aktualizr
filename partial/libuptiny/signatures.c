@@ -23,7 +23,6 @@
 #include "utils.h"
 #include "jsmn/jsmn.h"
 
-static jsmn_parser parser;
 extern jsmntok_t token_pool[];
 extern const unsigned int token_pool_size;
 
@@ -91,7 +90,8 @@ static inline int parse_sig (const char *json_sig, unsigned int *pos, crypto_key
   return (sig_found && key_found);
 }
 
-int uptane_parse_signatures(uptane_role_t role, const char *signatures, size_t len, crypto_key_and_signature_t *output, int max_sigs) {
+int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned int *pos, crypto_key_and_signature_t *output, int max_sigs) {
+
   uptane_root_t* root_meta = state_get_root();
   if(role == ROLE_ROOT) {
     meta_keys = root_meta->root_keys;
@@ -101,35 +101,32 @@ int uptane_parse_signatures(uptane_role_t role, const char *signatures, size_t l
     meta_keys_num = root_meta->targets_keys_num;
   }
 
-  jsmn_init(&parser);
-
-  int parsed = jsmn_parse(&parser, signatures, len, token_pool, token_pool_size);
-  
-  if (parsed < 0) {
-    DEBUG_PRINTF("Failed to parse signatures\n");
-    return -1;
-  }
-
-  if (parsed < 1 || token_pool[0].type != JSMN_ARRAY) {
+  unsigned int token_idx = *pos;
+  if (token_pool[token_idx].type != JSMN_ARRAY) {
     DEBUG_PRINTF("Array expected\n");
     return -1;
   }
+  ++token_idx; // Consume array token
 
   int sigs_read = 0;
-  unsigned int token_idx = 1;
   int array_size = token_pool[0].size;
 
   for (int i = 0; i < array_size; ++i) {
     if (sigs_read >= max_sigs) {
+      *pos = token_idx;
+      DEBUG_PRINTF("TOO MANY SIGNATURES, RETURN %d\n", sigs_read); 
       return sigs_read;
     }
 
     int res = parse_sig(signatures, &token_idx, output+sigs_read);
     if (res < 0) {
+      DEBUG_PRINTF("FAILED TO PARSE SIGNATURE, RETURN %d\n", -1); 
       return -1;
     } else if (res != 0){
       ++sigs_read;
     }
   }
+  *pos = token_idx;
+  DEBUG_PRINTF("SIGNATURES OK, RETURN %d\n", sigs_read); 
   return sigs_read;
 }

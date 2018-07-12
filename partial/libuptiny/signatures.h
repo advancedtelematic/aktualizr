@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-int uptane_parse_signatures(uptane_role_t role, const char *signatures, size_t len, crypto_key_and_signature_t *output, int max_sigs);
+int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned int *pos, crypto_key_and_signature_t *output, int max_sigs);
 
 #ifdef __cplusplus
 }

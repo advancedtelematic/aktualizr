@@ -27,17 +27,23 @@ typedef struct {
   crypto_key_t *targets_keys[ROOT_MAX_KEYS];
 } uptane_root_t;
 
+#define TARGETS_MAX_HASHES 4
+#define TARGETS_MAX_NAME_LENGTH 63
 /* Does not represent the whole targets metadata, only what's needed for this ECU */
 typedef struct {
   int version;
   uptane_time_t expires;
+  char name[TARGETS_MAX_NAME_LENGTH+1];
   int hashes_num;
-  crypto_hash_t **hashes;
+  crypto_hash_t hashes[TARGETS_MAX_HASHES];
   uint32_t length;
-} uptane_target_t;
+} uptane_targets_t;
 
 uptane_root_t* state_get_root(void);
 void state_set_root(const uptane_root_t* root);
+
+const char* state_get_ecuid(void);
+const char* state_get_hwid(void);
 
 #ifdef __cplusplus
 }

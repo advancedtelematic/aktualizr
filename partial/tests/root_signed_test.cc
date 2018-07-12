@@ -9,7 +9,7 @@
 #include "utilities/utils.h"
 
 TEST(tiny_root_signed, parse_simple) {
-  std::string signed_root_str = "{\"_type\":\"Root\",\"expires\":\"3019-02-10T13:33:02Z\",\"keys\":{\"5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43\":{\"keytype\":\"ED25519\",\"keyval\":{\"public\":\"EA4BE277FB02C42549929113156AD13D55D06F5E6F0DE2E775C50645D03A8F81\"}}},\"roles\":{\"root\":{\"keyids\":[\"5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43\"],\"threshold\":1},\"snapshot\":{\"keyids\":[\"5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43\"],\"threshold\":1},\"targets\":{\"keyids\":[\"5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43\"],\"threshold\":1},\"timestamp\":{\"keyids\":[\"5e16c18ad88a82257721d483383468e9a931bc46fe307e991c1c4bc96e62ee43\"],\"threshold\":1}}}";
+ std::string signed_root_str = "{\"_type\":\"Root\",\"expires\":\"3021-07-13T01:02:03Z\",\"keys\":{\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\":{\"keytype\":\"ED25519\",\"keyval\":{\"public\":\"C18143A73BD7EC00C0ACC194CAD973118BDE920BF4C0629F7F95209D42283CB6\"}}},\"roles\":{\"root\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"snapshot\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"targets\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"timestamp\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1}},\"version\":1}";
 
   jsmn_parser parser;
   jsmn_init(&parser);
@@ -20,7 +20,7 @@ TEST(tiny_root_signed, parse_simple) {
   unsigned int idx = 0;
   uptane_root_t root;
   EXPECT_TRUE(uptane_part_root_signed (signed_root_str.c_str(), &idx, &root));
-  uptane_time_t time_in_str = {3019,2,10,13,33,2};
+  uptane_time_t time_in_str = {3021,7,13,1,2,3};
   EXPECT_EQ(memcmp(&root.expires, &time_in_str, sizeof(uptane_time_t)), 0); // C++ can't compare structs, shame on C++
   EXPECT_EQ(root.root_threshold, 1);
   EXPECT_EQ(root.root_keys_num, 1);

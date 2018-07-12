@@ -90,8 +90,8 @@ static bool parse_keys(const char* metadata_str, unsigned int *pos) {
             keyval_found = parse_keyval(metadata_str+token_pool[idx].start, token_pool[idx].end - token_pool[idx].start, keys[num_keys]);
             ++idx; // consume keyval
           } else {
-            ++idx; //  consume name token
             DEBUG_PRINTF("Unknown field in keyval object: \"%.*s\"\n", token_pool[idx].end-token_pool[idx].start, metadata_str+token_pool[idx].start); 
+            ++idx; //  consume name token
             idx = consume_recursive_json(idx); // consume value
           }
         }
@@ -208,6 +208,7 @@ bool uptane_part_root_signed (const char *metadata_str, unsigned int *pos, uptan
   ++idx; // consume object token
    
   for (int i = 0; i < size; ++i) {
+    // TODO: version
     if ((token_pool[idx].end - token_pool[idx].start) == 5 && (strncmp("_type", metadata_str+token_pool[idx].start, 5) == 0)) {
       ++idx; //  consume name token
 

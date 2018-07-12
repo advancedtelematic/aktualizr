@@ -52,14 +52,14 @@ if(LIBUPTINY_MACHINE)
 	endif()
 endif()
 
-set(C25519_SOURCES ed25519/ed25519.c
+set(ED25519_SOURCES ed25519/ed25519.c
 	ed25519/edsign.c
 	ed25519/f25519.c
 	ed25519/fprime.c
 	ed25519/sha512.c
 	)
 
-set(C25519_HEADERS ed25519/ed25519.h
+set(ED25519_HEADERS ed25519/ed25519.h
 	ed25519/edsign.h
 	ed25519/f25519.h
 	ed25519/fprime.h
@@ -84,8 +84,8 @@ set(UPTANE_HEADERS libuptiny/base64.h
 	extern/jsmn/jsmn.h
 	)
 
-set(LIBRARY_SOURCES ${C25519_SOURCES} ${UPTANE_SOURCES})
-set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
+set(LIBRARY_SOURCES ${ED25519_SOURCES} ${UPTANE_SOURCES})
+set(LIBRARY_HEADERS ${ED25519_HEADERS} ${UPTANE_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
 add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
@@ -113,10 +113,11 @@ if(NOT LIBUPTINY_MACHINE)
 	#set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
 	
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
-        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c tests/test_state.cc tests/signatures_test.cc tests/test_common_data.cc)
-        add_aktualizr_test(NAME tiny_signed_root SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/root_signed.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c tests/test_state.cc tests/root_signed_test.cc tests/test_common_data.cc)
-	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
-	add_executable(sign ${C25519_SOURCES} examples/sign.c)
+        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/signatures_test.cc tests/test_common_data.cc)
+        add_aktualizr_test(NAME tiny_signed_root SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/root_signed.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/root_signed_test.cc tests/test_common_data.cc)
+        add_aktualizr_test(NAME tiny_targets SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/targets.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/targets_test.cc tests/test_common_data.cc)
+	add_executable(genpair ${ED25519_SOURCES} examples/genpair.c)
+	add_executable(sign ${ED25519_SOURCES} examples/sign.c)
 
 	set(test_exec ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/test.sh)
 	add_test(NAME test_valid COMMAND ${test_exec} pass ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
