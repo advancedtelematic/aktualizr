@@ -97,7 +97,7 @@ static bool dbSchemaCheck(SQLStorage& storage) {
     return false;
   }
 
-  for (std::map<std::string, std::string>::iterator it = tables.begin(); it != tables.end(); ++it) {
+  for (auto it = tables.begin(); it != tables.end(); ++it) {
     std::string schema_from_db = storage.getTableSchemaFromDb(it->first);
     if (!tableSchemasEqual(schema_from_db, it->second)) {
       LOG_ERROR << "Schemas don't match for " << it->first;

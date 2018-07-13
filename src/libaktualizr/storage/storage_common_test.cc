@@ -49,6 +49,7 @@ StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) 
 TEST(storage, load_store_primary_keys) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  storage->storePrimaryKeys("", "");
   storage->storePrimaryKeys("pr_public", "pr_private");
 
   std::string pubkey;
@@ -65,6 +66,7 @@ TEST(storage, load_store_primary_keys) {
 TEST(storage, load_store_tls) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  storage->storeTlsCreds("", "", "");
   storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
   std::string cert;
@@ -171,6 +173,13 @@ TEST(storage, load_store_metadata) {
   EXPECT_EQ(images_timestamp, loaded_images_timestamp);
   EXPECT_EQ(images_snapshot, loaded_images_snapshot);
 
+  storage->clearNonRootMeta(Uptane::RepositoryType::Director);
+  storage->clearNonRootMeta(Uptane::RepositoryType::Images);
+  EXPECT_FALSE(
+      storage->loadNonRoot(&loaded_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_FALSE(
+      storage->loadNonRoot(&loaded_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+
   boost::filesystem::remove_all(storage_test_dir);
 }
 
@@ -214,6 +223,7 @@ TEST(storage, load_store_root) {
 TEST(storage, load_store_deviceid) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  storage->storeDeviceId("");
   storage->storeDeviceId("device_id");
 
   std::string device_id;
@@ -229,10 +239,10 @@ TEST(storage, load_store_deviceid) {
 TEST(storage, load_store_ecu_serials) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
-  EcuSerials serials;
-  serials.push_back({Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")});
-  serials.push_back({Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")});
-  serials.push_back({Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")});
+  storage->storeEcuSerials({{Uptane::EcuSerial("a"), Uptane::HardwareIdentifier("")}});
+  EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+                     {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
+                     {Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")}};
   storage->storeEcuSerials(serials);
 
   EcuSerials serials_out;
@@ -273,6 +283,7 @@ TEST(storage, load_store_ecu_registered) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
   storage->storeEcuRegistered();
+  storage->storeEcuRegistered();
 
   EXPECT_TRUE(storage->loadEcuRegistered());
 
@@ -284,6 +295,9 @@ TEST(storage, load_store_ecu_registered) {
 TEST(storage, load_store_installation_result) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+
+  storage->storeInstallationResult(
+      data::OperationResult("", data::InstallOutcome(data::UpdateResultCode::kGeneralError, "")));
   data::InstallOutcome outcome(data::UpdateResultCode::kGeneralError, "some failure");
   data::OperationResult result("target_filename", outcome);
   storage->storeInstallationResult(result);

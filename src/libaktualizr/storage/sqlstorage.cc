@@ -1268,8 +1268,8 @@ bool SQLStorage::dbMigrate() {
   }
 
   for (int k = schema_num_version + 1; k <= current_schema_version; k++) {
-    if (db.exec(schema_migrations[k].c_str(), nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't migrate db from version" << (k - 1) << " to version " << k << ": " << db.errmsg();
+    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+      LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }
   }
