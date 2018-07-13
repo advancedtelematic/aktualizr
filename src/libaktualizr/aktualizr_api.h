@@ -250,6 +250,7 @@ aktualizr_res_t aktualizr_get_update_state(aktualizr_t aktualizr, struct aktuali
  */
 aktualizr_res_t aktualizr_run_update(aktualizr_t aktualizr, aktualizr_poll_operation_t operation);
 
+/// \}
 /// \name \aktualizr Configuration
 /// \{
 
@@ -257,7 +258,7 @@ aktualizr_res_t aktualizr_run_update(aktualizr_t aktualizr, aktualizr_poll_opera
  * Create a new configuration object, which is used to build \aktualizr's
  * configuration.
  */
-aktualizr_config_t aktualizr_config_init();
+aktualizr_config_t aktualizr_config_init(void);
 
 /**
  * Free an \aktualizr configuration object.
