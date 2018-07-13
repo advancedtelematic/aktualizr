@@ -169,6 +169,29 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
 }
 
+TEST(sqlstorage, DbMigration7to8) {
+  // it must use raw sql primitives because the SQLStorage object does automatic
+  // migration + the api changes with time
+  auto tdb = makeDbWithVersion(DbVersion(7));
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  if (db.exec("INSERT INTO primary_keys VALUES ('priv', 'pub');", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec(schema_migrations.at(8), nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  auto statement = db.prepareStatement("SELECT private, public FROM primary_keys;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL();
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "priv");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "pub");
+}
+
 /**
  * Check that old metadata is still valid
 */

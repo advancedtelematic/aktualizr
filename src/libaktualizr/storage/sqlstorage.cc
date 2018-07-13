@@ -100,20 +100,8 @@ void SQLStorage::storePrimaryKeys(const std::string& public_key, const std::stri
     return;
   }
 
-  auto statement = db.prepareStatement("SELECT count(*) FROM primary_keys;");
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get count of keys table: " << db.errmsg();
-    return;
-  }
-
-  const char* req;
-  if (statement.get_result_col_int(0) != 0) {
-    req = "UPDATE OR REPLACE primary_keys SET (public, private) = (?,?);";
-  } else {
-    req = "INSERT INTO primary_keys(public,private) VALUES (?,?);";
-  }
-
-  statement = db.prepareStatement<std::string>(req, public_key, private_key);
+  auto statement = db.prepareStatement<std::string>(
+      "INSERT OR REPLACE INTO primary_keys(unique_mark,public,private) VALUES (0,?,?);", public_key, private_key);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set primary keys: " << db.errmsg();
     return;
