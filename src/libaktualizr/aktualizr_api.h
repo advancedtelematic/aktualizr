@@ -1,19 +1,24 @@
+#ifndef AKTUALIZR_API_H_
+#define AKTUALIZR_API_H_
+
 /**
 \file
 
 Externally facing API for \aktualizr.
 
-\aktualizr is designed to be run as a standalone component on an embedded system and manage the entire software update
-process. This is suitable for simple cases, but falls short in more complex environments. For example:
+\aktualizr is designed to be run as a standalone component on an embedded
+system and manage the entire software update process. This is suitable for
+simple cases, but falls short in more complex environments. For example:
 
 - User consent for updates
 - Interactive feedback of installation progress
 
-
-Some of these are not always necessary. Many users today are satisified with applications (Google Docs/GMail, Office
-365, Chrome) that automatically update without user interaction. For these products the designer takes on the
-responsibility of making updates seamless, both in terms of zero downtime for the user and that there are no significant
-regressions. That is not always the case, and \aktualizr is designed to also work in constrained environments where
+Some of these are not always necessary. Many users today are satisfied with
+applications (Google Docs/GMail, Office 365, Chrome) that automatically update
+without user interaction. For these products the designer takes on the
+responsibility of making updates seamless, both in terms of zero downtime for
+the user and that there are no significant regressions. That is not always the
+case, and \aktualizr is designed to also work in constrained environments where
 updates may make a vehicle undrivable for an extended period of time.
 
 Functional Requirements
@@ -21,37 +26,40 @@ Functional Requirements
 
 1. Integration with 3rd party HMI
 2. Integration with 3rd party interfaces to install software on secondary ECUs
-3. Limit network trafic and installation to specific vehicle states
+3. Limit network traffic and installation to specific vehicle states
 4. Progress bars
 
 Non-functional Requirements
 ===========================
 
-1. Since in-vehicle interfaces are often proprietary and under NDA, the implementation must be kept separate from the
-\aktualizr tree.
+1. Since in-vehicle interfaces are often proprietary and under NDA, the
+   implementation must be kept separate from the \aktualizr tree.
 2. It should be possible to have the integration performed by a separate team
 3. Flexibility and simple integration into new environments.
 
 Overview
 ========
 
-The \aktualizr performs all its operations in a background thread, and all the operations except aktualizr_init() and
-aktualizr_free() are asynchronous. Notifications occur via callbacks. These calls are made synchronously from
-\aktualizr's background thread, so they should complete quickly. Normally the callback will only post a notification the
-application's main event loop.
+\aktualizr performs all its operations in a background thread, and all the
+operations except aktualizr_init() and aktualizr_free() are asynchronous.
+Notifications occur via callbacks. These calls are made synchronously from
+\aktualizr's background thread, so they should complete quickly. Normally the
+callback will only post a notification the application's main event loop.
 
 
 Configuration
 =============
-A configuration object is assembed by is built by calling aktualizr_config_init() then loading configuration files or
-directories with aktualizr_config_load(). After all the configuration options are loaded, the configuration object is
-passed to aktualizr_init().
+A configuration object is assembled by is built by calling
+aktualizr_config_init() then loading configuration files or directories with
+aktualizr_config_load(). After all the configuration options are loaded, the
+configuration object is passed to aktualizr_init().
 
-The configuration cannot be changed after it has been passed to aktualizr_init()
+The configuration cannot be changed after it has been passed to
+aktualizr_init()
 
 
-Rejected Alternatives
-=====================
+Why not IPC?
+============
 
 It would be possible to allow other components to interface with \aktualizr via
 a IPC interface such as D-Bus or Sockets. This would have the some advantages,
@@ -59,21 +67,28 @@ such as:
 
  - Process Isolation
  - Easier to assemble pieces together and hack together things with scripts.
- - Easier privsep
+ - Easier privilege separation
 
 However we believe the disadvantages outweigh them:
 
 - Have to build an IPC mechanism
-- Have to build bridges to connect this 'common' IPC mechanism to whatever the end-user system has picked
-- New features may require simultanous changes to the aktualizr IPC these bridges.
-- Hard to replace built-in functionality with external functionality (e.g. Package Managers)
-- Harder to completely replace the high-level workflow.
+- Have to build bridges to connect this 'common' IPC mechanism to whatever the
+  end-user system has picked
+- New features may require simultaneous changes to the aktualizr IPC these
+  bridges.
+- Hard to replace built-in functionality with external functionality (e.g.
+  Package Managers)
+- Harder to add steps to the high-level workflow.
 
-It would still be possible to write a wrapper that would expose libaktualizr
-via an IPC mechanism, but this can be written with a specific use-case and IPC
+It is still possible to write a wrapper that would expose libaktualizr via an
+IPC mechanism, but this can be written with a specific use-case and IPC
 technology in mind.
 
 */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct aktualizr_struct;
 
@@ -81,13 +96,6 @@ struct aktualizr_struct;
  * \aktualizr handle
  */
 typedef aktualizr_struct* aktualizr_t;
-
-struct aktualizr_update_state_struct;
-
-/**
- * A snapshot of the current update state
- */
-typedef aktualizr_update_state_struct* aktualizr_update_state_t;
 
 struct aktualizr_config_struct;
 
@@ -151,6 +159,36 @@ typedef enum {
   AKTUALIZR_UPDATE_AWAITING_REBOOT
 } aktualizr_update_ui_category_t;
 
+#define AKTUALIZR_UI_STATUS_MAX_LEN 300
+
+/**
+ * A snapshot of the current update state
+ */
+struct aktualizr_update_state {
+  /**
+   * The high-level category of this update state snapshot.
+   */
+  aktualizr_update_ui_category_t ui_category;
+
+  /**
+   * A one-line description of the update suitable for display to the user.
+   * This might be the filename, or a short description of the package suitable
+   * for display like "Downloading %s".
+   */
+  char ui_status_line[AKTUALIZR_UI_STATUS_MAX_LEN];
+  /** \private */
+  double padding1;
+  /** \private */
+  long long padding2;
+  /** \private */
+  int padding3;
+  /** \private */
+  int padding4;
+  // Don't add any more fields to this struct: it will break ABI compatibility!
+  // Instead either take over one of the padding fields or define a new
+  // structure and a new sibling to aktualizr_set_state_change_callback
+};
+
 /**
  * Parameter to \ref aktualizr_run_update to control how much of the update
  * cycle to perform.
@@ -169,10 +207,10 @@ typedef enum {
 
 /**
  * Callback type for \ref aktualizr_set_state_change_callback
- * aktualizr_update_state_t is owned by the caller. Call
- * aktualizr_update_state_ref if if will be used past the end of this callback.
+ * update_state is owned by the caller, and must be copied out if it will be
+ * used beyond the end of this callback.
  */
-typedef void (*aktualizr_callback_t)(void* clientp, aktualizr_update_state_t);
+typedef void (*aktualizr_callback_t)(void* clientp, struct aktualizr_update_state* update_state);
 
 ///
 /// \name Main API
@@ -201,11 +239,9 @@ void aktualizr_free(aktualizr_t aktualizr);
 void aktualizr_set_state_change_callback(aktualizr_t aktualizr, aktualizr_callback_t callback, void* userdata);
 
 /**
- * The current state of the update process.
- * The returned aktualizr_update_state_t is owned by the caller, and needs to
- * be disposed using aktualizr_update_state_unref.
+ * Read the current state of the update process into update_state.
  */
-aktualizr_update_state_t aktualizr_get_update_state(aktualizr_t aktualizr);
+aktualizr_res_t aktualizr_get_update_state(aktualizr_t aktualizr, struct aktualizr_update_state* update_state);
 
 /**
  * Perform an update cycle.
@@ -214,39 +250,6 @@ aktualizr_update_state_t aktualizr_get_update_state(aktualizr_t aktualizr);
  */
 aktualizr_res_t aktualizr_run_update(aktualizr_t aktualizr, aktualizr_poll_operation_t operation);
 
-/// \}
-/// \name \aktualizr Update State
-/// \{
-
-/**
- * Increment the reference count for aktualizr_update_state_t.
- * This may be used to keep an aktualizr_update_state_t alive beyond the end of
- * the aktualizr_set_state_change_callback() callback.
- */
-void aktualizr_update_state_ref(aktualizr_update_state_t update_state);
-
-/**
- * Decrement the reference count for aktualizr_update_state_t.
- * This must be called to displose the object returned by
- * aktualizr_get_update_state.
- */
-void aktualizr_update_state_unref(aktualizr_update_state_t update_state);
-
-/**
- * Return the high-level category of this update state snapshot.
- */
-aktualizr_update_ui_category_t aktualizr_update_state_ui_category(aktualizr_update_state_t state);
-
-/**
- * A one-line description of the update suitable for display to the user.
- * This might be the filename, or a short description of the package suitable
- * for display like "Downloading %s".
- * The returned string is owned by the aktualizr_update_state_t. It shouldn't
- * be free'd and is only valid while aktualizr_update_state_t is valid.
- */
-const char* aktualizr_update_state_description(aktualizr_update_state_t state);
-
-/// \}
 /// \name \aktualizr Configuration
 /// \{
 
@@ -286,3 +289,9 @@ aktualizr_res_t aktualizr_config_set_int(aktualizr_config_t config, char* sectio
 ///
 /// \}
 ///
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // AKTUALIZR_API_H_
