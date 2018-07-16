@@ -109,6 +109,28 @@ static bool dbSchemaCheck(SQLStorage& storage) {
   return true;
 }
 
+struct TempSQLDb {
+  std::unique_ptr<TemporaryDirectory> dir;
+  boost::filesystem::path db_path;
+};
+
+static TempSQLDb makeDbWithVersion(DbVersion version) {
+  TempSQLDb tdb;
+  tdb.dir = std_::make_unique<TemporaryDirectory>();
+  tdb.db_path = tdb.dir->Path() / "test.db";
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  // manual migration runs
+
+  for (int32_t k = 0; k <= static_cast<int32_t>(version); k++) {
+    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+      throw std::runtime_error("Migration run failed");
+    }
+  }
+
+  return tdb;
+}
+
 TEST(sqlstorage, migrate) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
