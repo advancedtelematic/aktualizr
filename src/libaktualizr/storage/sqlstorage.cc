@@ -19,6 +19,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role
   }
 
   if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
     return;
   }
 
@@ -190,6 +191,11 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     return;
   }
 
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -208,6 +214,8 @@ void SQLStorage::storeTlsCa(const std::string& ca) {
     LOG_ERROR << "Can't set ca_cert: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 void SQLStorage::storeTlsCert(const std::string& cert) {
@@ -215,6 +223,11 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
 
   if (db.get_rc() != SQLITE_OK) {
     LOG_ERROR << "Can't open database: " << db.errmsg();
+    return;
+  }
+
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
     return;
   }
 
@@ -236,6 +249,8 @@ void SQLStorage::storeTlsCert(const std::string& cert) {
     LOG_ERROR << "Can't set client_cert: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 void SQLStorage::storeTlsPkey(const std::string& pkey) {
@@ -246,6 +261,10 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     return;
   }
 
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
   auto statement = db.prepareStatement("SELECT count(*) FROM tls_creds;");
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get count of tls_creds table: " << db.errmsg();
@@ -264,6 +283,8 @@ void SQLStorage::storeTlsPkey(const std::string& pkey) {
     LOG_ERROR << "Can't set client_pkey: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
@@ -274,6 +295,10 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
 
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return false;
+  }
   auto statement = db.prepareStatement("SELECT ca_cert, client_cert, client_pkey FROM tls_creds LIMIT 1;");
   if (statement.step() != SQLITE_ROW) {
     LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
@@ -298,6 +323,8 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
   if (pkey != nullptr) {
     *pkey = std::move(pkey_v);
   }
+
+  db.commitTransaction();
 
   return true;
 }
@@ -403,6 +430,7 @@ void SQLStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo,
   }
 
   if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
     return;
   }
 
@@ -435,6 +463,7 @@ void SQLStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType re
   }
 
   if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
     return;
   }
 
@@ -621,7 +650,10 @@ void SQLStorage::storeEcuRegistered() {
     return;
   }
 
-  db.beginTransaction();
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
 
   auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
   if (statement.step() != SQLITE_ROW) {
@@ -683,6 +715,7 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
     }
 
     if (!db.beginTransaction()) {
+      LOG_ERROR << "Can't start transaction: " << db.errmsg();
       return;
     }
 
@@ -776,6 +809,7 @@ void SQLStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecu
     }
 
     if (!db.beginTransaction()) {
+      LOG_ERROR << "Can't start transaction: " << db.errmsg();
       return;
     }
 
@@ -855,12 +889,13 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
   if (installed_versions.size() >= 1) {
     SQLite3Guard db(config_.sqldb_path.c_str());
 
-    if (!db.beginTransaction()) {
+    if (db.get_rc() != SQLITE_OK) {
+      LOG_ERROR << "Can't open database: " << db.errmsg();
       return;
     }
 
-    if (db.get_rc() != SQLITE_OK) {
-      LOG_ERROR << "Can't open database: " << db.errmsg();
+    if (!db.beginTransaction()) {
+      LOG_ERROR << "Can't start transaction: " << db.errmsg();
       return;
     }
 
