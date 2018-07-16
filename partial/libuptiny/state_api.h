@@ -9,10 +9,10 @@
 extern "C" {
 #endif
 
-#include "crypto.h"
+#include "crypto_api.h"
 #include "uptane_time.h"
 
-typedef enum {ROLE_ROOT, ROLE_TARGETS} uptane_role_t;
+typedef enum { ROLE_ROOT, ROLE_TARGETS } uptane_role_t;
 
 #define ROOT_MAX_KEYS 16
 
@@ -21,10 +21,10 @@ typedef struct {
   uptane_time_t expires;
   int32_t root_threshold;
   int32_t root_keys_num;
-  crypto_key_t *root_keys[ROOT_MAX_KEYS];
+  crypto_key_t* root_keys[ROOT_MAX_KEYS];
   int32_t targets_threshold;
   int32_t targets_keys_num;
-  crypto_key_t *targets_keys[ROOT_MAX_KEYS];
+  crypto_key_t* targets_keys[ROOT_MAX_KEYS];
 } uptane_root_t;
 
 #define TARGETS_MAX_HASHES 4
@@ -33,7 +33,7 @@ typedef struct {
 typedef struct {
   int version;
   uptane_time_t expires;
-  char name[TARGETS_MAX_NAME_LENGTH+1];
+  char name[TARGETS_MAX_NAME_LENGTH + 1];
   int hashes_num;
   crypto_hash_t hashes[TARGETS_MAX_HASHES];
   uint32_t length;
@@ -49,4 +49,4 @@ const char* state_get_hwid(void);
 }
 #endif
 
-#endif //LIBUPTINY_STATE_API_H_
+#endif  // LIBUPTINY_STATE_API_H_

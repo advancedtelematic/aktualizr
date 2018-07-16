@@ -1,8 +1,8 @@
 #ifndef LIBUPTINY_COMMON_DATA_API_H
 #define LIBUPTINY_COMMON_DATA_API_H
 
+#include "crypto_api.h"
 #include "jsmn/jsmn.h"
-#include "crypto.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,4 +25,4 @@ void free_all_crypto_keys();
 }
 #endif
 
-#endif // LIBUPTINY_COMMON_DATA_API_H
+#endif  // LIBUPTINY_COMMON_DATA_API_H

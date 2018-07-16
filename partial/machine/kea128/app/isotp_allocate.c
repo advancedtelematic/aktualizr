@@ -7,6 +7,7 @@ uint8_t buffers[NUM_ISOTP_BUFS][OUR_MAX_ISO_TP_MESSAGE_SIZE];
 uint8_t buf_occupied;
 
 uint8_t* allocate(size_t size) {
+        (void) size;
 	int i;
 
 	/* If NUM_ISOTP_BUFS gets large enough consider optimization with clz command */

@@ -8,8 +8,27 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
+static void check_root(const uptane_root_t& root) {
+  EXPECT_EQ(root.expires.year, 3021);
+  EXPECT_EQ(root.expires.month, 7);
+  EXPECT_EQ(root.expires.day, 13);
+  EXPECT_EQ(root.expires.hour, 1);
+  EXPECT_EQ(root.expires.minute, 2);
+
+  EXPECT_EQ(root.root_threshold, 1);
+  EXPECT_EQ(root.root_keys_num, 1);
+  EXPECT_TRUE(root.root_keys[0] != nullptr);
+  EXPECT_EQ(root.root_keys[0]->key_type, CRYPTO_ALG_ED25519);
+  EXPECT_EQ(root.targets_threshold, 1);
+  EXPECT_EQ(root.targets_keys_num, 1);
+  EXPECT_TRUE(root.targets_keys[0] != nullptr);
+  EXPECT_EQ(root.targets_keys[0]->key_type, CRYPTO_ALG_ED25519);
+}
+
 TEST(tiny_root_signed, parse_simple) {
- std::string signed_root_str = "{\"_type\":\"Root\",\"expires\":\"3021-07-13T01:02:03Z\",\"keys\":{\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\":{\"keytype\":\"ED25519\",\"keyval\":{\"public\":\"C18143A73BD7EC00C0ACC194CAD973118BDE920BF4C0629F7F95209D42283CB6\"}}},\"roles\":{\"root\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"snapshot\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"targets\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1},\"timestamp\":{\"keyids\":[\"a70a72561409b9e0bc67b7625865fed801a57771102514b6de5f3b85f1bf27c2\"],\"threshold\":1}},\"version\":1}";
+  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value signed_root = root_json["signed"];
+  std::string signed_root_str = Utils::jsonToStr(signed_root);
 
   jsmn_parser parser;
   jsmn_init(&parser);
@@ -20,16 +39,30 @@ TEST(tiny_root_signed, parse_simple) {
   unsigned int idx = 0;
   uptane_root_t root;
   EXPECT_TRUE(uptane_part_root_signed (signed_root_str.c_str(), &idx, &root));
-  uptane_time_t time_in_str = {3021,7,13,1,2,3};
-  EXPECT_EQ(memcmp(&root.expires, &time_in_str, sizeof(uptane_time_t)), 0); // C++ can't compare structs, shame on C++
-  EXPECT_EQ(root.root_threshold, 1);
-  EXPECT_EQ(root.root_keys_num, 1);
-  EXPECT_TRUE(root.root_keys[0] != nullptr);
-  EXPECT_EQ(root.root_keys[0]->key_type, ED25519);
-  EXPECT_EQ(root.targets_threshold, 1);
-  EXPECT_EQ(root.targets_keys_num, 1);
-  EXPECT_TRUE(root.targets_keys[0] != nullptr);
-  EXPECT_EQ(root.targets_keys[0]->key_type, ED25519);
+  check_root(root);
+}
+
+TEST(tiny_root_signed, parse_with_garbage) {
+  Json::Value root_json = Utils::parseJSONFile("partial/tests/repo/repo/director/1.root.json");
+  Json::Value signed_root = root_json["signed"];
+  signed_root["newtopfield"]["key"] = "value";
+  signed_root["anothernewtopfield"] = "anothervalue";
+  signed_root["keys"]["ce69f17a69ca6e000d676010330b3a23c2c97ee45fe9e1ec97786a8d7bde967f"]["keysmell"] = "fruity";
+  signed_root["keys"]["ce69f17a69ca6e000d676010330b3a23c2c97ee45fe9e1ec97786a8d7bde967f"]["keyval"]["private"] = "wonttell";
+  signed_root["roles"]["root"]["yetanothernewfield"][0] = "value1";
+  signed_root["roles"]["root"]["yetanothernewfield"][1] = "value2";
+  std::string signed_root_str = Utils::jsonToStr(signed_root);
+
+  jsmn_parser parser;
+  jsmn_init(&parser);
+
+  int parsed = jsmn_parse(&parser, signed_root_str.c_str(), signed_root_str.length(), token_pool, token_pool_size);
+
+  EXPECT_GT(parsed, 0);
+  unsigned int idx = 0;
+  uptane_root_t root;
+  EXPECT_TRUE(uptane_part_root_signed (signed_root_str.c_str(), &idx, &root));
+  check_root(root);
 }
 
 #ifndef __NO_MAIN__

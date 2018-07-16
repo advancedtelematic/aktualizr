@@ -28,7 +28,7 @@ if(LIBUPTINY_MACHINE)
 
 		include_directories(include ${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2/EWL_C/include ${KEA128LIB_PREFIX}/include machine/kea128/app)
 
-		set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/machine/kea128/SKEAZ_flash.ld")
+		set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/partial/machine/kea128/SKEAZ_flash.ld")
                 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT} -Xlinker --gc-sections -Xlinker -Map=kea128.map")
 		set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
@@ -41,7 +41,7 @@ if(LIBUPTINY_MACHINE)
 		if(NOT DEFINED UPTANE_HARDWARE_ID)
 			set(UPTANE_HARDWARE_ID 'kea128')
 		endif()
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__START=__thumb_startup -DCLOCK_SETUP=1 -DCAN_ID=${CAN_ID} -DUPTANE_HARDWARE_ID=\\\"${UPTANE_HARDWARE_ID}\\\" -DUPTANE_ECU_SERIAL=\\\"${UPTANE_ECU_SERIAL}\\\" -DBYTE_ORDER_LITTLE -march=armv6-m -mtune=cortex-m0plus -mthumb --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs -g -Os -std=c99 -Wno-main -ffunction-sections -fdata-sections")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem ${NXP_TOOLCHAIN_PATH}/Cross_Tools/gcc-arm-none-eabi-4_9/arm-none-eabi/include -isystem ${NXP_TOOLCHAIN_PATH}/Cross_Tools/gcc-arm-none-eabi-4_9/lib/gcc/arm-none-eabi/4.9.3/include -D__START=__thumb_startup -DCLOCK_SETUP=1 -DCAN_ID=${CAN_ID} -DUPTANE_HARDWARE_ID=\\\"${UPTANE_HARDWARE_ID}\\\" -DUPTANE_ECU_SERIAL=\\\"${UPTANE_ECU_SERIAL}\\\" -DBYTE_ORDER_LITTLE -march=armv6-m -mtune=cortex-m0plus -mthumb --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs -g -Os -std=c99 -Wno-main -ffunction-sections -fdata-sections")
 		set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp -D__START=__thumb_startup -Os -march=armv6-m -mtune=cortex-m0plus -mthumb -ffunction-sections -fdata-sections --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs")
 
 		add_library(kea128_lib ${KEA128LIB_SOURCES})
@@ -66,30 +66,39 @@ set(ED25519_HEADERS ed25519/ed25519.h
 	ed25519/sha512.h
 	)
 
-set(UPTANE_SOURCES libuptiny/base64.c
-	libuptiny/crypto.c
+set(LIBUPTINY_SOURCES libuptiny/base64.c
+	libuptiny/crypto_common.c
+	libuptiny/json_common.c
 	libuptiny/root_signed.c
+	libuptiny/root.c
 	libuptiny/signatures.c
+	libuptiny/targets.c
 	libuptiny/uptane_time.c
 	libuptiny/utils.c
 	extern/jsmn/jsmn.c
 	)
 
-set(UPTANE_HEADERS libuptiny/base64.h
-	libuptiny/crypto.h
+set(LIBUPTINY_HEADERS libuptiny/base64.h
+	libuptiny/common_data_api.h
+	libuptiny/crypto_api.h
+	libuptiny/crypto_common.h
+	libuptiny/debug.h
+	libuptiny/json_common.h
 	libuptiny/root_signed.h
+	libuptiny/root.h
 	libuptiny/signatures.h
+	libuptiny/state_api.h
+	libuptiny/targets.h
 	libuptiny/uptane_time.h
 	libuptiny/utils.h
 	extern/jsmn/jsmn.h
 	)
 
-set(LIBRARY_SOURCES ${ED25519_SOURCES} ${UPTANE_SOURCES})
-set(LIBRARY_HEADERS ${ED25519_HEADERS} ${UPTANE_HEADERS})
+aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
-add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
-target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+add_library(libuptiny STATIC ${LIBUPTINY_SOURCES})
+target_compile_options(libuptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
 set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
@@ -107,21 +116,21 @@ target_compile_options(isotp_lib PUBLIC -Os -g -Wno-long-long -fno-inline-small-
 if(NOT LIBUPTINY_MACHINE)
 	enable_testing()
 
-	#add_executable(verify_targets examples/verify_targets.c)
-	#target_link_libraries(verify_targets uptane_partial_lib)
-	#target_compile_options(verify_targets PUBLIC -O0 -g)
-	#set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
-	
-        add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
-        add_aktualizr_test(NAME tiny_signatures SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/signatures_test.cc tests/test_common_data.cc)
-        add_aktualizr_test(NAME tiny_signed_root SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/root_signed.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/root_signed_test.cc tests/test_common_data.cc)
-        add_aktualizr_test(NAME tiny_targets SOURCES libuptiny/base64.c libuptiny/uptane_time.c libuptiny/json_common.c libuptiny/signatures.c libuptiny/targets.c libuptiny/utils.c libuptiny/crypto.c extern/jsmn/jsmn.c ${ED25519_SOURCES} tests/test_state.cc tests/targets_test.cc tests/test_common_data.cc)
-	add_executable(genpair ${ED25519_SOURCES} examples/genpair.c)
-	add_executable(sign ${ED25519_SOURCES} examples/sign.c)
+        set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.c ${ED25519_SOURCES})
 
-	set(test_exec ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/test.sh)
-	add_test(NAME test_valid COMMAND ${test_exec} pass ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
-	add_test(NAME test_invalid COMMAND ${test_exec} fail ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
+        add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
+
+        add_aktualizr_test(NAME tiny_signatures SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_signatures libuptiny)
+
+        add_aktualizr_test(NAME tiny_signed_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_signed_root libuptiny)
+
+        add_aktualizr_test(NAME tiny_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_root libuptiny)
+
+        add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_targets libuptiny)
 
 	add_executable(test_flash_load machine/kea128/app/flash_load.c machine/kea128/tests/test_flash_load.c)
 	target_include_directories(test_flash_load PUBLIC machine/kea128/drivers/include machine/kea128/app)

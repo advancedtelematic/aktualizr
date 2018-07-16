@@ -36,7 +36,7 @@ void message_received(const IsoTpMessage* message) {
 	uint32_t flash_size;
 	uint8_t addr_len;
 	uint8_t size_len;
-	uint8_t uds_seq_number;
+	uint8_t uds_seq_number = 0;
 	uint16_t ta = (message->arbitration_id >> 5) & 0x01F; /* TODO: untangle session layer */
 	int res;
 	int i;
@@ -244,13 +244,9 @@ void message_received(const IsoTpMessage* message) {
 
 void main(void) {
   int i;
-  uint8_t led_mask = 0x01;
-  struct can_pack pack;
   struct can_filter can_filters[2];
 
   IsoTpShims isotp_shims;
-  IsoTpReceiveHandle isotp_receive_handle;
-  int isotp_in_progress = 0;
 
   time_init();
   led_init();

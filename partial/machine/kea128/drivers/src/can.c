@@ -114,7 +114,6 @@ void MSCAN_TX_IRQHandler(void)
 int can_init(uint32_t baud, struct can_filter acc_filter[2])
 {
 	int brp;
-	int i;
 	uint32_t filter;
 	uint32_t mask;
 	int ext;
@@ -149,7 +148,7 @@ int can_init(uint32_t baud, struct can_filter acc_filter[2])
 	ext = acc_filter[0].ext;
 	if(ext) {
 		MSCAN->CANIDAR_BANK_1[0] = (filter >> 21) & 0xFF;
-		MSCAN->CANIDAR_BANK_1[1] = (filter >> 15) & 0x07 |
+		MSCAN->CANIDAR_BANK_1[1] = ((filter >> 15) & 0x07) |
 					   (1 << 3) |
 					   (1 << 4) |
 					   (((filter >> 18) & 0x07) << 5);
@@ -159,7 +158,7 @@ int can_init(uint32_t baud, struct can_filter acc_filter[2])
 		MSCAN->CANIDMR_BANK_1[0] = (mask >> 21) & 0xFF;
 		MSCAN->CANIDMR_BANK_1[1] = (mask >> 15) & 0xEF;
 		MSCAN->CANIDMR_BANK_1[2] = (mask >> 7) & 0xFF;
-		MSCAN->CANIDMR_BANK_1[3] = (mask << 1) & 0xFF | 1; //ignoring rtr
+		MSCAN->CANIDMR_BANK_1[3] = ((mask << 1) & 0xFF) | 1; //ignoring rtr
 	} else {
 		MSCAN->CANIDAR_BANK_1[0] = (filter >> 3) & 0xFF;
 		MSCAN->CANIDAR_BANK_1[1] = (filter & 0x07) << 5;
@@ -176,7 +175,7 @@ int can_init(uint32_t baud, struct can_filter acc_filter[2])
 
 	if(ext) {
 		MSCAN->CANIDAR_BANK_2[0] = (filter >> 21) & 0xFF;
-		MSCAN->CANIDAR_BANK_2[1] = (filter >> 15) & 0x07 |
+		MSCAN->CANIDAR_BANK_2[1] = ((filter >> 15) & 0x07) |
 					   (1 << 3) |
 					   (1 << 4) |
 					   (((filter >> 18) & 0x07) << 5);
@@ -186,7 +185,7 @@ int can_init(uint32_t baud, struct can_filter acc_filter[2])
 		MSCAN->CANIDMR_BANK_2[0] = (mask >> 21) & 0xFF;
 		MSCAN->CANIDMR_BANK_2[1] = (mask >> 15) & 0xEF;
 		MSCAN->CANIDMR_BANK_2[2] = (mask >> 7) & 0xFF;
-		MSCAN->CANIDMR_BANK_2[3] = (mask << 1) & 0xFF | 1; //ignoring rtr
+		MSCAN->CANIDMR_BANK_2[3] = ((mask << 1) & 0xFF) | 1; //ignoring rtr
 	} else {
 		MSCAN->CANIDAR_BANK_2[0] = (filter >> 3) & 0xFF;
 		MSCAN->CANIDAR_BANK_2[1] = (filter & 0x07) << 5;
@@ -292,7 +291,7 @@ static void can_send_low(const struct can_pack* pack)
 	if(ext) {
 		MSCAN->TEIDR3 = (af << 1) & 0xFF;
 		MSCAN->TEIDR2 = (af >> 7) & 0xFF;
-		MSCAN->TEIDR1 = (af >> 15) & 0x07 |
+		MSCAN->TEIDR1 = ((af >> 15) & 0x07) |
 					     0x18 | // SRR and extended flags
 				((af >> 18) & 0x07) << 5;
 		MSCAN->TEIDR0 = (af >> 21) & 0xFF;

@@ -1,0 +1,65 @@
+= libuptiny
+
+libuptiny is a library for (partial) verification of Uptane metadata on small devices with memory constraints and no POSIX OS.
+
+Partial Uptane verification includes verification of director's root and targets. How these metadata appears on the device is application-specific and is out of scope for this library.
+
+Interfaces to verification functions for root and targets metadata are in `root.h` and `targets.h` respectively.
+
+Interfaces to functions that user of the library should define are definced in `common_data_api.h`, `crypto_api.h` and `state_api.h`.
+
+== Root metadata verification
+The interface to root metadata verifier is
+
+```
+bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root);
+```
+
+`metadata` should point to a buffer containing the whole root metadata with `len` len being its length and the result written `out_root`. Return value shows if the provided metadata was valid in terms of overall structure, old and new signatures and version. Expiration date is not yet checked, because time role for Uptane in HERE is still work in progress. The result in `out_root` should only be trusted if the function returned `true`.
+
+== Targets metadata verification
+Because the size of targets metadata can be indefinitely large depending of how many ECUs are managed by Uptane (one ECU adds app. 200-300 bytes to the metadata) it is critical to be able to parse it while having only part of it in the buffer. It also makes the interface somewhat complicated. Logically the caller and the parser/verifier are acting as coroutines where caller should change its behavior based on the output from the callee.
+
+=== Initialization
+```
+void uptane_parse_targets_init(void);
+```
+Should be called once before each targets metadata verification.
+
+=== Feeding the data
+```
+int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t *out_targets, uint16_t *result);
+```
+
+Whenever the caller has a next chunk of targets metadata available, it calls `uptane_parse_targets_feed`. The return value is either a number of characters the parser/verifier has consumed or a negative value on a critical error. If not the return value is non-negative, but is less that `len`, that means that not the whole chunk could be processed on this iteration. In this case the rest of the chunk should be prepended to the next one at the next call to `uptane_parse_targets_feed`. It is the responsibility of the caller to check the upper limit for the total size of targets metadata.
+
+`result` is a secondary output of the events that parser/verifier has detected. Some of the events, such as `RESULT_BEGIN_SIGNED`, `RESULT_END_SIGNED`, `RESULT_END_FOUND` and `RESULT_END_NOT_FOUND` can be combined as a bitmask, others like `RESULT_ERROR` and `RESULT_WRONG_HW_ID` are excluding any other event. `RESULT_IN_PROGRESS` is equal to `0x0000` and indicates absence of special events.
+
+On `RESULT_ERROR` or `RESULT_WRONG_HW_ID` the caller should abort processing. It may still feed data to the parser though, but it will not get any further results other than `RESULT_ERROR`
+
+`RESULT_END_FOUND` or `RESULT_END_NOT_FOUND` indicate successfully processed targets metadata with the target for this particular ECU found or not found respectively. Only in the former case (i.e. `RESULT_END_FOUND`) should the value in `out_targets` be trusted. Note however that the signature verification is the responsibility of the caller, so if the verification failed or didn't happen at all, `out_targets` should not be trusted as well.
+
+=== Signature verification
+Signature verification should be done by the caller, because the parser/verifier is always operating on some sliding window of the metadata, and only the caller can see all the bytes in order. Verification should be done using the interface provided in `crypto_api.h` and signature pool in `common_data_api.h`. The parser provides events and getters to support the caller on the verification.
+
+`RESULT_BEGIN_SIGNED` indicates that the signed section has begun in current chunk. The caller should call `uptane_targets_get_num_signatures()` to (quite naturally) get the number of valid signatures discovered in metadata and `uptane_targets_get_begin_signed()` for the index in the chunk of the first byte of signed section.
+
+`RESULT_END_SIGNED` indicates the end of the signed section with `uptane_targets_get_end_signed()` returning the index of last signed byte. Note that `RESULT_BEGIN_SIGNED` and `RESULT_END_SIGNED` can happen after the same call, and can be combined with `RESULT_END_FOUND` od `RESULT_END_NOTFOUND` as well.
+
+After verification the number of valid signatures should be greater or equal than `targets_threshold` in root metadata stored in the state memory.
+
+For the example of using this interface see `tests/targets_test.cc`.
+
+== Overall update process
+- Remote primary device requests current version manifest to check if there are updates for this ECU (manifest generation is not yet implemented).
+- Remote primary device requests the current root version from the ECU (out of scope of this library).
+- Starting with the first version after the present on the secondary ECU, the primary feeds respective root metadata (reception is also out of scop).
+- For each received metadata the secondary ECU verifies it as described above and on success stores it in the non-volatile state.
+- After root metadata is up-to-date, the targets metadata is fed sequentially and processed as described above. On success, and if the image in the ECU should be updated (`RESULT_END_FOUND`) it is stored in the non-volatile storage.
+- The primary feeds the image and the secondary verifies its hashes according to what is in the stored targets metadata. On success it sets it as a new bootable image and saves the target name and version in the stored targets metadata as currently installed firmware name and version.
+
+== Callback APIs
+
+=== Crypto API
+=== State API
+=== Allocated data API

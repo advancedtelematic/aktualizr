@@ -1,11 +1,26 @@
 #include "state_api.h"
+#include "crypto/crypto.h"
+#include <iostream>
+#include "utilities/utils.h"
 #include <memory>
 
-crypto_key_t key = {
-  .key_type = ED25519,
-  .keyid = {0xa7, 0x0a, 0x72, 0x56, 0x14, 0x09, 0xb9, 0xe0, 0xbc, 0x67, 0xb7, 0x62, 0x58, 0x65, 0xfe, 0xd8, 0x01, 0xa5, 0x77, 0x71, 0x10, 0x25, 0x14, 0xb6, 0xde, 0x5f, 0x3b, 0x85, 0xf1, 0xbf, 0x27, 0xc2},
-  .keyval = {0xC1, 0x81, 0x43, 0xA7, 0x3B, 0xD7, 0xEC, 0x00, 0xC0, 0xAC, 0xC1, 0x94, 0xCA, 0xD9, 0x73, 0x11, 0x8B, 0xDE, 0x92, 0x0B, 0xF4, 0xC0, 0x62, 0x9F, 0x7F, 0x95, 0x20, 0x9D, 0x42, 0x28, 0x3C, 0xB6},
+class TestKeyReader {
+ public:
+  TestKeyReader(boost::filesystem::path path) : public_key{Utils::readFile(path), KeyType::kED25519} {;}
+  crypto_key_t getKey() const {
+    crypto_key_t res;
+    res.key_type = CRYPTO_ALG_ED25519;
+    std::string keyid_bin = boost::algorithm::unhex(public_key.KeyId());
+    std::string keyval_bin = boost::algorithm::unhex(public_key.Value());
+    std::copy(keyid_bin.cbegin(), keyid_bin.cend(), res.keyid);
+    std::copy(keyval_bin.cbegin(), keyval_bin.cend(), res.keyval);
+    return res;
+  }
+
+ private:
+  PublicKey public_key;
 };
+crypto_key_t key = TestKeyReader(boost::filesystem::path("partial/tests/repo/keys/director/public.key")).getKey();
 
 crypto_key_t *keys[] = {&key};
 

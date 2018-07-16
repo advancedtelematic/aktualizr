@@ -22,7 +22,6 @@ unsigned int consume_recursive_json(unsigned int idx) {
       return idx;
 
     default:
-      return idx + 1; // just consume this token
+      return idx + 1;  // just consume this token
   }
 }
-

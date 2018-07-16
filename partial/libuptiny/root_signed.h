@@ -7,9 +7,9 @@
 extern "C" {
 #endif
 
-bool uptane_part_root_signed (const char *metadata_str, unsigned int *pos, uptane_root_t* out_root);
+bool uptane_part_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root);
 
 #ifdef __cplusplus
 }
 #endif
-#endif // LIBUPTINY_ROOT_SIGNED_H
+#endif  // LIBUPTINY_ROOT_SIGNED_H

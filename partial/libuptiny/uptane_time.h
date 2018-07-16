@@ -5,15 +5,15 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 typedef struct {
-	uint16_t year;
-	uint8_t month;
-	uint8_t day;
-	uint8_t hour;
-	uint8_t minute;
-	uint8_t second;
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hour;
+  uint8_t minute;
+  uint8_t second;
 } uptane_time_t;
 
 bool uptane_time_greater(uptane_time_t l, uptane_time_t r);
