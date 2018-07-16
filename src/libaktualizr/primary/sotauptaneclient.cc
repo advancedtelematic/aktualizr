@@ -72,18 +72,19 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 }
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
+  data::OperationResult result;
   if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
       config.pacman.type == PackageManager::kOstree) {
     data::InstallOutcome outcome(data::UpdateResultCode::kValidationFailed,
                                  "Cannot install a non-OSTree package on an OSTree system");
-    operation_result["operation_result"] = data::OperationResult::fromOutcome(target.filename(), outcome).toJson();
+    result = data::OperationResult::fromOutcome(target.filename(), outcome);
   } else {
-    data::OperationResult result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
-    operation_result["operation_result"] = result.toJson();
+    result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     if (result.result_code == data::UpdateResultCode::kOk) {
       storage->saveInstalledVersion(target);
     }
   }
+  storage->storeInstallationResult(result);
 }
 
 void SotaUptaneClient::reportHwInfo() {
@@ -118,8 +119,10 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   installed_images.clear();
   Json::Value unsigned_ecu_version = pacman->getManifest(uptane_manifest.getPrimaryEcuSerial());
 
-  if (operation_result != Json::nullValue) {
-    unsigned_ecu_version["custom"] = operation_result;
+  data::OperationResult installation_result;
+  storage->loadInstallationResult(&installation_result);
+  if (!installation_result.id.empty()) {
+    unsigned_ecu_version["custom"]["operation_result"] = installation_result.toJson();
   }
 
   installed_images[uptane_manifest.getPrimaryEcuSerial()] = unsigned_ecu_version["filepath"].asString();
@@ -726,7 +729,6 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
       } else if (command->variant == "UptaneInstall") {
         // install images
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
-        operation_result = Json::nullValue;
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
         std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
         //   6 - send metadata to all the ECUs
@@ -744,8 +746,8 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
               PackageInstallSetResult(*it);
             } else {
               data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
-              operation_result["operation_result"] =
-                  data::OperationResult::fromOutcome(it->filename(), outcome).toJson();
+              data::OperationResult result(it->filename(), outcome);
+              storage->storeInstallationResult(result);
             }
             break;
           }

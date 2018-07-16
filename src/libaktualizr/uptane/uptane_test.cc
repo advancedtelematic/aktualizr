@@ -573,6 +573,9 @@ TEST(Uptane, RunForeverNoUpdates) {
   EXPECT_TRUE(events_channel->hasValues());
   EXPECT_TRUE(*events_channel >> event);
   EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+
+  Json::Value manifest = up.AssembleManifest();
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
 TEST(Uptane, RunForeverHasUpdates) {
@@ -628,6 +631,9 @@ TEST(Uptane, RunForeverHasUpdates) {
   EXPECT_EQ(targets_event->updates.size(), 2u);
   EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
   EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+
+  Json::Value manifest = up.AssembleManifest();
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
 std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
@@ -670,6 +676,14 @@ TEST(Uptane, RunForeverInstall) {
   up.runForever(commands_channel);
 
   EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http.test_manifest));
+
+  // Make sure operation_result was correctly written and formatted.
+  Json::Value manifest = up.AssembleManifest();
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["id"], "testecuserial");
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_code"],
+            static_cast<int>(data::UpdateResultCode::kOk));
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"],
+            "Installing fake package was successful");
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
@@ -1086,7 +1100,7 @@ TEST(Uptane, krejectallTest) {
 
   config.provision.device_id = "device_id";
   config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
+  auto storage = INvStorage::newStorage(config.storage, "");
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);

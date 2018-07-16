@@ -8,6 +8,7 @@
 #include "logging/logging.h"
 #include "storage/fsstorage.h"
 #include "storage/sqlstorage.h"
+#include "utilities/types.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path storage_test_dir;
@@ -277,6 +278,23 @@ TEST(storage, load_store_ecu_registered) {
 
   storage->clearEcuRegistered();
   EXPECT_FALSE(storage->loadEcuRegistered());
+  boost::filesystem::remove_all(storage_test_dir);
+}
+
+TEST(storage, load_store_installation_result) {
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
+  std::unique_ptr<INvStorage> storage = Storage();
+  data::InstallOutcome outcome(data::UpdateResultCode::kGeneralError, "some failure");
+  data::OperationResult result("target_filename", outcome);
+  storage->storeInstallationResult(result);
+
+  data::OperationResult result_out;
+  EXPECT_TRUE(storage->loadInstallationResult(&result_out));
+  EXPECT_EQ(result.id, result_out.id);
+  EXPECT_EQ(result.result_code, result_out.result_code);
+  EXPECT_EQ(result.result_text, result_out.result_text);
+  storage->clearInstallationResult();
+  EXPECT_FALSE(storage->loadInstallationResult(NULL));
   boost::filesystem::remove_all(storage_test_dir);
 }
 

@@ -24,9 +24,12 @@ Package Package::fromJson(const std::string& json_str) {
 OperationResult::OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in)
     : id(std::move(id_in)), result_code(result_code_in), result_text(std::move(result_text_in)) {}
 
-InstallOutcome OperationResult::toOutcome() { return InstallOutcome(result_code, result_text); }
+OperationResult::OperationResult(std::string id_in, InstallOutcome outcome_in)
+    : id(std::move(id_in)), result_code(outcome_in.first), result_text(outcome_in.second) {}
 
-Json::Value OperationResult::toJson() {
+InstallOutcome OperationResult::toOutcome() const { return InstallOutcome(result_code, result_text); }
+
+Json::Value OperationResult::toJson() const {
   Json::Value json;
   json["id"] = id;
   json["result_code"] = static_cast<int>(result_code);
@@ -46,10 +49,7 @@ OperationResult OperationResult::fromJson(const std::string& json_str) {
 }
 
 OperationResult OperationResult::fromOutcome(const std::string& id, const InstallOutcome& outcome) {
-  OperationResult operation_result;
-  operation_result.id = id;
-  operation_result.result_code = outcome.first;
-  operation_result.result_text = outcome.second;
+  OperationResult operation_result(id, outcome);
   return operation_result;
 }
 

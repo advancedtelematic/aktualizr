@@ -1,14 +1,15 @@
 #include "fsstorage.h"
 
-#include <iostream>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/scoped_array.hpp>
-#include <utility>
-
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include <iostream>
+#include <utility>
+
+#include <boost/lexical_cast.hpp>
+#include <boost/scoped_array.hpp>
+#include "json/json.h"
 
 #include "logging/logging.h"
 #include "utilities/utils.h"
@@ -544,6 +545,26 @@ void FSStorage::clearInstalledVersions() {
   if (boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
     boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
   }
+}
+
+void FSStorage::storeInstallationResult(const data::OperationResult& result) {
+  Utils::writeFile(Utils::absolutePath(config_.path, "installation_result"), result.toJson());
+}
+
+bool FSStorage::loadInstallationResult(data::OperationResult* result) {
+  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installation_result").string())) {
+    return false;
+  }
+
+  if (result != nullptr) {
+    *result = data::OperationResult::fromJson(
+        Utils::readFile(Utils::absolutePath(config_.path, "installation_result").string()));
+  }
+  return true;
+}
+
+void FSStorage::clearInstallationResult() {
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "installation_result"));
 }
 
 class FSTargetWHandle : public StorageTargetWHandle {
