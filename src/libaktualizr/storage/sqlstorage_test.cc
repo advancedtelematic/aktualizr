@@ -175,14 +175,21 @@ TEST(sqlstorage, DbMigration7to8) {
   auto tdb = makeDbWithVersion(DbVersion(7));
   SQLite3Guard db(tdb.db_path.c_str());
 
+  // test migration of `primary_keys` and `device_info`
   if (db.exec("INSERT INTO primary_keys VALUES ('priv', 'pub');", nullptr, nullptr) != SQLITE_OK) {
     FAIL();
   }
 
+  if (db.exec("INSERT INTO device_info VALUES ('device', 1);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // run migration
   if (db.exec(schema_migrations.at(8), nullptr, nullptr) != SQLITE_OK) {
     FAIL();
   }
 
+  // check values
   auto statement = db.prepareStatement("SELECT private, public FROM primary_keys;");
   if (statement.step() != SQLITE_ROW) {
     FAIL();
@@ -190,6 +197,14 @@ TEST(sqlstorage, DbMigration7to8) {
 
   EXPECT_EQ(statement.get_result_col_str(0).value(), "priv");
   EXPECT_EQ(statement.get_result_col_str(1).value(), "pub");
+
+  statement = db.prepareStatement("SELECT device_id, is_registered FROM device_info;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL();
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "device");
+  EXPECT_EQ(statement.get_result_col_int(1), 1);
 }
 
 /**

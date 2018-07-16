@@ -80,8 +80,6 @@ SQLStorage::SQLStorage(const StorageConfig& config) : INvStorage(config) {
   if (!dbMigrate()) {
     LOG_ERROR << "SQLite database migration failed";
     // Continue to run anyway, it can't be worse
-  } else if (!dbInit()) {
-    LOG_ERROR << "Couldn't initialize database";
   }
 
   try {
@@ -566,7 +564,8 @@ void SQLStorage::storeDeviceId(const std::string& device_id) {
     return;
   }
 
-  auto statement = db.prepareStatement<std::string>("UPDATE OR REPLACE device_info SET device_id = ?;", device_id);
+  auto statement = db.prepareStatement<std::string>(
+      "INSERT OR REPLACE INTO device_info(unique_mark,device_id,is_registered) VALUES(0,?,0);", device_id);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set device ID: " << db.errmsg();
     return;
@@ -589,6 +588,7 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
 
   auto did = statement.get_result_col_str(0);
   if (did == boost::none) {
+    LOG_ERROR << "Empty device ID" << db.errmsg();
     return false;
   }
 
@@ -607,7 +607,7 @@ void SQLStorage::clearDeviceId() {
     return;
   }
 
-  if (db.exec("UPDATE OR REPLACE device_info SET device_id = NULL;", nullptr, nullptr) != SQLITE_OK) {
+  if (db.exec("DELETE FROM device_info;", nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't clear device ID: " << db.errmsg();
     return;
   }
@@ -621,11 +621,23 @@ void SQLStorage::storeEcuRegistered() {
     return;
   }
 
-  std::string req = "UPDATE OR REPLACE device_info SET is_registered = 1";
+  db.beginTransaction();
+
+  auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
+  if (statement.step() != SQLITE_ROW) {
+    throw std::runtime_error("Could not get device_info count");
+  }
+  if (statement.get_result_col_int(0) != 1) {
+    throw std::runtime_error("Cannot set ecu registered if no device_info set");
+  }
+
+  std::string req = "UPDATE device_info SET is_registered = 1";
   if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
   }
+
+  db.commitTransaction();
 }
 
 bool SQLStorage::loadEcuRegistered() {
@@ -653,7 +665,8 @@ void SQLStorage::clearEcuRegistered() {
     return;
   }
 
-  std::string req = "UPDATE OR REPLACE device_info SET is_registered = 0";
+  // note: if the table is empty, nothing is done but that's fine
+  std::string req = "UPDATE device_info SET is_registered = 0";
   if (db.exec(req.c_str(), nullptr, nullptr) != SQLITE_OK) {
     LOG_ERROR << "Can't set is_registered: " << db.errmsg();
     return;
@@ -1263,28 +1276,6 @@ bool SQLStorage::dbMigrate() {
   }
 
   return true;
-}
-
-bool SQLStorage::dbInit() {
-  SQLite3Guard db(config_.sqldb_path.c_str());
-
-  if (!db.beginTransaction()) {
-    return false;
-  }
-
-  auto statement = db.prepareStatement("SELECT count(*) FROM device_info;");
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get number of rows in device_info: " << db.errmsg();
-    return false;
-  }
-  if (statement.get_result_col_int(0) < 1) {
-    if (db.exec("INSERT INTO device_info DEFAULT VALUES;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't set default values to device_info: " << db.errmsg();
-      return false;
-    }
-  }
-
-  return db.commitTransaction();
 }
 
 DbVersion SQLStorage::getVersion() {

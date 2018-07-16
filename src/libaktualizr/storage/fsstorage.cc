@@ -389,6 +389,9 @@ bool FSStorage::loadDeviceId(std::string* device_id) {
 void FSStorage::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
 
 void FSStorage::storeEcuRegistered() {
+  if (!loadDeviceId(nullptr)) {
+    throw std::runtime_error("Cannot set ecu registered if no device_info set");
+  }
   Utils::writeFile(Utils::absolutePath(config_.path, "is_registered"), std::string("1"));
 }
 

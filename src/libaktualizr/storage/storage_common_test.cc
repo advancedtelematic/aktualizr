@@ -282,6 +282,8 @@ TEST(storage, load_store_misconfigured_ecus) {
 TEST(storage, load_store_ecu_registered) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  EXPECT_THROW(storage->storeEcuRegistered(), std::runtime_error);
+  storage->storeDeviceId("test");
   storage->storeEcuRegistered();
   storage->storeEcuRegistered();
 

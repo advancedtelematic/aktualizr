@@ -73,7 +73,6 @@ class SQLStorage : public INvStorage {
   std::string getTableSchemaFromDb(const std::string& tablename);
 
   bool dbMigrate();
-  bool dbInit();
   DbVersion getVersion();  // non-negative integer on success or -1 on error
 
  private:
