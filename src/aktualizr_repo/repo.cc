@@ -105,10 +105,14 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   snapshot["version"] = 1;
   snapshot["meta"]["root.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_root)));
+  snapshot["meta"]["root.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_root)));
   snapshot["meta"]["root.json"]["length"] = static_cast<Json::UInt>(signed_root.length());
   snapshot["meta"]["root.json"]["version"] = 1;
   snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
   snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = 1;
   std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(repo_type, snapshot));
@@ -120,6 +124,8 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   timestamp["version"] = 1;
   timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json", Utils::jsonToCanonicalStr(signTuf(repo_type, timestamp)));
@@ -139,12 +145,14 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
   boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
                                boost::filesystem::copy_option::overwrite_if_exists);
   std::string image = Utils::readFile(image_path);
-  std::string hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
 
   Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
   std::string target_name = image_path.filename().string();
   targets["targets"][target_name]["length"] = Json::UInt64(image.size());
-  targets["targets"][target_name]["hashes"]["sha256"] = hash;
+  targets["targets"][target_name]["hashes"]["sha256"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
+  targets["targets"][target_name]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
   targets["version"] = (targets["version"].asUInt()) + 1;
 
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf("image", targets));
@@ -154,6 +162,8 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
   snapshot["version"] = (snapshot["version"].asUInt()) + 1;
   snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
+  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
   snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = targets["version"].asUInt();
   std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf("image", snapshot));
@@ -163,6 +173,8 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
   timestamp["version"] = (timestamp["version"].asUInt()) + 1;
   timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
+  timestamp["meta"]["snapshot.json"]["hashes"]["sha512"] =
+      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
   Utils::writeFile(repo_dir / "timestamp.json", Utils::jsonToCanonicalStr(signTuf("image", timestamp)));
