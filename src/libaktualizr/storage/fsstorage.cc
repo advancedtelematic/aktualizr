@@ -349,8 +349,9 @@ void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
         continue;
       }
       std::string role_name;
-      if (splitNameRoleVersion(it->path().native(), &role_name, nullptr) &&
-          (role_name == Uptane::Version().RoleFileName(role))) {
+      std::string fn = it->path().filename().native();
+      if (fn == Uptane::Version().RoleFileName(role) ||
+          (splitNameRoleVersion(fn, &role_name, nullptr) && (role_name == Uptane::Version().RoleFileName(role)))) {
         boost::filesystem::remove(it->path());
       }
     }
