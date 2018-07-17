@@ -42,7 +42,7 @@ bool run_test(const std::string& test_name, const Json::Value& vector, const std
   config.uptane.director_server = "http://127.0.0.1:" + port + "/" + test_name + "/director";
   config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = port + "/aktualizr_repos";
+  config.storage.uptane_metadata_path = BasedPath(port + "/aktualizr_repos");
   config.pacman.type = PackageManager::kNone;
   // config.pacman.os = "myos";
   // config.pacman.sysroot = "./sysroot";

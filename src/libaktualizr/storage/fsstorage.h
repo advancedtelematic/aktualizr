@@ -70,7 +70,7 @@ class FSStorage : public INvStorage {
   Uptane::Version latest_images_root;
 
   boost::filesystem::path targetFilepath(const std::string& filename) const;
-  bool loadTlsCommon(std::string* data, const boost::filesystem::path& path_in);
+  bool loadTlsCommon(std::string* data, const BasedPath& path_in);
 
   bool splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version);
   Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role);

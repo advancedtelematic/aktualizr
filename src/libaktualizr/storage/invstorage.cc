@@ -40,12 +40,12 @@ void StorageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, type, "type");
   writeOption(out_stream, path, "path");
   writeOption(out_stream, sqldb_path.get(""), "sqldb_path");
-  writeOption(out_stream, uptane_metadata_path, "uptane_metadata_path");
-  writeOption(out_stream, uptane_private_key_path, "uptane_private_key_path");
-  writeOption(out_stream, uptane_public_key_path, "uptane_public_key_path");
-  writeOption(out_stream, tls_cacert_path, "tls_cacert_path");
-  writeOption(out_stream, tls_pkey_path, "tls_pkey_path");
-  writeOption(out_stream, tls_clientcert_path, "tls_clientcert_path");
+  writeOption(out_stream, uptane_metadata_path.get(""), "uptane_metadata_path");
+  writeOption(out_stream, uptane_private_key_path.get(""), "uptane_private_key_path");
+  writeOption(out_stream, uptane_public_key_path.get(""), "uptane_public_key_path");
+  writeOption(out_stream, tls_cacert_path.get(""), "tls_cacert_path");
+  writeOption(out_stream, tls_pkey_path.get(""), "tls_pkey_path");
+  writeOption(out_stream, tls_clientcert_path.get(""), "tls_clientcert_path");
 }
 
 void ImportConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {

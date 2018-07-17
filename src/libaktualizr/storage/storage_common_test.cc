@@ -26,18 +26,18 @@ std::unique_ptr<INvStorage> Storage(const StorageConfig &config) {
 
 std::unique_ptr<INvStorage> Storage() { return Storage(storage_test_config); }
 
-StorageConfig MakeConfig(StorageType type, boost::filesystem::path storage_dir) {
+StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storage_dir) {
   StorageConfig config;
 
   config.type = type;
   if (type == StorageType::kFileSystem) {
     config.path = storage_dir;
-    config.uptane_metadata_path = "metadata";
-    config.uptane_public_key_path = "test_primary.pub";
-    config.uptane_private_key_path = "test_primary.priv";
-    config.tls_pkey_path = "test_tls.pkey";
-    config.tls_clientcert_path = "test_tls.cert";
-    config.tls_cacert_path = "test_tls.ca";
+    config.uptane_metadata_path = BasedPath("metadata");
+    config.uptane_public_key_path = BasedPath("test_primary.pub");
+    config.uptane_private_key_path = BasedPath("test_primary.priv");
+    config.tls_pkey_path = BasedPath("test_tls.pkey");
+    config.tls_clientcert_path = BasedPath("test_tls.cert");
+    config.tls_cacert_path = BasedPath("test_tls.ca");
   } else if (config.type == StorageType::kSqlite) {
     config.sqldb_path = storage_dir / "test.db";
   } else {

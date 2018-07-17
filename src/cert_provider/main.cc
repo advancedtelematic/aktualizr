@@ -400,19 +400,19 @@ int main(int argc, char* argv[]) {
     if (!config.import.tls_pkey_path.empty()) {
       pkey_file = config.import.tls_pkey_path;
     } else {
-      pkey_file = config.storage.tls_pkey_path;
+      pkey_file = config.storage.tls_pkey_path.get("");
     }
 
     if (!config.import.tls_clientcert_path.empty()) {
       cert_file = config.import.tls_clientcert_path;
     } else {
-      cert_file = config.storage.tls_clientcert_path;
+      cert_file = config.storage.tls_clientcert_path.get("");
     }
     if (provide_ca) {
       if (!config.import.tls_cacert_path.empty()) {
         ca_file = config.import.tls_cacert_path;
       } else {
-        ca_file = config.storage.tls_cacert_path;
+        ca_file = config.storage.tls_cacert_path.get("");
       }
     }
     if (provide_url) {
