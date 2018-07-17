@@ -125,7 +125,7 @@ class INvStorage {
   virtual bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) = 0;
   virtual void clearMisconfiguredEcus() = 0;
 
-  virtual void storeEcuRegistered() = 0;
+  virtual void storeEcuRegistered() = 0;  // should be called after storeDeviceId
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
 

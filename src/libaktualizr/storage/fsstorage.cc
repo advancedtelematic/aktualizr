@@ -349,8 +349,9 @@ void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
         continue;
       }
       std::string role_name;
-      if (splitNameRoleVersion(it->path().native(), &role_name, nullptr) &&
-          (role_name == Uptane::Version().RoleFileName(role))) {
+      std::string fn = it->path().filename().native();
+      if (fn == Uptane::Version().RoleFileName(role) ||
+          (splitNameRoleVersion(fn, &role_name, nullptr) && (role_name == Uptane::Version().RoleFileName(role)))) {
         boost::filesystem::remove(it->path());
       }
     }
@@ -389,6 +390,9 @@ bool FSStorage::loadDeviceId(std::string* device_id) {
 void FSStorage::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
 
 void FSStorage::storeEcuRegistered() {
+  if (!loadDeviceId(nullptr)) {
+    throw std::runtime_error("Cannot set ecu registered if no device_info set");
+  }
   Utils::writeFile(Utils::absolutePath(config_.path, "is_registered"), std::string("1"));
 }
 

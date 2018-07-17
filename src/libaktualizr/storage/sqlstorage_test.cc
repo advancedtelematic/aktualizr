@@ -97,7 +97,7 @@ static bool dbSchemaCheck(SQLStorage& storage) {
     return false;
   }
 
-  for (std::map<std::string, std::string>::iterator it = tables.begin(); it != tables.end(); ++it) {
+  for (auto it = tables.begin(); it != tables.end(); ++it) {
     std::string schema_from_db = storage.getTableSchemaFromDb(it->first);
     if (!tableSchemasEqual(schema_from_db, it->second)) {
       LOG_ERROR << "Schemas don't match for " << it->first;
@@ -107,6 +107,28 @@ static bool dbSchemaCheck(SQLStorage& storage) {
     }
   }
   return true;
+}
+
+struct TempSQLDb {
+  std::unique_ptr<TemporaryDirectory> dir;
+  boost::filesystem::path db_path;
+};
+
+static TempSQLDb makeDbWithVersion(DbVersion version) {
+  TempSQLDb tdb;
+  tdb.dir = std_::make_unique<TemporaryDirectory>();
+  tdb.db_path = tdb.dir->Path() / "test.db";
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  // manual migration runs
+
+  for (int32_t k = 0; k <= static_cast<int32_t>(version); k++) {
+    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+      throw std::runtime_error("Migration run failed");
+    }
+  }
+
+  return tdb;
 }
 
 TEST(sqlstorage, migrate) {
@@ -145,6 +167,44 @@ TEST(sqlstorage, WrongDatabaseCheck) {
 
   SQLStorage storage(config);
   EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
+}
+
+TEST(sqlstorage, DbMigration7to8) {
+  // it must use raw sql primitives because the SQLStorage object does automatic
+  // migration + the api changes with time
+  auto tdb = makeDbWithVersion(DbVersion(7));
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  // test migration of `primary_keys` and `device_info`
+  if (db.exec("INSERT INTO primary_keys VALUES ('priv', 'pub');", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec("INSERT INTO device_info VALUES ('device', 1);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // run migration
+  if (db.exec(schema_migrations.at(8), nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // check values
+  auto statement = db.prepareStatement("SELECT private, public FROM primary_keys;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL();
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "priv");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "pub");
+
+  statement = db.prepareStatement("SELECT device_id, is_registered FROM device_info;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL();
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "device");
+  EXPECT_EQ(statement.get_result_col_int(1), 1);
 }
 
 /**
