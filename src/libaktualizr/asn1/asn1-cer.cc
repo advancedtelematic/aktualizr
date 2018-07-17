@@ -90,7 +90,7 @@ static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
   }
 
   int32_t res = 0;
-  for (uint64_t i = 0; i < len_len; i++) {
+  for (int64_t i = 0; i < len_len; i++) {
     res <<= 8;
     res |= static_cast<int32_t>(content[i + 1] & 0xFF);
   }
@@ -163,7 +163,7 @@ uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_p
         bool sign = !((content[0] & 0x80) == 0);
 
         int32_t res = 0;
-        for (int i = 0; i < content.length(); i++) {
+        for (size_t i = 0; i < content.length(); i++) {
           res <<= 8;
           res |= content[i];
         }

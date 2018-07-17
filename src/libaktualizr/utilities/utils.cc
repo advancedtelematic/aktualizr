@@ -698,9 +698,9 @@ TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 void TemporaryFile::PutContents(const std::string &contents) {
   mode_t mode = S_IRUSR | S_IWUSR;
   int fd = open(Path().c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  int written = write(fd, contents.c_str(), contents.size());
+  ssize_t written = write(fd, contents.c_str(), contents.size());
   close(fd);
-  if (written != contents.size()) {
+  if (written < 0 || static_cast<size_t>(written) != contents.size()) {
     throw std::runtime_error(std::string("Could not write content to file: ") + Path().string());
   }
 }
