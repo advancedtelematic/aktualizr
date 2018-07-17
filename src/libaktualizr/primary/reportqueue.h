@@ -15,14 +15,14 @@
 
 class ReportQueue {
  public:
-  ReportQueue(const Config &config_in, HttpInterface &http_client);
+  ReportQueue(const Config &config_in, std::shared_ptr<HttpInterface> http_client);
   ~ReportQueue();
   void run();
   void enqueue(std::unique_ptr<Json::Value> report);
 
  private:
   const Config &config;
-  HttpInterface &http;
+  std::shared_ptr<HttpInterface> http;
   std::thread thread_;
   std::condition_variable cv_;
   std::mutex thread_mutex_;

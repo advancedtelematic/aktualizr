@@ -39,23 +39,22 @@ path writeDeviceConfig(const ptree &cfgTemplate, const path &deviceBaseDir, cons
 class ProvisionDeviceTask {
   Config config;
   std::shared_ptr<INvStorage> storage;
-  HttpClient httpClient;
+  std::shared_ptr<HttpClient> httpClient;
 
  public:
-  ProvisionDeviceTask(const Config cfg) : config{cfg}, storage{INvStorage::newStorage(config.storage)}, httpClient{} {
+  ProvisionDeviceTask(const Config cfg)
+      : config{cfg}, storage{INvStorage::newStorage(config.storage)}, httpClient{std::make_shared<HttpClient>()} {
     logger_set_threshold(boost::log::trivial::severity_level::trace);
   }
 
   void operator()() {
     Uptane::Manifest manifest{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
-    Bootloader bootloader(config.bootloader);
-    ReportQueue report_queue(config, httpClient);
-    SotaUptaneClient client(config, eventsIn, manifest, storage, httpClient, bootloader, report_queue);
+    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient, eventsIn);
     try {
-      if (client.initialize()) {
-        auto signed_manifest = manifest.signManifest(client.AssembleManifest());
-        httpClient.put(config.uptane.director_server + "/manifest", signed_manifest);
+      if (client->initialize()) {
+        auto signed_manifest = manifest.signManifest(client->AssembleManifest());
+        httpClient->put(config.uptane.director_server + "/manifest", signed_manifest);
       } else {
         LOG_ERROR << "Failed to initialize repository for " << config.storage.path;
       }

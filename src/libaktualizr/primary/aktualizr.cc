@@ -41,12 +41,10 @@ int Aktualizr::run() {
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
-  HttpClient http;
-  ReportQueue report_queue(config_, http);
-  Uptane::Manifest uptane_manifest{config_, storage};
-  Bootloader bootloader(config_.bootloader);
-  SotaUptaneClient uptane_client(config_, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
-  uptane_client.runForever(commands_channel);
+
+  std::shared_ptr<SotaUptaneClient> uptane_client =
+      SotaUptaneClient::newDefaultClient(config_, storage, events_channel);
+  uptane_client->runForever(commands_channel);
 
   return EXIT_SUCCESS;
 }

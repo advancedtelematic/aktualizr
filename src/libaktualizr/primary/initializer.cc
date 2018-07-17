@@ -77,7 +77,7 @@ bool Initializer::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().si
 void Initializer::resetEcuKeys() { storage_->clearPrimaryKeys(); }
 
 bool Initializer::loadSetTlsCreds() {
-  keys_.copyCertsToCurl(&http_client_);
+  keys_.copyCertsToCurl(http_client_);
   return keys_.isOk();
 }
 
@@ -96,8 +96,8 @@ InitRetCode Initializer::initTlsCreds() {
 
   // set bootstrap credentials
   Bootstrap boot(config_.provision_path, config_.p12_password);
-  http_client_.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
-                        CryptoSource::kFile);
+  http_client_->setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
+                         CryptoSource::kFile);
 
   Json::Value data;
   std::string device_id;
@@ -107,7 +107,7 @@ InitRetCode Initializer::initTlsCreds() {
   }
   data["deviceId"] = device_id;
   data["ttl"] = config_.expiry_days;
-  HttpResponse response = http_client_.post(config_.server + "/devices", data);
+  HttpResponse response = http_client_->post(config_.server + "/devices", data);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() && resp_code.asString() == "device_already_registered") {
@@ -183,7 +183,7 @@ InitRetCode Initializer::initEcuRegister() {
     all_ecus["ecus"].append(ecu);
   }
 
-  HttpResponse response = http_client_.post(config_.ecu_registration_endpoint, all_ecus);
+  HttpResponse response = http_client_->post(config_.ecu_registration_endpoint, all_ecus);
   if (!response.isOk()) {
     Json::Value resp_code = response.getJson()["code"];
     if (resp_code.isString() &&
@@ -202,12 +202,12 @@ InitRetCode Initializer::initEcuRegister() {
 
 // Postcondition: "ECUs registered" flag set in the storage
 Initializer::Initializer(
-    const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in, HttpInterface& http_client_in,
-    KeyManager& keys_in,
+    const ProvisionConfig& config_in, std::shared_ptr<INvStorage> storage_in,
+    std::shared_ptr<HttpInterface> http_client_in, KeyManager& keys_in,
     const std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >& secondary_info_in)
     : config_(config_in),
       storage_(std::move(storage_in)),
-      http_client_(http_client_in),
+      http_client_(std::move(http_client_in)),
       keys_(keys_in),
       secondary_info_(secondary_info_in) {
   success_ = false;

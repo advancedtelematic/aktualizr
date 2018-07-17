@@ -35,27 +35,26 @@ class CheckForUpdate {
 
   std::shared_ptr<INvStorage> storage;
 
-  HttpClient httpClient;
+  std::shared_ptr<HttpClient> httpClient;
 
  public:
   CheckForUpdate(Config config_)
-      : config{config_}, storage{EphemeralStorage::newStorage(config.storage)}, httpClient{} {}
+      : config{config_},
+        storage{EphemeralStorage::newStorage(config.storage)},
+        httpClient{std::make_shared<HttpClient>()} {}
 
   void operator()() {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
-    Uptane::Manifest manifest{config, storage};
     auto eventsIn = std::make_shared<event::Channel>();
-    Bootloader bootloader(config.bootloader);
-    ReportQueue report_queue(config, httpClient);
-    SotaUptaneClient client{config, eventsIn, manifest, storage, httpClient, bootloader, report_queue};
+    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient, eventsIn);
     try {
       std::string pkey;
       std::string cert;
       std::string ca;
       if (storage->loadTlsCreds(&ca, &cert, &pkey)) {
-        httpClient.setCerts(ca, CryptoSource::kFile, cert, CryptoSource::kFile, pkey, CryptoSource::kFile);
+        httpClient->setCerts(ca, CryptoSource::kFile, cert, CryptoSource::kFile, pkey, CryptoSource::kFile);
         LOG_DEBUG << "Getting targets";
-        client.updateMeta();
+        client->updateMeta();
       } else {
         LOG_ERROR << "Unable to load device's credentials";
       }

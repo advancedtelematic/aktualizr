@@ -29,7 +29,7 @@ TEST(ReportQueue, SingleEvent) {
   config.storage.path = temp_dir.Path();
   config.tls.server = "reportqueue/SingleEvent";
 
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   ReportQueue report_queue(config, http);
 
   report_queue.enqueue(makeEvent("SingleEvent"));
@@ -37,11 +37,11 @@ TEST(ReportQueue, SingleEvent) {
   // Wait at most 30 seconds for the message to get processed.
   size_t counter = 0;
   size_t num_events = 1;
-  while (http.events_seen < num_events) {
+  while (http->events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);
   }
-  EXPECT_EQ(http.events_seen, num_events);
+  EXPECT_EQ(http->events_seen, num_events);
 }
 
 /* Test ten events. */
@@ -51,7 +51,7 @@ TEST(ReportQueue, MultipleEvents) {
   config.storage.path = temp_dir.Path();
   config.tls.server = "reportqueue/MultipleEvents";
 
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
@@ -61,11 +61,11 @@ TEST(ReportQueue, MultipleEvents) {
   // Wait at most 30 seconds for the messages to get processed.
   size_t counter = 0;
   size_t num_events = 10;
-  while (http.events_seen < num_events) {
+  while (http->events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);
   }
-  EXPECT_EQ(http.events_seen, num_events);
+  EXPECT_EQ(http->events_seen, num_events);
 }
 
 /* Test ten events, but the "server" returns an error the first nine times. The
@@ -76,7 +76,7 @@ TEST(ReportQueue, FailureRecovery) {
   config.storage.path = temp_dir.Path();
   config.tls.server = "reportqueue/FailureRecovery";
 
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
@@ -86,11 +86,11 @@ TEST(ReportQueue, FailureRecovery) {
   // Wait at most 30 seconds for the messages to get processed.
   size_t counter = 0;
   size_t num_events = 10;
-  while (http.events_seen < num_events) {
+  while (http->events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);
   }
-  EXPECT_EQ(http.events_seen, num_events);
+  EXPECT_EQ(http->events_seen, num_events);
 }
 
 #ifndef __NO_MAIN__
