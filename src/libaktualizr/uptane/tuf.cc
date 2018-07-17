@@ -149,6 +149,21 @@ std::string Target::sha256Hash() const {
   return std::string();
 }
 
+bool Target::IsOstree() const {
+  if (type_ == "OSTREE") {
+    // Modern servers explicitly specify the type of the target
+    return true;
+  } else if (type_.empty() && length() == 0) {
+    // Older servers don't specify the type of the target. Assume that it is
+    // an OSTree target if the length is zero.
+    return true;
+  } else {
+    // If type is explicitly not OSTREE or the length is non-zero, then this
+    // is a firmware blob.
+    return false;
+  }
+}
+
 Json::Value Target::toDebugJson() const {
   Json::Value res;
   for (auto it = ecus_.begin(); it != ecus_.cend(); ++it) {

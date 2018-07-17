@@ -34,7 +34,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
   try {
-    if (target.length() > 0) {
+    if (!target.IsOstree()) {
       DownloadMetaStruct ds;
       std::unique_ptr<StorageTargetWHandle> fhandle =
           storage->allocateTargetFile(false, target.filename(), target.length());
@@ -61,7 +61,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
         throw TargetHashMismatch(target.filename());
       }
-    } else if (target.format().empty() || target.format() == "OSTREE") {
+    } else {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
