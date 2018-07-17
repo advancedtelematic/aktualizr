@@ -102,6 +102,15 @@ inline void CopyFromConfig(RunningMode& dest, const std::string& option_name, co
   }
 }
 
+template <>
+inline void CopyFromConfig(BasedPath& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
+  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
+  if (value.is_initialized()) {
+    BasedPath bp{StripQuotesFromStrings(value.get())};
+    dest = bp;
+  }
+}
+
 template <typename T>
 inline void CopySubtreeFromConfig(T& dest, const std::string& subtree_name, const boost::property_tree::ptree& pt) {
   auto subtree = pt.get_child_optional(subtree_name);
