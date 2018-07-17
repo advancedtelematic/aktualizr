@@ -12,7 +12,7 @@ void ImagesRepository::resetMeta() {
 bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
   try {
     timestamp = TimestampMeta(RepositoryType::Images, Utils::parseJSON(timestamp_raw), root);  // signature verification
-  } catch (Exception e) {
+  } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for timestamp metadata failed";
     last_exception = e;
     return false;
@@ -52,7 +52,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
     if (snapshot.version() != timestamp.snapshot_version()) {
       return false;
     }
-  } catch (Exception e) {
+  } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for snapshot metadata failed";
     last_exception = e;
     return false;
@@ -92,7 +92,7 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
     if (targets.version() != snapshot.targets_version()) {
       return false;
     }
-  } catch (Exception e) {
+  } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for images targets metadata failed";
     last_exception = e;
     return false;

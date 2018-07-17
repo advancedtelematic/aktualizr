@@ -1,13 +1,15 @@
 #include <iostream>
 
-#include <boost/filesystem.hpp>
-#include <utility>
-
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <net/if.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+
+#include <utility>
+
+#include <boost/filesystem.hpp>
 
 #include "test_isotp_interface.h"
 #include "utilities/utils.h"
@@ -29,7 +31,7 @@ TestIsotpInterface::TestIsotpInterface(const unsigned int loglevel, uint32_t can
   setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
 
   struct ifreq ifr {};
-  strncpy(ifr.ifr_name, canIface.c_str(), IFNAMSIZ);  // NOLINT
+  memcpy(ifr.ifr_name, canIface.c_str(), IFNAMSIZ);
 
   if (ioctl(can_socket, SIOCGIFINDEX, &ifr) != 0) {
     throw std::runtime_error("Unable to get interface index");

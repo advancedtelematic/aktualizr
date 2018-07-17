@@ -310,7 +310,7 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     ca_v = statement.get_result_col_str(0).value();
     cert_v = statement.get_result_col_str(1).value();
     pkey_v = statement.get_result_col_str(2).value();
-  } catch (boost::bad_optional_access) {
+  } catch (const boost::bad_optional_access&) {
     return false;
   }
 
@@ -768,7 +768,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
       new_serials.emplace_back(Uptane::EcuSerial(statement.get_result_col_str(0).value()),
                                Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()));
       empty = false;
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       return false;
     }
   }
@@ -853,7 +853,7 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
                             Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()),
                             static_cast<EcuState>(statement.get_result_col_int(2)));
       empty = false;
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       return false;
     }
   }
@@ -911,8 +911,8 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       std::string filename = it->filename();
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
-      auto statement = db.prepareStatement<std::string, std::string, int, int>(
-          sql, hash, filename, static_cast<const int>(is_current), size);
+      auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename,
+                                                                               static_cast<int>(is_current), size);
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -953,7 +953,7 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
       }
       std::string filename = name;
       new_installed_versions.emplace_back(filename, installed_version);
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       LOG_ERROR << "Incompleted installed version, keeping old one";
       return current_hash;
     }
@@ -1027,7 +1027,7 @@ bool SQLStorage::loadInstallationResult(data::OperationResult* result) {
     id = statement.get_result_col_str(0).value();
     result_code = statement.get_result_col_int(1);
     result_text = statement.get_result_col_str(2).value();
-  } catch (boost::bad_optional_access) {
+  } catch (const boost::bad_optional_access&) {
     return false;
   }
 
@@ -1344,7 +1344,7 @@ DbVersion SQLStorage::getVersion() {
     } catch (const std::exception&) {
       return DbVersion::kInvalid;
     }
-  } catch (SQLException) {
+  } catch (const SQLException&) {
     return DbVersion::kInvalid;
   }
 }
