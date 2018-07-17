@@ -1,7 +1,3 @@
-/**
- * \file
- */
-
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -19,7 +15,7 @@ std::string port;
 TEST(ipsecondary_discovery, test_discovery) {
   NetworkConfig conf;
   conf.ipdiscovery_host = "127.0.0.1";
-  conf.ipdiscovery_port = std::stoi(port);
+  conf.ipdiscovery_port = static_cast<in_port_t>(std::stoi(port));
   conf.ipdiscovery_wait_seconds = 12;
   IpSecondaryDiscovery discoverer(conf);
   std::vector<Uptane::SecondaryConfig> secondaries = discoverer.discover();

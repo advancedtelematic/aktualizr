@@ -71,7 +71,7 @@ void AktualizrSecondaryDiscovery::run() {
     char buf[2000];
     struct sockaddr_storage peer {};
     socklen_t sa_size = sizeof(peer);
-    int received = recvfrom(*socket_hdl_, buf, sizeof(buf), 0, reinterpret_cast<sockaddr *>(&peer), &sa_size);
+    ssize_t received = recvfrom(*socket_hdl_, buf, sizeof(buf), 0, reinterpret_cast<sockaddr *>(&peer), &sa_size);
     if (received == 0) {
       // socket closed
       break;

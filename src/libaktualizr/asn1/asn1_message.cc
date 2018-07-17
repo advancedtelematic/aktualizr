@@ -49,7 +49,9 @@ std::string ToString(const OCTET_STRING_t& octet_str) {
   return std::string(reinterpret_cast<const char*>(octet_str.buf), octet_str.size);
 }
 
-void SetString(OCTET_STRING_t* dest, const std::string& str) { OCTET_STRING_fromBuf(dest, str.c_str(), str.size()); }
+void SetString(OCTET_STRING_t* dest, const std::string& str) {
+  OCTET_STRING_fromBuf(dest, str.c_str(), static_cast<int>(str.size()));
+}
 
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_storage& client) {
   int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);

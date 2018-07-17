@@ -460,7 +460,8 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "...success\n";
 
-    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), response.body.size()), BIO_vfree);
+    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
+                                BIO_vfree);
     if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
       return -1;
     }

@@ -18,7 +18,8 @@ Serializer& Serializer::operator<<(const std::string& val) {
 }
 
 Serializer& Serializer::operator<<(ASN1_UniversalTag tag) {
-  result.push_back(tag & 0xFF);  // only support primitive universal tags, sequence serialized with tokens
+  // only support primitive universal tags, sequence serialized with tokens
+  result.push_back(static_cast<char>(tag & 0xFF));
   last_type = tag;
   return *this;
 }
@@ -27,7 +28,7 @@ Serializer& Serializer::operator<<(const Token& tok) {
   switch (tok.type) {
     case Token::seq_tok:
       result.push_back(0x30);
-      result.push_back(0x80);
+      result.push_back(static_cast<char>(0x80));
       break;
     case Token::endseq_tok:
     case Token::endexpl_tok:
@@ -35,10 +36,10 @@ Serializer& Serializer::operator<<(const Token& tok) {
       result.push_back(0x00);
       break;
     case Token::expl_tok: {
-      uint8_t full_tag =
-          dynamic_cast<const ExplicitToken&>(tok).tag | dynamic_cast<const ExplicitToken&>(tok).tag_class;
+      uint8_t full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
+                                              dynamic_cast<const ExplicitToken&>(tok).tag_class);
       result.push_back(full_tag | 0x20);  // set 'constructed' bit
-      result.push_back(0x80);
+      result.push_back(static_cast<char>(0x80));
       break;
     }
     default:
@@ -210,8 +211,8 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
     }
 
     case Token::expl_tok: {
-      uint8_t full_tag =
-          dynamic_cast<const ExplicitToken&>(tok).tag | dynamic_cast<const ExplicitToken&>(tok).tag_class;
+      uint8_t full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
+                                              dynamic_cast<const ExplicitToken&>(tok).tag_class);
       if (full_tag != cer_decode_token(data, &endpos, &seq_len, nullptr)) {
         if ((opt_count != 0) && opt_first) {
           opt_present = false;
@@ -261,13 +262,17 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
       opt_first = true;
       break;
 
-    case Token::endopt_tok:
+    case Token::endopt_tok: {
       --opt_count;
       bool* result = dynamic_cast<const EndoptToken&>(tok).result_p;
       if (result != nullptr) {
         *result = opt_present;
       }
       break;
+    }
+
+    default:
+      throw std::runtime_error("Unknown token type in ASN1 serialization");
   }
   // seq_lengths.pop();
   // seq_consumed.pop();

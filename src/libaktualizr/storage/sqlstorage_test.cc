@@ -72,6 +72,8 @@ static std::map<std::string, std::string> parseSchema() {
           parsing_state = STATE_INIT;
         }
         break;
+      default:
+        break;
     }
   }
   return result;

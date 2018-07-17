@@ -911,8 +911,8 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       std::string filename = it->filename();
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
-      auto statement = db.prepareStatement<std::string, std::string, int, int>(sql, hash, filename,
-                                                                               static_cast<int>(is_current), size);
+      auto statement = db.prepareStatement<std::string, std::string, int, int>(
+          sql, hash, filename, static_cast<int>(is_current), static_cast<int>(size));
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -1021,7 +1021,7 @@ bool SQLStorage::loadInstallationResult(data::OperationResult* result) {
   }
 
   std::string id;
-  int result_code;
+  int64_t result_code;
   std::string result_text;
   try {
     id = statement.get_result_col_str(0).value();
@@ -1101,7 +1101,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), written_size_) != SQLITE_OK) {
+    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
       LOG_ERROR << "Could not write in blob: " << db_.errmsg();
       return 0;
     }
@@ -1205,7 +1205,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       return 0;
     }
 
-    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), read_size_) != SQLITE_OK) {
+    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), static_cast<int>(read_size_)) != SQLITE_OK) {
       LOG_ERROR << "Could not read from blob: " << db_.errmsg();
       return 0;
     }

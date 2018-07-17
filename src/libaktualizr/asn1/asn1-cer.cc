@@ -1,25 +1,21 @@
 #include "asn1/asn1-cer.h"
 #include <algorithm>
 
-static std::string cer_encode_length(int32_t len) {
-  if (len < 0) {
-    throw std::runtime_error("Can't serialize negative length in ASN.1");
-  }
-
+static std::string cer_encode_length(size_t len) {
   std::string res;
   // 1-byte length
   if (len <= 127) {
-    res.push_back(len);
+    res.push_back(static_cast<char>(len));
     return res;
   }
 
   // multibyte length
   do {
-    res.push_back(len & 0xFF);
+    res.push_back(static_cast<char>(len & 0xFF));
     len >>= 8;
   } while (len != 0);
 
-  res.push_back(res.length() | 0x80);
+  res.push_back(static_cast<char>(res.length() | 0x80));
   std::reverse(res.begin(), res.end());
 
   return res;
@@ -32,17 +28,17 @@ std::string cer_encode_integer(int32_t number) {
   std::string res;
 
   do {
-    res.push_back(number & 0xFF);
+    res.push_back(static_cast<char>(number & 0xFF));
     number = shr8(number);
   } while ((number != 0) && (static_cast<uint32_t>(number) != 0xffffffff));
 
   if (((res[0] & 0x80) != 0) && (number == 0)) {
     res.push_back(0x00);
   } else if (((res[0] & 0x80) == 0) && (static_cast<uint32_t>(number) == 0xffffffff)) {
-    res.push_back(0xFF);
+    res.push_back(static_cast<char>(0xFF));
   }
 
-  res.push_back(res.length());
+  res.push_back(static_cast<char>(res.length()));
   std::reverse(res.begin(), res.end());
   return res;
 }
@@ -58,7 +54,7 @@ std::string cer_encode_string(const std::string& contents, ASN1_UniversalTag tag
     return res;
   }
 
-  res.push_back(0x80);
+  res.push_back(static_cast<char>(0x80));
   std::string contents_copy = contents;
   while (!contents_copy.empty()) {
     res.push_back(tag);
@@ -83,7 +79,7 @@ static int32_t cer_decode_length(const std::string& content, int32_t* endpos) {
     return content[0];
   }
 
-  int64_t len_len = (static_cast<uint8_t>(content[0])) & 0x7F;
+  int32_t len_len = (static_cast<uint8_t>(content[0])) & 0x7F;
   *endpos = len_len + 1;
   if (len_len > 4) {
     return -2;
@@ -238,6 +234,6 @@ uint8_t cer_decode_token(const std::string& ber, int32_t* endpos, int32_t* int_p
     }
     *endpos = len_endpos + 1;
 
-    return tag | type_class;
+    return static_cast<uint8_t>(tag | type_class);
   }
 }

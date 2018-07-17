@@ -307,13 +307,13 @@ class Root : public BaseMeta {
   }
 
  private:
-  static const int kMinSignatures = 1;
-  static const int kMaxSignatures = 1000;
+  static const int64_t kMinSignatures = 1;
+  static const int64_t kMaxSignatures = 1000;
 
   Policy policy_;
   std::map<KeyId, PublicKey> keys_;
   std::set<std::pair<Role, KeyId> > keys_for_role_;
-  std::map<Role, int> thresholds_for_role_;
+  std::map<Role, int64_t> thresholds_for_role_;
 };
 
 class Targets : public BaseMeta {

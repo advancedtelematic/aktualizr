@@ -51,7 +51,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   setsockopt(*socket_hdl, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 
   char rbuf[2000] = {};
-  int recieved = 0;
+  ssize_t recieved = 0;
   struct sockaddr_storage sec_address {};
   socklen_t sec_addr_len = sizeof(sec_address);
 
@@ -87,7 +87,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     secondaries.push_back(conf);
 
     auto now = std::chrono::system_clock::now();
-    int left_seconds =
+    auto left_seconds =
         config_.ipdiscovery_wait_seconds - std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
     if (left_seconds <= 0) {
       break;
@@ -140,8 +140,8 @@ bool IpSecondaryDiscovery::sendRequest() {
     return false;
   }
 
-  int numbytes = sendto(*socket_hdl, buffer.c_str(), buffer.size(), 0, reinterpret_cast<struct sockaddr *>(&sendaddr),
-                        sizeof sendaddr);
+  ssize_t numbytes = sendto(*socket_hdl, buffer.c_str(), buffer.size(), 0,
+                            reinterpret_cast<struct sockaddr *>(&sendaddr), sizeof sendaddr);
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
     return false;

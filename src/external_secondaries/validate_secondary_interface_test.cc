@@ -42,7 +42,7 @@ bool isECUListValid(const std::string &output) {
   std::smatch ecu_match;
   std::regex ecu_regex(R"([\w-]+(?:\s*[\w-]+)?\s*)");
 
-  unsigned int matched_symbols = 0;
+  size_t matched_symbols = 0;
   std::string::const_iterator search_start(output.cbegin());
   while (std::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
     matched_symbols += ecu_match.length();
