@@ -1,2 +1,2 @@
 [storage]
-type = "filesystem"
+type = "sqlite"

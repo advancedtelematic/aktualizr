@@ -12,7 +12,7 @@
 enum class StorageType { kFileSystem = 0, kSqlite };
 
 struct StorageConfig {
-  StorageType type{StorageType::kFileSystem};
+  StorageType type{StorageType::kSqlite};
   boost::filesystem::path path{"/var/sota"};
 
   // FS storage

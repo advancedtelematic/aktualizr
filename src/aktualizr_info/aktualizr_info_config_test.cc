@@ -6,7 +6,7 @@
 TEST(aktualizr_info_config, config_initialized_values) {
   AktualizrInfoConfig conf;
 
-  EXPECT_EQ(conf.storage.type, StorageType::kFileSystem);
+  EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
   EXPECT_EQ(conf.storage.path, "/var/sota");
 }
 
