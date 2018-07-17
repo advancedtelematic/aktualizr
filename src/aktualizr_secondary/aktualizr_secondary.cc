@@ -133,7 +133,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
   data::UpdateResultCode res_code;
   std::string message;
 
-  if (target_->format().empty() || target_->format() == "OSTREE") {
+  if (target_->IsOstree()) {
 #ifdef BUILD_OSTREE
     std::tie(res_code, message) =
         OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_->sha256Hash());

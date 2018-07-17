@@ -73,8 +73,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
 
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::OperationResult result;
-  if (((!target.format().empty() && target.format() != "OSTREE") || target.length() != 0) &&
-      config.pacman.type == PackageManager::kOstree) {
+  if (!target.IsOstree() && config.pacman.type == PackageManager::kOstree) {
     data::InstallOutcome outcome(data::UpdateResultCode::kValidationFailed,
                                  "Cannot install a non-OSTree package on an OSTree system");
     result = data::OperationResult::fromOutcome(target.filename(), outcome);
@@ -973,7 +972,7 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
         continue;
       }
 
-      if (targets_it->format().empty() || targets_it->format() == "OSTREE") {
+      if (targets_it->IsOstree()) {
         // empty firmware means OSTree secondaries: pack credentials instead
         std::string creds_archive = secondaryTreehubCredentials();
         if (creds_archive.empty()) {

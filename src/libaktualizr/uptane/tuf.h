@@ -184,7 +184,6 @@ class Target {
 
   const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }
-  std::string format() const { return type_; }
   std::string sha256Hash() const;
   std::vector<Hash> hashes() const { return hashes_; };
 
@@ -197,6 +196,14 @@ class Target {
               return pair.first == ecuIdentifier;
             }) != ecus_.cend());
   };
+
+  /**
+   * Is this an OSTree target?
+   * OSTree targets need special treatment because the hash doesn't represent
+   * the contents of the update itself, instead it is the hash (name) of the
+   * root commit object.
+   */
+  bool IsOstree() const;
 
   bool operator==(const Target &t2) const {
     // if (type_ != t2.type_) return false; // Director doesn't include targetFormat
