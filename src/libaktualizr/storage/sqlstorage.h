@@ -74,6 +74,7 @@ class SQLStorage : public INvStorage {
 
   bool dbMigrate();
   DbVersion getVersion();  // non-negative integer on success or -1 on error
+  boost::filesystem::path dbPath() const;
 
  private:
   // request info

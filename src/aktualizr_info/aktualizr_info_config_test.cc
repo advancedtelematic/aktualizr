@@ -14,7 +14,7 @@ TEST(aktualizr_info_config, config_toml_parsing) {
   AktualizrInfoConfig conf("config/sota_autoprov.toml");
 
   EXPECT_EQ(conf.storage.type, StorageType::kSqlite);
-  EXPECT_EQ(conf.storage.sqldb_path, "/var/sota/sql.db");
+  EXPECT_EQ(conf.storage.sqldb_path.get(conf.storage.path), "/var/sota/sql.db");
 }
 
 /* We don't normally dump the config to file, but we do write it to the log. */

@@ -30,9 +30,6 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
   TemporaryDirectory temp_dir;
   conf.storage.type = storage_type;
   conf.storage.path = temp_dir.Path();
-  if (storage_type == StorageType::kSqlite) {
-    conf.storage.sqldb_path = temp_dir / "test.db";
-  }
   conf.provision.expiry_days = device_register_state;
   conf.provision.primary_ecu_serial = ecu_register_state;
   std::string good_url = conf.provision.server;

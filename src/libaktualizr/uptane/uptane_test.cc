@@ -795,7 +795,6 @@ TEST(Uptane, fs_to_sql_full) {
   config.type = StorageType::kSqlite;
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "database.db";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
@@ -936,7 +935,6 @@ TEST(Uptane, fs_to_sql_partial) {
   config.type = StorageType::kSqlite;
   config.uptane_metadata_path = "metadata";
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "database.db";
 
   config.uptane_private_key_path = "ecukey.der";
   config.tls_cacert_path = "root.crt";
@@ -1095,7 +1093,6 @@ TEST(Uptane, krejectallTest) {
   config.uptane.director_server = http.tls_server + "/director";
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = StorageType::kSqlite;
-  config.storage.sqldb_path = temp_dir / "db.sqlite";
   config.pacman.type = PackageManager::kNone;
 
   config.provision.device_id = "device_id";

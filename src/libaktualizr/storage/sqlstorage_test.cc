@@ -137,10 +137,9 @@ TEST(sqlstorage, migrate) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "test.db";
 
   SQLStorage storage(config);
-  boost::filesystem::remove_all(config.sqldb_path);
+  boost::filesystem::remove_all(config.sqldb_path.get(config.path));
 
   EXPECT_FALSE(dbSchemaCheck(storage));
   EXPECT_TRUE(storage.dbMigrate());
@@ -151,7 +150,6 @@ TEST(sqlstorage, MigrationVersionCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "test.db";
   SQLStorage storage(config);
 
   EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), schema_migrations.size() - 1);
@@ -161,8 +159,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "test.db";
-  SQLite3Guard db(config.sqldb_path.c_str());
+  SQLite3Guard db(config.sqldb_path.get(config.path).c_str());
   if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
     FAIL();
   }
@@ -216,10 +213,9 @@ TEST(sqlstorage, migrate_root_works) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  config.sqldb_path = temp_dir.Path() / "test.db";
 
-  boost::filesystem::remove_all(config.sqldb_path);
-  boost::filesystem::copy(test_db_dir / "version5.sql", config.sqldb_path);
+  boost::filesystem::remove_all(config.sqldb_path.get(config.path));
+  boost::filesystem::copy(test_db_dir / "version5.sql", config.sqldb_path.get(config.path));
   SQLStorage storage(config);
 
   EXPECT_TRUE(storage.dbMigrate());

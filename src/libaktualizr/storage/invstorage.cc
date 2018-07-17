@@ -39,7 +39,7 @@ void StorageConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
 void StorageConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, type, "type");
   writeOption(out_stream, path, "path");
-  writeOption(out_stream, sqldb_path, "sqldb_path");
+  writeOption(out_stream, sqldb_path.get(""), "sqldb_path");
   writeOption(out_stream, uptane_metadata_path, "uptane_metadata_path");
   writeOption(out_stream, uptane_private_key_path, "uptane_private_key_path");
   writeOption(out_stream, uptane_public_key_path, "uptane_public_key_path");
@@ -130,8 +130,9 @@ void INvStorage::importData(const ImportConfig& import_config) {
 
 std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
   switch (config.type) {
-    case StorageType::kSqlite:
-      if (!boost::filesystem::exists(config.sqldb_path) && boost::filesystem::exists(path)) {
+    case StorageType::kSqlite: {
+      boost::filesystem::path db_path = config.sqldb_path.get(config.path);
+      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(path)) {
         if (access(path.c_str(), R_OK | W_OK | X_OK) != 0) {
           LOG_ERROR << "Cannot read prior filesystem configuration from " << path
                     << " due to insufficient permissions.";
@@ -147,6 +148,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
         return sql_storage;
       }
       return std::make_shared<SQLStorage>(config);
+    }
     case StorageType::kFileSystem:
     default:
       return std::make_shared<FSStorage>(config);
