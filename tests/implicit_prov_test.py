@@ -30,7 +30,7 @@ type = "none"
 
 [storage]
 path = "{tmp_dir}"
-type = "filesystem"
+type = "sqlite"
 '''
 
 

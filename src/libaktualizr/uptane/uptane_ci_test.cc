@@ -28,12 +28,11 @@ TEST(UptaneCI, OneCycleUpdate) {
   config.provision.provision_path = credentials;
   config.provision.mode = ProvisionMode::kAutomatic;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = temp_dir.Path();
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = sysroot;
   config.postUpdateValues();  // re-run copy of urls
 
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpClient>();
   Uptane::Manifest uptane_manifest{config, storage};
 

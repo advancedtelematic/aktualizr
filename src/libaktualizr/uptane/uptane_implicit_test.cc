@@ -52,12 +52,13 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.provision.device_id = "device_id";
   config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
+
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
   {
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -68,6 +69,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
     boost::filesystem::remove_all(temp_dir.Path());
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -78,6 +80,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
     boost::filesystem::remove_all(temp_dir.Path());
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -89,6 +92,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
     boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -100,6 +104,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
     boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -111,6 +116,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
     boost::filesystem::create_directory(temp_dir.Path());
     boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
     boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    auto storage = INvStorage::newStorage(config.storage);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});

@@ -161,7 +161,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
     }
     case StorageType::kFileSystem:
     default:
-      return std::make_shared<FSStorage>(config);
+      throw std::runtime_error("FSStorage is deprecated");
   }
 }
 

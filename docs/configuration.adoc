@@ -138,7 +138,7 @@ Options for how Aktualizr stores data locally.
 [options="header"]
 |==========================================================================================
 | Name                      | Default                   | Description
-| `type`                    | `"filesystem"`            | What type of storage driver to use. Options: `"sqlite"`, `"filesystem"`.
+| `type`                    | `"sqlite"`                | What type of storage driver to use. Options: `"sqlite"`. The former `"filesystem"` option is now disabled
 | `path`                    | `"/var/sota"`             | Directory for storage. Only used with `filesystem`.
 | `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store. Only used with `filesystem`.
 | `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key. Only used with `filesystem`.
