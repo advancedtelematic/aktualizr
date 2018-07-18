@@ -75,7 +75,6 @@ set(LIBUPTINY_SOURCES libuptiny/base64.c
 	libuptiny/targets.c
 	libuptiny/uptane_time.c
 	libuptiny/utils.c
-	extern/jsmn/jsmn.c
 	)
 
 set(LIBUPTINY_HEADERS libuptiny/base64.h
@@ -91,13 +90,12 @@ set(LIBUPTINY_HEADERS libuptiny/base64.h
 	libuptiny/targets.h
 	libuptiny/uptane_time.h
 	libuptiny/utils.h
-	extern/jsmn/jsmn.h
 	)
 
 aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
-add_library(libuptiny STATIC ${LIBUPTINY_SOURCES})
+add_library(libuptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
 target_compile_options(libuptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
@@ -131,10 +129,4 @@ if(NOT LIBUPTINY_MACHINE)
 
         add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
 	target_link_libraries(t_tiny_targets libuptiny)
-
-	add_executable(test_flash_load machine/kea128/app/flash_load.c machine/kea128/tests/test_flash_load.c)
-	target_include_directories(test_flash_load PUBLIC machine/kea128/drivers/include machine/kea128/app)
-	target_compile_options(test_flash_load PUBLIC -m32)
-	set_target_properties(test_flash_load PROPERTIES LINK_FLAGS  "-m32")
-	add_test(NAME test_flash_load COMMAND test_flash_load)
 endif()
