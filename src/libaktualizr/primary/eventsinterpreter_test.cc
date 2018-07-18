@@ -111,6 +111,9 @@ TEST(event, RunningMode_check) {
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;
+  EXPECT_EQ(command->variant, "SendDeviceData");
+  *events_channel << std::make_shared<event::SendDeviceDataComplete>();
+  *commands_channel >> command;
   EXPECT_EQ(command->variant, "FetchMeta");
   *events_channel << std::make_shared<event::FetchMetaComplete>();
   *commands_channel >> command;

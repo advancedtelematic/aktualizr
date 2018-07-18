@@ -24,8 +24,6 @@ void EventsInterpreter::run() {
 
   if (config.uptane.running_mode == RunningMode::kDownload || config.uptane.running_mode == RunningMode::kInstall) {
     *commands_channel << std::make_shared<command::CheckUpdates>();
-  } else if (config.uptane.running_mode == RunningMode::kCheck) {
-    *commands_channel << std::make_shared<command::FetchMeta>();
   } else {
     *commands_channel << std::make_shared<command::SendDeviceData>();
   }
