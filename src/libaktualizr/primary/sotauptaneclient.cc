@@ -30,8 +30,8 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
       report_queue(report_queue_in) {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
-  if (pacman->imageUpdated()) {
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  if (package_manager_->imageUpdated()) {
     bootloader.setBootOK();
   }
 
@@ -46,7 +46,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
   if (target.ecus().find(uptane_manifest.getPrimaryEcuSerial()) != target.ecus().end()) {
-    return target == pacman->getCurrent();
+    return target == package_manager_->getCurrent();
   }
   return false;
 }
@@ -63,9 +63,9 @@ std::vector<Uptane::Target> SotaUptaneClient::findForEcu(const std::vector<Uptan
 }
 
 data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &target) {
-  LOG_INFO << "Installing package using " << pacman->name() << " package manager";
+  LOG_INFO << "Installing package using " << package_manager_->name() << " package manager";
   try {
-    return pacman->install(target);
+    return package_manager_->install(target);
   } catch (std::exception &ex) {
     return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, ex.what());
   }
@@ -94,7 +94,7 @@ void SotaUptaneClient::reportHwInfo() {
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http.put(config.tls.server + "/core/installed", pacman->getInstalledPackages());
+  http.put(config.tls.server + "/core/installed", package_manager_->getInstalledPackages());
 }
 
 void SotaUptaneClient::reportNetworkInfo() {
@@ -116,7 +116,7 @@ void SotaUptaneClient::reportNetworkInfo() {
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result;
   installed_images.clear();
-  Json::Value unsigned_ecu_version = pacman->getManifest(uptane_manifest.getPrimaryEcuSerial());
+  Json::Value unsigned_ecu_version = package_manager_->getManifest(uptane_manifest.getPrimaryEcuSerial());
 
   data::OperationResult installation_result;
   storage->loadInstallationResult(&installation_result);

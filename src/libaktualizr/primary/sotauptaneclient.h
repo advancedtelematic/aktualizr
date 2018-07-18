@@ -71,7 +71,7 @@ class SotaUptaneClient {
   Uptane::ImagesRepository images_repo;
   Uptane::Manifest &uptane_manifest;
   std::shared_ptr<INvStorage> storage;
-  std::shared_ptr<PackageManagerInterface> pacman;
+  std::shared_ptr<PackageManagerInterface> package_manager_;
   HttpInterface &http;
   Uptane::Fetcher uptane_fetcher;
   const Bootloader &bootloader;

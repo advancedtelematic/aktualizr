@@ -10,7 +10,7 @@
 
 class PackageManagerFake : public PackageManagerInterface {
  public:
-  explicit PackageManagerFake(const std::shared_ptr<INvStorage> &storage) : storage_(storage) {}
+  explicit PackageManagerFake(std::shared_ptr<INvStorage> storage) : storage_(std::move(storage)) {}
   std::string name() override { return "fake"; }
   Json::Value getInstalledPackages() override;
 
@@ -20,7 +20,7 @@ class PackageManagerFake : public PackageManagerInterface {
   data::InstallOutcome install(const Uptane::Target &target) const override;
 
  private:
-  const std::shared_ptr<INvStorage> &storage_;
+  std::shared_ptr<INvStorage> storage_;
 };
 
 #endif  // PACKAGEMANAGERFAKE_H_
