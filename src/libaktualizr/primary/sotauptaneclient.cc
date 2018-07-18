@@ -605,20 +605,28 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
 bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
+  std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
     if (images_target == nullptr) {
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       continue;
+    } else {
+      downloaded_targets.push_back(*it);
     }
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
     uptane_fetcher.fetchVerifyTarget(*images_target);
   }
   if (!targets.empty()) {
-    *events_channel << std::make_shared<event::DownloadComplete>(targets);
-    sendDownloadReport();
+    if (targets.size() == downloaded_targets.size()) {
+      *events_channel << std::make_shared<event::DownloadComplete>(downloaded_targets);
+      sendDownloadReport();
+    } else {
+      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
+                << " were successfully downloaded. Report not sent.";
+    }
   } else {
     LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
