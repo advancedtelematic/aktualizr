@@ -82,7 +82,7 @@ void AktualizrSecondaryDiscovery::run() {
       break;
     }
 
-    std::string msg(buf, received);
+    std::string msg(buf, static_cast<size_t>(received));
     try {
       int32_t primary_port;
       asn1::Deserializer des(msg);

@@ -1182,7 +1182,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       LOG_ERROR << "Could not open blob: " << db_.errmsg();
       throw exc;
     }
-    size_ = sqlite3_blob_bytes(blob_);
+    size_ = static_cast<size_t>(sqlite3_blob_bytes(blob_));
 
     if (!db_.commitTransaction()) {
       throw exc;
@@ -1303,8 +1303,8 @@ bool SQLStorage::dbMigrate() {
     return false;
   }
 
-  for (int k = schema_num_version + 1; k <= current_schema_version; k++) {
-    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+  for (int32_t k = schema_num_version + 1; k <= current_schema_version; k++) {
+    if (db.exec(schema_migrations.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }

@@ -603,7 +603,7 @@ class FSTargetWHandle : public StorageTargetWHandle {
       return 0;
     }
 
-    size_t written = write(fp_, buf, size);
+    auto written = static_cast<size_t>(write(fp_, buf, size));
     written_size_ += written;
 
     return written;
@@ -664,10 +664,10 @@ class FSTargetRHandle : public StorageTargetRHandle {
   size_t rsize() const override {
     struct stat sb {};
     fstat(fp_, &sb);
-    return sb.st_size;
+    return static_cast<size_t>(sb.st_size);
   }
 
-  size_t rread(uint8_t* buf, size_t size) override { return read(fp_, buf, size); }
+  size_t rread(uint8_t* buf, size_t size) override { return static_cast<size_t>(read(fp_, buf, size)); }
 
   void rclose() override { close(fp_); }
 

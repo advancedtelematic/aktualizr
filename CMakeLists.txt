@@ -374,7 +374,10 @@ add_subdirectory("config")
 if (BUILD_LOAD_TESTS)
     # HdrHistogram installs support libraries, which creates junk the aktualizr
     # recipe would have to remove
+    # Temporarily remove flag not supported by isotp-c and bitfield.
+    remove_definitions(-Wconversion)
     add_subdirectory("third_party/HdrHistogram_c/src")
+    add_definitions(-Wconversion)
 endif(BUILD_LOAD_TESTS)
 add_subdirectory("src")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)

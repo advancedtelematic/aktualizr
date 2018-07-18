@@ -846,7 +846,7 @@ void SotaUptaneClient::verifySecondaries() {
     LOG_ERROR << "Primary ECU serial " << uptane_manifest.getPrimaryEcuSerial() << " not found in storage!";
     misconfigured_ecus.emplace_back(store_it->first, store_it->second, EcuState::kOld);
   } else {
-    found[std::distance(serials.cbegin(), store_it)] = true;
+    found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
   }
 
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
@@ -857,18 +857,18 @@ void SotaUptaneClient::verifySecondaries() {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") not found in storage!";
       misconfigured_ecus.emplace_back(it->second->getSerial(), it->second->getHwId(), EcuState::kNotRegistered);
-    } else if (found[std::distance(serials.cbegin(), store_it)]) {
+    } else if (found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))]) {
       LOG_ERROR << "Secondary ECU serial " << it->second->getSerial() << " (hardware ID " << it->second->getHwId()
                 << ") has a duplicate entry in storage!";
     } else {
-      found[std::distance(serials.cbegin(), store_it)] = true;
+      found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
     }
   }
 
   std::vector<bool>::iterator found_it;
   for (found_it = found.begin(); found_it != found.end(); ++found_it) {
     if (!*found_it) {
-      auto not_registered = serials[std::distance(found.begin(), found_it)];
+      auto not_registered = serials[static_cast<size_t>(std::distance(found.begin(), found_it))];
       LOG_WARNING << "ECU serial " << not_registered.first << " in storage was not reported to aktualizr!";
       misconfigured_ecus.emplace_back(not_registered.first, not_registered.second, EcuState::kOld);
     }

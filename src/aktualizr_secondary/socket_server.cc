@@ -40,11 +40,12 @@ void SocketServer::HandleOneConnection(int socket) {
     AKIpUptaneMes_t *m = nullptr;
     asn_dec_rval_t res;
     asn_codec_ctx_s context{};
-    size_t received;
+    ssize_t received;
     do {
       received = recv(socket, buffer.Tail(), buffer.TailSpace(), 0);
-      LOG_TRACE << "Got " << received << " bytes " << Utils::toBase64(std::string(buffer.Tail(), received));
-      buffer.HaveEnqueued(received);
+      LOG_TRACE << "Got " << received << " bytes "
+                << Utils::toBase64(std::string(buffer.Tail(), static_cast<size_t>(received)));
+      buffer.HaveEnqueued(static_cast<size_t>(received));
       res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), buffer.Head(), buffer.Size());
       buffer.Consume(res.consumed);
     } while (res.code == RC_WMORE && received > 0);

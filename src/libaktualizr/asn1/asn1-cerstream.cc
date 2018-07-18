@@ -36,9 +36,9 @@ Serializer& Serializer::operator<<(const Token& tok) {
       result.push_back(0x00);
       break;
     case Token::expl_tok: {
-      uint8_t full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
-                                              dynamic_cast<const ExplicitToken&>(tok).tag_class);
-      result.push_back(full_tag | 0x20);  // set 'constructed' bit
+      auto full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
+                                           dynamic_cast<const ExplicitToken&>(tok).tag_class);
+      result.push_back(static_cast<char>(full_tag | 0x20));  // set 'constructed' bit
       result.push_back(static_cast<char>(0x80));
       break;
     }
@@ -95,7 +95,7 @@ Deserializer& Deserializer::operator>>(ASN1_UniversalTag tag) {
       throw deserialization_error();
     }
   }
-  data = data.substr(endpos);
+  data = data.substr(static_cast<size_t>(endpos));
   return *this;
 }
 
@@ -130,7 +130,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
         opt_first = false;
       }
 
-      data = data.substr(endpos);
+      data = data.substr(static_cast<size_t>(endpos));
       seq_lengths.push(seq_len);
       seq_consumed.push(0);
       break;
@@ -149,7 +149,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
         if (kAsn1EndSequence != cer_decode_token(data, &endpos, nullptr, nullptr)) {
           throw deserialization_error();
         }
-        data = data.substr(endpos);
+        data = data.substr(static_cast<size_t>(endpos));
         cons_len += endpos;
       }
 
@@ -170,7 +170,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
           if (cer_decode_token(data, &endpos, nullptr, nullptr) == kUnknown) {
             throw deserialization_error();
           }
-          data = data.substr(endpos);
+          data = data.substr(static_cast<size_t>(endpos));
           cons_len += endpos;
         }
         if (cons_len != len) {
@@ -185,7 +185,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
             throw deserialization_error();
           }
           uint8_t ret = cer_decode_token(data, &endpos, &decoded_int, nullptr);
-          data = data.substr(endpos);
+          data = data.substr(static_cast<size_t>(endpos));
           cons_len += endpos;
 
           if (ret == kUnknown) {
@@ -211,8 +211,8 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
     }
 
     case Token::expl_tok: {
-      uint8_t full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
-                                              dynamic_cast<const ExplicitToken&>(tok).tag_class);
+      auto full_tag = static_cast<uint8_t>(dynamic_cast<const ExplicitToken&>(tok).tag |
+                                           dynamic_cast<const ExplicitToken&>(tok).tag_class);
       if (full_tag != cer_decode_token(data, &endpos, &seq_len, nullptr)) {
         if ((opt_count != 0) && opt_first) {
           opt_present = false;
@@ -226,7 +226,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
         opt_first = false;
       }
 
-      data = data.substr(endpos);
+      data = data.substr(static_cast<size_t>(endpos));
       seq_lengths.push(seq_len);
       seq_consumed.push(0);
       break;
@@ -251,7 +251,7 @@ Deserializer& Deserializer::operator>>(const Token& tok) {
         *out_tag_class = static_cast<ASN1_Class>(full_tag & 0xC0);
       }
 
-      data = data.substr(endpos);
+      data = data.substr(static_cast<size_t>(endpos));
       seq_lengths.push(seq_len);
       seq_consumed.push(0);
       break;

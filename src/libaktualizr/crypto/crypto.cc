@@ -147,7 +147,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
 #endif
   }
 
-  const unsigned int sign_size = RSA_size(rsa.get());
+  const auto sign_size = static_cast<const unsigned int>(RSA_size(rsa.get()));
   boost::scoped_array<unsigned char> EM(new unsigned char[sign_size]);
   boost::scoped_array<unsigned char> pSignature(new unsigned char[sign_size]);
 
@@ -202,7 +202,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   RSA_set_method(rsa.get(), RSA_PKCS1_OpenSSL());
 #endif
 
-  const unsigned int size = RSA_size(rsa.get());
+  const auto size = static_cast<const unsigned int>(RSA_size(rsa.get()));
   boost::scoped_array<unsigned char> pDecrypted(new unsigned char[size]);
   /* now we will verify the signature
     Start by a RAW decrypt of the signature
@@ -270,7 +270,7 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
 
   char *pkey_buf;
   auto pkey_len = BIO_get_mem_data(pkey_pem_sink.get(), &pkey_buf);  // NOLINT
-  *out_pkey = std::string(pkey_buf, pkey_len);
+  *out_pkey = std::string(pkey_buf, static_cast<size_t>(pkey_len));
 
   char *cert_buf;
   size_t cert_len;
@@ -294,10 +294,10 @@ bool Crypto::parseP12(BIO *p12_bio, const std::string &p12_password, std::string
     PEM_write_bio_X509(ca_sink.get(), ca_cert);
     PEM_write_bio_X509(cert_sink.get(), ca_cert);
   }
-  ca_len = BIO_get_mem_data(ca_sink.get(), &ca_buf);  // NOLINT
+  ca_len = static_cast<size_t>(BIO_get_mem_data(ca_sink.get(), &ca_buf));  // NOLINT
   *out_ca = std::string(ca_buf, ca_len);
 
-  cert_len = BIO_get_mem_data(cert_sink.get(), &cert_buf);  // NOLINT
+  cert_len = static_cast<size_t>(BIO_get_mem_data(cert_sink.get(), &cert_buf));  // NOLINT
   *out_cert = std::string(cert_buf, cert_len);
 
   return true;
@@ -380,7 +380,7 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
     return false;
   }
   auto pubkey_len = BIO_get_mem_data(pubkey_sink.get(), &pubkey_buf);  // NOLINT
-  *public_key = std::string(pubkey_buf, pubkey_len);
+  *public_key = std::string(pubkey_buf, static_cast<size_t>(pubkey_len));
 
   char *privkey_buf;
   StructGuard<BIO> privkey_sink(BIO_new(BIO_s_mem()), BIO_vfree);
@@ -394,7 +394,7 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
     return false;
   }
   auto privkey_len = BIO_get_mem_data(privkey_sink.get(), &privkey_buf);  // NOLINT
-  *private_key = std::string(privkey_buf, privkey_len);
+  *private_key = std::string(privkey_buf, static_cast<size_t>(privkey_len));
   return true;
 }
 

@@ -61,13 +61,14 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
                               &sec_addr_len)) != -1) {
     Uptane::SecondaryConfig conf;
     AKIpUptaneMes_t *m = nullptr;
-    asn_dec_rval_t res = ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, recieved);
+    asn_dec_rval_t res =
+        ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, static_cast<size_t>(recieved));
     // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
     if (res.code != RC_OK) {
       LOG_ERROR << "Failed to parse discovery response message";
-      LOG_ERROR << Utils::toBase64(std::string(rbuf, recieved));
+      LOG_ERROR << Utils::toBase64(std::string(rbuf, static_cast<size_t>(recieved)));
       continue;
     }
 
@@ -79,7 +80,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     conf.ecu_serial = ToString(resp->ecuSerial);
     conf.ecu_hardware_id = ToString(resp->hwId);
     conf.ip_addr = sec_address;
-    Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
+    Utils::setSocketPort(&conf.ip_addr, htons(static_cast<uint16_t>(resp->port)));
 
     LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id << " " << conf.ip_addr;
     conf.secondary_type = Uptane::SecondaryType::kIpUptane;

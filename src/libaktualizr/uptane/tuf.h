@@ -321,7 +321,6 @@ class Targets : public BaseMeta {
   explicit Targets(const Json::Value &json);
   Targets(RepositoryType repo, const Json::Value &json, Root &root);
   Targets() = default;
-  ;
 
   std::vector<Uptane::Target> targets;
   bool operator==(const Targets &rhs) const {

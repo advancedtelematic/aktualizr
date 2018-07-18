@@ -80,7 +80,7 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
 }
 
 size_t OSTreeHttpRepo::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
-  return write(*static_cast<int *>(userp), buffer, nmemb * size);
+  return static_cast<size_t>(write(*static_cast<int *>(userp), buffer, nmemb * size));
 }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

@@ -35,7 +35,7 @@ std::unique_ptr<std::stringstream> readArchiveFile(archive *a) {
       break;
     }
     if (size > 0 && buff != nullptr) {
-      result->write(buff, size);
+      result->write(buff, static_cast<std::streamsize>(size));
     }
   }
   return result;
