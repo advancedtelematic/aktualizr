@@ -90,8 +90,8 @@ class BasedPath {
     return Utils::absolutePath(base, p_);
   }
 
+  bool empty() const { return p_.empty(); }
   bool operator==(const BasedPath &b) const { return p_ == b.p_; }
-
   bool operator!=(const BasedPath &b) const { return !(*this == b); }
 
  private:

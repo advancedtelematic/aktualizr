@@ -166,6 +166,7 @@ Options for importing data from the filesystem into the storage. Most useful if 
 [options="header"]
 |==========================================================================================
 | Name                      | Default | Description
+| `base_path`               |         | Path to a common root directory to the subsequent files
 | `uptane_private_key_path` |         | Path to the device's private key.
 | `uptane_public_key_path`  |         | Path to the device's public key.
 | `tls_cacert_path`         |         | Path to the TLS root CA certificate.

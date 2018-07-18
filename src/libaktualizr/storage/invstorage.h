@@ -87,6 +87,7 @@ class INvStorage {
  public:
   explicit INvStorage(const StorageConfig& config) : config_(config) {}
   virtual ~INvStorage() = default;
+  virtual StorageType type() = 0;
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
   virtual bool loadPrimaryKeys(std::string* public_key, std::string* private_key) = 0;
   virtual bool loadPrimaryPublic(std::string* public_key) = 0;
@@ -146,20 +147,22 @@ class INvStorage {
 
   virtual void cleanUp() = 0;
 
-  // Not purely virtual
-  virtual void importData(const ImportConfig& import_config);
-  void saveInstalledVersion(const Uptane::Target& target);
-
+  // Special constructors and utilities
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
                                                 const boost::filesystem::path& path = "/var/sota");
   static void FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage);
-  virtual StorageType type() = 0;
+
+  // Not purely virtual
+  void importData(const ImportConfig& import_config);
+  void saveInstalledVersion(const Uptane::Target& target);
 
  private:
-  void importSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
-  void importUpdateSimple(store_data_t store_func, load_data_t load_func, boost::filesystem::path imported_data_path);
-  void importPrimaryKeys(const boost::filesystem::path& import_pubkey_path,
-                         const boost::filesystem::path& import_privkey_path);
+  void importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
+                    const BasedPath& imported_data_path);
+  void importUpdateSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
+                          const BasedPath& imported_data_path);
+  void importPrimaryKeys(const boost::filesystem::path& base_path, const BasedPath& import_pubkey_path,
+                         const BasedPath& import_privkey_path);
 
  protected:
   const StorageConfig& config_;

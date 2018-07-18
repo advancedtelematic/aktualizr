@@ -31,11 +31,12 @@ struct StorageConfig {
 };
 
 struct ImportConfig {
-  boost::filesystem::path uptane_private_key_path;
-  boost::filesystem::path uptane_public_key_path;
-  boost::filesystem::path tls_cacert_path;
-  boost::filesystem::path tls_pkey_path;
-  boost::filesystem::path tls_clientcert_path;
+  boost::filesystem::path base_path{""};
+  BasedPath uptane_private_key_path{""};
+  BasedPath uptane_public_key_path{""};
+  BasedPath tls_cacert_path{""};
+  BasedPath tls_pkey_path{""};
+  BasedPath tls_clientcert_path{""};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
   void writeToStream(std::ostream& out_stream) const;

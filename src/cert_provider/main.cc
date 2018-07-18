@@ -385,10 +385,10 @@ int main(int argc, char* argv[]) {
   }
 
   boost::filesystem::path directory = "/var/sota/token";
-  boost::filesystem::path pkey_file = "pkey.pem";
-  boost::filesystem::path cert_file = "client.pem";
-  boost::filesystem::path ca_file = "root.crt";
-  boost::filesystem::path url_file = "gateway.url";
+  BasedPath pkey_file = BasedPath("pkey.pem");
+  BasedPath cert_file = BasedPath("client.pem");
+  BasedPath ca_file = BasedPath("root.crt");
+  BasedPath url_file = BasedPath("gateway.url");
   if (!config_path.empty()) {
     Config config(config_path);
     // TODO: provide path to root directory in `--local` parameter
@@ -400,19 +400,19 @@ int main(int argc, char* argv[]) {
     if (!config.import.tls_pkey_path.empty()) {
       pkey_file = config.import.tls_pkey_path;
     } else {
-      pkey_file = config.storage.tls_pkey_path.get("");
+      pkey_file = config.storage.tls_pkey_path;
     }
 
     if (!config.import.tls_clientcert_path.empty()) {
       cert_file = config.import.tls_clientcert_path;
     } else {
-      cert_file = config.storage.tls_clientcert_path.get("");
+      cert_file = config.storage.tls_clientcert_path;
     }
     if (provide_ca) {
       if (!config.import.tls_cacert_path.empty()) {
         ca_file = config.import.tls_cacert_path;
       } else {
-        ca_file = config.storage.tls_cacert_path.get("");
+        ca_file = config.storage.tls_cacert_path;
       }
     }
     if (provide_url) {
@@ -424,10 +424,10 @@ int main(int argc, char* argv[]) {
     directory = commandline_map["directory"].as<boost::filesystem::path>();
   }
 
-  TemporaryFile tmp_pkey_file(pkey_file.filename().string());
-  TemporaryFile tmp_cert_file(cert_file.filename().string());
-  TemporaryFile tmp_ca_file(ca_file.filename().string());
-  TemporaryFile tmp_url_file(url_file.filename().string());
+  TemporaryFile tmp_pkey_file(pkey_file.get("").filename().string());
+  TemporaryFile tmp_cert_file(cert_file.get("").filename().string());
+  TemporaryFile tmp_ca_file(ca_file.get("").filename().string());
+  TemporaryFile tmp_url_file(url_file.get("").filename().string());
 
   std::string pkey;
   std::string cert;
@@ -487,13 +487,13 @@ int main(int argc, char* argv[]) {
 
   if (!local_dir.empty()) {
     std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
-    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file);
-    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file);
+    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get("").filename());
+    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get("").filename());
     if (provide_ca) {
-      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file);
+      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get("").filename());
     }
     if (provide_url) {
-      copyLocal(tmp_url_file.PathString(), local_dir / url_file);
+      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get("").filename());
     }
     std::cout << "...success\n";
   }
@@ -508,15 +508,15 @@ int main(int argc, char* argv[]) {
     SSHRunner ssh{target, skip_checks, port};
 
     try {
-      ssh.transferFile(tmp_pkey_file.Path(), Utils::absolutePath(directory, pkey_file));
+      ssh.transferFile(tmp_pkey_file.Path(), pkey_file.get(directory));
 
-      ssh.transferFile(tmp_cert_file.Path(), Utils::absolutePath(directory, cert_file));
+      ssh.transferFile(tmp_cert_file.Path(), cert_file.get(directory));
 
       if (provide_ca) {
-        ssh.transferFile(tmp_ca_file.Path(), Utils::absolutePath(directory, ca_file));
+        ssh.transferFile(tmp_ca_file.Path(), ca_file.get(directory));
       }
       if (provide_url) {
-        ssh.transferFile(tmp_url_file.Path(), Utils::absolutePath(directory, url_file));
+        ssh.transferFile(tmp_url_file.Path(), url_file.get(directory));
       }
 
       std::cout << "...success\n";

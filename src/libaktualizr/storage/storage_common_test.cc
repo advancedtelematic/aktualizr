@@ -379,24 +379,27 @@ TEST(storage, import_data) {
   std::unique_ptr<INvStorage> storage = Storage();
 
   ImportConfig import_config;
-  import_config.uptane_private_key_path = storage_test_dir / "import" / "private";
-  import_config.uptane_public_key_path = storage_test_dir / "import" / "public";
-  import_config.tls_cacert_path = storage_test_dir / "import" / "ca";
-  import_config.tls_clientcert_path = storage_test_dir / "import" / "cert";
-  import_config.tls_pkey_path = storage_test_dir / "import" / "pkey";
+  import_config.base_path = storage_test_dir / "import";
+  import_config.uptane_private_key_path = BasedPath("private");
+  import_config.uptane_public_key_path = BasedPath("public");
+  import_config.tls_cacert_path = BasedPath("ca");
+  import_config.tls_clientcert_path = BasedPath("cert");
+  import_config.tls_pkey_path = BasedPath("pkey");
 
-  Utils::writeFile(import_config.uptane_private_key_path.string(), std::string("uptane_private_1"));
-  Utils::writeFile(import_config.uptane_public_key_path.string(), std::string("uptane_public_1"));
-  Utils::writeFile(import_config.tls_cacert_path.string(), std::string("tls_cacert_1"));
-  Utils::writeFile(import_config.tls_clientcert_path.string(), std::string("tls_cert_1"));
-  Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_1"));
+  Utils::writeFile(import_config.uptane_private_key_path.get(import_config.base_path).string(),
+                   std::string("uptane_private_1"));
+  Utils::writeFile(import_config.uptane_public_key_path.get(import_config.base_path).string(),
+                   std::string("uptane_public_1"));
+  Utils::writeFile(import_config.tls_cacert_path.get(import_config.base_path).string(), std::string("tls_cacert_1"));
+  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), std::string("tls_cert_1"));
+  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), std::string("tls_pkey_1"));
 
   // Initially the storage is empty
-  EXPECT_FALSE(storage->loadPrimaryPublic(NULL));
-  EXPECT_FALSE(storage->loadPrimaryPrivate(NULL));
-  EXPECT_FALSE(storage->loadTlsCa(NULL));
-  EXPECT_FALSE(storage->loadTlsCert(NULL));
-  EXPECT_FALSE(storage->loadTlsPkey(NULL));
+  EXPECT_FALSE(storage->loadPrimaryPublic(nullptr));
+  EXPECT_FALSE(storage->loadPrimaryPrivate(nullptr));
+  EXPECT_FALSE(storage->loadTlsCa(nullptr));
+  EXPECT_FALSE(storage->loadTlsCert(nullptr));
+  EXPECT_FALSE(storage->loadTlsPkey(nullptr));
 
   storage->importData(import_config);
 
@@ -419,11 +422,13 @@ TEST(storage, import_data) {
   EXPECT_EQ(tls_cert, "tls_cert_1");
   EXPECT_EQ(tls_pkey, "tls_pkey_1");
 
-  Utils::writeFile(import_config.uptane_private_key_path.string(), std::string("uptane_private_2"));
-  Utils::writeFile(import_config.uptane_public_key_path.string(), std::string("uptane_public_2"));
-  Utils::writeFile(import_config.tls_cacert_path.string(), std::string("tls_cacert_2"));
-  Utils::writeFile(import_config.tls_clientcert_path.string(), std::string("tls_cert_2"));
-  Utils::writeFile(import_config.tls_pkey_path.string(), std::string("tls_pkey_2"));
+  Utils::writeFile(import_config.uptane_private_key_path.get(import_config.base_path).string(),
+                   std::string("uptane_private_2"));
+  Utils::writeFile(import_config.uptane_public_key_path.get(import_config.base_path).string(),
+                   std::string("uptane_public_2"));
+  Utils::writeFile(import_config.tls_cacert_path.get(import_config.base_path).string(), std::string("tls_cacert_2"));
+  Utils::writeFile(import_config.tls_clientcert_path.get(import_config.base_path).string(), std::string("tls_cert_2"));
+  Utils::writeFile(import_config.tls_pkey_path.get(import_config.base_path).string(), std::string("tls_pkey_2"));
 
   storage->importData(import_config);
 

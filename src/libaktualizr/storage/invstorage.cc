@@ -49,6 +49,7 @@ void StorageConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void ImportConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
+  CopyFromConfig(base_path, "base_path", pt);
   CopyFromConfig(uptane_private_key_path, "uptane_private_key_path", pt);
   CopyFromConfig(uptane_public_key_path, "uptane_public_key_path", pt);
   CopyFromConfig(tls_cacert_path, "tls_cacert_path", pt);
@@ -57,75 +58,84 @@ void ImportConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 }
 
 void ImportConfig::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, uptane_private_key_path, "uptane_private_key_path");
-  writeOption(out_stream, uptane_public_key_path, "uptane_public_key_path");
-  writeOption(out_stream, tls_cacert_path, "tls_cacert_path");
-  writeOption(out_stream, tls_pkey_path, "tls_pkey_path");
-  writeOption(out_stream, tls_clientcert_path, "tls_clientcert_path");
+  writeOption(out_stream, base_path, "base_path");
+  writeOption(out_stream, uptane_private_key_path.get(""), "uptane_private_key_path");
+  writeOption(out_stream, uptane_public_key_path.get(""), "uptane_public_key_path");
+  writeOption(out_stream, tls_cacert_path.get(""), "tls_cacert_path");
+  writeOption(out_stream, tls_pkey_path.get(""), "tls_pkey_path");
+  writeOption(out_stream, tls_clientcert_path.get(""), "tls_clientcert_path");
 }
 
-void INvStorage::importSimple(store_data_t store_func, load_data_t load_func,
-                              boost::filesystem::path imported_data_path) {
+void INvStorage::importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
+                              const BasedPath& imported_data_path) {
   if (!(this->*load_func)(nullptr) && !imported_data_path.empty()) {
-    if (!boost::filesystem::exists(imported_data_path)) {
-      LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
+    boost::filesystem::path abs_path = imported_data_path.get(base_path);
+    if (!boost::filesystem::exists(abs_path)) {
+      LOG_ERROR << "Couldn't import data: " << abs_path << " doesn't exist.";
       return;
     }
-    std::string content = Utils::readFile(imported_data_path.string());
+    std::string content = Utils::readFile(abs_path.string());
     (this->*store_func)(content);
   }
 }
 
-void INvStorage::importUpdateSimple(store_data_t store_func, load_data_t load_func,
-                                    boost::filesystem::path imported_data_path) {
+void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, store_data_t store_func,
+                                    load_data_t load_func, const BasedPath& imported_data_path) {
   std::string prev_content;
   std::string content;
   bool update = false;
   if (!(this->*load_func)(&prev_content)) {
     update = true;
   } else {
-    content = Utils::readFile(imported_data_path.string());
+    content = Utils::readFile(imported_data_path.get(base_path).string());
     if (Crypto::sha256digest(content) != Crypto::sha256digest(prev_content)) {
       update = true;
     }
   }
 
   if (update && !imported_data_path.empty()) {
-    if (!boost::filesystem::exists(imported_data_path)) {
-      LOG_ERROR << "Couldn't import data: " << imported_data_path << " doesn't exist.";
+    boost::filesystem::path abs_path = imported_data_path.get(base_path);
+    if (!boost::filesystem::exists(abs_path)) {
+      LOG_ERROR << "Couldn't import data: " << abs_path << " doesn't exist.";
       return;
     }
     if (content.empty()) {
-      content = Utils::readFile(imported_data_path.string());
+      content = Utils::readFile(abs_path.string());
     }
     (this->*store_func)(content);
   }
 }
 
-void INvStorage::importPrimaryKeys(const boost::filesystem::path& import_pubkey_path,
-                                   const boost::filesystem::path& import_privkey_path) {
+void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, const BasedPath& import_pubkey_path,
+                                   const BasedPath& import_privkey_path) {
   if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
     return;
   }
-  if (!boost::filesystem::exists(import_pubkey_path)) {
-    LOG_ERROR << "Couldn't import data: " << import_pubkey_path << " doesn't exist.";
+  boost::filesystem::path pubkey_abs_path = import_pubkey_path.get(base_path);
+  boost::filesystem::path privkey_abs_path = import_privkey_path.get(base_path);
+  if (!boost::filesystem::exists(pubkey_abs_path)) {
+    LOG_ERROR << "Couldn't import data: " << pubkey_abs_path << " doesn't exist.";
     return;
   }
-  if (!boost::filesystem::exists(import_privkey_path)) {
-    LOG_ERROR << "Couldn't import data: " << import_privkey_path << " doesn't exist.";
+  if (!boost::filesystem::exists(privkey_abs_path)) {
+    LOG_ERROR << "Couldn't import data: " << privkey_abs_path << " doesn't exist.";
     return;
   }
-  std::string pub_content = Utils::readFile(import_pubkey_path.string());
-  std::string priv_content = Utils::readFile(import_privkey_path.string());
+  std::string pub_content = Utils::readFile(pubkey_abs_path.string());
+  std::string priv_content = Utils::readFile(privkey_abs_path.string());
   storePrimaryKeys(pub_content, priv_content);
 }
 
 void INvStorage::importData(const ImportConfig& import_config) {
-  importPrimaryKeys(import_config.uptane_public_key_path, import_config.uptane_private_key_path);
+  importPrimaryKeys(import_config.base_path, import_config.uptane_public_key_path,
+                    import_config.uptane_private_key_path);
   // root CA certificate can be updated
-  importUpdateSimple(&INvStorage::storeTlsCa, &INvStorage::loadTlsCa, import_config.tls_cacert_path);
-  importSimple(&INvStorage::storeTlsCert, &INvStorage::loadTlsCert, import_config.tls_clientcert_path);
-  importSimple(&INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey, import_config.tls_pkey_path);
+  importUpdateSimple(import_config.base_path, &INvStorage::storeTlsCa, &INvStorage::loadTlsCa,
+                     import_config.tls_cacert_path);
+  importSimple(import_config.base_path, &INvStorage::storeTlsCert, &INvStorage::loadTlsCert,
+               import_config.tls_clientcert_path);
+  importSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
+               import_config.tls_pkey_path);
 }
 
 std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
