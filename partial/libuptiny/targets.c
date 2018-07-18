@@ -43,6 +43,11 @@ static int num_signatures;  // number of signatures read
 static int begin_signed;    // position in incoming message part where signed object begins
 static int end_signed;      // position in incoming message part where signed object ends
 
+bool in_signed;  // if the signature verification is in progress. Different from 'state == TARGETS_IN_SIGNED' in that
+                 // the state machine operates independently of signature verification and the two values can be out of
+                 // sync for a short time.
+static int tail_length;  // number of bytes fed, but not consumed on the last call. Used for signature verification
+
 int uptane_targets_get_num_signatures() { return num_signatures; }
 
 int uptane_targets_get_begin_signed() { return begin_signed; }
@@ -63,6 +68,9 @@ void uptane_parse_targets_init(void) {
   state = TARGETS_BEGIN;
 
   begin_signed = end_signed = -1;
+
+  in_signed = false;
+  tail_length = 0;
 }
 
 typedef enum {
@@ -219,10 +227,36 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
   return (target_for_me) ? PARSE_TARGET_FORME : PARSE_TARGET_NOTFORME;
 }
 
+static inline int consumed_chars(const char *message, int len, int idx) {
+  if (token_pool[idx - 1].end > 0) {
+    // last token was primitive or string. If it was a string, we've got a closing quote to consume. In any case,
+    // there can be 'non-tokens' like ':', ',', '}', ']' that are already processed and shouldn't be given to the
+    // parser again
+    int res = token_pool[idx - 1].end;
+    if (token_pool[idx - 1].type == JSMN_STRING) {
+      ++res;
+    }
+    for (; res < len; ++res) {
+      switch (message[res]) {
+        case ':':
+        case ',':
+        case '}':
+        case ']':
+          break;
+        default:
+          return res;
+      }
+    }
+    return res;
+  } else {
+    return token_pool[idx - 1].start + 1;
+  }
+}
+
 /*
  * @return number of consumed characters. The rest of the message should be presented to the parser on the next call
  */
-int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t *out_targets, uint16_t *result) {
+int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *out_targets, uint16_t *result) {
   bool has_signed_begun = false;
   bool has_signed_ended = false;
   bool has_meta_ended = false;
@@ -300,7 +334,6 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
         break;
 
       case TARGETS_IN_IGNORED:
-        DEBUG_PRINTF("TARGETS_IN_IGNORED\n");
         if (ignored_top_token_pos == idx) {  // the ignored object itself is obviously ignored
           ++idx;
         } else if (token_pool[ignored_top_token_pos].end < 0) {  // not yet reached the end of the top object
@@ -415,6 +448,12 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
             state = TARGETS_IN_ERROR;
             break;
           }
+
+          if (version_tmp < state_get_targets()->version) {
+            state = TARGETS_IN_ERROR;
+            *result = RESULT_VERSION_FAILED;
+            return -1;
+          }
           out_targets->version = version_tmp;
           ++idx;  // consume value token
         } else if (JSON_STR_EQUAL(message, token_pool[idx], "targets")) {
@@ -502,7 +541,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
         break;
 
       default:
-        DEBUG_PRINTF("Unexpected state");
+        DEBUG_PRINTF("Unexpected state\n");
         state = TARGETS_IN_ERROR;
         break;
     }
@@ -514,49 +553,73 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
     return -1;
   }
 
-  /* Processed the whole metadata, return result */
-  *result = 0x0000;
-  if (has_meta_ended) {
-    if (!target_found) {
-      *result |= RESULT_END_NOT_FOUND;
-    } else {
-      *result |= RESULT_END_FOUND;
-    }
-  }
+  /* signature verification */
   if (has_signed_begun) {
-    *result |= RESULT_BEGIN_SIGNED;
-  }
-  if (has_signed_ended) {
-    *result |= RESULT_END_SIGNED;
+    in_signed = true;
+    for (int i = 0; i < num_signatures; i++) {
+      crypto_verify_init(&crypto_ctx_pool[i], &signature_pool[i]);
+    }
   }
 
-  /* Metadata hasn't ended, common case */
-  if (idx > token_pos) {
-    token_pos = idx;  // start on the current idx next time
-    if (token_pool[idx - 1].end > 0) {
-      // last token was primitive or string. If it was a string, we've got a closing quote to consume. In any case,
-      // there can be 'non-tokens' like ':', ',', '}', ']' that are already processed and shouldn't be given to the
-      // parser again
-      int res = token_pool[idx - 1].end;
-      if (token_pool[idx - 1].type == JSMN_STRING) {
-        ++res;
-      }
-      for (; res < len; ++res) {
-        switch (message[res]) {
-          case ':':
-          case ',':
-          case '}':
-          case ']':
-            break;
-          default:
-            return res;
-        }
-      }
-      return res;
+  if (in_signed) {
+    int first_signed;
+    int last_signed;
+    if (has_signed_begun) {
+      first_signed = begin_signed;
     } else {
-      return token_pool[idx - 1].start + 1;
+      first_signed = tail_length;
+    }
+    if (has_signed_ended) {
+      last_signed = end_signed;
+    } else {
+      last_signed = len;
+    }
+
+    for (int i = 0; i < num_signatures; i++) {
+      crypto_verify_feed(&crypto_ctx_pool[i], (const uint8_t *)message + first_signed, last_signed - first_signed);
+    }
+  }
+
+  if (has_signed_ended) {
+    in_signed = false;
+    int num_valid_signatures = 0;
+    for (int i = 0; i < num_signatures; i++) {
+      if (crypto_verify_result(&crypto_ctx_pool[i])) {
+        ++num_valid_signatures;
+      } else {
+        DEBUG_PRINTF("Signature verification failed for signature %d\n", i);
+      }
+    }
+
+    if (num_valid_signatures < state_get_root()->targets_threshold) {
+      DEBUG_PRINTF("Signature verification failed: only %d signatures are valid with threshold of %d",
+                   num_valid_signatures, state_get_root()->targets_threshold);
+      state = TARGETS_IN_ERROR;
+      *result = RESULT_SIGNATURES_FAILED;
+      return -1;
+    }
+  }
+
+  if (has_meta_ended) {
+    /* Processed the whole metadata, return result */
+    if (!target_found) {
+      *result = RESULT_END_NOT_FOUND;
+    } else {
+      *result = RESULT_END_FOUND;
     }
   } else {
-    return 0;
+    *result = RESULT_IN_PROGRESS;
   }
+
+  int ret;
+  /* Advance token and character positions */
+  if (idx > token_pos) {
+    token_pos = idx;  // start on the current idx next time
+    ret = consumed_chars(message, len, idx);
+  } else {
+    ret = 0;
+  }
+
+  tail_length = len - ret;
+  return ret;
 }

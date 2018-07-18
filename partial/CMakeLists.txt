@@ -95,8 +95,8 @@ set(LIBUPTINY_HEADERS libuptiny/base64.h
 aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
-add_library(libuptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
-target_compile_options(libuptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+add_library(uptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
+target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long)
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
 set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
@@ -107,8 +107,8 @@ set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
 	extern/isotp-c/deps/bitfield-c/src/bitfield/bitarray.c
 	extern/isotp-c/deps/bitfield-c/src/bitfield/bitfield.c
 	)
-add_library(isotp_lib STATIC ${ISOTP_SOURCES})
-target_compile_options(isotp_lib PUBLIC -Os -g -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+add_library(isotp STATIC ${ISOTP_SOURCES})
+target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-gnu-designator)
 
 # Machine is not set, building tests to run in Linux environment
 if(NOT LIBUPTINY_MACHINE)
@@ -119,14 +119,14 @@ if(NOT LIBUPTINY_MACHINE)
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
 
         add_aktualizr_test(NAME tiny_signatures SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_signatures libuptiny)
+	target_link_libraries(t_tiny_signatures uptiny)
 
         add_aktualizr_test(NAME tiny_signed_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_signed_root libuptiny)
+	target_link_libraries(t_tiny_signed_root uptiny)
 
         add_aktualizr_test(NAME tiny_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_root libuptiny)
+	target_link_libraries(t_tiny_root uptiny)
 
         add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_targets libuptiny)
+	target_link_libraries(t_tiny_targets uptiny)
 endif()

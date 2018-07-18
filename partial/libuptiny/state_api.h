@@ -39,8 +39,33 @@ typedef struct {
   uint32_t length;
 } uptane_targets_t;
 
+typedef enum {
+  ATTACK_NONE,
+  ATTACK_ROOT_THRESHOLD,
+  ATTACK_TARGETS_THRESHOLD,
+  ATTACK_ROOT_VERSION,
+  ATTACK_TARGETS_VERSION,
+  ATTACK_ROOT_EXPIRED,
+  ATTACK_TARGETS_EXPIRED,
+  ATTACK_ROOT_LARGE,
+  ATTACK_TARGETS_LARGE,
+  ATTACK_IMAGE_HASH,
+  ATTACK_IMAGE_LARGE,
+} uptane_attack_t;
+
+typedef struct {
+  char firmware_name[TARGETS_MAX_NAME_LENGTH + 1];
+  uptane_attack_t attack;
+} uptane_installation_state_t;
+
 uptane_root_t* state_get_root(void);
 void state_set_root(const uptane_root_t* root);
+
+uptane_targets_t* state_get_targets(void);
+void state_set_targets(const uptane_targets_t* targets);
+
+uptane_installation_state_t* state_get_installation_state(void);
+void state_set_installation_state(char* firmware_name, uptane_attack_t attack);
 
 const char* state_get_ecuid(void);
 const char* state_get_hwid(void);

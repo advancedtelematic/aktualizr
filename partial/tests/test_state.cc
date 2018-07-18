@@ -25,6 +25,11 @@ crypto_key_t key = TestKeyReader(boost::filesystem::path("partial/tests/repo/key
 crypto_key_t *keys[] = {&key};
 
 std::unique_ptr<uptane_root_t> stored_root;
+uptane_root_t out_stored_root;
+
+std::unique_ptr<uptane_targets_t> stored_targets;
+uptane_targets_t out_stored_targets;
+
 extern "C" {
   uptane_root_t* state_get_root(void) {
     if( !stored_root ) {
@@ -38,7 +43,8 @@ extern "C" {
       stored_root->targets_keys_num = 1; 
       stored_root->targets_keys[0] = &key;
     }
-    return stored_root.get();
+    memcpy(&out_stored_root, stored_root.get(), sizeof(uptane_root_t));
+    return &out_stored_root;
   }
 
   void state_set_root(const uptane_root_t* root) {
@@ -55,6 +61,33 @@ extern "C" {
       stored_root->targets_keys[i] = root->targets_keys[i];
     }
   }
+
+  uptane_targets_t* state_get_targets(void) {
+    if( !stored_targets ) {
+      stored_targets = std::unique_ptr<uptane_targets_t>(new uptane_targets_t);
+      stored_targets->version = -1;
+      stored_targets->expires = {2038, 1, 1, 0, 0, 0};
+      stored_targets->name[0] = '\0';
+      stored_targets->hashes_num = 0;
+      stored_targets->length = 0;
+    }
+    memcpy(&out_stored_targets, stored_targets.get(), sizeof(uptane_targets_t));
+    return &out_stored_targets;
+  }
+
+  void state_set_targets(const uptane_targets_t* targets) {
+    stored_targets->version = targets->version;
+    stored_targets->expires = targets->expires;
+    strncpy(stored_targets->name, targets->name, TARGETS_MAX_NAME_LENGTH);
+    stored_targets->hashes_num = targets->hashes_num;
+    for (int i = 0; i < targets->hashes_num; ++i) {
+      stored_targets->hashes[i].alg = targets->hashes[i].alg;
+      memcpy(stored_targets->hashes[i].hash, targets->hashes[i].hash, CRYPTO_MAX_HASH_LEN);
+    }
+
+    stored_targets->length = targets->length;
+  }
+
 
   const char* state_get_ecuid(void) {
     return "uptane_secondary_1";

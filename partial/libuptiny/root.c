@@ -51,16 +51,24 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
         return false;
       }
 
+      int num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
         crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
         crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin, signed_end - signed_begin);
-        if (!crypto_verify_result(&crypto_ctx_pool[j])) {
-          DEBUG_PRINTF("Signature verification with old keys failed on key %d\n", j);
-          return false;
+        if (crypto_verify_result(&crypto_ctx_pool[j])) {
+          ++num_valid_signatures;
+        } else {
+          DEBUG_PRINTF("Signature verification with old keys failed for key %d\n", j);
         }
       }
 
-      if (!uptane_part_root_signed(metadata, &idx, out_root)) {
+      if (num_valid_signatures < old_root->root_threshold) {
+        DEBUG_PRINTF("Signature verification with old keys failed: only %d valid keys while threshold is %d\n",
+                     num_valid_signatures, old_root->root_threshold);
+        return false;
+      }
+
+      if (!uptane_parse_root_signed(metadata, &idx, out_root)) {
         DEBUG_PRINTF("Failed to parse signed part of root metadata\n");
         return false;
       }
@@ -77,13 +85,21 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
         return false;
       }
 
+      num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
         crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
         crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin, signed_end - signed_begin);
-        if (!crypto_verify_result(&crypto_ctx_pool[j])) {
-          DEBUG_PRINTF("Signature verification with new keys failed on key %d\n", j);
-          return false;
+        if (crypto_verify_result(&crypto_ctx_pool[j])) {
+          ++num_valid_signatures;
+        } else {
+          DEBUG_PRINTF("Signature verification with new keys failed for key %d\n", j);
         }
+      }
+
+      if (num_valid_signatures < out_root->root_threshold) {
+        DEBUG_PRINTF("Signature verification with new keys failed: only %d valid keys while threshold is %d\n",
+                     num_valid_signatures, out_root->root_threshold);
+        return false;
       }
 
       return true;  // success;

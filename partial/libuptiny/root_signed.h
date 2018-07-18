@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-bool uptane_part_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root);
+bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root);
 
 #ifdef __cplusplus
 }

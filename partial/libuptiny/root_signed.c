@@ -204,7 +204,7 @@ static inline bool parse_roles(const char *metadata_str, unsigned int *pos, upta
   return root_found && targets_found;
 }
 
-bool uptane_part_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root) {
+bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root) {
   unsigned int idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
@@ -269,5 +269,6 @@ bool uptane_part_root_signed(const char *metadata_str, unsigned int *pos, uptane
     }
   }
 
+  *pos = idx;
   return true;
 }
