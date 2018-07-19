@@ -22,8 +22,8 @@ static alg_match_t keytypes[] = {{32, 64, "ed25519"}};
 
 static hash_match_t hashtypes[] = {{64, "sha512"}};
 
-crypto_algorithm_t crypto_str_to_keytype(const char* keytype, int len) {
-  for (int i = 0; i < sizeof(keytypes) / sizeof(keytypes[0]); i++) {
+crypto_algorithm_t crypto_str_to_keytype(const char* keytype, size_t len) {
+  for (unsigned int i = 0; i < sizeof(keytypes) / sizeof(keytypes[0]); i++) {
     if (!strncasecmp(keytype, keytypes[i].str, len)) {
       return i;
     }
@@ -32,8 +32,8 @@ crypto_algorithm_t crypto_str_to_keytype(const char* keytype, int len) {
   return CRYPTO_ALG_UNKNOWN;
 }
 
-crypto_hash_algorithm_t crypto_str_to_hashtype(const char* hashtype, int len) {
-  for (int i = 0; i < sizeof(hashtypes) / sizeof(hashtypes[0]); i++) {
+crypto_hash_algorithm_t crypto_str_to_hashtype(const char* hashtype, size_t len) {
+  for (unsigned int i = 0; i < sizeof(hashtypes) / sizeof(hashtypes[0]); i++) {
     if (!strncasecmp(hashtype, hashtypes[i].str, len)) {
       return i;
     }
@@ -49,8 +49,8 @@ void crypto_verify_init(crypto_verify_ctx_t* ctx, crypto_key_and_signature_t* si
   ctx->pub = sig->key->keyval;
 }
 
-void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, int len) {
-  int i;
+void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, size_t len) {
+  unsigned int i;
 
   for (i = 0; i < len; i++) {
     if (ctx->bytes_fed < SHA512_BLOCK_SIZE - 64) {

@@ -9,7 +9,7 @@ unsigned int consume_recursive_json(unsigned int idx) {
   }
 
   int end = token_pool[idx].end;
-  int i;
+  unsigned int i;
 
   for (i = idx + 1; i < token_pool_size; ++i) {
     if (token_pool[i].start >= end) {

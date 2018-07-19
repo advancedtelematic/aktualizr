@@ -1,16 +1,14 @@
 #include "utils.h"
 
-static inline bool is_hex(uint8_t c) {
-  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-}
+static inline bool is_hex(char c) { return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'); }
 
 static inline uint8_t from_hex(char sym) {
   if (sym >= '0' && sym <= '9') {
-    return sym - '0';
+    return (uint8_t)(sym - '0');
   } else if (sym >= 'A' && sym <= 'F') {
-    return sym - 'A' + 10;
+    return (uint8_t)(sym - 'A' + 10);
   } else { /* inputs are validated by the caller */
-    return sym - 'a' + 10;
+    return (uint8_t)(sym - 'a' + 10);
   }
 }
 
@@ -24,7 +22,7 @@ bool hex2bin(const char *hex_string, int hex_len, uint8_t *bin_data) {
     if (i & 1) {
       bin_data[i >> 1] |= from_hex(sym);
     } else {
-      bin_data[i >> 1] = from_hex(sym) << 4;
+      bin_data[i >> 1] = (uint8_t)(from_hex(sym) << 4);
     }
   }
   return true;
@@ -46,7 +44,7 @@ int hex_bin_cmp(const char *hex_string, int hex_len, const uint8_t *bin_data) {
         return 1;
       }
     } else {
-      byte = from_hex(sym) << 4;
+      byte = (uint8_t)(from_hex(sym) << 4);
     }
   }
   return 0;
@@ -81,34 +79,34 @@ bool str2time(const char *time_string, int time_len, uptane_time_t *out) {
     return false;
   }
 
-  if (!dec2int(time_string, 4, &num)) {
+  if (!dec2int(time_string, 4, &num) || num < 0 || num >= (1 << 16)) {
     return false;
   }
-  out->year = num;
+  out->year = (uint16_t)num;
 
-  if (!dec2int(time_string + 5, 2, &num)) {
+  if (!dec2int(time_string + 5, 2, &num) || num < 0 || num >= (1 << 8)) {
     return false;
   }
-  out->month = num;
+  out->month = (uint8_t)num;
 
-  if (!dec2int(time_string + 8, 2, &num)) {
+  if (!dec2int(time_string + 8, 2, &num) || num < 0 || num >= (1 << 8)) {
     return false;
   }
-  out->day = num;
+  out->day = (uint8_t)num;
 
-  if (!dec2int(time_string + 11, 2, &num)) {
+  if (!dec2int(time_string + 11, 2, &num) || num < 0 || num >= (1 << 8)) {
     return false;
   }
-  out->hour = num;
+  out->hour = (uint8_t)num;
 
-  if (!dec2int(time_string + 14, 2, &num)) {
+  if (!dec2int(time_string + 14, 2, &num) || num < 0 || num >= (1 << 8)) {
     return false;
   }
-  out->minute = num;
+  out->minute = (uint8_t)num;
 
-  if (!dec2int(time_string + 17, 2, &num)) {
+  if (!dec2int(time_string + 17, 2, &num) || num < 0 || num >= (1 << 8)) {
     return false;
   }
-  out->second = num;
+  out->second = (uint8_t)num;
   return true;
 }

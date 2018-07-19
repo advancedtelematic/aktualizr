@@ -51,8 +51,9 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
         idx = consume_recursive_json(idx);
       } else {
         int b64_len = JSON_TOK_LEN(token_pool[idx]);
-        if (BASE64_DECODED_BUF_SIZE(b64_len) <= CRYPTO_MAX_SIGNATURE_LEN + 2) {
-          if (CRYPTO_MAX_SIGNATURE_LEN == base64_decode(json_sig + token_pool[idx].start, b64_len, sig_buf)) {
+        if (b64_len > 0 && BASE64_DECODED_BUF_SIZE(b64_len) <= CRYPTO_MAX_SIGNATURE_LEN + 2) {
+          if (CRYPTO_MAX_SIGNATURE_LEN ==
+              base64_decode(json_sig + token_pool[idx].start, (unsigned int)b64_len, sig_buf)) {
             memcpy(sig->sig, sig_buf, CRYPTO_MAX_SIGNATURE_LEN);
             sig_found = true;
           } else {
@@ -76,7 +77,7 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
 }
 
 int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned int *pos,
-                            crypto_key_and_signature_t *output, int max_sigs, uptane_root_t *in_root) {
+                            crypto_key_and_signature_t *output, unsigned int max_sigs, uptane_root_t *in_root) {
   if (role == ROLE_ROOT) {
     meta_keys = in_root->root_keys;
     meta_keys_num = in_root->root_keys_num;
@@ -93,13 +94,13 @@ int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned
   int array_size = token_pool[token_idx].size;
   ++token_idx;  // Consume array token
 
-  int sigs_read = 0;
+  unsigned int sigs_read = 0;
 
   for (int i = 0; i < array_size; ++i) {
     if (sigs_read >= max_sigs) {
       *pos = token_idx;
       DEBUG_PRINTF("Too many, signatures, only %d are used\n", sigs_read);
-      return sigs_read;
+      return (int)sigs_read;
     }
 
     DEBUG_PRINTF("Parse signature at %d\n", token_idx);
@@ -111,5 +112,5 @@ int uptane_parse_signatures(uptane_role_t role, const char *signatures, unsigned
     }
   }
   *pos = token_idx;
-  return sigs_read;
+  return (int)sigs_read;
 }

@@ -2,17 +2,17 @@
 
 /* Bitfields are not used to be as cross-platform as possible */
 
-static inline uint8_t encode_6bit(uint8_t sextet) {
+static inline char encode_6bit(uint8_t sextet) {
   if (sextet <= 25) {
-    return 'A' + sextet;
+    return (char)('A' + sextet);
   } else if (sextet <= 51) {
-    return 'a' + sextet - 26;
+    return (char)('a' + sextet - 26);
   } else if (sextet <= 61) {
-    return '0' + sextet - 52;
+    return (char)('0' + sextet - 52);
   } else if (sextet == 62) {
-    return '+';
+    return (char)'+';
   } else {  // boundaries are maintained by the caller
-    return '/';
+    return (char)'/';
   }
 }
 
@@ -37,7 +37,7 @@ static inline void encode_triple(const uint8_t *msg, int padding, char *out) {
 
 void base64_encode(const uint8_t *msg, size_t msg_len, char *out) {
   int j = 0;
-  for (int i = 0; i < msg_len; i += 3, j += 4) {
+  for (size_t i = 0; i < msg_len; i += 3, j += 4) {
     int padding;
     switch (msg_len - i) {
       case 1:
@@ -63,11 +63,11 @@ void base64_encode(const uint8_t *msg, size_t msg_len, char *out) {
 
 static inline uint8_t decode_sym(char symbol) {
   if (symbol >= 'A' && symbol <= 'Z') {
-    return symbol - 'A';
+    return (uint8_t)(symbol - 'A');
   } else if (symbol >= 'a' && symbol <= 'z') {
-    return 26 + symbol - 'a';
+    return (uint8_t)(26 + symbol - 'a');
   } else if (symbol >= '0' && symbol <= '9') {
-    return 52 + symbol - '0';
+    return (uint8_t)(52 + symbol - '0');
   } else if (symbol == '+') {
     return 62;
   } else if (symbol == '/') {
@@ -91,14 +91,14 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
   } else if (sym & B64_SYM_FAIL_MASK) {
     return -1;
   }
-  out[0] = sym << 2;
+  out[0] = (uint8_t)(sym << 2);
 
   sym = decode_sym(base64[1]);
   if (sym & B64_SYM_FAIL_MASK) {
     return -1;
   }
   out[0] |= sym >> 4;
-  out[1] = sym << 4;
+  out[1] = (uint8_t)(sym << 4);
 
   sym = decode_sym(base64[2]);
   if (sym == B64_SYM_PAD) {
@@ -108,7 +108,7 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
     return -1;
   }
   out[1] |= sym >> 2;
-  out[2] = sym << 6;
+  out[2] = (uint8_t)(sym << 6);
 
   sym = decode_sym(base64[3]);
   if (sym == B64_SYM_PAD) {
@@ -124,7 +124,7 @@ static inline int decode_quadruple(const char *base64, uint8_t *out) {
 
 int32_t base64_decode(const char *base64, uint32_t base64_len, uint8_t *out) {
   int32_t size = 0;
-  for (int i = 0; i < base64_len; i += 4) {
+  for (uint32_t i = 0; i < base64_len; i += 4) {
     int res = decode_quadruple(base64 + i, out + size);
     if (res < 0) {
       return -1;

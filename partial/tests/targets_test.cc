@@ -11,7 +11,7 @@
 #include "utilities/utils.h"
 
 
-static void verify_targets_with_chunk_size(const std::string& targets_str, bool check_signatures, int chunk_size) {
+static void verify_targets_with_chunk_size(const std::string& targets_str, bool check_signatures, unsigned int chunk_size) {
   uptane_parse_targets_init();
 
   uptane_targets_t targets;
@@ -19,7 +19,7 @@ static void verify_targets_with_chunk_size(const std::string& targets_str, bool 
 
   std::string buf;
   uint16_t result=0;
-  for(int i = 0; i < targets_str.length(); i += chunk_size) {
+  for(unsigned int i = 0; i < targets_str.length(); i += chunk_size) {
     buf += targets_str.substr(i, chunk_size); 
 
     int consumed = uptane_parse_targets_feed(buf.c_str(), buf.length(), &targets, &result);
@@ -86,7 +86,7 @@ static void verify_targets(const std::string& targets_str, bool check_signatures
   verify_targets_with_chunk_size(targets_str, check_signatures, 7);
   verify_targets_with_chunk_size(targets_str, check_signatures, 10);
   verify_targets_with_chunk_size(targets_str, check_signatures, 20);
-  verify_targets_with_chunk_size(targets_str, check_signatures, targets_str.length());
+  verify_targets_with_chunk_size(targets_str, check_signatures, (unsigned int) targets_str.length());
 }
 
 TEST(tiny_targets, parse_simple) {

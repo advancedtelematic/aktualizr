@@ -10,8 +10,8 @@
 bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root) {
   int num_signatures = 0;
   unsigned int signatures_token = 0;
-  unsigned int signed_begin = 0;
-  unsigned int signed_end = 0;
+  int signed_begin = 0;
+  int signed_end = 0;
 
   uptane_root_t *old_root = state_get_root();
   jsmn_parser parser;
@@ -54,7 +54,8 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
       int num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
         crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
-        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin, signed_end - signed_begin);
+        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
+                           (size_t)(signed_end - signed_begin));
         if (crypto_verify_result(&crypto_ctx_pool[j])) {
           ++num_valid_signatures;
         } else {
@@ -88,7 +89,8 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
       num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
         crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
-        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin, signed_end - signed_begin);
+        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
+                           (size_t)(signed_end - signed_begin));
         if (crypto_verify_result(&crypto_ctx_pool[j])) {
           ++num_valid_signatures;
         } else {

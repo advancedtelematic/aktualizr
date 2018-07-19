@@ -41,13 +41,13 @@ typedef struct {
 } crypto_verify_ctx_t;
 
 void crypto_verify_init(crypto_verify_ctx_t* ctx, crypto_key_and_signature_t* sig);
-void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, int len);
+void crypto_verify_feed(crypto_verify_ctx_t* ctx, const uint8_t* data, size_t len);
 bool crypto_verify_result(crypto_verify_ctx_t* ctx);
 
-crypto_algorithm_t crypto_str_to_keytype(const char* keytype, int len);
+crypto_algorithm_t crypto_str_to_keytype(const char* keytype, size_t len);
 int crypto_get_keylen(crypto_algorithm_t alg);
 
-crypto_hash_algorithm_t crypto_str_to_hashtype(const char* hashtype, int len);
+crypto_hash_algorithm_t crypto_str_to_hashtype(const char* hashtype, size_t len);
 int crypto_get_hashlen(crypto_hash_algorithm_t alg);
 #ifdef __cplusplus
 }

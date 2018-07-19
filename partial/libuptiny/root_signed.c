@@ -23,7 +23,7 @@ static inline bool parse_keyval(const char *keyval, int len, crypto_key_t *key) 
 }
 
 static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
-  int idx = *pos;
+  unsigned int idx = *pos;
 
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
@@ -71,7 +71,7 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
       if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keytype")) {
         ++idx;  // consume name token
         keys[num_keys]->key_type =
-            crypto_str_to_keytype(metadata_str + token_pool[idx].start, JSON_TOK_LEN(token_pool[idx]));
+            crypto_str_to_keytype(metadata_str + token_pool[idx].start, (size_t)JSON_TOK_LEN(token_pool[idx]));
         keytype_supported = (keys[num_keys]->key_type != CRYPTO_ALG_UNKNOWN);
         ++idx;  // consume keytype
       } else if (JSON_STR_EQUAL(metadata_str, token_pool[idx], "keyval")) {
@@ -122,7 +122,7 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
 
 static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32_t *threshold, int32_t *out_key_num,
                               crypto_key_t **out_keys) {
-  int idx = *pos;
+  unsigned int idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
