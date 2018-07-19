@@ -31,7 +31,7 @@ struct StorageConfig {
 };
 
 struct ImportConfig {
-  boost::filesystem::path base_path{""};
+  boost::filesystem::path base_path{"/var/sota/import"};
   BasedPath uptane_private_key_path{""};
   BasedPath uptane_public_key_path{""};
   BasedPath tls_cacert_path{""};
