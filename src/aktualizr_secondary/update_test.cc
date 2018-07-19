@@ -37,7 +37,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   config.network.port = 0;
   config.storage.type = StorageType::kSqlite;
   config.pacman.sysroot = sysroot;
-  auto storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
+  auto storage = INvStorage::newStorage(config.storage);
 
   AktualizrSecondary as(config, storage);
 

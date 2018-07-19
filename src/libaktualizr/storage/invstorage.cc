@@ -138,19 +138,19 @@ void INvStorage::importData(const ImportConfig& import_config) {
                import_config.tls_pkey_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
-      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(path)) {
-        if (access(path.c_str(), R_OK | W_OK | X_OK) != 0) {
-          LOG_ERROR << "Cannot read prior filesystem configuration from " << path
+      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+        if (access(config.path.c_str(), R_OK | W_OK | X_OK) != 0) {
+          LOG_ERROR << "Cannot read prior filesystem configuration from " << config.path
                     << " due to insufficient permissions.";
           return std::make_shared<SQLStorage>(config);
         }
         StorageConfig old_config;
         old_config.type = StorageType::kFileSystem;
-        old_config.path = path;
+        old_config.path = config.path;
 
         std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
         std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config, true);

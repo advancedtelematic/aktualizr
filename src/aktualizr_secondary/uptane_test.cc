@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   test_config.storage.path = temp_dir.Path();
   test_config.storage.type = StorageType::kSqlite;
 
-  test_storage = INvStorage::newStorage(test_config.storage, temp_dir.Path());
+  test_storage = INvStorage::newStorage(test_config.storage);
 
   if (argc != 2) {
     std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";

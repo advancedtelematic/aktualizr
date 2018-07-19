@@ -39,7 +39,7 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
 
   bool result;
   auto http = std::make_shared<HttpClient>();
-  auto store = INvStorage::newStorage(conf.storage, temp_dir.Path());
+  auto store = INvStorage::newStorage(conf.storage);
   {
     KeyManager keys(store, conf.keymanagerConfig());
 

@@ -148,8 +148,7 @@ class INvStorage {
   virtual void cleanUp() = 0;
 
   // Special constructors and utilities
-  static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config,
-                                                const boost::filesystem::path& path = "/var/sota");
+  static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
   static void FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage);
 
   // Not purely virtual
