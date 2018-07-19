@@ -68,10 +68,10 @@ void AktualizrSecondaryConfig::updateFromCommandLine(const boost::program_option
     logger.loglevel = cmd["loglevel"].as<int>();
   }
   if (cmd.count("server-port") != 0) {
-    network.port = cmd["server-port"].as<int>();
+    network.port = cmd["server-port"].as<in_port_t>();
   }
   if (cmd.count("discovery-port") != 0) {
-    int p = cmd["discovery_port"].as<int>();
+    in_port_t p = cmd["discovery_port"].as<in_port_t>();
     if (p == 0) {
       network.discovery = false;
     } else {

@@ -190,10 +190,10 @@ typedef boost::archive::iterators::transform_width<
     base64_to_bin;
 
 std::string Utils::fromBase64(std::string base64_string) {
-  uint64_t paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
+  int64_t paddingChars = std::count(base64_string.begin(), base64_string.end(), '=');
   std::replace(base64_string.begin(), base64_string.end(), '=', 'A');
   std::string result(base64_to_bin(base64_string.begin()), base64_to_bin(base64_string.end()));
-  result.erase(result.end() - static_cast<unsigned int>(paddingChars), result.end());
+  result.erase(result.end() - paddingChars, result.end());
   return result;
 }
 
@@ -490,7 +490,7 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
         break;
       }
       if (size > 0 && buff != nullptr) {
-        out_stream.write(buff, size);
+        out_stream.write(buff, static_cast<ssize_t>(size));
       }
     }
   }
@@ -509,13 +509,13 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
 
 static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer, size_t length) {
   auto s = reinterpret_cast<std::ostream *>(client_data);
-  s->write(reinterpret_cast<const char *>(buffer), length);
+  s->write(reinterpret_cast<const char *>(buffer), static_cast<ssize_t>(length));
   if (s->fail()) {
     archive_set_error(a, -1, "unable to write in stream");
     return -1;
   }
 
-  return length;
+  return static_cast<ssize_t>(length);
 }
 
 void Utils::writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as) {
@@ -539,7 +539,7 @@ void Utils::writeArchive(const std::map<std::string, std::string> &entries, std:
     archive_entry_clear(entry);
     archive_entry_set_filetype(entry, AE_IFREG);
     archive_entry_set_perm(entry, S_IRWXU | S_IRWXG | S_IRWXO);
-    archive_entry_set_size(entry, el.second.size());
+    archive_entry_set_size(entry, static_cast<ssize_t>(el.second.size()));
     archive_entry_set_pathname(entry, el.first.c_str());
     if (archive_write_header(a, entry) != 0) {
       LOG_ERROR << "archive error: " << archive_error_string(a);
@@ -698,9 +698,9 @@ TemporaryFile::~TemporaryFile() { boost::filesystem::remove(tmp_name_); }
 void TemporaryFile::PutContents(const std::string &contents) {
   mode_t mode = S_IRUSR | S_IWUSR;
   int fd = open(Path().c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  int written = write(fd, contents.c_str(), contents.size());
+  ssize_t written = write(fd, contents.c_str(), contents.size());
   close(fd);
-  if (written != contents.size()) {
+  if (written < 0 || static_cast<size_t>(written) != contents.size()) {
     throw std::runtime_error(std::string("Could not write content to file: ") + Path().string());
   }
 }

@@ -32,7 +32,7 @@ TEST(aktualizr_secondary_discovery, request_response) {
   NetworkConfig primary_netconf;
   primary_netconf.ipdiscovery_wait_seconds = 1;
   primary_netconf.ipdiscovery_host = "127.0.0.1";
-  primary_netconf.ipdiscovery_port = disc.listening_port();
+  primary_netconf.ipdiscovery_port = static_cast<in_port_t>(disc.listening_port());
   IpSecondaryDiscovery primary_disc(primary_netconf);
 
   std::thread th(&AktualizrSecondaryDiscovery::run, &disc);

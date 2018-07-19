@@ -10,7 +10,7 @@ void DirectorRepository::resetMeta() {
 bool DirectorRepository::verifyTargets(const std::string& targets_raw) {
   try {
     targets = Targets(RepositoryType::Director, Utils::parseJSON(targets_raw), root);  // signature verification
-  } catch (Uptane::Exception e) {
+  } catch (const Uptane::Exception& e) {
     LOG_ERROR << "Signature verification for director targets metadata failed";
     last_exception = e;
     return false;

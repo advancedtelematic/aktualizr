@@ -11,8 +11,8 @@
 #include "json/json.h"
 
 struct Utils {
-  static std::string fromBase64(std::string /*base64_string*/);
-  static std::string toBase64(const std::string & /*tob64*/);
+  static std::string fromBase64(std::string base64_string);
+  static std::string toBase64(const std::string &tob64);
   static std::string stripQuotes(const std::string &value);
   static std::string addQuotes(const std::string &value);
   static std::string extractField(const std::string &in, unsigned int field_id);

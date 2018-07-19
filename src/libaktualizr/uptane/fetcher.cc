@@ -37,7 +37,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
     if (!target.IsOstree()) {
       DownloadMetaStruct ds;
       std::unique_ptr<StorageTargetWHandle> fhandle =
-          storage->allocateTargetFile(false, target.filename(), target.length());
+          storage->allocateTargetFile(false, target.filename(), static_cast<size_t>(target.length()));
       ds.fhandle = fhandle.get();
       ds.downloaded_length = 0;
       ds.expected_length = target.length();

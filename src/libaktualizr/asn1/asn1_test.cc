@@ -60,10 +60,11 @@ TEST(asn1_config, tls_config_asn1cc_to_man) {
   memset(&cc_tls_conf, 0, sizeof(cc_tls_conf));
 
   std::string server = "https://example.com";
-  EXPECT_EQ(0, OCTET_STRING_fromBuf(&cc_tls_conf.server, server.c_str(), server.length()));
+  EXPECT_EQ(0, OCTET_STRING_fromBuf(&cc_tls_conf.server, server.c_str(), static_cast<int>(server.length())));
 
   std::string server_url_path = "";
-  EXPECT_EQ(0, OCTET_STRING_fromBuf(&cc_tls_conf.serverUrlPath, server_url_path.c_str(), server_url_path.length()));
+  EXPECT_EQ(0, OCTET_STRING_fromBuf(&cc_tls_conf.serverUrlPath, server_url_path.c_str(),
+                                    static_cast<int>(server_url_path.length())));
 
   cc_tls_conf.caSource = static_cast<int>(CryptoSource::kFile);
   cc_tls_conf.pkeySource = static_cast<int>(CryptoSource::kPkcs11);

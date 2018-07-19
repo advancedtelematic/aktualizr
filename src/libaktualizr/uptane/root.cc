@@ -48,11 +48,11 @@ Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kChec
     // Threshold
     int64_t requiredThreshold = (*it)["threshold"].asInt64();
     if (requiredThreshold < kMinSignatures) {
-      // static_cast<int> is to stop << taking a reference to kMinSignatures
+      // static_cast<int64_t> is to stop << taking a reference to kMinSignatures
       // http://www.stroustrup.com/bs_faq2.html#in-class
       // this occurs in Boost 1.62 (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
-                << static_cast<int>(kMinSignatures);
+                << static_cast<int64_t>(kMinSignatures);
       throw IllegalThreshold(RepoString(repo), "The role " + role.ToString() + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
@@ -124,7 +124,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
       // throw SecurityException(repository, "Invalid signature, verification failed");
     }
   }
-  int threshold = thresholds_for_role_[role];
+  int64_t threshold = thresholds_for_role_[role];
   if (threshold < kMinSignatures || kMaxSignatures < threshold) {
     throw IllegalThreshold(repository, "Invalid signature threshold");
   }

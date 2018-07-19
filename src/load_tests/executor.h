@@ -42,7 +42,7 @@ class FixedExecutionController : public ExecutionController {
   std::atomic_uint iterations;
 
  public:
-  FixedExecutionController(const uint i) : iterations{i} {}
+  FixedExecutionController(const unsigned int i) : iterations{i} {}
 
   void stop() override { iterations.store(0); }
 

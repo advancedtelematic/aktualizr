@@ -73,7 +73,7 @@ class FetchFromOstreeTasks {
   const std::string &branchName;
   const std::string &remoteUrl;
   std::mt19937 rng;
-  std::uniform_int_distribution<> gen;
+  std::uniform_int_distribution<size_t> gen;
 
  public:
   FetchFromOstreeTasks(const fs::path &baseDir, const fs::path &od, const std::string &bn, const std::string &ru)
@@ -81,7 +81,7 @@ class FetchFromOstreeTasks {
         outputDir{od},
         branchName{bn},
         remoteUrl{ru},
-        gen(0, configs.size() - 1) {
+        gen(0UL, configs.size() - 1) {
     std::random_device seedGen;
     rng.seed(seedGen());
   }

@@ -35,8 +35,8 @@ TEST(ReportQueue, SingleEvent) {
   report_queue.enqueue(makeEvent("SingleEvent"));
 
   // Wait at most 30 seconds for the message to get processed.
-  int counter = 0;
-  int num_events = 1;
+  size_t counter = 0;
+  size_t num_events = 1;
   while (http.events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);
@@ -59,8 +59,8 @@ TEST(ReportQueue, MultipleEvents) {
   }
 
   // Wait at most 30 seconds for the messages to get processed.
-  int counter = 0;
-  int num_events = 10;
+  size_t counter = 0;
+  size_t num_events = 10;
   while (http.events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);
@@ -84,8 +84,8 @@ TEST(ReportQueue, FailureRecovery) {
   }
 
   // Wait at most 30 seconds for the messages to get processed.
-  int counter = 0;
-  int num_events = 10;
+  size_t counter = 0;
+  size_t num_events = 10;
   while (http.events_seen < num_events) {
     sleep(1);
     ASSERT_LT(++counter, 30);

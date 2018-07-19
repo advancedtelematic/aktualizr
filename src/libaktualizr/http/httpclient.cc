@@ -33,7 +33,7 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
   // append the writeback data to the provided string
   auto* arg = static_cast<WriteStringArg*>(userp);
   if (arg->limit > 0) {
-    if (arg->out.length() + size * nmemb > arg->limit) {
+    if (arg->out.length() + size * nmemb > static_cast<uint64_t>(arg->limit)) {
       return 0;
     }
   }

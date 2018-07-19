@@ -135,7 +135,7 @@ class HttpFake : public HttpInterface {
       ++events_seen;
       return HttpResponse("", 200, CURLE_OK, "");
     } else if (url.find("reportqueue/MultipleEvents") == 0) {
-      for (int i = 0; i < data.size(); ++i) {
+      for (int i = 0; i < static_cast<int>(data.size()); ++i) {
         EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
         EXPECT_EQ(data[i]["event"], "MultipleEvents" + std::to_string(events_seen++));
       }
@@ -144,7 +144,7 @@ class HttpFake : public HttpInterface {
       if (data.size() < 10) {
         return HttpResponse("", 400, CURLE_OK, "");
       } else {
-        for (int i = 0; i < data.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(data.size()); ++i) {
           EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
           EXPECT_EQ(data[i]["event"], "FailureRecovery" + std::to_string(i));
         }
@@ -212,7 +212,7 @@ class HttpFake : public HttpInterface {
   ProvisioningResult provisioningResponse;
   const std::string test_manifest = "test_aktualizr_manifest.txt";
   const std::string tls_server = "https://tlsserver.com";
-  int events_seen = 0;
+  size_t events_seen = 0;
 
  private:
   /**

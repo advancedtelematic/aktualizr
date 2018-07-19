@@ -162,7 +162,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
     std::vector<unsigned char> id_hex;
     boost::algorithm::unhex(config_.uptane_key_id, std::back_inserter(id_hex));
 
-    for (int i = 0; i < nkeys; i++) {
+    for (unsigned int i = 0; i < nkeys; i++) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if ((keys[i].id_len == config_.uptane_key_id.length() / 2) &&
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -182,7 +182,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
   PEM_write_bio_PUBKEY(mem.get(), evp_key.get());
 
   char* pem_key = nullptr;
-  int length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
+  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
   key_out->assign(pem_key, length);
 
   return true;
@@ -240,7 +240,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
     std::vector<unsigned char> id_hex;
     boost::algorithm::unhex(id, std::back_inserter(id_hex));
 
-    for (int i = 0; i < ncerts; i++) {
+    for (unsigned int i = 0; i < ncerts; i++) {
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
       if ((certs[i].id_len == id.length() / 2) && (memcmp(certs[i].id, id_hex.data(), id.length() / 2) == 0)) {
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -257,7 +257,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
   PEM_write_bio_X509(mem.get(), cert->x509);
 
   char* pem_key = nullptr;
-  int length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
+  long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
   cert_out->assign(pem_key, length);
 
   return true;

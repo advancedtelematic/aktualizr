@@ -251,7 +251,7 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
     return false;
   }
   auto privkey_len = BIO_get_mem_data(privkey_file.get(), &privkey_buf);  // NOLINT
-  *pkey = std::string(privkey_buf, privkey_len);
+  *pkey = std::string(privkey_buf, static_cast<size_t>(privkey_len));
 
   // serialize certificate
   char* cert_buf;
@@ -266,7 +266,7 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
     return false;
   }
   auto cert_len = BIO_get_mem_data(cert_file.get(), &cert_buf);  // NOLINT
-  *cert = std::string(cert_buf, cert_len);
+  *cert = std::string(cert_buf, static_cast<size_t>(cert_len));
 
   return true;
 }
@@ -460,7 +460,8 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "...success\n";
 
-    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), response.body.size()), BIO_vfree);
+    StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
+                                BIO_vfree);
     if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
       return -1;
     }

@@ -48,7 +48,7 @@ class StorageTargetWHandle {
     while (!is.eof()) {
       is.read(reinterpret_cast<char*>(arr.data()), arr.size());
 
-      handle.wfeed(arr.data(), is.gcount());
+      handle.wfeed(arr.data(), static_cast<size_t>(is.gcount()));
     }
     handle.wcommit();
 
@@ -73,7 +73,7 @@ class StorageTargetRHandle {
     while (written < handle.rsize()) {
       size_t nread = handle.rread(arr.data(), arr.size());
 
-      os.write(reinterpret_cast<char*>(arr.data()), nread);
+      os.write(reinterpret_cast<char*>(arr.data()), static_cast<std::streamsize>(nread));
       written += nread;
     }
 

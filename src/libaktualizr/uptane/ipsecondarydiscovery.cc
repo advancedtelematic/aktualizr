@@ -51,7 +51,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
   setsockopt(*socket_hdl, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv));
 
   char rbuf[2000] = {};
-  int recieved = 0;
+  ssize_t recieved = 0;
   struct sockaddr_storage sec_address {};
   socklen_t sec_addr_len = sizeof(sec_address);
 
@@ -61,13 +61,14 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
                               &sec_addr_len)) != -1) {
     Uptane::SecondaryConfig conf;
     AKIpUptaneMes_t *m = nullptr;
-    asn_dec_rval_t res = ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, recieved);
+    asn_dec_rval_t res =
+        ber_decode(nullptr, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void **>(&m), rbuf, static_cast<size_t>(recieved));
     // Note that ber_decode allocates *m even on failure, so this must always be done
     Asn1Message::Ptr msg = Asn1Message::FromRaw(&m);
 
     if (res.code != RC_OK) {
       LOG_ERROR << "Failed to parse discovery response message";
-      LOG_ERROR << Utils::toBase64(std::string(rbuf, recieved));
+      LOG_ERROR << Utils::toBase64(std::string(rbuf, static_cast<size_t>(recieved)));
       continue;
     }
 
@@ -79,7 +80,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     conf.ecu_serial = ToString(resp->ecuSerial);
     conf.ecu_hardware_id = ToString(resp->hwId);
     conf.ip_addr = sec_address;
-    Utils::setSocketPort(&conf.ip_addr, htons(resp->port));
+    Utils::setSocketPort(&conf.ip_addr, htons(static_cast<uint16_t>(resp->port)));
 
     LOG_INFO << "Found secondary:" << conf.ecu_serial << " " << conf.ecu_hardware_id << " " << conf.ip_addr;
     conf.secondary_type = Uptane::SecondaryType::kIpUptane;
@@ -87,7 +88,7 @@ std::vector<Uptane::SecondaryConfig> IpSecondaryDiscovery::waitDevices() {
     secondaries.push_back(conf);
 
     auto now = std::chrono::system_clock::now();
-    int left_seconds =
+    auto left_seconds =
         config_.ipdiscovery_wait_seconds - std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
     if (left_seconds <= 0) {
       break;
@@ -140,8 +141,8 @@ bool IpSecondaryDiscovery::sendRequest() {
     return false;
   }
 
-  int numbytes = sendto(*socket_hdl, buffer.c_str(), buffer.size(), 0, reinterpret_cast<struct sockaddr *>(&sendaddr),
-                        sizeof sendaddr);
+  ssize_t numbytes = sendto(*socket_hdl, buffer.c_str(), buffer.size(), 0,
+                            reinterpret_cast<struct sockaddr *>(&sendaddr), sizeof sendaddr);
   if (numbytes == -1) {
     LOG_ERROR << "Could not send discovery request: " << std::strerror(errno);
     return false;

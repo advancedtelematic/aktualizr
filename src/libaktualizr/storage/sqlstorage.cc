@@ -310,7 +310,7 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     ca_v = statement.get_result_col_str(0).value();
     cert_v = statement.get_result_col_str(1).value();
     pkey_v = statement.get_result_col_str(2).value();
-  } catch (boost::bad_optional_access) {
+  } catch (const boost::bad_optional_access&) {
     return false;
   }
 
@@ -768,7 +768,7 @@ bool SQLStorage::loadEcuSerials(EcuSerials* serials) {
       new_serials.emplace_back(Uptane::EcuSerial(statement.get_result_col_str(0).value()),
                                Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()));
       empty = false;
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       return false;
     }
   }
@@ -853,7 +853,7 @@ bool SQLStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
                             Uptane::HardwareIdentifier(statement.get_result_col_str(1).value()),
                             static_cast<EcuState>(statement.get_result_col_int(2)));
       empty = false;
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       return false;
     }
   }
@@ -912,7 +912,7 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
       bool is_current = current_hash == it->sha256Hash();
       int64_t size = it->length();
       auto statement = db.prepareStatement<std::string, std::string, int, int>(
-          sql, hash, filename, static_cast<const int>(is_current), size);
+          sql, hash, filename, static_cast<int>(is_current), static_cast<int>(size));
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -953,7 +953,7 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
       }
       std::string filename = name;
       new_installed_versions.emplace_back(filename, installed_version);
-    } catch (boost::bad_optional_access) {
+    } catch (const boost::bad_optional_access&) {
       LOG_ERROR << "Incompleted installed version, keeping old one";
       return current_hash;
     }
@@ -1021,13 +1021,13 @@ bool SQLStorage::loadInstallationResult(data::OperationResult* result) {
   }
 
   std::string id;
-  int result_code;
+  int64_t result_code;
   std::string result_text;
   try {
     id = statement.get_result_col_str(0).value();
     result_code = statement.get_result_col_int(1);
     result_text = statement.get_result_col_str(2).value();
-  } catch (boost::bad_optional_access) {
+  } catch (const boost::bad_optional_access&) {
     return false;
   }
 
@@ -1101,7 +1101,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), written_size_) != SQLITE_OK) {
+    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
       LOG_ERROR << "Could not write in blob: " << db_.errmsg();
       return 0;
     }
@@ -1182,7 +1182,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       LOG_ERROR << "Could not open blob: " << db_.errmsg();
       throw exc;
     }
-    size_ = sqlite3_blob_bytes(blob_);
+    size_ = static_cast<size_t>(sqlite3_blob_bytes(blob_));
 
     if (!db_.commitTransaction()) {
       throw exc;
@@ -1205,7 +1205,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       return 0;
     }
 
-    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), read_size_) != SQLITE_OK) {
+    if (sqlite3_blob_read(blob_, buf, static_cast<int>(size), static_cast<int>(read_size_)) != SQLITE_OK) {
       LOG_ERROR << "Could not read from blob: " << db_.errmsg();
       return 0;
     }
@@ -1303,8 +1303,8 @@ bool SQLStorage::dbMigrate() {
     return false;
   }
 
-  for (int k = schema_num_version + 1; k <= current_schema_version; k++) {
-    if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
+  for (int32_t k = schema_num_version + 1; k <= current_schema_version; k++) {
+    if (db.exec(schema_migrations.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();
       return false;
     }
@@ -1344,7 +1344,7 @@ DbVersion SQLStorage::getVersion() {
     } catch (const std::exception&) {
       return DbVersion::kInvalid;
     }
-  } catch (SQLException) {
+  } catch (const SQLException&) {
     return DbVersion::kInvalid;
   }
 }

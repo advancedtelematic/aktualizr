@@ -9,9 +9,9 @@ TEST(DequeueBuffer, Simple) {
   EXPECT_NE(dut.Head(), nullptr);
   EXPECT_EQ(dut.Size(), 0);
 
-  int chars = snprintf(dut.Tail(), dut.TailSpace(), "hello ");
+  size_t chars = static_cast<size_t>(snprintf(dut.Tail(), dut.TailSpace(), "hello "));
   dut.HaveEnqueued(chars);
-  chars = snprintf(dut.Tail(), dut.TailSpace(), "world");
+  chars = static_cast<size_t>(snprintf(dut.Tail(), dut.TailSpace(), "world"));
   dut.HaveEnqueued(chars);
   EXPECT_EQ(dut.Size(), strlen("hello world"));
 

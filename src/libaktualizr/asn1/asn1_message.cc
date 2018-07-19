@@ -39,17 +39,19 @@ int Asn1SocketWriteCallback(const void* buffer, size_t size, void* priv) {
       LOG_ERROR << "write: " << std::strerror(errno);
       return 1;
     }
-    len -= written;
-    pos += written;
+    len -= static_cast<size_t>(written);
+    pos += static_cast<size_t>(written);
   }
   return 0;
 }
 
 std::string ToString(const OCTET_STRING_t& octet_str) {
-  return std::string(reinterpret_cast<const char*>(octet_str.buf), octet_str.size);
+  return std::string(reinterpret_cast<const char*>(octet_str.buf), static_cast<size_t>(octet_str.size));
 }
 
-void SetString(OCTET_STRING_t* dest, const std::string& str) { OCTET_STRING_fromBuf(dest, str.c_str(), str.size()); }
+void SetString(OCTET_STRING_t* dest, const std::string& str) {
+  OCTET_STRING_fromBuf(dest, str.c_str(), static_cast<int>(str.size()));
+}
 
 Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_storage& client) {
   int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -73,11 +75,11 @@ Asn1Message::Ptr Asn1Rpc(const Asn1Message::Ptr& tx, const struct sockaddr_stora
   asn_dec_rval_t res;
   asn_codec_ctx_s context{};
   DequeueBuffer buffer;
-  size_t received;
+  ssize_t received;
   do {
     received = recv(*hdl, buffer.Tail(), buffer.TailSpace(), 0);
-    LOG_TRACE << "Asn1Rpc read " << Utils::toBase64(std::string(buffer.Tail(), received));
-    buffer.HaveEnqueued(received);
+    LOG_TRACE << "Asn1Rpc read " << Utils::toBase64(std::string(buffer.Tail(), static_cast<size_t>(received)));
+    buffer.HaveEnqueued(static_cast<size_t>(received));
     res = ber_decode(&context, &asn_DEF_AKIpUptaneMes, reinterpret_cast<void**>(&m), buffer.Head(), buffer.Size());
     buffer.Consume(res.consumed);
   } while (res.code == RC_WMORE && received > 0);

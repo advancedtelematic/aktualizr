@@ -87,7 +87,7 @@ class ProvisionDeviceTaskStream {
 };
 
 void mkDevices(const path &dstDir, const path bootstrapCredentials, const std::string gw_uri, const size_t parallelism,
-               const unsigned int nr, const uint rate) {
+               const unsigned int nr, const unsigned int rate) {
   const int severity = loggerGetSeverity();
   ptree cfgTemplate{};
   cfgTemplate.put_child("tls.server", ptree("\"https://" + gw_uri + "\""));

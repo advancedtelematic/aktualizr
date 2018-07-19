@@ -111,7 +111,7 @@ bool ManagedSecondary::sendFirmware(const std::string &data) {
     return true;
   }
 
-  if (data.size() > expected_target_length) {
+  if (data.size() > static_cast<size_t>(expected_target_length)) {
     detected_attack = "overflow";
     return true;
   }

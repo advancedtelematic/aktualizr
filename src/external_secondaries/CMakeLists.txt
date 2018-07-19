@@ -31,7 +31,6 @@ set(ISOTP_TEST_HEADERS test_isotp_interface.h)
 aktualizr_source_file_checks(${ISOTP_TEST_SRC} ${ISOTP_TEST_HEADERS})
 
 if(BUILD_ISOTP)
-
     add_executable(isotp-test-interface ${MAIN_ECU_INTERFACE_SRC} ${ISOTP_TEST_SRC} ${ISOTP_SRC})
     target_link_libraries(isotp-test-interface
                           aktualizr_static_lib

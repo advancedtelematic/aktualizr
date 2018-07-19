@@ -12,6 +12,10 @@ add_subdirectory("aktualizr_repo")
 add_subdirectory("aktualizr_check_discovery")
 add_subdirectory("cert_provider")
 add_subdirectory("implicit_writer")
+
+# Temporarily remove flag not supported by isotp-c and bitfield.
+remove_definitions(-Wconversion)
 add_subdirectory("external_secondaries")
+add_definitions(-Wconversion)
 
 add_subdirectory("load_tests")

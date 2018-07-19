@@ -292,10 +292,8 @@ add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     add_definitions(-fstack-protector-all)
-    # Enable maximum set of warnings. -Wno-sign-compare is required because of
-    # problems in gtest. -Wswitch-default and -Wconversion would be nice as
-    # well, but they also cause problems in gtest.
-    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wno-sign-compare)
+    # Enable maximum set of warnings.
+    add_definitions(-Wall -Wextra -Wformat-security -Wfloat-equal -Wcast-qual -Wswitch-default -Wconversion)
     # only for CXX, gcc doesn't like that when building C...
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor")
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -376,7 +374,10 @@ add_subdirectory("config")
 if (BUILD_LOAD_TESTS)
     # HdrHistogram installs support libraries, which creates junk the aktualizr
     # recipe would have to remove
+    # Temporarily remove flag not supported by isotp-c and bitfield.
+    remove_definitions(-Wconversion)
     add_subdirectory("third_party/HdrHistogram_c/src")
+    add_definitions(-Wconversion)
 endif(BUILD_LOAD_TESTS)
 add_subdirectory("src")
 add_subdirectory("tests" EXCLUDE_FROM_ALL)

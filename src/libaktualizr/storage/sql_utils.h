@@ -96,14 +96,15 @@ class SQLiteStatement {
     owned_data_.emplace_back(blob.content);
     const std::string& oe = owned_data_.back();
 
-    if (sqlite3_bind_blob(stmt_.get(), bind_cnt_, oe.c_str(), oe.size(), SQLITE_STATIC) != SQLITE_OK) {
+    if (sqlite3_bind_blob(stmt_.get(), bind_cnt_, oe.c_str(), static_cast<int>(oe.size()), SQLITE_STATIC) !=
+        SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
       throw std::runtime_error("SQLite bind error");
     }
   }
 
   void bindArgument(const SQLZeroBlob& blob) {
-    if (sqlite3_bind_zeroblob(stmt_.get(), bind_cnt_, blob.size) != SQLITE_OK) {
+    if (sqlite3_bind_zeroblob(stmt_.get(), bind_cnt_, static_cast<int>(blob.size)) != SQLITE_OK) {
       LOG_ERROR << "Could not bind: " << sqlite3_errmsg(db_);
       throw std::runtime_error("SQLite bind error");
     }

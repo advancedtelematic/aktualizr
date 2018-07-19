@@ -290,7 +290,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
 
 size_t OSTreeObject::curl_handle_write(void *buffer, size_t size, size_t nmemb, void *userp) {
   auto *that = static_cast<OSTreeObject *>(userp);
-  that->http_response_.write(static_cast<const char *>(buffer), size * nmemb);
+  that->http_response_.write(static_cast<const char *>(buffer), static_cast<std::streamsize>(size * nmemb));
   return size * nmemb;
 }
 
