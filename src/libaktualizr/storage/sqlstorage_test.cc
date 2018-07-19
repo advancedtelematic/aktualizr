@@ -124,7 +124,7 @@ static TempSQLDb makeDbWithVersion(DbVersion version) {
 
   // manual migration runs
 
-  for (int32_t k = 0; k <= static_cast<int32_t>(version); k++) {
+  for (uint32_t k = 0; k <= static_cast<uint32_t>(version); k++) {
     if (db.exec(schema_migrations.at(k), nullptr, nullptr) != SQLITE_OK) {
       throw std::runtime_error("Migration run failed");
     }

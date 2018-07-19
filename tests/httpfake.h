@@ -212,7 +212,7 @@ class HttpFake : public HttpInterface {
   ProvisioningResult provisioningResponse;
   const std::string test_manifest = "test_aktualizr_manifest.txt";
   const std::string tls_server = "https://tlsserver.com";
-  int events_seen = 0;
+  size_t events_seen = 0;
 
  private:
   /**
