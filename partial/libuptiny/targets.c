@@ -48,12 +48,6 @@ bool in_signed;  // if the signature verification is in progress. Different from
                  // sync for a short time.
 static int tail_length;  // number of bytes fed, but not consumed on the last call. Used for signature verification
 
-int uptane_targets_get_num_signatures() { return num_signatures; }
-
-int uptane_targets_get_begin_signed() { return begin_signed; }
-
-int uptane_targets_get_end_signed() { return end_signed; }
-
 void uptane_parse_targets_init(void) {
   jsmn_init(&parser);
   token_pos = 0;
@@ -217,7 +211,8 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
       target->length = length;
       ++idx;  // consume length token
     } else {
-      DEBUG_PRINTF("Unknown field in a target: %.*s", (JSON_TOK_LEN(token_pool[idx])), message + token_pool[idx].start);
+      DEBUG_PRINTF("Unknown field in a target: %.*s\n", (JSON_TOK_LEN(token_pool[idx])),
+                   message + token_pool[idx].start);
       ++idx;  // consume name token
       idx = consume_recursive_json(idx);
     }
@@ -227,13 +222,14 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
   return (target_for_me) ? PARSE_TARGET_FORME : PARSE_TARGET_NOTFORME;
 }
 
-static inline int consumed_chars(const char *message, int len, int idx) {
+// calculates number of characters consumed by uptane_parse_targets_feed when some tokens were consumed
+static inline int consumed_chars_newtoken(const char *message, int len, int idx) {
   if (token_pool[idx - 1].end > 0) {
     // last token was primitive or string. If it was a string, we've got a closing quote to consume. In any case,
     // there can be 'non-tokens' like ':', ',', '}', ']' that are already processed and shouldn't be given to the
     // parser again
     int res = token_pool[idx - 1].end;
-    if (token_pool[idx - 1].type == JSMN_STRING) {
+    if (token_pool[idx - 1].type == JSMN_STRING && message[res] == '"') {
       ++res;
     }
     for (; res < len; ++res) {
@@ -253,13 +249,56 @@ static inline int consumed_chars(const char *message, int len, int idx) {
   }
 }
 
+// calculates the number of characters consumed by uptane_parse_targets_feed when no tokens were consumed (but some
+// non-token characters may need to be eaten anyway)
+static inline int consumed_chars_nonewtoken(const char *message, int len) {
+  int res = 0;
+  if (token_pos > 0) {
+    for (; res < len; ++res) {
+      switch (message[res]) {
+        case ':':
+        case ',':
+        case '}':
+        case ']':
+          break;
+        default:
+          return res;
+      }
+    }
+  }
+  return res;
+}
+
+// prepare jsmn parser to a new jsmn_parse round. It might be in a broken state because some characters were fed to
+// jsmn_parse, but not really consumed by uptane_parse_targets_feed
+static void prepare_primary_parser() {
+  parser.pos = 0;
+  parser.toknext = token_pos;
+
+  // rewind toksuper. toksuper can be either container (JSMN_OBJECT/JSMN_ARRAY) or a string.
+  parser.toksuper = -1;
+  //   If the last token is an identifier string, i.e. a string whose direct parent is an object, set it as toksuper
+  if (token_pos > 0) {
+    if (token_pool[token_pos - 1].type == JSMN_STRING &&
+        token_pool[token_pool[token_pos - 1].parent].type == JSMN_OBJECT) {
+      parser.toksuper = token_pos - 1;
+    } else {
+      int i = token_pos - 1;
+      while (i >= 0 &&
+             ((token_pool[i].type != JSMN_OBJECT && token_pool[i].type != JSMN_ARRAY) || token_pool[i].end >= 0)) {
+        i = token_pool[i].parent;
+      }
+      parser.toksuper = i;
+    }
+  }
+}
+
 /*
  * @return number of consumed characters. The rest of the message should be presented to the parser on the next call
  */
 int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *out_targets, uint16_t *result) {
   bool has_signed_begun = false;
   bool has_signed_ended = false;
-  bool has_meta_ended = false;
   bool break_parsing = false;
 
   // 1. No new tokens => return 0
@@ -281,11 +320,10 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
     return -1;
   }
 
-  parser.pos = 0;
-  parser.toknext = token_pos;
-  jsmn_parse(&parser, message, len, token_pool, token_pool_size);
+  // initialize primary parser
+  prepare_primary_parser();
 
-  has_meta_ended = (token_pos > 0 && token_pool[0].end >= 0);
+  jsmn_parse(&parser, message, len, token_pool, token_pool_size);
 
   unsigned int idx;
   for (idx = token_pos; idx < parser.toknext && !break_parsing && state != TARGETS_IN_ERROR;) {
@@ -301,17 +339,15 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
         break;
       case TARGETS_IN_TOP:
         if (JSON_STR_EQUAL(message, token_pool[idx], "signatures")) {
-          if (idx == parser.toknext - 1) {  // got "signatures", but not ': {'
-            --idx;                          // return "signtatures" token to parse it on the next call
+          if (idx == parser.toknext - 1 || token_pool[idx + 1].end < 0) {  // got "signatures", but not actual object
+            // remove partially parsed object from the container
+            --token_pool[0].size;
             break_parsing = true;
             break;
           }
           state = TARGETS_IN_SIGNATURES;
           ++idx;  // consume name token
 
-          // consume everything before signatures and exit
-          token_pool[idx].start = 0;  // next time signatures will start at the beginning of the message
-          break_parsing = true;
           break;
         } else if (JSON_STR_EQUAL(message, token_pool[idx], "signed")) {
           if (num_signatures <= 0) {
@@ -322,7 +358,6 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
 
           state = TARGETS_BEFORE_SIGNED;
           ++idx;  // consume name token
-          signed_top_token_pos = idx;
           break;
         } else {
           prev_state = state;
@@ -375,6 +410,7 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
           break;
         }
 
+        signed_top_token_pos = idx;
         if (num_signatures > crypto_ctx_pool_size) {
           num_signatures = crypto_ctx_pool_size;
         }
@@ -387,21 +423,17 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
         break;
 
       case TARGETS_IN_SIGNED:
-        if (token_pool[signed_top_token_pos].end >=
-            0) {  // have read the whole "signed" object, but not necessarily in this token
-          end_signed = token_pool[signed_top_token_pos].end;
-          has_signed_ended = true;  // local to the call
-
-          if (signed_elems_read >=
-              token_pool[signed_top_token_pos].size) {  // should never be >, weaker condition for robustness
-            state = TARGETS_IN_TOP;
-            break;
-          }
+        if (token_pool[signed_top_token_pos].end >= 0 &&
+            signed_elems_read >=
+                token_pool[signed_top_token_pos].size) {  // should never be >, weaker condition for robustness
+          state = TARGETS_IN_TOP;
+          break;
         }
 
         if (JSON_STR_EQUAL(message, token_pool[idx], "_type")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
-            --idx;                          // return name token to parse it on the next call
+            // remove partially parsed object from the container
+            --token_pool[signed_top_token_pos].size;
             break_parsing = true;
             break;
           }
@@ -416,7 +448,8 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
           ++idx;  // consume value token
         } else if (JSON_STR_EQUAL(message, token_pool[idx], "expires")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
-            --idx;                          // return name token to parse it on the next call
+            // remove partially parsed object from the container
+            --token_pool[signed_top_token_pos].size;
             break_parsing = true;
             break;
           }
@@ -435,7 +468,8 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
           ++idx;  // consume value token
         } else if (JSON_STR_EQUAL(message, token_pool[idx], "version")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
-            --idx;                          // return name token to parse it on the next call
+            // remove partially parsed object from the container
+            --token_pool[signed_top_token_pos].size;
             break_parsing = true;
             break;
           }
@@ -458,7 +492,8 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
           ++idx;  // consume value token
         } else if (JSON_STR_EQUAL(message, token_pool[idx], "targets")) {
           if (idx == parser.toknext - 1) {  // got "targets", but not ': {'
-            --idx;                          // return "targets" token to parse it on the next call
+            // remove partially parsed object from the container
+            --token_pool[signed_top_token_pos].size;
             break_parsing = true;
             break;
           }
@@ -534,6 +569,7 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
           ++targets_elems_read;
         } else {
           idx = target_elem_idx - 1;  // rewind to the point before target name
+          --token_pool[targets_top_token_pos].size;
           break_parsing = true;
           break;
         }
@@ -551,6 +587,12 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
   if (state == TARGETS_IN_ERROR) {
     *result = RESULT_ERROR;
     return -1;
+  }
+
+  if ((signed_top_token_pos >= 0) && (end_signed < 0) &&
+      token_pool[signed_top_token_pos].end >= 0) {  // have read the whole "signed" object
+    end_signed = token_pool[signed_top_token_pos].end;
+    has_signed_ended = true;  // local to the call
   }
 
   /* signature verification */
@@ -592,7 +634,7 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
     }
 
     if (num_valid_signatures < state_get_root()->targets_threshold) {
-      DEBUG_PRINTF("Signature verification failed: only %d signatures are valid with threshold of %d",
+      DEBUG_PRINTF("Signature verification failed: only %d signatures are valid with threshold of %d\n",
                    num_valid_signatures, state_get_root()->targets_threshold);
       state = TARGETS_IN_ERROR;
       *result = RESULT_SIGNATURES_FAILED;
@@ -600,7 +642,7 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
     }
   }
 
-  if (has_meta_ended) {
+  if ((idx > 0 && token_pool[0].end >= 0)) {
     /* Processed the whole metadata, return result */
     if (!target_found) {
       *result = RESULT_END_NOT_FOUND;
@@ -614,10 +656,10 @@ int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *ou
   int ret;
   /* Advance token and character positions */
   if (idx > token_pos) {
+    ret = consumed_chars_newtoken(message, len, idx);
     token_pos = idx;  // start on the current idx next time
-    ret = consumed_chars(message, len, idx);
   } else {
-    ret = 0;
+    ret = consumed_chars_nonewtoken(message, len);
   }
 
   tail_length = len - ret;

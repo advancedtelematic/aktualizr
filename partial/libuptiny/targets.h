@@ -19,9 +19,6 @@ typedef enum {
 
 void uptane_parse_targets_init(void);
 int uptane_parse_targets_feed(const char *message, int len, uptane_targets_t *out_targets, uint16_t *result);
-int uptane_targets_get_num_signatures();
-int uptane_targets_get_begin_signed();
-int uptane_targets_get_end_signed();
 
 #ifdef __cplusplus
 }

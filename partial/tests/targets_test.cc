@@ -10,15 +10,17 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
-void verify_targets(const std::string& targets_str, bool check_signatures) {
+
+static void verify_targets_with_chunk_size(const std::string& targets_str, bool check_signatures, int chunk_size) {
   uptane_parse_targets_init();
 
   uptane_targets_t targets;
+  memset(&targets, 0, sizeof(targets));
 
   std::string buf;
-  uint16_t result;
-  for(int i = 0; i < targets_str.length(); i += 10) {
-    buf += targets_str.substr(i, 10); 
+  uint16_t result=0;
+  for(int i = 0; i < targets_str.length(); i += chunk_size) {
+    buf += targets_str.substr(i, chunk_size); 
 
     int consumed = uptane_parse_targets_feed(buf.c_str(), buf.length(), &targets, &result);
 
@@ -31,15 +33,26 @@ void verify_targets(const std::string& targets_str, bool check_signatures) {
     } else if (result == RESULT_VERSION_FAILED) {
         LOG_ERROR << "Wrong version";
         ASSERT_TRUE(false);
-    } else if ((result == RESULT_SIGNATURES_FAILED) && check_signatures) {
-        LOG_ERROR << "Signature verification failed";
-        ASSERT_TRUE(false);
-    } else if (((result == RESULT_END_FOUND) || (result == RESULT_END_NOT_FOUND)) && !check_signatures) {
+    } else if (result == RESULT_SIGNATURES_FAILED) {
+        if (check_signatures) {
+          LOG_ERROR << "Signature verification failed";
+          ASSERT_TRUE(false);
+        } else {
+          break;
+        }
+    } else if (result == RESULT_END_FOUND) {
+      if (!check_signatures) {
         LOG_ERROR << "Signature verification succeeded on invalid metadata";
         ASSERT_TRUE(false);
+      }
     } else if(result & RESULT_END_NOT_FOUND) {
-      LOG_ERROR << "No target for test ECU";
-      ASSERT_TRUE(false);
+      if (!check_signatures) {
+        LOG_ERROR << "Signature verification succeeded on invalid metadata";
+        ASSERT_TRUE(false);
+      } else {
+        LOG_ERROR << "No target for test ECU";
+        ASSERT_TRUE(false);
+      }
     }
     if(consumed > 0) {
       buf = buf.substr(consumed);
@@ -58,8 +71,22 @@ void verify_targets(const std::string& targets_str, bool check_signatures) {
   EXPECT_EQ(targets.hashes[0].alg, CRYPTO_HASH_SHA512);
   EXPECT_EQ(boost::algorithm::to_lower_copy(boost::algorithm::hex(std::string((const char*)targets.hashes[0].hash, 64))), "7dbae4c36a2494b731a9239911d3085d53d3e400886edb4ae2b9b78f40bda446649e83ba2d81653f614cc66f5dd5d4dbd95afba854f148afbfae48d0ff4cc38a");
   EXPECT_EQ(targets.length, 15);
-  uptane_time_t time_in_str = {3021,7,13,1,2,3};
-  EXPECT_EQ(memcmp(&targets.expires, &time_in_str, sizeof(uptane_time_t)), 0);
+  EXPECT_EQ(targets.expires.year, 3021);
+  EXPECT_EQ(targets.expires.month, 7);
+  EXPECT_EQ(targets.expires.day, 13);
+  EXPECT_EQ(targets.expires.hour, 1);
+  EXPECT_EQ(targets.expires.minute, 2);
+  EXPECT_EQ(targets.expires.second, 3);
+
+}
+
+static void verify_targets(const std::string& targets_str, bool check_signatures) {
+  verify_targets_with_chunk_size(targets_str, check_signatures, 1);
+  verify_targets_with_chunk_size(targets_str, check_signatures, 3);
+  verify_targets_with_chunk_size(targets_str, check_signatures, 7);
+  verify_targets_with_chunk_size(targets_str, check_signatures, 10);
+  verify_targets_with_chunk_size(targets_str, check_signatures, 20);
+  verify_targets_with_chunk_size(targets_str, check_signatures, targets_str.length());
 }
 
 TEST(tiny_targets, parse_simple) {

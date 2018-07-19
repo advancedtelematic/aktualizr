@@ -96,7 +96,7 @@ aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
 add_library(uptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
-target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long)
+target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -DJSMN_STRICT -DJSMN_PARENT_LINKS)
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
 set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
