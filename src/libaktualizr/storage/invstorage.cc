@@ -143,6 +143,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
       if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+        LOG_INFO << "Starting FS to SQL storage migration";
         if (access(config.path.c_str(), R_OK | W_OK | X_OK) != 0) {
           LOG_ERROR << "Cannot read prior filesystem configuration from " << config.path
                     << " due to insufficient permissions.";
@@ -156,6 +157,11 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
         std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config, true);
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
+      }
+      if (!boost::filesystem::exists(db_path)) {
+        LOG_INFO << "Bootstrap empty SQL storage";
+      } else {
+        LOG_INFO << "Use existing SQL storage: " << db_path;
       }
       return std::make_shared<SQLStorage>(config);
     }
