@@ -926,7 +926,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
     LOG_ERROR << "No director targets metadata to send";
     return;
   }
-  if (!storage->loadNonRoot(&meta.image_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+  if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Images)) {
     LOG_ERROR << "No images root metadata to send";
     return;
   }
