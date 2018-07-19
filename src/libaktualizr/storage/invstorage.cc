@@ -148,7 +148,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
                     << " due to insufficient permissions.";
           return std::make_shared<SQLStorage>(config);
         }
-        StorageConfig old_config;
+        StorageConfig old_config = config;
         old_config.type = StorageType::kFileSystem;
         old_config.path = config.path;
 
