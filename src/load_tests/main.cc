@@ -110,7 +110,7 @@ void checkAndFetchCmd(const std::vector<std::string> &opts) {
 
 void provisionDevicesCmd(const std::vector<std::string> &opts) {
   using namespace boost::filesystem;
-  size_t devicesNr;
+  unsigned int devicesNr;
   size_t parallelism;
   uint devicesPerSec;
   std::string outDir;
@@ -123,7 +123,7 @@ void provisionDevicesCmd(const std::vector<std::string> &opts) {
     ("outputdir,o", bpo::value<std::string>(&outDir)->required(), "output directory")
     ("gateway,g", bpo::value<std::string>(&gwUrl)->required(), "url of the device gateway")
     ("credentials,c", bpo::value<std::string>(&pathToCredentials), "path to a provisioning credentials")
-    ("dev-number,n", bpo::value<size_t>(&devicesNr)->default_value(100), "number of devices")
+    ("dev-number,n", bpo::value<unsigned int>(&devicesNr)->default_value(100), "number of devices")
     ("rate,r", bpo::value<uint>(&devicesPerSec)->default_value(2), "devices/sec")
     ("threads,t", bpo::value<size_t>(&parallelism)->default_value(std::thread::hardware_concurrency()), "number of worker threads");
   // clang-format on
@@ -156,7 +156,7 @@ void setLogLevel(const bpo::variables_map &vm) {
 }
 
 int main(int argc, char *argv[]) {
-  std::srand(std::time(0));
+  std::srand(static_cast<unsigned int>(std::time(0)));
 
   std::map<std::string, std::function<void(std::vector<std::string>)>> commands{{"provision", provisionDevicesCmd},
                                                                                 {"check", checkForUpdatesCmd}

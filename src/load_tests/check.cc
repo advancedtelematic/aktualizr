@@ -77,11 +77,11 @@ class CheckForUpdateTasks {
 
   mt19937 rng;
 
-  uniform_int_distribution<> gen;
+  uniform_int_distribution<size_t> gen;
 
  public:
   CheckForUpdateTasks(const boost::filesystem::path baseDir)
-      : configs{loadDeviceConfigurations(baseDir)}, gen(0, configs.size() - 1) {
+      : configs{loadDeviceConfigurations(baseDir)}, gen(0UL, configs.size() - 1) {
     std::random_device seedGen;
     rng.seed(seedGen());
   }
