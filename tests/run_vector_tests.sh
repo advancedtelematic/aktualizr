@@ -12,10 +12,14 @@ python -m pip install wheel
 python -m pip install -r "$1/requirements.txt"
 
 PORT=$("$1/../get_open_port.py")
+ECU_SERIAL=test_primary_ecu_serial
+HARDWARE_ID=test_primary_hardware_id
 
-"$1/generator.py" -t uptane --signature-encoding base64 -o vectors --cjson json-subset
+"$1/generator.py" --signature-encoding base64 -o vectors --cjson json-subset \
+                  --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID
 # disable werkzeug debug pin which causes issues on Jenkins
-WERKZEUG_DEBUG_PIN=off "$1/server.py" -t uptane --signature-encoding base64 -P "$PORT" &
+WERKZEUG_DEBUG_PIN=off "$1/server.py" --signature-encoding base64 -P "$PORT" \
+                                      --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
 trap 'kill %1' EXIT
 
 # wait for server to go up

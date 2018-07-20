@@ -43,6 +43,8 @@ class SotaUptaneClient {
 
  private:
   FRIEND_TEST(Uptane, offlineIteration);
+  FRIEND_TEST(Uptane, krejectallTest);
+  FRIEND_TEST(Uptane, Vector);
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);

@@ -538,6 +538,19 @@ TEST(Uptane, RunForeverNoUpdates) {
   conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.pacman.sysroot = sysroot;
 
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hw";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  conf.uptane.secondary_configs.push_back(ecu_config);
+
   conf.tls.server = http.tls_server;
   std::shared_ptr<event::Channel> events_channel{new event::Channel};
   std::shared_ptr<command::Channel> commands_channel{new command::Channel};
@@ -1094,14 +1107,20 @@ TEST(Uptane, krejectallTest) {
   config.uptane.repo_server = http.tls_server + "/repo";
   config.storage.type = StorageType::kSqlite;
   config.pacman.type = PackageManager::kNone;
-
   config.provision.device_id = "device_id";
   config.postUpdateValues();
+
   auto storage = INvStorage::newStorage(config.storage, "");
   Uptane::Manifest uptane_manifest{config, storage};
   Bootloader bootloader{config.bootloader};
   ReportQueue report_queue(config, http);
   SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
+  Uptane::EcuSerial primary_ecu_serial("CA:FE:A6:D2:84:9D");
+  Uptane::HardwareIdentifier primary_hw_id("primary_hw");
+  Uptane::EcuSerial secondary_ecu_serial("secondary_ecu_serial");
+  Uptane::HardwareIdentifier secondary_hw_id("secondary_hw");
+  sota_client.hw_ids.insert(std::make_pair(primary_ecu_serial, primary_hw_id));
+  sota_client.hw_ids.insert(std::make_pair(secondary_ecu_serial, secondary_hw_id));
   EXPECT_TRUE(sota_client.uptaneIteration());
 }
 
@@ -1118,6 +1137,20 @@ TEST(Uptane, restoreVerify) {
   config.storage.uptane_metadata_path = BasedPath("metadata");
   config.storage.uptane_private_key_path = BasedPath("private.key");
   config.storage.uptane_public_key_path = BasedPath("public.key");
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hw";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  config.uptane.secondary_configs.push_back(ecu_config);
+
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Manifest uptane_manifest{config, storage};
@@ -1175,6 +1208,20 @@ TEST(Uptane, offlineIteration) {
   config.storage.uptane_metadata_path = BasedPath("metadata");
   config.storage.uptane_private_key_path = BasedPath("private.key");
   config.storage.uptane_public_key_path = BasedPath("public.key");
+
+  Uptane::SecondaryConfig ecu_config;
+  ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
+  ecu_config.partial_verifying = false;
+  ecu_config.full_client_dir = temp_dir.Path();
+  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_hardware_id = "secondary_hw";
+  ecu_config.ecu_private_key = "sec.priv";
+  ecu_config.ecu_public_key = "sec.pub";
+  ecu_config.firmware_path = temp_dir / "firmware.txt";
+  ecu_config.target_name_path = temp_dir / "firmware_name.txt";
+  ecu_config.metadata_path = temp_dir / "secondary_metadata";
+  config.uptane.secondary_configs.push_back(ecu_config);
+
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
   Uptane::Manifest uptane_manifest{config, storage};

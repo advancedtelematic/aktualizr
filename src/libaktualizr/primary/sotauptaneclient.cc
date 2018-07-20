@@ -574,7 +574,8 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
-        break;
+        last_exception = Uptane::BadEcuId(targets_it->filename());
+        return false;
       }
 
       if (hwid_it->second != hw_id) {
