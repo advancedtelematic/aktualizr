@@ -4,6 +4,7 @@
 #include <list>
 #include <memory>
 
+#include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
 
 #include <sqlite3.h>
@@ -139,6 +140,8 @@ class SQLite3Guard {
     rc_ = sqlite3_open(path, &h);
     handle_.reset(h);
   }
+
+  explicit SQLite3Guard(const boost::filesystem::path& path) : SQLite3Guard(path.c_str()) {}
 
   int exec(const char* sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);

@@ -305,6 +305,19 @@ TEST(Utils, shell) {
   EXPECT_NE(statuscode, 0);
 }
 
+TEST(Utils, BasedPath) {
+  BasedPath bp("a/test.xml");
+
+  EXPECT_EQ(BasedPath(bp.get("")), bp);
+  EXPECT_EQ(bp.get("/"), "/a/test.xml");
+  EXPECT_EQ(bp.get("/x"), "/x/a/test.xml");
+
+  BasedPath abp("/a/test.xml");
+
+  EXPECT_EQ(abp.get(""), "/a/test.xml");
+  EXPECT_EQ(abp.get("/root/var"), "/a/test.xml");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

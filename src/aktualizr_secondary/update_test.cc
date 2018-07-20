@@ -36,7 +36,6 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   AktualizrSecondaryConfig config;
   config.network.port = 0;
   config.storage.type = StorageType::kSqlite;
-  config.storage.sqldb_path = temp_dir_sec / "sql.db";
   config.pacman.sysroot = sysroot;
   auto storage = INvStorage::newStorage(config.storage, temp_dir_sec.Path());
 
@@ -53,7 +52,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   StorageConfig fs_config;
   fs_config.type = StorageType::kFileSystem;
   fs_config.path = temp_dir.Path();
-  fs_config.uptane_metadata_path = "metadata";
+  fs_config.uptane_metadata_path = BasedPath("metadata");
   FSStorage fs_storage(fs_config);
 
   Uptane::RawMetaPack metadata;

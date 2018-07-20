@@ -23,9 +23,9 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-  config.storage.uptane_private_key_path = "private.key";
-  config.storage.uptane_private_key_path = "public.key";
+  config.storage.uptane_metadata_path = BasedPath("metadata");
+  config.storage.uptane_private_key_path = BasedPath("private.key");
+  config.storage.uptane_private_key_path = BasedPath("public.key");
 
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
@@ -43,9 +43,9 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-  config.storage.uptane_private_key_path = "private.key";
-  config.storage.uptane_private_key_path = "public.key";
+  config.storage.uptane_metadata_path = BasedPath("metadata");
+  config.storage.uptane_private_key_path = BasedPath("private.key");
+  config.storage.uptane_private_key_path = BasedPath("public.key");
 
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
@@ -72,9 +72,9 @@ TEST(OstreeManager, InstallBadUri) {
   config.pacman.type = PackageManager::kOstree;
   config.pacman.sysroot = test_sysroot;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = "metadata";
-  config.storage.uptane_private_key_path = "private.key";
-  config.storage.uptane_private_key_path = "public.key";
+  config.storage.uptane_metadata_path = BasedPath("metadata");
+  config.storage.uptane_private_key_path = BasedPath("private.key");
+  config.storage.uptane_private_key_path = BasedPath("public.key");
 
   std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
   OstreeManager ostree(config.pacman, storage);

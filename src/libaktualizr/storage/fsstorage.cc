@@ -74,9 +74,8 @@ FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStor
       chmod(config_.path.c_str(), S_IRWXU);
     }
     try {
-      boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo");
-      boost::filesystem::create_directories(Utils::absolutePath(config_.path, config_.uptane_metadata_path) /
-                                            "director");
+      boost::filesystem::create_directories(config_.uptane_metadata_path.get(config_.path) / "repo");
+      boost::filesystem::create_directories(config_.uptane_metadata_path.get(config_.path) / "director");
       boost::filesystem::create_directories(config_.path / "targets");
     } catch (const boost::filesystem::filesystem_error& e) {
       LOG_ERROR << "FSStorage failed to create directories:" << e.what();
@@ -84,8 +83,8 @@ FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStor
     }
   }
 
-  boost::filesystem::path images_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
-  boost::filesystem::path director_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
+  boost::filesystem::path images_path = config_.uptane_metadata_path.get(config_.path) / "repo";
+  boost::filesystem::path director_path = config_.uptane_metadata_path.get(config_.path) / "director";
   // migrate from old unversioned Uptane root meta
   {
     for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
@@ -107,10 +106,10 @@ FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStor
 }
 
 void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
-  boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
+  boost::filesystem::path public_key_path = config_.uptane_public_key_path.get(config_.path);
   Utils::writeFile(public_key_path, public_key);
 
-  boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
+  boost::filesystem::path private_key_path = config_.uptane_private_key_path.get(config_.path);
   Utils::writeFile(private_key_path, private_key);
 
   sync();
@@ -121,7 +120,7 @@ bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_ke
 }
 
 bool FSStorage::loadPrimaryPublic(std::string* public_key) {
-  boost::filesystem::path public_key_path = Utils::absolutePath(config_.path, config_.uptane_public_key_path);
+  boost::filesystem::path public_key_path = config_.uptane_public_key_path.get(config_.path);
   if (!boost::filesystem::exists(public_key_path)) {
     return false;
   }
@@ -133,7 +132,7 @@ bool FSStorage::loadPrimaryPublic(std::string* public_key) {
 }
 
 bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
-  boost::filesystem::path private_key_path = Utils::absolutePath(config_.path, config_.uptane_private_key_path);
+  boost::filesystem::path private_key_path = config_.uptane_private_key_path.get(config_.path);
   if (!boost::filesystem::exists(private_key_path)) {
     return false;
   }
@@ -145,8 +144,8 @@ bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
 }
 
 void FSStorage::clearPrimaryKeys() {
-  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.uptane_public_key_path));
-  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.uptane_private_key_path));
+  boost::filesystem::remove(config_.uptane_public_key_path.get(config_.path));
+  boost::filesystem::remove(config_.uptane_private_key_path.get(config_.path));
 }
 
 void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
@@ -156,27 +155,27 @@ void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, co
 }
 
 void FSStorage::storeTlsCa(const std::string& ca) {
-  boost::filesystem::path ca_path(Utils::absolutePath(config_.path, config_.tls_cacert_path));
+  boost::filesystem::path ca_path(config_.tls_cacert_path.get(config_.path));
   Utils::writeFile(ca_path, ca);
   sync();
 }
 
 void FSStorage::storeTlsCert(const std::string& cert) {
-  boost::filesystem::path cert_path(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
+  boost::filesystem::path cert_path(config_.tls_clientcert_path.get(config_.path));
   Utils::writeFile(cert_path, cert);
   sync();
 }
 
 void FSStorage::storeTlsPkey(const std::string& pkey) {
-  boost::filesystem::path pkey_path(Utils::absolutePath(config_.path, config_.tls_pkey_path));
+  boost::filesystem::path pkey_path(config_.tls_pkey_path.get(config_.path));
   Utils::writeFile(pkey_path, pkey);
   sync();
 }
 
 bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
-  boost::filesystem::path ca_path(Utils::absolutePath(config_.path, config_.tls_cacert_path));
-  boost::filesystem::path cert_path(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
-  boost::filesystem::path pkey_path(Utils::absolutePath(config_.path, config_.tls_pkey_path));
+  boost::filesystem::path ca_path(config_.tls_cacert_path.get(config_.path));
+  boost::filesystem::path cert_path(config_.tls_clientcert_path.get(config_.path));
+  boost::filesystem::path pkey_path(config_.tls_pkey_path.get(config_.path));
   if (!boost::filesystem::exists(ca_path) || boost::filesystem::is_directory(ca_path) ||
       !boost::filesystem::exists(cert_path) || boost::filesystem::is_directory(cert_path) ||
       !boost::filesystem::exists(pkey_path) || boost::filesystem::is_directory(pkey_path)) {
@@ -195,13 +194,13 @@ bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pk
 }
 
 void FSStorage::clearTlsCreds() {
-  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_cacert_path));
-  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_clientcert_path));
-  boost::filesystem::remove(Utils::absolutePath(config_.path, config_.tls_pkey_path));
+  boost::filesystem::remove(config_.tls_cacert_path.get(config_.path));
+  boost::filesystem::remove(config_.tls_clientcert_path.get(config_.path));
+  boost::filesystem::remove(config_.tls_pkey_path.get(config_.path));
 }
 
-bool FSStorage::loadTlsCommon(std::string* data, const boost::filesystem::path& path_in) {
-  boost::filesystem::path path(Utils::absolutePath(config_.path, path_in));
+bool FSStorage::loadTlsCommon(std::string* data, const BasedPath& path_in) {
+  boost::filesystem::path path(path_in.get(config_.path));
   if (!boost::filesystem::exists(path)) {
     return false;
   }
@@ -224,14 +223,13 @@ void FSStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo, 
   Uptane::Version* latest_version;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
-                 version.RoleFileName(Uptane::Role::Root());
+      metafile =
+          config_.uptane_metadata_path.get(config_.path) / "director" / version.RoleFileName(Uptane::Role::Root());
       latest_version = &latest_director_root;
       break;
 
     case (Uptane::RepositoryType::Images):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
-                 version.RoleFileName(Uptane::Role::Root());
+      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / version.RoleFileName(Uptane::Role::Root());
       latest_version = &latest_images_root;
       break;
 
@@ -249,13 +247,11 @@ void FSStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType rep
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
-                 Uptane::Version().RoleFileName(role);
+      metafile = config_.uptane_metadata_path.get(config_.path) / "director" / Uptane::Version().RoleFileName(role);
       break;
 
     case (Uptane::RepositoryType::Images):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
-                 Uptane::Version().RoleFileName(role);
+      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / Uptane::Version().RoleFileName(role);
       break;
 
     default:
@@ -272,16 +268,15 @@ bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane:
       if (version.version() < 0) {
         version = latest_director_root;
       }
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
-                 version.RoleFileName(Uptane::Role::Root());
+      metafile =
+          config_.uptane_metadata_path.get(config_.path) / "director" / version.RoleFileName(Uptane::Role::Root());
       break;
 
     case (Uptane::RepositoryType::Images):
       if (version.version() < 0) {
         version = latest_director_root;
       }
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
-                 version.RoleFileName(Uptane::Role::Root());
+      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / version.RoleFileName(Uptane::Role::Root());
       break;
 
     default:
@@ -306,13 +301,11 @@ bool FSStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Upta
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director" /
-                 Uptane::Version().RoleFileName(role);
+      metafile = config_.uptane_metadata_path.get(config_.path) / "director" / Uptane::Version().RoleFileName(role);
       break;
 
     case (Uptane::RepositoryType::Images):
-      metafile = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo" /
-                 Uptane::Version().RoleFileName(role);
+      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / Uptane::Version().RoleFileName(role);
       break;
 
     default:
@@ -333,10 +326,10 @@ void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
   boost::filesystem::path meta_path;
   switch (repo) {
     case Uptane::RepositoryType::Images:
-      meta_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo";
+      meta_path = config_.uptane_metadata_path.get(config_.path) / "repo";
       break;
     case Uptane::RepositoryType::Director:
-      meta_path = Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director";
+      meta_path = config_.uptane_metadata_path.get(config_.path) / "director";
       break;
     default:
       return;
@@ -359,8 +352,8 @@ void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
 }
 
 void FSStorage::clearMetadata() {
-  for (const auto& meta_path : {Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "repo",
-                                Utils::absolutePath(config_.path, config_.uptane_metadata_path) / "director"}) {
+  for (const auto& meta_path : {config_.uptane_metadata_path.get(config_.path) / "repo",
+                                config_.uptane_metadata_path.get(config_.path) / "director"}) {
     if (!boost::filesystem::exists(meta_path)) {
       return;
     }
@@ -687,9 +680,7 @@ void FSStorage::removeTargetFile(const std::string& filename) {
   }
 }
 
-void FSStorage::cleanUp() {
-  boost::filesystem::remove_all(Utils::absolutePath(config_.path, config_.uptane_metadata_path));
-}
+void FSStorage::cleanUp() { boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path)); }
 
 boost::filesystem::path FSStorage::targetFilepath(const std::string& filename) const {
   return config_.path / "targets" / filename;

@@ -156,7 +156,7 @@ Options for how Aktualizr stores data locally.
 | `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate. Only used with `filesystem`.
 | `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key. Only used with `filesystem`.
 | `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate. Only used with `filesystem`.
-| `sqldb_path`              | `"/var/sota/sql.db"`      | Path to the database file. Only used with `sqlite`.
+| `sqldb_path`              | `"sql.db"`                | Relative path to the database file. Only used with `sqlite`.
 |==========================================================================================
 
 == `import`
@@ -166,6 +166,7 @@ Options for importing data from the filesystem into the storage. Most useful if 
 [options="header"]
 |==========================================================================================
 | Name                      | Default | Description
+| `base_path`               |         | Path to a common root directory to the subsequent files
 | `uptane_private_key_path` |         | Path to the device's private key.
 | `uptane_public_key_path`  |         | Path to the device's public key.
 | `tls_cacert_path`         |         | Path to the TLS root CA certificate.
