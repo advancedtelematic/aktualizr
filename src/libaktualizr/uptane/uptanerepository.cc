@@ -23,8 +23,8 @@ bool RepositoryCommon::initRoot(const std::string& root_raw) {
   try {
     root = Root(type, Utils::parseJSON(root_raw));        // initialization and format check
     root = Root(type, Utils::parseJSON(root_raw), root);  // signature verification against itself
-  } catch (...) {
-    LOG_ERROR << "Loading initial root failed";
+  } catch (const std::exception& e) {
+    LOG_ERROR << "Loading initial root failed: " << e.what();
     throw;
     return false;
   }
@@ -39,8 +39,8 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
       LOG_ERROR << "Version in root metadata doesn't match the expected value";
       return false;
     }
-  } catch (...) {
-    LOG_ERROR << "Signature verification for root metadata failed";
+  } catch (const std::exception& e) {
+    LOG_ERROR << "Signature verification for root metadata failed: " << e.what();
     return false;
   }
   return true;
