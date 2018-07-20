@@ -188,18 +188,6 @@ add_test(NAME test_log_negative
 set_tests_properties(test_log_negative
                      PROPERTIES PASS_REGULAR_EXPRESSION "Invalid log level")
 
-
-# Try building with various cmake options
-add_test(NAME test_build_all_off
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_off "-DBUILD_SYSTEMD=off")
-
-# Build with everything. BUILD_OPCUA requires boost::filesystem::relative,
-# which is not in Ubuntu 16.04, so disable it for now
-add_test(NAME test_build_all_on
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/build_with_options.sh
-        ${PROJECT_SOURCE_DIR} test_build_all_on "-DBUILD_WITH_CODE_COVERAGE=ON -DBUILD_OSTREE=ON -DBUILD_DEB=ON -DBUILD_SOTA_TOOLS=ON -DBUILD_ISOTP=ON -DBUILD_LOAD_TESTS=ON")
-
 add_dependencies(qa check)
 
 aktualizr_source_file_checks(${TEST_SOURCES})
