@@ -393,7 +393,10 @@ int main(int argc, char* argv[]) {
     Config config(config_path);
     // TODO: provide path to root directory in `--local` parameter
 
-    if (!config.storage.path.empty()) {
+    // try first import base path and then storage path
+    if (!config.import.base_path.empty()) {
+      directory = config.import.base_path;
+    } else if (!config.storage.path.empty()) {
       directory = config.storage.path;
     }
 
