@@ -179,10 +179,18 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
   }
 
   std::string ca;
+  if (fs_storage->loadTlsCa(&ca)) {
+    sql_storage->storeTlsCa(ca);
+  }
+
   std::string cert;
+  if (fs_storage->loadTlsCert(&cert)) {
+    sql_storage->storeTlsCert(cert);
+  }
+
   std::string pkey;
-  if (fs_storage->loadTlsCreds(&ca, &cert, &pkey)) {
-    sql_storage->storeTlsCreds(ca, cert, pkey);
+  if (fs_storage->loadTlsPkey(&pkey)) {
+    sql_storage->storeTlsPkey(pkey);
   }
 
   std::string device_id;
