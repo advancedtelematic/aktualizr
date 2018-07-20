@@ -566,7 +566,7 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
   std::vector<Uptane::Target> targets = director_repo.getTargets();
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
-    bool is_new = true;
+    bool is_new = false;
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       Uptane::EcuSerial ecu_serial = ecus_it->first;
       Uptane::HardwareIdentifier hw_id = ecus_it->second;
@@ -574,7 +574,6 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
-        is_new = false;
         break;
       }
 
@@ -586,14 +585,12 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       auto images_it = installed_images.find(ecu_serial);
       if (images_it == installed_images.end()) {
         LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
-        is_new = false;
         break;
       }
-      if (images_it->second == targets_it->filename()) {
-        // no updates for this image
-        continue;
+      if (images_it->second != targets_it->filename()) {
+        is_new = true;
       }
-      is_new = true;
+      // no updates for this image => continue
     }
     if (is_new) {
       new_targets->push_back(*targets_it);
