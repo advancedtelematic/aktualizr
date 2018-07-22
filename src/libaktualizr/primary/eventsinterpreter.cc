@@ -115,6 +115,10 @@ void EventsInterpreter::run() {
   auto running_mode = config.uptane.running_mode;
 
   while (*events_channel >> event) {
+    if (event->variant == "DownloadProgressReport") {
+      // Process event on HMI.
+      continue;
+    }
     LOG_INFO << "got " << event->variant << " event";
     if (sig) {
       (*sig)(event);

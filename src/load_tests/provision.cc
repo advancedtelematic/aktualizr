@@ -9,10 +9,10 @@
 #include "executor.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
-#include "primary/events.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane/uptanerepository.h"
+#include "utilities/events.h"
 
 using namespace boost::filesystem;
 using ptree = boost::property_tree::ptree;

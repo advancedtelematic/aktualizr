@@ -7,8 +7,8 @@
 
 #include "commands.h"
 #include "config/config.h"
-#include "events.h"
 #include "logging/logging.h"
+#include "utilities/events.h"
 
 class EventsInterpreter {
  public:

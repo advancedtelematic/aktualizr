@@ -1,6 +1,5 @@
 set(SOURCES aktualizr.cc
             commands.cc
-            events.cc
             eventsinterpreter.cc
             initializer.cc
             reportqueue.cc
@@ -8,7 +7,6 @@ set(SOURCES aktualizr.cc
 
 set(HEADERS aktualizr.h
             commands.h
-            events.h
             eventsinterpreter.h
             initializer.h
             reportqueue.h

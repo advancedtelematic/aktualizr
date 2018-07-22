@@ -19,7 +19,7 @@
 using OstreeProgressPtr = std::unique_ptr<OstreeAsyncProgress, GObjectFinalizer<OstreeAsyncProgress>>;
 
 static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) {
-  auto *percent_complete = static_cast<guint *>(data);
+  auto *mt = static_cast<PullMetaStruct *>(data);
 
   g_autofree char *status = ostree_async_progress_get_status(progress);
   guint scanning = ostree_async_progress_get_uint(progress, "scanning");
@@ -37,29 +37,41 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     if (scanning != 0 || outstanding_metadata_fetches != 0) {
       LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
                << " outstanding: " << outstanding_metadata_fetches;
+      if (mt->events_channel != nullptr) {
+        *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving metadata objects",
+                                                                               0);
+      }
     } else {
       guint calculated = (fetched * 100) / requested;
-      if (calculated != *percent_complete) {
+      if (calculated != mt->percent_complete) {
+        mt->percent_complete = calculated;
         LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
-        *percent_complete = calculated;
+        if (mt->events_channel != nullptr) {
+          *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving objects",
+                                                                                 calculated);
+        }
       }
     }
   } else if (outstanding_writes != 0) {
     LOG_INFO << "ostree-pull: Writing objects: " << outstanding_writes;
   } else {
     LOG_INFO << "ostree-pull: Scanning metadata: " << n_scanned_metadata;
+    if (mt->events_channel != nullptr) {
+      *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Scanning metadata", 0);
+    }
   }
 }
 
 data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
-                                         const KeyManager &keys, const std::string &refhash) {
+                                         const KeyManager &keys, const Uptane::Target &target,
+                                         const std::shared_ptr<event::Channel> &events_channel) {
+  std::string refhash = target.sha256Hash();
   const char *const commit_ids[] = {refhash.c_str()};
   GCancellable *cancellable = nullptr;
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
   OstreeProgressPtr progress = nullptr;
-  guint percent_complete = 0;
 
   OstreeSysrootPtr sysroot = OstreeManager::LoadSysroot(sysroot_path);
   OstreeRepoPtr repo = LoadRepo(sysroot.get(), &error);
@@ -95,7 +107,8 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
 
   options = g_variant_builder_end(&builder);
 
-  progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &percent_complete));
+  PullMetaStruct mt(target, events_channel);
+  progress.reset(ostree_async_progress_new_and_connect(aktualizr_progress_cb, &mt));
   if (ostree_repo_pull_with_options(repo.get(), remote, options, progress.get(), cancellable, &error) == 0) {
     LOG_ERROR << "Error of pulling image: " << error->message;
     data::InstallOutcome install_outcome(data::UpdateResultCode::kInstallFailed, error->message);

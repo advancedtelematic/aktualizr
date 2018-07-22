@@ -75,6 +75,16 @@ class UptaneTimestampUpdated : public BaseEvent {
   UptaneTimestampUpdated();
 };
 
+class DownloadProgressReport : public BaseEvent {
+ public:
+  Uptane::Target target;
+  std::string description;
+  unsigned int progress;
+  std::string toJson() override;
+
+  explicit DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in);
+};
+
 /**
  * The StartDownload command completed successfully.
  */

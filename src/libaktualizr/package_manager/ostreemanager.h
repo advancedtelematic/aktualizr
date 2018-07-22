@@ -10,6 +10,7 @@
 #include "crypto/keymanager.h"
 #include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
+#include "utilities/events.h"
 #include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";
@@ -17,6 +18,14 @@ const char remote[] = "aktualizr-remote";
 template <typename T>
 struct GObjectFinalizer {
   void operator()(T *e) const { g_object_unref(reinterpret_cast<gpointer>(e)); }
+};
+
+struct PullMetaStruct {
+  PullMetaStruct(Uptane::Target target_in, std::shared_ptr<event::Channel> events_channel_in)
+      : target{std::move(target_in)}, percent_complete{0}, events_channel{std::move(events_channel_in)} {}
+  Uptane::Target target;
+  unsigned int percent_complete;
+  std::shared_ptr<event::Channel> events_channel;
 };
 
 using OstreeDeploymentPtr = std::unique_ptr<OstreeDeployment, GObjectFinalizer<OstreeDeployment>>;
@@ -37,7 +46,8 @@ class OstreeManager : public PackageManagerInterface {
   static OstreeRepoPtr LoadRepo(OstreeSysroot *sysroot, GError **error);
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
   static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
-                                   const KeyManager &keys, const std::string &refhash);
+                                   const KeyManager &keys, const Uptane::Target &target,
+                                   const std::shared_ptr<event::Channel> &events_channel = nullptr);
 
  private:
   PackageConfig config;

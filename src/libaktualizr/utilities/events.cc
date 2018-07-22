@@ -63,6 +63,19 @@ FetchMetaComplete::FetchMetaComplete() { variant = "FetchMetaComplete"; }
 
 UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
 
+DownloadProgressReport::DownloadProgressReport(Uptane::Target target_in, std::string description_in,
+                                               unsigned int progress_in)
+    : target{std::move(target_in)}, description{std::move(description_in)}, progress{progress_in} {
+  variant = "DownloadProgressReport";
+}
+
+std::string DownloadProgressReport::toJson() {
+  Json::Value json;
+  json["fields"].append(target.toDebugJson());
+  json["fields"].append(progress);
+  return BaseEvent::toJson(json);
+}
+
 DownloadComplete::DownloadComplete(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
   variant = "DownloadComplete";
 }

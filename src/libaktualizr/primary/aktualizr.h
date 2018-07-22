@@ -7,8 +7,8 @@
 
 #include "commands.h"
 #include "config/config.h"
-#include "events.h"
 #include "utilities/channel.h"
+#include "utilities/events.h"
 
 /**
  * This class provides the main APIs necessary for launching and controlling
