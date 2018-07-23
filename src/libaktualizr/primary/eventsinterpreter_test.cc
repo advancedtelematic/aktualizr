@@ -16,6 +16,7 @@ TEST(event, RunningMode_full) {
 
   EventsInterpreter intertpreter(conf, events_channel, commands_channel);
   intertpreter.interpret();
+  *commands_channel << std::make_shared<command::SendDeviceData>();
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;
@@ -66,6 +67,7 @@ TEST(event, RunningMode_once) {
 
   EventsInterpreter intertpreter(conf, events_channel, commands_channel);
   intertpreter.interpret();
+  *commands_channel << std::make_shared<command::SendDeviceData>();
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;
@@ -108,6 +110,7 @@ TEST(event, RunningMode_check) {
 
   EventsInterpreter intertpreter(conf, events_channel, commands_channel);
   intertpreter.interpret();
+  *commands_channel << std::make_shared<command::SendDeviceData>();
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;
@@ -141,6 +144,7 @@ TEST(event, RunningMode_download) {
 
   EventsInterpreter intertpreter(conf, events_channel, commands_channel);
   intertpreter.interpret();
+  *commands_channel << std::make_shared<command::CheckUpdates>();
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;
@@ -171,6 +175,7 @@ TEST(event, RunningMode_install) {
 
   EventsInterpreter intertpreter(conf, events_channel, commands_channel);
   intertpreter.interpret();
+  *commands_channel << std::make_shared<command::CheckUpdates>();
   std::shared_ptr<command::BaseCommand> command;
 
   *commands_channel >> command;

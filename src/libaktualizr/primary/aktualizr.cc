@@ -39,6 +39,17 @@ int Aktualizr::run() {
   // run events interpreter in background
   events_interpreter.interpret();
 
+  // launch the first event
+  switch (config_.uptane.running_mode) {
+    case RunningMode::kDownload:
+    case RunningMode::kInstall:
+      *commands_channel << std::make_shared<command::CheckUpdates>();
+      break;
+    default:
+      *commands_channel << std::make_shared<command::SendDeviceData>();
+      break;
+  }
+
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
 

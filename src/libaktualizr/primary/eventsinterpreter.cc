@@ -89,16 +89,6 @@ void EventsInterpreter::run() {
   std::shared_ptr<event::BaseEvent> event;
   auto running_mode = config.uptane.running_mode;
 
-  switch (running_mode) {
-    case RunningMode::kDownload:
-    case RunningMode::kInstall:
-      *commands_channel << std::make_shared<command::CheckUpdates>();
-      break;
-    default:
-      *commands_channel << std::make_shared<command::SendDeviceData>();
-      break;
-  }
-
   while (*events_channel >> event) {
     LOG_INFO << "got " << event->variant << " event";
 
