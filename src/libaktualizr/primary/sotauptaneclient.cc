@@ -566,7 +566,7 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
   std::vector<Uptane::Target> targets = director_repo.getTargets();
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
-    bool is_new = true;
+    bool is_new = false;
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       Uptane::EcuSerial ecu_serial = ecus_it->first;
       Uptane::HardwareIdentifier hw_id = ecus_it->second;
@@ -574,8 +574,8 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
-        is_new = false;
-        break;
+        last_exception = Uptane::BadEcuId(targets_it->filename());
+        return false;
       }
 
       if (hwid_it->second != hw_id) {
@@ -586,14 +586,12 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       auto images_it = installed_images.find(ecu_serial);
       if (images_it == installed_images.end()) {
         LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
-        is_new = false;
         break;
       }
-      if (images_it->second == targets_it->filename()) {
-        // no updates for this image
-        continue;
+      if (images_it->second != targets_it->filename()) {
+        is_new = true;
       }
-      is_new = true;
+      // no updates for this image => continue
     }
     if (is_new) {
       new_targets->push_back(*targets_it);
@@ -605,6 +603,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
 bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
+  std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
@@ -612,13 +611,19 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       continue;
     }
+    downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
     uptane_fetcher.fetchVerifyTarget(*images_target);
   }
   if (!targets.empty()) {
-    *events_channel << std::make_shared<event::DownloadComplete>(targets);
-    sendDownloadReport();
+    if (targets.size() == downloaded_targets.size()) {
+      *events_channel << std::make_shared<event::DownloadComplete>(downloaded_targets);
+      sendDownloadReport();
+    } else {
+      LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
+                << " were successfully downloaded. Report not sent.";
+    }
   } else {
     LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
     *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
@@ -918,7 +923,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
     LOG_ERROR << "No director targets metadata to send";
     return;
   }
-  if (!storage->loadNonRoot(&meta.image_root, Uptane::RepositoryType::Images, Uptane::Role::Root())) {
+  if (!storage->loadLatestRoot(&meta.image_root, Uptane::RepositoryType::Images)) {
     LOG_ERROR << "No images root metadata to send";
     return;
   }

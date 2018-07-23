@@ -249,7 +249,6 @@ class Root;
 class BaseMeta {
  public:
   BaseMeta() = default;
-  ;
   explicit BaseMeta(const Json::Value &json);
   BaseMeta(RepositoryType repo, const Json::Value &json, Root &root);
   int version() const { return version_; }
@@ -336,7 +335,6 @@ class TimestampMeta : public BaseMeta {
   explicit TimestampMeta(const Json::Value &json);
   TimestampMeta(RepositoryType repo, const Json::Value &json, Root &root);
   TimestampMeta() = default;
-  ;
   std::vector<Hash> snapshot_hashes() const { return snapshot_hashes_; };
   int64_t snapshot_size() const { return snapshot_size_; };
   int snapshot_version() const { return snapshot_version_; };

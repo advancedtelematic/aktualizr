@@ -90,6 +90,14 @@ class NonUniqueSignatures : public Exception {
       : Exception(reponame, "The role " + role + " had non-unique signatures.") {}
   ~NonUniqueSignatures() noexcept override = default;
 };
+
+class BadEcuId : public Exception {
+ public:
+  BadEcuId(const std::string& reponame)
+      : Exception(reponame, "The target had an ECU ID that did not match the client's configured ECU id.") {}
+  ~BadEcuId() noexcept override = default;
+};
+
 }  // namespace Uptane
 
 #endif
