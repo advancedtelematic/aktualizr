@@ -92,20 +92,23 @@ HttpClient::~HttpClient() {
 }
 
 HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
+  CURL* curl_get = curl_easy_duphandle(curl);
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+  curl_easy_setopt(curl_get, CURLOPT_POSTFIELDS, "");
+  curl_easy_setopt(curl_get, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_get, CURLOPT_HTTPGET, 1L);
   if (maxsize >= 0) {
     // it will only take effect if the server declares the size in advance,
     //    writeString callback takes care of the other case
-    curl_easy_setopt(curl, CURLOPT_MAXFILESIZE_LARGE, maxsize);
+    curl_easy_setopt(curl_get, CURLOPT_MAXFILESIZE_LARGE, maxsize);
   }
-  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
-  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  curl_easy_setopt(curl_get, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curl_easy_setopt(curl_get, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   LOG_DEBUG << "GET " << url;
-  return perform(curl, RETRY_TIMES, maxsize);
+  HttpResponse response = perform(curl_get, RETRY_TIMES, maxsize);
+  curl_easy_cleanup(curl_get);
+  return response;
 }
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
@@ -216,6 +219,7 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   }
 
   curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_download, CURLOPT_HTTPGET, 1L);
   curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);
   curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, userp);
