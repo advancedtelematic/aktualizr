@@ -610,9 +610,8 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     if (images_target == nullptr) {
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       continue;
-    } else {
-      downloaded_targets.push_back(*it);
     }
+    downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
     uptane_fetcher.fetchVerifyTarget(*images_target);
