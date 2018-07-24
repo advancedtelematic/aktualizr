@@ -100,6 +100,18 @@ int main(int argc, char *argv[]) {
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
     Aktualizr aktualizr(config);
+
+    // launch the first event
+    switch (config.uptane.running_mode) {
+      case RunningMode::kDownload:
+      case RunningMode::kInstall:
+        aktualizr.sendCommand(std::make_shared<command::CheckUpdates>());
+        break;
+      default:
+        aktualizr.sendCommand(std::make_shared<command::SendDeviceData>());
+        break;
+    }
+
     return aktualizr.run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
