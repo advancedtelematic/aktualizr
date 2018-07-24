@@ -31,6 +31,8 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
+    LOG_TRACE << "meta with role " << role.ToString() << " in repo " << Uptane::RepoString(repo)
+              << " not present in db";
     return;
   } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
@@ -123,7 +125,12 @@ bool SQLStorage::loadPrimaryPublic(std::string* public_key) {
   }
 
   auto statement = db.prepareStatement("SELECT public FROM primary_keys LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "No public key in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get public key: " << db.errmsg();
     return false;
   }
@@ -149,7 +156,12 @@ bool SQLStorage::loadPrimaryPrivate(std::string* private_key) {
   }
 
   auto statement = db.prepareStatement("SELECT private FROM primary_keys LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "No private key in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get private key: " << db.errmsg();
     return false;
   }
@@ -303,7 +315,12 @@ bool SQLStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* p
     return false;
   }
   auto statement = db.prepareStatement("SELECT ca_cert, client_cert, client_pkey FROM tls_creds LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "Tls creds not present";
+    return false;
+  } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
     return false;
   }
@@ -355,8 +372,13 @@ bool SQLStorage::loadTlsCa(std::string* ca) {
   }
 
   auto statement = db.prepareStatement("SELECT ca_cert FROM tls_creds LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "ca_cert not present";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get ca_cert: " << db.errmsg();
     return false;
   }
 
@@ -381,8 +403,13 @@ bool SQLStorage::loadTlsCert(std::string* cert) {
   }
 
   auto statement = db.prepareStatement("SELECT client_cert FROM tls_creds LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get tls_creds: " << db.errmsg();
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "client_cert not present in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get client_cert: " << db.errmsg();
     return false;
   }
 
@@ -408,7 +435,11 @@ bool SQLStorage::loadTlsPkey(std::string* pkey) {
 
   auto statement = db.prepareStatement("SELECT client_pkey FROM tls_creds LIMIT 1;");
 
-  if (statement.step() != SQLITE_ROW) {
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "client_pkey not present in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get client_pkey: " << db.errmsg();
     return false;
   }
@@ -613,7 +644,12 @@ bool SQLStorage::loadDeviceId(std::string* device_id) {
   }
 
   auto statement = db.prepareStatement("SELECT device_id FROM device_info LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    LOG_TRACE << "device_id not present in db";
+    return false;
+  } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get device ID: " << db.errmsg();
     return false;
   }
@@ -684,8 +720,12 @@ bool SQLStorage::loadEcuRegistered() {
   }
 
   auto statement = db.prepareStatement("SELECT is_registered FROM device_info LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
-    LOG_ERROR << "Can't get device ID: " << db.errmsg();
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    return false;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get is_registered in device_info " << db.errmsg();
     return false;
   }
 
@@ -1018,7 +1058,12 @@ bool SQLStorage::loadInstallationResult(data::OperationResult* result) {
   }
 
   auto statement = db.prepareStatement("SELECT id, result_code, result_text FROM installation_result LIMIT 1;");
-  if (statement.step() != SQLITE_ROW) {
+
+  int statement_result = statement.step();
+  if (statement_result == SQLITE_DONE) {
+    LOG_TRACE << "installation_result not present in db";
+    return false;
+  } else if (statement_result != SQLITE_ROW) {
     LOG_ERROR << "Can't get installation_result: " << db.errmsg();
     return false;
   }
