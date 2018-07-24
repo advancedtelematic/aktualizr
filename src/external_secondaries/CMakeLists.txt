@@ -28,6 +28,7 @@ set(ISOTP_SRC ${ISOTP_PATH_PREFIX}/isotp/isotp.c
     ${BITFIELD_PATH_PREFIX}/bitfield/bitfield.c)
 set(ISOTP_TEST_SRC test_isotp_interface.cc isotp_allocate.cc isotp_protocol.cc )
 set(ISOTP_TEST_HEADERS test_isotp_interface.h)
+set_source_files_properties(${ISOTP_SRC} PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-conversion")
 aktualizr_source_file_checks(${ISOTP_TEST_SRC} ${ISOTP_TEST_HEADERS})
 
 if(BUILD_ISOTP)
