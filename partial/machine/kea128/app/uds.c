@@ -83,7 +83,6 @@ int send_uds_positive_transferexit(uint16_t sa) {
 }
 
 int send_uds_positive_readdata(uint16_t sa, uint16_t did, const uint8_t* data, uint16_t size) {
-	struct can_pack cf_pack;
 	if(size+3 > OUR_MAX_ISO_TP_MESSAGE_SIZE)
 		return 0;
 

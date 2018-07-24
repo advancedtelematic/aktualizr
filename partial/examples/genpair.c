@@ -5,6 +5,9 @@
 // main <public_key_in_hex> <private_key_in_hex> /path/to/message
 int main(int argc, const char** argv)
 {
+        (void) argc;
+        (void) argv;
+
 	uint8_t public[EDSIGN_PUBLIC_KEY_SIZE];
 	uint8_t secret[EDSIGN_SECRET_KEY_SIZE];
 

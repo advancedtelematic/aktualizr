@@ -9,8 +9,6 @@ uint8_t flash_mem_golden[FLASH_SIZE];
 uint32_t flash_start_address;
 
 int flash_write_sector(uint32_t addr, const uint8_t* data) {
-	int i;
-
 	// address is not aligned
         if(addr % FLASH_SECTOR_SIZE)
                 return 0;
@@ -20,11 +18,10 @@ int flash_write_sector(uint32_t addr, const uint8_t* data) {
                 return 0;
 
 	memcpy(flash_mem+addr, data, FLASH_SECTOR_SIZE);
+        return 1;
 }
 
 int flash_erase_sector(uint32_t addr) {
-	int i;
-
 	// address is not aligned
         if(addr % FLASH_SECTOR_SIZE)
                 return 0;
@@ -34,6 +31,7 @@ int flash_erase_sector(uint32_t addr) {
                 return 0;
 
 	memset(flash_mem+addr, 0xff, FLASH_SECTOR_SIZE);
+        return 1;
 }
 
 
@@ -42,6 +40,9 @@ int flash_erase_sector(uint32_t addr) {
 #define CHUNK_SIZE 64
 
 int main(int argc, char** argv) {
+        (void) argc;
+        (void) argv;
+
 	uint8_t buf[CHUNK_SIZE];
 	uint8_t val = 0;
 	int i;

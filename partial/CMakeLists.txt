@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(uptane-partial C ASM)
-if(MACHINE)
-	if(${MACHINE} STREQUAL "kea128")
+if(LIBUPTINY_MACHINE)
+	if(${LIBUPTINY_MACHINE} STREQUAL "kea128")
 		find_path(
 			NXP_TOOLCHAIN_PATH
 			NAMES Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc
@@ -29,7 +28,7 @@ if(MACHINE)
 
 		include_directories(include ${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2/EWL_C/include ${KEA128LIB_PREFIX}/include machine/kea128/app)
 
-		set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/machine/kea128/SKEAZ_flash.ld")
+		set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/partial/machine/kea128/SKEAZ_flash.ld")
                 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ${LINKER_SCRIPT} -Xlinker --gc-sections -Xlinker -Map=kea128.map")
 		set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
@@ -42,7 +41,7 @@ if(MACHINE)
 		if(NOT DEFINED UPTANE_HARDWARE_ID)
 			set(UPTANE_HARDWARE_ID 'kea128')
 		endif()
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__START=__thumb_startup -DCLOCK_SETUP=1 -DCAN_ID=${CAN_ID} -DUPTANE_HARDWARE_ID=\\\"${UPTANE_HARDWARE_ID}\\\" -DUPTANE_ECU_SERIAL=\\\"${UPTANE_ECU_SERIAL}\\\" -DBYTE_ORDER_LITTLE -march=armv6-m -mtune=cortex-m0plus -mthumb --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs -g -Os -std=c99 -Wno-main -ffunction-sections -fdata-sections")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem ${NXP_TOOLCHAIN_PATH}/Cross_Tools/gcc-arm-none-eabi-4_9/arm-none-eabi/include -isystem ${NXP_TOOLCHAIN_PATH}/Cross_Tools/gcc-arm-none-eabi-4_9/lib/gcc/arm-none-eabi/4.9.3/include -D__START=__thumb_startup -DCLOCK_SETUP=1 -DCAN_ID=${CAN_ID} -DUPTANE_HARDWARE_ID=\\\"${UPTANE_HARDWARE_ID}\\\" -DUPTANE_ECU_SERIAL=\\\"${UPTANE_ECU_SERIAL}\\\" -DBYTE_ORDER_LITTLE -march=armv6-m -mtune=cortex-m0plus -mthumb --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs -g -Os -std=c99 -Wno-main -ffunction-sections -fdata-sections")
 		set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -x assembler-with-cpp -D__START=__thumb_startup -Os -march=armv6-m -mtune=cortex-m0plus -mthumb -ffunction-sections -fdata-sections --sysroot=${NXP_TOOLCHAIN_PATH}/S32DS/arm_ewl2 -specs=ewl_c_noio.specs")
 
 		add_library(kea128_lib ${KEA128LIB_SOURCES})
@@ -53,38 +52,53 @@ if(MACHINE)
 	endif()
 endif()
 
-set(C25519_SOURCES ed25519/ed25519.c
+set(ED25519_SOURCES ed25519/ed25519.c
 	ed25519/edsign.c
 	ed25519/f25519.c
 	ed25519/fprime.c
 	ed25519/sha512.c
 	)
 
-set(C25519_HEADERS ed25519/ed25519.h
+set(ED25519_HEADERS ed25519/ed25519.h
 	ed25519/edsign.h
 	ed25519/f25519.h
 	ed25519/fprime.h
 	ed25519/sha512.h
 	)
 
-set(UPTANE_SOURCES uptane/crypto.c
-	uptane/targets.c
-	uptane/uptane_time.c
-	uptane/readjson.c
+set(LIBUPTINY_SOURCES libuptiny/base64.c
+	libuptiny/crypto_common.c
+	libuptiny/json_common.c
+	libuptiny/root_signed.c
+	libuptiny/root.c
+	libuptiny/signatures.c
+	libuptiny/targets.c
+	libuptiny/uptane_time.c
+	libuptiny/utils.c
 	)
 
-set(UPTANE_HEADERS uptane/crypto.h
-	uptane/targets.h
-	uptane/uptane_time.h
-	uptane/readjson.h
+set(LIBUPTINY_HEADERS libuptiny/base64.h
+	libuptiny/common_data_api.h
+	libuptiny/crypto_api.h
+	libuptiny/crypto_common.h
+	libuptiny/debug.h
+	libuptiny/json_common.h
+	libuptiny/root_signed.h
+	libuptiny/root.h
+	libuptiny/signatures.h
+	libuptiny/state_api.h
+	libuptiny/targets.h
+	libuptiny/uptane_time.h
+	libuptiny/utils.h
 	)
 
-set(LIBRARY_SOURCES ${C25519_SOURCES} ${UPTANE_SOURCES})
-set(LIBRARY_HEADERS ${C25519_HEADERS} ${UPTANE_HEADERS})
+aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
-include_directories(. ed25519 uptane)
-add_library(uptane_partial_lib STATIC ${LIBRARY_SOURCES})
-target_compile_options(uptane_partial_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+include_directories(. ed25519 libuptiny extern)
+add_library(uptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
+target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -DJSMN_STRICT -DJSMN_PARENT_LINKS)
+set_source_files_properties(extern/jsmn/jsmn.c PROPERTIES COMPILE_FLAGS "-Wno-error=sign-conversion -Wno-error=switch-default")
+set_source_files_properties(${ED25519_SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-error=sign-compare -Wno-error=sign-conversion -Wno-error=conversion")
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
 set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
@@ -95,28 +109,33 @@ set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
 	extern/isotp-c/deps/bitfield-c/src/bitfield/bitarray.c
 	extern/isotp-c/deps/bitfield-c/src/bitfield/bitfield.c
 	)
-add_library(isotp_lib STATIC ${ISOTP_SOURCES})
-target_compile_options(isotp_lib PUBLIC -Os -g -Wpedantic -Wno-long-long -fno-inline-small-functions -fno-inline-functions-called-once)
+add_library(isotp STATIC ${ISOTP_SOURCES})
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-error=conversion -Wno-error=sign-conversion)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-error=conversion -Wno-error=sign-conversion -Wno-error=gnu-designator)
+endif ()
 
 # Machine is not set, building tests to run in Linux environment
-if(NOT MACHINE)
+if(NOT LIBUPTINY_MACHINE)
 	enable_testing()
 
-	add_executable(verify_targets examples/verify_targets.c)
-	target_link_libraries(verify_targets uptane_partial_lib)
-	target_compile_options(verify_targets PUBLIC -O0 -g)
-	set_target_properties(verify_targets PROPERTIES LINK_FLAGS "-Xlinker -Map=verify_targets.map")
-	
-	add_executable(genpair ${C25519_SOURCES} examples/genpair.c)
-	add_executable(sign ${C25519_SOURCES} examples/sign.c)
+        set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.c ${ED25519_SOURCES})
 
-	set(test_exec ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/test.sh)
-	add_test(NAME test_valid COMMAND ${test_exec} pass ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
-	add_test(NAME test_invalid COMMAND ${test_exec} fail ${CMAKE_CURRENT_SOURCE_DIR}/tests/targets/data.json)
+        set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-error=sign-compare -Wno-error=sign-conversion -Wno-error=conversion")
 
-	add_executable(test_flash_load machine/kea128/app/flash_load.c machine/kea128/tests/test_flash_load.c)
-	target_include_directories(test_flash_load PUBLIC machine/kea128/drivers/include machine/kea128/app)
-	target_compile_options(test_flash_load PUBLIC -m32)
-	set_target_properties(test_flash_load PROPERTIES LINK_FLAGS  "-m32")
-	add_test(NAME test_flash_load COMMAND test_flash_load)
+        add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
+
+        add_aktualizr_test(NAME tiny_signatures SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_signatures uptiny)
+
+        add_aktualizr_test(NAME tiny_signed_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_signed_root uptiny)
+
+        add_aktualizr_test(NAME tiny_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_root uptiny)
+
+        add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_targets uptiny)
 endif()

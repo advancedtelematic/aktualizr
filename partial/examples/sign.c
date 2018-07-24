@@ -5,6 +5,8 @@
 // main <public_key_in_hex> <private_key_in_hex> /path/to/message
 int main(int argc, const char** argv)
 {
+        (void) argc;
+
 	uint8_t signature[EDSIGN_SIGNATURE_SIZE];
 	uint8_t public[EDSIGN_PUBLIC_KEY_SIZE];
 	uint8_t secret[EDSIGN_SECRET_KEY_SIZE];
@@ -12,7 +14,7 @@ int main(int argc, const char** argv)
 	// no input check is performed
 	uint8_t hex_byte[3];
 
-	for(int i; i < 32; i++) {
+	for(int i = 0; i < 32; i++) {
 		hex_byte[0] = argv[1][2*i];
 		hex_byte[1] = argv[1][2*i + 1];
 		hex_byte[2] = 0;
