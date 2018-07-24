@@ -207,6 +207,11 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
     sql_storage->storeEcuRegistered();
   }
 
+  std::vector<MisconfiguredEcu> ecus;
+  if (fs_storage->loadMisconfiguredEcus(&ecus)) {
+    sql_storage->storeMisconfiguredEcus(ecus);
+  }
+
   std::vector<Uptane::Target> installed_versions;
   std::string current_hash = fs_storage->loadInstalledVersions(&installed_versions);
   if (installed_versions.size() != 0u) {
@@ -246,6 +251,7 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
   fs_storage->clearDeviceId();
   fs_storage->clearEcuSerials();
   fs_storage->clearEcuRegistered();
+  fs_storage->clearMisconfiguredEcus();
   fs_storage->clearInstalledVersions();
   fs_storage->clearMetadata();
   fs_storage->cleanUp();
