@@ -21,6 +21,7 @@ class EventsInterpreter {
 
  private:
   std::shared_ptr<command::BaseCommand> handle_cycle(event::BaseEvent &event, bool forever);
+  std::shared_ptr<command::BaseCommand> handle_manual(event::BaseEvent &event);
   std::shared_ptr<command::BaseCommand> handle_check(event::BaseEvent &event);
   std::shared_ptr<command::BaseCommand> handle_download(event::BaseEvent &event);
   std::shared_ptr<command::BaseCommand> handle_install(event::BaseEvent &event);

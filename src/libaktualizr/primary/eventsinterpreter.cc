@@ -22,7 +22,7 @@ EventsInterpreter::~EventsInterpreter() {
 
 void EventsInterpreter::interpret() { thread = std::thread(std::bind(&EventsInterpreter::run, this)); }
 
-std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::BaseEvent &event, bool forever) {
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::BaseEvent &event, const bool forever) {
   // Handles everything, in sequence
   if (event.variant == "SendDeviceDataComplete") {
     return std::make_shared<command::FetchMeta>();
@@ -46,6 +46,17 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::Bas
   } else {
     return std::make_shared<command::Shutdown>();
   }
+}
+
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_manual(event::BaseEvent &event) {
+  // Handles everything and then waits.
+  if (event.variant == "SendDeviceDataComplete") {
+    return std::make_shared<command::FetchMeta>();
+  } else if (event.variant == "FetchMetaComplete") {
+    return std::make_shared<command::CheckUpdates>();
+  }
+
+  return nullptr;
 }
 
 std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_check(event::BaseEvent &event) {
@@ -107,6 +118,9 @@ void EventsInterpreter::run() {
       case RunningMode::kOnce:
         next_command = handle_cycle(*event, false);
         break;
+      case RunningMode::kManual:
+        next_command = handle_manual(*event);
+        break;
       case RunningMode::kCheck:
         next_command = handle_check(*event);
         break;
@@ -121,8 +135,10 @@ void EventsInterpreter::run() {
     }
 
     if (next_command == nullptr) {
-      LOG_ERROR << "No command to run after event " << event->variant << " in mode "
-                << StringFromRunningMode(running_mode);
+      if (running_mode != RunningMode::kManual) {
+        LOG_ERROR << "No command to run after event " << event->variant << " in mode "
+                  << StringFromRunningMode(running_mode);
+      }
     } else {
       *commands_channel << next_command;
     }

@@ -45,7 +45,7 @@ int Aktualizr::run() {
   return EXIT_SUCCESS;
 }
 
-void Aktualizr::sendCommand(std::shared_ptr<command::BaseCommand> command) { *commands_channel_ << command; }
+void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
 
 void Aktualizr::setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
   (*sig_).connect(handler);

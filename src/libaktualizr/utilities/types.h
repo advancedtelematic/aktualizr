@@ -57,7 +57,7 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
   return is;
 }
 
-enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall };
+enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall, kManual };
 RunningMode RunningModeFromString(const std::string& mode);
 std::string StringFromRunningMode(RunningMode mode);
 

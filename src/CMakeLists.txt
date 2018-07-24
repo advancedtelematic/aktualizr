@@ -12,6 +12,7 @@ add_subdirectory("aktualizr_repo")
 add_subdirectory("aktualizr_check_discovery")
 add_subdirectory("cert_provider")
 add_subdirectory("implicit_writer")
+add_subdirectory("hmi_stub")
 
 add_subdirectory("external_secondaries")
 

@@ -17,7 +17,7 @@ class Aktualizr {
   Aktualizr& operator=(const Aktualizr&) = delete;
 
   int run();
-  void sendCommand(std::shared_ptr<command::BaseCommand> command);
+  void sendCommand(const std::shared_ptr<command::BaseCommand>& command);
   void setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:

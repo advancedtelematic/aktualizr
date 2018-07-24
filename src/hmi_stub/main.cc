@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
@@ -12,19 +13,23 @@
 
 namespace bpo = boost::program_options;
 
+bool shutting_down{false};
+std::vector<Uptane::Target> updates;
+
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
+    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMeta, StartDownload, UptaneInstall\n";
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current hmi_stub version is: " << AKTUALIZR_VERSION << "\n";
     exit(EXIT_SUCCESS);
   }
 }
 
 bpo::variables_map parse_options(int argc, char *argv[]) {
-  bpo::options_description description("aktualizr command line options");
+  bpo::options_description description("HMI stub interface for libaktualizr");
   // clang-format off
   // Try to keep these options in the same order as Config::updateFromCommandLine().
   // The first three are commandline only.
@@ -32,18 +37,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
-      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, check, download, or install")
-      ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
-      ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
-      ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
-      ("ostree-server", bpo::value<std::string>(), "url of the ostree repository")
-      ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
-      ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
-      ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
-      ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
-      ("disable-keyid-validation", "deprecated")
-      ("gateway-socket", bpo::value<bool>(), "deprecated");
+      ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)");
   // clang-format on
 
   bpo::variables_map vm;
@@ -81,39 +75,67 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
+void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+  std::cout << "Received " << event->variant << " event\n";
+  if (event->variant == "UpdateAvailable") {
+    updates = dynamic_cast<event::UpdateAvailable *>(event.get())->updates;
+  } else if (event->variant == "InstallComplete") {
+    updates.clear();
+  }
+}
+
+void get_user_input(const std::shared_ptr<Aktualizr> &aktualizr) {
+  std::string buffer;
+  while (!shutting_down && std::getline(std::cin, buffer)) {
+    if (buffer == "Shutdown") {
+      aktualizr->sendCommand(std::make_shared<command::Shutdown>());
+      return;
+    } else if (buffer == "SendDeviceData") {
+      aktualizr->sendCommand(std::make_shared<command::SendDeviceData>());
+    } else if (buffer == "FetchMeta") {
+      aktualizr->sendCommand(std::make_shared<command::FetchMeta>());
+    } else if (buffer == "StartDownload") {
+      aktualizr->sendCommand(std::make_shared<command::StartDownload>(updates));
+    } else if (buffer == "UptaneInstall") {
+      aktualizr->sendCommand(std::make_shared<command::UptaneInstall>(updates));
+    } else if (!buffer.empty()) {
+      std::cout << "Unknown command.\n";
+    }
+  }
+}
+
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
-  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
+  LOG_INFO << "hmi_stub version " AKTUALIZR_VERSION " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
+  std::thread ui_thread;
+
   try {
-    if (geteuid() != 0) {
-      LOG_WARNING << "\033[31mAktualizr is currently running as non-root and may not work as expected! Aktualizr "
-                     "should be run as root for proper functionality.\033[0m\n";
-    }
     Config config(commandline_map);
+    config.uptane.running_mode = RunningMode::kManual;
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
-    Aktualizr aktualizr(config);
+    std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
-    // launch the first event
-    switch (config.uptane.running_mode) {
-      case RunningMode::kDownload:
-      case RunningMode::kInstall:
-        aktualizr.sendCommand(std::make_shared<command::CheckUpdates>());
-        break;
-      default:
-        aktualizr.sendCommand(std::make_shared<command::SendDeviceData>());
-        break;
-    }
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+    aktualizr->setSignalHandler(f_cb);
 
-    return aktualizr.run();
+    ui_thread = std::thread(get_user_input, aktualizr);
+
+    int r = aktualizr->run();
+    shutting_down = true;
+    ui_thread.join();
+    return r;
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
+    if (ui_thread.joinable()) {
+      ui_thread.join();
+    }
     return -1;
   }
 }
