@@ -1,15 +1,19 @@
 #include "eventsinterpreter.h"
+
 #include <unistd.h>
 #include <memory>
 #include <utility>
 
 #include "config/config.h"
 
-EventsInterpreter::EventsInterpreter(const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                                     std::shared_ptr<command::Channel> commands_channel_in)
+EventsInterpreter::EventsInterpreter(
+    const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
+    std::shared_ptr<command::Channel> commands_channel_in,
+    std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig_in)
     : config(config_in),
-      events_channel(std::move(std::move(events_channel_in))),
-      commands_channel(std::move(std::move(commands_channel_in))) {}
+      events_channel(std::move(events_channel_in)),
+      commands_channel(std::move(commands_channel_in)),
+      sig(std::move(sig_in)) {}
 
 EventsInterpreter::~EventsInterpreter() {
   events_channel->close();
@@ -91,6 +95,9 @@ void EventsInterpreter::run() {
 
   while (*events_channel >> event) {
     LOG_INFO << "got " << event->variant << " event";
+    if (sig) {
+      (*sig)(event);
+    }
 
     std::shared_ptr<command::BaseCommand> next_command;
     switch (running_mode) {
