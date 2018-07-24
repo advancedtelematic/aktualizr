@@ -13,7 +13,7 @@ class ExampleFlasher : public ECUInterface {
                                 const std::string &firmware) override;
 
  private:
-  int loglevel_;
+  unsigned int loglevel_;
 };
 
 #endif  // EXAMPLE_FLASHER_H_
