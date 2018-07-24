@@ -1,0 +1,9 @@
+<map id="Uptane::SecondaryInterface" name="Uptane::SecondaryInterface">
+<area shape="rect" id="node2" href="$class_secondary_adapter.html" title="SecondaryAdapter" alt="" coords="267,5,397,32"/>
+<area shape="rect" id="node3" href="$class_secondary_interface_mock.html" title="SecondaryInterfaceMock" alt="" coords="249,56,415,83"/>
+<area shape="rect" id="node4" href="$class_short_circuit_secondary.html" title="ShortCircuitSecondary" alt="" coords="255,107,409,133"/>
+<area shape="rect" id="node5" href="$class_uptane_1_1_iso_tp_secondary.html" title="Uptane::IsoTpSecondary" alt="" coords="249,157,415,184"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_managed_secondary.html" title="Uptane::ManagedSecondary" alt="" coords="239,208,425,235"/>
+<area shape="rect" id="node8" href="$class_uptane_1_1_partial_verification_secondary.html" title="Uptane::PartialVerification\lSecondary" alt="" coords="245,259,419,301"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_virtual_secondary.html" title="Uptane::VirtualSecondary" alt="" coords="473,208,644,235"/>
+</map>

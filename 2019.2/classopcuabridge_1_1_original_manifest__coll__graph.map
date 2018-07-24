@@ -1,0 +1,5 @@
+<map id="opcuabridge::OriginalManifest" name="opcuabridge::OriginalManifest">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::OriginalManifest \&gt;" alt="" coords="149,5,357,61"/>
+<area shape="rect" id="node3" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::OriginalManifest \&gt;" alt="" coords="154,85,353,141"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="195,165,311,192"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="EphemeralStorage" name="EphemeralStorage">
+<area shape="rect" id="node2" href="$class_s_q_l_storage.html" title="SQLStorage" alt="" coords="189,377,287,404"/>
+<area shape="rect" id="node3" href="$class_s_q_l_storage_base.html" title="SQLStorageBase" alt="" coords="107,301,236,328"/>
+<area shape="rect" id="node4" href="$class_storage_lock.html" title="StorageLock" alt="" coords="5,212,108,239"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="132,212,219,239"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="106,5,245,47"/>
+<area shape="rect" id="node7" href="$class_i_nv_storage.html" title="INvStorage" alt="" coords="265,301,360,328"/>
+<area shape="rect" id="node8" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="261,212,375,239"/>
+<area shape="rect" id="node9" href="$class_based_path.html" title="BasedPath" alt="" coords="273,13,363,39"/>
+</map>

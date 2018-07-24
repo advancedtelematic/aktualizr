@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Aktualizr",
+            "type": "gdb",
+            "request": "launch",
+            "target": "./src/aktualizr",
+            "arguments": "--config ../config/sota_local.toml --loglevel 0",
+            "cwd": "${workspaceRoot}/build"
+        },
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Attach to valgrind vgdb",
+            "executable": "./src/aktualizr",
+            "target": "| vgdb",
+            "remote": true,
+            "cwd": "${workspaceRoot}/build"
+        },
+    ]
+}

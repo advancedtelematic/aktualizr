@@ -1,0 +1,14 @@
+<map id="AktualizrSecondaryConfig" name="AktualizrSecondaryConfig">
+<area shape="rect" id="node2" href="$class_base_config.html" title="BaseConfig" alt="" coords="613,79,708,106"/>
+<area shape="rect" id="node4" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="604,195,717,222"/>
+<area shape="rect" id="node5" href="$class_based_path.html" title="BasedPath" alt="" coords="223,221,314,247"/>
+<area shape="rect" id="node13" href="$struct_import_config.html" title="ImportConfig" alt="" coords="607,279,714,306"/>
+<area shape="rect" id="node6" href="$struct_aktualizr_secondary_uptane_config.html" title="AktualizrSecondaryUptane\lConfig" alt="" coords="563,331,758,372"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="225,445,312,471"/>
+<area shape="rect" id="node10" href="$struct_package_config.html" title="PackageConfig" alt="" coords="602,397,719,423"/>
+<area shape="rect" id="node11" href="$struct_aktualizr_secondary_net_config.html" title="AktualizrSecondaryNetConfig" alt="" coords="555,447,767,474"/>
+<area shape="rect" id="node12" href="$struct_p11_config.html" title="P11Config" alt="" coords="617,498,704,525"/>
+<area shape="rect" id="node14" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="593,549,728,575"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="5,437,144,479"/>
+<area shape="rect" id="node9" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="607,599,714,626"/>
+</map>

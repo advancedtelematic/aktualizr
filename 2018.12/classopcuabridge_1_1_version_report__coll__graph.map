@@ -1,0 +1,11 @@
+<map id="opcuabridge::VersionReport" name="opcuabridge::VersionReport">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::VersionReport \&gt;" alt="" coords="1673,5,1887,57"/>
+<area shape="rect" id="node3" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::VersionReport \&gt;" alt="" coords="1679,81,1881,133"/>
+<area shape="rect" id="node4" href="$classopcuabridge_1_1_e_c_u_version_manifest.html" title="opcuabridge::ECUVersionManifest" alt="" coords="1667,157,1892,183"/>
+<area shape="rect" id="node6" href="$classopcuabridge_1_1_signature.html" title="opcuabridge::Signature" alt="" coords="601,85,760,111"/>
+<area shape="rect" id="node7" href="$classopcuabridge_1_1_hash.html" title="opcuabridge::Hash" alt="" coords="354,148,487,173"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="180,175,259,200"/>
+<area shape="rect" id="node10" href="$classopcuabridge_1_1_e_c_u_version_manifest_signed.html" title="opcuabridge::ECUVersionManifest\lSigned" alt="" coords="1225,189,1450,228"/>
+<area shape="rect" id="node11" href="$classopcuabridge_1_1_image.html" title="opcuabridge::Image" alt="" coords="870,196,1009,221"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="5,168,131,207"/>
+</map>

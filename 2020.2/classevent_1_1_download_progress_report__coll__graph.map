@@ -1,0 +1,6 @@
+<map id="event::DownloadProgressReport" name="event::DownloadProgressReport">
+<area shape="rect" id="node1" title="A report for a download in progress." alt="" coords="5,261,236,288"/>
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects." alt="" coords="206,185,342,212"/>
+<area shape="rect" id="node3" title="STL class." alt="" coords="83,96,169,123"/>
+<area shape="rect" id="node4" title="STL class." alt="" coords="57,5,195,47"/>
+</map>

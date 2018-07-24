@@ -1,0 +1,4 @@
+<map id="Config" name="Config">
+<area shape="rect" id="node1" title="Configuration object for an aktualizr instance running on a primary ECU." alt="" coords="21,80,84,107"/>
+<area shape="rect" id="node2" href="$class_base_config.html" title=" " alt="" coords="5,5,100,32"/>
+</map>

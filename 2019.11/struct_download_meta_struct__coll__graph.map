@@ -1,0 +1,5 @@
+<map id="DownloadMetaStruct" name="DownloadMetaStruct">
+<area shape="rect" id="node2" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="5,102,123,129"/>
+<area shape="rect" id="node4" href="$class_storage_target_w_handle.html" title="StorageTargetWHandle" alt="" coords="153,5,324,32"/>
+<area shape="rect" id="node5" href="$classapi_1_1_flow_control_token.html" title="Provides a thread&#45;safe way to pause and terminate task execution. " alt="" coords="355,102,520,129"/>
+</map>

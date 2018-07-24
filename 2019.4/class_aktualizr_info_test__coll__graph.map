@@ -1,0 +1,21 @@
+<map id="AktualizrInfoTest" name="AktualizrInfoTest">
+<area shape="rect" id="node3" href="$class_config.html" title="Configuration object for an aktualizr instance running on a primary ECU. " alt="" coords="1389,388,1449,415"/>
+<area shape="rect" id="node4" href="$class_base_config.html" title="BaseConfig" alt="" coords="1128,211,1219,237"/>
+<area shape="rect" id="node6" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="1121,261,1226,288"/>
+<area shape="rect" id="node7" href="$class_based_path.html" title="BasedPath" alt="" coords="804,305,891,332"/>
+<area shape="rect" id="node19" href="$struct_import_config.html" title="ImportConfig" alt="" coords="1125,312,1222,339"/>
+<area shape="rect" id="node8" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="655,405,734,432"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="181,593,261,620"/>
+<area shape="rect" id="node12" href="$struct_package_config.html" title="PackageConfig" alt="" coords="960,465,1071,492"/>
+<area shape="rect" id="node13" href="$struct_provision_config.html" title="ProvisionConfig" alt="" coords="637,527,752,553"/>
+<area shape="rect" id="node14" href="$struct_p11_config.html" title="P11Config" alt="" coords="974,608,1057,635"/>
+<area shape="rect" id="node15" href="$struct_uptane_config.html" title="UptaneConfig" alt="" coords="1122,640,1225,667"/>
+<area shape="rect" id="node17" href="$class_uptane_1_1_secondary_config.html" title="Uptane::SecondaryConfig" alt="" coords="441,775,613,801"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="5,586,132,627"/>
+<area shape="rect" id="node11" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="1124,691,1223,717"/>
+<area shape="rect" id="node18" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="1114,160,1233,187"/>
+<area shape="rect" id="node20" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="1112,363,1235,389"/>
+<area shape="rect" id="node21" href="$class_aktualizr_info_test_1_1_aktualizr_info_process.html" title="AktualizrInfoTest::\lAktualizrInfoProcess" alt="" coords="1348,439,1491,481"/>
+<area shape="rect" id="node22" href="$class_process.html" title="Process" alt="" coords="1138,741,1209,768"/>
+<area shape="rect" id="node23" href="$class_temporary_directory.html" title="TemporaryDirectory" alt="" coords="1351,505,1488,532"/>
+</map>

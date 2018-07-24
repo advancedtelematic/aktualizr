@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_package_manager_interface.html" title="PackageManagerInterface" alt="" coords="5,56,180,83"/>
+<area shape="rect" id="node2" href="$class_debian_manager.html" title="DebianManager" alt="" coords="247,5,361,32"/>
+<area shape="rect" id="node3" href="$class_ostree_manager.html" title="OstreeManager" alt="" coords="249,56,359,83"/>
+<area shape="rect" id="node4" href="$class_package_manager_fake.html" title="PackageManagerFake" alt="" coords="228,107,380,133"/>
+</map>

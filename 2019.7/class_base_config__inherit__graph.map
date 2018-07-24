@@ -1,0 +1,5 @@
+<map id="BaseConfig" name="BaseConfig">
+<area shape="rect" id="node2" href="$class_aktualizr_info_config.html" title="AktualizrInfoConfig" alt="" coords="5,80,139,107"/>
+<area shape="rect" id="node3" href="$class_aktualizr_secondary_config.html" title="AktualizrSecondaryConfig" alt="" coords="163,80,336,107"/>
+<area shape="rect" id="node4" href="$class_config.html" title="Configuration object for an aktualizr instance running on a primary ECU. " alt="" coords="361,80,421,107"/>
+</map>

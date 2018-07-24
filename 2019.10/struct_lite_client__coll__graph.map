@@ -1,0 +1,17 @@
+<map id="LiteClient" name="LiteClient">
+<area shape="rect" id="node2" href="$class_config.html" title="Configuration object for an aktualizr instance running on a primary ECU. " alt="" coords="812,435,875,462"/>
+<area shape="rect" id="node3" href="$class_base_config.html" title="BaseConfig" alt="" coords="575,79,669,106"/>
+<area shape="rect" id="node5" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="565,195,679,222"/>
+<area shape="rect" id="node6" href="$class_based_path.html" title="BasedPath" alt="" coords="223,221,314,247"/>
+<area shape="rect" id="node16" href="$struct_import_config.html" title="ImportConfig" alt="" coords="569,281,675,307"/>
+<area shape="rect" id="node7" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="581,333,663,359"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="225,599,312,626"/>
+<area shape="rect" id="node11" href="$struct_package_config.html" title="PackageConfig" alt="" coords="563,385,681,411"/>
+<area shape="rect" id="node12" href="$struct_provision_config.html" title="ProvisionConfig" alt="" coords="561,435,683,462"/>
+<area shape="rect" id="node13" href="$struct_p11_config.html" title="P11Config" alt="" coords="579,486,665,513"/>
+<area shape="rect" id="node14" href="$struct_uptane_config.html" title="UptaneConfig" alt="" coords="567,537,677,563"/>
+<area shape="rect" id="node17" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="555,587,689,614"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="5,592,144,633"/>
+<area shape="rect" id="node10" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="569,638,675,665"/>
+<area shape="rect" id="node15" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="558,689,686,715"/>
+</map>

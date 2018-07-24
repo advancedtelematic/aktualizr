@@ -1,0 +1,9 @@
+<map id="Uptane::MetaPack" name="Uptane::MetaPack">
+<area shape="rect" id="node2" href="$class_uptane_1_1_targets.html" title="Uptane::Targets" alt="" coords="473,192,588,217"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_base_meta.html" title="Uptane::BaseMeta" alt="" coords="241,99,373,124"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_snapshot.html" title="Uptane::Snapshot" alt="" coords="5,192,133,217"/>
+<area shape="rect" id="node8" href="$class_uptane_1_1_timestamp_meta.html" title="Uptane::TimestampMeta" alt="" coords="158,192,325,217"/>
+<area shape="rect" id="node9" href="$class_uptane_1_1_root.html" title="Uptane::Root" alt="" coords="349,192,449,217"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_time_stamp.html" title="Uptane::TimeStamp" alt="" coords="237,5,376,31"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="476,5,585,31"/>
+</map>

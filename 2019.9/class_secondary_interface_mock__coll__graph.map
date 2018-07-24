@@ -1,0 +1,9 @@
+<map id="SecondaryInterfaceMock" name="SecondaryInterfaceMock">
+<area shape="rect" id="node2" href="$class_uptane_1_1_secondary_interface.html" title="Uptane::SecondaryInterface" alt="" coords="5,327,191,354"/>
+<area shape="rect" id="node3" href="$class_primary_1_1_virtual_secondary_config.html" title="Primary::VirtualSecondary\lConfig" alt="" coords="215,320,389,361"/>
+<area shape="rect" id="node4" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="207,229,397,271"/>
+<area shape="rect" id="node5" href="$class_primary_1_1_secondary_config.html" title="Primary::SecondaryConfig" alt="" coords="193,96,368,123"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="393,96,473,123"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="369,5,496,47"/>
+<area shape="rect" id="node8" href="$class_public_key.html" title="PublicKey" alt="" coords="413,327,495,354"/>
+</map>

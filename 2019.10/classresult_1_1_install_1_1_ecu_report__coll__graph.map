@@ -1,0 +1,8 @@
+<map id="result::Install::EcuReport" name="result::Install::EcuReport">
+<area shape="rect" id="node2" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="5,275,123,301"/>
+<area shape="rect" id="node3" href="$structdata_1_1_installation_result.html" title="data::InstallationResult" alt="" coords="147,275,319,301"/>
+<area shape="rect" id="node4" href="$structdata_1_1_result_code.html" title="data::ResultCode" alt="" coords="282,185,414,212"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="158,96,245,123"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="132,5,271,47"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="343,275,481,301"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="event::DownloadTargetComplete" name="event::DownloadTargetComplete">
+<area shape="rect" id="node1" title="A target has been downloaded." alt="" coords="5,261,240,288"/>
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects." alt="" coords="55,185,191,212"/>
+<area shape="rect" id="node3" title="STL class." alt="" coords="79,96,166,123"/>
+<area shape="rect" id="node4" title="STL class." alt="" coords="53,5,192,47"/>
+</map>

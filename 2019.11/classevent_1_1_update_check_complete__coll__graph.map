@@ -1,0 +1,7 @@
+<map id="event::UpdateCheckComplete" name="event::UpdateCheckComplete">
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects. " alt="" coords="197,213,333,240"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="205,117,292,143"/>
+<area shape="rect" id="node5" href="$classresult_1_1_update_check.html" title="Container for information about available updates. " alt="" coords="18,213,173,240"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="179,5,318,47"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="23,13,141,39"/>
+</map>

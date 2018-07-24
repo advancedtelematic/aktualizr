@@ -1,0 +1,15 @@
+<map id="HttpInterface" name="HttpInterface">
+<area shape="rect" id="node2" href="$class_http_client.html" title="HttpClient" alt="" coords="152,233,233,260"/>
+<area shape="rect" id="node3" href="$class_http_fake.html" title="HttpFake" alt="" coords="155,284,231,311"/>
+<area shape="rect" id="node4" href="$class_http_fake_campaign.html" title="HttpFakeCampaign" alt="" coords="297,5,432,32"/>
+<area shape="rect" id="node5" href="$class_http_fake_delegation.html" title="HttpFakeDelegation" alt="" coords="295,56,434,83"/>
+<area shape="rect" id="node6" href="$class_http_fake_event_counter.html" title="HttpFakeEventCounter" alt="" coords="287,107,443,133"/>
+<area shape="rect" id="node7" href="$class_http_fake_events.html" title="HttpFakeEvents" alt="" coords="306,157,423,184"/>
+<area shape="rect" id="node8" href="$class_http_fake_no_correlation_id.html" title="HttpFakeNoCorrelationId" alt="" coords="281,208,448,235"/>
+<area shape="rect" id="node9" href="$class_http_fake_pause_counter.html" title="HttpFakePauseCounter" alt="" coords="285,259,444,285"/>
+<area shape="rect" id="node10" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations. " alt="" coords="313,309,416,336"/>
+<area shape="rect" id="node11" href="$class_http_fake_put_counter.html" title="HttpFakePutCounter" alt="" coords="293,360,436,387"/>
+<area shape="rect" id="node12" href="$class_http_fake_rq.html" title="HttpFakeRq" alt="" coords="318,411,411,437"/>
+<area shape="rect" id="node13" href="$class_http_fake_unstable.html" title="HttpFakeUnstable" alt="" coords="301,461,429,488"/>
+<area shape="rect" id="node14" href="$class_http_put_manifest_fail.html" title="HttpPutManifestFail" alt="" coords="295,512,434,539"/>
+</map>

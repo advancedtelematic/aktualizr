@@ -1,0 +1,19 @@
+<map id="Config" name="Config">
+<area shape="rect" id="node2" href="$class_base_config.html" title="BaseConfig" alt="" coords="1136,57,1226,83"/>
+<area shape="rect" id="node4" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="1128,152,1235,177"/>
+<area shape="rect" id="node5" href="$class_based_path.html" title="BasedPath" alt="" coords="808,201,895,227"/>
+<area shape="rect" id="node20" href="$struct_import_config.html" title="ImportConfig" alt="" coords="1132,204,1230,229"/>
+<area shape="rect" id="node6" href="$struct_discovery_config.html" title="DiscoveryConfig" alt="" coords="1122,253,1241,279"/>
+<area shape="rect" id="node7" href="$struct_tls_config.html" title="TlsConfig" alt="" coords="660,297,738,323"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="180,536,259,561"/>
+<area shape="rect" id="node11" href="$struct_package_config.html" title="PackageConfig" alt="" coords="965,355,1077,380"/>
+<area shape="rect" id="node12" href="$struct_provision_config.html" title="ProvisionConfig" alt="" coords="642,416,756,441"/>
+<area shape="rect" id="node13" href="$struct_network_config.html" title="NetworkConfig" alt="" coords="797,493,906,519"/>
+<area shape="rect" id="node15" href="$struct_p11_config.html" title="P11Config" alt="" coords="980,593,1062,619"/>
+<area shape="rect" id="node16" href="$struct_uptane_config.html" title="UptaneConfig" alt="" coords="1130,589,1233,615"/>
+<area shape="rect" id="node18" href="$class_uptane_1_1_secondary_config.html" title="Uptane::SecondaryConfig" alt="" coords="444,803,618,828"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="5,529,131,568"/>
+<area shape="rect" id="node10" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="1131,639,1232,664"/>
+<area shape="rect" id="node19" href="$struct_telemetry_config.html" title="TelemetryConfig" alt="" coords="1122,688,1240,713"/>
+<area shape="rect" id="node21" href="$struct_bootloader_config.html" title="BootloaderConfig" alt="" coords="1119,737,1244,763"/>
+</map>

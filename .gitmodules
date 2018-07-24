@@ -1,0 +1,18 @@
+[submodule "tests/tuf-test-vectors"]
+	path = tests/tuf-test-vectors
+	url = https://github.com/advancedtelematic/tuf-test-vectors/
+[submodule "partial/extern/isotp-c"]
+	path = partial/extern/isotp-c
+	url = https://github.com/advancedtelematic/isotp-c.git
+[submodule "tests/ostreesysroot"]
+	path = tests/ostreesysroot
+	url = https://github.com/advancedtelematic/ostreesysroot
+[submodule "third_party/HdrHistogram_c"]
+	path = third_party/HdrHistogram_c
+	url = https://github.com/cajun-rat/HdrHistogram_c
+[submodule "third_party/googletest"]
+	path = third_party/googletest
+	url = https://github.com/google/googletest.git
+[submodule "partial/extern/jsmn"]
+	path = partial/extern/jsmn
+	url = https://github.com/zserge/jsmn.git

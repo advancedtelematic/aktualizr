@@ -1,0 +1,7 @@
+<map id="event::AllDownloadsComplete" name="event::AllDownloadsComplete">
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects. " alt="" coords="180,205,306,231"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="189,112,268,137"/>
+<area shape="rect" id="node5" href="$class_download_result.html" title="Container for information about downloading an update. " alt="" coords="37,205,156,231"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="166,5,291,44"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="20,12,128,37"/>
+</map>

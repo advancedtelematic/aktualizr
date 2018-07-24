@@ -1,0 +1,6 @@
+<map id="Primary::SecondaryConfig" name="Primary::SecondaryConfig">
+<area shape="rect" id="node2" href="$class_primary_1_1_i_p_secondaries_config.html" title="Primary::IPSecondariesConfig" alt="" coords="5,87,204,114"/>
+<area shape="rect" id="node3" href="$class_primary_1_1_managed_secondary_config.html" title="Primary::ManagedSecondary\lConfig" alt="" coords="228,80,419,121"/>
+<area shape="rect" id="node4" href="$class_primary_1_1_partial_verification_secondary_config.html" title="Primary::PartialVerification\lSecondaryConfig" alt="" coords="135,169,312,211"/>
+<area shape="rect" id="node5" href="$class_primary_1_1_virtual_secondary_config.html" title="Primary::VirtualSecondary\lConfig" alt="" coords="336,169,511,211"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="SQLStorage" name="SQLStorage">
+<area shape="rect" id="node2" href="$class_s_q_l_storage_base.html" title="SQLStorageBase" alt="" coords="101,301,223,328"/>
+<area shape="rect" id="node3" href="$class_storage_lock.html" title="StorageLock" alt="" coords="5,212,100,239"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="125,212,205,239"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="101,5,228,47"/>
+<area shape="rect" id="node6" href="$class_i_nv_storage.html" title="INvStorage" alt="" coords="250,301,338,328"/>
+<area shape="rect" id="node7" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="245,212,351,239"/>
+<area shape="rect" id="node8" href="$class_based_path.html" title="BasedPath" alt="" coords="255,13,341,39"/>
+</map>

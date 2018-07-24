@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classevent_1_1_base_event.html" title="Base class for all event objects. " alt="" coords="5,228,131,253"/>
+<area shape="rect" id="node2" href="$classevent_1_1_campaign_check_complete.html" title="event::CampaignCheckComplete" alt="" coords="181,5,398,31"/>
+<area shape="rect" id="node3" href="$classevent_1_1_download_complete.html" title="The StartDownload command completed successfully. " alt="" coords="200,55,378,80"/>
+<area shape="rect" id="node4" href="$classevent_1_1_download_progress_report.html" title="event::DownloadProgressReport" alt="" coords="182,104,396,129"/>
+<area shape="rect" id="node5" href="$classevent_1_1_error.html" title="An error occurred processing a command. " alt="" coords="244,153,335,179"/>
+<area shape="rect" id="node6" href="$classevent_1_1_fetch_meta_complete.html" title="The FetchMeta command completed successfully. " alt="" coords="199,203,380,228"/>
+<area shape="rect" id="node7" href="$classevent_1_1_install_complete.html" title="The UptaneInstall command completed successfully. " alt="" coords="213,252,366,277"/>
+<area shape="rect" id="node8" href="$classevent_1_1_put_manifest_complete.html" title="The PutManifest command completed successfully. " alt="" coords="195,301,384,327"/>
+<area shape="rect" id="node9" href="$classevent_1_1_send_device_data_complete.html" title="The SendDeviceData command completed successfully. " alt="" coords="180,351,399,376"/>
+<area shape="rect" id="node10" href="$classevent_1_1_update_available.html" title="event::UpdateAvailable" alt="" coords="210,400,368,425"/>
+<area shape="rect" id="node11" href="$classevent_1_1_uptane_timestamp_updated.html" title="event::UptaneTimestampUpdated" alt="" coords="179,449,399,475"/>
+</map>

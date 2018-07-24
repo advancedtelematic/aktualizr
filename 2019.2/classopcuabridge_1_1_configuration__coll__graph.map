@@ -1,0 +1,8 @@
+<map id="opcuabridge::Configuration" name="opcuabridge::Configuration">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::Configuration \&gt;" alt="" coords="186,5,385,61"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="196,85,375,112"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="221,136,349,163"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="245,187,325,213"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="5,179,132,221"/>
+<area shape="rect" id="node7" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::Configuration \&gt;" alt="" coords="181,237,389,293"/>
+</map>

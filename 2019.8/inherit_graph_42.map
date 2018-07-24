@@ -1,0 +1,38 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title="STL class. " alt="" coords="5,335,109,361"/>
+<area shape="rect" id="node2" href="$classdeserialization__error.html" title="deserialization_error" alt="" coords="175,233,314,260"/>
+<area shape="rect" id="node3" href="$class_o_s_tree_commit_parse_error.html" title="OSTreeCommitParseError" alt="" coords="157,284,332,311"/>
+<area shape="rect" id="node4" href="$class_o_s_tree_object_missing.html" title="Thrown by GetObject when the object requested is not present in the repository. " alt="" coords="169,335,320,361"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="191,385,299,412"/>
+<area shape="rect" id="node28" title="STL class. " alt="" coords="183,639,307,665"/>
+<area shape="rect" id="node6" href="$class_fatal_exception.html" title="FatalException" alt="" coords="413,284,523,311"/>
+<area shape="rect" id="node7" href="$class_not_implemented_exception.html" title="NotImplementedException" alt="" coords="380,335,556,361"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="407,385,529,412"/>
+<area shape="rect" id="node10" href="$class_uptane_1_1_exception.html" title="Uptane::Exception" alt="" coords="403,436,533,463"/>
+<area shape="rect" id="node9" href="$class_time_stamp_1_1_invalid_time_stamp.html" title="TimeStamp::InvalidTimeStamp" alt="" coords="614,5,817,32"/>
+<area shape="rect" id="node11" href="$class_uptane_1_1_bad_ecu_id.html" title="Uptane::BadEcuId" alt="" coords="651,56,780,83"/>
+<area shape="rect" id="node12" href="$class_uptane_1_1_bad_hardware_id.html" title="Uptane::BadHardwareId" alt="" coords="634,107,797,133"/>
+<area shape="rect" id="node13" href="$class_uptane_1_1_bad_key_id.html" title="Uptane::BadKeyId" alt="" coords="651,157,780,184"/>
+<area shape="rect" id="node14" href="$class_uptane_1_1_delegation_hash_mismatch.html" title="Uptane::DelegationHashMismatch" alt="" coords="604,208,827,235"/>
+<area shape="rect" id="node15" href="$class_uptane_1_1_delegation_missing.html" title="Uptane::DelegationMissing" alt="" coords="626,259,805,285"/>
+<area shape="rect" id="node16" href="$class_uptane_1_1_expired_metadata.html" title="Uptane::ExpiredMetadata" alt="" coords="630,309,801,336"/>
+<area shape="rect" id="node17" href="$class_uptane_1_1_illegal_threshold.html" title="Uptane::IllegalThreshold" alt="" coords="634,360,797,387"/>
+<area shape="rect" id="node18" href="$class_uptane_1_1_invalid_metadata.html" title="Uptane::InvalidMetadata" alt="" coords="633,411,797,437"/>
+<area shape="rect" id="node19" href="$class_uptane_1_1_invalid_target.html" title="Uptane::InvalidTarget" alt="" coords="642,461,789,488"/>
+<area shape="rect" id="node20" href="$class_uptane_1_1_missing_repo.html" title="Uptane::MissingRepo" alt="" coords="641,512,789,539"/>
+<area shape="rect" id="node21" href="$class_uptane_1_1_non_unique_signatures.html" title="Uptane::NonUniqueSignatures" alt="" coords="616,563,815,589"/>
+<area shape="rect" id="node22" href="$class_uptane_1_1_oversized_target.html" title="Uptane::OversizedTarget" alt="" coords="631,613,799,640"/>
+<area shape="rect" id="node23" href="$class_uptane_1_1_security_exception.html" title="Uptane::SecurityException" alt="" coords="626,664,805,691"/>
+<area shape="rect" id="node24" href="$class_uptane_1_1_target_hash_mismatch.html" title="Uptane::TargetHashMismatch" alt="" coords="617,715,814,741"/>
+<area shape="rect" id="node25" href="$class_uptane_1_1_target_mismatch.html" title="Uptane::TargetMismatch" alt="" coords="632,765,799,792"/>
+<area shape="rect" id="node26" href="$class_uptane_1_1_unmet_threshold.html" title="Uptane::UnmetThreshold" alt="" coords="631,816,799,843"/>
+<area shape="rect" id="node27" href="$class_uptane_1_1_version_mismatch.html" title="Uptane::VersionMismatch" alt="" coords="629,867,802,893"/>
+<area shape="rect" id="node29" href="$class_bad_credentials_archive.html" title="BadCredentialsArchive" alt="" coords="391,487,545,513"/>
+<area shape="rect" id="node30" href="$class_bad_credentials_content.html" title="BadCredentialsContent" alt="" coords="389,537,547,564"/>
+<area shape="rect" id="node31" href="$class_bad_credentials_json.html" title="BadCredentialsJson" alt="" coords="399,588,537,615"/>
+<area shape="rect" id="node32" href="$class_s_q_l_exception.html" title="SQLException" alt="" coords="415,639,521,665"/>
+<area shape="rect" id="node33" href="$class_storage_exception.html" title="StorageException" alt="" coords="405,689,531,716"/>
+<area shape="rect" id="node34" href="$class_storage_lock_1_1locked__exception.html" title="StorageLock::locked\l_exception" alt="" coords="397,741,539,782"/>
+<area shape="rect" id="node35" href="$class_storage_target_r_handle_1_1_read_error.html" title="StorageTargetRHandle\l::ReadError" alt="" coords="391,806,545,847"/>
+<area shape="rect" id="node36" href="$class_storage_target_w_handle_1_1_write_error.html" title="StorageTargetWHandle\l::WriteError" alt="" coords="389,871,547,913"/>
+</map>

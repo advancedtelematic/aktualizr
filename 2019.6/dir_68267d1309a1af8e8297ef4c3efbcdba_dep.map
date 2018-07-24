@@ -1,0 +1,16 @@
+<map id="src" name="src">
+<area shape="rect" id="node2" href="dir_b4ab7baa9a72fa869f9ae99b22d05745.html" title="aktualizr_info" alt="" coords="1060,27,1159,75"/>
+<area shape="rect" id="node3" href="dir_a1c365666047c910e07f82ea3785a0e3.html" title="aktualizr_primary" alt="" coords="914,27,1035,75"/>
+<area shape="rect" id="node4" href="dir_a0345981ec4afd73d92f143a325145ef.html" title="aktualizr_secondary" alt="" coords="751,27,889,75"/>
+<area shape="rect" id="node7" href="dir_25fe10002fe19a6f872ae0406361d164.html" title="libaktualizr" alt="" coords="279,123,363,171"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000003_000008.html" title="1" alt="" coords="379,140,387,154"/>
+<area shape="rect" id="node5" href="dir_1f4a50f8f1fe2f3e2e3e79b978626114.html" title="cert_provider" alt="" coords="629,27,726,75"/>
+<area shape="rect" id="node6" href="dir_d46ab523f2dd12b449955baa1bd4c4d6.html" title="hmi_stub" alt="" coords="529,27,604,75"/>
+<area shape="rect" id="node8" href="dir_4d83f6f3df02246e3e673d37b1fa988b.html" title="libaktualizr&#45;posix" alt="" coords="387,27,506,75"/>
+<area shape="rect" id="node9" href="dir_32bfa720d5faedcc76f8e32c775d43dc.html" title="load_tests" alt="" coords="280,27,363,75"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000006_000008.html" title="2" alt="" coords="326,97,334,111"/>
+<area shape="rect" id="node10" href="dir_b7cd886a5e99df99c476fe0c3ded0563.html" title="sota_tools" alt="" coords="173,27,256,75"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000024_000008.html" title="2" alt="" coords="283,97,291,111"/>
+<area shape="rect" id="node11" href="dir_a276f8890176b14b77a786ef6e2c59bb.html" title="uptane_generator" alt="" coords="27,27,149,75"/>
+<area shape="rect" id="clust1" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html" alt="" coords="16,16,1265,181"/>
+</map>

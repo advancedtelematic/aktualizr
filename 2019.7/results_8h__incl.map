@@ -1,0 +1,20 @@
+<map id="src/libaktualizr/primary/results.h" name="src/libaktualizr/primary/results.h">
+<area shape="rect" id="node5" href="$fetcher_8h_source.html" title="uptane/fetcher.h" alt="" coords="2213,95,2329,121"/>
+<area shape="rect" id="node25" href="$tuf_8h_source.html" title="uptane/tuf.h" alt="" coords="2517,393,2608,420"/>
+<area shape="rect" id="node6" href="$config_8h_source.html" title="config/config.h" alt="" coords="792,169,899,196"/>
+<area shape="rect" id="node13" href="$invstorage_8h_source.html" title="storage/invstorage.h" alt="" coords="1731,319,1871,345"/>
+<area shape="rect" id="node49" href="$httpinterface_8h_source.html" title="http/httpinterface.h" alt="" coords="2984,468,3115,495"/>
+<area shape="rect" id="node12" href="$bootloader_8h_source.html" title="bootloader/bootloader.h" alt="" coords="883,244,1040,271"/>
+<area shape="rect" id="node17" href="$storage__config_8h_source.html" title="storage_config.h" alt="" coords="758,393,877,420"/>
+<area shape="rect" id="node18" href="$config__utils_8h_source.html" title="utilities/config_utils.h" alt="" coords="480,468,624,495"/>
+<area shape="rect" id="node19" href="$types_8h.html" title="types.h" alt="" coords="2926,550,2991,577"/>
+<area shape="rect" id="node44" href="$keymanager__config_8h_source.html" title="crypto/keymanager_config.h" alt="" coords="832,319,1019,345"/>
+<area shape="rect" id="node45" href="$p11__config_8h_source.html" title="crypto/p11_config.h" alt="" coords="144,393,280,420"/>
+<area shape="rect" id="node46" href="$logging__config_8h_source.html" title="logging_config.h" alt="" coords="1954,319,2070,345"/>
+<area shape="rect" id="node47" href="$packagemanagerconfig_8h_source.html" title="package_manager/packagemanagerconfig.h" alt="" coords="304,393,581,420"/>
+<area shape="rect" id="node48" href="$telemetryconfig_8h_source.html" title="telemetry/telemetryconfig.h" alt="" coords="1065,244,1245,271"/>
+<area shape="rect" id="node24" href="$storage__exception_8h_source.html" title="storage_exception.h" alt="" coords="1839,393,1977,420"/>
+<area shape="rect" id="node22" href="$utils_8h_source.html" title="utils.h" alt="" coords="2793,550,2850,577"/>
+<area shape="rect" id="node30" href="$uptane_2exceptions_8h_source.html" title="uptane/exceptions.h" alt="" coords="2449,468,2588,495"/>
+<area shape="rect" id="node31" href="$crypto_8h_source.html" title="crypto/crypto.h" alt="" coords="1604,468,1713,495"/>
+</map>

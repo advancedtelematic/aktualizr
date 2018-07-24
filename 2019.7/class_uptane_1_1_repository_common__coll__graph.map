@@ -1,0 +1,11 @@
+<map id="Uptane::RepositoryCommon" name="Uptane::RepositoryCommon">
+<area shape="rect" id="node2" href="$class_uptane_1_1_repository_type.html" title="Uptane::RepositoryType" alt="" coords="1237,45,1401,72"/>
+<area shape="rect" id="node3" href="$class_uptane_1_1_root.html" title="Uptane::Root" alt="" coords="1269,96,1369,123"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_meta_with_keys.html" title="Uptane::MetaWithKeys" alt="" coords="1029,96,1188,123"/>
+<area shape="rect" id="node5" href="$class_uptane_1_1_base_meta.html" title="Uptane::BaseMeta" alt="" coords="706,7,837,33"/>
+<area shape="rect" id="node6" href="$class_time_stamp.html" title="TimeStamp" alt="" coords="444,7,533,33"/>
+<area shape="rect" id="node9" href="$class_public_key.html" title="PublicKey" alt="" coords="181,79,263,105"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="182,171,262,197"/>
+<area shape="rect" id="node13" href="$class_uptane_1_1_role.html" title="TUF Roles. " alt="" coords="439,204,538,231"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="5,163,132,205"/>
+</map>

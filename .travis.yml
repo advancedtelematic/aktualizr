@@ -1,0 +1,49 @@
+dist: trusty
+sudo: false
+language: cpp
+branches:
+  only:
+    - master
+    - /^\d\d\d\d\.\d+$/
+env:
+- DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh
+  DARGS="-eTEST_CMAKE_BUILD_TYPE=Debug -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_SOTA_PACKED_CREDENTIALS=dummy-credentials -eTEST_TESTSUITE_EXCLUDE=credentials"
+- DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
+  DARGS="-eTEST_TESTSUITE_ONLY=crypto"
+- DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
+  DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1"
+- DOCKERFILE=Dockerfile.noostree CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh
+services:
+- docker
+script:
+- docker pull advancedtelematic/aktualizr:$CACHE
+- docker build --cache-from advancedtelematic/aktualizr:$CACHE -t advancedtelematic/aktualizr
+  -f ${DOCKERFILE} .
+- ci_env=`bash <(curl -s https://codecov.io/env)`
+- docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
+  ${SCRIPT}
+- if [ $DOCKERFILE = Dockerfile.noostree ]; then ./scripts/test_garage_deploy_deb.sh; fi
+- if [ $DOCKERFILE = Dockerfile.noostree ]; then ./scripts/test_aktualizr_deb_ubuntu.sh; fi
+deploy:
+        - provider: releases
+          file: /persistent/garage_deploy.deb
+          skip-cleanup: true
+          on:
+                  tags: true
+                  all_branches: true
+                  repo: advancedtelematic/aktualizr
+                  condition: $DOCKERFILE = Dockerfile.noostree
+
+          api_key:
+                  secure: "Z9IEs+GbPW+pxxfYofmeT4Jwjz4OpXJ6WZbv8nyN0MOZV146QExKhZA64mJ7nuXRepS7M5wFgVd0QVlmE7lLa8oNVTKujn+DmQ6701HeP9bITwv6wcDyhNOULLRBwRD2YN5lR29vHGWsjMUm8R13Wtgr/XyOG4L8fcg021B0BMtvepO9HJD4kHSNqB8pJXWVSMd5+d77BRz8Yr72oP98iBMAm94XNd5Gd2RB77YBRKlR7XEV2DxW346C9xI48crMRAKAyp/35vTCTMT04In4FpSexSue0q5dGqfQZf2I5fpGtSbwwJIb3ct/T0CUcW8mDQL01LtG3Hm2qNXKn8aCse6MrVoktUWBTA+tn7DMGq6zY4XXkyC7OisBYg9eel8HacSPrCXDB9C80aJht9a7AZIHehLC4yUomhYmnQDotvHoc3JrJXMSq4HE31WwIBn0xmOpr4ts0nnAprl3bRCQcv10J4MU4zK+BEYET+sLs1stqeION/AYTr0OxWVfbUhRdVepAjDh/mNLYO7raDb/PTZb4upunjS5a1RK+U+aW8ct85RPamZ+8+ZTo8Ofj5VGQiVJmmmrlVkDyBzXwJL3WonnZwuU6QDaaYCFUuzyVqmEuYZNc3i6jNUs0Yptw2YjKww6ayV5msyGaA0QZ3vdGWRk9K7JQQhE7CII2N4yzvI="
+
+        - provider: releases
+          file: /persistent/aktualizr.deb
+          skip-cleanup: true
+          on:
+                  tags: true
+                  all_branches: true
+                  repo: advancedtelematic/aktualizr
+                  condition: $DOCKERFILE = Dockerfile.noostree
+          api_key:
+                  secure: "Z9IEs+GbPW+pxxfYofmeT4Jwjz4OpXJ6WZbv8nyN0MOZV146QExKhZA64mJ7nuXRepS7M5wFgVd0QVlmE7lLa8oNVTKujn+DmQ6701HeP9bITwv6wcDyhNOULLRBwRD2YN5lR29vHGWsjMUm8R13Wtgr/XyOG4L8fcg021B0BMtvepO9HJD4kHSNqB8pJXWVSMd5+d77BRz8Yr72oP98iBMAm94XNd5Gd2RB77YBRKlR7XEV2DxW346C9xI48crMRAKAyp/35vTCTMT04In4FpSexSue0q5dGqfQZf2I5fpGtSbwwJIb3ct/T0CUcW8mDQL01LtG3Hm2qNXKn8aCse6MrVoktUWBTA+tn7DMGq6zY4XXkyC7OisBYg9eel8HacSPrCXDB9C80aJht9a7AZIHehLC4yUomhYmnQDotvHoc3JrJXMSq4HE31WwIBn0xmOpr4ts0nnAprl3bRCQcv10J4MU4zK+BEYET+sLs1stqeION/AYTr0OxWVfbUhRdVepAjDh/mNLYO7raDb/PTZb4upunjS5a1RK+U+aW8ct85RPamZ+8+ZTo8Ofj5VGQiVJmmmrlVkDyBzXwJL3WonnZwuU6QDaaYCFUuzyVqmEuYZNc3i6jNUs0Yptw2YjKww6ayV5msyGaA0QZ3vdGWRk9K7JQQhE7CII2N4yzvI="

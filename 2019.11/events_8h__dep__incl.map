@@ -1,0 +1,37 @@
+<map id="src/libaktualizr/primary/events.h" name="src/libaktualizr/primary/events.h">
+<area shape="rect" id="node2" href="$libaktualizr-c_8cc_source.html" title="src/libaktualizr&#45;c\l/libaktualizr&#45;c.cc" alt="" coords="5,95,135,136"/>
+<area shape="rect" id="node3" href="$aktualizr_8h_source.html" title="src/libaktualizr/primary\l/aktualizr.h" alt="" coords="1150,191,1323,233"/>
+<area shape="rect" id="node8" href="$aktualizr__test_8cc_source.html" title="src/libaktualizr/primary\l/aktualizr_test.cc" alt="" coords="397,377,570,419"/>
+<area shape="rect" id="node15" href="$uptane__delegation__test_8cc_source.html" title="src/libaktualizr/uptane\l/uptane_delegation_test.cc" alt="" coords="175,377,373,419"/>
+<area shape="rect" id="node22" href="$aktualizr_8cc_source.html" title="src/libaktualizr/primary\l/aktualizr.cc" alt="" coords="311,288,485,329"/>
+<area shape="rect" id="node25" href="$load__tests_2check_8cc_source.html" title="src/load_tests/check.cc" alt="" coords="1477,295,1649,322"/>
+<area shape="rect" id="node26" href="$provision_8cc_source.html" title="src/load_tests/provision.cc" alt="" coords="1674,295,1869,322"/>
+<area shape="rect" id="node27" href="$sotauptaneclient_8h_source.html" title="src/libaktualizr/primary\l/sotauptaneclient.h" alt="" coords="2053,95,2226,136"/>
+<area shape="rect" id="node4" href="$aktualizr__cycle__simple_8cc_source.html" title="tests/aktualizr_cycle\l_simple.cc" alt="" coords="808,288,964,329"/>
+<area shape="rect" id="node5" href="$uptane__test__common_8h_source.html" title="tests/uptane_test_common.h" alt="" coords="1893,295,2103,322"/>
+<area shape="rect" id="node7" href="$aktualizr__fullostree__test_8cc_source.html" title="src/libaktualizr/primary\l/aktualizr_fullostree_test.cc" alt="" coords="1370,377,1573,419"/>
+<area shape="rect" id="node9" href="$custom__url__test_8cc_source.html" title="src/libaktualizr/primary\l/custom_url_test.cc" alt="" coords="1597,377,1770,419"/>
+<area shape="rect" id="node10" href="$download__nonostree__test_8cc_source.html" title="src/libaktualizr/primary\l/download_nonostree_test.cc" alt="" coords="1794,377,2005,419"/>
+<area shape="rect" id="node11" href="$empty__targets__test_8cc_source.html" title="src/libaktualizr/primary\l/empty_targets_test.cc" alt="" coords="2029,377,2202,419"/>
+<area shape="rect" id="node12" href="$target__mismatch__test_8cc_source.html" title="src/libaktualizr/primary\l/target_mismatch_test.cc" alt="" coords="1159,377,1346,419"/>
+<area shape="rect" id="node19" href="$aktualizr__primary_2main_8cc_source.html" title="src/aktualizr_primary\l/main.cc" alt="" coords="791,377,951,419"/>
+<area shape="rect" id="node20" href="$secondary_8h_source.html" title="src/aktualizr_primary\l/secondary.h" alt="" coords="1039,288,1199,329"/>
+<area shape="rect" id="node23" href="$aktualizr__helpers_8h_source.html" title="src/libaktualizr/primary\l/aktualizr_helpers.h" alt="" coords="610,288,783,329"/>
+<area shape="rect" id="node6" href="$aktualizr__secondary_2uptane__test_8cc_source.html" title="src/aktualizr_secondary\l/uptane_test.cc" alt="" coords="3029,377,3205,419"/>
+<area shape="rect" id="node13" href="$uptane__key__test_8cc_source.html" title="src/libaktualizr/primary\l/uptane_key_test.cc" alt="" coords="3233,377,3406,419"/>
+<area shape="rect" id="node14" href="$uptane__ci__test_8cc_source.html" title="src/libaktualizr/uptane\l/uptane_ci_test.cc" alt="" coords="2227,377,2393,419"/>
+<area shape="rect" id="node16" href="$uptane__network__test_8cc.html" title="Check that aktualizr can complete provisioning after encountering various network issues..." alt="" coords="2418,377,2599,419"/>
+<area shape="rect" id="node17" href="$uptane__serial__test_8cc_source.html" title="src/libaktualizr/uptane\l/uptane_serial_test.cc" alt="" coords="2624,377,2791,419"/>
+<area shape="rect" id="node18" href="$libaktualizr_2uptane_2uptane__test_8cc_source.html" title="src/libaktualizr/uptane\l/uptane_test.cc" alt="" coords="2829,377,2996,419"/>
+<area shape="rect" id="node21" href="$secondary_8cc_source.html" title="src/aktualizr_primary\l/secondary.cc" alt="" coords="975,377,1135,419"/>
+<area shape="rect" id="node24" href="$aktualizr__helpers_8cc_source.html" title="src/libaktualizr/primary\l/aktualizr_helpers.cc" alt="" coords="594,377,767,419"/>
+<area shape="rect" id="node28" href="$uptane__vector__tests_8cc_source.html" title="tests/uptane_vector\l_tests.cc" alt="" coords="1691,191,1841,233"/>
+<area shape="rect" id="node29" href="$helpers_8h_source.html" title="src/aktualizr_lite\l/helpers.h" alt="" coords="2867,191,2998,233"/>
+<area shape="rect" id="node33" href="$dockerappmanager__test_8cc_source.html" title="src/libaktualizr/package\l_manager/dockerappmanager\l_test.cc" alt="" coords="1917,184,2135,240"/>
+<area shape="rect" id="node34" href="$device__cred__prov__test_8cc.html" title="src/libaktualizr/primary\l/device_cred_prov_test.cc" alt="" coords="2159,191,2349,233"/>
+<area shape="rect" id="node35" href="$sotauptaneclient_8cc_source.html" title="src/libaktualizr/primary\l/sotauptaneclient.cc" alt="" coords="2374,191,2547,233"/>
+<area shape="rect" id="node36" href="$uptane__init__test_8cc_source.html" title="src/libaktualizr/uptane\l/uptane_init_test.cc" alt="" coords="2572,191,2739,233"/>
+<area shape="rect" id="node30" href="$helpers_8cc_source.html" title="src/aktualizr_lite\l/helpers.cc" alt="" coords="2745,288,2875,329"/>
+<area shape="rect" id="node31" href="$helpers__test_8cc_source.html" title="src/aktualizr_lite\l/helpers_test.cc" alt="" coords="2899,288,3030,329"/>
+<area shape="rect" id="node32" href="$aktualizr__lite_2main_8cc_source.html" title="src/aktualizr_lite\l/main.cc" alt="" coords="3054,288,3185,329"/>
+</map>

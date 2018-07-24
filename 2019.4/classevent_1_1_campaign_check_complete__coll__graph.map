@@ -1,0 +1,6 @@
+<map id="event::CampaignCheckComplete" name="event::CampaignCheckComplete">
+<area shape="rect" id="node2" href="$classevent_1_1_base_event.html" title="Base class for all event objects. " alt="" coords="5,200,132,227"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="29,103,109,130"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="5,5,132,47"/>
+<area shape="rect" id="node5" href="$classresult_1_1_campaign_check.html" title="Container for information about available campaigns. " alt="" coords="156,200,315,227"/>
+</map>

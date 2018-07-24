@@ -1,0 +1,24 @@
+<map id="AktualizrSecondaryCommon" name="AktualizrSecondaryCommon">
+<area shape="rect" id="node3" href="$class_uptane_1_1_target.html" title="Uptane::Target" alt="" coords="850,503,959,530"/>
+<area shape="rect" id="node4" href="$class_aktualizr_secondary_config.html" title="AktualizrSecondaryConfig" alt="" coords="818,290,991,317"/>
+<area shape="rect" id="node5" href="$class_base_config.html" title="BaseConfig" alt="" coords="563,74,654,101"/>
+<area shape="rect" id="node7" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="556,147,661,174"/>
+<area shape="rect" id="node8" href="$class_based_path.html" title="BasedPath" alt="" coords="205,161,292,187"/>
+<area shape="rect" id="node9" href="$struct_aktualizr_secondary_uptane_config.html" title="AktualizrSecondaryUptane\lConfig" alt="" coords="520,199,697,240"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="209,467,289,494"/>
+<area shape="rect" id="node13" href="$struct_package_config.html" title="PackageConfig" alt="" coords="553,366,664,393"/>
+<area shape="rect" id="node15" href="$struct_p11_config.html" title="P11Config" alt="" coords="567,417,650,443"/>
+<area shape="rect" id="node25" href="$class_uptane_1_1_role.html" title="TUF Roles. " alt="" coords="559,675,658,702"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="5,460,132,501"/>
+<area shape="rect" id="node12" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="559,265,658,291"/>
+<area shape="rect" id="node14" href="$struct_aktualizr_secondary_net_config.html" title="AktualizrSecondaryNetConfig" alt="" coords="511,315,706,342"/>
+<area shape="rect" id="node16" href="$class_uptane_1_1_hardware_identifier.html" title="Uptane::HardwareIdentifier" alt="" coords="1580,682,1759,709"/>
+<area shape="rect" id="node17" href="$class_uptane_1_1_targets.html" title="Uptane::Targets" alt="" coords="1611,581,1727,607"/>
+<area shape="rect" id="node18" href="$class_uptane_1_1_meta_with_keys.html" title="Uptane::MetaWithKeys" alt="" coords="1211,801,1369,827"/>
+<area shape="rect" id="node32" href="$class_uptane_1_1_root.html" title="Uptane::Root" alt="" coords="1619,631,1719,658"/>
+<area shape="rect" id="node19" href="$class_uptane_1_1_base_meta.html" title="Uptane::BaseMeta" alt="" coords="839,810,970,837"/>
+<area shape="rect" id="node20" href="$class_time_stamp.html" title="TimeStamp" alt="" coords="564,810,653,837"/>
+<area shape="rect" id="node23" href="$class_public_key.html" title="PublicKey" alt="" coords="208,861,289,887"/>
+<area shape="rect" id="node30" href="$class_key_manager.html" title="KeyManager" alt="" coords="1622,733,1717,759"/>
+<area shape="rect" id="node31" href="$class_uptane_1_1_ecu_serial.html" title="Uptane::EcuSerial" alt="" coords="1605,783,1733,810"/>
+</map>

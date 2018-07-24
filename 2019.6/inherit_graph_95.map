@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_report_event.html" title="ReportEvent" alt="" coords="5,233,100,260"/>
+<area shape="rect" id="node2" href="$class_campaign_accepted_report.html" title="CampaignAcceptedReport" alt="" coords="163,5,338,32"/>
+<area shape="rect" id="node3" href="$class_campaign_declined_report.html" title="CampaignDeclinedReport" alt="" coords="165,56,336,83"/>
+<area shape="rect" id="node4" href="$class_campaign_postponed_report.html" title="CampaignPostponedReport" alt="" coords="159,107,342,133"/>
+<area shape="rect" id="node5" href="$class_device_paused_report.html" title="DevicePausedReport" alt="" coords="177,157,324,184"/>
+<area shape="rect" id="node6" href="$class_device_resumed_report.html" title="DeviceResumedReport" alt="" coords="171,208,330,235"/>
+<area shape="rect" id="node7" href="$class_ecu_download_completed_report.html" title="EcuDownloadCompletedReport" alt="" coords="148,259,353,285"/>
+<area shape="rect" id="node8" href="$class_ecu_download_started_report.html" title="EcuDownloadStartedReport" alt="" coords="159,309,343,336"/>
+<area shape="rect" id="node9" href="$class_ecu_installation_applied_report.html" title="EcuInstallationAppliedReport" alt="" coords="155,360,346,387"/>
+<area shape="rect" id="node10" href="$class_ecu_installation_completed_report.html" title="EcuInstallationCompleted\lReport" alt="" coords="165,411,336,453"/>
+<area shape="rect" id="node11" href="$class_ecu_installation_started_report.html" title="EcuInstallationStartedReport" alt="" coords="156,477,345,504"/>
+</map>

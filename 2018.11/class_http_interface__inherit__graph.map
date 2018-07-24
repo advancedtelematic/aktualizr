@@ -1,0 +1,4 @@
+<map id="HttpInterface" name="HttpInterface">
+<area shape="rect" id="node2" href="$class_http_client.html" title="HttpClient" alt="" coords="5,79,85,104"/>
+<area shape="rect" id="node3" href="$class_http_fake.html" title="HttpFake" alt="" coords="109,79,184,104"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="HttpInterface" name="HttpInterface">
+<area shape="rect" id="node2" href="$class_http_client.html" title="HttpClient" alt="" coords="152,335,233,361"/>
+<area shape="rect" id="node3" href="$class_http_fake.html" title="HttpFake" alt="" coords="155,385,231,412"/>
+<area shape="rect" id="node4" href="$class_http_custom_uri.html" title="HttpCustomUri" alt="" coords="309,5,420,32"/>
+<area shape="rect" id="node5" href="$class_http_default_uri.html" title="HttpDefaultUri" alt="" coords="311,56,418,83"/>
+<area shape="rect" id="node6" href="$class_http_download_failure.html" title="HttpDownloadFailure" alt="" coords="293,107,437,133"/>
+<area shape="rect" id="node7" href="$class_http_fake_campaign.html" title="HttpFakeCampaign" alt="" coords="297,157,432,184"/>
+<area shape="rect" id="node8" href="$class_http_fake_delegation.html" title="HttpFakeDelegation" alt="" coords="295,208,434,235"/>
+<area shape="rect" id="node9" href="$class_http_fake_event_counter.html" title="HttpFakeEventCounter" alt="" coords="287,259,443,285"/>
+<area shape="rect" id="node10" href="$class_http_fake_events.html" title="HttpFakeEvents" alt="" coords="306,309,423,336"/>
+<area shape="rect" id="node11" href="$class_http_fake_no_correlation_id.html" title="HttpFakeNoCorrelationId" alt="" coords="281,360,448,387"/>
+<area shape="rect" id="node12" href="$class_http_fake_pause_counter.html" title="HttpFakePauseCounter" alt="" coords="285,411,444,437"/>
+<area shape="rect" id="node13" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations. " alt="" coords="313,461,416,488"/>
+<area shape="rect" id="node14" href="$class_http_fake_put_counter.html" title="HttpFakePutCounter" alt="" coords="293,512,436,539"/>
+<area shape="rect" id="node15" href="$class_http_fake_rq.html" title="HttpFakeRq" alt="" coords="318,563,411,589"/>
+<area shape="rect" id="node16" href="$class_http_fake_unstable.html" title="HttpFakeUnstable" alt="" coords="301,613,429,640"/>
+<area shape="rect" id="node17" href="$class_http_put_manifest_fail.html" title="HttpPutManifestFail" alt="" coords="295,664,434,691"/>
+<area shape="rect" id="node18" href="$class_http_reject_empty_corr_id.html" title="HttpRejectEmptyCorrId" alt="" coords="285,715,444,741"/>
+</map>

@@ -1,0 +1,20 @@
+<map id="HttpFake" name="HttpFake">
+<area shape="rect" id="node3" href="$class_http_check_url.html" title="HttpCheckUrl" alt="" coords="326,5,435,32"/>
+<area shape="rect" id="node4" href="$class_http_custom_uri.html" title="HttpCustomUri" alt="" coords="321,56,440,83"/>
+<area shape="rect" id="node5" href="$class_http_default_uri.html" title="HttpDefaultUri" alt="" coords="322,107,439,133"/>
+<area shape="rect" id="node6" href="$class_http_download_failure.html" title="HttpDownloadFailure" alt="" coords="301,157,460,184"/>
+<area shape="rect" id="node7" href="$class_http_fake_campaign.html" title="HttpFakeCampaign" alt="" coords="307,208,454,235"/>
+<area shape="rect" id="node8" href="$class_http_fake_delegation.html" title="HttpFakeDelegation" alt="" coords="305,259,456,285"/>
+<area shape="rect" id="node9" href="$class_http_fake_event_counter.html" title="HttpFakeEventCounter" alt="" coords="297,309,465,336"/>
+<area shape="rect" id="node10" href="$class_http_fake_events.html" title="HttpFakeEvents" alt="" coords="319,360,443,387"/>
+<area shape="rect" id="node11" href="$class_http_fake_no_correlation_id.html" title="HttpFakeNoCorrelationId" alt="" coords="289,411,472,437"/>
+<area shape="rect" id="node12" href="$class_http_fake_pause_counter.html" title="HttpFakePauseCounter" alt="" coords="296,461,465,488"/>
+<area shape="rect" id="node13" href="$class_http_fake_prov.html" title="Check that basic device info sent by aktualizr during provisioning matches our expectations. " alt="" coords="326,512,435,539"/>
+<area shape="rect" id="node14" href="$class_http_fake_put_counter.html" title="HttpFakePutCounter" alt="" coords="305,563,457,589"/>
+<area shape="rect" id="node15" href="$class_http_fake_rq.html" title="HttpFakeRq" alt="" coords="332,613,429,640"/>
+<area shape="rect" id="node16" href="$class_http_fake_unstable.html" title="HttpFakeUnstable" alt="" coords="311,664,450,691"/>
+<area shape="rect" id="node17" href="$class_http_put_manifest_fail.html" title="HttpPutManifestFail" alt="" coords="306,715,455,741"/>
+<area shape="rect" id="node18" href="$class_http_reject_empty_corr_id.html" title="HttpRejectEmptyCorrId" alt="" coords="295,765,466,792"/>
+<area shape="rect" id="node19" href="$class_http_zero_length.html" title="HttpZeroLength" alt="" coords="319,816,443,843"/>
+<area shape="rect" id="node2" href="$class_http_interface.html" title="HttpInterface" alt="" coords="5,436,113,463"/>
+</map>

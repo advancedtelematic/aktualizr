@@ -1,0 +1,9 @@
+<map id="opcuabridge::CurrentTime" name="opcuabridge::CurrentTime">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::CurrentTime \&gt;" alt="" coords="840,5,1054,57"/>
+<area shape="rect" id="node3" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::CurrentTime \&gt;" alt="" coords="846,81,1048,133"/>
+<area shape="rect" id="node5" href="$classopcuabridge_1_1_signature.html" title="opcuabridge::Signature" alt="" coords="575,164,734,189"/>
+<area shape="rect" id="node6" href="$classopcuabridge_1_1_hash.html" title="opcuabridge::Hash" alt="" coords="354,203,487,228"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="180,172,259,197"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="5,165,131,204"/>
+<area shape="rect" id="node9" href="$classopcuabridge_1_1_signed.html" title="opcuabridge::Signed" alt="" coords="875,220,1019,245"/>
+</map>

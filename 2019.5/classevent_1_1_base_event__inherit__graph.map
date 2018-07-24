@@ -1,0 +1,15 @@
+<map id="event::BaseEvent" name="event::BaseEvent">
+<area shape="rect" id="node2" href="$classevent_1_1_all_downloads_complete.html" title="All targets for an update have been downloaded. " alt="" coords="197,5,395,32"/>
+<area shape="rect" id="node3" href="$classevent_1_1_all_installs_complete.html" title="All ECU installation attempts for an update have completed. " alt="" coords="209,56,383,83"/>
+<area shape="rect" id="node4" href="$classevent_1_1_campaign_accept_complete.html" title="A campaign has been accepted. " alt="" coords="187,107,405,133"/>
+<area shape="rect" id="node5" href="$classevent_1_1_campaign_check_complete.html" title="The server has been queried for available campaigns. " alt="" coords="189,157,403,184"/>
+<area shape="rect" id="node6" href="$classevent_1_1_campaign_decline_complete.html" title="event::CampaignDeclineComplete" alt="" coords="185,208,407,235"/>
+<area shape="rect" id="node7" href="$classevent_1_1_campaign_postpone_complete.html" title="event::CampaignPostponeComplete" alt="" coords="180,259,412,285"/>
+<area shape="rect" id="node8" href="$classevent_1_1_download_progress_report.html" title="A report for a download in progress. " alt="" coords="191,309,401,336"/>
+<area shape="rect" id="node9" href="$classevent_1_1_download_target_complete.html" title="A target has been downloaded. " alt="" coords="189,360,403,387"/>
+<area shape="rect" id="node10" href="$classevent_1_1_install_started.html" title="An ECU has begun installation of an update. " alt="" coords="227,411,365,437"/>
+<area shape="rect" id="node11" href="$classevent_1_1_install_target_complete.html" title="An installation attempt on an ECU has completed. " alt="" coords="201,461,391,488"/>
+<area shape="rect" id="node12" href="$classevent_1_1_put_manifest_complete.html" title="A manifest has been sent to the server. " alt="" coords="202,512,390,539"/>
+<area shape="rect" id="node13" href="$classevent_1_1_send_device_data_complete.html" title="Device data has been sent to the server. " alt="" coords="187,563,405,589"/>
+<area shape="rect" id="node14" href="$classevent_1_1_update_check_complete.html" title="An update is available for download from the server. " alt="" coords="197,613,395,640"/>
+</map>

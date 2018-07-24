@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_uptane_1_1_secondary_interface.html" title="Uptane::SecondaryInterface" alt="" coords="5,129,193,155"/>
+<area shape="rect" id="node2" href="$class_secondary_adapter.html" title="SecondaryAdapter" alt="" coords="270,5,402,31"/>
+<area shape="rect" id="node3" href="$class_short_circuit_secondary.html" title="ShortCircuitSecondary" alt="" coords="259,55,414,80"/>
+<area shape="rect" id="node4" href="$class_uptane_1_1_ip_uptane_secondary.html" title="Uptane::IpUptaneSecondary" alt="" coords="241,104,431,129"/>
+<area shape="rect" id="node5" href="$class_uptane_1_1_managed_secondary.html" title="Uptane::ManagedSecondary" alt="" coords="241,153,432,179"/>
+<area shape="rect" id="node8" href="$class_uptane_1_1_opcua_secondary.html" title="Uptane::OpcuaSecondary" alt="" coords="249,203,424,228"/>
+<area shape="rect" id="node9" href="$class_uptane_1_1_partial_verification_secondary.html" title="Uptane::PartialVerification\lSecondary" alt="" coords="249,252,424,291"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_legacy_secondary.html" title="Uptane::LegacySecondary" alt="" coords="480,129,658,155"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_virtual_secondary.html" title="Uptane::VirtualSecondary" alt="" coords="482,179,656,204"/>
+</map>

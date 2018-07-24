@@ -1,0 +1,7 @@
+<map id="ReportEvent" name="ReportEvent">
+<area shape="rect" id="node2" href="$class_campaign_accepted_report.html" title="CampaignAcceptedReport" alt="" coords="164,5,342,31"/>
+<area shape="rect" id="node3" href="$class_ecu_download_completed_report.html" title="EcuDownloadCompletedReport" alt="" coords="149,55,357,80"/>
+<area shape="rect" id="node4" href="$class_ecu_download_started_report.html" title="EcuDownloadStartedReport" alt="" coords="160,104,346,129"/>
+<area shape="rect" id="node5" href="$class_ecu_installation_completed_report.html" title="EcuInstallationCompleted\lReport" alt="" coords="167,153,339,192"/>
+<area shape="rect" id="node6" href="$class_ecu_installation_started_report.html" title="EcuInstallationStartedReport" alt="" coords="157,216,348,241"/>
+</map>

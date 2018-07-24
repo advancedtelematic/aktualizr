@@ -1,0 +1,12 @@
+<map id="AktualizrSecondaryConfig" name="AktualizrSecondaryConfig">
+<area shape="rect" id="node2" href="$class_base_config.html" title="BaseConfig" alt="" coords="561,62,652,89"/>
+<area shape="rect" id="node4" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="554,161,659,187"/>
+<area shape="rect" id="node5" href="$class_based_path.html" title="BasedPath" alt="" coords="205,161,292,187"/>
+<area shape="rect" id="node6" href="$struct_aktualizr_secondary_uptane_config.html" title="AktualizrSecondaryUptane\lConfig" alt="" coords="518,212,695,253"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="209,303,289,330"/>
+<area shape="rect" id="node10" href="$struct_package_config.html" title="PackageConfig" alt="" coords="551,278,662,305"/>
+<area shape="rect" id="node11" href="$struct_aktualizr_secondary_net_config.html" title="AktualizrSecondaryNetConfig" alt="" coords="509,329,704,355"/>
+<area shape="rect" id="node12" href="$struct_p11_config.html" title="P11Config" alt="" coords="565,379,648,406"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="5,296,132,337"/>
+<area shape="rect" id="node9" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="557,430,656,457"/>
+</map>

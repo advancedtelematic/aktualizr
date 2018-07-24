@@ -1,0 +1,34 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" title="STL class. " alt="" coords="5,252,109,277"/>
+<area shape="rect" id="node2" href="$classdeserialization__error.html" title="deserialization_error" alt="" coords="175,153,317,179"/>
+<area shape="rect" id="node3" href="$class_o_s_tree_commit_parse_error.html" title="OSTreeCommitParseError" alt="" coords="157,203,335,228"/>
+<area shape="rect" id="node4" href="$class_o_s_tree_object_missing.html" title="Thrown by GetObject when the object requested is not present in the repository. " alt="" coords="170,252,322,277"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="191,301,301,327"/>
+<area shape="rect" id="node25" title="STL class. " alt="" coords="183,523,309,548"/>
+<area shape="rect" id="node6" href="$class_fatal_exception.html" title="FatalException" alt="" coords="417,203,526,228"/>
+<area shape="rect" id="node7" href="$class_not_implemented_exception.html" title="NotImplementedException" alt="" coords="383,252,561,277"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="409,301,535,327"/>
+<area shape="rect" id="node10" href="$class_uptane_1_1_exception.html" title="Uptane::Exception" alt="" coords="407,351,537,376"/>
+<area shape="rect" id="node9" href="$class_time_stamp_1_1_invalid_time_stamp.html" title="TimeStamp::InvalidTimeStamp" alt="" coords="609,5,811,31"/>
+<area shape="rect" id="node11" href="$class_uptane_1_1_bad_ecu_id.html" title="Uptane::BadEcuId" alt="" coords="645,55,775,80"/>
+<area shape="rect" id="node12" href="$class_uptane_1_1_bad_hardware_id.html" title="Uptane::BadHardwareId" alt="" coords="628,104,792,129"/>
+<area shape="rect" id="node13" href="$class_uptane_1_1_bad_key_id.html" title="Uptane::BadKeyId" alt="" coords="645,153,775,179"/>
+<area shape="rect" id="node14" href="$class_uptane_1_1_expired_metadata.html" title="Uptane::ExpiredMetadata" alt="" coords="624,203,796,228"/>
+<area shape="rect" id="node15" href="$class_uptane_1_1_illegal_rsa_key_size.html" title="Uptane::IllegalRsaKeySize" alt="" coords="620,252,799,277"/>
+<area shape="rect" id="node16" href="$class_uptane_1_1_illegal_threshold.html" title="Uptane::IllegalThreshold" alt="" coords="627,301,793,327"/>
+<area shape="rect" id="node17" href="$class_uptane_1_1_invalid_metadata.html" title="Uptane::InvalidMetadata" alt="" coords="627,351,793,376"/>
+<area shape="rect" id="node18" href="$class_uptane_1_1_missing_repo.html" title="Uptane::MissingRepo" alt="" coords="635,400,784,425"/>
+<area shape="rect" id="node19" href="$class_uptane_1_1_miss_match_target.html" title="Uptane::MissMatchTarget" alt="" coords="624,449,796,475"/>
+<area shape="rect" id="node20" href="$class_uptane_1_1_non_unique_signatures.html" title="Uptane::NonUniqueSignatures" alt="" coords="609,499,811,524"/>
+<area shape="rect" id="node21" href="$class_uptane_1_1_oversized_target.html" title="Uptane::OversizedTarget" alt="" coords="625,548,794,573"/>
+<area shape="rect" id="node22" href="$class_uptane_1_1_security_exception.html" title="Uptane::SecurityException" alt="" coords="621,597,799,623"/>
+<area shape="rect" id="node23" href="$class_uptane_1_1_target_hash_mismatch.html" title="Uptane::TargetHashMismatch" alt="" coords="611,647,808,672"/>
+<area shape="rect" id="node24" href="$class_uptane_1_1_unmet_threshold.html" title="Uptane::UnmetThreshold" alt="" coords="625,696,795,721"/>
+<area shape="rect" id="node26" href="$class_bad_credentials_archive.html" title="BadCredentialsArchive" alt="" coords="393,400,550,425"/>
+<area shape="rect" id="node27" href="$class_bad_credentials_content.html" title="BadCredentialsContent" alt="" coords="392,449,551,475"/>
+<area shape="rect" id="node28" href="$class_bad_credentials_json.html" title="BadCredentialsJson" alt="" coords="401,499,542,524"/>
+<area shape="rect" id="node29" href="$class_s_q_l_exception.html" title="SQLException" alt="" coords="418,548,525,573"/>
+<area shape="rect" id="node30" href="$class_storage_exception.html" title="StorageException" alt="" coords="408,597,535,623"/>
+<area shape="rect" id="node31" href="$class_storage_target_r_handle_1_1_read_error.html" title="StorageTargetRHandle\l::ReadError" alt="" coords="393,647,550,685"/>
+<area shape="rect" id="node32" href="$class_storage_target_w_handle_1_1_write_error.html" title="StorageTargetWHandle\l::WriteError" alt="" coords="392,709,552,748"/>
+</map>

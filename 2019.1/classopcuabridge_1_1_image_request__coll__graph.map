@@ -1,0 +1,6 @@
+<map id="opcuabridge::ImageRequest" name="opcuabridge::ImageRequest">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::ImageRequest \&gt;" alt="" coords="186,5,385,61"/>
+<area shape="rect" id="node3" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::ImageRequest \&gt;" alt="" coords="181,85,389,141"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="245,165,325,192"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="5,158,132,199"/>
+</map>

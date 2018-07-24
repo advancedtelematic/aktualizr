@@ -1,0 +1,10 @@
+<map id="command::BaseCommand" name="command::BaseCommand">
+<area shape="rect" id="node2" href="$classcommand_1_1_campaign_check.html" title="command::CampaignCheck" alt="" coords="233,5,419,31"/>
+<area shape="rect" id="node3" href="$classcommand_1_1_check_updates.html" title="Check updates for validity. " alt="" coords="239,55,414,80"/>
+<area shape="rect" id="node4" href="$classcommand_1_1_fetch_meta.html" title="Fetch metadata from the server. " alt="" coords="251,104,401,129"/>
+<area shape="rect" id="node5" href="$classcommand_1_1_put_manifest.html" title="Send a manifest to the server. " alt="" coords="247,153,405,179"/>
+<area shape="rect" id="node6" href="$classcommand_1_1_send_device_data.html" title="Send device data to the server. " alt="" coords="233,203,420,228"/>
+<area shape="rect" id="node7" href="$classcommand_1_1_shutdown.html" title="Shut aktualizr down and return control from the main thread. " alt="" coords="253,252,399,277"/>
+<area shape="rect" id="node8" href="$classcommand_1_1_start_download.html" title="Download a set of Uptane targets. " alt="" coords="239,301,414,327"/>
+<area shape="rect" id="node9" href="$classcommand_1_1_uptane_install.html" title="Install a set of Uptane targets. " alt="" coords="244,351,409,376"/>
+</map>

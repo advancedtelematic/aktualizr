@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_o_s_tree_repo.html" title="A source repository to read OSTree objects from. " alt="" coords="5,31,104,57"/>
+<area shape="rect" id="node2" href="$class_o_s_tree_dir_repo.html" title="OSTreeDirRepo" alt="" coords="156,5,271,32"/>
+<area shape="rect" id="node3" href="$class_o_s_tree_http_repo.html" title="OSTreeHttpRepo" alt="" coords="152,56,275,83"/>
+</map>

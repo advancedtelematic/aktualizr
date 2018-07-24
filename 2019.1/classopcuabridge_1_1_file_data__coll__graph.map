@@ -1,0 +1,5 @@
+<map id="opcuabridge::FileData" name="opcuabridge::FileData">
+<area shape="rect" id="node2" href="$structopcuabridge_1_1_message_file_data.html" title="opcuabridge::MessageFileData" alt="" coords="8,5,211,32"/>
+<area shape="rect" id="node3" href="$structopcuabridge_1_1_message_on_after_write_callback.html" title="opcuabridge::MessageOnAfter\lWriteCallback\&lt; opcuabridge\l::FileData \&gt;" alt="" coords="10,56,209,112"/>
+<area shape="rect" id="node4" href="$structopcuabridge_1_1_message_on_before_read_callback.html" title="opcuabridge::MessageOnBefore\lReadCallback\&lt; opcuabridge\l::FileData \&gt;" alt="" coords="5,136,213,192"/>
+</map>

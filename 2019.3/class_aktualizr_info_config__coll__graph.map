@@ -1,0 +1,9 @@
+<map id="AktualizrInfoConfig" name="AktualizrInfoConfig">
+<area shape="rect" id="node2" href="$class_base_config.html" title="BaseConfig" alt="" coords="33,303,123,329"/>
+<area shape="rect" id="node4" href="$struct_storage_config.html" title="StorageConfig" alt="" coords="151,303,256,329"/>
+<area shape="rect" id="node5" href="$class_based_path.html" title="BasedPath" alt="" coords="164,103,251,130"/>
+<area shape="rect" id="node6" href="$struct_logger_config.html" title="LoggerConfig" alt="" coords="281,303,379,329"/>
+<area shape="rect" id="node7" href="$struct_package_config.html" title="PackageConfig" alt="" coords="404,303,515,329"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="419,103,499,130"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="396,5,523,47"/>
+</map>

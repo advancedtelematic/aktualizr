@@ -1,0 +1,21 @@
+<map id="Uptane::Exception" name="Uptane::Exception">
+<area shape="rect" id="node4" href="$class_uptane_1_1_bad_ecu_id.html" title="Uptane::BadEcuId" alt="" coords="539,5,668,32"/>
+<area shape="rect" id="node5" href="$class_uptane_1_1_bad_hardware_id.html" title="Uptane::BadHardwareId" alt="" coords="522,56,685,83"/>
+<area shape="rect" id="node6" href="$class_uptane_1_1_bad_key_id.html" title="Uptane::BadKeyId" alt="" coords="539,107,668,133"/>
+<area shape="rect" id="node7" href="$class_uptane_1_1_delegation_hash_mismatch.html" title="Uptane::DelegationHashMismatch" alt="" coords="492,157,715,184"/>
+<area shape="rect" id="node8" href="$class_uptane_1_1_delegation_missing.html" title="Uptane::DelegationMissing" alt="" coords="514,208,693,235"/>
+<area shape="rect" id="node9" href="$class_uptane_1_1_expired_metadata.html" title="Uptane::ExpiredMetadata" alt="" coords="518,259,689,285"/>
+<area shape="rect" id="node10" href="$class_uptane_1_1_illegal_threshold.html" title="Uptane::IllegalThreshold" alt="" coords="522,309,685,336"/>
+<area shape="rect" id="node11" href="$class_uptane_1_1_invalid_metadata.html" title="Uptane::InvalidMetadata" alt="" coords="521,360,685,387"/>
+<area shape="rect" id="node12" href="$class_uptane_1_1_invalid_target.html" title="Uptane::InvalidTarget" alt="" coords="530,411,677,437"/>
+<area shape="rect" id="node13" href="$class_uptane_1_1_missing_repo.html" title="Uptane::MissingRepo" alt="" coords="529,461,677,488"/>
+<area shape="rect" id="node14" href="$class_uptane_1_1_non_unique_signatures.html" title="Uptane::NonUniqueSignatures" alt="" coords="504,512,703,539"/>
+<area shape="rect" id="node15" href="$class_uptane_1_1_oversized_target.html" title="Uptane::OversizedTarget" alt="" coords="519,563,687,589"/>
+<area shape="rect" id="node16" href="$class_uptane_1_1_security_exception.html" title="Uptane::SecurityException" alt="" coords="514,613,693,640"/>
+<area shape="rect" id="node17" href="$class_uptane_1_1_target_hash_mismatch.html" title="Uptane::TargetHashMismatch" alt="" coords="505,664,702,691"/>
+<area shape="rect" id="node18" href="$class_uptane_1_1_target_mismatch.html" title="Uptane::TargetMismatch" alt="" coords="520,715,687,741"/>
+<area shape="rect" id="node19" href="$class_uptane_1_1_unmet_threshold.html" title="Uptane::UnmetThreshold" alt="" coords="519,765,687,792"/>
+<area shape="rect" id="node20" href="$class_uptane_1_1_version_mismatch.html" title="Uptane::VersionMismatch" alt="" coords="517,816,690,843"/>
+<area shape="rect" id="node2" title="STL class. " alt="" coords="157,411,265,437"/>
+<area shape="rect" id="node3" title="STL class. " alt="" coords="5,411,109,437"/>
+</map>
