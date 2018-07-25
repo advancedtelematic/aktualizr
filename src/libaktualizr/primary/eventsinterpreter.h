@@ -25,6 +25,7 @@ class EventsInterpreter {
   std::shared_ptr<command::BaseCommand> handle_check(event::BaseEvent &event);
   std::shared_ptr<command::BaseCommand> handle_download(event::BaseEvent &event);
   std::shared_ptr<command::BaseCommand> handle_install(event::BaseEvent &event);
+  std::shared_ptr<command::BaseCommand> handle_campaigncheck(event::BaseEvent &event);
 
   const Config &config;
   std::thread thread;

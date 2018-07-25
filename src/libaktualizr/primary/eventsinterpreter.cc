@@ -101,6 +101,15 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_install(event::B
   return std::make_shared<command::Shutdown>();
 }
 
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_campaigncheck(event::BaseEvent &event) {
+  if (event.variant == "CampaignCheckComplete") {
+    return std::make_shared<command::Shutdown>();
+  }
+
+  LOG_ERROR << "Unexpected event " << event.variant;
+  return std::make_shared<command::Shutdown>();
+}
+
 void EventsInterpreter::run() {
   std::shared_ptr<event::BaseEvent> event;
   auto running_mode = config.uptane.running_mode;
@@ -130,6 +139,9 @@ void EventsInterpreter::run() {
         break;
       case RunningMode::kInstall:
         next_command = handle_install(*event);
+        break;
+      case RunningMode::kCampaignCheck:
+        next_command = handle_campaigncheck(*event);
         break;
       default:
         LOG_ERROR << "Unknown running mode " << StringFromRunningMode(running_mode);

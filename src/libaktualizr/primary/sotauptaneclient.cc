@@ -819,6 +819,12 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
             LOG_INFO << "Aktualizr has been updated and reqires restart to run new version.";
           }
         }
+      } else if (command->variant == "CampaignCheck") {
+        HttpResponse response = http->get(config.tls.server + "/campaigner/campaigns", HttpInterface::kNoLimit);
+        if (response.isOk()) {
+          LOG_INFO << "Campaigns: " << response.getJson();
+        }
+        *events_channel << std::make_shared<event::CampaignCheckComplete>();
       } else if (command->variant == "Shutdown") {
         shutdown = true;
         return;

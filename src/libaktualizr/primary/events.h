@@ -95,6 +95,11 @@ class InstallComplete : public BaseEvent {
   explicit InstallComplete();
 };
 
+class CampaignCheckComplete : public BaseEvent {
+ public:
+  explicit CampaignCheckComplete();
+};
+
 }  // namespace event
 
 #endif

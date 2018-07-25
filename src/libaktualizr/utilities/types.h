@@ -66,6 +66,8 @@ enum class RunningMode {
   /** One complete cycle. Checks once for updates, downloads and installs
    *  anything found, and then shuts down. */
   kOnce,
+  /** Only check for an existing campaign related to the device */
+  kCampaignCheck,
   /** Only check for updates. Sends a manifest and device data, checks for
    *  updates, and then shuts down. */
   kCheck,
