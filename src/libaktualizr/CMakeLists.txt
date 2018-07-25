@@ -30,7 +30,6 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:primary>
     $<TARGET_OBJECTS:utilities>
-    $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:uptane>

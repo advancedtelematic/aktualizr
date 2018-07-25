@@ -17,5 +17,6 @@ compile_asn1_lib(SOURCES
 )
 
 add_aktualizr_test(NAME asn1 SOURCES asn1_test.cc)
+target_sources(t_asn1 PRIVATE $<TARGET_OBJECTS:aktualizr_secondary_ipc>)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

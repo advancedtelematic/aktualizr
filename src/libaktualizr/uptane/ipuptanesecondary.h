@@ -2,7 +2,6 @@
 #define UPTANE_IPUPTANESECONDARY_H_
 
 #include <chrono>
-#include "secondary_ipc/aktualizr_secondary_ipc.h"
 #include "uptane/secondaryinterface.h"
 
 namespace Uptane {

@@ -7,7 +7,6 @@
 #include "aktualizr_secondary_config.h"
 #include "aktualizr_secondary_interface.h"
 #include "crypto/keymanager.h"
-#include "secondary_ipc/aktualizr_secondary_ipc.h"
 #include "socket_server.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"

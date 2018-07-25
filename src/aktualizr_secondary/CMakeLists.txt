@@ -16,7 +16,6 @@ add_library(aktualizr_secondary_static_lib STATIC
     $<TARGET_OBJECTS:jsoncpp>
     $<TARGET_OBJECTS:package_manager>
     $<TARGET_OBJECTS:utilities>
-    $<TARGET_OBJECTS:aktualizr_secondary_ipc>
     $<TARGET_OBJECTS:storage>
     $<TARGET_OBJECTS:logging>
     $<TARGET_OBJECTS:uptane>
