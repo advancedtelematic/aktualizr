@@ -9,7 +9,7 @@
 std::string filename;
 std::string serial;
 
-ExampleFlasher::ExampleFlasher(const unsigned int loglevel) : loglevel_(loglevel) {
+ExampleFlasher::ExampleFlasher(unsigned int loglevel) : loglevel_(loglevel) {
   // Use /var/sota if it is available and accessible to the current user.
   // Generally this is true for devices but not hosts.
   if (boost::filesystem::exists("/var/sota")) {

@@ -97,8 +97,8 @@ aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 include_directories(. ed25519 libuptiny extern)
 add_library(uptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
 target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -DJSMN_STRICT -DJSMN_PARENT_LINKS)
-set_source_files_properties(extern/jsmn/jsmn.c PROPERTIES COMPILE_FLAGS "-Wno-error=sign-conversion -Wno-error=switch-default")
-set_source_files_properties(${ED25519_SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-error=sign-compare -Wno-error=sign-conversion -Wno-error=conversion")
+set_source_files_properties(extern/jsmn/jsmn.c PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-switch-default")
+set_source_files_properties(${ED25519_SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
 set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
@@ -112,9 +112,9 @@ set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
 add_library(isotp STATIC ${ISOTP_SOURCES})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-error=conversion -Wno-error=sign-conversion)
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-error=conversion -Wno-error=sign-conversion -Wno-error=gnu-designator)
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion -Wno-gnu-designator)
 endif ()
 
 # Machine is not set, building tests to run in Linux environment
@@ -123,7 +123,7 @@ if(NOT LIBUPTINY_MACHINE)
 
         set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.c ${ED25519_SOURCES})
 
-        set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-error=sign-compare -Wno-error=sign-conversion -Wno-error=conversion")
+        set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
 
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
 

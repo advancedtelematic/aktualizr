@@ -45,7 +45,7 @@ bool isECUListValid(const std::string &output) {
   size_t matched_symbols = 0;
   std::string::const_iterator search_start(output.cbegin());
   while (std::regex_search(search_start, output.cend(), ecu_match, ecu_regex)) {
-    matched_symbols += ecu_match.length();
+    matched_symbols += static_cast<size_t>(ecu_match.length());
     search_start += ecu_match.position() + ecu_match.length();
   }
   return matched_symbols == output.size();
