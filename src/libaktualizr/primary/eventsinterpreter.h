@@ -17,6 +17,11 @@ class EventsInterpreter {
   void run();
 
  private:
+  std::shared_ptr<command::BaseCommand> handle_cycle(event::BaseEvent &event, bool forever);
+  std::shared_ptr<command::BaseCommand> handle_check(event::BaseEvent &event);
+  std::shared_ptr<command::BaseCommand> handle_download(event::BaseEvent &event);
+  std::shared_ptr<command::BaseCommand> handle_install(event::BaseEvent &event);
+
   const Config &config;
   std::thread thread;
   std::shared_ptr<event::Channel> events_channel;
