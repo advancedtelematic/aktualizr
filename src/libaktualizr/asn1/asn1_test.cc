@@ -10,7 +10,6 @@
 #include "asn1/asn1_message.h"
 #include "config/config.h"
 #include "der_encoder.h"
-#include "secondary_ipc/aktualizr_secondary_ipc.h"
 
 void printStringHex(const std::string& s) {
   for (char c : s) {
@@ -102,51 +101,6 @@ TEST(asn1_config, tls_config_man_to_asn1cc) {
   EXPECT_EQ(ret.code, RC_OK);
   EXPECT_EQ(*cc_tls_conf, conf);
   ASN_STRUCT_FREE(asn_DEF_AKTlsConfig, cc_tls_conf);
-}
-
-TEST(asn1_uptane_ip, public_key_req) {
-  SecondaryPublicKeyReq mes;
-  SecondaryMessage& mes_r = mes;
-
-  asn1::Serializer ser;
-  ser << mes_r;
-  asn1::Deserializer des(ser.getResult());
-
-  std::unique_ptr<SecondaryMessage> mes2;
-  EXPECT_NO_THROW(des >> mes2);
-  EXPECT_EQ(mes2->mes_type, mes_r.mes_type);
-}
-
-TEST(asn1_uptane_ip, public_key_req_asn1cc_to_man) {
-  AKIpUptaneMes_t cc_mes;
-  memset(&cc_mes, 0, sizeof(cc_mes));
-
-  std::string der;
-
-  cc_mes.present = AKIpUptaneMes_PR_publicKeyReq;
-  asn_enc_rval_t enc = der_encode(&asn_DEF_AKIpUptaneMes, &cc_mes, Asn1StringAppendCallback, &der);
-  EXPECT_NE(enc.encoded, -1);
-
-  std::unique_ptr<SecondaryMessage> mes;
-  asn1::Deserializer des(der);
-  EXPECT_NO_THROW(des >> mes);
-  EXPECT_EQ(mes->mes_type, kSecondaryMesPublicKeyReqTag);
-  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_AKIpUptaneMes, &mes);
-}
-
-TEST(asn1_uptane_ip, public_key_req_man_to_asn1cc) {
-  SecondaryPublicKeyReq mes;
-  SecondaryMessage& mes_r = mes;
-
-  asn1::Serializer ser;
-  ser << mes_r;
-
-  AKIpUptaneMes_t* cc_mes = nullptr;
-  asn_dec_rval_t ret =
-      ber_decode(0, &asn_DEF_AKIpUptaneMes, (void**)&cc_mes, ser.getResult().c_str(), ser.getResult().length());
-  EXPECT_EQ(ret.code, RC_OK);
-  EXPECT_EQ(cc_mes->present, AKIpUptaneMes_PR_publicKeyReq);
-  ASN_STRUCT_FREE(asn_DEF_AKIpUptaneMes, cc_mes);
 }
 
 TEST(asn1_common, longstring) {

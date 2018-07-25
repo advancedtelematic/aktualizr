@@ -10,7 +10,6 @@ add_subdirectory("uptane")
 add_subdirectory("logging")
 add_subdirectory("storage")
 add_subdirectory("socket_activation")
-add_subdirectory("secondary_ipc")
 add_subdirectory("package_manager")
 add_subdirectory("telemetry")
 
