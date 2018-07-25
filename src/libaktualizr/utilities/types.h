@@ -80,6 +80,7 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   return os;
 }
 
+/// General data structures.
 namespace data {
 
 using UpdateRequestId = std::string;
@@ -90,6 +91,7 @@ struct Package {
   static Package fromJson(const std::string& /*json_str*/);
 };
 
+/// Result of an update.
 enum class UpdateResultCode {
   /// Operation executed successfully
   kOk = 0,

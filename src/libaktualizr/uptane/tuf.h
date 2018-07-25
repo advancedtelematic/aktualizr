@@ -292,9 +292,7 @@ class Root : public BaseMeta {
    * * "_type" matches the given role
    * * "expires" is in the past (vs 'now')
    * * The blob has valid signatures from enough keys to cross the threshold for this role
-   * @param now - The current time (for signature expiry)
    * @param repo - Repository type (only used to improve the error messages)
-   * @param role
    * @param signed_object
    * @return
    */

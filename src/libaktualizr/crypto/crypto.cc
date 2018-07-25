@@ -322,6 +322,7 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
 
 /**
  * Generate a RSA keypair
+ * @param key_type Algorithm used to generate the key
  * @param public_key Generated public part of key
  * @param private_key Generated private part of key
  * @return true if the keys are present at the end of this function (either they were created or existed already)
