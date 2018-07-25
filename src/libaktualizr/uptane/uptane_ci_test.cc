@@ -34,14 +34,12 @@ TEST(UptaneCI, OneCycleUpdate) {
   config.postUpdateValues();  // re-run copy of urls
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  HttpClient http;
+  auto http = std::make_shared<HttpClient>();
   Uptane::Manifest uptane_manifest{config, storage};
-  Bootloader bootloader{config.bootloader};
-  ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
-  EXPECT_TRUE(sota_client.initialize());
-  auto manifest = uptane_manifest.signManifest(sota_client.AssembleManifest());
-  EXPECT_TRUE(http.put(config.uptane.director_server + "/manifest", manifest).isOk());
+
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_TRUE(sota_client->putManifest());
 }
 
 TEST(UptaneCI, CheckKeys) {
@@ -69,12 +67,10 @@ TEST(UptaneCI, CheckKeys) {
   config.uptane.secondary_configs.push_back(ecu_config);
 
   auto storage = INvStorage::newStorage(config.storage);
-  HttpClient http;
-  Uptane::Manifest uptane_manifest{config, storage};
-  Bootloader bootloader{config.bootloader};
-  ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
-  EXPECT_TRUE(sota_client.initialize());
+  auto http = std::make_shared<HttpClient>();
+
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_TRUE(sota_client->initialize());
 
   std::string ca;
   std::string cert;
@@ -91,7 +87,7 @@ TEST(UptaneCI, CheckKeys) {
   EXPECT_TRUE(primary_private.size() > 0);
 
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
-  for (it = sota_client.secondaries.begin(); it != sota_client.secondaries.end(); it++) {
+  for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
     if (it->second->sconfig.secondary_type != Uptane::SecondaryType::kVirtual &&
         it->second->sconfig.secondary_type != Uptane::SecondaryType::kLegacy) {
       continue;

@@ -24,9 +24,15 @@
 
 class SotaUptaneClient {
  public:
-  SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                   Uptane::Manifest &uptane_manifest_in, std::shared_ptr<INvStorage> storage_in,
-                   HttpInterface &http_client, const Bootloader &bootloader_in, ReportQueue &report_queue_in);
+  static std::shared_ptr<SotaUptaneClient> newDefaultClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+                                                            std::shared_ptr<event::Channel> events_channel_in);
+  static std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+                                                         std::shared_ptr<HttpInterface> http_client_in,
+                                                         std::shared_ptr<event::Channel> events_channel_in = nullptr);
+  SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
+                   std::shared_ptr<Bootloader> bootloader_in, std::shared_ptr<ReportQueue> report_queue_in,
+                   std::shared_ptr<event::Channel> events_channel_in);
 
   bool initialize();
   bool updateMeta();
@@ -45,6 +51,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Uptane, offlineIteration);
   FRIEND_TEST(Uptane, krejectallTest);
   FRIEND_TEST(Uptane, Vector);
+  FRIEND_TEST(UptaneCI, OneCycleUpdate);
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
@@ -52,7 +59,7 @@ class SotaUptaneClient {
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
-  void initSecondaries();
+  void init();
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);
@@ -68,16 +75,16 @@ class SotaUptaneClient {
   bool checkDirectorMetaOffline();
 
   Config &config;
-  std::shared_ptr<event::Channel> events_channel;
   Uptane::DirectorRepository director_repo;
   Uptane::ImagesRepository images_repo;
-  Uptane::Manifest &uptane_manifest;
+  Uptane::Manifest uptane_manifest;
   std::shared_ptr<INvStorage> storage;
   std::shared_ptr<PackageManagerInterface> package_manager_;
-  HttpInterface &http;
-  Uptane::Fetcher uptane_fetcher;
-  const Bootloader &bootloader;
-  ReportQueue &report_queue;
+  std::shared_ptr<HttpInterface> http;
+  std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
+  const std::shared_ptr<Bootloader> bootloader;
+  std::shared_ptr<ReportQueue> report_queue;
+  std::shared_ptr<event::Channel> events_channel;
   std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;

@@ -4,8 +4,8 @@
 
 #include "config/config.h"
 
-ReportQueue::ReportQueue(const Config& config_in, HttpInterface& http_client)
-    : config(config_in), http(http_client), shutdown_(false) {
+ReportQueue::ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client)
+    : config(config_in), http(std::move(http_client)), shutdown_(false) {
   thread_ = std::thread(std::bind(&ReportQueue::run, this));
 }
 
@@ -33,7 +33,7 @@ void ReportQueue::run() {
       }
     }
     if (report_array.size() > 0) {
-      HttpResponse response = http.post(config.tls.server + "/events", report_array);
+      HttpResponse response = http->post(config.tls.server + "/events", report_array);
       // 404 implies the server does not support this feature. Nothing we can
       // do, just move along.
       if (response.isOk() || response.http_status_code == 404) {

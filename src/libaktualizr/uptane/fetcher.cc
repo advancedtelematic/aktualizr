@@ -10,7 +10,7 @@ bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType rep
   // TODO: chain-loading root.json
   std::string base_url = (repo == RepositoryType::Director) ? config.uptane.director_server : config.uptane.repo_server;
   std::string url = base_url + "/" + version.RoleFileName(role);
-  HttpResponse response = http.get(url, maxsize);
+  HttpResponse response = http->get(url, maxsize);
   if (!response.isOk()) {
     return false;
   }
@@ -48,7 +48,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 
       ds.hash_type = target.hashes()[0].type();
       HttpResponse response =
-          http.download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
+          http->download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
       if (!response.isOk()) {
         fhandle->wabort();
         if (response.curl_code == CURLE_WRITE_ERROR) {

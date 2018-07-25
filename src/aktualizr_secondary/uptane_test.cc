@@ -34,7 +34,7 @@ TEST(aktualizr_secondary_uptane, getPublicKey) {
 
 TEST(aktualizr_secondary_uptane, credentialsPassing) {
   TemporaryDirectory temp_dir;
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
   config.storage.path = temp_dir.Path();
   config.storage.uptane_metadata_path = BasedPath("metadata");
@@ -44,18 +44,16 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
   config.provision.primary_ecu_serial = "testecuserial";
-  config.uptane.director_server = http.tls_server + "/director";
-  config.uptane.repo_server = http.tls_server + "/repo";
+  config.uptane.director_server = http->tls_server + "/director";
+  config.uptane.repo_server = http->tls_server + "/repo";
   config.pacman.type = PackageManager::kNone;
 
   auto storage = INvStorage::newStorage(config.storage);
-  Uptane::Manifest uptane_manifest{config, storage};
-  Bootloader bootloader{config.bootloader};
-  ReportQueue report_queue(config, http);
-  SotaUptaneClient sota_client(config, nullptr, uptane_manifest, storage, http, bootloader, report_queue);
-  EXPECT_TRUE(sota_client.initialize());
 
-  std::string arch = sota_client.secondaryTreehubCredentials();
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_TRUE(sota_client->initialize());
+
+  std::string arch = sota_client->secondaryTreehubCredentials();
   std::string ca, cert, pkey, server_url;
   EXPECT_NO_THROW(AktualizrSecondary::extractCredentialsArchive(arch, &ca, &cert, &pkey, &server_url));
 }

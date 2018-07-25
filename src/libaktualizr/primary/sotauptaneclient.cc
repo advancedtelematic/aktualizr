@@ -16,23 +16,53 @@
 #include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
-SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                                   Uptane::Manifest &uptane_manifest_in, std::shared_ptr<INvStorage> storage_in,
-                                   HttpInterface &http_client, const Bootloader &bootloader_in,
-                                   ReportQueue &report_queue_in)
+std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
+    Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
+  std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
+  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
+      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
+
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
+                                            report_queue_in, events_channel_in);
+}
+
+std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
+                                                                  std::shared_ptr<INvStorage> storage_in,
+                                                                  std::shared_ptr<HttpInterface> http_client_in,
+                                                                  std::shared_ptr<event::Channel> events_channel_in) {
+  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
+      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
+                                            report_queue_in, events_channel_in);
+}
+
+SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
+                                   std::shared_ptr<HttpInterface> http_client,
+                                   std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
+                                   std::shared_ptr<Bootloader> bootloader_in,
+                                   std::shared_ptr<ReportQueue> report_queue_in,
+                                   std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
-      events_channel(std::move(std::move(events_channel_in))),
-      uptane_manifest(uptane_manifest_in),
+      uptane_manifest(config, storage_in),
       storage(std::move(storage_in)),
-      http(http_client),
-      uptane_fetcher(config, storage, http),
-      bootloader(bootloader_in),
-      report_queue(report_queue_in) {
+      http(std::move(http_client)),
+      uptane_fetcher(std::move(uptane_fetcher_in)),
+      bootloader(std::move(bootloader_in)),
+      report_queue(std::move(report_queue_in)),
+      events_channel(std::move(events_channel_in)) {
+  init();
+}
+
+void SotaUptaneClient::init() {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage);
   if (package_manager_->imageUpdated()) {
-    bootloader.setBootOK();
+    bootloader->setBootOK();
   }
 
   if (config.discovery.ipuptane) {
@@ -41,7 +71,21 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<event::Cha
     config.uptane.secondary_configs.insert(config.uptane.secondary_configs.end(), ipuptane_secs.begin(),
                                            ipuptane_secs.end());
   }
-  initSecondaries();
+  std::vector<Uptane::SecondaryConfig>::const_iterator it;
+  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
+    std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
+
+    Uptane::EcuSerial sec_serial = sec->getSerial();
+    Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+    std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+        secondaries.find(sec_serial);
+    if (map_it != secondaries.end()) {
+      LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
+      continue;
+    }
+    secondaries.insert(std::make_pair(sec_serial, sec));
+    hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
+  }
 }
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {
@@ -89,12 +133,12 @@ void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
 void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
-    http.put(config.tls.server + "/core/system_info", hw_info);
+    http->put(config.tls.server + "/core/system_info", hw_info);
   }
 }
 
 void SotaUptaneClient::reportInstalledPackages() {
-  http.put(config.tls.server + "/core/installed", package_manager_->getInstalledPackages());
+  http->put(config.tls.server + "/core/installed", package_manager_->getInstalledPackages());
 }
 
 void SotaUptaneClient::reportNetworkInfo() {
@@ -102,7 +146,7 @@ void SotaUptaneClient::reportNetworkInfo() {
     LOG_DEBUG << "Reporting network information";
     Json::Value network_info = Utils::getNetworkInfo();
     if (network_info != last_network_info_reported) {
-      HttpResponse response = http.put(config.tls.server + "/system_info/network", network_info);
+      HttpResponse response = http->put(config.tls.server + "/system_info/network", network_info);
       if (response.isOk()) {
         last_network_info_reported = network_info;
       }
@@ -204,8 +248,8 @@ bool SotaUptaneClient::updateDirectorMeta() {
         return false;
       }
     } else {
-      if (!uptane_fetcher.fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
-                                    Uptane::Role::Root(), Uptane::Version(1))) {
+      if (!uptane_fetcher->fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                     Uptane::Role::Root(), Uptane::Version(1))) {
         return false;
       }
       if (!director_repo.initRoot(director_root)) {
@@ -219,16 +263,16 @@ bool SotaUptaneClient::updateDirectorMeta() {
   // Update Director Root Metadata
   {
     std::string director_root;
-    if (!uptane_fetcher.fetchLatestRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
-                                        Uptane::Role::Root())) {
+    if (!uptane_fetcher->fetchLatestRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                         Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_root);
     int local_version = director_repo.rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!uptane_fetcher.fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
-                                    Uptane::Role::Root(), Uptane::Version(version))) {
+      if (!uptane_fetcher->fetchRole(&director_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Director,
+                                     Uptane::Role::Root(), Uptane::Version(version))) {
         return false;
       }
 
@@ -249,8 +293,8 @@ bool SotaUptaneClient::updateDirectorMeta() {
   {
     std::string director_targets;
 
-    if (!uptane_fetcher.fetchLatestRole(&director_targets, Uptane::kMaxDirectorTargetsSize,
-                                        Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
+    if (!uptane_fetcher->fetchLatestRole(&director_targets, Uptane::kMaxDirectorTargetsSize,
+                                         Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(director_targets);
@@ -294,8 +338,8 @@ bool SotaUptaneClient::updateImagesMeta() {
         return false;
       }
     } else {
-      if (!uptane_fetcher.fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
-                                    Uptane::Role::Root(), Uptane::Version(1))) {
+      if (!uptane_fetcher->fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                     Uptane::Role::Root(), Uptane::Version(1))) {
         return false;
       }
       if (!images_repo.initRoot(images_root)) {
@@ -309,16 +353,16 @@ bool SotaUptaneClient::updateImagesMeta() {
   // Update Image Root Metadata
   {
     std::string images_root;
-    if (!uptane_fetcher.fetchLatestRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
-                                        Uptane::Role::Root())) {
+    if (!uptane_fetcher->fetchLatestRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                         Uptane::Role::Root())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_root);
     int local_version = images_repo.rootVersion();
 
     for (int version = local_version + 1; version <= remote_version; ++version) {
-      if (!uptane_fetcher.fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
-                                    Uptane::Role::Root(), Uptane::Version(version))) {
+      if (!uptane_fetcher->fetchRole(&images_root, Uptane::kMaxRootSize, Uptane::RepositoryType::Images,
+                                     Uptane::Role::Root(), Uptane::Version(version))) {
         return false;
       }
       if (!images_repo.verifyRoot(images_root)) {
@@ -339,8 +383,8 @@ bool SotaUptaneClient::updateImagesMeta() {
   {
     std::string images_timestamp;
 
-    if (!uptane_fetcher.fetchLatestRole(&images_timestamp, Uptane::kMaxTimestampSize, Uptane::RepositoryType::Images,
-                                        Uptane::Role::Timestamp())) {
+    if (!uptane_fetcher->fetchLatestRole(&images_timestamp, Uptane::kMaxTimestampSize, Uptane::RepositoryType::Images,
+                                         Uptane::Role::Timestamp())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_timestamp);
@@ -375,8 +419,8 @@ bool SotaUptaneClient::updateImagesMeta() {
     std::string images_snapshot;
 
     int64_t snapshot_size = (images_repo.snapshotSize() > 0) ? images_repo.snapshotSize() : Uptane::kMaxSnapshotSize;
-    if (!uptane_fetcher.fetchLatestRole(&images_snapshot, snapshot_size, Uptane::RepositoryType::Images,
-                                        Uptane::Role::Snapshot())) {
+    if (!uptane_fetcher->fetchLatestRole(&images_snapshot, snapshot_size, Uptane::RepositoryType::Images,
+                                         Uptane::Role::Snapshot())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_snapshot);
@@ -411,8 +455,8 @@ bool SotaUptaneClient::updateImagesMeta() {
     std::string images_targets;
 
     int64_t targets_size = (images_repo.targetsSize() > 0) ? images_repo.targetsSize() : Uptane::kMaxImagesTargetsSize;
-    if (!uptane_fetcher.fetchLatestRole(&images_targets, targets_size, Uptane::RepositoryType::Images,
-                                        Uptane::Role::Targets())) {
+    if (!uptane_fetcher->fetchLatestRole(&images_targets, targets_size, Uptane::RepositoryType::Images,
+                                         Uptane::Role::Targets())) {
       return false;
     }
     int remote_version = Uptane::extractVersionUntrusted(images_targets);
@@ -614,7 +658,7 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
-    uptane_fetcher.fetchVerifyTarget(*images_target);
+    uptane_fetcher->fetchVerifyTarget(*images_target);
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
@@ -746,7 +790,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
             if (!isInstalledOnPrimary(*it)) {
               // notify the bootloader before installation happens, because installation is not atomic and
               //   a false notification doesn't hurt when rollbacks are implemented
-              bootloader.updateNotify();
+              bootloader->updateNotify();
               PackageInstallSetResult(*it);
             } else {
               data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
@@ -802,35 +846,17 @@ void SotaUptaneClient::sendDownloadReport() {
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = director_targets;
 
-  report_queue.enqueue(std::move(report));
+  report_queue->enqueue(std::move(report));
 }
 
 bool SotaUptaneClient::putManifest() {
   auto manifest = AssembleManifest();
   if (!hasPendingUpdates(manifest)) {
     auto signed_manifest = uptane_manifest.signManifest(manifest);
-    HttpResponse response = http.put(config.uptane.director_server + "/manifest", signed_manifest);
+    HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
     return response.isOk();
   }
   return false;
-}
-
-void SotaUptaneClient::initSecondaries() {
-  std::vector<Uptane::SecondaryConfig>::const_iterator it;
-  for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
-    std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-
-    Uptane::EcuSerial sec_serial = sec->getSerial();
-    Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
-    std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
-        secondaries.find(sec_serial);
-    if (map_it != secondaries.end()) {
-      LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
-      continue;
-    }
-    secondaries.insert(std::make_pair(sec_serial, sec));
-    hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
-  }
 }
 
 // Check stored secondaries list against secondaries known to aktualizr via
@@ -897,7 +923,7 @@ void SotaUptaneClient::rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::
       std::string root;
       if (!storage->loadRoot(&root, repo, Uptane::Version(v))) {
         LOG_WARNING << "Couldn't find root meta in the storage, trying remote repo";
-        if (!uptane_fetcher.fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
+        if (!uptane_fetcher->fetchRole(&root, Uptane::kMaxRootSize, repo, Uptane::Role::Root(), Uptane::Version(v))) {
           // TODO: looks problematic, robust procedure needs to be defined
           LOG_ERROR << "Root metadata could not be fetched, skipping to the next secondary";
           return;

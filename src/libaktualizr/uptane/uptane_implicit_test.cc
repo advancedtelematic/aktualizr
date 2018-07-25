@@ -32,7 +32,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 
   Initializer initializer(config.provision, storage, http, keys, {});
@@ -53,7 +53,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
   {
     boost::filesystem::create_directory(temp_dir.Path());
@@ -134,7 +134,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
   config.storage.tls_pkey_path = BasedPath("pkey.pem");
 
   auto storage = INvStorage::newStorage(config.storage);
-  HttpFake http(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 
   Initializer initializer(config.provision, storage, http, keys, {});

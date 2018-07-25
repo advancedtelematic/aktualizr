@@ -189,7 +189,7 @@ std::string KeyManager::getCN() const {
   return cn;
 }
 
-void KeyManager::copyCertsToCurl(HttpInterface *http) {
+void KeyManager::copyCertsToCurl(const std::shared_ptr<HttpInterface> &http) {
   std::string pkey = getPkey();
   std::string cert = getCert();
   std::string ca = getCa();

@@ -60,19 +60,15 @@ class Uptane_Vector_Test {
 
     try {
       auto storage = INvStorage::newStorage(config.storage);
-      HttpClient http;
       Uptane::Manifest uptane_manifest{config, storage};
       std::shared_ptr<event::Channel> events_channel{new event::Channel};
-
-      Bootloader bootloader(config.bootloader);
-      ReportQueue report_queue(config, http);
-      SotaUptaneClient uptane_client(config, events_channel, uptane_manifest, storage, http, bootloader, report_queue);
+      auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage, events_channel);
       Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
       Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
-      uptane_client.hw_ids.insert(std::make_pair(ecu_serial, hw_id));
-      uptane_client.installed_images[ecu_serial] = "test_filename";
-      if (!uptane_client.uptaneIteration()) {
-        throw uptane_client.getLastException();
+      uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
+      uptane_client->installed_images[ecu_serial] = "test_filename";
+      if (!uptane_client->uptaneIteration()) {
+        throw uptane_client->getLastException();
       }
 
     } catch (const Uptane::Exception& e) {
