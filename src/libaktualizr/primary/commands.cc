@@ -23,7 +23,7 @@ std::shared_ptr<BaseCommand> BaseCommand::fromJson(const Json::Value& json) {
   BaseCommand* com;
 
   if (v == "Shutdown") {
-    com = new Shutdown(json);
+    com = new Shutdown();
   } else if (v == "SendDeviceData") {
     com = new SendDeviceData();
   } else if (v == "FetchMeta") {

@@ -31,19 +31,11 @@ using Channel = Channel<std::shared_ptr<BaseCommand> >;
 class Shutdown : public BaseCommand {
  public:
   Shutdown() : BaseCommand("Shutdown") {}
-
- private:
-  explicit Shutdown(const Json::Value& /* json */) : Shutdown() {}
-
-  friend BaseCommand;
 };
 
 class FetchMeta : public BaseCommand {
  public:
   FetchMeta() : BaseCommand("FetchMeta") {}
-
- private:
-  friend BaseCommand;
 };
 
 class CheckUpdates : public BaseCommand {
