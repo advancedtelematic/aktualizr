@@ -18,7 +18,7 @@ class Aktualizr {
 
   int run();
   void sendCommand(const std::shared_ptr<command::BaseCommand>& command);
-  void setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
   Config& config_;

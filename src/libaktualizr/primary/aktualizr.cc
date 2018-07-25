@@ -47,6 +47,7 @@ int Aktualizr::run() {
 
 void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
 
-void Aktualizr::setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
-  (*sig_).connect(handler);
+boost::signals2::connection Aktualizr::setSignalHandler(
+    std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
+  return (*sig_).connect(handler);
 }

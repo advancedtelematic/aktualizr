@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/signals2.hpp>
 
 #include "config/config.h"
 #include "logging/logging.h"
@@ -111,6 +112,8 @@ int main(int argc, char *argv[]) {
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
 
+  int r = -1;
+  boost::signals2::connection conn;
   std::thread ui_thread;
 
   try {
@@ -123,19 +126,19 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
-    aktualizr->setSignalHandler(f_cb);
+    conn = aktualizr->setSignalHandler(f_cb);
 
     ui_thread = std::thread(get_user_input, aktualizr);
 
-    int r = aktualizr->run();
-    shutting_down = true;
-    ui_thread.join();
-    return r;
+    r = aktualizr->run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
-    if (ui_thread.joinable()) {
-      ui_thread.join();
-    }
-    return -1;
   }
+
+  shutting_down = true;
+  conn.disconnect();
+  if (ui_thread.joinable()) {
+    ui_thread.join();
+  }
+  return r;
 }
