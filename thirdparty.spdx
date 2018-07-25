@@ -4,7 +4,6 @@ SPDXID: SPDXRef-DOCUMENT
 Creator: Organization: HERE Technologies
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-googletest
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-jsoncpp
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-picojson
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-HdrHistogram_c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-open62541
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-boost-program-options-accumulator
@@ -49,19 +48,6 @@ PackageLicenseDeclared: (MIT OR LicenseRef-jsoncpp-public-domain)
 PackageLicenseInfoFromFiles: MIT
 PackageLicenseInfoFromFiles: LicenseRef-jsoncpp-public-domain
 PackageCopyrightText: <text>Copyright (c) 2007-2010 by Baptiste Lepilleur and The JsonCpp Authors</text>
-FilesAnalyzed: false
-
-
-PackageName: picojson
-SPDXID: SPDXRef-picojson
-PackageVersion: 1.3.0
-PackageDownloadLocation: https://github.com/kazuho/picojson/archive/v1.3.0.zip
-PackageHomePage: https://github.com/kazuho/picojson
-PackageLicenseConcluded: BSD-2-Clause
-PackageLicenseDeclared: BSD-2-Clause
-PackageLicenseInfoFromFiles: BSD-2-Clause
-PackageCopyrightText: <text>Copyright 2009-2010 Cybozu Labs, Inc.
-Copyright 2011-2014 Kazuho Oku</text>
 FilesAnalyzed: false
 
 
