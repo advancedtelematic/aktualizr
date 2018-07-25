@@ -30,13 +30,6 @@ enum class ProvisionMode { kAutomatic = 0, kImplicit };
 // Try to keep the order of config options the same as in Config::writeToStream()
 // and Config::updateFromPropertyTree() in config.cc.
 
-struct GatewayConfig {
-  bool socket{false};
-
-  void updateFromPropertyTree(const boost::property_tree::ptree& pt);
-  void writeToStream(std::ostream& out_stream) const;
-};
-
 struct NetworkConfig {
   std::string socket_commands_path{"/tmp/sota-commands.socket"};
   std::string socket_events_path{"/tmp/sota-events.socket"};
@@ -117,7 +110,6 @@ class Config : public BaseConfig {
   // Config data structures. Keep logger first so that it is taken into account
   // while processing the others.
   LoggerConfig logger;
-  GatewayConfig gateway;
   NetworkConfig network;
   P11Config p11;
   TlsConfig tls;

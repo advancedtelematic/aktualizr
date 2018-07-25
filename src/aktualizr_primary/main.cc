@@ -35,7 +35,6 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
       ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, check, download, or install")
-      ("gateway-socket", bpo::value<bool>(), "enable the socket gateway")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
@@ -44,7 +43,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
       ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
-      ("disable-keyid-validation", "deprecated");
+      ("disable-keyid-validation", "deprecated")
+      ("gateway-socket", bpo::value<bool>(), "deprecated");
   // clang-format on
 
   bpo::variables_map vm;
