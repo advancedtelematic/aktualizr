@@ -296,7 +296,8 @@ bool MetaPack::isConsistent() const {
     Uptane::Root original_root(director_root);
     Uptane::Root new_root(RepositoryType::Director, director_root.original(), new_root);
     Uptane::Targets(RepositoryType::Director, director_targets.original(), original_root);
-  } catch (...) {
+  } catch (const std::logic_error &exc) {
+    LOG_WARNING << "Inconsistent metadata: " << exc.what();
     return false;
   }
   return true;
