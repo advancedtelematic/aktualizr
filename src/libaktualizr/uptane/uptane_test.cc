@@ -107,7 +107,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
   data_json["signatures"][0]["keyid"] = "badkeyid";
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::UnmetThreshold);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::BadKeyId);
 }
 
 TEST(Uptane, VerifyDataBadThreshold) {

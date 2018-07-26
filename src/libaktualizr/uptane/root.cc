@@ -53,7 +53,7 @@ Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kChec
       // this occurs in Boost 1.62 (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
                 << static_cast<int64_t>(kMinSignatures);
-      throw IllegalThreshold(RepoString(repo), "The role " + role.ToString() + " had an illegal signature threshold.");
+      throw IllegalThreshold(RepoString(repo), "The role " + role_name + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
       // static_cast<int> is to stop << taking a reference to kMaxSignatures
@@ -105,8 +105,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
     }
     std::string keyid = (*sig)["keyid"].asString();
     if (keys_.count(keyid) == 0u) {
-      LOG_DEBUG << "Signed by unknown keyid, " << keyid << ", skipping";
-      continue;
+      throw BadKeyId(repository);
     }
 
     if (keys_for_role_.count(std::make_pair(role, keyid)) == 0u) {

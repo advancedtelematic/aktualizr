@@ -91,6 +91,12 @@ class NonUniqueSignatures : public Exception {
   ~NonUniqueSignatures() noexcept override = default;
 };
 
+class BadKeyId : public Exception {
+ public:
+  BadKeyId(const std::string& reponame) : Exception(reponame, "A key has an incorrect associated key ID") {}
+  ~BadKeyId() noexcept override = default;
+};
+
 class BadEcuId : public Exception {
  public:
   BadEcuId(const std::string& reponame)
