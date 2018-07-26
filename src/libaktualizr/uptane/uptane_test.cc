@@ -125,8 +125,8 @@ TEST(Uptane, VerifyDataBadThreshold) {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
     Uptane::Root(Uptane::RepositoryType::Director, data_json, root);
     FAIL();
-  } catch (Uptane::IllegalThreshold ex) {
-  } catch (Uptane::UnmetThreshold ex) {
+  } catch (const Uptane::IllegalThreshold& ex) {
+  } catch (const Uptane::UnmetThreshold& ex) {
   }
 }
 
