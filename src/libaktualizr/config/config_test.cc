@@ -52,12 +52,12 @@ TEST(config, config_toml_netport) {
 
 TEST(config, config_cmdl_parsing) {
   constexpr int argc = 5;
-  const char *argv[argc] = {"./aktualizr", "--gateway-socket", "on", "-c", "tests/config/minimal.toml"};
+  const char *argv[argc] = {"./aktualizr", "--primary-ecu-serial", "test-serial", "-c", "tests/config/minimal.toml"};
 
   bpo::options_description description("CommandLine Options");
   // clang-format off
   description.add_options()
-    ("gateway-socket", bpo::value<bool>(), "on/off the socket gateway")
+    ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
     ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
   // clang-format on
 
@@ -65,7 +65,7 @@ TEST(config, config_cmdl_parsing) {
   bpo::store(bpo::parse_command_line(argc, argv, description), vm);
   Config conf(vm);
 
-  EXPECT_TRUE(conf.gateway.socket);
+  EXPECT_EQ(conf.provision.primary_ecu_serial, "test-serial");
 }
 
 TEST(config, config_extract_credentials) {

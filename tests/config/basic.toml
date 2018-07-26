@@ -1,6 +1,3 @@
-[gateway]
-socket = true
-
 [provision]
 provision_path = "tests/test_data/cred.zip"
 

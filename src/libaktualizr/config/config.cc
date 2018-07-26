@@ -15,12 +15,6 @@
 #include "utilities/exceptions.h"
 #include "utilities/utils.h"
 
-void GatewayConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(socket, "socket", pt);
-}
-
-void GatewayConfig::writeToStream(std::ostream& out_stream) const { writeOption(out_stream, socket, "socket"); }
-
 void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(socket_commands_path, "socket_commands_path", pt);
   CopyFromConfig(socket_events_path, "socket_events_path", pt);
@@ -236,7 +230,6 @@ void Config::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
     // affects the rest of the config processing.
     logger_set_threshold(logger);
   }
-  CopySubtreeFromConfig(gateway, "gateway", pt);
   CopySubtreeFromConfig(network, "network", pt);
   CopySubtreeFromConfig(p11, "p11", pt);
   CopySubtreeFromConfig(tls, "tls", pt);
@@ -257,9 +250,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   }
   if (cmd.count("running-mode") != 0) {
     uptane.running_mode = RunningModeFromString(cmd["running-mode"].as<std::string>());
-  }
-  if (cmd.count("gateway-socket") != 0) {
-    gateway.socket = cmd["gateway-socket"].as<bool>();
   }
   if (cmd.count("tls-server") != 0) {
     tls.server = cmd["tls-server"].as<std::string>();
@@ -414,7 +404,6 @@ void Config::writeToStream(std::ostream& sink) const {
   // Keep this order the same as in config.h and
   // Config::updateFromPropertyTree().
   WriteSectionToStream(logger, "logger", sink);
-  WriteSectionToStream(gateway, "gateway", sink);
   WriteSectionToStream(network, "network", sink);
   WriteSectionToStream(p11, "p11", sink);
   WriteSectionToStream(tls, "tls", sink);

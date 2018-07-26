@@ -9,8 +9,7 @@ EventsInterpreter::EventsInterpreter(const Config& config_in, std::shared_ptr<ev
                                      std::shared_ptr<command::Channel> commands_channel_in)
     : config(config_in),
       events_channel(std::move(std::move(events_channel_in))),
-      commands_channel(std::move(std::move(commands_channel_in))),
-      gateway_manager(config, commands_channel) {}
+      commands_channel(std::move(std::move(commands_channel_in))) {}
 
 EventsInterpreter::~EventsInterpreter() {
   events_channel->close();
@@ -30,7 +29,6 @@ void EventsInterpreter::run() {
 
   while (*events_channel >> event) {
     LOG_INFO << "got " << event->variant << " event";
-    gateway_manager.processEvents(event);
 
     if (event->variant == "SendDeviceDataComplete") {
       *commands_channel << std::make_shared<command::FetchMeta>();

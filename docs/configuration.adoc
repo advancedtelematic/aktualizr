@@ -22,16 +22,6 @@ Configuration for the logger.
 | `loglevel` | `2`      | Log level, 0-5 (trace, debug, info, warning, error, fatal).
 |==========================================================================================
 
-== `gateway`
-
-Configuration for the gateway manager.
-
-[options="header"]
-|==========================================================================================
-| Name     | Default | Description
-| `socket` | `false` | Enable the socket gateway.
-|==========================================================================================
-
 == `network`
 
 Config options for networking and secondary device detection by the primary.
