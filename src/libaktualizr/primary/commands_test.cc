@@ -93,7 +93,7 @@ TEST(command, Nonexistent_command_from_json) {
   reader.parse(json, val);
   try {
     std::shared_ptr<command::BaseCommand> command = command::BaseCommand::fromJson(val);
-  } catch (std::runtime_error e) {
+  } catch (const std::runtime_error &e) {
     ASSERT_STREQ(e.what(), "wrong command variant = Nonexistent");
   }
 }

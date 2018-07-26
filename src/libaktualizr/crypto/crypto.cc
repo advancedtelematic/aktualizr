@@ -147,7 +147,7 @@ std::string Crypto::RSAPSSSign(ENGINE *engine, const std::string &private_key, c
 #endif
   }
 
-  const auto sign_size = static_cast<const unsigned int>(RSA_size(rsa.get()));
+  const auto sign_size = static_cast<unsigned int>(RSA_size(rsa.get()));
   boost::scoped_array<unsigned char> EM(new unsigned char[sign_size]);
   boost::scoped_array<unsigned char> pSignature(new unsigned char[sign_size]);
 
@@ -202,7 +202,7 @@ bool Crypto::RSAPSSVerify(const std::string &public_key, const std::string &sign
   RSA_set_method(rsa.get(), RSA_PKCS1_OpenSSL());
 #endif
 
-  const auto size = static_cast<const unsigned int>(RSA_size(rsa.get()));
+  const auto size = static_cast<unsigned int>(RSA_size(rsa.get()));
   boost::scoped_array<unsigned char> pDecrypted(new unsigned char[size]);
   /* now we will verify the signature
     Start by a RAW decrypt of the signature
