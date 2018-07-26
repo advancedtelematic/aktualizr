@@ -1,5 +1,6 @@
 #ifndef TYPES_H_
 #define TYPES_H_
+/** \file */
 
 #include <json/json.h>
 #include <boost/filesystem.hpp>
@@ -57,7 +58,27 @@ inline std::istream& operator>>(std::istream& is, KeyType& kt) {
   return is;
 }
 
-enum class RunningMode { kFull = 0, kOnce, kCheck, kDownload, kInstall, kManual };
+/** Execution mode to run aktualizr in. */
+enum class RunningMode {
+  /** Fully automated mode. Regularly checks for updates and downloads and
+   *  installs automatically. Runs indefinitely. */
+  kFull = 0,
+  /** One complete cycle. Checks once for updates, downloads and installs
+   *  anything found, and then shuts down. */
+  kOnce,
+  /** Only check for updates. Sends a manifest and device data, checks for
+   *  updates, and then shuts down. */
+  kCheck,
+  /** Download any available updates and then shut down. */
+  kDownload,
+  /** Install any available updates and then shut down. Does not requite network
+   *  connectivity. */
+  kInstall,
+  /** Completely manual operation. Send commands via the aktualizr class's API.
+   *  Runs indefinitely until a Shutdown command is received. */
+  kManual,
+};
+
 RunningMode RunningModeFromString(const std::string& mode);
 std::string StringFromRunningMode(RunningMode mode);
 
