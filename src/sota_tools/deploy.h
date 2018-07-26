@@ -12,6 +12,11 @@
  * \param src_repo Maybe either a OSTreeDirRepo (in which case the objects
  *                 are fetched from disk), or OSTreeHttpRepo (in which case
  *                 the objects will be pulled over https).
+ * \param push_credentials
+ * \param ostree_commit
+ * \param cacerts
+ * \param dryrun
+ * \param max_curl_requests
  */
 bool UploadToTreehub(const OSTreeRepo::ptr& src_repo, const ServerCredentials& push_credentials,
                      const OSTreeHash& ostree_commit, const std::string& cacerts, bool dryrun, int max_curl_requests);

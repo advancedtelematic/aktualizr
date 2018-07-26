@@ -6,14 +6,9 @@
 #include <openssl/rand.h>
 #include <sodium.h>
 
-#include "commands.h"
-#include "events.h"
 #include "eventsinterpreter.h"
-#include "http/httpclient.h"
-#include "reportqueue.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
-#include "utilities/channel.h"
 
 Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
@@ -28,13 +23,14 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   urandom.close();
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
+
+  commands_channel_ = std::make_shared<command::Channel>();
+  events_channel_ = std::make_shared<event::Channel>();
+  sig_ = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
 }
 
 int Aktualizr::run() {
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-
-  EventsInterpreter events_interpreter(config_, events_channel, commands_channel);
+  EventsInterpreter events_interpreter(config_, events_channel_, commands_channel_, sig_);
 
   // run events interpreter in background
   events_interpreter.interpret();
@@ -43,8 +39,15 @@ int Aktualizr::run() {
   storage->importData(config_.import);
 
   std::shared_ptr<SotaUptaneClient> uptane_client =
-      SotaUptaneClient::newDefaultClient(config_, storage, events_channel);
-  uptane_client->runForever(commands_channel);
+      SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
+  uptane_client->runForever(commands_channel_);
 
   return EXIT_SUCCESS;
+}
+
+void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
+
+boost::signals2::connection Aktualizr::setSignalHandler(
+    std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
+  return (*sig_).connect(handler);
 }

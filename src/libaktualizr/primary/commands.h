@@ -1,5 +1,6 @@
 #ifndef COMANDS_H_
 #define COMANDS_H_
+/** \file */
 
 #include <string>
 
@@ -9,8 +10,14 @@
 #include "utilities/channel.h"
 #include "utilities/types.h"
 
+/**
+ * Aktualizr control commands.
+ */
 namespace command {
 
+/**
+ * Base class for all command objects.
+ */
 class BaseCommand {
  public:
   std::string variant;
@@ -28,39 +35,63 @@ class BaseCommand {
 };
 using Channel = Channel<std::shared_ptr<BaseCommand> >;
 
+/**
+ * Shut aktualizr down and return control from the main thread.
+ */
 class Shutdown : public BaseCommand {
  public:
   Shutdown() : BaseCommand("Shutdown") {}
-
- private:
-  explicit Shutdown(const Json::Value& /* json */) : Shutdown() {}
-
-  friend BaseCommand;
 };
 
+/**
+ * Fetch metadata from the server.
+ *
+ * Also sends network information and current manifest to the server.
+ */
 class FetchMeta : public BaseCommand {
  public:
   FetchMeta() : BaseCommand("FetchMeta") {}
-
- private:
-  friend BaseCommand;
 };
 
+/**
+ * Check updates for validity.
+ *
+ * Generated automatically after receiving metadata from the server (as with
+ * FetchMeta) and thus should not need to be used manually.
+ */
 class CheckUpdates : public BaseCommand {
  public:
   CheckUpdates() : BaseCommand("CheckUpdates") {}
 };
 
+/**
+ * Send device data to the server.
+ *
+ * Sends hardware information, a list of installed packages, and network
+ * information. Automatically generates a FetchMeta command upon completion.
+ */
 class SendDeviceData : public BaseCommand {
  public:
   SendDeviceData() : BaseCommand("SendDeviceData") {}
 };
 
+/**
+ * Send a manifest to the server.
+ *
+ * This is normally done as part of a FetchMeta command and thus should not need
+ * to be used manually.
+ */
 class PutManifest : public BaseCommand {
  public:
   PutManifest() : BaseCommand("PutManifest") {}
 };
 
+/**
+ * Download a set of Uptane targets.
+ *
+ * The targets should be in the same format as provided in the UpdateAvailable
+ * event.
+ */
 class StartDownload : public BaseCommand {
  public:
   explicit StartDownload(std::vector<Uptane::Target> updates_in);
@@ -74,6 +105,12 @@ class StartDownload : public BaseCommand {
   friend BaseCommand;
 };
 
+/**
+ * Install a set of Uptane targets.
+ *
+ * The targets should be in the same format as provided in the UpdateAvailable
+ * event.
+ */
 class UptaneInstall : public BaseCommand {
  public:
   explicit UptaneInstall(std::vector<Uptane::Target> packages_in);

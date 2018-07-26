@@ -94,6 +94,13 @@ struct DiscoveryConfig {
   void writeToStream(std::ostream& out_stream) const;
 };
 
+/**
+ * Configuration object for an aktualizr instance running on a primary ECU.
+ *
+ * This class is a parent to a series of smaller configuration objects for
+ * specific subsystems. Note that most other aktualizr-related tools have their
+ * own parent configuration objects with a reduced set of members.
+ */
 class Config : public BaseConfig {
  public:
   Config();

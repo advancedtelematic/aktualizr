@@ -1,15 +1,19 @@
 #include "eventsinterpreter.h"
+
 #include <unistd.h>
 #include <memory>
 #include <utility>
 
 #include "config/config.h"
 
-EventsInterpreter::EventsInterpreter(const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
-                                     std::shared_ptr<command::Channel> commands_channel_in)
+EventsInterpreter::EventsInterpreter(
+    const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
+    std::shared_ptr<command::Channel> commands_channel_in,
+    std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig_in)
     : config(config_in),
-      events_channel(std::move(std::move(events_channel_in))),
-      commands_channel(std::move(std::move(commands_channel_in))) {}
+      events_channel(std::move(events_channel_in)),
+      commands_channel(std::move(commands_channel_in)),
+      sig(std::move(sig_in)) {}
 
 EventsInterpreter::~EventsInterpreter() {
   events_channel->close();
@@ -18,7 +22,7 @@ EventsInterpreter::~EventsInterpreter() {
 
 void EventsInterpreter::interpret() { thread = std::thread(std::bind(&EventsInterpreter::run, this)); }
 
-std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::BaseEvent &event, bool forever) {
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::BaseEvent &event, const bool forever) {
   // Handles everything, in sequence
   if (event.variant == "SendDeviceDataComplete") {
     return std::make_shared<command::FetchMeta>();
@@ -42,6 +46,17 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::Bas
   } else {
     return std::make_shared<command::Shutdown>();
   }
+}
+
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_manual(event::BaseEvent &event) {
+  // Handles everything and then waits.
+  if (event.variant == "SendDeviceDataComplete") {
+    return std::make_shared<command::FetchMeta>();
+  } else if (event.variant == "FetchMetaComplete") {
+    return std::make_shared<command::CheckUpdates>();
+  }
+
+  return nullptr;
 }
 
 std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_check(event::BaseEvent &event) {
@@ -89,18 +104,11 @@ void EventsInterpreter::run() {
   std::shared_ptr<event::BaseEvent> event;
   auto running_mode = config.uptane.running_mode;
 
-  switch (running_mode) {
-    case RunningMode::kDownload:
-    case RunningMode::kInstall:
-      *commands_channel << std::make_shared<command::CheckUpdates>();
-      break;
-    default:
-      *commands_channel << std::make_shared<command::SendDeviceData>();
-      break;
-  }
-
   while (*events_channel >> event) {
     LOG_INFO << "got " << event->variant << " event";
+    if (sig) {
+      (*sig)(event);
+    }
 
     std::shared_ptr<command::BaseCommand> next_command;
     switch (running_mode) {
@@ -109,6 +117,9 @@ void EventsInterpreter::run() {
         break;
       case RunningMode::kOnce:
         next_command = handle_cycle(*event, false);
+        break;
+      case RunningMode::kManual:
+        next_command = handle_manual(*event);
         break;
       case RunningMode::kCheck:
         next_command = handle_check(*event);
@@ -124,8 +135,10 @@ void EventsInterpreter::run() {
     }
 
     if (next_command == nullptr) {
-      LOG_ERROR << "No command to run after event " << event->variant << " in mode "
-                << StringFromRunningMode(running_mode);
+      if (running_mode != RunningMode::kManual) {
+        LOG_ERROR << "No command to run after event " << event->variant << " in mode "
+                  << StringFromRunningMode(running_mode);
+      }
     } else {
       *commands_channel << next_command;
     }

@@ -226,7 +226,7 @@ SEPARATE_MEMBER_PAGES  = NO
 # uses this value to replace tabs by spaces in code fragments.
 # Minimum value: 1, maximum value: 16, default value: 4.
 
-TAB_SIZE               = 4
+TAB_SIZE               = 2
 
 # This tag can be used to specify a number of aliases that act as commands in
 # the documentation. An alias has the form:
@@ -796,6 +796,7 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_secondary \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/cert_provider \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/external_secondaries \
+                         @CMAKE_CURRENT_SOURCE_DIR@/../src/hmi_stub \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/implicit_writer \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/asn1 \
@@ -812,7 +813,6 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/secondary_ipc \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/socket_activation \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/storage \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/storage/test \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/telemetry \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/uptane \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/utilities \

@@ -1,5 +1,6 @@
 #ifndef EVENTS_H_
 #define EVENTS_H_
+/** \file */
 
 #include <map>
 
@@ -9,8 +10,14 @@
 #include "utilities/channel.h"
 #include "utilities/types.h"
 
+/**
+ * Aktualizr status events.
+ */
 namespace event {
 
+/**
+ * Base class for all event objects.
+ */
 class BaseEvent {
  public:
   virtual ~BaseEvent() = default;
@@ -20,6 +27,9 @@ class BaseEvent {
 };
 using Channel = Channel<std::shared_ptr<BaseEvent> >;
 
+/**
+ * An error occurred processing a command.
+ */
 class Error : public BaseEvent {
  public:
   std::string message;
@@ -28,16 +38,25 @@ class Error : public BaseEvent {
   static Error fromJson(const std::string& /*json_str*/);
 };
 
+/**
+ * The FetchMeta command completed successfully.
+ */
 class FetchMetaComplete : public BaseEvent {
  public:
   explicit FetchMetaComplete();
 };
 
+/**
+ * The SendDeviceData command completed successfully.
+ */
 class SendDeviceDataComplete : public BaseEvent {
  public:
   explicit SendDeviceDataComplete();
 };
 
+/**
+ * The PutManifest command completed successfully.
+ */
 class PutManifestComplete : public BaseEvent {
  public:
   explicit PutManifestComplete();
@@ -56,6 +75,9 @@ class UptaneTimestampUpdated : public BaseEvent {
   UptaneTimestampUpdated();
 };
 
+/**
+ * The StartDownload command completed successfully.
+ */
 class DownloadComplete : public BaseEvent {
  public:
   std::vector<Uptane::Target> updates;
@@ -65,6 +87,9 @@ class DownloadComplete : public BaseEvent {
   static DownloadComplete fromJson(const std::string& json_str);
 };
 
+/**
+ * The UptaneInstall command completed successfully.
+ */
 class InstallComplete : public BaseEvent {
  public:
   explicit InstallComplete();
