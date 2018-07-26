@@ -5,7 +5,7 @@
 
 #include "config/config.h"
 
-EventsInterpreter::EventsInterpreter(const Config& config_in, std::shared_ptr<event::Channel> events_channel_in,
+EventsInterpreter::EventsInterpreter(const Config &config_in, std::shared_ptr<event::Channel> events_channel_in,
                                      std::shared_ptr<command::Channel> commands_channel_in)
     : config(config_in),
       events_channel(std::move(std::move(events_channel_in))),
@@ -18,55 +18,116 @@ EventsInterpreter::~EventsInterpreter() {
 
 void EventsInterpreter::interpret() { thread = std::thread(std::bind(&EventsInterpreter::run, this)); }
 
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::BaseEvent &event, bool forever) {
+  // Handles everything, in sequence
+  if (event.variant == "SendDeviceDataComplete") {
+    return std::make_shared<command::FetchMeta>();
+  } else if (event.variant == "FetchMetaComplete") {
+    return std::make_shared<command::CheckUpdates>();
+  } else if (event.variant == "UpdateAvailable") {
+    return std::make_shared<command::StartDownload>(dynamic_cast<event::UpdateAvailable &>(event).updates);
+  } else if (event.variant == "DownloadComplete") {
+    return std::make_shared<command::UptaneInstall>(dynamic_cast<event::DownloadComplete &>(event).updates);
+  } else if (event.variant == "InstallComplete") {
+    return std::make_shared<command::PutManifest>();
+  }
+
+  if (event.variant != "UptaneTimestampUpdated" && event.variant != "PutManifestComplete" && event.variant != "Error") {
+    LOG_ERROR << "Unexpected event " << event.variant;
+  }
+
+  if (forever) {
+    std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
+    return std::make_shared<command::FetchMeta>();
+  } else {
+    return std::make_shared<command::Shutdown>();
+  }
+}
+
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_check(event::BaseEvent &event) {
+  if (event.variant == "SendDeviceDataComplete") {
+    return std::make_shared<command::FetchMeta>();
+  } else if (event.variant == "FetchMetaComplete") {
+    return std::make_shared<command::CheckUpdates>();
+  } else if (event.variant == "UpdateAvailable") {
+    return std::make_shared<command::Shutdown>();
+  } else if (event.variant == "Error") {
+    return std::make_shared<command::Shutdown>();
+  }
+
+  LOG_ERROR << "Unexpected event " << event.variant;
+  return std::make_shared<command::Shutdown>();
+}
+
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_download(event::BaseEvent &event) {
+  if (event.variant == "UpdateAvailable") {
+    return std::make_shared<command::StartDownload>(dynamic_cast<event::UpdateAvailable &>(event).updates);
+  } else if (event.variant == "DownloadComplete") {
+    return std::make_shared<command::Shutdown>();
+  } else if (event.variant == "Error") {
+    return std::make_shared<command::Shutdown>();
+  }
+
+  LOG_ERROR << "Unexpected event " << event.variant;
+  return std::make_shared<command::Shutdown>();
+}
+
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_install(event::BaseEvent &event) {
+  if (event.variant == "UpdateAvailable") {
+    return std::make_shared<command::UptaneInstall>(dynamic_cast<event::UpdateAvailable &>(event).updates);
+  } else if (event.variant == "InstallComplete") {
+    return std::make_shared<command::Shutdown>();
+  } else if (event.variant == "Error") {
+    return std::make_shared<command::Shutdown>();
+  }
+
+  LOG_ERROR << "Unexpected event " << event.variant;
+  return std::make_shared<command::Shutdown>();
+}
+
 void EventsInterpreter::run() {
   std::shared_ptr<event::BaseEvent> event;
+  auto running_mode = config.uptane.running_mode;
 
-  if (config.uptane.running_mode == RunningMode::kDownload || config.uptane.running_mode == RunningMode::kInstall) {
-    *commands_channel << std::make_shared<command::CheckUpdates>();
-  } else {
-    *commands_channel << std::make_shared<command::SendDeviceData>();
+  switch (running_mode) {
+    case RunningMode::kDownload:
+    case RunningMode::kInstall:
+      *commands_channel << std::make_shared<command::CheckUpdates>();
+      break;
+    default:
+      *commands_channel << std::make_shared<command::SendDeviceData>();
+      break;
   }
 
   while (*events_channel >> event) {
     LOG_INFO << "got " << event->variant << " event";
 
-    if (event->variant == "SendDeviceDataComplete") {
-      *commands_channel << std::make_shared<command::FetchMeta>();
-    } else if (event->variant == "FetchMetaComplete") {
-      *commands_channel << std::make_shared<command::CheckUpdates>();
-    } else if (event->variant == "UpdateAvailable") {
-      if (config.uptane.running_mode == RunningMode::kInstall) {
-        *commands_channel << std::make_shared<command::UptaneInstall>(
-            dynamic_cast<event::UpdateAvailable*>(event.get())->updates);
-      } else if (config.uptane.running_mode != RunningMode::kCheck) {
-        *commands_channel << std::make_shared<command::StartDownload>(
-            dynamic_cast<event::UpdateAvailable*>(event.get())->updates);
-      } else {
-        *commands_channel << std::make_shared<command::Shutdown>();
-      }
-    } else if (event->variant == "DownloadComplete") {
-      if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce) {
-        *commands_channel << std::make_shared<command::UptaneInstall>(
-            dynamic_cast<event::DownloadComplete*>(event.get())->updates);
-      } else {
-        *commands_channel << std::make_shared<command::Shutdown>();
-      }
-    } else if (event->variant == "InstallComplete") {
-      if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce) {
-        *commands_channel << std::make_shared<command::PutManifest>();
-      } else {
-        *commands_channel << std::make_shared<command::Shutdown>();
-      }
+    std::shared_ptr<command::BaseCommand> next_command;
+    switch (running_mode) {
+      case RunningMode::kFull:
+        next_command = handle_cycle(*event, true);
+        break;
+      case RunningMode::kOnce:
+        next_command = handle_cycle(*event, false);
+        break;
+      case RunningMode::kCheck:
+        next_command = handle_check(*event);
+        break;
+      case RunningMode::kDownload:
+        next_command = handle_download(*event);
+        break;
+      case RunningMode::kInstall:
+        next_command = handle_install(*event);
+        break;
+      default:
+        LOG_ERROR << "Unknown running mode " << StringFromRunningMode(running_mode);
     }
-    if (event->variant == "UptaneTimestampUpdated" || event->variant == "PutManifestComplete" ||
-        event->variant == "Error") {
-      // These events indicates the end of pooling cycle
-      if (config.uptane.running_mode == RunningMode::kFull) {
-        std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
-        *commands_channel << std::make_shared<command::FetchMeta>();
-      } else {
-        *commands_channel << std::make_shared<command::Shutdown>();
-      }
+
+    if (next_command == nullptr) {
+      LOG_ERROR << "No command to run after event " << event->variant << " in mode "
+                << StringFromRunningMode(running_mode);
+    } else {
+      *commands_channel << next_command;
     }
   }
 }
