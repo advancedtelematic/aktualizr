@@ -449,7 +449,7 @@ TEST(Uptane, AssembleManifestBad) {
   Json::Value manifest = sota_client->AssembleManifest();
 
   EXPECT_EQ(manifest.size(), 1);
-  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"], config.provision.primary_ecu_serial);
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"].asString(), config.provision.primary_ecu_serial);
 }
 
 TEST(Uptane, PutManifest) {
@@ -488,10 +488,14 @@ TEST(Uptane, PutManifest) {
 
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
+  EXPECT_EQ(
+      json["signed"]["ecu_version_manifests"]["testecuserial"]["signed"]["installed_image"]["filepath"].asString(),
+      "unknown");
   EXPECT_EQ(json["signed"]["ecu_version_manifests"].size(), 2u);
-  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["ecu_serial"],
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["ecu_serial"].asString(),
             "secondary_ecu_serial");
-  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"],
+  EXPECT_EQ(json["signed"]["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"]
+                .asString(),
             "test-package");
 }
 
@@ -632,13 +636,14 @@ TEST(Uptane, RunForeverInstall) {
 
   EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http->test_manifest));
 
-  // Make sure operation_result was correctly written and formatted.
+  // Make sure operation_result and filepath were correctly written and formatted.
   Json::Value manifest = up->AssembleManifest();
-  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["id"], "testecuserial");
-  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_code"],
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["id"].asString(), "testecuserial");
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
             static_cast<int>(data::UpdateResultCode::kOk));
-  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"],
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
             "Installing fake package was successful");
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
