@@ -168,7 +168,8 @@ Json::Value SotaUptaneClient::AssembleManifest() {
     unsigned_ecu_version["custom"]["operation_result"] = installation_result.toJson();
   }
 
-  installed_images[uptane_manifest.getPrimaryEcuSerial()] = unsigned_ecu_version["filepath"].asString();
+  installed_images[uptane_manifest.getPrimaryEcuSerial()] =
+      unsigned_ecu_version["installed_image"]["filepath"].asString();
 
   result[uptane_manifest.getPrimaryEcuSerial().ToString()] = uptane_manifest.signVersionManifest(unsigned_ecu_version);
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
