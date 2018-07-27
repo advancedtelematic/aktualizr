@@ -37,7 +37,7 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::Bas
   }
 
   if (event.variant != "UptaneTimestampUpdated" && event.variant != "PutManifestComplete" && event.variant != "Error") {
-    LOG_ERROR << "Unexpected event " << event.variant;
+    LOG_WARNING << "Unexpected event " << event.variant;
   }
 
   if (forever) {
@@ -56,6 +56,7 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_manual(event::Ba
     return std::make_shared<command::CheckUpdates>();
   }
 
+  // nothing to do, continue running
   return nullptr;
 }
 
@@ -66,11 +67,11 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_check(event::Bas
     return std::make_shared<command::CheckUpdates>();
   } else if (event.variant == "UpdateAvailable") {
     return std::make_shared<command::Shutdown>();
-  } else if (event.variant == "Error") {
+  } else if (event.variant == "Error" || event.variant == "UptaneTimestampUpdated") {
     return std::make_shared<command::Shutdown>();
   }
 
-  LOG_ERROR << "Unexpected event " << event.variant;
+  LOG_WARNING << "Unexpected event " << event.variant;
   return std::make_shared<command::Shutdown>();
 }
 
@@ -83,7 +84,7 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_download(event::
     return std::make_shared<command::Shutdown>();
   }
 
-  LOG_ERROR << "Unexpected event " << event.variant;
+  LOG_WARNING << "Unexpected event " << event.variant;
   return std::make_shared<command::Shutdown>();
 }
 
@@ -96,7 +97,7 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_install(event::B
     return std::make_shared<command::Shutdown>();
   }
 
-  LOG_ERROR << "Unexpected event " << event.variant;
+  LOG_WARNING << "Unexpected event " << event.variant;
   return std::make_shared<command::Shutdown>();
 }
 
