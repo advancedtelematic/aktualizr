@@ -1,0 +1,11 @@
+[{
+  "name": "campaign2",
+  "update": "095f8409-e5f0-48ee-8691-201108cae327",
+  "groups": [],
+  "metadata": [
+    {
+      "type": "install",
+      "value": "this is my message to show on the device"
+    }
+  ]
+}]

@@ -6,6 +6,7 @@
 #include <utility>
 #include "json/json.h"
 
+#include "campaign/campaign.h"
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
 #include "initializer.h"
@@ -820,9 +821,11 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
           }
         }
       } else if (command->variant == "CampaignCheck") {
-        HttpResponse response = http->get(config.tls.server + "/campaigner/campaigns", HttpInterface::kNoLimit);
-        if (response.isOk()) {
-          LOG_INFO << "Campaigns: " << response.getJson();
+        auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
+
+        for (const auto &c : campaigns) {
+          LOG_INFO << "Campaign: " << c.name;
+          LOG_INFO << "Message: " << c.install_message;
         }
         *events_channel << std::make_shared<event::CampaignCheckComplete>();
       } else if (command->variant == "Shutdown") {
