@@ -251,16 +251,7 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
   }
 
   // if everything is ok, remove old files.
-  fs_storage.clearPrimaryKeys();
-  fs_storage.clearTlsCreds();
-  fs_storage.clearDeviceId();
-  fs_storage.clearEcuSerials();
-  fs_storage.clearEcuRegistered();
-  fs_storage.clearMisconfiguredEcus();
-  fs_storage.clearInstalledVersions();
-  fs_storage.clearInstallationResult();
-  fs_storage.clearMetadata();
-  fs_storage.cleanUp();
+  fs_storage.cleanUpAll();
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {

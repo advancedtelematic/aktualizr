@@ -11,10 +11,8 @@ class FSStorageRead {
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key);
   bool loadPrimaryPublic(std::string* public_key);
   bool loadPrimaryPrivate(std::string* private_key);
-  void clearPrimaryKeys();
 
   bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey);
-  void clearTlsCreds();
   bool loadTlsCa(std::string* ca);
   bool loadTlsCert(std::string* cert);
   bool loadTlsPkey(std::string* pkey);
@@ -24,23 +22,15 @@ class FSStorageRead {
     return loadRoot(data, repo, Uptane::Version());
   };
   bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role);
-  void clearNonRootMeta(Uptane::RepositoryType repo);
-  void clearMetadata();
 
   bool loadDeviceId(std::string* device_id);
-  void clearDeviceId();
   bool loadEcuSerials(EcuSerials* serials);
-  void clearEcuSerials();
   bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus);
-  void clearMisconfiguredEcus();
   bool loadEcuRegistered();
-  void clearEcuRegistered();
   std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions);
-  void clearInstalledVersions();
   bool loadInstallationResult(data::OperationResult* result);
-  void clearInstallationResult();
 
-  void cleanUp();
+  void cleanUpAll();
 
  private:
   const StorageConfig& config_;
@@ -52,6 +42,17 @@ class FSStorageRead {
 
   bool splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version);
   Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role);
+
+  void clearPrimaryKeys();
+  void clearTlsCreds();
+  void clearNonRootMeta(Uptane::RepositoryType repo);
+  void clearMetadata();
+  void clearDeviceId();
+  void clearEcuSerials();
+  void clearMisconfiguredEcus();
+  void clearEcuRegistered();
+  void clearInstalledVersions();
+  void clearInstallationResult();
 };
 
 #endif  // FSSTORAGE_READ_H_
