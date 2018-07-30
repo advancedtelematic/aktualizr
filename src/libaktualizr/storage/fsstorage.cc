@@ -61,28 +61,7 @@ Uptane::Version FSStorage::findMaxVersion(const boost::filesystem::path& meta_di
   return Uptane::Version(version);
 }
 
-FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : config_(config) {
-  struct stat st {};
-
-  if (!migration_only) {
-    stat(config_.path.c_str(), &st);
-    if ((st.st_mode & (S_IWOTH | S_IWGRP)) != 0) {
-      throw std::runtime_error("Storage directory has unsafe permissions");
-    }
-    if ((st.st_mode & (S_IRGRP | S_IROTH)) != 0) {
-      // Remove read permissions for group and others
-      chmod(config_.path.c_str(), S_IRWXU);
-    }
-    try {
-      boost::filesystem::create_directories(config_.uptane_metadata_path.get(config_.path) / "repo");
-      boost::filesystem::create_directories(config_.uptane_metadata_path.get(config_.path) / "director");
-      boost::filesystem::create_directories(config_.path / "targets");
-    } catch (const boost::filesystem::filesystem_error& e) {
-      LOG_ERROR << "FSStorage failed to create directories:" << e.what();
-      throw;
-    }
-  }
-
+FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
   boost::filesystem::path images_path = config_.uptane_metadata_path.get(config_.path) / "repo";
   boost::filesystem::path director_path = config_.uptane_metadata_path.get(config_.path) / "director";
   // migrate from old unversioned Uptane root meta
@@ -103,16 +82,6 @@ FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : config_
 
   latest_director_root = findMaxVersion(director_path, Uptane::Role::Root());
   latest_images_root = findMaxVersion(images_path, Uptane::Role::Root());
-}
-
-void FSStorage::storePrimaryKeys(const std::string& public_key, const std::string& private_key) {
-  boost::filesystem::path public_key_path = config_.uptane_public_key_path.get(config_.path);
-  Utils::writeFile(public_key_path, public_key);
-
-  boost::filesystem::path private_key_path = config_.uptane_private_key_path.get(config_.path);
-  Utils::writeFile(private_key_path, private_key);
-
-  sync();
 }
 
 bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
@@ -146,30 +115,6 @@ bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
 void FSStorage::clearPrimaryKeys() {
   boost::filesystem::remove(config_.uptane_public_key_path.get(config_.path));
   boost::filesystem::remove(config_.uptane_private_key_path.get(config_.path));
-}
-
-void FSStorage::storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) {
-  storeTlsCa(ca);
-  storeTlsCert(cert);
-  storeTlsPkey(pkey);
-}
-
-void FSStorage::storeTlsCa(const std::string& ca) {
-  boost::filesystem::path ca_path(config_.tls_cacert_path.get(config_.path));
-  Utils::writeFile(ca_path, ca);
-  sync();
-}
-
-void FSStorage::storeTlsCert(const std::string& cert) {
-  boost::filesystem::path cert_path(config_.tls_clientcert_path.get(config_.path));
-  Utils::writeFile(cert_path, cert);
-  sync();
-}
-
-void FSStorage::storeTlsPkey(const std::string& pkey) {
-  boost::filesystem::path pkey_path(config_.tls_pkey_path.get(config_.path));
-  Utils::writeFile(pkey_path, pkey);
-  sync();
 }
 
 bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
@@ -217,49 +162,6 @@ bool FSStorage::loadTlsCa(std::string* ca) { return loadTlsCommon(ca, config_.tl
 bool FSStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, config_.tls_clientcert_path); }
 
 bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
-
-void FSStorage::storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) {
-  boost::filesystem::path metafile;
-  Uptane::Version* latest_version;
-  switch (repo) {
-    case (Uptane::RepositoryType::Director):
-      metafile =
-          config_.uptane_metadata_path.get(config_.path) / "director" / version.RoleFileName(Uptane::Role::Root());
-      latest_version = &latest_director_root;
-      break;
-
-    case (Uptane::RepositoryType::Images):
-      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / version.RoleFileName(Uptane::Role::Root());
-      latest_version = &latest_images_root;
-      break;
-
-    default:
-      return;
-  }
-
-  Utils::writeFile(metafile, data);
-  if (version.version() > latest_version->version()) {
-    *latest_version = version;
-  }
-}
-
-void FSStorage::storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) {
-  boost::filesystem::path metafile;
-  switch (repo) {
-    case (Uptane::RepositoryType::Director):
-      metafile = config_.uptane_metadata_path.get(config_.path) / "director" / Uptane::Version().RoleFileName(role);
-      break;
-
-    case (Uptane::RepositoryType::Images):
-      metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / Uptane::Version().RoleFileName(role);
-      break;
-
-    default:
-      return;
-  }
-
-  Utils::writeFile(metafile, data);
-}
 
 bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
   boost::filesystem::path metafile;
@@ -365,10 +267,6 @@ void FSStorage::clearMetadata() {
   }
 }
 
-void FSStorage::storeDeviceId(const std::string& device_id) {
-  Utils::writeFile(Utils::absolutePath(config_.path, "device_id"), device_id);
-}
-
 bool FSStorage::loadDeviceId(std::string* device_id) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "device_id").string())) {
     return false;
@@ -382,34 +280,11 @@ bool FSStorage::loadDeviceId(std::string* device_id) {
 
 void FSStorage::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
 
-void FSStorage::storeEcuRegistered() {
-  if (!loadDeviceId(nullptr)) {
-    throw std::runtime_error("Cannot set ecu registered if no device_info set");
-  }
-  Utils::writeFile(Utils::absolutePath(config_.path, "is_registered"), std::string("1"));
-}
-
 bool FSStorage::loadEcuRegistered() {
   return boost::filesystem::exists(Utils::absolutePath(config_.path, "is_registered").string());
 }
 
 void FSStorage::clearEcuRegistered() { boost::filesystem::remove(Utils::absolutePath(config_.path, "is_registered")); }
-
-void FSStorage::storeEcuSerials(const EcuSerials& serials) {
-  if (serials.size() >= 1) {
-    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_serial"), serials[0].first.ToString());
-    Utils::writeFile(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"), serials[0].second.ToString());
-
-    boost::filesystem::remove_all(Utils::absolutePath(config_.path, "secondaries_list"));
-    EcuSerials::const_iterator it;
-    std::ofstream file(Utils::absolutePath(config_.path, "secondaries_list").c_str());
-    for (it = serials.begin() + 1; it != serials.end(); it++) {
-      // Assuming that there are no tabs and linebreaks in serials and hardware ids
-      file << it->first << "\t" << it->second << "\n";
-    }
-    file.close();
-  }
-}
 
 bool FSStorage::loadEcuSerials(EcuSerials* serials) {
   std::string buf;
@@ -465,19 +340,6 @@ void FSStorage::clearEcuSerials() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
 }
 
-void FSStorage::storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) {
-  Json::Value json(Json::arrayValue);
-  std::vector<MisconfiguredEcu>::const_iterator it;
-  for (it = ecus.begin(); it != ecus.end(); it++) {
-    Json::Value ecu;
-    ecu["serial"] = it->serial.ToString();
-    ecu["hardware_id"] = it->hardware_id.ToString();
-    ecu["state"] = static_cast<int>(it->state);
-    json.append(ecu);
-  }
-  Utils::writeFile(Utils::absolutePath(config_.path, "misconfigured_ecus"), Json::FastWriter().write(json));
-}
-
 bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) {
     return false;
@@ -494,20 +356,6 @@ bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
 
 void FSStorage::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
-}
-
-void FSStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                                       const std::string& current_hash) {
-  Json::Value content;
-  std::vector<Uptane::Target>::const_iterator it;
-  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    Json::Value installed_version;
-    installed_version["hashes"]["sha256"] = it->sha256Hash();
-    installed_version["length"] = Json::UInt64(it->length());
-    installed_version["is_current"] = (it->sha256Hash() == current_hash);
-    content[it->filename()] = installed_version;
-  }
-  Utils::writeFile(Utils::absolutePath(config_.path, "installed_versions"), Json::FastWriter().write(content));
 }
 
 std::string FSStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
@@ -544,10 +392,6 @@ void FSStorage::clearInstalledVersions() {
   }
 }
 
-void FSStorage::storeInstallationResult(const data::OperationResult& result) {
-  Utils::writeFile(Utils::absolutePath(config_.path, "installation_result"), result.toJson());
-}
-
 bool FSStorage::loadInstallationResult(data::OperationResult* result) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installation_result").string())) {
     return false;
@@ -564,127 +408,7 @@ void FSStorage::clearInstallationResult() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "installation_result"));
 }
 
-class FSTargetWHandle : public StorageTargetWHandle {
- public:
-  FSTargetWHandle(const FSStorage& storage, std::string filename, size_t size)
-      : storage_(storage),
-        filename_(std::move(filename)),
-        expected_size_(size),
-        written_size_(0),
-        closed_(false),
-        fp_(0) {
-    fp_ = open(storage_.targetFilepath(filename_).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-
-    if (fp_ == -1) {
-      throw StorageTargetWHandle::WriteError("could not create file " + storage_.targetFilepath(filename_).string() +
-                                             " on disk");
-    }
-  }
-
-  FSTargetWHandle(const FSTargetWHandle& other) = delete;
-  FSTargetWHandle& operator=(const FSTargetWHandle& other) = delete;
-
-  ~FSTargetWHandle() override {
-    if (!closed_) {
-      LOG_WARNING << "Handle for file " << filename_ << " has not been committed or aborted, forcing abort";
-      FSTargetWHandle::wabort();
-    }
-  }
-
-  size_t wfeed(const uint8_t* buf, size_t size) override {
-    if (written_size_ + size > expected_size_) {
-      return 0;
-    }
-
-    auto written = static_cast<size_t>(write(fp_, buf, size));
-    written_size_ += written;
-
-    return written;
-  }
-
-  void wcommit() override {
-    closed_ = true;
-    if (written_size_ != expected_size_) {
-      LOG_WARNING << "got " << written_size_ << "instead of " << expected_size_ << " while writing " << filename_;
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to disk");
-    }
-
-    if (close(fp_) == -1) {
-      throw StorageTargetWHandle::WriteError("could not close file " + filename_ + " on disk");
-    }
-  }
-
-  void wabort() override {
-    closed_ = true;
-    close(fp_);
-    boost::filesystem::remove(storage_.targetFilepath(filename_));
-  }
-
- private:
-  const FSStorage& storage_;
-  const std::string filename_;
-  size_t expected_size_;
-  size_t written_size_;
-  bool closed_;
-  int fp_;
-};
-
-std::unique_ptr<StorageTargetWHandle> FSStorage::allocateTargetFile(bool from_director, const std::string& filename,
-                                                                    size_t size) {
-  (void)from_director;
-
-  return std::unique_ptr<StorageTargetWHandle>(new FSTargetWHandle(*this, filename, size));
-}
-
-class FSTargetRHandle : public StorageTargetRHandle {
- public:
-  FSTargetRHandle(const FSStorage& storage, const std::string& filename) : storage_(storage), closed_(false), fp_(0) {
-    fp_ = open(storage_.targetFilepath(filename).c_str(), 0);
-    if (fp_ == -1) {
-      throw StorageTargetRHandle::ReadError("Could not open " + filename);
-    }
-  }
-
-  FSTargetRHandle(const FSTargetRHandle& other) = delete;
-  FSTargetRHandle& operator=(const FSTargetRHandle& other) = delete;
-
-  ~FSTargetRHandle() override {
-    if (!closed_) {
-      FSTargetRHandle::rclose();
-    }
-  }
-
-  size_t rsize() const override {
-    struct stat sb {};
-    fstat(fp_, &sb);
-    return static_cast<size_t>(sb.st_size);
-  }
-
-  size_t rread(uint8_t* buf, size_t size) override { return static_cast<size_t>(read(fp_, buf, size)); }
-
-  void rclose() override { close(fp_); }
-
- private:
-  const FSStorage& storage_;
-  bool closed_;
-  int fp_;
-};
-
-std::unique_ptr<StorageTargetRHandle> FSStorage::openTargetFile(const std::string& filename) {
-  return std::unique_ptr<StorageTargetRHandle>(new FSTargetRHandle(*this, filename));
-}
-
-void FSStorage::removeTargetFile(const std::string& filename) {
-  if (!boost::filesystem::remove(targetFilepath(filename))) {
-    throw std::runtime_error("Target file " + filename + " not found");
-  }
-}
-
 void FSStorage::cleanUp() {
   boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));
   boost::filesystem::remove_all(config_.path / "targets");
-}
-
-boost::filesystem::path FSStorage::targetFilepath(const std::string& filename) const {
-  return config_.path / "targets" / filename;
 }
