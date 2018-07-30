@@ -356,6 +356,11 @@ set (AKTUALIZR_EXTERNAL_LIBS
     ${GLIB2_LIBRARIES}
     ${SYSTEMD_LIBRARY})
 
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+    set (AKTUALIZR_EXTERNAL_LIBS ${AKTUALIZR_EXTERNAL_LIBS} PARENT_SCOPE)
+endif()
+
 set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
 if(BUILD_WITH_CODE_COVERAGE)
     set(COVERAGE_EXCLUDES '/usr/include/*' 'build*' 'third_party/*' 'tests/*' '*_test.cc')
