@@ -1,11 +1,16 @@
-[{
-  "name": "campaign2",
-  "update": "095f8409-e5f0-48ee-8691-201108cae327",
-  "groups": [],
-  "metadata": [
+{
+  "campaigns" :
+  [
     {
-      "type": "install",
-      "value": "this is my message to show on the device"
+      "id" : "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493",
+      "metadata" : [
+        {
+          "type": "install",
+          "value": "this is my message to show on the device"
+        }
+      ],
+      "name" : "campaign1"
     }
-  ]
-}]
+  ],
+  "deviceId" : "15d655cb-7174-4ee7-9422-f10d587d344b"
+}
