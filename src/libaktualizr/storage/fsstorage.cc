@@ -61,7 +61,7 @@ Uptane::Version FSStorage::findMaxVersion(const boost::filesystem::path& meta_di
   return Uptane::Version(version);
 }
 
-FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : INvStorage(config) {
+FSStorage::FSStorage(const StorageConfig& config, bool migration_only) : config_(config) {
   struct stat st {};
 
   if (!migration_only) {

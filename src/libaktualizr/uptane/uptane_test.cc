@@ -397,7 +397,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.pacman.type = PackageManager::kNone;
   addDefaultSecondary(config, temp_dir, "secondary_hardware");
 
-  auto storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_TRUE(sota_client->initialize());
 
@@ -430,7 +430,7 @@ TEST(Uptane, AssembleManifestBad) {
   public_key = Utils::readFile("tests/test_data/public.key");
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
-  auto storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_TRUE(sota_client->initialize());

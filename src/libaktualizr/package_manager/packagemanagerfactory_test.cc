@@ -18,7 +18,7 @@ TEST(PackageManagerFactory, Ostree) {
   config.pacman.sysroot = sysroot;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_OSTREE
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
@@ -34,7 +34,7 @@ TEST(PackageManagerFactory, Debian) {
   config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_DEB
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
@@ -49,7 +49,7 @@ TEST(PackageManagerFactory, None) {
   Config config;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   config.pacman.type = PackageManager::kNone;
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
@@ -60,7 +60,7 @@ TEST(PackageManagerFactory, Bad) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
   config.pacman.type = (PackageManager)-1;
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_FALSE(pacman);
 }

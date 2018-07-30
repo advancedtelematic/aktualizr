@@ -18,9 +18,7 @@
 StorageType storage_test_type;
 
 std::unique_ptr<INvStorage> Storage(const StorageConfig& config) {
-  if (config.type == StorageType::kFileSystem) {
-    return std::unique_ptr<INvStorage>(new FSStorage(config));
-  } else if (config.type == StorageType::kSqlite) {
+  if (config.type == StorageType::kSqlite) {
     return std::unique_ptr<INvStorage>(new SQLStorage(config));
   } else {
     throw std::runtime_error("Invalid config type");
@@ -31,15 +29,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path& storag
   StorageConfig config;
 
   config.type = type;
-  if (type == StorageType::kFileSystem) {
-    config.path = storage_dir;
-    config.uptane_metadata_path = BasedPath("metadata");
-    config.uptane_public_key_path = BasedPath("test_primary.pub");
-    config.uptane_private_key_path = BasedPath("test_primary.priv");
-    config.tls_pkey_path = BasedPath("test_tls.pkey");
-    config.tls_clientcert_path = BasedPath("test_tls.cert");
-    config.tls_cacert_path = BasedPath("test_tls.ca");
-  } else if (config.type == StorageType::kSqlite) {
+  if (config.type == StorageType::kSqlite) {
     config.sqldb_path = storage_dir / "test.db";
   } else {
     throw std::runtime_error("Invalid config type");
@@ -66,7 +56,7 @@ static void tight_store_keys(const TightProcess& t) {
   }
 }
 
-static void check_consistent_state(boost::filesystem::path storage_dir) {
+static void check_consistent_state(const boost::filesystem::path &storage_dir) {
   StorageConfig config = MakeConfig(storage_test_type, storage_dir);
   std::unique_ptr<INvStorage> storage = Storage(config);
   std::string pub, priv;
@@ -121,12 +111,6 @@ void atomic_test() {
 
 // To run these tests:
 // ./build/tests/t_storage_atomic --gtest_also_run_disabled_tests
-
-TEST(DISABLED_storage_atomic, fs) {
-  // broken on FS storage: public and private parts are stored in two different files
-  storage_test_type = StorageType::kFileSystem;
-  atomic_test();
-}
 
 TEST(DISABLED_storage_atomic, sql) {
   // disabled for now because it uses too much resources for CI

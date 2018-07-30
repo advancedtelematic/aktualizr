@@ -15,9 +15,7 @@ boost::filesystem::path storage_test_dir;
 StorageConfig storage_test_config;
 
 std::unique_ptr<INvStorage> Storage(const StorageConfig &config) {
-  if (config.type == StorageType::kFileSystem) {
-    return std::unique_ptr<INvStorage>(new FSStorage(config));
-  } else if (config.type == StorageType::kSqlite) {
+  if (config.type == StorageType::kSqlite) {
     return std::unique_ptr<INvStorage>(new SQLStorage(config));
   } else {
     throw std::runtime_error("Invalid config type");
@@ -30,15 +28,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
   StorageConfig config;
 
   config.type = type;
-  if (type == StorageType::kFileSystem) {
-    config.path = storage_dir;
-    config.uptane_metadata_path = BasedPath("metadata");
-    config.uptane_public_key_path = BasedPath("test_primary.pub");
-    config.uptane_private_key_path = BasedPath("test_primary.priv");
-    config.tls_pkey_path = BasedPath("test_tls.pkey");
-    config.tls_clientcert_path = BasedPath("test_tls.cert");
-    config.tls_cacert_path = BasedPath("test_tls.ca");
-  } else if (config.type == StorageType::kSqlite) {
+  if (config.type == StorageType::kSqlite) {
     config.sqldb_path = storage_dir / "test.db";
   } else {
     throw std::runtime_error("Invalid config type");
@@ -59,7 +49,7 @@ TEST(storage, load_store_primary_keys) {
   EXPECT_EQ(pubkey, "pr_public");
   EXPECT_EQ(privkey, "pr_private");
   storage->clearPrimaryKeys();
-  EXPECT_FALSE(storage->loadPrimaryKeys(NULL, NULL));
+  EXPECT_FALSE(storage->loadPrimaryKeys(nullptr, nullptr));
   boost::filesystem::remove_all(storage_test_dir);
 }
 
@@ -78,7 +68,7 @@ TEST(storage, load_store_tls) {
   EXPECT_EQ(cert, "cert");
   EXPECT_EQ(priv, "priv");
   storage->clearTlsCreds();
-  EXPECT_FALSE(storage->loadTlsCreds(NULL, NULL, NULL));
+  EXPECT_FALSE(storage->loadTlsCreds(nullptr, nullptr, nullptr));
 
   boost::filesystem::remove_all(storage_test_dir);
 }
@@ -232,7 +222,7 @@ TEST(storage, load_store_deviceid) {
 
   EXPECT_EQ(device_id, "device_id");
   storage->clearDeviceId();
-  EXPECT_FALSE(storage->loadDeviceId(NULL));
+  EXPECT_FALSE(storage->loadDeviceId(nullptr));
   boost::filesystem::remove_all(storage_test_dir);
 }
 
@@ -251,7 +241,7 @@ TEST(storage, load_store_ecu_serials) {
 
   EXPECT_EQ(serials, serials_out);
   storage->clearEcuSerials();
-  EXPECT_FALSE(storage->loadEcuSerials(NULL));
+  EXPECT_FALSE(storage->loadEcuSerials(nullptr));
   boost::filesystem::remove_all(storage_test_dir);
 }
 
@@ -310,7 +300,7 @@ TEST(storage, load_store_installation_result) {
   EXPECT_EQ(result.result_code, result_out.result_code);
   EXPECT_EQ(result.result_text, result_out.result_text);
   storage->clearInstallationResult();
-  EXPECT_FALSE(storage->loadInstallationResult(NULL));
+  EXPECT_FALSE(storage->loadInstallationResult(nullptr));
   boost::filesystem::remove_all(storage_test_dir);
 }
 
@@ -453,11 +443,6 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
-  std::cout << "Running tests for FSStorage" << std::endl;
-  TemporaryDirectory temp_dir1;
-  storage_test_dir = temp_dir1.Path();
-  storage_test_config = MakeConfig(StorageType::kFileSystem, storage_test_dir);
-  int res_fs = RUN_ALL_TESTS();
 
   std::cout << "Running tests for SQLStorage" << std::endl;
   TemporaryDirectory temp_dir2;
@@ -465,6 +450,6 @@ int main(int argc, char **argv) {
   storage_test_config = MakeConfig(StorageType::kSqlite, storage_test_dir);
   int res_sql = RUN_ALL_TESTS();
 
-  return res_fs || res_sql;  // 0 indicates success
+  return res_sql;  // 0 indicates success
 }
 #endif

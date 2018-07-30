@@ -4,64 +4,69 @@
 #include <boost/filesystem.hpp>
 #include "invstorage.h"
 
-class FSStorage : public INvStorage {
+class FSStorage {
  public:
   explicit FSStorage(const StorageConfig& config, bool migration_only = false);
-  ~FSStorage() override = default;
-  void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
-  bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;
-  bool loadPrimaryPublic(std::string* public_key) override;
-  bool loadPrimaryPrivate(std::string* private_key) override;
-  void clearPrimaryKeys() override;
+  ~FSStorage() = default;
+  void storePrimaryKeys(const std::string& public_key, const std::string& private_key);
+  bool loadPrimaryKeys(std::string* public_key, std::string* private_key);
+  bool loadPrimaryPublic(std::string* public_key);
+  bool loadPrimaryPrivate(std::string* private_key);
+  void clearPrimaryKeys();
 
-  void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey) override;
-  void storeTlsCa(const std::string& ca) override;
-  void storeTlsCert(const std::string& cert) override;
-  void storeTlsPkey(const std::string& pkey) override;
-  bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) override;
-  void clearTlsCreds() override;
-  bool loadTlsCa(std::string* ca) override;
-  bool loadTlsCert(std::string* cert) override;
-  bool loadTlsPkey(std::string* pkey) override;
+  void storeTlsCreds(const std::string& ca, const std::string& cert, const std::string& pkey);
+  void storeTlsCa(const std::string& ca);
+  void storeTlsCert(const std::string& cert);
+  void storeTlsPkey(const std::string& pkey);
+  bool loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey);
+  void clearTlsCreds();
+  bool loadTlsCa(std::string* ca);
+  bool loadTlsCert(std::string* cert);
+  bool loadTlsPkey(std::string* pkey);
 
-  void storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version) override;
-  bool loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) override;
-  void storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role) override;
-  bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) override;
-  void clearNonRootMeta(Uptane::RepositoryType repo) override;
-  void clearMetadata() override;
+  void storeRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Version version);
+  bool loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version);
+  bool loadLatestRoot(std::string* data, Uptane::RepositoryType repo) {
+    return loadRoot(data, repo, Uptane::Version());
+  };
+  void storeNonRoot(const std::string& data, Uptane::RepositoryType repo, Uptane::Role role);
+  bool loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role);
+  void clearNonRootMeta(Uptane::RepositoryType repo);
+  void clearMetadata();
 
-  void storeDeviceId(const std::string& device_id) override;
-  bool loadDeviceId(std::string* device_id) override;
-  void clearDeviceId() override;
-  void storeEcuSerials(const EcuSerials& serials) override;
-  bool loadEcuSerials(EcuSerials* serials) override;
-  void clearEcuSerials() override;
-  void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus) override;
-  bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) override;
-  void clearMisconfiguredEcus() override;
-  void storeEcuRegistered() override;
-  bool loadEcuRegistered() override;
-  void clearEcuRegistered() override;
+  void storeDeviceId(const std::string& device_id);
+  bool loadDeviceId(std::string* device_id);
+  void clearDeviceId();
+  void storeEcuSerials(const EcuSerials& serials);
+  bool loadEcuSerials(EcuSerials* serials);
+  void clearEcuSerials();
+  void storeMisconfiguredEcus(const std::vector<MisconfiguredEcu>& ecus);
+  bool loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus);
+  void clearMisconfiguredEcus();
+  void storeEcuRegistered();
+  bool loadEcuRegistered();
+  void clearEcuRegistered();
   void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                              const std::string& current_hash) override;
-  std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) override;
-  void clearInstalledVersions() override;
-  void storeInstallationResult(const data::OperationResult& result) override;
-  bool loadInstallationResult(data::OperationResult* result) override;
-  void clearInstallationResult() override;
+                              const std::string& current_hash);
+  std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions);
+  void clearInstalledVersions();
+  void storeInstallationResult(const data::OperationResult& result);
+  bool loadInstallationResult(data::OperationResult* result);
+  void clearInstallationResult();
 
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
-                                                           size_t size) override;
-  std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;
-  void removeTargetFile(const std::string& filename) override;
-  void cleanUp() override;
-  StorageType type() override { return StorageType::kFileSystem; };
+                                                           size_t size);
+  std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename);
+  void removeTargetFile(const std::string& filename);
+  void cleanUp();
+  StorageType type() { return StorageType::kFileSystem; };
 
   friend class FSTargetWHandle;
   friend class FSTargetRHandle;
 
  private:
+  const StorageConfig& config_;
+
   // descriptors of currently downloaded files
   std::map<std::string, FILE*> director_files;
   std::map<std::string, FILE*> image_files;
