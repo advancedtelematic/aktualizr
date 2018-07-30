@@ -14,7 +14,7 @@
 #include "package_manager/packagemanagerinterface.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "uptane/managedsecondary.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/utils.h"

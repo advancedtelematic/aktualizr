@@ -9,7 +9,6 @@
 
 #include <boost/filesystem.hpp>
 
-#include "storage/fsstorage.h"
 #include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
@@ -56,7 +55,7 @@ static void tight_store_keys(const TightProcess& t) {
   }
 }
 
-static void check_consistent_state(const boost::filesystem::path &storage_dir) {
+static void check_consistent_state(const boost::filesystem::path& storage_dir) {
   StorageConfig config = MakeConfig(storage_test_type, storage_dir);
   std::unique_ptr<INvStorage> storage = Storage(config);
   std::string pub, priv;

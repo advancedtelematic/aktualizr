@@ -10,7 +10,7 @@
 
 #include "config/config.h"
 #include "package_manager/ostreemanager.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 

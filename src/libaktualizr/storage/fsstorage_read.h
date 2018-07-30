@@ -1,13 +1,13 @@
-#ifndef FSSTORAGE_H_
-#define FSSTORAGE_H_
+#ifndef FSSTORAGE_READ_H_
+#define FSSTORAGE_READ_H_
 
 #include <boost/filesystem.hpp>
 #include "invstorage.h"
 
-class FSStorage {
+class FSStorageRead {
  public:
-  explicit FSStorage(const StorageConfig& config);
-  ~FSStorage() = default;
+  explicit FSStorageRead(const StorageConfig& config);
+  ~FSStorageRead() = default;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key);
   bool loadPrimaryPublic(std::string* public_key);
   bool loadPrimaryPrivate(std::string* private_key);
@@ -54,4 +54,4 @@ class FSStorage {
   Uptane::Version findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role);
 };
 
-#endif  // FSSTORAGE_H_
+#endif  // FSSTORAGE_READ_H_

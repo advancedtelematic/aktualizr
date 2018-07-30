@@ -1,4 +1,4 @@
-#include "fsstorage.h"
+#include "fsstorage_read.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -14,7 +14,7 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
-bool FSStorage::splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version) {
+bool FSStorageRead::splitNameRoleVersion(const std::string& full_name, std::string* role_name, int* version) {
   size_t dot_pos = full_name.find('.');
 
   // doesn't have a dot
@@ -37,7 +37,7 @@ bool FSStorage::splitNameRoleVersion(const std::string& full_name, std::string* 
   return true;
 }
 
-Uptane::Version FSStorage::findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role) {
+Uptane::Version FSStorageRead::findMaxVersion(const boost::filesystem::path& meta_directory, Uptane::Role role) {
   int version = -1;
   if (!boost::filesystem::exists(meta_directory)) {
     return {};
@@ -61,7 +61,7 @@ Uptane::Version FSStorage::findMaxVersion(const boost::filesystem::path& meta_di
   return Uptane::Version(version);
 }
 
-FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
+FSStorageRead::FSStorageRead(const StorageConfig& config) : config_(config) {
   boost::filesystem::path images_path = config_.uptane_metadata_path.get(config_.path) / "repo";
   boost::filesystem::path director_path = config_.uptane_metadata_path.get(config_.path) / "director";
   // migrate from old unversioned Uptane root meta
@@ -84,11 +84,11 @@ FSStorage::FSStorage(const StorageConfig& config) : config_(config) {
   latest_images_root = findMaxVersion(images_path, Uptane::Role::Root());
 }
 
-bool FSStorage::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
+bool FSStorageRead::loadPrimaryKeys(std::string* public_key, std::string* private_key) {
   return loadPrimaryPublic(public_key) && loadPrimaryPrivate(private_key);
 }
 
-bool FSStorage::loadPrimaryPublic(std::string* public_key) {
+bool FSStorageRead::loadPrimaryPublic(std::string* public_key) {
   boost::filesystem::path public_key_path = config_.uptane_public_key_path.get(config_.path);
   if (!boost::filesystem::exists(public_key_path)) {
     return false;
@@ -100,7 +100,7 @@ bool FSStorage::loadPrimaryPublic(std::string* public_key) {
   return true;
 }
 
-bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
+bool FSStorageRead::loadPrimaryPrivate(std::string* private_key) {
   boost::filesystem::path private_key_path = config_.uptane_private_key_path.get(config_.path);
   if (!boost::filesystem::exists(private_key_path)) {
     return false;
@@ -112,12 +112,12 @@ bool FSStorage::loadPrimaryPrivate(std::string* private_key) {
   return true;
 }
 
-void FSStorage::clearPrimaryKeys() {
+void FSStorageRead::clearPrimaryKeys() {
   boost::filesystem::remove(config_.uptane_public_key_path.get(config_.path));
   boost::filesystem::remove(config_.uptane_private_key_path.get(config_.path));
 }
 
-bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
+bool FSStorageRead::loadTlsCreds(std::string* ca, std::string* cert, std::string* pkey) {
   boost::filesystem::path ca_path(config_.tls_cacert_path.get(config_.path));
   boost::filesystem::path cert_path(config_.tls_clientcert_path.get(config_.path));
   boost::filesystem::path pkey_path(config_.tls_pkey_path.get(config_.path));
@@ -138,13 +138,13 @@ bool FSStorage::loadTlsCreds(std::string* ca, std::string* cert, std::string* pk
   return true;
 }
 
-void FSStorage::clearTlsCreds() {
+void FSStorageRead::clearTlsCreds() {
   boost::filesystem::remove(config_.tls_cacert_path.get(config_.path));
   boost::filesystem::remove(config_.tls_clientcert_path.get(config_.path));
   boost::filesystem::remove(config_.tls_pkey_path.get(config_.path));
 }
 
-bool FSStorage::loadTlsCommon(std::string* data, const BasedPath& path_in) {
+bool FSStorageRead::loadTlsCommon(std::string* data, const BasedPath& path_in) {
   boost::filesystem::path path(path_in.get(config_.path));
   if (!boost::filesystem::exists(path)) {
     return false;
@@ -157,13 +157,13 @@ bool FSStorage::loadTlsCommon(std::string* data, const BasedPath& path_in) {
   return true;
 }
 
-bool FSStorage::loadTlsCa(std::string* ca) { return loadTlsCommon(ca, config_.tls_cacert_path); }
+bool FSStorageRead::loadTlsCa(std::string* ca) { return loadTlsCommon(ca, config_.tls_cacert_path); }
 
-bool FSStorage::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, config_.tls_clientcert_path); }
+bool FSStorageRead::loadTlsCert(std::string* cert) { return loadTlsCommon(cert, config_.tls_clientcert_path); }
 
-bool FSStorage::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
+bool FSStorageRead::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, config_.tls_pkey_path); }
 
-bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
+bool FSStorageRead::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
@@ -199,7 +199,7 @@ bool FSStorage::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane:
   return true;
 }
 
-bool FSStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
+bool FSStorageRead::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
   boost::filesystem::path metafile;
   switch (repo) {
     case (Uptane::RepositoryType::Director):
@@ -224,7 +224,7 @@ bool FSStorage::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Upta
   return true;
 }
 
-void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
+void FSStorageRead::clearNonRootMeta(Uptane::RepositoryType repo) {
   boost::filesystem::path meta_path;
   switch (repo) {
     case Uptane::RepositoryType::Images:
@@ -253,7 +253,7 @@ void FSStorage::clearNonRootMeta(Uptane::RepositoryType repo) {
   }
 }
 
-void FSStorage::clearMetadata() {
+void FSStorageRead::clearMetadata() {
   for (const auto& meta_path : {config_.uptane_metadata_path.get(config_.path) / "repo",
                                 config_.uptane_metadata_path.get(config_.path) / "director"}) {
     if (!boost::filesystem::exists(meta_path)) {
@@ -267,7 +267,7 @@ void FSStorage::clearMetadata() {
   }
 }
 
-bool FSStorage::loadDeviceId(std::string* device_id) {
+bool FSStorageRead::loadDeviceId(std::string* device_id) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "device_id").string())) {
     return false;
   }
@@ -278,15 +278,17 @@ bool FSStorage::loadDeviceId(std::string* device_id) {
   return true;
 }
 
-void FSStorage::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
+void FSStorageRead::clearDeviceId() { boost::filesystem::remove(Utils::absolutePath(config_.path, "device_id")); }
 
-bool FSStorage::loadEcuRegistered() {
+bool FSStorageRead::loadEcuRegistered() {
   return boost::filesystem::exists(Utils::absolutePath(config_.path, "is_registered").string());
 }
 
-void FSStorage::clearEcuRegistered() { boost::filesystem::remove(Utils::absolutePath(config_.path, "is_registered")); }
+void FSStorageRead::clearEcuRegistered() {
+  boost::filesystem::remove(Utils::absolutePath(config_.path, "is_registered"));
+}
 
-bool FSStorage::loadEcuSerials(EcuSerials* serials) {
+bool FSStorageRead::loadEcuSerials(EcuSerials* serials) {
   std::string buf;
   std::string serial;
   std::string hw_id;
@@ -334,13 +336,13 @@ bool FSStorage::loadEcuSerials(EcuSerials* serials) {
   return true;
 }
 
-void FSStorage::clearEcuSerials() {
+void FSStorageRead::clearEcuSerials() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_serial"));
   boost::filesystem::remove(Utils::absolutePath(config_.path, "primary_ecu_hardware_id"));
   boost::filesystem::remove(Utils::absolutePath(config_.path, "secondaries_list"));
 }
 
-bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
+bool FSStorageRead::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "misconfigured_ecus"))) {
     return false;
   }
@@ -354,11 +356,11 @@ bool FSStorage::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   return true;
 }
 
-void FSStorage::clearMisconfiguredEcus() {
+void FSStorageRead::clearMisconfiguredEcus() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "misconfigured_ecus"));
 }
 
-std::string FSStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
+std::string FSStorageRead::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
   std::string current_hash;
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
     return current_hash;
@@ -386,13 +388,13 @@ std::string FSStorage::loadInstalledVersions(std::vector<Uptane::Target>* instal
   return current_hash;
 }
 
-void FSStorage::clearInstalledVersions() {
+void FSStorageRead::clearInstalledVersions() {
   if (boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
     boost::filesystem::remove(Utils::absolutePath(config_.path, "installed_versions"));
   }
 }
 
-bool FSStorage::loadInstallationResult(data::OperationResult* result) {
+bool FSStorageRead::loadInstallationResult(data::OperationResult* result) {
   if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installation_result").string())) {
     return false;
   }
@@ -404,11 +406,11 @@ bool FSStorage::loadInstallationResult(data::OperationResult* result) {
   return true;
 }
 
-void FSStorage::clearInstallationResult() {
+void FSStorageRead::clearInstallationResult() {
   boost::filesystem::remove(Utils::absolutePath(config_.path, "installation_result"));
 }
 
-void FSStorage::cleanUp() {
+void FSStorageRead::cleanUp() {
   boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));
   boost::filesystem::remove_all(config_.path / "targets");
 }

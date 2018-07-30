@@ -12,7 +12,7 @@
 #include "logging/logging.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"

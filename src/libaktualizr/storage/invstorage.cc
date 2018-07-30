@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include "fsstorage.h"
+#include "fsstorage_read.h"
 #include "logging/logging.h"
 #include "sqlstorage.h"
 #include "utilities/utils.h"
@@ -154,7 +154,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
         old_config.path = config.path;
 
         auto sql_storage = std::make_shared<SQLStorage>(config);
-        FSStorage fs_storage(old_config, true);
+        FSStorageRead fs_storage(old_config);
         INvStorage::FSSToSQLS(fs_storage, *sql_storage);
         return sql_storage;
       }
@@ -167,11 +167,11 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
     }
     case StorageType::kFileSystem:
     default:
-      throw std::runtime_error("FSStorage is deprecated");
+      throw std::runtime_error("FSStorage has been removed in recent versions of aktualizr, please use SQLStorage");
   }
 }
 
-void INvStorage::FSSToSQLS(FSStorage& fs_storage, SQLStorage& sql_storage) {
+void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
   std::string public_key;
   std::string private_key;
   if (fs_storage.loadPrimaryKeys(&public_key, &private_key)) {

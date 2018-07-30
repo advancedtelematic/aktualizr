@@ -11,7 +11,6 @@
 
 #include "crypto/crypto.h"
 #include "crypto/p11engine.h"
-#include "storage/fsstorage.h"
 #include "utilities/utils.h"
 
 #ifdef BUILD_P11

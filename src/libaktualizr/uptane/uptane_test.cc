@@ -15,7 +15,8 @@
 #include "primary/initializer.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/fsstorage_read.h"
+#include "storage/invstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
@@ -731,7 +732,7 @@ TEST(Uptane, fs_to_sql_full) {
   config.uptane_private_key_path = BasedPath("ecukey.der");
   config.tls_cacert_path = BasedPath("root.crt");
 
-  FSStorage fs_storage(config);
+  FSStorageRead fs_storage(config);
 
   std::string public_key;
   std::string private_key;
@@ -871,7 +872,7 @@ TEST(Uptane, fs_to_sql_partial) {
   config.uptane_private_key_path = BasedPath("ecukey.der");
   config.tls_cacert_path = BasedPath("root.crt");
 
-  FSStorage fs_storage(config);
+  FSStorageRead fs_storage(config);
 
   std::string public_key;
   std::string private_key;

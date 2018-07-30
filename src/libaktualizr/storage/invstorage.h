@@ -12,7 +12,7 @@
 #include "utilities/types.h"
 
 class INvStorage;
-class FSStorage;
+class FSStorageRead;
 class SQLStorage;
 
 using store_data_t = void (INvStorage::*)(const std::string&);
@@ -149,7 +149,7 @@ class INvStorage {
 
   // Special constructors and utilities
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
-  static void FSSToSQLS(FSStorage& fs_storage, SQLStorage& sql_storage);
+  static void FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage);
 
   // Not purely virtual
   void importData(const ImportConfig& import_config);

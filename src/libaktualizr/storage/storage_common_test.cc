@@ -6,7 +6,6 @@
 #include <boost/filesystem.hpp>
 
 #include "logging/logging.h"
-#include "storage/fsstorage.h"
 #include "storage/sqlstorage.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
