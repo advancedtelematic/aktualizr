@@ -1,5 +1,7 @@
 #include "opcuabridge_test_utils.h"
 
+#include <numeric>
+
 #include "logging/logging.h"
 
 namespace opcuabridge_test_utils {
@@ -19,10 +21,10 @@ opcuabridge::Signature CreateSignature(const std::string& keyid, const opcuabrid
 
 opcuabridge::Signed CreateSigned(std::size_t n) {
   opcuabridge::Signed s;
-  std::vector<int> tokens;
-  for (int i = 0; i < n; ++i) tokens.push_back(i);
+  std::vector<int> tokens(n);
+  std::iota(tokens.begin(), tokens.end(), 0);
   s.setTokens(tokens);
-  s.setTimestamp(time(NULL));
+  s.setTimestamp(static_cast<int>(time(NULL)));
   return s;
 }
 
