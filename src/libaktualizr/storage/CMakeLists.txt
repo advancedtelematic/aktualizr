@@ -4,8 +4,8 @@ add_custom_command(OUTPUT sql_schemas.cc sql_schemas_target
 )
 
 if(STORAGE_TYPE STREQUAL "sqlite")
-  set(SOURCES fsstorage.cc sqlstorage.cc)
-  set(HEADERS fsstorage.h sqlstorage.h sql_utils.h)
+  set(SOURCES sqlstorage.cc)
+  set(HEADERS sqlstorage.h sql_utils.h)
 elseif(STORAGE_TYPE STREQUAL "android")
   set(SOURCES androidstorage.cc)
   set(HEADERS androidstorage.h)
@@ -13,8 +13,8 @@ else()
   message(FATAL_ERROR "Unknown storage type: ${storage_type}")
 endif()
 
-set(HEADERS ${HEADERS} storage_config.h invstorage.h)
-set(SOURCES ${SOURCES} invstorage.cc)
+set(HEADERS ${HEADERS} storage_config.h fsstorage_read.h invstorage.h)
+set(SOURCES ${SOURCES} fsstorage_read.cc invstorage.cc)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS})
 

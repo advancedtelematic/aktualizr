@@ -15,7 +15,8 @@
 #include "primary/initializer.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/fsstorage_read.h"
+#include "storage/invstorage.h"
 #include "test_utils.h"
 #include "uptane/tuf.h"
 #include "uptane/uptanerepository.h"
@@ -397,7 +398,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.pacman.type = PackageManager::kNone;
   addDefaultSecondary(config, temp_dir, "secondary_hardware");
 
-  auto storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_TRUE(sota_client->initialize());
 
@@ -430,7 +431,7 @@ TEST(Uptane, AssembleManifestBad) {
   public_key = Utils::readFile("tests/test_data/public.key");
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
-  auto storage = std::make_shared<FSStorage>(config.storage);
+  auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_TRUE(sota_client->initialize());
@@ -731,7 +732,7 @@ TEST(Uptane, fs_to_sql_full) {
   config.uptane_private_key_path = BasedPath("ecukey.der");
   config.tls_cacert_path = BasedPath("root.crt");
 
-  FSStorage fs_storage(config);
+  FSStorageRead fs_storage(config);
 
   std::string public_key;
   std::string private_key;
@@ -871,7 +872,7 @@ TEST(Uptane, fs_to_sql_partial) {
   config.uptane_private_key_path = BasedPath("ecukey.der");
   config.tls_cacert_path = BasedPath("root.crt");
 
-  FSStorage fs_storage(config);
+  FSStorageRead fs_storage(config);
 
   std::string public_key;
   std::string private_key;

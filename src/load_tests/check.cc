@@ -8,12 +8,13 @@
 #include "primary/events.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
+#include "storage/sqlstorage.h"
 #include "uptane/uptanerepository.h"
 
-class EphemeralStorage : public FSStorage {
+class EphemeralStorage : public SQLStorage {
  public:
-  EphemeralStorage(const StorageConfig &config) : FSStorage(config) {}
+  EphemeralStorage(const StorageConfig &config) : SQLStorage(config) {}
   void storeRoot(const std::string &data, Uptane::RepositoryType repo, Uptane::Version version) override {
     (void)data;
     (void)repo;

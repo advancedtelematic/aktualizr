@@ -6,7 +6,7 @@
 #include "config/config.h"
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "storage/invstorage.h"
 #include "utilities/utils.h"
 
@@ -16,7 +16,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
 
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
   Json::Value target_json;
@@ -43,7 +43,7 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   config.pacman.type = PackageManager::kDebian;
   TemporaryDirectory dir;
   config.storage.path = dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
   EXPECT_TRUE(pacman);
   Json::Value target_json;

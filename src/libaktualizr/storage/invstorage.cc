@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include "fsstorage.h"
+#include "fsstorage_read.h"
 #include "logging/logging.h"
 #include "sqlstorage.h"
 #include "utilities/utils.h"
@@ -153,9 +153,9 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
         old_config.type = StorageType::kFileSystem;
         old_config.path = config.path;
 
-        std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
-        std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config, true);
-        INvStorage::FSSToSQLS(fs_storage, sql_storage);
+        auto sql_storage = std::make_shared<SQLStorage>(config);
+        FSStorageRead fs_storage(old_config);
+        INvStorage::FSSToSQLS(fs_storage, *sql_storage);
         return sql_storage;
       }
       if (!boost::filesystem::exists(db_path)) {
@@ -167,60 +167,60 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
     }
     case StorageType::kFileSystem:
     default:
-      throw std::runtime_error("FSStorage is deprecated");
+      throw std::runtime_error("FSStorage has been removed in recent versions of aktualizr, please use SQLStorage");
   }
 }
 
-void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::shared_ptr<INvStorage>& sql_storage) {
+void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
   std::string public_key;
   std::string private_key;
-  if (fs_storage->loadPrimaryKeys(&public_key, &private_key)) {
-    sql_storage->storePrimaryKeys(public_key, private_key);
+  if (fs_storage.loadPrimaryKeys(&public_key, &private_key)) {
+    sql_storage.storePrimaryKeys(public_key, private_key);
   }
 
   std::string ca;
-  if (fs_storage->loadTlsCa(&ca)) {
-    sql_storage->storeTlsCa(ca);
+  if (fs_storage.loadTlsCa(&ca)) {
+    sql_storage.storeTlsCa(ca);
   }
 
   std::string cert;
-  if (fs_storage->loadTlsCert(&cert)) {
-    sql_storage->storeTlsCert(cert);
+  if (fs_storage.loadTlsCert(&cert)) {
+    sql_storage.storeTlsCert(cert);
   }
 
   std::string pkey;
-  if (fs_storage->loadTlsPkey(&pkey)) {
-    sql_storage->storeTlsPkey(pkey);
+  if (fs_storage.loadTlsPkey(&pkey)) {
+    sql_storage.storeTlsPkey(pkey);
   }
 
   std::string device_id;
-  if (fs_storage->loadDeviceId(&device_id)) {
-    sql_storage->storeDeviceId(device_id);
+  if (fs_storage.loadDeviceId(&device_id)) {
+    sql_storage.storeDeviceId(device_id);
   }
 
   EcuSerials serials;
-  if (fs_storage->loadEcuSerials(&serials)) {
-    sql_storage->storeEcuSerials(serials);
+  if (fs_storage.loadEcuSerials(&serials)) {
+    sql_storage.storeEcuSerials(serials);
   }
 
-  if (fs_storage->loadEcuRegistered()) {
-    sql_storage->storeEcuRegistered();
+  if (fs_storage.loadEcuRegistered()) {
+    sql_storage.storeEcuRegistered();
   }
 
   std::vector<MisconfiguredEcu> ecus;
-  if (fs_storage->loadMisconfiguredEcus(&ecus)) {
-    sql_storage->storeMisconfiguredEcus(ecus);
+  if (fs_storage.loadMisconfiguredEcus(&ecus)) {
+    sql_storage.storeMisconfiguredEcus(ecus);
   }
 
   data::OperationResult res;
-  if (fs_storage->loadInstallationResult(&res)) {
-    sql_storage->storeInstallationResult(res);
+  if (fs_storage.loadInstallationResult(&res)) {
+    sql_storage.storeInstallationResult(res);
   }
 
   std::vector<Uptane::Target> installed_versions;
-  std::string current_hash = fs_storage->loadInstalledVersions(&installed_versions);
+  std::string current_hash = fs_storage.loadInstalledVersions(&installed_versions);
   if (installed_versions.size() != 0u) {
-    sql_storage->storeInstalledVersions(installed_versions, current_hash);
+    sql_storage.storeInstalledVersions(installed_versions, current_hash);
   }
 
   // migrate latest versions of all metadata
@@ -231,36 +231,27 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
 
     std::string meta;
     for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-      if (fs_storage->loadNonRoot(&meta, repo, role)) {
-        sql_storage->storeNonRoot(meta, repo, role);
+      if (fs_storage.loadNonRoot(&meta, repo, role)) {
+        sql_storage.storeNonRoot(meta, repo, role);
       }
     }
   }
   // additionally migrate the whole root metadata chain
   std::string latest_root;
   for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-    if (fs_storage->loadLatestRoot(&latest_root, Uptane::RepositoryType::Director)) {
+    if (fs_storage.loadLatestRoot(&latest_root, Uptane::RepositoryType::Director)) {
       int latest_version = Uptane::extractVersionUntrusted(latest_root);
       for (int version = 0; version <= latest_version; ++version) {
         std::string root;
-        if (fs_storage->loadRoot(&root, repo, Uptane::Version(version))) {
-          sql_storage->storeRoot(root, repo, Uptane::Version(version));
+        if (fs_storage.loadRoot(&root, repo, Uptane::Version(version))) {
+          sql_storage.storeRoot(root, repo, Uptane::Version(version));
         }
       }
     }
   }
 
   // if everything is ok, remove old files.
-  fs_storage->clearPrimaryKeys();
-  fs_storage->clearTlsCreds();
-  fs_storage->clearDeviceId();
-  fs_storage->clearEcuSerials();
-  fs_storage->clearEcuRegistered();
-  fs_storage->clearMisconfiguredEcus();
-  fs_storage->clearInstalledVersions();
-  fs_storage->clearInstallationResult();
-  fs_storage->clearMetadata();
-  fs_storage->cleanUp();
+  fs_storage.cleanUpAll();
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {

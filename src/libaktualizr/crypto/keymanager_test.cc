@@ -5,7 +5,7 @@
 
 #include "config/config.h"
 #include "crypto/keymanager.h"
-#include "storage/fsstorage.h"
+#include "storage/sqlstorage.h"
 #include "utilities/utils.h"
 
 #ifdef BUILD_P11
@@ -62,7 +62,7 @@ TEST(KeyManager, InitFileEmpty) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_TRUE(keys.getCaFile().empty());
@@ -78,7 +78,7 @@ TEST(KeyManager, InitFileValid) {
   Config config;
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   std::string pkey = Utils::readFile("tests/test_data/prov/pkey.pem");
   std::string cert = Utils::readFile("tests/test_data/prov/client.pem");
@@ -121,7 +121,7 @@ TEST(KeyManager, SignTufPkcs11) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
 
   EXPECT_GT(keys.UptanePublicKey().Value().size(), 0);
@@ -146,7 +146,7 @@ TEST(KeyManager, InitPkcs11Valid) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  std::shared_ptr<INvStorage> storage = std::make_shared<FSStorage>(config.storage);
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   // Getting the CA from the HSM is not currently supported.
   std::string ca = Utils::readFile("tests/test_data/prov/root.crt");
   storage->storeTlsCa(ca);

@@ -12,7 +12,7 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "primary/sotauptaneclient.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "utilities/utils.h"
 
 /**

@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 
 #include "config/config.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "utilities/utils.h"
 std::string sysroot;
 
@@ -49,22 +49,21 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   TemporaryDirectory temp_dir;
   int ret = system((std::string("cp -rf tests/test_data/secondary_meta/* ") + temp_dir.PathString()).c_str());
   (void)ret;
-  StorageConfig fs_config;
-  fs_config.type = StorageType::kFileSystem;
-  fs_config.path = temp_dir.Path();
-  fs_config.uptane_metadata_path = BasedPath("metadata");
-  FSStorage fs_storage(fs_config);
+  StorageConfig storage2_config;
+  storage2_config.path = temp_dir.Path();
+  storage2_config.uptane_metadata_path = BasedPath("metadata");
+  auto storage2 = INvStorage::newStorage(storage2_config);
 
   Uptane::RawMetaPack metadata;
-  EXPECT_TRUE(fs_storage.loadLatestRoot(&metadata.director_root, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.director_root, Uptane::RepositoryType::Director));
   EXPECT_TRUE(
-      fs_storage.loadNonRoot(&metadata.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadLatestRoot(&metadata.image_root, Uptane::RepositoryType::Images));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&metadata.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+      storage2->loadNonRoot(&metadata.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.image_root, Uptane::RepositoryType::Images));
+  EXPECT_TRUE(storage2->loadNonRoot(&metadata.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
   EXPECT_TRUE(
-      fs_storage.loadNonRoot(&metadata.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+      storage2->loadNonRoot(&metadata.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
   EXPECT_TRUE(
-      fs_storage.loadNonRoot(&metadata.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+      storage2->loadNonRoot(&metadata.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
 
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");
 

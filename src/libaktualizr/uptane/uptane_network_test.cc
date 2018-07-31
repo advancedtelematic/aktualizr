@@ -17,7 +17,7 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
-#include "storage/fsstorage.h"
+#include "storage/invstorage.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/utils.h"
