@@ -106,7 +106,7 @@ UA_StatusCode write<MessageFileData>(UA_Server *server, const UA_NodeId *session
     }
     std::ofstream ofs(full_file_path.c_str(), std::ios::binary | std::ios::app);
     if (ofs) {
-      ofs.write(static_cast<const char *>(data->value.data), data->value.arrayLength);
+      ofs.write(static_cast<const char *>(data->value.data), static_cast<long>(data->value.arrayLength));
       if (!ofs) {
         LOG_ERROR << "File write error: " << full_file_path.native();
       }

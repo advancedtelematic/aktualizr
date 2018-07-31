@@ -30,7 +30,7 @@ if (BUILD_OPCUA)
     target_sources(aktualizr_secondary_static_lib PRIVATE
         ${OPCUA_SECONDARY_SRC} $<TARGET_OBJECTS:opcua_bridge>)
     set_source_files_properties(${OPCUA_SECONDARY_SRC} ${AKTUALIZR_SECONDARY_SRC}
-        PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+        PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op -Wno-unknown-warning-option")
     target_include_directories(aktualizr_secondary_static_lib PUBLIC ${PROJECT_SOURCE_DIR}/src/libaktualizr/opcuabridge
                                                                      ${PROJECT_SOURCE_DIR}/third_party/open62541)
 endif (BUILD_OPCUA)

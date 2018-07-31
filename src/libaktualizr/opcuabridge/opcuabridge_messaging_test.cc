@@ -81,7 +81,7 @@ TEST(opcuabridge, serialization) {
   opcuabridge::ECUVersionManifestSigned ecu_version_manifest_signed;
   ecu_version_manifest_signed.setEcuIdentifier("XXXXXXXX");
   ecu_version_manifest_signed.setPreviousTime(0);
-  ecu_version_manifest_signed.setCurrentTime(time(NULL));
+  ecu_version_manifest_signed.setCurrentTime(static_cast<int>(time(NULL)));
   ecu_version_manifest_signed.setSecurityAttack("");
   ecu_version_manifest_signed.setInstalledImage(image);
 
@@ -105,7 +105,7 @@ TEST(opcuabridge, serialization) {
 
   // MetadataFiles
 
-  int guid = time(NULL);
+  int guid = static_cast<int>(time(NULL));
   opcuabridge::MetadataFiles mds;
   mds.setGUID(guid);
   mds.setNumberOfMetadataFiles(1);

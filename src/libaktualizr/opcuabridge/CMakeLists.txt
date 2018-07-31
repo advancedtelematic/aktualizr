@@ -34,7 +34,7 @@ set(HEADERS boostarch.h
             utility.h
             versionreport.h)
 
-set_source_files_properties(${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op -Wno-switch-default")
+set_source_files_properties(${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op -Wno-unknown-warning-option -Wno-unused-function -Wno-switch-default")
 add_library(opcua_bridge OBJECT ${SOURCES} ${PROJECT_SOURCE_DIR}/third_party/open62541/open62541.c)
 target_include_directories(opcua_bridge PRIVATE ${PROJECT_SOURCE_DIR}/third_party/open62541/)
 
@@ -43,7 +43,7 @@ set_source_files_properties(opcuabridge_test_utils.cc opcuabridge_messaging_test
                             opcuabridge_secondary.cc opcuabridge_secondary_update_test.cc
                             opcuabridge_ostree_repo_sync_client.cc
                             opcuabridge_ostree_repo_sync_server.cc
-                            PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op")
+                            PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal -Wno-logical-op -Wno-unknown-warning-option")
 add_executable(opcuabridge-server opcuabridge_server.cc opcuabridge_test_utils.cc)
 target_link_libraries(opcuabridge-server aktualizr_static_lib ${TEST_LIBS})
 add_dependencies(build_tests opcuabridge-server)
