@@ -138,20 +138,25 @@ Options for how Aktualizr stores data locally.
 [options="header"]
 |==========================================================================================
 | Name                      | Default                   | Description
-| `type`                    | `"filesystem"`            | What type of storage driver to use. Options: `"sqlite"`, `"filesystem"`.
-| `path`                    | `"/var/sota"`             | Directory for storage. Only used with `filesystem`.
-| `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store. Only used with `filesystem`.
-| `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key. Only used with `filesystem`.
-| `uptane_public_key_path`  | `"ecukey.pub"`            | Relative path to the Uptane specific public key. Only used with `filesystem`.
-| `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate. Only used with `filesystem`.
-| `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key. Only used with `filesystem`.
-| `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate. Only used with `filesystem`.
-| `sqldb_path`              | `"sql.db"`                | Relative path to the database file. Only used with `sqlite`.
+| `type`                    | `"sqlite"`                | What type of storage driver to use. Options: `"sqlite"`. The former `"filesystem"` option is now disabled, existing devices will be migrated (see note below)
+| `path`                    | `"/var/sota"`             | Directory for storage
+| `uptane_metadata_path`    | `"metadata"`              | Path to the uptane metadata store, for migration from `filesystem`.
+| `uptane_private_key_path` | `"ecukey.der"`            | Relative path to the Uptane specific private key, for migration from `filesystem`.
+| `uptane_public_key_path`  | `"ecukey.pub"`            | Relative path to the Uptane specific public key, for migration from `filesystem`.
+| `tls_cacert_path`         | `"root.crt"`              | Relative path to the TLS root CA certificate, for migration from `filesystem`.
+| `tls_pkey_path`           | `"pkey.pem"`              | Relative path to the client's TLS private key, for migration from `filesystem`.
+| `tls_clientcert_path`     | `"client.pem"`            | Relative path to the client's TLS certificate, for migration from `filesystem`.
+| `sqldb_path`              | `"sql.db"`                | Relative path to the database file.
 |==========================================================================================
+
+The only supported storage option is now `sqlite`.
+
+Old systems configured with `filesystem` can be migrated by changing the `type` field to `sqlite` and keeping all the other fields as-is.
+At the next Aktualizr run, the migration procedure will then run automatically and move existing data inside the database.
 
 == `import`
 
-Options for importing data from the filesystem into the storage. Most useful if `storage.type` is `sqlite`.
+Options for importing data from the filesystem into the storage.
 
 [options="header"]
 |==========================================================================================

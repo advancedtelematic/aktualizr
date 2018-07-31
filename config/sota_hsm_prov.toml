@@ -13,7 +13,14 @@ tls_pkey_id = "02"
 key_source = "pkcs11"
 
 [storage]
-type = "filesystem"
+type = "sqlite"
+# keep these paths even if obsolete, for migration from fs storage
 tls_cacert_path = "token/root.crt"
 tls_clientcert_path = "token/client.pem"
 tls_pkey_path = "token/pkey.pem"
+
+[import]
+base_path = "/var/sota/token"
+tls_cacert_path = "root.crt"
+tls_clientcert_path = "client.pem"
+tls_pkey_path = "pkey.pem"

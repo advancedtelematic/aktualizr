@@ -48,7 +48,7 @@ tls_pkey_id = "02"
 key_source = "pkcs11"
 
 [storage]
-type = "filesystem"
+type = "sqlite"
 path = "{tmp_dir}"
 tls_cacert_path = "token/root.crt"
 tls_clientcert_path = "token/client.pem"

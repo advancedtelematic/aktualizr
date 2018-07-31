@@ -138,30 +138,36 @@ void INvStorage::importData(const ImportConfig& import_config) {
                import_config.tls_pkey_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const boost::filesystem::path& path) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
-      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(path)) {
-        if (access(path.c_str(), R_OK | W_OK | X_OK) != 0) {
-          LOG_ERROR << "Cannot read prior filesystem configuration from " << path
+      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+        LOG_INFO << "Starting FS to SQL storage migration";
+        if (access(config.path.c_str(), R_OK | W_OK | X_OK) != 0) {
+          LOG_ERROR << "Cannot read prior filesystem configuration from " << config.path
                     << " due to insufficient permissions.";
           return std::make_shared<SQLStorage>(config);
         }
-        StorageConfig old_config;
+        StorageConfig old_config = config;
         old_config.type = StorageType::kFileSystem;
-        old_config.path = path;
+        old_config.path = config.path;
 
         std::shared_ptr<INvStorage> sql_storage = std::make_shared<SQLStorage>(config);
         std::shared_ptr<INvStorage> fs_storage = std::make_shared<FSStorage>(old_config, true);
         INvStorage::FSSToSQLS(fs_storage, sql_storage);
         return sql_storage;
       }
+      if (!boost::filesystem::exists(db_path)) {
+        LOG_INFO << "Bootstrap empty SQL storage";
+      } else {
+        LOG_INFO << "Use existing SQL storage: " << db_path;
+      }
       return std::make_shared<SQLStorage>(config);
     }
     case StorageType::kFileSystem:
     default:
-      return std::make_shared<FSStorage>(config);
+      throw std::runtime_error("FSStorage is deprecated");
   }
 }
 
@@ -173,10 +179,18 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
   }
 
   std::string ca;
+  if (fs_storage->loadTlsCa(&ca)) {
+    sql_storage->storeTlsCa(ca);
+  }
+
   std::string cert;
+  if (fs_storage->loadTlsCert(&cert)) {
+    sql_storage->storeTlsCert(cert);
+  }
+
   std::string pkey;
-  if (fs_storage->loadTlsCreds(&ca, &cert, &pkey)) {
-    sql_storage->storeTlsCreds(ca, cert, pkey);
+  if (fs_storage->loadTlsPkey(&pkey)) {
+    sql_storage->storeTlsPkey(pkey);
   }
 
   std::string device_id;
@@ -191,6 +205,16 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
 
   if (fs_storage->loadEcuRegistered()) {
     sql_storage->storeEcuRegistered();
+  }
+
+  std::vector<MisconfiguredEcu> ecus;
+  if (fs_storage->loadMisconfiguredEcus(&ecus)) {
+    sql_storage->storeMisconfiguredEcus(ecus);
+  }
+
+  data::OperationResult res;
+  if (fs_storage->loadInstallationResult(&res)) {
+    sql_storage->storeInstallationResult(res);
   }
 
   std::vector<Uptane::Target> installed_versions;
@@ -232,7 +256,9 @@ void INvStorage::FSSToSQLS(const std::shared_ptr<INvStorage>& fs_storage, std::s
   fs_storage->clearDeviceId();
   fs_storage->clearEcuSerials();
   fs_storage->clearEcuRegistered();
+  fs_storage->clearMisconfiguredEcus();
   fs_storage->clearInstalledVersions();
+  fs_storage->clearInstallationResult();
   fs_storage->clearMetadata();
   fs_storage->cleanUp();
 }

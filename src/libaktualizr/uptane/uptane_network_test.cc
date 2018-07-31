@@ -39,7 +39,7 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
 
   bool result;
   auto http = std::make_shared<HttpClient>();
-  auto store = INvStorage::newStorage(conf.storage, temp_dir.Path());
+  auto store = INvStorage::newStorage(conf.storage);
   {
     KeyManager keys(store, conf.keymanagerConfig());
 
@@ -73,43 +73,8 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
 
 // Clang tries to cram these all on single lines, which is ugly.
 // clang-format off
-TEST(UptaneNetwork, device_drop_request) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "drop_request", "noerrors"));
-}
 
-TEST(UptaneNetwork, device_drop_body) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "drop_body", "noerrors"));
-}
-
-TEST(UptaneNetwork, device_503) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "status_503", "noerrors"));
-}
-
-TEST(UptaneNetwork, device_408) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "status_408", "noerrors"));
-}
-
-TEST(UptaneNetwork, ecu_drop_request) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "drop_request"));
-}
-
-TEST(UptaneNetwork, ecu_503) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "status_503"));
-}
-
-TEST(UptaneNetwork, ecu_408) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "status_408"));
-}
-
-TEST(UptaneNetwork, no_connection) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noconnection", "noerrors"));
-}
-
-TEST(UptaneNetwork, no_errors) {
-  EXPECT_TRUE(doTestInit(StorageType::kFileSystem, "noerrors", "noerrors"));
-}
-
-//The same tests but with sqlite backend
+// Run tests with sqlite backend
 TEST(UptaneNetwork, device_drop_request_sqlite) {
   EXPECT_TRUE(doTestInit(StorageType::kSqlite, "drop_request", "noerrors"));
 }

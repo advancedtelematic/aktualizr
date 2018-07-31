@@ -30,7 +30,11 @@ type = "none"
 
 [storage]
 path = "{tmp_dir}"
-type = "filesystem"
+type = "sqlite"
+
+[import]
+tls_pkey_path = "{pkey_path}"
+tls_clientcert_path = "{clientcert_path}"
 '''
 
 
@@ -40,14 +44,17 @@ def provision(tmp_dir, build_dir, creds):
     conf_prov = conf_dir / '20-implicit_prov.toml'
     conf_server = conf_dir / '30-implicit_server.toml'
     with conf_prov.open('w') as f:
-        f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir))
+        f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir,
+                                       pkey_path=tmp_dir / 'import/pkey.pem',
+                                       clientcert_path=tmp_dir / 'import/client.pem'
+                                       ))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
     akt_iw = build_dir / 'src/implicit_writer/aktualizr_implicit_writer'
     akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
 
     # Run implicit_writer (equivalent to aktualizr-implicit-prov.bb).
-    cacert_path = tmp_dir / 'root.crt'
+    cacert_path = tmp_dir / 'import/root.crt'
     stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_iw),
         '-c', str(creds), '-o', str(conf_server), '-r', str(cacert_path)])
     if retcode > 0:
@@ -76,7 +83,7 @@ def provision(tmp_dir, build_dir, creds):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', str(tmp_dir), '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', str(tmp_dir / 'import'), '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
                 stderr.decode() + stdout.decode())

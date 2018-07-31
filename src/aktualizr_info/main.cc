@@ -89,7 +89,8 @@ int main(int argc, char **argv) {
       }
     }
 
-    std::cout << "Provisioned on server: " << (storage->loadEcuRegistered() ? "yes" : "no") << std::endl;
+    auto registered = storage->loadEcuRegistered();
+    std::cout << "Provisioned on server: " << (registered ? "yes" : "no") << std::endl;
     std::cout << "Fetched metadata: " << (has_metadata ? "yes" : "no") << std::endl;
 
     if (has_metadata) {

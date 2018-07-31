@@ -12,7 +12,7 @@
 enum class StorageType { kFileSystem = 0, kSqlite };
 
 struct StorageConfig {
-  StorageType type{StorageType::kFileSystem};
+  StorageType type{StorageType::kSqlite};
   boost::filesystem::path path{"/var/sota"};
 
   // FS storage
@@ -31,7 +31,7 @@ struct StorageConfig {
 };
 
 struct ImportConfig {
-  boost::filesystem::path base_path{""};
+  boost::filesystem::path base_path{"/var/sota/import"};
   BasedPath uptane_private_key_path{""};
   BasedPath uptane_public_key_path{""};
   BasedPath tls_cacert_path{""};

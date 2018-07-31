@@ -680,7 +680,10 @@ void FSStorage::removeTargetFile(const std::string& filename) {
   }
 }
 
-void FSStorage::cleanUp() { boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path)); }
+void FSStorage::cleanUp() {
+  boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));
+  boost::filesystem::remove_all(config_.path / "targets");
+}
 
 boost::filesystem::path FSStorage::targetFilepath(const std::string& filename) const {
   return config_.path / "targets" / filename;
