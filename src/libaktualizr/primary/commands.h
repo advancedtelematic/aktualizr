@@ -123,5 +123,11 @@ class UptaneInstall : public BaseCommand {
 
   friend BaseCommand;
 };
+
+class CampaignCheck : public BaseCommand {
+ public:
+  CampaignCheck() : BaseCommand("CampaignCheck") {}
+};
+
 }  // namespace command
 #endif

@@ -6,6 +6,7 @@
 #include <utility>
 #include "json/json.h"
 
+#include "campaign/campaign.h"
 #include "crypto/crypto.h"
 #include "crypto/keymanager.h"
 #include "initializer.h"
@@ -819,6 +820,14 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
             LOG_INFO << "Aktualizr has been updated and reqires restart to run new version.";
           }
         }
+      } else if (command->variant == "CampaignCheck") {
+        auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
+
+        for (const auto &c : campaigns) {
+          LOG_INFO << "Campaign: " << c.name;
+          LOG_INFO << "Message: " << c.install_message;
+        }
+        *events_channel << std::make_shared<event::CampaignCheckComplete>();
       } else if (command->variant == "Shutdown") {
         shutdown = true;
         return;

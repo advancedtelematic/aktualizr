@@ -90,4 +90,6 @@ DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
 
 InstallComplete::InstallComplete() { variant = "InstallComplete"; }
 
+CampaignCheckComplete::CampaignCheckComplete() { variant = "CampaignCheckComplete"; }
+
 }  // namespace event

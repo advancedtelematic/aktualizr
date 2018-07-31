@@ -2,6 +2,7 @@ add_subdirectory("utilities")
 add_subdirectory("asn1")
 add_subdirectory("bootloader")
 add_subdirectory("bootstrap")
+add_subdirectory("campaign")
 add_subdirectory("config")
 add_subdirectory("crypto")
 add_subdirectory("http")
@@ -22,6 +23,7 @@ add_library(aktualizr_static_lib STATIC
     $<TARGET_OBJECTS:asn1_lib>
     $<TARGET_OBJECTS:bootloader>
     $<TARGET_OBJECTS:bootstrap>
+    $<TARGET_OBJECTS:campaign>
     $<TARGET_OBJECTS:config>
     $<TARGET_OBJECTS:crypto>
     $<TARGET_OBJECTS:http>
