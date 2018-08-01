@@ -93,6 +93,17 @@ HttpClient::~HttpClient() {
 
 HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
   CURL* curl_get = curl_easy_duphandle(curl);
+
+  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
+  if (pkcs11_key) {
+    curl_easy_setopt(curl_get, CURLOPT_SSLENGINE, "pkcs11");
+    curl_easy_setopt(curl_get, CURLOPT_SSLKEYTYPE, "ENG");
+  }
+
+  if (pkcs11_cert) {
+    curl_easy_setopt(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
+  }
+
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
   curl_easy_setopt(curl_get, CURLOPT_POSTFIELDS, "");
