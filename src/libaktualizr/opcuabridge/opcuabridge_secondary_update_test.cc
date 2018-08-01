@@ -90,7 +90,7 @@ TEST(opcuabridge, secondary_update) {
   EXPECT_EQ(retval, UA_STATUSCODE_GOOD);
 
   // write metadata files
-  int guid = time(NULL);
+  int guid = static_cast<int>(time(NULL));
   opcuabridge::MetadataFiles mds;
   mds.setGUID(guid);
   mds.setNumberOfMetadataFiles(1);

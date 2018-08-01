@@ -64,19 +64,20 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   Uptane::TimeStamp now(Uptane::TimeStamp::Now());
   secondary_->detected_attack_.clear();
 
-  secondary_->root_ = Uptane::Root(Uptane::Root::Policy::kAcceptAll);
-  Uptane::RawMetaPack meta;
-  if (secondary_->storage_->loadMetadata(&meta)) {
-    // stored metadata is trusted
-    secondary_->root_ = Uptane::Root("director", Utils::parseJSON(meta.director_root));
-    secondary_->meta_targets_ = Uptane::Targets(Utils::parseJSON(meta.director_targets));
-  }
+  std::string root_str;
+  secondary_->storage_->loadLatestRoot(&root_str, Uptane::RepositoryType::Director);
+  secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director, Utils::parseJSON(root_str));
+
+  std::string targets_str;
+  secondary_->storage_->loadNonRoot(&targets_str, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  secondary_->meta_targets_ = Uptane::Targets(Utils::parseJSON(targets_str));
 
   try {
     // TODO: proper root metadata rotation
-    secondary_->root_ =
-        Uptane::Root(now, "director", Utils::parseJSON(received_meta_pack_.director_root), secondary_->root_);
-    Uptane::Targets targets(now, "director", Utils::parseJSON(received_meta_pack_.director_targets), secondary_->root_);
+    secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director,
+                                     Utils::parseJSON(received_meta_pack_.director_root), secondary_->root_);
+    Uptane::Targets targets(Uptane::RepositoryType::Director, Utils::parseJSON(received_meta_pack_.director_targets),
+                            secondary_->root_);
     if (secondary_->meta_targets_.version() > targets.version()) {
       secondary_->detected_attack_ = "Rollback attack detected";
       LOG_ERROR << "Uptane security check: " << secondary_->detected_attack_;
@@ -85,7 +86,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
     bool target_found = false;
     secondary_->meta_targets_ = Uptane::Targets(received_meta_pack_.director_targets);
     for (auto it = secondary_->meta_targets_.targets.begin(); it != secondary_->meta_targets_.targets.end(); ++it) {
-      if (it->ecu_identifier() == secondary_->ecu_serial_) {
+      if (it->IsForSecondary(secondary_->ecu_serial_)) {
         if (target_found) {
           secondary_->detected_attack_ = "Duplicate entry for this ECU";
           break;
@@ -98,7 +99,10 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
     LOG_ERROR << "Uptane security check: " << ex.what();
     return;
   }
-  secondary_->storage_->storeMetadata(received_meta_pack_);
+  secondary_->storage_->storeRoot(received_meta_pack_.director_root, Uptane::RepositoryType::Director,
+                                  Uptane::Version(secondary_->root_.version()));
+  secondary_->storage_->storeNonRoot(received_meta_pack_.director_targets, Uptane::RepositoryType::Director,
+                                     Uptane::Role::Targets());
 }
 
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {

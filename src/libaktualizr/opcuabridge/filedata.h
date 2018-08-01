@@ -11,7 +11,7 @@ class FileData : public MessageFileData {
  public:
   FileData() = default;
   explicit FileData(boost::filesystem::path base_path) : base_path_(std::move(base_path)) {}
-  virtual ~FileData() = default;
+  ~FileData() final = default;
 
   const boost::filesystem::path& getBasePath() const { return base_path_; }
   void setBasePath(const boost::filesystem::path& base_path) { base_path_ = base_path; }

@@ -42,5 +42,5 @@ int main(int argc, char *argv[]) {
   UA_Server_delete(server);
   UA_ServerConfig_delete(config);
 
-  return retval;
+  return static_cast<int>(retval);
 }

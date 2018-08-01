@@ -127,6 +127,7 @@ enum SignatureMethod { SIG_METHOD_RSASSA_PSS, SIG_METHOD_ED25519 };
 struct MessageBinaryData {};
 struct MessageFileData {
   virtual std::string getFullFilePath() const = 0;
+  virtual ~MessageFileData() = default;
 };
 typedef std::vector<uint8_t> BinaryDataType;
 
@@ -297,9 +298,9 @@ namespace convert_to {
 template <typename T>
 inline Json::Value jsonArray(const std::vector<T> &v) {
   Json::Value jsonArray;
-  jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) {
-    jsonArray[i] = v[i].wrapMessage();
+  jsonArray.resize(static_cast<unsigned int>(v.size()));
+  for (const auto &i : v) {
+    jsonArray.append(i.wrapMessage());
   }
   return jsonArray;
 }
@@ -307,9 +308,9 @@ inline Json::Value jsonArray(const std::vector<T> &v) {
 template <>
 inline Json::Value jsonArray<int>(const std::vector<int> &v) {
   Json::Value jsonArray;
-  jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) {
-    jsonArray[i] = static_cast<Json::Value::Int>(v[i]);
+  jsonArray.resize(static_cast<unsigned int>(v.size()));
+  for (const auto &item : v) {
+    jsonArray.append(static_cast<Json::Value::Int>(item));
   }
   return jsonArray;
 }
@@ -317,9 +318,9 @@ inline Json::Value jsonArray<int>(const std::vector<int> &v) {
 template <>
 inline Json::Value jsonArray<std::size_t>(const std::vector<std::size_t> &v) {
   Json::Value jsonArray;
-  jsonArray.resize(v.size());
-  for (int i = 0; i < v.size(); ++i) {
-    jsonArray[i] = static_cast<Json::Value::UInt>(v[i]);
+  jsonArray.resize(static_cast<unsigned int>(v.size()));
+  for (const auto &item : v) {
+    jsonArray.append(static_cast<Json::Value::UInt>(item));
   }
   return jsonArray;
 }
@@ -327,9 +328,9 @@ inline Json::Value jsonArray<std::size_t>(const std::vector<std::size_t> &v) {
 template <typename T>
 inline std::vector<T> stdVector(const Json::Value &v) {
   std::vector<T> stdv;
-  for (int i = 0; i < v.size(); ++i) {
+  for (const auto &i : v) {
     T item;
-    item.unwrapMessage(v[i]);
+    item.unwrapMessage(i);
     stdv.push_back(item);
   }
   return stdv;
@@ -339,8 +340,8 @@ template <>
 inline std::vector<int> stdVector(const Json::Value &v) {
   std::vector<int> stdv;
   stdv.reserve(v.size());
-  for (int i = 0; i < v.size(); ++i) {
-    stdv.push_back(v[i].asInt());
+  for (const auto &item : v) {
+    stdv.push_back(item.asInt());
   }
   return stdv;
 }
