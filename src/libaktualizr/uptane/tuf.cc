@@ -146,7 +146,7 @@ std::string Target::sha256Hash() const {
       return boost::algorithm::to_lower_copy(it->HashString());
     }
   }
-  return std::string();
+  return std::string("");
 }
 
 bool Target::IsOstree() const {

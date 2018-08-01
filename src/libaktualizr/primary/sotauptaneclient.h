@@ -10,7 +10,6 @@
 #include "bootloader/bootloader.h"
 #include "commands.h"
 #include "config/config.h"
-#include "events.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "reportqueue.h"
@@ -21,6 +20,7 @@
 #include "uptane/ipsecondarydiscovery.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
+#include "utilities/events.h"
 
 class SotaUptaneClient {
  public:

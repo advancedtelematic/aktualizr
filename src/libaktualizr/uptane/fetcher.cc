@@ -21,32 +21,48 @@ bool Fetcher::fetchRole(std::string* result, int64_t maxsize, RepositoryType rep
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
   auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
-  ds->downloaded_length += size * nmemb;
-  if (ds->downloaded_length > ds->expected_length) {
-    return (size * nmemb) + 1;  // curl will abort if return unexpected size;
+  uint64_t downloaded = size * nmemb;
+  auto expected = static_cast<uint64_t>(ds->target.length());
+  if ((ds->downloaded_length + downloaded) > expected) {
+    return ds->downloaded_length + downloaded;  // curl will abort if return unexpected size;
   }
 
   // incomplete writes will stop the download (written_size != nmemb*size)
-  size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), nmemb * size);
+  size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), downloaded);
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
+  unsigned int calculated = 0;
+  if (loggerGetSeverity() <= boost::log::trivial::severity_level::info) {
+    if (ds->downloaded_length > 0) {
+      std::cout << "\r";
+    }
+    ds->downloaded_length += downloaded;
+    calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+    std::cout << "Downloading: " << calculated << "%";
+    if (ds->downloaded_length == expected) {
+      std::cout << "\n";
+    }
+  }
+
+  if (ds->events_channel != nullptr) {
+    auto event = std::make_shared<event::DownloadProgressReport>(ds->target, "Downloading", calculated);
+    *ds->events_channel << event;
+  }
   return written_size;
 }
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
   try {
     if (!target.IsOstree()) {
-      DownloadMetaStruct ds;
+      DownloadMetaStruct ds(target, events_channel);
       std::unique_ptr<StorageTargetWHandle> fhandle =
           storage->allocateTargetFile(false, target.filename(), static_cast<size_t>(target.length()));
       ds.fhandle = fhandle.get();
       ds.downloaded_length = 0;
-      ds.expected_length = target.length();
 
       if (target.hashes().empty()) {
         throw Exception("image", "No hash defined for the target");
       }
 
-      ds.hash_type = target.hashes()[0].type();
       HttpResponse response =
           http->download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
       if (!response.isOk()) {
@@ -65,7 +81,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target.sha256Hash());
+      OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, events_channel);
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
       return false;

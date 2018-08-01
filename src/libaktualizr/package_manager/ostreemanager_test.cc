@@ -30,7 +30,12 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
-  data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
+  Json::Value target_json_test;
+  target_json_test["hashes"]["sha256"] = "some_hash";
+  target_json_test["length"] = 0;
+  Uptane::Target target_test("test.deb", target_json_test);
+  data::InstallOutcome result =
+      OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
   EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
@@ -56,7 +61,12 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   storage->storeTlsCert(cert);
   KeyManager keys(storage, config.keymanagerConfig());
   keys.loadKeys();
-  data::InstallOutcome result = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, "hash");
+  Json::Value target_json_test;
+  target_json_test["hashes"]["sha256"] = "some_hash";
+  target_json_test["length"] = 0;
+  Uptane::Target target_test("test.deb", target_json_test);
+  data::InstallOutcome result =
+      OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target_test);
 
   EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");

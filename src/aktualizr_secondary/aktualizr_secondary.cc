@@ -135,8 +135,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
 
   if (target_->IsOstree()) {
 #ifdef BUILD_OSTREE
-    std::tie(res_code, message) =
-        OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, target_->sha256Hash());
+    std::tie(res_code, message) = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, *target_);
 
     if (res_code != data::UpdateResultCode::kOk) {
       LOG_ERROR << "Could not pull from OSTree (" << static_cast<int>(res_code) << "): " << message;

@@ -2,7 +2,8 @@ set(SOURCES dequeue_buffer.cc
             sockaddr_io.cc
             timer.cc
             types.cc
-            utils.cc)
+            utils.cc
+            events.cc)
 
 set(HEADERS channel.h
             config_utils.h
@@ -11,7 +12,8 @@ set(HEADERS channel.h
             sockaddr_io.h
             timer.h
             types.h
-            utils.h)
+            utils.h
+            events.h)
 
 
 add_library(utilities OBJECT ${SOURCES})

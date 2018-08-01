@@ -21,7 +21,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
     Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
-      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
+      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 

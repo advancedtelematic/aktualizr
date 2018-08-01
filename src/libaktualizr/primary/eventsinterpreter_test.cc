@@ -4,8 +4,8 @@
 
 #include "config/config.h"
 #include "primary/commands.h"
-#include "primary/events.h"
 #include "primary/eventsinterpreter.h"
+#include "utilities/events.h"
 
 TEST(event, RunningMode_full) {
   Config conf;
