@@ -11,6 +11,9 @@
 #include "storage/invstorage.h"
 #include "utilities/channel.h"
 
+using std::make_shared;
+using std::shared_ptr;
+
 Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
@@ -25,9 +28,9 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
 
-  commands_channel_ = std::make_shared<command::Channel>();
-  events_channel_ = std::make_shared<event::Channel>();
-  sig_ = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  commands_channel_ = make_shared<command::Channel>();
+  events_channel_ = make_shared<event::Channel>();
+  sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
 }
 
 int Aktualizr::Run() {
@@ -36,11 +39,10 @@ int Aktualizr::Run() {
   // run events interpreter in background
   events_interpreter.interpret();
 
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+  shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
 
-  std::shared_ptr<SotaUptaneClient> uptane_client =
-      SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
+  shared_ptr<SotaUptaneClient> uptane_client = SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
   uptane_client->runForever(commands_channel_);
 
   return EXIT_SUCCESS;
