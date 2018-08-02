@@ -30,7 +30,7 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   sig_ = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
 }
 
-int Aktualizr::run() {
+int Aktualizr::Run() {
   EventsInterpreter events_interpreter(config_, events_channel_, commands_channel_, sig_);
 
   // run events interpreter in background
@@ -48,7 +48,6 @@ int Aktualizr::run() {
 
 void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
 
-boost::signals2::connection Aktualizr::setSignalHandler(
-    std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
+boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return (*sig_).connect(handler);
 }

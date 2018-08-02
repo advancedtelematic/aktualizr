@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         break;
     }
 
-    return aktualizr.run();
+    return aktualizr.Run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
     return -1;

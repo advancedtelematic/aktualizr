@@ -26,7 +26,7 @@ class Aktualizr {
    * Launch aktualizr. Depending on the \ref RunningMode in the configuration,
    * this may run indefinitely, so you may want to run this on its own thread.
    */
-  int run();
+  int Run();
   /**
    * Send a command to the SotaUptaneClient command interpreter.
    * @param command the command to send.
@@ -37,7 +37,7 @@ class Aktualizr {
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
    */
-  boost::signals2::connection setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
   Config& config_;

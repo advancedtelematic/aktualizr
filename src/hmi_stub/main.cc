@@ -126,11 +126,11 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
-    conn = aktualizr->setSignalHandler(f_cb);
+    conn = aktualizr->SetSignalHandler(f_cb);
 
     ui_thread = std::thread(get_user_input, aktualizr);
 
-    r = aktualizr->run();
+    r = aktualizr->Run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
   }
