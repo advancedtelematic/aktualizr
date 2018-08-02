@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 from time import sleep
 
-import prov_test_common
+from prov_test_common import popen_subprocess, run_subprocess, verify_provisioned
 
 
 def main():
@@ -55,20 +55,21 @@ def provision(tmp_dir, build_dir, creds):
 
     # Run implicit_writer (equivalent to aktualizr-implicit-prov.bb).
     cacert_path = tmp_dir / 'import/root.crt'
-    stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_iw),
-        '-c', str(creds), '-o', str(conf_server), '-r', str(cacert_path)])
+    stdout, stderr, retcode = run_subprocess([str(akt_iw),
+                                              '-c', str(creds), '-o',
+                                              str(conf_server), '-r', str(cacert_path)])
     if retcode > 0:
         print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
-                stderr.decode() + stdout.decode())
+              stderr.decode() + stdout.decode())
         return retcode
 
-    with subprocess.Popen([str(akt), '--config', str(conf_dir)]) as proc:
+    with popen_subprocess([str(akt), '--config', str(conf_dir)]) as proc:
         try:
             # Verify that device has NOT yet provisioned.
             for delay in [1, 2, 5, 10, 15]:
                 sleep(delay)
-                stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_info),
-                    '--config', str(conf_dir)])
+                stdout, stderr, retcode = run_subprocess([str(akt_info),
+                                                          '--config', str(conf_dir)])
                 if retcode == 0 and stderr == b'':
                     break
             if (b'Couldn\'t load device ID' not in stdout or
@@ -82,17 +83,17 @@ def provision(tmp_dir, build_dir, creds):
 
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
-    stdout, stderr, retcode = prov_test_common.run_subprocess([str(akt_cp),
+    stdout, stderr, retcode = run_subprocess([str(akt_cp),
         '-c', str(creds), '-l', str(tmp_dir / 'import'), '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
-                stderr.decode() + stdout.decode())
+              stderr.decode() + stdout.decode())
         return retcode
 
     r = 1
     with subprocess.Popen([str(akt), '--config', str(conf_dir)]) as proc:
         try:
-            r = prov_test_common.verify_provisioned(akt_info, conf_dir)
+            r = verify_provisioned(akt_info, conf_dir)
         finally:
             proc.kill()
     return r
