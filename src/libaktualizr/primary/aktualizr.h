@@ -27,11 +27,50 @@ class Aktualizr {
    * this may run indefinitely, so you may want to run this on its own thread.
    */
   int Run();
+
   /**
-   * Send a command to the SotaUptaneClient command interpreter.
-   * @param command the command to send.
+   * Asynchronously shutdown Aktualizr
    */
-  void sendCommand(const std::shared_ptr<command::BaseCommand>& command);
+  void Shutdown();
+
+  /**
+   * Asynchronously perform a check for campaigns.
+   * Campaigns are a concept outside of Uptane, and allow for user approval of
+   * updates before the contents of the update are known.
+   */
+  void CampaignCheck();
+
+  /**
+   * Asynchronously send local device data to the server.
+   * This includes network status, installed packages, hardware etc.
+   */
+  void SendDeviceData();
+
+  /**
+   * Asynchronously fetch Uptane metadata.
+   * This collects a client manifest, PUTs it to the director, then updates
+   * the Uptane metadata, including root and targets.
+   */
+  void FetchMetadata();
+
+  /**
+   * Asynchronously load already-fetched Uptane metadata from disk.
+   * This is only needed when the metadata fetch and downloads/installation are
+   * in separate aktualizr runs.
+   */
+  void CheckUpdates();
+
+  /**
+   * Asynchronously download targets.
+   */
+  void Download(std::vector<Uptane::Target> updates);
+
+  /**
+   * Asynchronously install targets.
+   */
+
+  void Install(std::vector<Uptane::Target> updates);
+
   /**
    * Provide a function to receive event notifications.
    * @param handler a function that can receive event objects.

@@ -48,7 +48,23 @@ int Aktualizr::Run() {
   return EXIT_SUCCESS;
 }
 
-void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
+void Aktualizr::Shutdown() { *commands_channel_ << make_shared<command::Shutdown>(); }
+
+void Aktualizr::CampaignCheck() { *commands_channel_ << make_shared<command::CampaignCheck>(); }
+
+void Aktualizr::SendDeviceData() { *commands_channel_ << make_shared<command::SendDeviceData>(); }
+
+void Aktualizr::FetchMetadata() { *commands_channel_ << make_shared<command::FetchMeta>(); }
+
+void Aktualizr::CheckUpdates() { *commands_channel_ << make_shared<command::CheckUpdates>(); }
+
+void Aktualizr::Download(std::vector<Uptane::Target> updates) {
+  *commands_channel_ << make_shared<command::StartDownload>(std::move(updates));
+}
+
+void Aktualizr::Install(std::vector<Uptane::Target> updates) {
+  *commands_channel_ << make_shared<command::UptaneInstall>(std::move(updates));
+}
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return (*sig_).connect(handler);

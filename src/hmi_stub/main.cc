@@ -89,16 +89,16 @@ void get_user_input(const std::shared_ptr<Aktualizr> &aktualizr) {
   std::string buffer;
   while (!shutting_down && std::getline(std::cin, buffer)) {
     if (buffer == "Shutdown") {
-      aktualizr->sendCommand(std::make_shared<command::Shutdown>());
+      aktualizr->Shutdown();
       return;
     } else if (buffer == "SendDeviceData") {
-      aktualizr->sendCommand(std::make_shared<command::SendDeviceData>());
+      aktualizr->SendDeviceData();
     } else if (buffer == "FetchMeta") {
-      aktualizr->sendCommand(std::make_shared<command::FetchMeta>());
+      aktualizr->FetchMetadata();
     } else if (buffer == "StartDownload") {
-      aktualizr->sendCommand(std::make_shared<command::StartDownload>(updates));
+      aktualizr->Download(updates);
     } else if (buffer == "UptaneInstall") {
-      aktualizr->sendCommand(std::make_shared<command::UptaneInstall>(updates));
+      aktualizr->Install(updates);
     } else if (!buffer.empty()) {
       std::cout << "Unknown command.\n";
     }
