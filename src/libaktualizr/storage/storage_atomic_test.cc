@@ -18,7 +18,7 @@ StorageType storage_test_type;
 
 std::unique_ptr<INvStorage> Storage(const StorageConfig& config) {
   if (config.type == StorageType::kSqlite) {
-    return std::unique_ptr<INvStorage>(new SQLStorage(config));
+    return std::unique_ptr<INvStorage>(new SQLStorage(config, false));
   } else {
     throw std::runtime_error("Invalid config type");
   }

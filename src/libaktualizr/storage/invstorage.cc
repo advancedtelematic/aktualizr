@@ -138,22 +138,25 @@ void INvStorage::importData(const ImportConfig& import_config) {
                import_config.tls_pkey_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, bool readonly) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
       if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+        if (readonly) {
+          throw StorageException("Migration from FS is not possible, because of readonly database");
+        }
+
         LOG_INFO << "Starting FS to SQL storage migration";
         if (access(config.path.c_str(), R_OK | W_OK | X_OK) != 0) {
-          LOG_ERROR << "Cannot read prior filesystem configuration from " << config.path
-                    << " due to insufficient permissions.";
-          return std::make_shared<SQLStorage>(config);
+          throw StorageException(std::string("Cannot read prior filesystem configuration from ") +
+                                 config.path.string() + " due to insufficient permissions.");
         }
         StorageConfig old_config = config;
         old_config.type = StorageType::kFileSystem;
         old_config.path = config.path;
 
-        auto sql_storage = std::make_shared<SQLStorage>(config);
+        auto sql_storage = std::make_shared<SQLStorage>(config, readonly);
         FSStorageRead fs_storage(old_config);
         INvStorage::FSSToSQLS(fs_storage, *sql_storage);
         return sql_storage;
@@ -163,7 +166,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config) 
       } else {
         LOG_INFO << "Use existing SQL storage: " << db_path;
       }
-      return std::make_shared<SQLStorage>(config);
+      return std::make_shared<SQLStorage>(config, readonly);
     }
     case StorageType::kFileSystem:
     default:

@@ -138,7 +138,7 @@ TEST(sqlstorage, migrate) {
   StorageConfig config;
   config.path = temp_dir.Path();
 
-  SQLStorage storage(config);
+  SQLStorage storage(config, false);
   boost::filesystem::remove_all(config.sqldb_path.get(config.path));
 
   EXPECT_FALSE(dbSchemaCheck(storage));
@@ -150,7 +150,7 @@ TEST(sqlstorage, MigrationVersionCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  SQLStorage storage(config);
+  SQLStorage storage(config, false);
 
   EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), schema_migrations.size() - 1);
 }
@@ -164,7 +164,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
     FAIL();
   }
 
-  SQLStorage storage(config);
+  SQLStorage storage(config, false);
   EXPECT_EQ(storage.getVersion(), DbVersion::kInvalid);
 }
 
@@ -216,7 +216,7 @@ TEST(sqlstorage, migrate_root_works) {
 
   boost::filesystem::remove_all(config.sqldb_path.get(config.path));
   boost::filesystem::copy(test_data_dir / "version5.sql", config.sqldb_path.get(config.path));
-  SQLStorage storage(config);
+  SQLStorage storage(config, false);
 
   EXPECT_TRUE(storage.dbMigrate());
   EXPECT_TRUE(dbSchemaCheck(storage));

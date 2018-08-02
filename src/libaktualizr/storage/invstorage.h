@@ -15,6 +15,12 @@ class INvStorage;
 class FSStorageRead;
 class SQLStorage;
 
+class StorageException : public std::runtime_error {
+ public:
+  StorageException(const std::string& what) : std::runtime_error(what) {}
+  ~StorageException() noexcept override = default;
+};
+
 using store_data_t = void (INvStorage::*)(const std::string&);
 using load_data_t = bool (INvStorage::*)(std::string*);
 
@@ -148,7 +154,7 @@ class INvStorage {
   virtual void cleanUp() = 0;
 
   // Special constructors and utilities
-  static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config);
+  static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config, bool readonly = false);
   static void FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage);
 
   // Not purely virtual
