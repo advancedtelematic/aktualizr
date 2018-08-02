@@ -817,7 +817,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
             exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
                                  // Systemd will start aktualizr automatically if it exit.
           } else {               // Aktualizr runs from terminal
-            LOG_INFO << "Aktualizr has been updated and reqires restart to run new version.";
+            LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
           }
         }
       } else if (command->variant == "CampaignCheck") {
