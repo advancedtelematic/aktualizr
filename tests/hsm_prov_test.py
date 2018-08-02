@@ -4,6 +4,7 @@ import argparse
 import os
 import re
 import sys
+import shutil
 import tempfile
 
 from pathlib import Path
@@ -52,6 +53,12 @@ path = "{tmp_dir}"
 tls_cacert_path = "token/root.crt"
 tls_clientcert_path = "token/client.pem"
 tls_pkey_path = "token/pkey.pem"
+
+[import]
+base_path = "{tmp_dir}/token"
+tls_cacert_path = "root.crt"
+tls_clientcert_path = "client.pem"
+tls_pkey_path = "pkey.pem"
 '''
 
 
@@ -67,6 +74,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     akt_iw = build_dir / 'src/implicit_writer/aktualizr_implicit_writer'
     akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
     setup_hsm = src_dir / 'scripts/setup_hsm.sh'
+    hsm_conf = tmp_dir / 'softhsm2.conf'
     token_dir = tmp_dir / 'token'
 
     # Run implicit_writer (equivalent to aktualizr-hsm-prov.bb).
@@ -77,6 +85,14 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
         print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
         return retcode
+
+    if setup_hsm:
+        os.environ['TOKEN_DIR'] = str(token_dir)
+        os.environ['SOFTHSM2_CONF'] = str(hsm_conf)
+        shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
+
+    else:
+        print('warning: running without setup_hsm, results not guaranteed')
 
     with popen_subprocess([str(akt), '--config', str(conf_dir)]) as proc:
         try:
@@ -105,16 +121,14 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', str(tmp_dir), '-r', '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', str(tmp_dir / 'token'), '-r', '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
         return retcode
 
     if setup_hsm:
-        env = os.environ
-        env['TOKEN_DIR'] = str(token_dir)
-        stdout, stderr, retcode = run_subprocess([str(setup_hsm)], env=env)
+        stdout, stderr, retcode = run_subprocess([str(setup_hsm)])
         if retcode > 0:
             print('setup_hsm.sh failed: ' + stdout.decode() + stderr.decode())
             return 1
@@ -123,20 +137,15 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O',
                       '--type', 'cert', '--login', '--pin', '1234']
     softhsm2_command = ['softhsm2-util', '--show-slots']
-    ran_ok = False
-    for delay in [5, 5, 5, 5, 10]:
-        sleep(delay)
-        p11_out, p11_err, p11_ret = run_subprocess(pkcs11_command)
-        hsm_out, hsm_err, hsm_ret = run_subprocess(softhsm2_command)
-        if (p11_ret == 0 and hsm_ret == 0 and
-                b'present token' in p11_err and
-                b'X.509 cert' in p11_out and
-                b'Initialized:      yes' in hsm_out and
-                b'User PIN init.:   yes' in hsm_out and
-                hsm_err == b''):
-            ran_ok = True
-            break
-    if not ran_ok:
+
+    p11_out, p11_err, p11_ret = run_subprocess(pkcs11_command)
+    hsm_out, hsm_err, hsm_ret = run_subprocess(softhsm2_command)
+    if not (p11_ret == 0 and hsm_ret == 0 and
+            b'present token' in p11_err and
+            b'X.509 cert' in p11_out and
+            b'Initialized:      yes' in hsm_out and
+            b'User PIN init.:   yes' in hsm_out and
+            hsm_err == b''):
         print('pkcs11-tool or softhsm2-tool failed: ' + p11_err.decode() +
               p11_out.decode() + hsm_err.decode() + hsm_out.decode())
         return 1
