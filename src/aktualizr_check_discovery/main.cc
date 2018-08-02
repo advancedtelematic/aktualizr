@@ -12,7 +12,7 @@
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
-  po::options_description desc("aktualizr_info command line options");
+  po::options_description desc("aktualizr-check-discovery command line options");
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
