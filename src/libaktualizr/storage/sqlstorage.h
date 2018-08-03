@@ -6,6 +6,7 @@
 #include <sqlite3.h>
 
 #include "invstorage.h"
+#include "sql_utils.h"
 
 extern const std::vector<std::string> schema_migrations;
 extern const std::string current_schema;
@@ -18,7 +19,7 @@ class SQLStorage : public INvStorage {
  public:
   friend class SQLTargetWHandle;
   friend class SQLTargetRHandle;
-  explicit SQLStorage(const StorageConfig& config);
+  explicit SQLStorage(const StorageConfig& config, bool readonly);
   ~SQLStorage() override = default;
   void storePrimaryKeys(const std::string& public_key, const std::string& private_key) override;
   bool loadPrimaryKeys(std::string* public_key, std::string* private_key) override;
@@ -77,8 +78,10 @@ class SQLStorage : public INvStorage {
   boost::filesystem::path dbPath() const;
 
  private:
+  SQLite3Guard dbConnection();
   // request info
   void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
+  bool readonly_{false};
 };
 
 #endif  // SQLSTORAGE_H_

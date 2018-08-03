@@ -24,7 +24,7 @@ struct SQLZeroBlob {
 
 class SQLException : public std::runtime_error {
  public:
-  SQLException() : std::runtime_error("SQL error") {}
+  SQLException(const std::string& what = "SQL error") : std::runtime_error(what) {}
   ~SQLException() noexcept override = default;
 };
 
@@ -135,13 +135,18 @@ class SQLite3Guard {
   sqlite3* get() { return handle_.get(); }
   int get_rc() { return rc_; }
 
-  explicit SQLite3Guard(const char* path) : handle_(nullptr, sqlite3_close), rc_(0) {
+  explicit SQLite3Guard(const char* path, bool readonly) : handle_(nullptr, sqlite3_close), rc_(0) {
     sqlite3* h;
-    rc_ = sqlite3_open(path, &h);
+    if (readonly) {
+      rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READONLY, nullptr);
+    } else {
+      rc_ = sqlite3_open(path, &h);
+    }
     handle_.reset(h);
   }
 
-  explicit SQLite3Guard(const boost::filesystem::path& path) : SQLite3Guard(path.c_str()) {}
+  explicit SQLite3Guard(const boost::filesystem::path& path, bool readonly = false)
+      : SQLite3Guard(path.c_str(), readonly) {}
 
   int exec(const char* sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);

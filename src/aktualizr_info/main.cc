@@ -7,6 +7,7 @@
 #include "aktualizr_info_config.h"
 #include "logging/logging.h"
 #include "storage/invstorage.h"
+#include "storage/sql_utils.h"
 
 namespace po = boost::program_options;
 
@@ -22,7 +23,8 @@ int main(int argc, char **argv) {
     ("images-root",  "Outputs root.json from images repo")
     ("images-target",  "Outputs targets.json from images repo")
     ("director-root",  "Outputs root.json from director repo")
-    ("director-target",  "Outputs targets.json from director repo");
+    ("director-target",  "Outputs targets.json from director repo")
+    ("allow-migrate", "Opens database in read/write mode to make possible to migrate database if needed");
   // clang-format on
 
   try {
@@ -39,7 +41,12 @@ int main(int argc, char **argv) {
 
     AktualizrInfoConfig config(vm);
 
-    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+    bool readonly = true;
+    if (vm.count("allow-migrate") != 0u) {
+      readonly = false;
+    }
+
+    std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage, readonly);
     std::cout << "Storage backend: " << ((storage->type() == StorageType::kFileSystem) ? "Filesystem" : "Sqlite")
               << std::endl;
 
@@ -138,6 +145,12 @@ int main(int argc, char **argv) {
   } catch (const po::error &o) {
     std::cout << o.what() << std::endl;
     std::cout << desc;
+    return EXIT_FAILURE;
+  } catch (const SQLException &exc) {
+    std::cout << exc.what() << std::endl;
+    return EXIT_FAILURE;
+  } catch (const StorageException &exc) {
+    std::cout << exc.what() << std::endl;
     return EXIT_FAILURE;
   }
 }

@@ -14,7 +14,7 @@
 
 class EphemeralStorage : public SQLStorage {
  public:
-  EphemeralStorage(const StorageConfig &config) : SQLStorage(config) {}
+  EphemeralStorage(const StorageConfig &config, bool readonly) : SQLStorage(config, readonly) {}
   void storeRoot(const std::string &data, Uptane::RepositoryType repo, Uptane::Version version) override {
     (void)data;
     (void)repo;
@@ -27,7 +27,7 @@ class EphemeralStorage : public SQLStorage {
   };
 
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig &config) {
-    return std::make_shared<EphemeralStorage>(config);
+    return std::make_shared<EphemeralStorage>(config, false);
   }
 };
 
