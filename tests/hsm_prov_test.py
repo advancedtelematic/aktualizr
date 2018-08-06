@@ -19,13 +19,12 @@ def main():
     parser.add_argument('--src-dir', '-s', type=Path, default=Path('../'), help='source directory (parent of src/)')
     parser.add_argument('--credentials', '-c', type=Path, default=Path('.'), help='path to credentials archive')
     parser.add_argument('--pkcs11-module', '-p', type=Path, default=Path('/usr/lib/softhsm/libsofthsm2.so'), help='path to PKCS#11 library module')
-    parser.add_argument('--setup-hsm', '-H', action="store_true", help='Run setup_hsm.sh script for local test')
     args = parser.parse_args()
 
     retval = 1
     with tempfile.TemporaryDirectory() as tmp_dir:
         retval = provision(Path(tmp_dir), args.build_dir, args.src_dir,
-                args.credentials, args.pkcs11_module, args.setup_hsm)
+                args.credentials, args.pkcs11_module)
     return retval
 
 
@@ -55,14 +54,14 @@ tls_clientcert_path = "token/client.pem"
 tls_pkey_path = "token/pkey.pem"
 
 [import]
-base_path = "{tmp_dir}/token"
+base_path = "{tmp_dir}/certs"
 tls_cacert_path = "root.crt"
 tls_clientcert_path = "client.pem"
 tls_pkey_path = "pkey.pem"
 '''
 
 
-def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
+def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
     conf_prov = conf_dir / '20-sota_hsm_prov.toml'
@@ -73,9 +72,11 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
     akt_iw = build_dir / 'src/implicit_writer/aktualizr_implicit_writer'
     akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
-    setup_hsm = src_dir / 'scripts/setup_hsm.sh'
+    setup_hsm = src_dir / 'scripts/export_to_hsm.sh'
     hsm_conf = tmp_dir / 'softhsm2.conf'
     token_dir = tmp_dir / 'token'
+    certs_dir = tmp_dir / 'certs'
+
 
     # Run implicit_writer (equivalent to aktualizr-hsm-prov.bb).
     stdout, stderr, retcode = run_subprocess([str(akt_iw),
@@ -86,15 +87,12 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
               stderr.decode() + stdout.decode())
         return retcode
 
-    if setup_hsm:
-        os.environ['TOKEN_DIR'] = str(token_dir)
-        os.environ['SOFTHSM2_CONF'] = str(hsm_conf)
-        shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
+    os.environ['TOKEN_DIR'] = str(token_dir)
+    os.environ['SOFTHSM2_CONF'] = str(hsm_conf)
+    os.environ['CERTS_DIR'] = str(certs_dir)
+    shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
 
-    else:
-        print('warning: running without setup_hsm, results not guaranteed')
-
-    with popen_subprocess([str(akt), '--config', str(conf_dir)]) as proc:
+    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
         try:
             # Verify that device has NOT yet provisioned.
             for delay in [1, 2, 5, 10, 15]:
@@ -121,25 +119,24 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', str(tmp_dir / 'token'), '-r', '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', str(certs_dir), '-r', '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
         return retcode
-
-    if setup_hsm:
-        stdout, stderr, retcode = run_subprocess([str(setup_hsm)])
-        if retcode > 0:
-            print('setup_hsm.sh failed: ' + stdout.decode() + stderr.decode())
-            return 1
+    stdout, stderr, retcode = run_subprocess([str(setup_hsm)])
+    if retcode > 0:
+        print('setup_hsm.sh failed: ' + stdout.decode() + stderr.decode())
+        return 1
 
     # Verify that HSM is able to initialize.
     pkcs11_command = ['pkcs11-tool', '--module=' + str(pkcs11_module), '-O',
-                      '--type', 'cert', '--login', '--pin', '1234']
+                     '--login', '--pin', '1234']
     softhsm2_command = ['softhsm2-util', '--show-slots']
 
     p11_out, p11_err, p11_ret = run_subprocess(pkcs11_command)
     hsm_out, hsm_err, hsm_ret = run_subprocess(softhsm2_command)
+
     if not (p11_ret == 0 and hsm_ret == 0 and
             b'present token' in p11_err and
             b'X.509 cert' in p11_out and
@@ -167,7 +164,8 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module, setup_hsm):
         return 1
 
     r = 1
-    with popen_subprocess([str(akt), '--config', str(conf_dir)]) as proc:
+    (tmp_dir / 'sql.db').unlink()
+    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
         try:
             r = verify_provisioned(akt_info, conf_dir)
         finally:

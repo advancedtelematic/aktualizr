@@ -100,7 +100,7 @@ if(SOTA_PACKED_CREDENTIALS)
             --src-dir ${PROJECT_SOURCE_DIR}
             --credentials ${SOTA_PACKED_CREDENTIALS}
             --pkcs11-module ${TEST_PKCS11_MODULE_PATH}
-            --setup-hsm
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests
             )
         set_tests_properties(hsm_prov_test PROPERTIES LABELS "credentials")
     endif(BUILD_P11 AND TEST_PKCS11_MODULE_PATH)
