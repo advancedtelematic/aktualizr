@@ -142,6 +142,12 @@ Config::Config(const std::vector<boost::filesystem::path>& config_dirs) {
   postUpdateValues();
 }
 
+Config::Config(const std::vector<boost::filesystem::path>& config_dirs, const boost::filesystem::path& root_dir) {
+  checkDirs(config_dirs);
+  updateFromDirs(config_dirs);
+  postUpdateValues(root_dir);
+}
+
 Config::Config(const boost::program_options::variables_map& cmd) {
   // Redundantly check and set the loglevel from the commandline prematurely so
   // that it is taken account while processing the config.
@@ -166,8 +172,10 @@ KeyManagerConfig Config::keymanagerConfig() const {
   return KeyManagerConfig{p11, tls.ca_source, tls.pkey_source, tls.cert_source, uptane.key_type, uptane.key_source};
 }
 
-void Config::postUpdateValues() {
+void Config::postUpdateValues(const boost::filesystem::path& root_dir_) {
   logger_set_threshold(logger);
+
+  boost::filesystem::path root_dir = (root_dir_.empty()) ? "/" : root_dir_;
 
   if (provision.provision_path.empty()) {
     provision.mode = ProvisionMode::kImplicit;
@@ -175,10 +183,10 @@ void Config::postUpdateValues() {
 
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {
-      tls.server = Utils::readFile(tls.server_url_path);
+      tls.server = Utils::readFile(root_dir / tls.server_url_path);
     } else if (!provision.provision_path.empty()) {
-      if (boost::filesystem::exists(provision.provision_path)) {
-        tls.server = Bootstrap::readServerUrl(provision.provision_path);
+      if (boost::filesystem::exists(root_dir / provision.provision_path)) {
+        tls.server = Bootstrap::readServerUrl(root_dir / provision.provision_path);
       } else {
         LOG_ERROR << "Provided provision archive " << provision.provision_path << " does not exist!";
       }
