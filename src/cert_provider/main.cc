@@ -390,8 +390,7 @@ int main(int argc, char* argv[]) {
   BasedPath ca_file = BasedPath("root.crt");
   BasedPath url_file = BasedPath("gateway.url");
   if (!config_path.empty()) {
-    Config config(config_path);
-    // TODO: provide path to root directory in `--local` parameter
+    Config config(config_path, local_dir);
 
     // try first import base path and then storage path
     if (!config.import.base_path.empty()) {
@@ -490,13 +489,13 @@ int main(int argc, char* argv[]) {
 
   if (!local_dir.empty()) {
     std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
-    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get("").filename());
-    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get("").filename());
+    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get(""));
+    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get(""));
     if (provide_ca) {
-      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get("").filename());
+      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get(""));
     }
     if (provide_url) {
-      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get("").filename());
+      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get(""));
     }
     std::cout << "...success\n";
   }

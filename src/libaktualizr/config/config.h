@@ -107,11 +107,12 @@ class Config : public BaseConfig {
   explicit Config(const boost::program_options::variables_map& cmd);
   explicit Config(const boost::filesystem::path& filename);
   explicit Config(const std::vector<boost::filesystem::path>& config_dirs);
+  explicit Config(const std::vector<boost::filesystem::path>& config_dirs, const boost::filesystem::path& root_dir);
 
   KeyManagerConfig keymanagerConfig() const;
 
   void updateFromTomlString(const std::string& contents);
-  void postUpdateValues();
+  void postUpdateValues(const boost::filesystem::path& root_dir_ = "/");
   void writeToStream(std::ostream& sink) const;
 
   // Config data structures. Keep logger first so that it is taken into account
