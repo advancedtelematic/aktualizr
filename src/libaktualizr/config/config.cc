@@ -175,7 +175,12 @@ void Config::postUpdateValues() {
 
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {
-      tls.server = Utils::readFile(tls.server_url_path);
+      try {
+        tls.server = Utils::readFile(tls.server_url_path);
+      } catch (const boost::filesystem::filesystem_error& e) {
+        LOG_ERROR << "Couldn't read gateway URL: " << e.what();
+        tls.server = "";
+      }
     } else if (!provision.provision_path.empty()) {
       if (boost::filesystem::exists(provision.provision_path)) {
         tls.server = Bootstrap::readServerUrl(provision.provision_path);
