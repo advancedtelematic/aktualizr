@@ -310,7 +310,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     endif ()
 
     if (PEDANTIC_WARNINGS)
-        add_definitions(-Wpedantic -Wswitch-default -Wsign-compare -Wconversion)
+        add_definitions(-Wpedantic)
     endif (PEDANTIC_WARNINGS)
 endif()
 
