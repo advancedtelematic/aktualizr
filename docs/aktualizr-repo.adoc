@@ -1,0 +1,38 @@
+= Aktualizr repo
+
+aktualizr-repo director contains a basic implementation of Uptane server. It is comprised of three tools:
+
+. `create_repo.sh` is a script to generate a new repo
+. `serve_repo.py` is a minimalistic Uptane server
+. `aktualizr-repo` itself is a tool to control the repo once created with `create_repo.sh`
+
+== create_repo.sh
+
+`create_repo.sh` generates the whole Uptane repo together with client and server certificates and OSTree repo that can be used both by meta-updater and by the device. `create_repo.sh` uses `aktualizr-repo`, so make sure it's in `PATH`.
+
+=== Usage
+
+`create_repo.sh /path/to/repo/to/create hostname`
+Make sure that the path to create doesn't exist and the machine where `serve_repo.py` will be running is accessible from the device under given `hostname`
+
+=== Integration with bitbake
+
+`create_repo.sh` can work with bitbake running on the same machine. Copy `site.conf` from the generated directory to your `build/conf` or append it to your existing `site.conf` and `bitbake` should commit built rootfs to the generated OSTree repository and provision devices to automatically connect to `serve_repo.py`.
+
+== serve_repo.py
+
+`serve_repo.py` serves Uptane metadata and OSTree objects to the devices.
+
+=== Usage
+
+`serve_repo.py <port number> /path/to/created/repo` 
+
+== aktualizr-repo
+
+See `aktualizr-repo --help` for details.
+
+=== Example usage scenario
+
+. Add target to images metadata `aktualizr-repo --path /path/to/created/repo/uptane --command image --filename firmware_image.fmw`
+. Prepare director targets `aktaulizr-repo --path /path/to/created/repo/uptane --command addtarget --filename firmware_image.fmw --hwid my-hardware-id --serial my-ecu-serial`
+. Schedule the prepared update `aktualizr-repo --path /path/to/created/repo/uptane --command signtargets`
