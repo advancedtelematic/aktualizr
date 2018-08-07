@@ -660,7 +660,10 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
-    uptane_fetcher->fetchVerifyTarget(*images_target);
+    if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
+      *events_channel << std::make_shared<event::Error>("Error downloading targets.");
+      return false;
+    }
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
