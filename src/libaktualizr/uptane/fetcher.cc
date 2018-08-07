@@ -31,12 +31,14 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), downloaded);
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
   unsigned int calculated = 0;
-  if (loggerGetSeverity() <= boost::log::trivial::severity_level::info) {
+  if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
     if (ds->downloaded_length > 0) {
       std::cout << "\r";
     }
-    ds->downloaded_length += downloaded;
-    calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+  }
+  ds->downloaded_length += downloaded;
+  calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+  if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
     std::cout << "Downloading: " << calculated << "%";
     if (ds->downloaded_length == expected) {
       std::cout << "\n";
