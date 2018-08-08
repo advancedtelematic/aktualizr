@@ -86,7 +86,7 @@ void INvStorage::importUpdateSimple(const boost::filesystem::path& base_path, st
   bool update = false;
   if (!(this->*load_func)(&prev_content)) {
     update = true;
-  } else {
+  } else if (!imported_data_path.empty()) {
     content = Utils::readFile(imported_data_path.get(base_path).string());
     if (Crypto::sha256digest(content) != Crypto::sha256digest(prev_content)) {
       update = true;

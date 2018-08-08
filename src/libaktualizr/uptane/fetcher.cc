@@ -31,12 +31,14 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), downloaded);
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
   unsigned int calculated = 0;
-  if (loggerGetSeverity() <= boost::log::trivial::severity_level::info) {
+  if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
     if (ds->downloaded_length > 0) {
       std::cout << "\r";
     }
-    ds->downloaded_length += downloaded;
-    calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+  }
+  ds->downloaded_length += downloaded;
+  calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+  if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
     std::cout << "Downloading: " << calculated << "%";
     if (ds->downloaded_length == expected) {
       std::cout << "\n";
@@ -51,6 +53,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 }
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
+  bool result = false;
   try {
     if (!target.IsOstree()) {
       DownloadMetaStruct ds(target, events_channel);
@@ -77,21 +80,23 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
         throw TargetHashMismatch(target.filename());
       }
+      result = true;
     } else {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, events_channel);
+      data::InstallOutcome outcome =
+          OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, events_channel);
+      result =
+          (outcome.first == data::UpdateResultCode::kOk || outcome.first == data::UpdateResultCode::kAlreadyProcessed);
 #else
       LOG_ERROR << "Could not pull OSTree target. Aktualizr was built without OSTree support!";
-      return false;
 #endif
     }
   } catch (const Exception& e) {
     LOG_WARNING << "Error while downloading a target: " << e.what();
-    return false;
   }
-  return true;
+  return result;
 }
 
 }  // namespace Uptane

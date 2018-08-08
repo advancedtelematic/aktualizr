@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
   TemporaryDirectory temp_dir;
   config.network.port = 0;  // random port
   config.storage.type = StorageType::kSqlite;
+  config.storage.path = temp_dir.Path();
   config.storage.sqldb_path = temp_dir.Path() / "sql.db";
 
   storage = INvStorage::newStorage(config.storage);

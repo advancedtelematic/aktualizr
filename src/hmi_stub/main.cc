@@ -15,6 +15,7 @@
 namespace bpo = boost::program_options;
 
 bool shutting_down{false};
+unsigned int progress = 0;
 std::vector<Uptane::Target> updates;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
@@ -77,8 +78,18 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+  if (event->variant == "DownloadProgressReport") {
+    unsigned int new_progress = dynamic_cast<event::DownloadProgressReport *>(event.get())->progress;
+    if (new_progress > progress) {
+      progress = new_progress;
+      std::cout << "Download progress: " << progress << "%\n";
+    }
+    return;
+  }
   std::cout << "Received " << event->variant << " event\n";
-  if (event->variant == "UpdateAvailable") {
+  if (event->variant == "DownloadComplete") {
+    progress = 0;
+  } else if (event->variant == "UpdateAvailable") {
     updates = dynamic_cast<event::UpdateAvailable *>(event.get())->updates;
   } else if (event->variant == "InstallComplete") {
     updates.clear();
