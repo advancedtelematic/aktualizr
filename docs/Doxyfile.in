@@ -810,7 +810,6 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/opcuabridge \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/package_manager \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/primary \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/secondary_ipc \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/socket_activation \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/storage \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/telemetry \
