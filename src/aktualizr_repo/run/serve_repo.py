@@ -68,7 +68,7 @@ class ReUseHTTPServer(HTTPServer):
 server_address = ('', int(sys.argv[1]))
 httpd = ReUseHTTPServer(server_address, Handler)
 
-context = ssl.SSLContext()
+context = ssl.SSLContext(ssl.PROTOCOL_TLS if hasattr(ssl, 'PROTOCOL_TLS') else ssl.PROTOCOL_TLSv1_1)
 context.load_cert_chain(certfile = top_path + '/certs/server/cert.pem', keyfile = top_path + '/certs/server/private.pem')
 context.load_verify_locations(cafile = top_path + '/certs/client/cacert.pem')
 context.verify_mode = ssl.CERT_REQUIRED

@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
   libstdc++6 \
   lshw \
   openjdk-8-jre \
-  python3
+  python3 \
+  zip
 
 ADD . /
