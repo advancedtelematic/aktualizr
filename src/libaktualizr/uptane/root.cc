@@ -89,13 +89,13 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
   Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 
-  std::vector<std::string> sig_values;
+  std::set<std::string> used_keyids;
   for (Json::ValueIterator sig = signatures.begin(); sig != signatures.end(); ++sig) {
-    std::string signature = (*sig)["sig"].asString();
-    if (std::find(sig_values.begin(), sig_values.end(), signature) != sig_values.end()) {
+    std::string keyid = (*sig)["keyid"].asString();
+    if (std::find(used_keyids.begin(), used_keyids.end(), keyid) != used_keyids.end()) {
       throw NonUniqueSignatures(repository, role.ToString());
     }
-    sig_values.push_back(signature);
+    used_keyids.insert(keyid);
 
     std::string method((*sig)["method"].asString());
     std::transform(method.begin(), method.end(), method.begin(), ::tolower);
@@ -103,7 +103,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
     if (method != "rsassa-pss" && method != "rsassa-pss-sha256" && method != "ed25519") {
       throw SecurityException(repository, std::string("Unsupported sign method: ") + (*sig)["method"].asString());
     }
-    std::string keyid = (*sig)["keyid"].asString();
+
     if (keys_.count(keyid) == 0u) {
       LOG_DEBUG << "Signed by unknown KeyId: " << keyid << ". Skipping.";
       continue;
@@ -113,7 +113,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
       LOG_WARNING << "KeyId " << keyid << " is not valid to sign for this role (" << role.ToString() << ").";
       continue;
     }
-
+    std::string signature = (*sig)["sig"].asString();
     if (keys_[keyid].VerifySignature(signature, canonical)) {
       valid_signatures++;
     } else {
