@@ -155,7 +155,7 @@ class INvStorage {
 
   // Special constructors and utilities
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config, bool readonly = false);
-  static void FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage);
+  static bool FSSToSQLS(FSStorageRead& fs_storage, const std::shared_ptr<SQLStorage>& sql_storage, bool check_exists);
 
   // Not purely virtual
   void importData(const ImportConfig& import_config);
