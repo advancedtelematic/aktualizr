@@ -102,7 +102,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   Json::Value json_targets = Utils::parseJSONFile("tests/test_data/repo/repo/director/targets_hasupdates.json");
   json_targets["signatures"][0]["sig"] = "Wrong signature";
   metadata.director_targets = Utils::jsonToStr(json_targets);
-  EXPECT_THROW(sec.putMetadata(metadata), Uptane::UnmetThreshold);
+  EXPECT_THROW(sec.putMetadata(metadata), Uptane::BadKeyId);
 }
 
 TEST(SecondaryFactory, Bad) {

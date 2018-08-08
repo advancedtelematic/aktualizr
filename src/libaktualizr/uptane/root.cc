@@ -105,27 +105,29 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
     }
     std::string keyid = (*sig)["keyid"].asString();
     if (keys_.count(keyid) == 0u) {
-      throw BadKeyId(repository);
+      LOG_DEBUG << "Signed by unknown KeyId: " << keyid << ". Skipping.";
+      continue;
     }
 
     if (keys_for_role_.count(std::make_pair(role, keyid)) == 0u) {
-      LOG_WARNING << "KeyId is not valid to sign for this role";
-      LOG_TRACE << "KeyId: " << keyid;
+      LOG_WARNING << "KeyId " << keyid << " is not valid to sign for this role (" << role.ToString() << ").";
       continue;
     }
 
     if (keys_[keyid].VerifySignature(signature, canonical)) {
       valid_signatures++;
     } else {
-      LOG_WARNING << "Signature was present but invalid";
-      LOG_TRACE << "  keyid:" << keyid;
-      LOG_TRACE << "  signature:" << signature;
-      // throw SecurityException(repository, "Invalid signature, verification failed");
+      LOG_WARNING << "Signature was present but invalid: " << signature << " with KeyId: " << keyid;
     }
   }
   int64_t threshold = thresholds_for_role_[role];
   if (threshold < kMinSignatures || kMaxSignatures < threshold) {
     throw IllegalThreshold(repository, "Invalid signature threshold");
+  }
+  // One signature and it is bad: throw bad key ID.
+  // Multiple signatures but not enough good ones to pass threshold: throw unmet threshold.
+  if (signatures.size() == 1 && valid_signatures == 0) {
+    throw BadKeyId(repository);
   }
   if (valid_signatures < threshold) {
     throw UnmetThreshold(repository, role.ToString());
