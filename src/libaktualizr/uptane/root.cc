@@ -92,7 +92,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
   std::set<std::string> used_keyids;
   for (Json::ValueIterator sig = signatures.begin(); sig != signatures.end(); ++sig) {
     std::string keyid = (*sig)["keyid"].asString();
-    if (std::find(used_keyids.begin(), used_keyids.end(), keyid) != used_keyids.end()) {
+    if (used_keyids.count(keyid) != 0) {
       throw NonUniqueSignatures(repository, role.ToString());
     }
     used_keyids.insert(keyid);
