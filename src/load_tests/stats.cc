@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 
-Histogram::Histogram() { hdr_init(1, 3L * 60 * 1000, 3, &histogram); };
+Histogram::Histogram() { hdr_init(1, 3L * 60 * 1000, 3, &histogram); }
 
 Histogram::~Histogram() { free(histogram); }
 void Histogram::print() { hdr_percentiles_print(histogram, stdout, 5, 1.0, CLASSIC); }

@@ -34,7 +34,6 @@ class RateController {
     * server has failed permanently
     */
   static const clock::duration kMaxSleepTime;
-  ;
 
   /**
    * After getting a failure with a concurrency of 1, sleep for this long
