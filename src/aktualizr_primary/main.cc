@@ -104,17 +104,17 @@ int main(int argc, char *argv[]) {
     switch (config.uptane.running_mode) {
       case RunningMode::kDownload:
       case RunningMode::kInstall:
-        aktualizr.sendCommand(std::make_shared<command::CheckUpdates>());
+        aktualizr.CheckUpdates();
         break;
       case RunningMode::kCampaignCheck:
-        aktualizr.sendCommand(std::make_shared<command::CampaignCheck>());
+        aktualizr.CampaignCheck();
         break;
       default:
-        aktualizr.sendCommand(std::make_shared<command::SendDeviceData>());
+        aktualizr.SendDeviceData();
         break;
     }
 
-    return aktualizr.run();
+    return aktualizr.Run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
     return -1;

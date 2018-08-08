@@ -11,6 +11,9 @@
 #include "storage/invstorage.h"
 #include "utilities/channel.h"
 
+using std::make_shared;
+using std::shared_ptr;
+
 Aktualizr::Aktualizr(Config &config) : config_(config) {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
@@ -25,30 +28,44 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
 
-  commands_channel_ = std::make_shared<command::Channel>();
-  events_channel_ = std::make_shared<event::Channel>();
-  sig_ = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  commands_channel_ = make_shared<command::Channel>();
+  events_channel_ = make_shared<event::Channel>();
+  sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
 }
 
-int Aktualizr::run() {
+int Aktualizr::Run() {
   EventsInterpreter events_interpreter(config_, events_channel_, commands_channel_, sig_);
 
   // run events interpreter in background
   events_interpreter.interpret();
 
-  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
+  shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
   storage->importData(config_.import);
 
-  std::shared_ptr<SotaUptaneClient> uptane_client =
-      SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
+  shared_ptr<SotaUptaneClient> uptane_client = SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
   uptane_client->runForever(commands_channel_);
 
   return EXIT_SUCCESS;
 }
 
-void Aktualizr::sendCommand(const std::shared_ptr<command::BaseCommand> &command) { *commands_channel_ << command; }
+void Aktualizr::Shutdown() { *commands_channel_ << make_shared<command::Shutdown>(); }
 
-boost::signals2::connection Aktualizr::setSignalHandler(
-    std::function<void(std::shared_ptr<event::BaseEvent>)> &handler) {
+void Aktualizr::CampaignCheck() { *commands_channel_ << make_shared<command::CampaignCheck>(); }
+
+void Aktualizr::SendDeviceData() { *commands_channel_ << make_shared<command::SendDeviceData>(); }
+
+void Aktualizr::FetchMetadata() { *commands_channel_ << make_shared<command::FetchMeta>(); }
+
+void Aktualizr::CheckUpdates() { *commands_channel_ << make_shared<command::CheckUpdates>(); }
+
+void Aktualizr::Download(std::vector<Uptane::Target> updates) {
+  *commands_channel_ << make_shared<command::StartDownload>(std::move(updates));
+}
+
+void Aktualizr::Install(std::vector<Uptane::Target> updates) {
+  *commands_channel_ << make_shared<command::UptaneInstall>(std::move(updates));
+}
+
+boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return (*sig_).connect(handler);
 }

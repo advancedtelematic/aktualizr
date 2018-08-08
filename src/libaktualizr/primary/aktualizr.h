@@ -26,18 +26,57 @@ class Aktualizr {
    * Launch aktualizr. Depending on the \ref RunningMode in the configuration,
    * this may run indefinitely, so you may want to run this on its own thread.
    */
-  int run();
+  int Run();
+
   /**
-   * Send a command to the SotaUptaneClient command interpreter.
-   * @param command the command to send.
+   * Asynchronously shutdown Aktualizr
    */
-  void sendCommand(const std::shared_ptr<command::BaseCommand>& command);
+  void Shutdown();
+
+  /**
+   * Asynchronously perform a check for campaigns.
+   * Campaigns are a concept outside of Uptane, and allow for user approval of
+   * updates before the contents of the update are known.
+   */
+  void CampaignCheck();
+
+  /**
+   * Asynchronously send local device data to the server.
+   * This includes network status, installed packages, hardware etc.
+   */
+  void SendDeviceData();
+
+  /**
+   * Asynchronously fetch Uptane metadata.
+   * This collects a client manifest, PUTs it to the director, then updates
+   * the Uptane metadata, including root and targets.
+   */
+  void FetchMetadata();
+
+  /**
+   * Asynchronously load already-fetched Uptane metadata from disk.
+   * This is only needed when the metadata fetch and downloads/installation are
+   * in separate aktualizr runs.
+   */
+  void CheckUpdates();
+
+  /**
+   * Asynchronously download targets.
+   */
+  void Download(std::vector<Uptane::Target> updates);
+
+  /**
+   * Asynchronously install targets.
+   */
+
+  void Install(std::vector<Uptane::Target> updates);
+
   /**
    * Provide a function to receive event notifications.
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
    */
-  boost::signals2::connection setSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
+  boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
   Config& config_;

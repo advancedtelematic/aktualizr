@@ -100,16 +100,16 @@ void get_user_input(const std::shared_ptr<Aktualizr> &aktualizr) {
   std::string buffer;
   while (!shutting_down && std::getline(std::cin, buffer)) {
     if (buffer == "Shutdown") {
-      aktualizr->sendCommand(std::make_shared<command::Shutdown>());
+      aktualizr->Shutdown();
       return;
     } else if (buffer == "SendDeviceData") {
-      aktualizr->sendCommand(std::make_shared<command::SendDeviceData>());
+      aktualizr->SendDeviceData();
     } else if (buffer == "FetchMeta") {
-      aktualizr->sendCommand(std::make_shared<command::FetchMeta>());
+      aktualizr->FetchMetadata();
     } else if (buffer == "StartDownload") {
-      aktualizr->sendCommand(std::make_shared<command::StartDownload>(updates));
+      aktualizr->Download(updates);
     } else if (buffer == "UptaneInstall") {
-      aktualizr->sendCommand(std::make_shared<command::UptaneInstall>(updates));
+      aktualizr->Install(updates);
     } else if (!buffer.empty()) {
       std::cout << "Unknown command.\n";
     }
@@ -137,11 +137,11 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
-    conn = aktualizr->setSignalHandler(f_cb);
+    conn = aktualizr->SetSignalHandler(f_cb);
 
     ui_thread = std::thread(get_user_input, aktualizr);
 
-    r = aktualizr->run();
+    r = aktualizr->Run();
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
   }
