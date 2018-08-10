@@ -293,9 +293,13 @@ Uptane::Snapshot::Snapshot(RepositoryType repo, const Json::Value &json, Root &r
 bool MetaPack::isConsistent() const {
   TimeStamp now(TimeStamp::Now());
   try {
-    Uptane::Root original_root(director_root);
-    Uptane::Root new_root(RepositoryType::Director, director_root.original(), new_root);
-    Uptane::Targets(RepositoryType::Director, director_targets.original(), original_root);
+    if (director_root.original() != Json::nullValue) {
+      Uptane::Root original_root(director_root);
+      Uptane::Root new_root(RepositoryType::Director, director_root.original(), new_root);
+      if (director_targets.original() != Json::nullValue) {
+        Uptane::Targets(RepositoryType::Director, director_targets.original(), original_root);
+      }
+    }
   } catch (const std::logic_error &exc) {
     LOG_WARNING << "Inconsistent metadata: " << exc.what();
     return false;
