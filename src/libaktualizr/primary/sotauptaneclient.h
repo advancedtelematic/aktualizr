@@ -35,6 +35,7 @@ class SotaUptaneClient {
                    std::shared_ptr<event::Channel> events_channel_in);
 
   bool initialize();
+  void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   bool updateMeta();
   bool uptaneIteration();
   bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets);
@@ -60,6 +61,7 @@ class SotaUptaneClient {
   void reportInstalledPackages();
   void reportNetworkInfo();
   void init();
+  void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   void sendImagesToEcus(std::vector<Uptane::Target> targets);

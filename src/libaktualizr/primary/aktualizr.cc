@@ -7,8 +7,6 @@
 #include <sodium.h>
 
 #include "eventsinterpreter.h"
-#include "sotauptaneclient.h"
-#include "storage/invstorage.h"
 #include "utilities/channel.h"
 
 using std::make_shared;
@@ -31,21 +29,22 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   commands_channel_ = make_shared<command::Channel>();
   events_channel_ = make_shared<event::Channel>();
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
+  storage_ = INvStorage::newStorage(config_.storage);
+  storage_->importData(config_.import);
+  uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, events_channel_);
 }
 
 int Aktualizr::Run() {
-  EventsInterpreter events_interpreter(config_, events_channel_, commands_channel_, sig_);
-
   // run events interpreter in background
-  events_interpreter.interpret();
-
-  shared_ptr<INvStorage> storage = INvStorage::newStorage(config_.storage);
-  storage->importData(config_.import);
-
-  shared_ptr<SotaUptaneClient> uptane_client = SotaUptaneClient::newDefaultClient(config_, storage, events_channel_);
-  uptane_client->runForever(commands_channel_);
+  events_interpreter_ = std::make_shared<EventsInterpreter>(config_, events_channel_, commands_channel_, sig_);
+  events_interpreter_->interpret();
+  uptane_client_->runForever(commands_channel_);
 
   return EXIT_SUCCESS;
+}
+
+void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &secondary) {
+  uptane_client_->addNewSecondary(secondary);
 }
 
 void Aktualizr::Shutdown() { *commands_channel_ << make_shared<command::Shutdown>(); }

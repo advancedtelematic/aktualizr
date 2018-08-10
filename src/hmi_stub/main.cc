@@ -10,6 +10,7 @@
 #include "config/config.h"
 #include "logging/logging.h"
 #include "primary/aktualizr.h"
+#include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
 namespace bpo = boost::program_options;
@@ -39,6 +40,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
+      ("secondary", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)");
   // clang-format on
 
@@ -139,6 +141,12 @@ int main(int argc, char *argv[]) {
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
     conn = aktualizr->SetSignalHandler(f_cb);
 
+    if (commandline_map.count("secondary") != 0) {
+      auto sconfigs = commandline_map["secondary"].as<std::vector<boost::filesystem::path>>();
+      for (const auto &sconf : sconfigs) {
+        aktualizr->AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
+      }
+    }
     ui_thread = std::thread(get_user_input, aktualizr);
 
     r = aktualizr->Run();

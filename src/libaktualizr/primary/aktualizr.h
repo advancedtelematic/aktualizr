@@ -7,6 +7,10 @@
 
 #include "commands.h"
 #include "config/config.h"
+#include "eventsinterpreter.h"
+#include "sotauptaneclient.h"
+#include "storage/invstorage.h"
+#include "uptane/secondaryinterface.h"
 #include "utilities/channel.h"
 #include "utilities/events.h"
 
@@ -72,6 +76,11 @@ class Aktualizr {
   void Install(std::vector<Uptane::Target> updates);
 
   /**
+   * Add new secondary to aktualizr.
+   */
+  void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
+
+  /**
    * Provide a function to receive event notifications.
    * @param handler a function that can receive event objects.
    * @return a signal connection object, which can be disconnected if desired.
@@ -80,8 +89,11 @@ class Aktualizr {
 
  private:
   Config& config_;
+  std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<command::Channel> commands_channel_;
   std::shared_ptr<event::Channel> events_channel_;
+  std::shared_ptr<SotaUptaneClient> uptane_client_;
+  std::shared_ptr<EventsInterpreter> events_interpreter_;
   std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig_;
 };
 

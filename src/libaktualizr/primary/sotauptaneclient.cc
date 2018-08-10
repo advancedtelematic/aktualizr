@@ -74,19 +74,34 @@ void SotaUptaneClient::init() {
   }
   std::vector<Uptane::SecondaryConfig>::const_iterator it;
   for (it = config.uptane.secondary_configs.begin(); it != config.uptane.secondary_configs.end(); ++it) {
-    std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(*it);
-
-    Uptane::EcuSerial sec_serial = sec->getSerial();
-    Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
-    std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
-        secondaries.find(sec_serial);
-    if (map_it != secondaries.end()) {
-      LOG_ERROR << "Multiple secondaries found with the same serial: " << sec_serial;
-      continue;
-    }
-    secondaries.insert(std::make_pair(sec_serial, sec));
-    hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
+    auto sec = Uptane::SecondaryFactory::makeSecondary(*it);
+    addSecondary(sec);
   }
+}
+
+void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+  if (storage->loadEcuRegistered()) {
+    EcuSerials serials;
+    storage->loadEcuSerials(&serials);
+    SerialCompare secondary_comp(sec->getSerial());
+    if (std::find_if(serials.begin(), serials.end(), secondary_comp) == serials.end()) {
+      throw std::logic_error("Add new secondaries for provisioned device is not implemented yet");
+    }
+  }
+  addSecondary(sec);
+}
+
+void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
+  Uptane::EcuSerial sec_serial = sec->getSerial();
+  Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+      secondaries.find(sec_serial);
+  if (map_it != secondaries.end()) {
+    LOG_WARNING << "Multiple secondaries found with the same serial: " << sec_serial;
+    return;
+  }
+  secondaries.insert(std::make_pair(sec_serial, sec));
+  hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
 }
 
 bool SotaUptaneClient::isInstalledOnPrimary(const Uptane::Target &target) {

@@ -285,51 +285,7 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
 
 void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
   for (auto it = sconfigs.cbegin(); it != sconfigs.cend(); ++it) {
-    if (!boost::filesystem::exists(*it)) {
-      throw FatalException(it->string() + " does not exist!");
-    }
-    Json::Value config_json = Utils::parseJSONFile(*it);
-    Uptane::SecondaryConfig sconfig;
-
-    std::string stype = config_json["secondary_type"].asString();
-    if (stype == "virtual") {
-      sconfig.secondary_type = Uptane::SecondaryType::kVirtual;
-    } else if (stype == "legacy") {
-      LOG_ERROR << "Legacy secondaries should be initialized with --legacy-interface.";
-      continue;
-    } else if (stype == "ip_uptane") {
-      sconfig.secondary_type = Uptane::SecondaryType::kIpUptane;
-    } else if (stype == "opcua_uptane") {
-      sconfig.secondary_type = Uptane::SecondaryType::kOpcuaUptane;
-    } else {
-      LOG_ERROR << "Unrecognized secondary type: " << stype;
-      continue;
-    }
-    sconfig.ecu_serial = config_json["ecu_serial"].asString();
-    sconfig.ecu_hardware_id = config_json["ecu_hardware_id"].asString();
-    sconfig.partial_verifying = config_json["partial_verifying"].asBool();
-    sconfig.ecu_private_key = config_json["ecu_private_key"].asString();
-    sconfig.ecu_public_key = config_json["ecu_public_key"].asString();
-
-    sconfig.full_client_dir = boost::filesystem::path(config_json["full_client_dir"].asString());
-    sconfig.firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
-    sconfig.metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
-    sconfig.target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
-    sconfig.flasher = "";
-
-    std::string key_type = config_json["key_type"].asString();
-    if (key_type.size() != 0u) {
-      if (key_type == "RSA2048") {
-        sconfig.key_type = KeyType::kRSA2048;
-      } else if (key_type == "RSA3072") {
-        sconfig.key_type = KeyType::kRSA3072;
-      } else if (key_type == "RSA4096") {
-        sconfig.key_type = KeyType::kRSA4096;
-      } else if (key_type == "ED25519") {
-        sconfig.key_type = KeyType::kED25519;
-      }
-    }
-    uptane.secondary_configs.push_back(sconfig);
+    uptane.secondary_configs.emplace_back(Uptane::SecondaryConfig(*it));
   }
 }
 
