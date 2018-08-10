@@ -197,7 +197,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
       bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
       if (verified) {
         result[it->first.ToString()] = secmanifest;
-        installed_images[it->first] = secmanifest["filepath"].asString();
+        installed_images[it->first] = secmanifest["signed"]["installed_image"]["filepath"].asString();
       } else {
         LOG_ERROR << "Secondary manifest verification failed, manifest: " << secmanifest;
       }
