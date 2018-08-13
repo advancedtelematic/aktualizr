@@ -40,6 +40,13 @@ class SotaUptaneClient {
   bool uptaneIteration();
   bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool downloadImages(const std::vector<Uptane::Target> &targets);
+  void sendDeviceData();
+  void putManifestCmd();
+  void fetchMeta();
+  void checkUpdates();
+  void uptaneInstall(std::vector<Uptane::Target> updates);
+  void campaignCheck();
+  void campaignAccept(const std::string &campaign_id);
   void runForever(const std::shared_ptr<command::Channel> &commands_channel);
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
@@ -87,7 +94,6 @@ class SotaUptaneClient {
   const std::shared_ptr<Bootloader> bootloader;
   std::shared_ptr<ReportQueue> report_queue;
   std::shared_ptr<event::Channel> events_channel;
-  std::atomic<bool> shutdown = {false};
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
   std::map<Uptane::EcuSerial, std::string> installed_images;
