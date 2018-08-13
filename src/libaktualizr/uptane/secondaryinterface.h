@@ -19,7 +19,7 @@ namespace Uptane {
 
 class SecondaryInterface {
  public:
-  explicit SecondaryInterface(const SecondaryConfig& sconfig_in) : sconfig(sconfig_in) {}
+  explicit SecondaryInterface(SecondaryConfig sconfig_in) : sconfig(std::move(sconfig_in)) {}
   virtual ~SecondaryInterface() = default;
   virtual EcuSerial getSerial() { return Uptane::EcuSerial(sconfig.ecu_serial); }
   virtual Uptane::HardwareIdentifier getHwId() { return Uptane::HardwareIdentifier(sconfig.ecu_hardware_id); }
@@ -32,7 +32,7 @@ class SecondaryInterface {
 
   virtual bool sendFirmware(const std::string& data) = 0;
 
-  const SecondaryConfig& sconfig;
+  const SecondaryConfig sconfig;
 };
 }  // namespace Uptane
 
