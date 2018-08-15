@@ -38,7 +38,7 @@ class SotaUptaneClient {
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   bool updateMeta();
   bool uptaneIteration();
-  bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets);
+  bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool downloadImages(const std::vector<Uptane::Target> &targets);
   void runForever(const std::shared_ptr<command::Channel> &commands_channel);
   Json::Value AssembleManifest();
@@ -68,7 +68,7 @@ class SotaUptaneClient {
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
   bool putManifest();
-  bool getNewTargets(std::vector<Uptane::Target> *new_targets);
+  bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
@@ -91,6 +91,7 @@ class SotaUptaneClient {
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
   std::map<Uptane::EcuSerial, std::string> installed_images;
+  bool installing{false};
 
   Uptane::Exception last_exception{"", ""};
 };

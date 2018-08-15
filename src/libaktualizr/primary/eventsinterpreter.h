@@ -32,6 +32,7 @@ class EventsInterpreter {
   std::shared_ptr<event::Channel> events_channel;
   std::shared_ptr<command::Channel> commands_channel;
   std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig;
+  unsigned int pending_ecus{0};
 };
 
 #endif /* EVENTSINTERPRETER_H_ */

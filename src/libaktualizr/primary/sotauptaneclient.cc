@@ -100,6 +100,7 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
     LOG_WARNING << "Multiple secondaries found with the same serial: " << sec_serial;
     return;
   }
+  sec->addEventsChannel(events_channel);
   secondaries.insert(std::make_pair(sec_serial, sec));
   hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
 }
@@ -624,8 +625,11 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
   return true;
 }
 
-bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
+bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
   std::vector<Uptane::Target> targets = director_repo.getTargets();
+  if (ecus_count != nullptr) {
+    *ecus_count = 0;
+  }
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     bool is_new = false;
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
@@ -651,6 +655,9 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets) {
       }
       if (images_it->second != targets_it->filename()) {
         is_new = true;
+        if (ecus_count != nullptr) {
+          (*ecus_count)++;
+        }
       }
       // no updates for this image => continue
     }
@@ -720,13 +727,14 @@ bool SotaUptaneClient::uptaneIteration() {
   return true;
 }
 
-bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets) {
+bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count) {
   if (!checkDirectorMetaOffline()) {
     LOG_ERROR << "Failed to check director metadata: " << last_exception.what();
     return false;
   }
   std::vector<Uptane::Target> tmp_targets;
-  if (!getNewTargets(&tmp_targets)) {
+  unsigned int ecus;
+  if (!getNewTargets(&tmp_targets, &ecus)) {
     LOG_ERROR << "Inconsistency between director metadata and existent ECUs";
     return false;
   }
@@ -744,6 +752,9 @@ bool SotaUptaneClient::uptaneOfflineIteration(std::vector<Uptane::Target> *targe
   }
 
   *targets = std::move(tmp_targets);
+  if (ecus_count != nullptr) {
+    *ecus_count = ecus;
+  }
   return true;
 }
 
@@ -773,6 +784,19 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         } else {
           *events_channel << std::make_shared<event::PutManifestComplete>();
         }
+        if (installing) {
+          installing = false;
+          boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+          if (boost::filesystem::exists(reboot_flag)) {
+            boost::filesystem::remove(reboot_flag);
+            if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
+              exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
+                                   // Systemd will start aktualizr automatically if it exit.
+            } else {               // Aktualizr runs from terminal
+              LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
+            }
+          }
+        }
       } else if (command->variant == "FetchMeta") {
         if (updateMeta()) {
           *events_channel << std::make_shared<event::FetchMetaComplete>();
@@ -782,11 +806,12 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
       } else if (command->variant == "CheckUpdates") {
         AssembleManifest();  // populates list of connected devices and installed images
         std::vector<Uptane::Target> updates;
-        if (!uptaneOfflineIteration(&updates)) {
+        unsigned int ecus_count = 0;
+        if (!uptaneOfflineIteration(&updates, &ecus_count)) {
           LOG_ERROR << "Invalid UPTANE metadata in storage";
         } else {
           if (!updates.empty()) {
-            *events_channel << std::make_shared<event::UpdateAvailable>(updates);
+            *events_channel << std::make_shared<event::UpdateAvailable>(updates, ecus_count);
           } else {
             *events_channel << std::make_shared<event::UptaneTimestampUpdated>();
           }
@@ -795,6 +820,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         std::vector<Uptane::Target> updates = command->toChild<command::StartDownload>()->updates;
         downloadImages(updates);
       } else if (command->variant == "UptaneInstall") {
+        installing = true;
         // install images
         // Uptane step 5 (send time to all ECUs) is not implemented yet.
         std::vector<Uptane::Target> updates = command->toChild<command::UptaneInstall>()->packages;
@@ -811,7 +837,9 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
               // notify the bootloader before installation happens, because installation is not atomic and
               //   a false notification doesn't hurt when rollbacks are implemented
               bootloader->updateNotify();
+              *events_channel << std::make_shared<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
               PackageInstallSetResult(*it);
+              *events_channel << std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial());
             } else {
               data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
               data::OperationResult result(it->filename(), outcome);
@@ -825,19 +853,6 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         }
 
         sendImagesToEcus(updates);
-        *events_channel << std::make_shared<event::InstallComplete>();
-
-        // FIXME how to deal with reboot if we have a pending secondary update?
-        boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
-        if (boost::filesystem::exists(reboot_flag)) {
-          boost::filesystem::remove(reboot_flag);
-          if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
-            exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
-                                 // Systemd will start aktualizr automatically if it exit.
-          } else {               // Aktualizr runs from terminal
-            LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
-          }
-        }
       } else if (command->variant == "CampaignCheck") {
         auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
 
@@ -1027,7 +1042,7 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
         Json::Value data;
         data["sysroot_path"] = config.pacman.sysroot.string();
         data["ref_hash"] = targets_it->sha256Hash();
-        sec->second->sendFirmware(Utils::jsonToStr(data));
+        sec->second->sendFirmwareAsync(std::make_shared<std::string>(Utils::jsonToStr(data)));
         continue;
       }
 
@@ -1037,12 +1052,12 @@ void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
         if (creds_archive.empty()) {
           continue;
         }
-        sec->second->sendFirmware(creds_archive);
+        sec->second->sendFirmwareAsync(std::make_shared<std::string>(creds_archive));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
         std::string fw = sstr.str();
-        sec->second->sendFirmware(fw);
+        sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw));
       }
     }
   }

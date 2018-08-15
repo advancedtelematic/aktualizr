@@ -4,6 +4,7 @@
 #include "json/json.h"
 #include "secondaryinterface.h"
 
+#include "utilities/events.h"
 #include "utilities/types.h"
 
 namespace Uptane {
@@ -13,7 +14,7 @@ class SecondaryConfig;
 
 class OpcuaSecondary : public SecondaryInterface {
  public:
-  explicit OpcuaSecondary(const SecondaryConfig& /*sconfig*/);
+  explicit OpcuaSecondary(const SecondaryConfig& sconfig_in);
   ~OpcuaSecondary() override;
 
   Uptane::EcuSerial getSerial() override;
@@ -23,7 +24,7 @@ class OpcuaSecondary : public SecondaryInterface {
   Json::Value getManifest() override;
   bool putMetadata(const RawMetaPack& meta_pack) override;
 
-  bool sendFirmware(const std::string& data) override;
+  bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
 
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;

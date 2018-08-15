@@ -26,7 +26,9 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
   int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
   bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
-  bool sendFirmware(const std::string& data) override { return secondary.sendFirmwareResp(data); }
+  bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) override {
+    return secondary.sendFirmwareResp(*data);
+  }
 
  private:
   AktualizrSecondary& secondary;
