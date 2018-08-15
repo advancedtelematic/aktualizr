@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "jsmn/jsmn.h"
+#include "jsmn.h"
 #include "libuptiny/root_signed.h"
 #include "libuptiny/common_data_api.h"
 #include "logging/logging.h"

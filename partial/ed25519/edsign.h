@@ -35,6 +35,10 @@
  */
 #define EDSIGN_PUBLIC_KEY_SIZE		32
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void edsign_sec_to_pub(uint8_t *pub, const uint8_t *secret);
 
 /* Produce a signature for a message. */
@@ -65,4 +69,7 @@ uint8_t edsign_verify_final(struct sha512_state* s, const uint8_t *signature,
 			       const uint8_t* pub, const uint8_t *message,
 			       size_t total_len);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

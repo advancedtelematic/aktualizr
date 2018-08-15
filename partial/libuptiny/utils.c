@@ -28,6 +28,22 @@ bool hex2bin(const char *hex_string, int hex_len, uint8_t *bin_data) {
   return true;
 }
 
+static inline char to_hex(uint8_t nibble) {
+  if (nibble <= 9) {
+    return (char)('0' + nibble);
+  } else {
+    return (char)('a' + nibble - 10);
+  }
+}
+
+void bin2hex(const uint8_t *bin_data, int bin_len, char *hex_string) {
+  for (int i = 0; i < bin_len; ++i) {
+    hex_string[i << 1] = to_hex(bin_data[i] >> 4);
+    hex_string[(i << 1) + 1] = to_hex(bin_data[i] & 0x0F);
+  }
+  hex_string[bin_len << 1] = 0;
+}
+
 int hex_bin_cmp(const char *hex_string, int hex_len, const uint8_t *bin_data) {
   uint8_t byte = 0;
   for (int i = 0; i < hex_len; ++i) {
@@ -69,6 +85,33 @@ bool dec2int(const char *dec_string, int dec_len, int32_t *out) {
 
   *out = ((neg) ? -res : res);
   return true;
+}
+
+void int2dec(int32_t num, char *dec_string) {
+  int first_digit = 0;
+  if (num < 0) {
+    dec_string[0] = '-';
+    num = -num;
+    first_digit = 1;
+  } else if (num == 0) {
+    dec_string[0] = '0';
+    dec_string[1] = 0;
+    return;
+  }
+
+  int idx = first_digit;
+  while (num) {
+    dec_string[idx++] = (char)('0' + (num % 10));
+    num /= 10;
+  }
+  dec_string[idx] = 0;
+  int last_digit = idx - 1;
+
+  for (int i = 0; i < (last_digit + 1) / 2; ++i) {
+    char c = dec_string[first_digit + i];
+    dec_string[first_digit + i] = dec_string[last_digit - i];
+    dec_string[last_digit - i] = c;
+  }
 }
 
 /* Time format in UPTANE: YYYY-MM-DDThh:mm:ssZ. The function ignores delimiters. */

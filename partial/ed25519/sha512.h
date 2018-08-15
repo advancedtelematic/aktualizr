@@ -11,6 +11,10 @@
 #include <stddef.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SHA512 state. State is updated as data is fed in, and then the final
  * hash can be read out in slices.
  *
@@ -49,4 +53,7 @@ void sha512_final(struct sha512_state *s, const uint8_t *blk,
 void sha512_get(const struct sha512_state *s, uint8_t *hash,
 		unsigned int offset, unsigned int len);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -2,7 +2,7 @@
 #include "common_data_api.h"
 #include "crypto_api.h"
 #include "debug.h"
-#include "jsmn/jsmn.h"
+#include "jsmn.h"
 #include "json_common.h"
 #include "root_signed.h"
 #include "signatures.h"
@@ -53,10 +53,10 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
 
       int num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
-        crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
-        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
+        crypto_verify_init(crypto_ctx_pool[j], &signature_pool[j]);
+        crypto_verify_feed(crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
                            (size_t)(signed_end - signed_begin));
-        if (crypto_verify_result(&crypto_ctx_pool[j])) {
+        if (crypto_verify_result(crypto_ctx_pool[j])) {
           ++num_valid_signatures;
         } else {
           DEBUG_PRINTF("Signature verification with old keys failed for key %d\n", j);
@@ -88,10 +88,10 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
 
       num_valid_signatures = 0;
       for (int j = 0; j < num_signatures; j++) {
-        crypto_verify_init(&crypto_ctx_pool[j], &signature_pool[j]);
-        crypto_verify_feed(&crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
+        crypto_verify_init(crypto_ctx_pool[j], &signature_pool[j]);
+        crypto_verify_feed(crypto_ctx_pool[j], (const uint8_t *)metadata + signed_begin,
                            (size_t)(signed_end - signed_begin));
-        if (crypto_verify_result(&crypto_ctx_pool[j])) {
+        if (crypto_verify_result(crypto_ctx_pool[j])) {
           ++num_valid_signatures;
         } else {
           DEBUG_PRINTF("Signature verification with new keys failed for key %d\n", j);

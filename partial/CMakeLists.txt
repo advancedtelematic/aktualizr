@@ -68,7 +68,9 @@ set(ED25519_HEADERS ed25519/ed25519.h
 
 set(LIBUPTINY_SOURCES libuptiny/base64.c
 	libuptiny/crypto_common.c
+	libuptiny/firmware.c
 	libuptiny/json_common.c
+	libuptiny/manifest.c
 	libuptiny/root_signed.c
 	libuptiny/root.c
 	libuptiny/signatures.c
@@ -82,7 +84,9 @@ set(LIBUPTINY_HEADERS libuptiny/base64.h
 	libuptiny/crypto_api.h
 	libuptiny/crypto_common.h
 	libuptiny/debug.h
+	libuptiny/firmware.h
 	libuptiny/json_common.h
+	libuptiny/manifest.h
 	libuptiny/root_signed.h
 	libuptiny/root.h
 	libuptiny/signatures.h
@@ -95,9 +99,9 @@ set(LIBUPTINY_HEADERS libuptiny/base64.h
 aktualizr_source_file_checks(${LIBUPTINY_SOURCES} ${LIBUPTINY_HEADERS})
 
 include_directories(. ed25519 libuptiny extern)
-add_library(uptiny STATIC ${LIBUPTINY_SOURCES} extern/jsmn/jsmn.c)
+add_library(uptiny STATIC ${LIBUPTINY_SOURCES} libuptiny/jsmn.c)
 target_compile_options(uptiny PUBLIC -Os -g -Wpedantic -Wno-long-long -DJSMN_STRICT -DJSMN_PARENT_LINKS)
-set_source_files_properties(extern/jsmn/jsmn.c PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-switch-default")
+set_source_files_properties(libuptiny/jsmn.c PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-switch-default")
 set_source_files_properties(${ED25519_SOURCES} PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
 
 include_directories(extern/isotp-c/src extern/isotp-c/deps/bitfield-c/src/)
@@ -112,16 +116,16 @@ set(ISOTP_SOURCES extern/isotp-c/src/isotp/isotp.c
 add_library(isotp STATIC ${ISOTP_SOURCES})
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion)
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion -Wno-unused-parameter)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion -Wno-gnu-designator)
+  target_compile_options(isotp PUBLIC -Os -g -Wno-long-long -Wno-conversion -Wno-sign-conversion -Wno-gnu-designator -Wno-unused-parameter)
 endif ()
 
 # Machine is not set, building tests to run in Linux environment
 if(NOT LIBUPTINY_MACHINE)
 	enable_testing()
 
-        set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.c ${ED25519_SOURCES})
+        set(LIBUPTINY_TEST_ENVIRONMENT tests/test_state.cc tests/test_common_data.cc tests/test_crypto.cc ${ED25519_SOURCES})
 
         set_source_files_properties(${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc tests/root_signed_test.cc tests/root_test.cc tests/targets_test.cc PROPERTIES COMPILE_FLAGS "-Wno-sign-compare -Wno-sign-conversion -Wno-conversion")
 
@@ -138,4 +142,10 @@ if(NOT LIBUPTINY_MACHINE)
 
         add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
 	target_link_libraries(t_tiny_targets uptiny)
+
+        add_aktualizr_test(NAME tiny_firmware SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/firmware_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_firmware uptiny)
+
+        add_aktualizr_test(NAME tiny_update SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/update_test.cc PROJECT_WORKING_DIRECTORY)
+	target_link_libraries(t_tiny_update uptiny)
 endif()

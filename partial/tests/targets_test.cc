@@ -18,7 +18,7 @@ static void verify_targets_with_chunk_size(const std::string& targets_str, bool 
   memset(&targets, 0, sizeof(targets));
 
   std::string buf;
-  uint16_t result=0;
+  uint16_t result = 0x0000;
   for(unsigned int i = 0; i < targets_str.length(); i += chunk_size) {
     buf += targets_str.substr(i, chunk_size); 
 

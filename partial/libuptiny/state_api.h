@@ -27,7 +27,7 @@ typedef struct {
   crypto_key_t* targets_keys[ROOT_MAX_KEYS];
 } uptane_root_t;
 
-#define TARGETS_MAX_HASHES 4
+#define TARGETS_MAX_HASHES 2
 #define TARGETS_MAX_NAME_LENGTH 63
 /* Does not represent the whole targets metadata, only what's needed for this ECU */
 typedef struct {
@@ -55,6 +55,8 @@ typedef enum {
 
 typedef struct {
   char firmware_name[TARGETS_MAX_NAME_LENGTH + 1];
+  crypto_hash_t firmware_hash;
+  uint32_t firmware_length;
   uptane_attack_t attack;
 } uptane_installation_state_t;
 
@@ -65,10 +67,14 @@ uptane_targets_t* state_get_targets(void);
 void state_set_targets(const uptane_targets_t* targets);
 
 uptane_installation_state_t* state_get_installation_state(void);
-void state_set_installation_state(char* firmware_name, uptane_attack_t attack);
+void state_set_installation_state(const uptane_installation_state_t* state);
+void state_set_attack(uptane_attack_t attack);
 
 const char* state_get_ecuid(void);
 const char* state_get_hwid(void);
+void state_get_device_key(const crypto_key_t** pub, const uint8_t** priv);
+
+crypto_hash_algorithm_t state_get_supported_hash(void);
 
 #ifdef __cplusplus
 }
