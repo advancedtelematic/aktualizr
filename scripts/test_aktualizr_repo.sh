@@ -12,6 +12,8 @@ serve_repo.py 9000 "$TMPDIR" &
 
 aktualizr --config "${TMPDIR}/sota.toml" --running-mode once
 
-aktualizr-info --config "${TMPDIR}/sota.toml" | grep "Fetched metadata: yes" || exit 1
+{
+aktualizr-info --config "${TMPDIR}/sota.toml" | grep "Fetched metadata: yes"
+} || exit 1
 
 rm -r $TMPDIR
