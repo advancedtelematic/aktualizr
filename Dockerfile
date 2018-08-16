@@ -69,8 +69,7 @@ RUN apt-get update && apt-get -y install \
   softhsm2 \
   valgrind
 
-RUN mkdir ostree
-WORKDIR ostree
+WORKDIR /ostree
 RUN git init && git remote add origin https://github.com/ostreedev/ostree
 RUN git fetch origin v2018.1 && git checkout FETCH_HEAD
 RUN NOCONFIGURE=1 ./autogen.sh
@@ -80,5 +79,5 @@ RUN make install
 
 RUN useradd testuser
 
-WORKDIR aktualizr
+WORKDIR /aktualizr
 ADD . src

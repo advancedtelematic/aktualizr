@@ -7,7 +7,7 @@ branches:
     - /^\d\d\d\d\.\d+$/
 env:
 - DOCKERFILE=Dockerfile CACHE=latest SCRIPT=src/scripts/test.sh
-  DARGS="-eTEST_CMAKE_BUILD_TYPE=Debug -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_SOTA_PACKED_CREDENTIALS=/ostree/aktualizr/src/tests/test_data/credentials_ci.zip"
+  DARGS="-eTEST_CMAKE_BUILD_TYPE=Debug -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_SOTA_PACKED_CREDENTIALS=/aktualizr/src/tests/test_data/credentials_ci.zip"
 - DOCKERFILE=Dockerfile.nop11 CACHE=latest SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_TESTSUITE_ONLY=crypto"
 - DOCKERFILE=Dockerfile.deb-testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
