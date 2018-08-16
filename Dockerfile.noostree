@@ -62,5 +62,5 @@ RUN apt-get update && apt-get -y install \
   libp11-dev \
   softhsm2
 
-WORKDIR aktualizr
+WORKDIR /aktualizr
 ADD . src
