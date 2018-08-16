@@ -5,9 +5,7 @@
 
 #include <boost/signals2.hpp>
 
-#include "commands.h"
 #include "config/config.h"
-#include "eventsinterpreter.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
@@ -79,7 +77,6 @@ class Aktualizr {
   /**
    * Asynchronously install targets.
    */
-
   void Install(std::vector<Uptane::Target> updates);
 
   /**
@@ -97,11 +94,8 @@ class Aktualizr {
  private:
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<command::Channel> commands_channel_;
-  std::shared_ptr<event::Channel> events_channel_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
-  std::shared_ptr<EventsInterpreter> events_interpreter_;
-  std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig_;
+  EventChannelPtr sig_;
 };
 
 #endif  // AKTUALIZR_H_

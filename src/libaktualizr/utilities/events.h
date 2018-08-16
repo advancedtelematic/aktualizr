@@ -5,6 +5,7 @@
 #include <map>
 
 #include <json/json.h>
+#include <boost/signals2.hpp>
 
 #include "uptane/tuf.h"
 #include "utilities/channel.h"
@@ -27,7 +28,7 @@ class BaseEvent {
   virtual std::string toJson(Json::Value json);
   virtual std::string toJson();
 };
-using Channel = Channel<std::shared_ptr<BaseEvent> >;
+using Channel = Channel<std::shared_ptr<BaseEvent>>;
 
 /**
  * An error occurred processing a command.
@@ -58,6 +59,8 @@ class SendDeviceDataComplete : public BaseEvent {
 
 /**
  * The PutManifest command completed successfully.
+ * TODO: This actually signifies that we've informed the server of a successful
+ * installation.
  */
 class PutManifestComplete : public BaseEvent {
  public:
@@ -73,6 +76,7 @@ class UpdateAvailable : public BaseEvent {
   static UpdateAvailable fromJson(const std::string& json_str);
 };
 
+// TODO: remove?
 class UptaneTimestampUpdated : public BaseEvent {
  public:
   UptaneTimestampUpdated();
@@ -129,5 +133,7 @@ class CampaignAcceptComplete : public BaseEvent {
 };
 
 }  // namespace event
+
+using EventChannelPtr = std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>;
 
 #endif

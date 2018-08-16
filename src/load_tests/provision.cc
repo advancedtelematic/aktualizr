@@ -49,8 +49,7 @@ class ProvisionDeviceTask {
 
   void operator()() {
     Uptane::Manifest manifest{config, storage};
-    auto eventsIn = std::make_shared<event::Channel>();
-    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient, eventsIn);
+    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient);
     try {
       if (client->initialize()) {
         auto signed_manifest = manifest.signManifest(client->AssembleManifest());

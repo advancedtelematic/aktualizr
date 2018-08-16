@@ -6,7 +6,6 @@
 #include <openssl/rand.h>
 #include <sodium.h>
 
-#include "eventsinterpreter.h"
 #include "utilities/channel.h"
 
 using std::make_shared;
@@ -26,19 +25,14 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
 
-  commands_channel_ = make_shared<command::Channel>();
-  events_channel_ = make_shared<event::Channel>();
   sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
   storage_ = INvStorage::newStorage(config_.storage);
   storage_->importData(config_.import);
-  uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, events_channel_);
+  uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, sig_);
 }
 
 int Aktualizr::Run() {
-  // run events interpreter in background
-  events_interpreter_ = std::make_shared<EventsInterpreter>(config_, events_channel_, commands_channel_, sig_);
-  events_interpreter_->interpret();
-  uptane_client_->runForever(commands_channel_);
+  uptane_client_->runForever();
 
   return EXIT_SUCCESS;
 }
@@ -47,28 +41,22 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
   uptane_client_->addNewSecondary(secondary);
 }
 
-void Aktualizr::Shutdown() { *commands_channel_ << make_shared<command::Shutdown>(); }
+void Aktualizr::Shutdown() { uptane_client_->shutdown(); }
 
-void Aktualizr::CampaignCheck() { *commands_channel_ << make_shared<command::CampaignCheck>(); }
+void Aktualizr::CampaignCheck() { uptane_client_->campaignCheck(); }
 
-void Aktualizr::CampaignAccept(const std::string &campaign_id) {
-  *commands_channel_ << make_shared<command::CampaignAccept>(campaign_id);
-}
+void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
 
-void Aktualizr::SendDeviceData() { *commands_channel_ << make_shared<command::SendDeviceData>(); }
+void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
-void Aktualizr::FetchMetadata() { *commands_channel_ << make_shared<command::FetchMeta>(); }
+void Aktualizr::FetchMetadata() { uptane_client_->fetchMeta(); }
 
-void Aktualizr::CheckUpdates() { *commands_channel_ << make_shared<command::CheckUpdates>(); }
+void Aktualizr::CheckUpdates() { uptane_client_->checkUpdates(); }
 
-void Aktualizr::Download(std::vector<Uptane::Target> updates) {
-  *commands_channel_ << make_shared<command::StartDownload>(std::move(updates));
-}
+void Aktualizr::Download(std::vector<Uptane::Target> updates) { uptane_client_->downloadImages(std::move(updates)); }
 
-void Aktualizr::Install(std::vector<Uptane::Target> updates) {
-  *commands_channel_ << make_shared<command::UptaneInstall>(std::move(updates));
-}
+void Aktualizr::Install(std::vector<Uptane::Target> updates) { uptane_client_->uptaneInstall(std::move(updates)); }
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
-  return (*sig_).connect(handler);
+  return sig_->connect(handler);
 }

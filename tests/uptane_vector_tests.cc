@@ -61,8 +61,7 @@ class Uptane_Vector_Test {
     try {
       auto storage = INvStorage::newStorage(config.storage);
       Uptane::Manifest uptane_manifest{config, storage};
-      std::shared_ptr<event::Channel> events_channel{new event::Channel};
-      auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage, events_channel);
+      auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage);
       Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
       Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
       uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));

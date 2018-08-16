@@ -57,7 +57,7 @@ bool OpcuaSecondary::putMetadata(const RawMetaPack& meta_pack) {
 }
 
 bool OpcuaSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
-  *events_channel << std::make_shared<event::InstallStarted>(getSerial());
+  sendEvent(std::make_shared<event::InstallStarted>(getSerial()));
 
   Json::Value data_json = Utils::parseJSON(*data);
 
@@ -65,7 +65,7 @@ bool OpcuaSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data)
 
   opcuabridge::Client client{opcuabridge::SelectEndPoint(SecondaryInterface::sconfig)};
   if (!client) {
-    *events_channel << std::make_shared<event::InstallComplete>(getSerial());
+    sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
     return false;
   }
 
@@ -79,12 +79,12 @@ bool OpcuaSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data)
     if (!ostree_repo_sync::LocalPullRepo(source_repo_dir_path, working_repo_dir_path,
                                          data_json["ref_hash"].asString())) {
       LOG_ERROR << "OSTree repo sync failed: unable to local pull from " << source_repo_dir_path.native();
-      *events_channel << std::make_shared<event::InstallComplete>(getSerial());
+      sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
       return false;
     }
     retval = client.syncDirectoryFiles(working_repo_dir_path);
   }
-  *events_channel << std::make_shared<event::InstallComplete>(getSerial());
+  sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
   return retval;
 }
 

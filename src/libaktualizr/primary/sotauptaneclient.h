@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <json/json.h>
+
 #include <atomic>
 #include <map>
 #include <memory>
@@ -7,8 +7,10 @@
 #include <utility>
 #include <vector>
 
+#include <json/json.h>
+#include <boost/signals2.hpp>
+
 #include "bootloader/bootloader.h"
-#include "commands.h"
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
@@ -25,15 +27,17 @@
 class SotaUptaneClient {
  public:
   static std::shared_ptr<SotaUptaneClient> newDefaultClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
-                                                            std::shared_ptr<event::Channel> events_channel_in);
+                                                            EventChannelPtr sig_in = nullptr);
   static std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                                                          std::shared_ptr<HttpInterface> http_client_in,
-                                                         std::shared_ptr<event::Channel> events_channel_in = nullptr);
+                                                         EventChannelPtr sig_in = nullptr);
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                    std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                    std::shared_ptr<Bootloader> bootloader_in, std::shared_ptr<ReportQueue> report_queue_in,
-                   std::shared_ptr<event::Channel> events_channel_in);
+                   EventChannelPtr sig_in = nullptr);
+  ~SotaUptaneClient();
 
+  // TODO: Not all of these should be public.
   bool initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   bool updateMeta();
@@ -41,19 +45,20 @@ class SotaUptaneClient {
   bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
-  void putManifestCmd();
   void fetchMeta();
   void checkUpdates();
   void uptaneInstall(std::vector<Uptane::Target> updates);
+  void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   void campaignCheck();
   void campaignAccept(const std::string &campaign_id);
-  void runForever(const std::shared_ptr<command::Channel> &commands_channel);
+  void runForever();
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
   Uptane::Exception getLastException() const { return last_exception; }
+  void shutdown();
 
   // ecu_serial => secondary*
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> > secondaries;
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
 
  private:
   FRIEND_TEST(Uptane, offlineIteration);
@@ -82,6 +87,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
+  void sendEvent(std::shared_ptr<event::BaseEvent> event);
 
   Config &config;
   Uptane::DirectorRepository director_repo;
@@ -93,11 +99,14 @@ class SotaUptaneClient {
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
   const std::shared_ptr<Bootloader> bootloader;
   std::shared_ptr<ReportQueue> report_queue;
-  std::shared_ptr<event::Channel> events_channel;
+  std::atomic<bool> shutdown_ = {false};
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
   std::map<Uptane::EcuSerial, std::string> installed_images;
   bool installing{false};
+  unsigned int pending_ecus{0};
+  EventChannelPtr sig;
+  boost::signals2::connection conn;
 
   Uptane::Exception last_exception{"", ""};
 };
