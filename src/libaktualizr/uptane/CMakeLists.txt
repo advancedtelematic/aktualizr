@@ -10,7 +10,8 @@ set(SOURCES fetcher.cc
     uptanerepository.cc
     directorrepository.cc
     imagesrepository.cc
-    virtualsecondary.cc)
+    virtualsecondary.cc
+    isotpsecondary.cc)
 
 set(HEADERS exceptions.h
     fetcher.h
@@ -25,7 +26,8 @@ set(HEADERS exceptions.h
     uptanerepository.h
     directorrepository.h
     imagesrepository.h
-    virtualsecondary.h)
+    virtualsecondary.h
+    isotpsecondary.h)
 
 
 add_library(uptane OBJECT ${SOURCES})
@@ -34,6 +36,8 @@ if (BUILD_OPCUA)
     target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/third_party/open62541)
     set_source_files_properties(opcuasecondary.cc PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter -Wno-float-equal")
 endif (BUILD_OPCUA)
+
+target_include_directories(uptane PRIVATE ${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
 
 get_property(ASN1_INCLUDE_DIRS TARGET asn1_lib PROPERTY INCLUDE_DIRECTORIES)
 target_include_directories(uptane PUBLIC ${ASN1_INCLUDE_DIRS})

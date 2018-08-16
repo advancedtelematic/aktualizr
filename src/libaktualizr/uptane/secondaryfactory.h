@@ -1,6 +1,9 @@
 #ifndef UPTANE_SECONDARYFACTORY_H_
 #define UPTANE_SECONDARYFACTORY_H_
 
+#include "ipuptanesecondary.h"
+#include "isotpsecondary.h"
+#include "legacysecondary.h"
 #include "logging/logging.h"
 #include "uptane/ipuptanesecondary.h"
 #include "uptane/opcuasecondary.h"
@@ -21,6 +24,8 @@ class SecondaryFactory {
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
       case SecondaryType::kIpUptane:
         return std::make_shared<IpUptaneSecondary>(sconfig);
+      case SecondaryType::kIsoTpUptane:
+        return std::make_shared<IsoTpSecondary>(sconfig);
       case SecondaryType::kOpcuaUptane:
 #ifdef OPCUA_SECONDARY_ENABLED
         return std::make_shared<OpcuaSecondary>(sconfig);

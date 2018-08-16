@@ -275,6 +275,8 @@ include_directories(${sodium_INCLUDE_DIR})
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${LibArchive_INCLUDE_DIR})
 
+include_directories(${PROJECT_SOURCE_DIR}/partial/extern/isotp-c/src)
+
 set_source_files_properties(third_party/jsoncpp/jsoncpp.cpp PROPERTIES COMPILE_FLAGS -w)
 add_library(jsoncpp OBJECT third_party/jsoncpp/jsoncpp.cpp)
 
