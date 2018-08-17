@@ -61,6 +61,7 @@ class SotaUptaneClient {
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
 
  private:
+  FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
   FRIEND_TEST(Uptane, krejectallTest);
   FRIEND_TEST(Uptane, Vector);

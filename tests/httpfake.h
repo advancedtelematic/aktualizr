@@ -173,7 +173,7 @@ class HttpFake : public HttpInterface {
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url == "tst149/director/manifest") {
       std::string hash;
-      if (manifest_count == 0) {
+      if (manifest_count < 2) {
         // Check for default initial value of packagemanagerfake.
         hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
         ++manifest_count;

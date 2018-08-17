@@ -467,8 +467,7 @@ TEST(Uptane, PutManifest) {
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_TRUE(sota_client->initialize());
-  // TODO: only putManifest is needed here
-  EXPECT_TRUE(sota_client->updateMeta());
+  EXPECT_TRUE(sota_client->putManifest());
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http->test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / http->test_manifest).string());
@@ -496,13 +495,17 @@ void process_event(const std::shared_ptr<event::BaseEvent>& event) {
       EXPECT_EQ(event->variant, "UpdateAvailable");
       break;
     case 2:
-      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      EXPECT_EQ(event->variant, "DownloadComplete");
       break;
     case 3:
-      EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
+      EXPECT_EQ(event->variant, "InstallComplete");
+      break;
+    case 4:
+      EXPECT_EQ(event->variant, "PutManifestComplete");
       break;
     default:
-      FAIL();
+      std::cout << "event #" << num_events << " is: " << event->variant << "\n";
+      EXPECT_EQ(event->variant, "");
   }
   ++num_events;
 }
@@ -534,12 +537,9 @@ TEST(Uptane, RunForeverNoUpdates) {
   auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
 
   up->fetchMeta();
-  up->checkUpdates();
-  up->fetchMeta();
-  up->checkUpdates();
 
   size_t counter = 0;
-  while (num_events < 4) {
+  while (num_events < 5) {
     sleep(1);
     ASSERT_LT(++counter, 30);
   }
@@ -676,11 +676,12 @@ TEST(Uptane, UptaneSecondaryAdd) {
 /**
  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
  * Also test that installation works as expected with the fake package manager.
+ * TODO: does that actually work? And is this the right way to test it anyway?
  */
 TEST(Uptane, ProvisionOnServer) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/basic.toml");
-  std::string server = "tst149";
+  const std::string server = "tst149";
   config.provision.server = server;
   config.tls.server = server;
   config.uptane.director_server = server + "/director";
@@ -689,6 +690,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.provision.primary_ecu_serial = "tst149_ecu_serial";
   config.uptane.polling_sec = 1;
+  config.uptane.running_mode = RunningMode::kManual;
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -697,7 +699,7 @@ TEST(Uptane, ProvisionOnServer) {
       makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
 
   auto up = SotaUptaneClient::newTestClient(config, storage, http);
-  up->fetchMeta();
+  EXPECT_THROW(up->sendDeviceData(), Uptane::InvalidMetadata);
   up->downloadImages(packages_to_install);
   up->uptaneInstall(packages_to_install);
 }
@@ -1028,12 +1030,10 @@ TEST(Uptane, LoadVersion) {
 TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-
-  Config config;
+  Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
-  config.storage.type = StorageType::kSqlite;
   config.pacman.type = PackageManager::kNone;
   config.provision.device_id = "device_id";
   config.postUpdateValues();
