@@ -1,6 +1,7 @@
 #ifndef AKTUALIZR_H_
 #define AKTUALIZR_H_
 
+#include <atomic>
 #include <memory>
 
 #include <boost/signals2.hpp>
@@ -96,6 +97,7 @@ class Aktualizr {
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   EventChannelPtr sig_;
+  std::atomic<bool> shutdown_ = {false};
 };
 
 #endif  // AKTUALIZR_H_

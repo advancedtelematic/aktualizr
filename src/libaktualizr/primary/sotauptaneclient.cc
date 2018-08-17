@@ -1,7 +1,6 @@
 #include "sotauptaneclient.h"
 
 #include <unistd.h>
-#include <chrono>
 #include <memory>
 #include <utility>
 #include "json/json.h"
@@ -799,11 +798,11 @@ void SotaUptaneClient::checkUpdates() {
   } else {
     if (!updates.empty()) {
       sendEvent(std::make_shared<event::UpdateAvailable>(updates, ecus_count));
+      pending_ecus = ecus_count;
       if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce ||
           config.uptane.running_mode == RunningMode::kDownload) {
         downloadImages(updates);
       } else if (config.uptane.running_mode == RunningMode::kInstall) {
-        pending_ecus = ecus_count;
         uptaneInstall(updates);
       }
     } else {
@@ -895,13 +894,6 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   (*report)["event"]["campaignId"] = campaign_id;
   report_queue->enqueue(std::move(report));
   sendEvent(std::make_shared<event::CampaignAcceptComplete>());
-}
-
-void SotaUptaneClient::runForever() {
-  while (!shutdown_) {
-    fetchMeta();
-    std::this_thread::sleep_for(std::chrono::seconds(config.uptane.polling_sec));
-  }
 }
 
 void SotaUptaneClient::sendDownloadReport() {
@@ -1125,5 +1117,3 @@ void SotaUptaneClient::sendEvent(std::shared_ptr<event::BaseEvent> event) {
     LOG_INFO << "got " << event->variant << " event";
   }
 }
-
-void SotaUptaneClient::shutdown() { shutdown_ = true; }

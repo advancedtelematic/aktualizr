@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -51,11 +50,9 @@ class SotaUptaneClient {
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   void campaignCheck();
   void campaignAccept(const std::string &campaign_id);
-  void runForever();
   Json::Value AssembleManifest();
   std::string secondaryTreehubCredentials() const;
   Uptane::Exception getLastException() const { return last_exception; }
-  void shutdown();
 
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
@@ -100,7 +97,6 @@ class SotaUptaneClient {
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
   const std::shared_ptr<Bootloader> bootloader;
   std::shared_ptr<ReportQueue> report_queue;
-  std::atomic<bool> shutdown_ = {false};
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
   std::map<Uptane::EcuSerial, std::string> installed_images;

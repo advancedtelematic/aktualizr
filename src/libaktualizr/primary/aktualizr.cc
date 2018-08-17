@@ -1,5 +1,7 @@
 #include "aktualizr.h"
 
+#include <chrono>
+
 #include "utilities/timer.h"
 
 #include <openssl/evp.h>
@@ -33,7 +35,10 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
 }
 
 int Aktualizr::Run() {
-  uptane_client_->runForever();
+  while (!shutdown_) {
+    uptane_client_->fetchMeta();
+    std::this_thread::sleep_for(std::chrono::seconds(config_.uptane.polling_sec));
+  }
   return EXIT_SUCCESS;
 }
 
@@ -41,7 +46,7 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
   uptane_client_->addNewSecondary(secondary);
 }
 
-void Aktualizr::Shutdown() { uptane_client_->shutdown(); }
+void Aktualizr::Shutdown() { shutdown_ = true; }
 
 void Aktualizr::CampaignCheck() { uptane_client_->campaignCheck(); }
 

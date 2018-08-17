@@ -485,41 +485,57 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
-int num_events = 0;
-void process_event(const std::shared_ptr<event::BaseEvent>& event) {
-  switch (num_events) {
+int num_events_FetchDownloadInstall = 0;
+void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>& event) {
+  switch (num_events_FetchDownloadInstall) {
     case 0:
       EXPECT_EQ(event->variant, "FetchMetaComplete");
       break;
-    case 1:
+    case 1: {
       EXPECT_EQ(event->variant, "UpdateAvailable");
+      auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
+      EXPECT_EQ(targets_event->updates.size(), 2u);
+      EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
+      EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
       break;
+    }
     case 2:
       EXPECT_EQ(event->variant, "DownloadComplete");
       break;
     case 3:
-      EXPECT_EQ(event->variant, "InstallComplete");
+      EXPECT_EQ(event->variant, "InstallStarted");
       break;
     case 4:
+      EXPECT_EQ(event->variant, "InstallComplete");
+      break;
+    case 5:
+      EXPECT_EQ(event->variant, "InstallStarted");
+      break;
+    case 6:
+      EXPECT_EQ(event->variant, "InstallComplete");
+      break;
+    case 7:
       EXPECT_EQ(event->variant, "PutManifestComplete");
       break;
+    case 10:
+      // Don't let the test run indefinitely!
+      FAIL();
     default:
-      std::cout << "event #" << num_events << " is: " << event->variant << "\n";
+      std::cout << "event #" << num_events_FetchDownloadInstall << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
   }
-  ++num_events;
+  ++num_events_FetchDownloadInstall;
 }
 
-// TODO: rename or review intended functionality
-TEST(Uptane, RunForeverNoUpdates) {
+TEST(Uptane, FetchDownloadInstall) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
-  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.uptane.running_mode = RunningMode::kFull;
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = BasedPath("metadata");
@@ -530,7 +546,7 @@ TEST(Uptane, RunForeverNoUpdates) {
   addDefaultSecondary(conf, temp_dir, "secondary_hw");
 
   EventChannelPtr sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchDownloadInstall;
   sig->connect(f_cb);
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -539,59 +555,14 @@ TEST(Uptane, RunForeverNoUpdates) {
   up->fetchMeta();
 
   size_t counter = 0;
-  while (num_events < 5) {
+  while (num_events_FetchDownloadInstall < 8) {
     sleep(1);
-    ASSERT_LT(++counter, 30);
+    ASSERT_LT(++counter, 10);
   }
 
   Json::Value manifest = up->AssembleManifest();
   EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
-
-/*
-TEST(Uptane, RunForeverHasUpdates) {
-  TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config conf("tests/config/basic.toml");
-  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
-  conf.uptane.director_server = http->tls_server + "/director";
-  conf.uptane.repo_server = http->tls_server + "/repo";
-  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.provision.primary_ecu_hardware_id = "primary_hw";
-  conf.uptane.polling_sec = 1;
-  conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_metadata_path = BasedPath("metadata");
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
-  conf.pacman.sysroot = sysroot;
-  conf.tls.server = http->tls_server;
-  addDefaultSecondary(conf, temp_dir, "secondary_hw");
-
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
-
-  *commands_channel << std::make_shared<command::FetchMeta>();
-  *commands_channel << std::make_shared<command::CheckUpdates>();
-  *commands_channel << std::make_shared<command::Shutdown>();
-  auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
-  up->runForever(commands_channel);
-
-  std::shared_ptr<event::BaseEvent> event;
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "FetchMetaComplete");
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "UpdateAvailable");
-  auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
-  EXPECT_EQ(targets_event->updates.size(), 2u);
-  EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
-  EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
-
-  Json::Value manifest = up->AssembleManifest();
-  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
-}
-*/
 
 std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
   std::vector<Uptane::Target> packages_to_install;
@@ -604,8 +575,7 @@ std::vector<Uptane::Target> makePackage(const std::string& serial, const std::st
   return packages_to_install;
 }
 
-/*
-TEST(Uptane, RunForeverInstall) {
+TEST(Uptane, Install) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -618,20 +588,13 @@ TEST(Uptane, RunForeverInstall) {
   conf.storage.uptane_private_key_path = BasedPath("private.key");
   conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.pacman.sysroot = sysroot;
-
   conf.tls.server = http->tls_server;
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
-  *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
-  *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
-  up->runForever(commands_channel);
-
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http->test_manifest));
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  EXPECT_NO_THROW(up->initialize());
+  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
+  up->uptaneInstall(packages_to_install);
 
   // Make sure operation_result and filepath were correctly written and formatted.
   Json::Value manifest = up->AssembleManifest();
@@ -642,7 +605,6 @@ TEST(Uptane, RunForeverInstall) {
             "Installing fake package was successful");
   EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
 }
-*/
 
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
