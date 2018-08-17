@@ -20,8 +20,11 @@ class Campaign {
  public:
   static Campaign fromJson(const Json::Value &json);
 
+  std::string id;
   std::string name;
-  std::string install_message;
+  std::string description;
+  int estInstallationDuration;
+  int estPreparationDuration;
 };
 
 std::vector<Campaign> campaignsFromJson(const Json::Value &json);

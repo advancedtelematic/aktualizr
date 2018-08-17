@@ -843,7 +843,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 
         for (const auto &c : campaigns) {
           LOG_INFO << "Campaign: " << c.name;
-          LOG_INFO << "Message: " << c.install_message;
+          LOG_INFO << "Message: " << c.description;
         }
         *events_channel << std::make_shared<event::CampaignCheckComplete>();
       } else if (command->variant == "Shutdown") {
