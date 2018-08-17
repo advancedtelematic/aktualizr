@@ -29,11 +29,11 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   storage_ = INvStorage::newStorage(config_.storage);
   storage_->importData(config_.import);
   uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, sig_);
+  uptane_client_->initialize();
 }
 
 int Aktualizr::Run() {
   uptane_client_->runForever();
-
   return EXIT_SUCCESS;
 }
 

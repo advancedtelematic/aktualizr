@@ -78,14 +78,6 @@ void SotaUptaneClient::init() {
     addSecondary(sec);
   }
 
-  LOG_DEBUG << "Checking if device is provisioned...";
-  if (!initialize()) {
-    throw std::runtime_error("Fatal error of tls or ecu device registration");
-  }
-
-  verifySecondaries();
-  LOG_DEBUG << "... provisioned OK";
-
   if (sig && (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce)) {
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
         [this](const std::shared_ptr<event::BaseEvent> &event) { this->installationComplete(event); };
@@ -238,24 +230,25 @@ bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
   return false;
 }
 
-// TODO: merge this with constructor
-bool SotaUptaneClient::initialize() {
+void SotaUptaneClient::initialize() {
+  LOG_DEBUG << "Checking if device is provisioned...";
   KeyManager keys(storage, config.keymanagerConfig());
   Initializer initializer(config.provision, storage, http, keys, secondaries);
 
   if (!initializer.isSuccessful()) {
-    return false;
+    throw std::runtime_error("Fatal error during provisioning or ECU device registration.");
   }
 
   EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.size() == 0) {
-    return false;
+    throw std::runtime_error("Unable to load ECU serials after device registration.");
   }
 
   uptane_manifest.setPrimaryEcuSerialHwId(serials[0]);
   hw_ids.insert(serials[0]);
 
-  return true;
+  verifySecondaries();
+  LOG_DEBUG << "... provisioned OK";
 }
 
 bool SotaUptaneClient::updateMeta() {

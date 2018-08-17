@@ -115,7 +115,7 @@ TEST(UptaneKey, CheckAllKeys) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   checkKeyTests(storage, sota_client);
 }
 
@@ -135,7 +135,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-    EXPECT_TRUE(sota_client->initialize());
+    EXPECT_NO_THROW(sota_client->initialize());
     checkKeyTests(storage, sota_client);
 
     // Remove TLS keys but keep ECU keys and try to initialize.
@@ -145,7 +145,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-    EXPECT_TRUE(sota_client->initialize());
+    EXPECT_NO_THROW(sota_client->initialize());
     checkKeyTests(storage, sota_client);
   }
 
@@ -161,7 +161,7 @@ TEST(UptaneKey, RecoverWithoutKeys) {
     auto storage = INvStorage::newStorage(config.storage);
     auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-    EXPECT_TRUE(sota_client->initialize());
+    EXPECT_NO_THROW(sota_client->initialize());
     checkKeyTests(storage, sota_client);
   }
 }

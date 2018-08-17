@@ -51,7 +51,7 @@ TEST(aktualizr_secondary_uptane, credentialsPassing) {
   auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   std::string arch = sota_client->secondaryTreehubCredentials();
   std::string ca, cert, pkey, server_url;

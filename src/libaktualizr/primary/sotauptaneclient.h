@@ -38,7 +38,7 @@ class SotaUptaneClient {
   ~SotaUptaneClient();
 
   // TODO: Not all of these should be public.
-  bool initialize();
+  void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   bool updateMeta();
   bool uptaneIteration();

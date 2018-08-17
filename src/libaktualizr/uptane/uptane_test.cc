@@ -402,7 +402,7 @@ TEST(Uptane, AssembleManifestGood) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest();
   EXPECT_EQ(manifest.size(), 2);
@@ -436,7 +436,7 @@ TEST(Uptane, AssembleManifestBad) {
   auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest();
 
@@ -466,7 +466,7 @@ TEST(Uptane, PutManifest) {
   auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifest());
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http->test_manifest));
@@ -535,7 +535,7 @@ TEST(Uptane, RunForeverNoUpdates) {
 
   auto storage = INvStorage::newStorage(conf.storage);
   auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-
+  EXPECT_NO_THROW(up->initialize());
   up->fetchMeta();
 
   size_t counter = 0;
@@ -663,7 +663,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
@@ -699,6 +699,7 @@ TEST(Uptane, ProvisionOnServer) {
       makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
 
   auto up = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_NO_THROW(up->initialize());
   EXPECT_THROW(up->sendDeviceData(), Uptane::InvalidMetadata);
   up->downloadImages(packages_to_install);
   up->uptaneInstall(packages_to_install);
@@ -1068,7 +1069,7 @@ TEST(Uptane, restoreVerify) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
   // 1st attempt, don't get anything
   EXPECT_FALSE(sota_client->uptaneIteration());
@@ -1124,7 +1125,7 @@ TEST(Uptane, offlineIteration) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
 
   std::vector<Uptane::Target> targets_online;
