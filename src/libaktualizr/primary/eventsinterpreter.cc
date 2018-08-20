@@ -101,8 +101,8 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_install(event::B
   return std::make_shared<command::Shutdown>();
 }
 
-std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_campaigncheck(event::BaseEvent &event) {
-  if (event.variant == "CampaignCheckComplete") {
+std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_campaign(event::BaseEvent &event) {
+  if (event.variant == "CampaignCheckComplete" || event.variant == "CampaignAcceptComplete") {
     return std::make_shared<command::Shutdown>();
   }
 
@@ -146,7 +146,9 @@ void EventsInterpreter::run() {
         next_command = handle_install(*event);
         break;
       case RunningMode::kCampaignCheck:
-        next_command = handle_campaigncheck(*event);
+      case RunningMode::kCampaignAccept:
+      case RunningMode::kCampaignReject:
+        next_command = handle_campaign(*event);
         break;
       default:
         LOG_ERROR << "Unknown running mode " << StringFromRunningMode(running_mode);

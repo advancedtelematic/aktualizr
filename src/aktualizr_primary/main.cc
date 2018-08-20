@@ -33,7 +33,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, campaign_check, check, download, or install")
+      ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, campaign_check, campaign_accept, campaign_reject, check, download, or install")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
@@ -42,6 +42,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
       ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
+      ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on")
       ("disable-keyid-validation", "deprecated")
       ("gateway-socket", bpo::value<bool>(), "deprecated");
   // clang-format on
@@ -104,14 +105,23 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
     Aktualizr aktualizr(config);
 
+    RunningMode running_mode = config.uptane.running_mode;
     // launch the first event
-    switch (config.uptane.running_mode) {
+    switch (running_mode) {
       case RunningMode::kDownload:
       case RunningMode::kInstall:
         aktualizr.CheckUpdates();
         break;
       case RunningMode::kCampaignCheck:
         aktualizr.CampaignCheck();
+        break;
+      case RunningMode::kCampaignAccept:
+      case RunningMode::kCampaignReject:
+        if (commandline_map.count("campaign-id") == 0) {
+          throw std::runtime_error("Running mode " + StringFromRunningMode(running_mode) + " requires a campaign id");
+        }
+        aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>(),
+                                 running_mode == RunningMode::kCampaignAccept);
         break;
       default:
         aktualizr.SendDeviceData();

@@ -68,6 +68,10 @@ enum class RunningMode {
   kOnce,
   /** Only check for an existing campaign related to the device */
   kCampaignCheck,
+  /** Only accept an existing campaign */
+  kCampaignAccept,
+  /** Only reject an existing campaign */
+  kCampaignReject,
   /** Only check for updates. Sends a manifest and device data, checks for
    *  updates, and then shuts down. */
   kCheck,
