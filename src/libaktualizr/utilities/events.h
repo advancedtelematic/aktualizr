@@ -28,7 +28,6 @@ class BaseEvent {
   virtual std::string toJson(Json::Value json);
   virtual std::string toJson();
 };
-using Channel = Channel<std::shared_ptr<BaseEvent>>;
 
 /**
  * An error occurred processing a command.
@@ -132,8 +131,8 @@ class CampaignAcceptComplete : public BaseEvent {
   explicit CampaignAcceptComplete();
 };
 
-}  // namespace event
+using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;
 
-using EventChannelPtr = std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>;
+}  // namespace event
 
 #endif

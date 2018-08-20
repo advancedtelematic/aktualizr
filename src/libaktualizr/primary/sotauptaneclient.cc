@@ -18,7 +18,7 @@
 
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(Config &config_in,
                                                                      std::shared_ptr<INvStorage> storage_in,
-                                                                     EventChannelPtr sig_in) {
+                                                                     std::shared_ptr<event::Channel> sig_in) {
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
@@ -32,7 +32,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(Config &con
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
                                                                   std::shared_ptr<INvStorage> storage_in,
                                                                   std::shared_ptr<HttpInterface> http_client_in,
-                                                                  EventChannelPtr sig_in) {
+                                                                  std::shared_ptr<event::Channel> sig_in) {
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
@@ -45,7 +45,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
                                    std::shared_ptr<HttpInterface> http_client,
                                    std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                                    std::shared_ptr<Bootloader> bootloader_in,
-                                   std::shared_ptr<ReportQueue> report_queue_in, EventChannelPtr sig_in)
+                                   std::shared_ptr<ReportQueue> report_queue_in, std::shared_ptr<event::Channel> sig_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
       storage(std::move(storage_in)),

@@ -96,7 +96,7 @@ class Aktualizr {
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
-  EventChannelPtr sig_;
+  std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
 };
 

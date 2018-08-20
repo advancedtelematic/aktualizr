@@ -545,7 +545,8 @@ TEST(Uptane, FetchDownloadInstall) {
   conf.tls.server = http->tls_server;
   addDefaultSecondary(conf, temp_dir, "secondary_hw");
 
-  EventChannelPtr sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  std::shared_ptr<event::Channel> sig =
+      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchDownloadInstall;
   sig->connect(f_cb);
 

@@ -33,7 +33,7 @@ class SecondaryInterface {
 
   virtual bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) = 0;
   const SecondaryConfig sconfig;
-  void addEventsChannel(EventChannelPtr channel) { events_channel = channel; }
+  void addEventsChannel(std::shared_ptr<event::Channel> channel) { events_channel = channel; }
 
  protected:
   void sendEvent(std::shared_ptr<event::BaseEvent> event) {
@@ -43,7 +43,7 @@ class SecondaryInterface {
   }
 
  private:
-  EventChannelPtr events_channel;
+  std::shared_ptr<event::Channel> events_channel;
 };
 }  // namespace Uptane
 
