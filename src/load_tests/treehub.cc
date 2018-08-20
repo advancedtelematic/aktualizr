@@ -18,7 +18,7 @@ class FetchTask {
   const std::string branchName;
   const std::string remoteUrl;
 
-  OstreeRepoPtr repo;
+  GObjectUniquePtr<OstreeRepo> repo;
 
   void initRepo() {
     GFile *gRepoFile = g_file_new_for_path(repoDir.native().c_str());
