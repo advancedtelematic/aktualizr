@@ -35,8 +35,9 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
 }
 
 int Aktualizr::Run() {
+  SendDeviceData();
   while (!shutdown_) {
-    uptane_client_->fetchMeta();
+    FetchMetadata();
     std::this_thread::sleep_for(std::chrono::seconds(config_.uptane.polling_sec));
   }
   return EXIT_SUCCESS;

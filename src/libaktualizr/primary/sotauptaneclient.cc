@@ -777,7 +777,6 @@ void SotaUptaneClient::sendDeviceData() {
   reportNetworkInfo();
   putManifest();
   sendEvent(std::make_shared<event::SendDeviceDataComplete>());
-  fetchMeta();
 }
 
 void SotaUptaneClient::fetchMeta() {

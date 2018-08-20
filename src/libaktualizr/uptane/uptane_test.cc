@@ -662,7 +662,8 @@ TEST(Uptane, ProvisionOnServer) {
 
   auto up = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(up->initialize());
-  EXPECT_THROW(up->sendDeviceData(), Uptane::InvalidMetadata);
+  EXPECT_NO_THROW(up->sendDeviceData());
+  EXPECT_THROW(up->fetchMeta(), Uptane::InvalidMetadata);
   up->downloadImages(packages_to_install);
   up->uptaneInstall(packages_to_install);
 }

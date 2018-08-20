@@ -1,5 +1,4 @@
 #include <iostream>
-#include <thread>
 
 #include <openssl/ssl.h>
 #include <boost/filesystem.hpp>
@@ -15,7 +14,6 @@
 
 namespace bpo = boost::program_options;
 
-bool shutting_down{false};
 unsigned int progress = 0;
 std::vector<Uptane::Target> updates;
 
@@ -98,26 +96,6 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
   }
 }
 
-void get_user_input(const std::shared_ptr<Aktualizr> &aktualizr) {
-  std::string buffer;
-  while (!shutting_down && std::getline(std::cin, buffer)) {
-    if (buffer == "Shutdown") {
-      aktualizr->Shutdown();
-      return;
-    } else if (buffer == "SendDeviceData") {
-      aktualizr->SendDeviceData();
-    } else if (buffer == "FetchMeta") {
-      aktualizr->FetchMetadata();
-    } else if (buffer == "StartDownload") {
-      aktualizr->Download(updates);
-    } else if (buffer == "UptaneInstall") {
-      aktualizr->Install(updates);
-    } else if (!buffer.empty()) {
-      std::cout << "Unknown command.\n";
-    }
-  }
-}
-
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
@@ -127,7 +105,6 @@ int main(int argc, char *argv[]) {
 
   int r = -1;
   boost::signals2::connection conn;
-  std::thread ui_thread;
 
   try {
     Config config(commandline_map);
@@ -147,17 +124,31 @@ int main(int argc, char *argv[]) {
         aktualizr->AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
       }
     }
-    ui_thread = std::thread(get_user_input, aktualizr);
 
-    r = aktualizr->Run();
+    std::string buffer;
+    while (std::getline(std::cin, buffer)) {
+      if (buffer == "Shutdown") {
+        aktualizr->Shutdown();
+        break;
+      } else if (buffer == "SendDeviceData") {
+        aktualizr->SendDeviceData();
+      } else if (buffer == "FetchMeta") {
+        aktualizr->FetchMetadata();
+      } else if (buffer == "StartDownload") {
+        aktualizr->Download(updates);
+      } else if (buffer == "UptaneInstall") {
+        aktualizr->Install(updates);
+      } else if (buffer == "CampaignCheck") {
+        aktualizr->CampaignCheck();
+      } else if (!buffer.empty()) {
+        std::cout << "Unknown command.\n";
+      }
+    }
+    r = 0;
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
   }
 
-  shutting_down = true;
   conn.disconnect();
-  if (ui_thread.joinable()) {
-    ui_thread.join();
-  }
   return r;
 }
