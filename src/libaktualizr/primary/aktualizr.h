@@ -72,12 +72,12 @@ class Aktualizr {
   /**
    * Asynchronously download targets.
    */
-  void Download(std::vector<Uptane::Target> updates);
+  void Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Asynchronously install targets.
    */
-  void Install(std::vector<Uptane::Target> updates);
+  void Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * Add new secondary to aktualizr.

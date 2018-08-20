@@ -811,7 +811,7 @@ void SotaUptaneClient::checkUpdates() {
   }
 }
 
-void SotaUptaneClient::uptaneInstall(std::vector<Uptane::Target> updates) {
+void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
   installing = true;
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
@@ -1047,9 +1047,9 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   }
 }
 
-void SotaUptaneClient::sendImagesToEcus(std::vector<Uptane::Target> targets) {
+void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   // target images should already have been downloaded to metadata_path/targets/
-  for (auto targets_it = targets.begin(); targets_it != targets.end(); ++targets_it) {
+  for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       Uptane::EcuSerial ecu_serial = ecus_it->first;
 
@@ -1110,7 +1110,7 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
   }
 }
 
-void SotaUptaneClient::sendEvent(std::shared_ptr<event::BaseEvent> event) {
+void SotaUptaneClient::sendEvent(const std::shared_ptr<event::BaseEvent> &event) {
   if (events_channel) {
     (*events_channel)(event);
   } else if (event->variant != "DownloadProgressReport") {

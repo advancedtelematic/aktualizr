@@ -57,9 +57,9 @@ void Aktualizr::FetchMetadata() { uptane_client_->fetchMeta(); }
 
 void Aktualizr::CheckUpdates() { uptane_client_->checkUpdates(); }
 
-void Aktualizr::Download(std::vector<Uptane::Target> updates) { uptane_client_->downloadImages(std::move(updates)); }
+void Aktualizr::Download(const std::vector<Uptane::Target> &updates) { uptane_client_->downloadImages(updates); }
 
-void Aktualizr::Install(std::vector<Uptane::Target> updates) { uptane_client_->uptaneInstall(std::move(updates)); }
+void Aktualizr::Install(const std::vector<Uptane::Target> &updates) { uptane_client_->uptaneInstall(updates); }
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

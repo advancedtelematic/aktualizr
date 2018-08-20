@@ -47,7 +47,7 @@ class SotaUptaneClient {
   void sendDeviceData();
   void fetchMeta();
   void checkUpdates();
-  void uptaneInstall(std::vector<Uptane::Target> updates);
+  void uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   void campaignCheck();
   void campaignAccept(const std::string &campaign_id);
@@ -75,7 +75,7 @@ class SotaUptaneClient {
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
-  void sendImagesToEcus(std::vector<Uptane::Target> targets);
+  void sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
   bool putManifest();
@@ -86,7 +86,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
-  void sendEvent(std::shared_ptr<event::BaseEvent> event);
+  void sendEvent(const std::shared_ptr<event::BaseEvent> &event);
 
   Config &config;
   Uptane::DirectorRepository director_repo;
