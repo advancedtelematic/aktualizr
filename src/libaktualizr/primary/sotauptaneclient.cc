@@ -16,9 +16,8 @@
 #include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
-std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(Config &config_in,
-                                                                     std::shared_ptr<INvStorage> storage_in,
-                                                                     std::shared_ptr<event::Channel> sig_in) {
+std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
+    Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
@@ -26,26 +25,27 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(Config &con
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, sig_in);
+                                            report_queue_in, events_channel_in);
 }
 
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
                                                                   std::shared_ptr<INvStorage> storage_in,
                                                                   std::shared_ptr<HttpInterface> http_client_in,
-                                                                  std::shared_ptr<event::Channel> sig_in) {
+                                                                  std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, sig_in);
+                                            report_queue_in, events_channel_in);
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                                    std::shared_ptr<HttpInterface> http_client,
                                    std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                                    std::shared_ptr<Bootloader> bootloader_in,
-                                   std::shared_ptr<ReportQueue> report_queue_in, std::shared_ptr<event::Channel> sig_in)
+                                   std::shared_ptr<ReportQueue> report_queue_in,
+                                   std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
       storage(std::move(storage_in)),
@@ -53,7 +53,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       uptane_fetcher(std::move(uptane_fetcher_in)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
-      sig(std::move(sig_in)) {
+      events_channel(std::move(events_channel_in)) {
   init();
 }
 
@@ -77,10 +77,11 @@ void SotaUptaneClient::init() {
     addSecondary(sec);
   }
 
-  if (sig && (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce)) {
+  if (events_channel &&
+      (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce)) {
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
         [this](const std::shared_ptr<event::BaseEvent> &event) { this->installationComplete(event); };
-    conn = sig->connect(f_cb);
+    conn = events_channel->connect(f_cb);
   }
 }
 
@@ -107,7 +108,7 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
     LOG_WARNING << "Multiple secondaries found with the same serial: " << sec_serial;
     return;
   }
-  sec->addEventsChannel(sig);
+  sec->addEventsChannel(events_channel);
   secondaries.insert(std::make_pair(sec_serial, sec));
   hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
 }
@@ -1110,8 +1111,8 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
 }
 
 void SotaUptaneClient::sendEvent(std::shared_ptr<event::BaseEvent> event) {
-  if (sig) {
-    (*sig)(event);
+  if (events_channel) {
+    (*events_channel)(event);
   } else if (event->variant != "DownloadProgressReport") {
     LOG_INFO << "got " << event->variant << " event";
   }

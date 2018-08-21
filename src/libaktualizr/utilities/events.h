@@ -8,7 +8,6 @@
 #include <boost/signals2.hpp>
 
 #include "uptane/tuf.h"
-#include "utilities/channel.h"
 #include "utilities/types.h"
 
 /**

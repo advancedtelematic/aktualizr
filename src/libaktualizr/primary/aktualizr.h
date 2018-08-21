@@ -10,7 +10,6 @@
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-#include "utilities/channel.h"
 #include "utilities/events.h"
 
 /**

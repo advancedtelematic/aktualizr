@@ -25,15 +25,16 @@
 
 class SotaUptaneClient {
  public:
-  static std::shared_ptr<SotaUptaneClient> newDefaultClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
-                                                            std::shared_ptr<event::Channel> sig_in = nullptr);
+  static std::shared_ptr<SotaUptaneClient> newDefaultClient(
+      Config &config_in, std::shared_ptr<INvStorage> storage_in,
+      std::shared_ptr<event::Channel> events_channel_in = nullptr);
   static std::shared_ptr<SotaUptaneClient> newTestClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                                                          std::shared_ptr<HttpInterface> http_client_in,
-                                                         std::shared_ptr<event::Channel> sig_in = nullptr);
+                                                         std::shared_ptr<event::Channel> events_channel_in = nullptr);
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                    std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                    std::shared_ptr<Bootloader> bootloader_in, std::shared_ptr<ReportQueue> report_queue_in,
-                   std::shared_ptr<event::Channel> sig_in = nullptr);
+                   std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 
   // TODO: Not all of these should be public.
@@ -102,7 +103,7 @@ class SotaUptaneClient {
   std::map<Uptane::EcuSerial, std::string> installed_images;
   bool installing{false};
   unsigned int pending_ecus{0};
-  std::shared_ptr<event::Channel> sig;
+  std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
 
   Uptane::Exception last_exception{"", ""};

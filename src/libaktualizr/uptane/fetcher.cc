@@ -45,9 +45,9 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
     }
   }
 
-  if (ds->events_channel != nullptr) {
+  if (ds->events_channel) {
     auto event = std::make_shared<event::DownloadProgressReport>(ds->target, "Downloading", calculated);
-    *ds->events_channel << event;
+    (*(ds->events_channel))(event);
   }
   return written_size;
 }

@@ -35,18 +35,18 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     if (scanning != 0 || outstanding_metadata_fetches != 0) {
       LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
                << " outstanding: " << outstanding_metadata_fetches;
-      if (mt->events_channel != nullptr) {
-        *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving metadata objects",
-                                                                               0);
+      if (mt->events_channel) {
+        (*(mt->events_channel))(
+            std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving metadata objects", 0));
       }
     } else {
       guint calculated = (fetched * 100) / requested;
       if (calculated != mt->percent_complete) {
         mt->percent_complete = calculated;
         LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
-        if (mt->events_channel != nullptr) {
-          *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving objects",
-                                                                                 calculated);
+        if (mt->events_channel) {
+          (*(mt->events_channel))(
+              std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving objects", calculated));
         }
       }
     }
@@ -54,8 +54,8 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     LOG_INFO << "ostree-pull: Writing objects: " << outstanding_writes;
   } else {
     LOG_INFO << "ostree-pull: Scanning metadata: " << n_scanned_metadata;
-    if (mt->events_channel != nullptr) {
-      *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Scanning metadata", 0);
+    if (mt->events_channel) {
+      (*(mt->events_channel))(std::make_shared<event::DownloadProgressReport>(mt->target, "Scanning metadata", 0));
     }
   }
 }

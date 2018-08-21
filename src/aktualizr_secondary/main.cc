@@ -2,6 +2,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 #include <openssl/ssl.h>
 
