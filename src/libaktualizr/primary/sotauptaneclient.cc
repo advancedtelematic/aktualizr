@@ -642,6 +642,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 
       if (hwid_it->second != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
+        last_exception = Uptane::BadHardwareId(targets_it->filename());
         return false;
       }
 
@@ -673,8 +674,9 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
     if (images_target == nullptr) {
+      last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
-      continue;
+      return false;
     }
     downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
