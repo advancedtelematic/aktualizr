@@ -37,12 +37,8 @@ class SotaUptaneClient {
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 
-  // TODO: Not all of these should be public.
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  bool updateMeta();
-  bool uptaneIteration();
-  bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
   bool downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
   void fetchMeta();
@@ -51,19 +47,30 @@ class SotaUptaneClient {
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   void campaignCheck();
   void campaignAccept(const std::string &campaign_id);
-  Json::Value AssembleManifest();
-  std::string secondaryTreehubCredentials() const;
-  Uptane::Exception getLastException() const { return last_exception; }
-
-  // ecu_serial => secondary*
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
 
  private:
+  FRIEND_TEST(Uptane, AssembleManifestGood);
+  FRIEND_TEST(Uptane, AssembleManifestBad);
+  FRIEND_TEST(Uptane, FetchDownloadInstall);
+  FRIEND_TEST(Uptane, Install);
+  FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
   FRIEND_TEST(Uptane, krejectallTest);
-  FRIEND_TEST(Uptane, Vector);
+  FRIEND_TEST(Uptane, Vector);  // Note hacky name (see uptane_vector_tests.cc)
   FRIEND_TEST(UptaneCI, OneCycleUpdate);
+  FRIEND_TEST(UptaneCI, CheckKeys);
+  FRIEND_TEST(UptaneKey, Check);  // Note hacky name
+  FRIEND_TEST(aktualizr_secondary_uptane, credentialsPassing);
+  friend class CheckForUpdate;       // for load tests
+  friend class ProvisionDeviceTask;  // for load tests
+
+  bool updateMeta();
+  bool uptaneIteration();
+  bool uptaneOfflineIteration(std::vector<Uptane::Target> *targets, unsigned int *ecus_count);
+  Json::Value AssembleManifest();
+  std::string secondaryTreehubCredentials() const;
+  Uptane::Exception getLastException() const { return last_exception; }
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
@@ -71,7 +78,6 @@ class SotaUptaneClient {
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
-  void init();
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
@@ -105,8 +111,10 @@ class SotaUptaneClient {
   unsigned int pending_ecus{0};
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
-
   Uptane::Exception last_exception{"", ""};
+
+  // ecu_serial => secondary*
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
 };
 
 class SerialCompare {

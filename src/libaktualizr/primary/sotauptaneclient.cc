@@ -54,10 +54,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
-  init();
-}
-
-void SotaUptaneClient::init() {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage);
@@ -701,7 +697,6 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     if (targets.size() == downloaded_targets.size()) {
       sendEvent(std::make_shared<event::DownloadComplete>(downloaded_targets));
       sendDownloadReport();
-      // TODO: also if kInstall? That shouldn't happen, though.
       if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce) {
         uptaneInstall(downloaded_targets);
       }
