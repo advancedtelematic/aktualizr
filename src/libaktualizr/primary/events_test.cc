@@ -54,16 +54,6 @@ TEST(event, DownloadComplete_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "DownloadComplete");
 }
 
-TEST(event, UptaneTimestampUpdated_event_to_json) {
-  event::UptaneTimestampUpdated event;
-
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(event.toJson(), json);
-
-  EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
-}
-
 TEST(event, InstallComplete_event_to_json) {
   event::InstallComplete event(Uptane::EcuSerial("123456"));
   Json::Reader reader;

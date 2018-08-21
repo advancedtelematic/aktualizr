@@ -705,8 +705,7 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
                 << " were successfully downloaded. Report not sent.";
     }
   } else {
-    LOG_INFO << "no new updates, sending UptaneTimestampUpdated event";
-    sendEvent(std::make_shared<event::UptaneTimestampUpdated>());
+    LOG_INFO << "No new updates to download.";
   }
   return true;
 }
@@ -801,7 +800,7 @@ void SotaUptaneClient::checkUpdates() {
         uptaneInstall(updates);
       }
     } else {
-      sendEvent(std::make_shared<event::UptaneTimestampUpdated>());
+      LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }
 }
