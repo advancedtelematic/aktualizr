@@ -6,6 +6,6 @@ PKG_SRCDIR="${1:-/persistent}"
 IMG_TAG=garage-deploy-$(cat /proc/sys/kernel/random/uuid)
 
 echo "Building docker for testing garage-deploy deb package inside it."
-docker build -t "${IMG_TAG}" -f Dockerfile.test-install.xenial .
+docker build -t "${IMG_TAG}" -f docker/Dockerfile-test-install.ubuntu.xenial .
 echo "Running docker container with garage-deploy debian package inside."
 docker run --rm -v "${PKG_SRCDIR}":/persistent -t "${IMG_TAG}" /scripts/test_install_garage_deploy.sh
