@@ -45,11 +45,11 @@ class Aktualizr {
   void CampaignCheck();
 
   /**
-   * Asynchronously accept or reject a campaign for the current device
+   * Asynchronously accept a campaign for the current device
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
-  void CampaignAccept(const std::string& campaign_id, bool accept);
+  void CampaignAccept(const std::string& campaign_id);
 
   /**
    * Asynchronously send local device data to the server.

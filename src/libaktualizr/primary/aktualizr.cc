@@ -51,8 +51,8 @@ void Aktualizr::Shutdown() { *commands_channel_ << make_shared<command::Shutdown
 
 void Aktualizr::CampaignCheck() { *commands_channel_ << make_shared<command::CampaignCheck>(); }
 
-void Aktualizr::CampaignAccept(const std::string &campaign_id, bool accept) {
-  *commands_channel_ << make_shared<command::CampaignAccept>(campaign_id, accept);
+void Aktualizr::CampaignAccept(const std::string &campaign_id) {
+  *commands_channel_ << make_shared<command::CampaignAccept>(campaign_id);
 }
 
 void Aktualizr::SendDeviceData() { *commands_channel_ << make_shared<command::SendDeviceData>(); }

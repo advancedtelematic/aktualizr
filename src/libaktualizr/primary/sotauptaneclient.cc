@@ -853,7 +853,7 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
         auto report = std_::make_unique<Json::Value>();
         (*report)["id"] = Utils::randomUuid();
         (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-        (*report)["eventType"]["id"] = ca_command->accept ? "campaign_accepted" : "campaign_rejected";
+        (*report)["eventType"]["id"] = "campaign_accepted";
         (*report)["eventType"]["version"] = 0;
         (*report)["event"]["campaignId"] = ca_command->campaign_id;
         report_queue->enqueue(std::move(report));
