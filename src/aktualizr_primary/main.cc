@@ -46,15 +46,19 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("gateway-socket", bpo::value<bool>(), "deprecated");
   // clang-format on
 
+  // consider the first positional argument as the aktualizr running mode
+  bpo::positional_options_description pos;
+  pos.add("running-mode", 1);
+
   bpo::variables_map vm;
   std::vector<std::string> unregistered_options;
   try {
     bpo::basic_parsed_options<char> parsed_options =
-        bpo::command_line_parser(argc, argv).options(description).allow_unregistered().run();
+        bpo::command_line_parser(argc, argv).options(description).positional(pos).allow_unregistered().run();
     bpo::store(parsed_options, vm);
     check_info_options(description, vm);
     bpo::notify(vm);
-    unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::include_positional);
+    unregistered_options = bpo::collect_unrecognized(parsed_options.options, bpo::exclude_positional);
     if (vm.count("help") == 0 && !unregistered_options.empty()) {
       std::cout << description << "\n";
       exit(EXIT_FAILURE);
