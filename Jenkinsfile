@@ -50,7 +50,7 @@ pipeline {
         stage('coverage') {
           agent {
             dockerfile {
-              filename 'Dockerfile'
+              filename 'docker/Dockerfile.ubuntu.xenial'
             }
           }
           environment {
@@ -87,7 +87,7 @@ pipeline {
         stage('nop11') {
           agent {
             dockerfile {
-              filename 'Dockerfile.nop11'
+              filename 'docker/Dockerfile.ubuntu.xenial'
             }
           }
           environment {
@@ -103,7 +103,7 @@ pipeline {
         stage('openssl11') {
           agent {
             dockerfile {
-              filename 'Dockerfile.deb-testing'
+              filename 'docker/Dockerfile.debian.testing'
             }
           }
           environment {
@@ -143,7 +143,7 @@ pipeline {
             sh '''
                IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
                mkdir -p ${TEST_INSTALL_DESTDIR}
-               docker build -t ${IMG_TAG} -f Dockerfile.noostree .
+               docker build -t ${IMG_TAG} -f docker/Dockerfile.ubuntu.xenial .
                docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
                '''
             // test package installation in another docker
