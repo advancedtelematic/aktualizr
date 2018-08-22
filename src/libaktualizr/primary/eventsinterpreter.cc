@@ -29,11 +29,20 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_cycle(event::Bas
   } else if (event.variant == "FetchMetaComplete") {
     return std::make_shared<command::CheckUpdates>();
   } else if (event.variant == "UpdateAvailable") {
-    return std::make_shared<command::StartDownload>(dynamic_cast<event::UpdateAvailable &>(event).updates);
+    auto update_available = dynamic_cast<event::UpdateAvailable &>(event);
+    pending_ecus = update_available.ecus_count;
+    return std::make_shared<command::StartDownload>(update_available.updates);
   } else if (event.variant == "DownloadComplete") {
     return std::make_shared<command::UptaneInstall>(dynamic_cast<event::DownloadComplete &>(event).updates);
   } else if (event.variant == "InstallComplete") {
-    return std::make_shared<command::PutManifest>();
+    auto install_complete = dynamic_cast<event::InstallComplete &>(event);
+    LOG_INFO << "ECU " << install_complete.serial << " installation has finished";
+    pending_ecus--;
+    if (pending_ecus == 0) {
+      return std::make_shared<command::PutManifest>();
+    } else {
+      return nullptr;
+    }
   }
 
   if (event.variant != "UptaneTimestampUpdated" && event.variant != "PutManifestComplete" && event.variant != "Error") {
@@ -90,9 +99,18 @@ std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_download(event::
 
 std::shared_ptr<command::BaseCommand> EventsInterpreter::handle_install(event::BaseEvent &event) {
   if (event.variant == "UpdateAvailable") {
-    return std::make_shared<command::UptaneInstall>(dynamic_cast<event::UpdateAvailable &>(event).updates);
+    auto update_available = dynamic_cast<event::UpdateAvailable &>(event);
+    pending_ecus = update_available.ecus_count;
+    return std::make_shared<command::UptaneInstall>(update_available.updates);
   } else if (event.variant == "InstallComplete") {
-    return std::make_shared<command::Shutdown>();
+    auto install_complete = dynamic_cast<event::InstallComplete &>(event);
+    LOG_INFO << "ECU " << install_complete.serial << " installation has finished";
+    pending_ecus--;
+    if (pending_ecus == 0) {
+      return std::make_shared<command::Shutdown>();
+    } else {
+      return nullptr;
+    }
   } else if (event.variant == "Error") {
     return std::make_shared<command::Shutdown>();
   }
@@ -154,12 +172,7 @@ void EventsInterpreter::run() {
         LOG_ERROR << "Unknown running mode " << StringFromRunningMode(running_mode);
     }
 
-    if (next_command == nullptr) {
-      if (running_mode != RunningMode::kManual) {
-        LOG_ERROR << "No command to run after event " << event->variant << " in mode "
-                  << StringFromRunningMode(running_mode);
-      }
-    } else {
+    if (next_command != nullptr) {
       *commands_channel << next_command;
     }
   }

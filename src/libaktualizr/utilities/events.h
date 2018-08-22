@@ -20,6 +20,8 @@ namespace event {
  */
 class BaseEvent {
  public:
+  BaseEvent() = default;
+  BaseEvent(std::string variant_in) : variant(std::move(variant_in)) {}
   virtual ~BaseEvent() = default;
   std::string variant;
   virtual std::string toJson(Json::Value json);
@@ -65,7 +67,8 @@ class PutManifestComplete : public BaseEvent {
 class UpdateAvailable : public BaseEvent {
  public:
   std::vector<Uptane::Target> updates;
-  explicit UpdateAvailable(std::vector<Uptane::Target> updates_in);
+  unsigned int ecus_count;
+  explicit UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in);
   std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
 };
@@ -98,11 +101,21 @@ class DownloadComplete : public BaseEvent {
 };
 
 /**
- * The UptaneInstall command completed successfully.
+ * Ecu stared instalation
+ */
+class InstallStarted : public BaseEvent {
+ public:
+  InstallStarted(Uptane::EcuSerial serial_in);
+  Uptane::EcuSerial serial;
+};
+
+/**
+ * Ecu finished installation
  */
 class InstallComplete : public BaseEvent {
  public:
-  explicit InstallComplete();
+  InstallComplete(Uptane::EcuSerial serial_in);
+  Uptane::EcuSerial serial;
 };
 
 class CampaignCheckComplete : public BaseEvent {

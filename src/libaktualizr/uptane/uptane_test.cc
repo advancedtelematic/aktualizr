@@ -1118,7 +1118,8 @@ TEST(Uptane, offlineIteration) {
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  std::shared_ptr<event::Channel> events_channel{new event::Channel};
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
 
   EXPECT_TRUE(sota_client->initialize());
   sota_client->AssembleManifest();
@@ -1128,7 +1129,7 @@ TEST(Uptane, offlineIteration) {
   EXPECT_TRUE(sota_client->getNewTargets(&targets_online));
 
   std::vector<Uptane::Target> targets_offline;
-  EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline));
+  EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_EQ(targets_online, targets_offline);
 }
 

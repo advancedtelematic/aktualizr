@@ -8,6 +8,7 @@
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/virtualsecondary.h"
+#include "utilities/events.h"
 
 namespace Uptane {
 

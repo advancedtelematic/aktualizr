@@ -36,13 +36,13 @@ TEST(event, RunningMode_full) {
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
 
-  *events_channel << std::make_shared<event::UpdateAvailable>(targets);
+  *events_channel << std::make_shared<event::UpdateAvailable>(targets, 1);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "StartDownload");
   *events_channel << std::make_shared<event::DownloadComplete>(targets);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "UptaneInstall");
-  *events_channel << std::make_shared<event::InstallComplete>();
+  *events_channel << std::make_shared<event::InstallComplete>(Uptane::EcuSerial("123456"));
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "PutManifest");
   *events_channel << std::make_shared<event::PutManifestComplete>();
@@ -87,13 +87,13 @@ TEST(event, RunningMode_once) {
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
 
-  *events_channel << std::make_shared<event::UpdateAvailable>(targets);
+  *events_channel << std::make_shared<event::UpdateAvailable>(targets, 1);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "StartDownload");
   *events_channel << std::make_shared<event::DownloadComplete>(targets);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "UptaneInstall");
-  *events_channel << std::make_shared<event::InstallComplete>();
+  *events_channel << std::make_shared<event::InstallComplete>(Uptane::EcuSerial("123456"));
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "PutManifest");
   *events_channel << std::make_shared<event::PutManifestComplete>();
@@ -130,7 +130,7 @@ TEST(event, RunningMode_check) {
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
 
-  *events_channel << std::make_shared<event::UpdateAvailable>(targets);
+  *events_channel << std::make_shared<event::UpdateAvailable>(targets, 1);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "Shutdown");
 }
@@ -158,7 +158,7 @@ TEST(event, RunningMode_download) {
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
 
-  *events_channel << std::make_shared<event::UpdateAvailable>(targets);
+  *events_channel << std::make_shared<event::UpdateAvailable>(targets, 1);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "StartDownload");
   *events_channel << std::make_shared<event::DownloadComplete>(targets);
@@ -189,10 +189,10 @@ TEST(event, RunningMode_install) {
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
 
-  *events_channel << std::make_shared<event::UpdateAvailable>(targets);
+  *events_channel << std::make_shared<event::UpdateAvailable>(targets, 1);
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "UptaneInstall");
-  *events_channel << std::make_shared<event::InstallComplete>();
+  *events_channel << std::make_shared<event::InstallComplete>(Uptane::EcuSerial("ecu1"));
   *commands_channel >> command;
   EXPECT_EQ(command->variant, "Shutdown");
 }
