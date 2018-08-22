@@ -82,38 +82,49 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
   uri_prefix_ = std::string("pkcs11:serial=") + slot->token->serialnr + ";pin-value=" + config_.pass + ";id=%";
 
   ENGINE_load_builtin_engines();
-  ssl_engine_.reset(ENGINE_by_id("dynamic"));
-  if (ssl_engine_ == nullptr) {
+  ENGINE* engine = ENGINE_by_id("dynamic");
+
+  if (engine == nullptr) {
     throw std::runtime_error("SSL pkcs11 engine initialization failed");
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "SO_PATH", kPkcs11Path, 0) == 0) {
-    throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + kPkcs11Path);
+  try {
+    if (ENGINE_ctrl_cmd_string(engine, "SO_PATH", kPkcs11Path, 0) == 0) {
+      throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + kPkcs11Path);
+    }
+
+    if (ENGINE_ctrl_cmd_string(engine, "ID", "pkcs11", 0) == 0) {
+      throw std::runtime_error("Engine command failed: ID pksc11");
+    }
+
+    if (ENGINE_ctrl_cmd_string(engine, "LIST_ADD", "1", 0) == 0) {
+      throw std::runtime_error("Engine command failed: LIST_ADD 1");
+    }
+
+    if (ENGINE_ctrl_cmd_string(engine, "LOAD", nullptr, 0) == 0) {
+      throw std::runtime_error("Engine command failed: LOAD");
+    }
+
+    if (ENGINE_ctrl_cmd_string(engine, "MODULE_PATH", config_.module.c_str(), 0) == 0) {
+      throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module.string());
+    }
+
+    if (ENGINE_ctrl_cmd_string(engine, "PIN", config_.pass.c_str(), 0) == 0) {
+      throw std::runtime_error(std::string("Engine command failed: PIN ") + config_.pass);
+    }
+
+    if (ENGINE_init(engine) == 0) {
+      throw std::runtime_error("Engine initialization failed");
+    }
+  } catch (const std::runtime_error& exc) {
+    // Note: treat these in a special case, as ENGINE_finish cannot be called on
+    // an engine which has not been fully initialized
+    ENGINE_free(engine);
+    ENGINE_cleanup();  // for openssl < 1.1
+    throw;
   }
 
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "ID", "pkcs11", 0) == 0) {
-    throw std::runtime_error("Engine command failed: ID pksc11");
-  }
-
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "LIST_ADD", "1", 0) == 0) {
-    throw std::runtime_error("Engine command failed: LIST_ADD 1");
-  }
-
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "LOAD", nullptr, 0) == 0) {
-    throw std::runtime_error("Engine command failed: LOAD");
-  }
-
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "MODULE_PATH", config_.module.c_str(), 0) == 0) {
-    throw std::runtime_error(std::string("Engine command failed: MODULE_PATH ") + config_.module.string());
-  }
-
-  if (ENGINE_ctrl_cmd_string(ssl_engine_.get(), "PIN", config_.pass.c_str(), 0) == 0) {
-    throw std::runtime_error(std::string("Engine command failed: PIN ") + config_.pass);
-  }
-
-  if (ENGINE_init(ssl_engine_.get()) == 0) {
-    throw std::runtime_error("Engine initialization failed");
-  }
+  ssl_engine_ = engine;
 }
 
 PKCS11_SLOT* P11Engine::findTokenSlot() const {
@@ -183,7 +194,7 @@ bool P11Engine::readUptanePublicKey(std::string* key_out) {
 
   char* pem_key = nullptr;
   long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
-  key_out->assign(pem_key, length);
+  key_out->assign(pem_key, static_cast<size_t>(length));
 
   return true;
 }
@@ -258,7 +269,7 @@ bool P11Engine::readTlsCert(std::string* cert_out) const {
 
   char* pem_key = nullptr;
   long length = BIO_get_mem_data(mem.get(), &pem_key);  // NOLINT
-  cert_out->assign(pem_key, length);
+  cert_out->assign(pem_key, static_cast<size_t>(length));
 
   return true;
 }

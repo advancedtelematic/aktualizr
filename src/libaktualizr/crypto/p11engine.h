@@ -44,15 +44,15 @@ class P11Engine {
   P11Engine(const P11Engine &) = delete;
   P11Engine &operator=(const P11Engine &) = delete;
 
-  struct ENGINEFinalizer {
-    void operator()(ENGINE *engine) const {
-      ENGINE_finish(engine);
-      ENGINE_free(engine);
-      ENGINE_cleanup();
+  virtual ~P11Engine() {
+    if (ssl_engine_ != nullptr) {
+      ENGINE_finish(ssl_engine_);
+      ENGINE_free(ssl_engine_);
+      ENGINE_cleanup();  // for openssl < 1.1
     }
-  };
+  }
 
-  ENGINE *getEngine() { return ssl_engine_.get(); }
+  ENGINE *getEngine() { return ssl_engine_; }
   std::string getUptaneKeyId() const { return uri_prefix_ + config_.uptane_key_id; }
   std::string getTlsCacertId() const { return uri_prefix_ + config_.tls_cacert_id; }
   std::string getTlsPkeyId() const { return uri_prefix_ + config_.tls_pkey_id; }
@@ -63,8 +63,8 @@ class P11Engine {
 
  private:
   const P11Config config_;
+  ENGINE *ssl_engine_{nullptr};
   std::string uri_prefix_;
-  std::unique_ptr<ENGINE, ENGINEFinalizer> ssl_engine_{nullptr};
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
 
