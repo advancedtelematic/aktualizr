@@ -212,6 +212,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
       response = perform(curl_handler, --retry_times, size_limit);
     }
   }
+  LOG_TRACE << "response http code: " << response.http_status_code;
   LOG_TRACE << "response: " << response.body;
   return response;
 }

@@ -5,8 +5,16 @@
       "id" : "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493",
       "metadata" : [
         {
-          "type": "install",
+          "type": "description",
           "value": "this is my message to show on the device"
+        },
+        {
+          "type": "estimatedInstallationDuration",
+          "value": "10"
+        },
+        {
+          "type": "estimatedPreparationDuration",
+          "value": "20"
         }
       ],
       "name" : "campaign1"

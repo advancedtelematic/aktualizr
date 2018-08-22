@@ -7,28 +7,44 @@ Campaign Campaign::fromJson(const Json::Value &json) {
     if (!json.isObject()) {
       throw CampaignParseError();
     }
-    std::string name = json["name"].asString();
 
+    std::string id = json["id"].asString();
+    if (id.empty()) {
+      throw CampaignParseError();
+    }
+
+    std::string name = json["name"].asString();
     if (name.empty()) {
       throw CampaignParseError();
     }
 
-    // let's allow `install_message` to be empty
-    std::string install_message;
+    std::string description;
+    int estInstallationDuration = 0;
+    int estPreparationDuration = 0;
     for (const auto &o : json["metadata"]) {
       if (!o.isObject()) {
         continue;
       }
-      if (o["type"] == "install") {
-        if (!install_message.empty()) {
-          LOG_ERROR << "Only one install message allowed";
+
+      if (o["type"] == "description") {
+        if (!description.empty()) {
           throw CampaignParseError();
         }
-        install_message = o["value"].asString();
+        description = o["value"].asString();
+      } else if (o["type"] == "estimatedInstallationDuration") {
+        if (estInstallationDuration != 0) {
+          throw CampaignParseError();
+        }
+        estInstallationDuration = std::stoi(o["value"].asString());
+      } else if (o["type"] == "estimatedPreparationDuration") {
+        if (estPreparationDuration != 0) {
+          throw CampaignParseError();
+        }
+        estPreparationDuration = std::stoi(o["value"].asString());
       }
     }
 
-    return {name, install_message};
+    return {id, name, description, estInstallationDuration, estPreparationDuration};
   } catch (const std::runtime_error &exc) {
     LOG_ERROR << exc.what();
     throw CampaignParseError();

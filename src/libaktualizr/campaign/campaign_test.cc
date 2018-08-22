@@ -13,7 +13,9 @@ TEST(campaign, Campaigns_from_json) {
   EXPECT_EQ(campaigns.size(), 1);
 
   EXPECT_EQ(campaigns.at(0).name, "campaign1");
-  EXPECT_EQ(campaigns.at(0).install_message, "this is my message to show on the device");
+  EXPECT_EQ(campaigns.at(0).description, "this is my message to show on the device");
+  EXPECT_EQ(campaigns.at(0).estInstallationDuration, 10);
+  EXPECT_EQ(campaigns.at(0).estPreparationDuration, 20);
 }
 
 TEST(campaign, Campaigns_from_invalid_json) {
@@ -46,7 +48,7 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
+    std::cerr << "Error: " << argv[0] << " requires the path to the test data as an input argument.\n";
     return EXIT_FAILURE;
   }
   test_data_dir = argv[1];

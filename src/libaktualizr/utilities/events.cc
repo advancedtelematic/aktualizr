@@ -105,4 +105,6 @@ InstallComplete::InstallComplete() { variant = "InstallComplete"; }
 
 CampaignCheckComplete::CampaignCheckComplete() { variant = "CampaignCheckComplete"; }
 
+CampaignAcceptComplete::CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
+
 }  // namespace event

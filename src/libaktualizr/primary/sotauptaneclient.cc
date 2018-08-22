@@ -843,9 +843,21 @@ void SotaUptaneClient::runForever(const std::shared_ptr<command::Channel> &comma
 
         for (const auto &c : campaigns) {
           LOG_INFO << "Campaign: " << c.name;
-          LOG_INFO << "Message: " << c.install_message;
+          LOG_INFO << "Campaign id: " << c.id;
+          LOG_INFO << "Message: " << c.description;
         }
         *events_channel << std::make_shared<event::CampaignCheckComplete>();
+      } else if (command->variant == "CampaignAccept") {
+        auto ca_command = command->toChild<command::CampaignAccept>();
+        auto report_array = Json::Value(Json::arrayValue);
+        auto report = std_::make_unique<Json::Value>();
+        (*report)["id"] = Utils::randomUuid();
+        (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+        (*report)["eventType"]["id"] = "campaign_accepted";
+        (*report)["eventType"]["version"] = 0;
+        (*report)["event"]["campaignId"] = ca_command->campaign_id;
+        report_queue->enqueue(std::move(report));
+        *events_channel << std::make_shared<event::CampaignAcceptComplete>();
       } else if (command->variant == "Shutdown") {
         shutdown = true;
         return;

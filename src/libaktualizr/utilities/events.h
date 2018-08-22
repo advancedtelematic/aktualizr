@@ -110,6 +110,11 @@ class CampaignCheckComplete : public BaseEvent {
   explicit CampaignCheckComplete();
 };
 
+class CampaignAcceptComplete : public BaseEvent {
+ public:
+  explicit CampaignAcceptComplete();
+};
+
 }  // namespace event
 
 #endif

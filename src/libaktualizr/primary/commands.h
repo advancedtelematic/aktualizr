@@ -129,5 +129,11 @@ class CampaignCheck : public BaseCommand {
   CampaignCheck() : BaseCommand("CampaignCheck") {}
 };
 
+class CampaignAccept : public BaseCommand {
+ public:
+  CampaignAccept(std::string cid) : BaseCommand("CampaignAccept"), campaign_id(std::move(cid)) {}
+  std::string campaign_id;
+};
+
 }  // namespace command
 #endif
