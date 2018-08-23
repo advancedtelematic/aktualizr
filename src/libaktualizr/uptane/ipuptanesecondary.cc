@@ -56,7 +56,7 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
 
 bool IpUptaneSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
   if (!install_future.valid() || install_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-    install_future = std::async(std::launch::async, &IpUptaneSecondary::sendFirmware, this, std::ref(data));
+    install_future = std::async(std::launch::async, &IpUptaneSecondary::sendFirmware, this, data);
     return true;
   }
   return false;
