@@ -487,6 +487,9 @@ TEST(Uptane, PutManifest) {
 
 int num_events_FetchDownloadInstall = 0;
 void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "DownloadProgressReport") {
+    return;
+  }
   switch (num_events_FetchDownloadInstall) {
     case 0:
       EXPECT_EQ(event->variant, "FetchMetaComplete");
