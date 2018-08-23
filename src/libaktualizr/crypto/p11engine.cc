@@ -110,7 +110,7 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "PIN", config_.pass.c_str(), 0) == 0) {
-      throw std::runtime_error(std::string("Engine command failed: PIN ") + config_.pass);
+      throw std::runtime_error(std::string("Engine command failed: PIN"));
     }
 
     if (ENGINE_init(engine) == 0) {
