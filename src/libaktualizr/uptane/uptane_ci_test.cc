@@ -37,7 +37,7 @@ TEST(UptaneCI, OneCycleUpdate) {
   Uptane::Manifest uptane_manifest{config, storage};
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifest());
 }
 
@@ -69,7 +69,7 @@ TEST(UptaneCI, CheckKeys) {
   auto http = std::make_shared<HttpClient>();
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   std::string ca;
   std::string cert;

@@ -7,19 +7,21 @@ fi
 
 . venv/bin/activate
 
+TTV_DIR="$1/tuf-test-vectors"
+
 # use `python -m pip` to avoid problem with long shebangs on travis
 python -m pip install wheel
-python -m pip install -r "$1/requirements.txt"
+python -m pip install -r "$TTV_DIR/requirements.txt"
 
-PORT=$("$1/../get_open_port.py")
+PORT=$("$1/get_open_port.py")
 ECU_SERIAL=test_primary_ecu_serial
 HARDWARE_ID=test_primary_hardware_id
 
-"$1/generator.py" --signature-encoding base64 -o vectors --cjson json-subset \
-                  --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID
+"$TTV_DIR/generator.py" --signature-encoding base64 -o vectors --cjson json-subset \
+                        --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID
 # disable werkzeug debug pin which causes issues on Jenkins
-WERKZEUG_DEBUG_PIN=off "$1/server.py" --signature-encoding base64 -P "$PORT" \
-                                      --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
+WERKZEUG_DEBUG_PIN=off "$TTV_DIR/server.py" --signature-encoding base64 -P "$PORT" \
+                                            --ecu-identifier $ECU_SERIAL --hardware-id $HARDWARE_ID &
 trap 'kill %1' EXIT
 
 # wait for server to go up
@@ -34,9 +36,10 @@ while ! curl -I -s -f "http://localhost:$PORT"; do
 done
 
 if [ "$2" == "valgrind" ]; then
-    valgrind --track-origins=yes --show-possibly-lost=no --error-exitcode=1 --suppressions="$1/../aktualizr.supp" ./aktualizr_uptane_vector_tests vectors/vector-meta.json "$PORT"
+    valgrind --track-origins=yes --show-possibly-lost=no --error-exitcode=1 --suppressions="$1/aktualizr.supp" \
+      ./aktualizr_uptane_vector_tests "$PORT"
 else
-    ./aktualizr_uptane_vector_tests vectors/vector-meta.json "$PORT"
+    ./aktualizr_uptane_vector_tests "$PORT"
 fi
 
 RES=$?

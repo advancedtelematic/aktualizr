@@ -13,6 +13,7 @@ constexpr int64_t kMaxDirectorTargetsSize = 64 * 1024;
 constexpr int64_t kMaxTimestampSize = 64 * 1024;
 constexpr int64_t kMaxSnapshotSize = 64 * 1024;
 constexpr int64_t kMaxImagesTargetsSize = 1024 * 1024;
+
 struct DownloadMetaStruct {
   DownloadMetaStruct(Target target_in, std::shared_ptr<event::Channel> events_channel_in)
       : hash_type{target_in.hashes()[0].type()},

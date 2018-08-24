@@ -49,15 +49,11 @@ class ProvisionDeviceTask {
 
   void operator()() {
     Uptane::Manifest manifest{config, storage};
-    auto eventsIn = std::make_shared<event::Channel>();
-    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient, eventsIn);
+    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient);
     try {
-      if (client->initialize()) {
-        auto signed_manifest = manifest.signManifest(client->AssembleManifest());
-        httpClient->put(config.uptane.director_server + "/manifest", signed_manifest);
-      } else {
-        LOG_ERROR << "Failed to initialize repository for " << config.storage.path;
-      }
+      client->initialize();
+      auto signed_manifest = manifest.signManifest(client->AssembleManifest());
+      httpClient->put(config.uptane.director_server + "/manifest", signed_manifest);
     } catch (std::exception &err) {
       LOG_ERROR << "Failed to register device " << config.storage.path << ": " << err.what();
     } catch (...) {

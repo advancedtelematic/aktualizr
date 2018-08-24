@@ -46,8 +46,7 @@ class CheckForUpdate {
 
   void operator()() {
     LOG_DEBUG << "Updating a device in " << config.storage.path.native();
-    auto eventsIn = std::make_shared<event::Channel>();
-    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient, eventsIn);
+    auto client = SotaUptaneClient::newTestClient(config, storage, httpClient);
     try {
       std::string pkey;
       std::string cert;

@@ -342,13 +342,14 @@ std::string Utils::jsonToCanonicalStr(const Json::Value &json) { return Json::Fa
 
 Json::Value Utils::getHardwareInfo() {
   std::string result;
-  int exit_code = shell("lshw -json", &result);
+  const int exit_code = shell("lshw -json", &result);
 
   if (exit_code != 0) {
     LOG_WARNING << "Could not execute lshw (is it installed?).";
     return Json::Value();
   }
-  return Utils::parseJSON(result);
+  const Json::Value parsed = Utils::parseJSON(result);
+  return (parsed.isArray()) ? parsed[0] : parsed;
 }
 
 Json::Value Utils::getNetworkInfo() {

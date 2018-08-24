@@ -66,10 +66,10 @@ TEST(Uptane, RandomSerial) {
   auto http2 = std::make_shared<HttpFake>(temp_dir2.Path());
 
   auto uptane_client1 = SotaUptaneClient::newTestClient(conf_1, storage_1, http1);
-  EXPECT_TRUE(uptane_client1->initialize());
+  EXPECT_NO_THROW(uptane_client1->initialize());
 
   auto uptane_client2 = SotaUptaneClient::newTestClient(conf_2, storage_2, http2);
-  EXPECT_TRUE(uptane_client2->initialize());
+  EXPECT_NO_THROW(uptane_client2->initialize());
 
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;
@@ -121,7 +121,7 @@ TEST(Uptane, ReloadSerial) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     auto uptane_client = SotaUptaneClient::newTestClient(conf, storage, http);
-    EXPECT_TRUE(uptane_client->initialize());
+    EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 2);
     EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
@@ -140,7 +140,7 @@ TEST(Uptane, ReloadSerial) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     auto uptane_client = SotaUptaneClient::newTestClient(conf, storage, http);
-    EXPECT_TRUE(uptane_client->initialize());
+    EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 2);
     EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());
@@ -183,7 +183,7 @@ TEST(Uptane, LegacySerial) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     auto uptane_client = SotaUptaneClient::newTestClient(conf, storage, http);
-    EXPECT_TRUE(uptane_client->initialize());
+    EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_1));
     EXPECT_EQ(ecu_serials_1.size(), 3);
     EXPECT_FALSE(ecu_serials_1[0].first.ToString().empty());
@@ -201,7 +201,7 @@ TEST(Uptane, LegacySerial) {
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
     auto uptane_client = SotaUptaneClient::newTestClient(conf, storage, http);
-    EXPECT_TRUE(uptane_client->initialize());
+    EXPECT_NO_THROW(uptane_client->initialize());
     EXPECT_TRUE(storage->loadEcuSerials(&ecu_serials_2));
     EXPECT_EQ(ecu_serials_2.size(), 3);
     EXPECT_FALSE(ecu_serials_2[0].first.ToString().empty());

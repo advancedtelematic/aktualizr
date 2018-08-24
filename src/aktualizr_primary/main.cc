@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/signals2.hpp>
 
 #include "config/config.h"
 #include "logging/logging.h"
@@ -86,12 +87,21 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
+void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+  if (event->variant != "DownloadProgressReport") {
+    LOG_INFO << "got " << event->variant << " event";
+  }
+}
+
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
   LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
+
+  int r = -1;
+  boost::signals2::connection conn;
 
   try {
     if (geteuid() != 0) {
@@ -105,9 +115,17 @@ int main(int argc, char *argv[]) {
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
     Aktualizr aktualizr(config);
 
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+    conn = aktualizr.SetSignalHandler(f_cb);
+
     RunningMode running_mode = config.uptane.running_mode;
     // launch the first event
     switch (running_mode) {
+      case RunningMode::kCheck:
+      case RunningMode::kOnce:
+        aktualizr.SendDeviceData();
+        aktualizr.FetchMetadata();
+        break;
       case RunningMode::kDownload:
       case RunningMode::kInstall:
         aktualizr.CheckUpdates();
@@ -122,13 +140,14 @@ int main(int argc, char *argv[]) {
         aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>());
         break;
       default:
-        aktualizr.SendDeviceData();
+        aktualizr.Run();
         break;
     }
-
-    return aktualizr.Run();
+    r = 0;
   } catch (const std::exception &ex) {
     LOG_ERROR << ex.what();
-    return -1;
+    r = -1;
   }
+  conn.disconnect();
+  return r;
 }

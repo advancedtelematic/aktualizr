@@ -5,9 +5,9 @@
 #include <map>
 
 #include <json/json.h>
+#include <boost/signals2.hpp>
 
 #include "uptane/tuf.h"
-#include "utilities/channel.h"
 #include "utilities/types.h"
 
 /**
@@ -27,7 +27,6 @@ class BaseEvent {
   virtual std::string toJson(Json::Value json);
   virtual std::string toJson();
 };
-using Channel = Channel<std::shared_ptr<BaseEvent> >;
 
 /**
  * An error occurred processing a command.
@@ -41,7 +40,7 @@ class Error : public BaseEvent {
 };
 
 /**
- * The FetchMeta command completed successfully.
+ * Metadata has been successfully fetched from the server.
  */
 class FetchMetaComplete : public BaseEvent {
  public:
@@ -49,7 +48,7 @@ class FetchMetaComplete : public BaseEvent {
 };
 
 /**
- * The SendDeviceData command completed successfully.
+ * Device data has been successfully sent to the server.
  */
 class SendDeviceDataComplete : public BaseEvent {
  public:
@@ -57,13 +56,16 @@ class SendDeviceDataComplete : public BaseEvent {
 };
 
 /**
- * The PutManifest command completed successfully.
+ * A manifest has been successfully sent to the server.
  */
 class PutManifestComplete : public BaseEvent {
  public:
   explicit PutManifestComplete();
 };
 
+/**
+ * An update is available for download from the server.
+ */
 class UpdateAvailable : public BaseEvent {
  public:
   std::vector<Uptane::Target> updates;
@@ -73,11 +75,9 @@ class UpdateAvailable : public BaseEvent {
   static UpdateAvailable fromJson(const std::string& json_str);
 };
 
-class UptaneTimestampUpdated : public BaseEvent {
- public:
-  UptaneTimestampUpdated();
-};
-
+/**
+ * A report for a download in progress.
+ */
 class DownloadProgressReport : public BaseEvent {
  public:
   Uptane::Target target;
@@ -89,7 +89,7 @@ class DownloadProgressReport : public BaseEvent {
 };
 
 /**
- * The StartDownload command completed successfully.
+ * An update has been successfully downloaded.
  */
 class DownloadComplete : public BaseEvent {
  public:
@@ -101,7 +101,7 @@ class DownloadComplete : public BaseEvent {
 };
 
 /**
- * Ecu stared instalation
+ * An ECU has begun installation of an update.
  */
 class InstallStarted : public BaseEvent {
  public:
@@ -110,7 +110,7 @@ class InstallStarted : public BaseEvent {
 };
 
 /**
- * Ecu finished installation
+ * An update has been successfully installed on an ECU.
  */
 class InstallComplete : public BaseEvent {
  public:
@@ -118,15 +118,23 @@ class InstallComplete : public BaseEvent {
   Uptane::EcuSerial serial;
 };
 
+/**
+ * The server has been successfully queried for available campaigns.
+ */
 class CampaignCheckComplete : public BaseEvent {
  public:
   explicit CampaignCheckComplete();
 };
 
+/**
+ * A campaign has been successfully accepted.
+ */
 class CampaignAcceptComplete : public BaseEvent {
  public:
   explicit CampaignAcceptComplete();
 };
+
+using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;
 
 }  // namespace event
 

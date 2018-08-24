@@ -5,8 +5,7 @@ set(SOURCES dequeue_buffer.cc
             utils.cc
             events.cc)
 
-set(HEADERS channel.h
-            config_utils.h
+set(HEADERS config_utils.h
             dequeue_buffer.h
             exceptions.h
             sockaddr_io.h

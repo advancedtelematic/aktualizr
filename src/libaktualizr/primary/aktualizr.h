@@ -1,17 +1,15 @@
 #ifndef AKTUALIZR_H_
 #define AKTUALIZR_H_
 
+#include <atomic>
 #include <memory>
 
 #include <boost/signals2.hpp>
 
-#include "commands.h"
 #include "config/config.h"
-#include "eventsinterpreter.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-#include "utilities/channel.h"
 #include "utilities/events.h"
 
 /**
@@ -74,13 +72,12 @@ class Aktualizr {
   /**
    * Asynchronously download targets.
    */
-  void Download(std::vector<Uptane::Target> updates);
+  void Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Asynchronously install targets.
    */
-
-  void Install(std::vector<Uptane::Target> updates);
+  void Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * Add new secondary to aktualizr.
@@ -97,11 +94,9 @@ class Aktualizr {
  private:
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
-  std::shared_ptr<command::Channel> commands_channel_;
-  std::shared_ptr<event::Channel> events_channel_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
-  std::shared_ptr<EventsInterpreter> events_interpreter_;
-  std::shared_ptr<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>> sig_;
+  std::shared_ptr<event::Channel> sig_;
+  std::atomic<bool> shutdown_ = {false};
 };
 
 #endif  // AKTUALIZR_H_

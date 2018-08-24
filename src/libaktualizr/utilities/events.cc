@@ -63,8 +63,6 @@ UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
 
 FetchMetaComplete::FetchMetaComplete() { variant = "FetchMetaComplete"; }
 
-UptaneTimestampUpdated::UptaneTimestampUpdated() { variant = "UptaneTimestampUpdated"; }
-
 DownloadProgressReport::DownloadProgressReport(Uptane::Target target_in, std::string description_in,
                                                unsigned int progress_in)
     : target{std::move(target_in)}, description{std::move(description_in)}, progress{progress_in} {
