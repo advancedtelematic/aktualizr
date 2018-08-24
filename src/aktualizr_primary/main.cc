@@ -96,9 +96,10 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
 int main(int argc, char *argv[]) {
   logger_init();
   logger_set_threshold(boost::log::trivial::info);
-  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
 
   bpo::variables_map commandline_map = parse_options(argc, argv);
+
+  LOG_INFO << "Aktualizr version " AKTUALIZR_VERSION " starting";
 
   int r = -1;
   boost::signals2::connection conn;
