@@ -28,12 +28,12 @@ class P11SlotsWrapper {
   ~P11SlotsWrapper();
   P11SlotsWrapper(const P11SlotsWrapper &) = delete;
   P11SlotsWrapper &operator=(const P11SlotsWrapper &) = delete;
-  PKCS11_slot_st *get_slots() const { return slots; }
+  PKCS11_slot_st *get_slots() const { return wslots_; }
   unsigned int get_nslots() const { return nslots; }
 
  private:
   PKCS11_ctx_st *ctx;  // NOLINT
-  PKCS11_slot_st *slots;
+  PKCS11_slot_st *wslots_;
   unsigned int nslots;
 };
 

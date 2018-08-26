@@ -45,11 +45,11 @@ P11ContextWrapper::~P11ContextWrapper() {
 P11SlotsWrapper::P11SlotsWrapper(PKCS11_ctx_st* ctx_in) {
   ctx = ctx_in;
   if (ctx == nullptr) {
-    slots = nullptr;
+    wslots_ = nullptr;
     nslots = 0;
     return;
   }
-  if (PKCS11_enumerate_slots(ctx, &slots, &nslots) != 0) {
+  if (PKCS11_enumerate_slots(ctx, &wslots_, &nslots) != 0) {
     LOG_ERROR << "Couldn't enumerate slots"
               << ": " << ERR_error_string(ERR_get_error(), nullptr);
     throw std::runtime_error("PKCS11 error");
@@ -57,8 +57,8 @@ P11SlotsWrapper::P11SlotsWrapper(PKCS11_ctx_st* ctx_in) {
 }
 
 P11SlotsWrapper::~P11SlotsWrapper() {
-  if ((slots != nullptr) && (nslots != 0u)) {
-    PKCS11_release_all_slots(ctx, slots, nslots);
+  if ((wslots_ != nullptr) && (nslots != 0u)) {
+    PKCS11_release_all_slots(ctx, wslots_, nslots);
   }
 }
 
