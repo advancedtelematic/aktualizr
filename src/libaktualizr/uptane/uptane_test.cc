@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -400,7 +402,7 @@ TEST(Uptane, AssembleManifestGood) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest();
   EXPECT_EQ(manifest.size(), 2);
@@ -434,7 +436,7 @@ TEST(Uptane, AssembleManifestBad) {
   auto storage = INvStorage::newStorage(config.storage);
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest();
 
@@ -463,15 +465,9 @@ TEST(Uptane, PutManifest) {
 
   auto storage = INvStorage::newStorage(config.storage);
 
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
-  EXPECT_TRUE(sota_client->initialize());
-
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
-
-  *commands_channel << std::make_shared<command::PutManifest>();
-  *commands_channel << std::make_shared<command::Shutdown>();
-  sota_client->runForever(commands_channel);
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_NO_THROW(sota_client->initialize());
+  EXPECT_TRUE(sota_client->putManifest());
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http->test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / http->test_manifest).string());
@@ -489,71 +485,61 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
-TEST(Uptane, RunForeverNoUpdates) {
-  TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config conf("tests/config/basic.toml");
-  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
-  conf.uptane.director_server = http->tls_server + "/director";
-  conf.uptane.repo_server = http->tls_server + "/repo";
-  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
-  conf.uptane.running_mode = RunningMode::kFull;
-  conf.provision.primary_ecu_hardware_id = "primary_hw";
-  conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_metadata_path = BasedPath("metadata");
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
-  conf.pacman.sysroot = sysroot;
-  conf.tls.server = http->tls_server;
-  addDefaultSecondary(conf, temp_dir, "secondary_hw");
-
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
-
-  *commands_channel << std::make_shared<command::FetchMeta>();
-  *commands_channel << std::make_shared<command::CheckUpdates>();
-  *commands_channel << std::make_shared<command::FetchMeta>();
-  *commands_channel << std::make_shared<command::CheckUpdates>();
-  *commands_channel << std::make_shared<command::Shutdown>();
-
-  auto storage = INvStorage::newStorage(conf.storage);
-
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
-  up->runForever(commands_channel);
-
-  std::shared_ptr<event::BaseEvent> event;
-
-  events_channel->setTimeout(std::chrono::milliseconds(1000));
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "FetchMetaComplete");
-
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "UpdateAvailable");
-
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "FetchMetaComplete");
-
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "UptaneTimestampUpdated");
-
-  Json::Value manifest = up->AssembleManifest();
-  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
+int num_events_FetchDownloadInstall = 0;
+void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "DownloadProgressReport") {
+    return;
+  }
+  switch (num_events_FetchDownloadInstall) {
+    case 0:
+      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      break;
+    case 1: {
+      EXPECT_EQ(event->variant, "UpdateAvailable");
+      auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
+      EXPECT_EQ(targets_event->updates.size(), 2u);
+      EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
+      EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+      break;
+    }
+    case 2:
+      EXPECT_EQ(event->variant, "DownloadComplete");
+      break;
+    case 3:
+      EXPECT_EQ(event->variant, "InstallStarted");
+      break;
+    case 4:
+      EXPECT_EQ(event->variant, "InstallComplete");
+      break;
+    case 5:
+      EXPECT_EQ(event->variant, "InstallStarted");
+      break;
+    case 6:
+      EXPECT_EQ(event->variant, "InstallComplete");
+      break;
+    case 7:
+      EXPECT_EQ(event->variant, "PutManifestComplete");
+      break;
+    case 10:
+      // Don't let the test run indefinitely!
+      FAIL();
+    default:
+      std::cout << "event #" << num_events_FetchDownloadInstall << " is: " << event->variant << "\n";
+      EXPECT_EQ(event->variant, "");
+  }
+  ++num_events_FetchDownloadInstall;
 }
 
-TEST(Uptane, RunForeverHasUpdates) {
+TEST(Uptane, FetchDownloadInstall) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
   boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.uptane.running_mode = RunningMode::kFull;
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
-  conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_metadata_path = BasedPath("metadata");
   conf.storage.uptane_private_key_path = BasedPath("private.key");
@@ -562,26 +548,21 @@ TEST(Uptane, RunForeverHasUpdates) {
   conf.tls.server = http->tls_server;
   addDefaultSecondary(conf, temp_dir, "secondary_hw");
 
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
+  std::shared_ptr<event::Channel> sig =
+      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchDownloadInstall;
+  sig->connect(f_cb);
 
-  *commands_channel << std::make_shared<command::FetchMeta>();
-  *commands_channel << std::make_shared<command::CheckUpdates>();
-  *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
-  up->runForever(commands_channel);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  EXPECT_NO_THROW(up->initialize());
+  up->fetchMeta();
 
-  std::shared_ptr<event::BaseEvent> event;
-  EXPECT_TRUE(events_channel->hasValues());
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "FetchMetaComplete");
-  EXPECT_TRUE(*events_channel >> event);
-  EXPECT_EQ(event->variant, "UpdateAvailable");
-  auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
-  EXPECT_EQ(targets_event->updates.size(), 2u);
-  EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
-  EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+  size_t counter = 0;
+  while (num_events_FetchDownloadInstall < 8) {
+    sleep(1);
+    ASSERT_LT(++counter, 10);
+  }
 
   Json::Value manifest = up->AssembleManifest();
   EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
@@ -598,7 +579,7 @@ std::vector<Uptane::Target> makePackage(const std::string& serial, const std::st
   return packages_to_install;
 }
 
-TEST(Uptane, RunForeverInstall) {
+TEST(Uptane, Install) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -611,20 +592,13 @@ TEST(Uptane, RunForeverInstall) {
   conf.storage.uptane_private_key_path = BasedPath("private.key");
   conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.pacman.sysroot = sysroot;
-
   conf.tls.server = http->tls_server;
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
 
-  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
-  *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
-  *commands_channel << std::make_shared<command::Shutdown>();
   auto storage = INvStorage::newStorage(conf.storage);
-
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
-  up->runForever(commands_channel);
-
-  EXPECT_FALSE(boost::filesystem::exists(temp_dir.Path() / http->test_manifest));
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  EXPECT_NO_THROW(up->initialize());
+  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
+  up->uptaneInstall(packages_to_install);
 
   // Make sure operation_result and filepath were correctly written and formatted.
   Json::Value manifest = up->AssembleManifest();
@@ -655,7 +629,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
@@ -668,11 +642,12 @@ TEST(Uptane, UptaneSecondaryAdd) {
 /**
  * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
  * Also test that installation works as expected with the fake package manager.
+ * TODO: does that actually work? And is this the right way to test it anyway?
  */
 TEST(Uptane, ProvisionOnServer) {
   TemporaryDirectory temp_dir;
   Config config("tests/config/basic.toml");
-  std::string server = "tst149";
+  const std::string server = "tst149";
   config.provision.server = server;
   config.tls.server = server;
   config.uptane.director_server = server + "/director";
@@ -681,21 +656,20 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.provision.primary_ecu_serial = "tst149_ecu_serial";
   config.uptane.polling_sec = 1;
+  config.uptane.running_mode = RunningMode::kManual;
   config.storage.path = temp_dir.Path();
 
-  std::shared_ptr<event::Channel> events_channel{new event::Channel};
-  std::shared_ptr<command::Channel> commands_channel{new command::Channel};
   auto storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   std::vector<Uptane::Target> packages_to_install =
       makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
-  *commands_channel << std::make_shared<command::FetchMeta>();
-  *commands_channel << std::make_shared<command::StartDownload>(packages_to_install);
-  *commands_channel << std::make_shared<command::UptaneInstall>(packages_to_install);
-  *commands_channel << std::make_shared<command::Shutdown>();
 
-  auto up = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
-  up->runForever(commands_channel);
+  auto up = SotaUptaneClient::newTestClient(config, storage, http);
+  EXPECT_NO_THROW(up->initialize());
+  EXPECT_NO_THROW(up->sendDeviceData());
+  EXPECT_THROW(up->fetchMeta(), Uptane::InvalidMetadata);
+  up->downloadImages(packages_to_install);
+  up->uptaneInstall(packages_to_install);
 }
 
 TEST(Uptane, CheckOldProvision) {
@@ -1024,12 +998,10 @@ TEST(Uptane, LoadVersion) {
 TEST(Uptane, krejectallTest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-
-  Config config;
+  Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
-  config.storage.type = StorageType::kSqlite;
   config.pacman.type = PackageManager::kNone;
   config.provision.device_id = "device_id";
   config.postUpdateValues();
@@ -1064,7 +1036,7 @@ TEST(Uptane, restoreVerify) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
   // 1st attempt, don't get anything
   EXPECT_FALSE(sota_client->uptaneIteration());
@@ -1120,7 +1092,7 @@ TEST(Uptane, offlineIteration) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
 
-  EXPECT_TRUE(sota_client->initialize());
+  EXPECT_NO_THROW(sota_client->initialize());
   sota_client->AssembleManifest();
 
   std::vector<Uptane::Target> targets_online;
@@ -1128,7 +1100,7 @@ TEST(Uptane, offlineIteration) {
   EXPECT_TRUE(sota_client->getNewTargets(&targets_online));
 
   std::vector<Uptane::Target> targets_offline;
-  EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline));
+  EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_EQ(targets_online, targets_offline);
 }
 

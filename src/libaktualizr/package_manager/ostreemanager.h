@@ -20,6 +20,9 @@ struct GObjectFinalizer {
   void operator()(T *e) const { g_object_unref(reinterpret_cast<gpointer>(e)); }
 };
 
+template <typename T>
+using GObjectUniquePtr = std::unique_ptr<T, GObjectFinalizer<T>>;
+
 struct PullMetaStruct {
   PullMetaStruct(Uptane::Target target_in, std::shared_ptr<event::Channel> events_channel_in)
       : target{std::move(target_in)}, percent_complete{0}, events_channel{std::move(events_channel_in)} {}
@@ -27,10 +30,6 @@ struct PullMetaStruct {
   unsigned int percent_complete;
   std::shared_ptr<event::Channel> events_channel;
 };
-
-using OstreeDeploymentPtr = std::unique_ptr<OstreeDeployment, GObjectFinalizer<OstreeDeployment>>;
-using OstreeSysrootPtr = std::unique_ptr<OstreeSysroot, GObjectFinalizer<OstreeSysroot>>;
-using OstreeRepoPtr = std::unique_ptr<OstreeRepo, GObjectFinalizer<OstreeRepo>>;
 
 class OstreeManager : public PackageManagerInterface {
  public:
@@ -41,9 +40,9 @@ class OstreeManager : public PackageManagerInterface {
   bool imageUpdated() override;
   data::InstallOutcome install(const Uptane::Target &target) const override;
 
-  OstreeDeploymentPtr getStagedDeployment();
-  static OstreeSysrootPtr LoadSysroot(const boost::filesystem::path &path);
-  static OstreeRepoPtr LoadRepo(OstreeSysroot *sysroot, GError **error);
+  GObjectUniquePtr<OstreeDeployment> getStagedDeployment();
+  static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
+  static GObjectUniquePtr<OstreeRepo> LoadRepo(OstreeSysroot *sysroot, GError **error);
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
   static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
                                    const KeyManager &keys, const Uptane::Target &target,

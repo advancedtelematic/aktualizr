@@ -24,7 +24,7 @@ TEST(event, UpdateAvailable_event_to_json) {
   Uptane::Target target("test", target_json);
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
-  event::UpdateAvailable event(targets);
+  event::UpdateAvailable event(targets, 1);
 
   Json::Reader reader;
   Json::Value json;
@@ -54,18 +54,8 @@ TEST(event, DownloadComplete_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "DownloadComplete");
 }
 
-TEST(event, UptaneTimestampUpdated_event_to_json) {
-  event::UptaneTimestampUpdated event;
-
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(event.toJson(), json);
-
-  EXPECT_EQ(json["variant"].asString(), "UptaneTimestampUpdated");
-}
-
 TEST(event, InstallComplete_event_to_json) {
-  event::InstallComplete event;
+  event::InstallComplete event(Uptane::EcuSerial("123456"));
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
@@ -88,7 +78,7 @@ TEST(event, UpdateAvailable_event_from_json) {
   Uptane::Target target("test", target_json);
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
-  event::UpdateAvailable update_available(targets);
+  event::UpdateAvailable update_available(targets, 1);
   event::UpdateAvailable event = event::UpdateAvailable::fromJson(update_available.toJson());
 
   EXPECT_EQ(event.variant, "UpdateAvailable");

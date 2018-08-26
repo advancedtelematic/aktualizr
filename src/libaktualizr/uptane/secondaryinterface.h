@@ -7,6 +7,7 @@
 
 #include "uptane/secondaryconfig.h"
 #include "uptane/tuf.h"
+#include "utilities/events.h"
 
 /* Json snippet returned by sendMetaXXX():
  * {
@@ -30,9 +31,19 @@ class SecondaryInterface {
   virtual int32_t getRootVersion(bool director) = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
-  virtual bool sendFirmware(const std::string& data) = 0;
-
+  virtual bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) = 0;
   const SecondaryConfig sconfig;
+  void addEventsChannel(std::shared_ptr<event::Channel> channel) { events_channel = std::move(channel); }
+
+ protected:
+  void sendEvent(std::shared_ptr<event::BaseEvent> event) {
+    if (events_channel) {
+      (*events_channel)(std::move(event));
+    }
+  }
+
+ private:
+  std::shared_ptr<event::Channel> events_channel;
 };
 }  // namespace Uptane
 

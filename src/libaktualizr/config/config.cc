@@ -16,17 +16,6 @@
 #include "utilities/utils.h"
 
 void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(socket_commands_path, "socket_commands_path", pt);
-  CopyFromConfig(socket_events_path, "socket_events_path", pt);
-
-  // TODO: fix this to support multiple config files (if we care):
-  boost::optional<std::string> events_string = pt.get_optional<std::string>("socket_events");
-  if (events_string.is_initialized()) {
-    std::string e = Utils::stripQuotes(events_string.get());
-    socket_events.empty();
-    boost::split(socket_events, e, boost::is_any_of(", "), boost::token_compress_on);
-  }
-
   CopyFromConfig(ipdiscovery_host, "ipdiscovery_host", pt);
   CopyFromConfig(ipdiscovery_port, "ipdiscovery_port", pt);
   CopyFromConfig(ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds", pt);
@@ -34,17 +23,6 @@ void NetworkConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt
 }
 
 void NetworkConfig::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, socket_commands_path, "socket_commands_path");
-  writeOption(out_stream, socket_events_path, "socket_events_path");
-  // TODO: fix this to support multiple config files (if we care):
-  std::string events_str;
-  for (auto it = socket_events.begin(); it != socket_events.end(); ++it) {
-    events_str += *it;
-    if (it != --socket_events.end()) {
-      events_str += ", ";
-    }
-  }
-  writeOption(out_stream, events_str, "socket_events");
   writeOption(out_stream, ipdiscovery_host, "ipdiscovery_host");
   writeOption(out_stream, ipdiscovery_port, "ipdiscovery_port");
   writeOption(out_stream, ipdiscovery_wait_seconds, "ipdiscovery_wait_seconds");

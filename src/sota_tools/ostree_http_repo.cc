@@ -66,11 +66,12 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
     return it->second;
   }
 
-  std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
-  std::string objpath = hash.string().insert(2, 1, '/');
+  const std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
+  const std::string objpath = hash.string().insert(2, 1, '/');
 
   for (const std::string &ext : exts) {
-    if (Get(std::string("objects/") += objpath += ext)) {
+    // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
+    if (Get(std::string("objects/") + objpath + ext)) {
       OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
       ObjectTable[hash] = obj;
       return obj;

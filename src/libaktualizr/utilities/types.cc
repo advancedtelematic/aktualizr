@@ -68,6 +68,8 @@ RunningMode RunningModeFromString(const std::string& mode) {
     return RunningMode::kInstall;
   } else if (mode == "campaign_check") {
     return RunningMode::kCampaignCheck;
+  } else if (mode == "campaign_accept") {
+    return RunningMode::kCampaignAccept;
   } else {
     throw std::runtime_error(std::string("Incorrect running mode: ") + mode);
   }
@@ -87,6 +89,8 @@ std::string StringFromRunningMode(RunningMode mode) {
     mode_str = "install";
   } else if (mode == RunningMode::kCampaignCheck) {
     return "campaign_check";
+  } else if (mode == RunningMode::kCampaignAccept) {
+    return "campaign_accept";
   }
   return mode_str;
 }

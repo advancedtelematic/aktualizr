@@ -29,7 +29,7 @@ class PartialVerificationSecondary : public SecondaryInterface {
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;
 
-  bool sendFirmware(const std::string& data) override;
+  bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
   Json::Value getManifest() override;
 
  private:

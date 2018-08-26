@@ -5,6 +5,7 @@
 
 #include "crypto/crypto.h"
 #include "logging/logging.h"
+#include "utilities/events.h"
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
@@ -103,37 +104,54 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-bool ManagedSecondary::sendFirmware(const std::string &data) {
+bool ManagedSecondary::sendFirmwareAsync(const std::shared_ptr<std::string> &data) {
+  if (!install_future.valid() || install_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+    install_future = std::async(std::launch::async, &ManagedSecondary::sendFirmware, this, data);
+    return true;
+  }
+  return false;
+}
+
+bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
+  sendEvent(std::make_shared<event::InstallStarted>(getSerial()));
+
   if (expected_target_name.empty()) {
+    sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
     return true;
   }
   if (!detected_attack.empty()) {
+    sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
     return true;
   }
 
-  if (data.size() > static_cast<size_t>(expected_target_length)) {
+  if (data->size() > static_cast<size_t>(expected_target_length)) {
     detected_attack = "overflow";
+    sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
     return true;
   }
 
   std::vector<Hash>::const_iterator it;
   for (it = expected_target_hashes.begin(); it != expected_target_hashes.end(); it++) {
     if (it->TypeString() == "sha256") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(*data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
+        sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
         return true;
       }
     } else if (it->TypeString() == "sha512") {
-      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(data))) !=
+      if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(*data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
+        sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
         return true;
       }
     }
   }
   detected_attack = "";
-  return storeFirmware(expected_target_name, data);
+  bool result = storeFirmware(expected_target_name, *data);
+  sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
+  return result;
 }
 
 Json::Value ManagedSecondary::getManifest() {

@@ -16,8 +16,6 @@
 #include "logging/logging.h"
 #include "utilities/utils.h"
 
-using OstreeProgressPtr = std::unique_ptr<OstreeAsyncProgress, GObjectFinalizer<OstreeAsyncProgress>>;
-
 static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) {
   auto *mt = static_cast<PullMetaStruct *>(data);
 
@@ -37,18 +35,18 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     if (scanning != 0 || outstanding_metadata_fetches != 0) {
       LOG_INFO << "ostree-pull: Receiving metadata objects: " << metadata_fetched
                << " outstanding: " << outstanding_metadata_fetches;
-      if (mt->events_channel != nullptr) {
-        *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving metadata objects",
-                                                                               0);
+      if (mt->events_channel) {
+        (*(mt->events_channel))(
+            std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving metadata objects", 0));
       }
     } else {
       guint calculated = (fetched * 100) / requested;
       if (calculated != mt->percent_complete) {
         mt->percent_complete = calculated;
         LOG_INFO << "ostree-pull: Receiving objects: " << calculated << "% ";
-        if (mt->events_channel != nullptr) {
-          *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving objects",
-                                                                                 calculated);
+        if (mt->events_channel) {
+          (*(mt->events_channel))(
+              std::make_shared<event::DownloadProgressReport>(mt->target, "Receiving objects", calculated));
         }
       }
     }
@@ -56,8 +54,8 @@ static void aktualizr_progress_cb(OstreeAsyncProgress *progress, gpointer data) 
     LOG_INFO << "ostree-pull: Writing objects: " << outstanding_writes;
   } else {
     LOG_INFO << "ostree-pull: Scanning metadata: " << n_scanned_metadata;
-    if (mt->events_channel != nullptr) {
-      *mt->events_channel << std::make_shared<event::DownloadProgressReport>(mt->target, "Scanning metadata", 0);
+    if (mt->events_channel) {
+      (*(mt->events_channel))(std::make_shared<event::DownloadProgressReport>(mt->target, "Scanning metadata", 0));
     }
   }
 }
@@ -71,10 +69,10 @@ data::InstallOutcome OstreeManager::pull(const boost::filesystem::path &sysroot_
   GError *error = nullptr;
   GVariantBuilder builder;
   GVariant *options;
-  OstreeProgressPtr progress = nullptr;
+  GObjectUniquePtr<OstreeAsyncProgress> progress = nullptr;
 
-  OstreeSysrootPtr sysroot = OstreeManager::LoadSysroot(sysroot_path);
-  OstreeRepoPtr repo = LoadRepo(sysroot.get(), &error);
+  GObjectUniquePtr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(sysroot_path);
+  GObjectUniquePtr<OstreeRepo> repo = LoadRepo(sysroot.get(), &error);
   if (error != nullptr) {
     LOG_ERROR << "Could not get OSTree repo";
     g_error_free(error);
@@ -131,8 +129,8 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
     opt_osname = config.os.c_str();
   }
 
-  OstreeSysrootPtr sysroot = OstreeManager::LoadSysroot(config.sysroot);
-  OstreeRepoPtr repo = LoadRepo(sysroot.get(), &error);
+  GObjectUniquePtr<OstreeSysroot> sysroot = OstreeManager::LoadSysroot(config.sysroot);
+  GObjectUniquePtr<OstreeRepo> repo = LoadRepo(sysroot.get(), &error);
 
   if (error != nullptr) {
     LOG_ERROR << "could not get repo";
@@ -229,7 +227,7 @@ Json::Value OstreeManager::getInstalledPackages() {
 }
 
 Uptane::Target OstreeManager::getCurrent() {
-  OstreeDeploymentPtr staged_deployment = getStagedDeployment();
+  GObjectUniquePtr<OstreeDeployment> staged_deployment = getStagedDeployment();
   if (!staged_deployment) {
     throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
   }
@@ -249,7 +247,7 @@ Uptane::Target OstreeManager::getCurrent() {
 }
 
 bool OstreeManager::imageUpdated() {
-  OstreeSysrootPtr sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
   GPtrArray *deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
 
@@ -269,8 +267,8 @@ bool OstreeManager::imageUpdated() {
   return !pending_found;
 }
 
-OstreeDeploymentPtr OstreeManager::getStagedDeployment() {
-  OstreeSysrootPtr sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+GObjectUniquePtr<OstreeDeployment> OstreeManager::getStagedDeployment() {
+  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
   GPtrArray *deployments = nullptr;
   OstreeDeployment *res = nullptr;
@@ -285,10 +283,10 @@ OstreeDeploymentPtr OstreeManager::getStagedDeployment() {
   }
 
   g_ptr_array_unref(deployments);
-  return OstreeDeploymentPtr(res);
+  return GObjectUniquePtr<OstreeDeployment>(res);
 }
 
-OstreeSysrootPtr OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
+GObjectUniquePtr<OstreeSysroot> OstreeManager::LoadSysroot(const boost::filesystem::path &path) {
   OstreeSysroot *sysroot = nullptr;
 
   if (!path.empty()) {
@@ -306,17 +304,17 @@ OstreeSysrootPtr OstreeManager::LoadSysroot(const boost::filesystem::path &path)
     g_object_unref(sysroot);
     throw std::runtime_error("could not load sysroot");
   }
-  return OstreeSysrootPtr(sysroot);
+  return GObjectUniquePtr<OstreeSysroot>(sysroot);
 }
 
-OstreeRepoPtr OstreeManager::LoadRepo(OstreeSysroot *sysroot, GError **error) {
+GObjectUniquePtr<OstreeRepo> OstreeManager::LoadRepo(OstreeSysroot *sysroot, GError **error) {
   OstreeRepo *repo = nullptr;
 
   if (ostree_sysroot_get_repo(sysroot, &repo, nullptr, error) == 0) {
-    return OstreeRepoPtr();
+    return nullptr;
   }
 
-  return OstreeRepoPtr(repo);
+  return GObjectUniquePtr<OstreeRepo>(repo);
 }
 
 bool OstreeManager::addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys) {

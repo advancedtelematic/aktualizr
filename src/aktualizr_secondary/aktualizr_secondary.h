@@ -10,7 +10,6 @@
 #include "socket_server.h"
 #include "storage/invstorage.h"
 #include "uptane/tuf.h"
-#include "utilities/channel.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
