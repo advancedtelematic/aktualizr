@@ -672,7 +672,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<Uptane::Target> downloaded_targets;
@@ -688,7 +688,7 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     // TODO: check if the file is already there before downloading
     if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
       sendEvent(std::make_shared<event::Error>("Error downloading targets."));
-      return false;
+      return;
     }
   }
   if (!targets.empty()) {
@@ -705,7 +705,6 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
   } else {
     LOG_INFO << "No new updates to download.";
   }
-  return true;
 }
 
 bool SotaUptaneClient::uptaneIteration() {
