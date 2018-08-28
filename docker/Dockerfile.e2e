@@ -1,0 +1,10 @@
+FROM advancedtelematic/aktualizr-base as builder
+
+WORKDIR build
+
+RUN cmake -DCMAKE_BUILD_TYPE=Debug ../src
+RUN make
+RUN make install
+
+ENTRYPOINT ["/usr/local/bin/aktualizr"]
+CMD ["--help"]
