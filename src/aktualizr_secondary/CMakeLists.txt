@@ -67,38 +67,40 @@ list(APPEND TEST_LIBS aktualizr_secondary_static_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_config
                    SOURCES aktualizr_secondary_config_test.cc PROJECT_WORKING_DIRECTORY)
-add_aktualizr_test(NAME aktualizr_secondary_discovery
-                   SOURCES aktualizr_secondary_discovery_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-
-add_aktualizr_test(NAME aktualizr_secondary_protocol
-                   SOURCES protocol_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
 
-add_aktualizr_test(NAME aktualizr_secondary_uptane
-                   SOURCES uptane_test.cc
-                   ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
+if(BUILD_OSTREE)
+    add_aktualizr_test(NAME aktualizr_secondary_discovery
+                       SOURCES aktualizr_secondary_discovery_test.cc
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
-add_test(NAME aktualizr-secondary-help
-         COMMAND ${PROJECT_BINARY_DIR}/src/aktualizr_secondary/aktualizr-secondary --help)
+    add_aktualizr_test(NAME aktualizr_secondary_protocol
+                       SOURCES protocol_test.cc
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+    target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
+
+    add_aktualizr_test(NAME aktualizr_secondary_uptane
+                       SOURCES uptane_test.cc
+                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
+    target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
+else(BUILD_OSTREE)
+    list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc protocol_test.cc uptane_test.cc)
+endif(BUILD_OSTREE)
 
 # test running the executable with command line option --help
-add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr --help)
+add_test(NAME aktualizr_secondary_cmdline--help COMMAND aktualizr-secondary --help)
 # test running the executable with command line option --something
 add_test(NAME aktualizr_secondary_cmdline--something
-         COMMAND aktualizr --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+         COMMAND aktualizr-secondary --something -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 # call the executable without any options
-add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr)
+add_test(NAME aktualizr_secondary_cmdline_empty COMMAND aktualizr-secondary)
 # test the return code when running the executable with non-existent configuration file
 add_test(NAME aktualizr_secondary_no_config_check_code
-         COMMAND aktualizr -c non-existent-config.toml)
+         COMMAND aktualizr-secondary -c non-existent-config.toml)
 
 # testcases with non-supported command line options will return 1
 # in this case we want the testcase to pass
@@ -126,16 +128,16 @@ set_tests_properties(aktualizr_secondary_help_with_nonexistent_options
 
 # Check aktualizr-secondary verbose config parsing output with debug loglevel.
 add_test(NAME aktualizr_secondary_log_debug
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml --loglevel=0)
 set_tests_properties(aktualizr_secondary_log_debug
                      PROPERTIES PASS_REGULAR_EXPRESSION "Final configuration that will be used")
 # Check aktualizr-secondary silent config parsing output with default loglevel.
 # Note that the extra PASS is necessary to ignore the return code.
 add_test(NAME aktualizr_secondary_log_default
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
+         COMMAND aktualizr-secondary -c ${PROJECT_SOURCE_DIR}/tests/config/minimal.toml)
 set_tests_properties(aktualizr_secondary_log_default
                      PROPERTIES FAIL_REGULAR_EXPRESSION "Final configuration that will be used"
-                                PASS_REGULAR_EXPRESSION "Aktualizr version")
+                                PASS_REGULAR_EXPRESSION "Aktualizr-secondary version")
 
 # Check aktualizr-secondary invalid logging levels.
 add_test(NAME aktualizr_secondary_log_invalid
