@@ -41,22 +41,46 @@ OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTr
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
+  bool ret = false;
+  CURLcode err = CURLE_OK;
   CURL *easy_handle = curl_easy_init();
   curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
   server_->InjectIntoCurl(path.string(), easy_handle);
   curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
-  int fp = open((root_ / path).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  std::string filename = (root_ / path).string();
+  int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  if (fp == -1) {
+    LOG_ERROR << "Failed to open file: " << filename;
+    ret = false;
+    goto cleanup;
+  }
   curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
   curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
-  CURLcode err = curl_easy_perform(easy_handle);
+  err = curl_easy_perform(easy_handle);
   close(fp);
-  curl_easy_cleanup(easy_handle);
-  if (err != 0u) {
+
+  if (err == CURLE_OK) {
+    ret = true;
+  } else if (err == CURLE_HTTP_RETURNED_ERROR) {
+    // http error (error code >= 400)
+    // verbose mode will display the details
+    ret = false;
+  } else {
+    // other unexpected error
+    char *last_url = nullptr;
+    curl_easy_getinfo(easy_handle, CURLINFO_EFFECTIVE_URL, &last_url);
+    LOG_ERROR << "Failed to get object:" << curl_easy_strerror(err);
+    if (last_url != nullptr) {
+      LOG_ERROR << "Url: " << last_url;
+    }
     remove((root_ / path).c_str());
-    return false;
+    ret = false;
   }
-  return true;
+
+cleanup:
+  curl_easy_cleanup(easy_handle);
+  return ret;
 }
 
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
