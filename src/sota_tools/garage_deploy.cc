@@ -1,6 +1,7 @@
-#include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
+
+#include <boost/program_options.hpp>
 
 #include "accumulator.h"
 #include "authenticate.h"

@@ -2,16 +2,10 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "authenticate.h"
 #include "logging/logging.h"
-#include "ostree_dir_repo.h"
-#include "ostree_http_repo.h"
 #include "ostree_object.h"
-#include "ostree_ref.h"
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"

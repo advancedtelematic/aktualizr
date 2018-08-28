@@ -2,7 +2,9 @@
 #define SOTA_CLIENT_TOOLS_DEPLOY_H_
 
 #include <string>
+
 #include "ostree_ref.h"
+#include "ostree_repo.h"
 #include "server_credentials.h"
 
 /**

@@ -1,13 +1,14 @@
-#include <curl/curl.h>
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
 
+#include <curl/curl.h>
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include "json/json.h"
+
 #include "accumulator.h"
 #include "authenticate.h"
-#include "json/json.h"
 #include "logging/logging.h"
 #include "treehub_server.h"
 #include "uptane/tuf.h"

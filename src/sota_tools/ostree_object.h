@@ -1,12 +1,13 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_OBJECT_H_
 
-#include <curl/curl.h>
-#include <boost/filesystem.hpp>
-#include <boost/intrusive_ptr.hpp>
 #include <chrono>
 #include <iostream>
 #include <sstream>
+
+#include <curl/curl.h>
+#include <boost/filesystem.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 #include "treehub_server.h"
 

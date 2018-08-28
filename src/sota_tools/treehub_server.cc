@@ -1,11 +1,10 @@
 #include "treehub_server.h"
 
 #include <assert.h>
+
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
-
-#include "utilities/utils.h"
 
 using std::string;
 
@@ -42,7 +41,7 @@ void TreehubServer::SetAuthBasic(const std::string& username, const std::string&
 
 // Note that this method creates a reference from curl_handle to this.  Keep
 // this TreehubServer object alive until the curl request has been completed
-void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, bool tufrepo) const {
+void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, const bool tufrepo) const {
   std::string url = (tufrepo ? repo_url_ : root_url_);
 
   if (*url.rbegin() != '/' && *url_suffix.begin() != '/') {

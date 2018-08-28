@@ -1,9 +1,11 @@
 #include <assert.h>
+
+#include <iostream>
+#include <sstream>
+
 #include <curl/curl.h>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <iostream>
-#include <sstream>
 
 #include "logging/logging.h"
 #include "oauth2.h"

@@ -1,13 +1,13 @@
-#include <curl/curl.h>
 #include <gtest/gtest.h>
 
 #include <string>
 
+#include <curl/curl.h>
+
 #include "authenticate.h"
 #include "server_credentials.h"
-#include "treehub_server.h"
-
 #include "test_utils.h"
+#include "treehub_server.h"
 
 TEST(authenticate, good_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_good.zip";

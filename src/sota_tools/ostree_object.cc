@@ -1,12 +1,14 @@
 #include "ostree_object.h"
+
+#include <assert.h>
+
+#include <iostream>
+
+#include <glib.h>
+
 #include "logging/logging.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
-
-#include <assert.h>
-#include <curl/curl.h>
-#include <glib.h>
-#include <iostream>
 
 using std::string;
 

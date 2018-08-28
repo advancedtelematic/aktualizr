@@ -1,5 +1,6 @@
-#include "rate_controller.h"
 #include <gtest/gtest.h>
+
+#include "rate_controller.h"
 
 TEST(initial, initially_ok) {
   RateController dut;

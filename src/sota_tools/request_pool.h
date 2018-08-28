@@ -1,8 +1,10 @@
 #ifndef SOTA_CLIENT_TOOLS_REQUEST_POOL_H_
 #define SOTA_CLIENT_TOOLS_REQUEST_POOL_H_
 
-#include <curl/curl.h>
 #include <list>
+
+#include <curl/curl.h>
+
 #include "ostree_object.h"
 #include "rate_controller.h"
 

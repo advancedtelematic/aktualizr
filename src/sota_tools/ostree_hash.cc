@@ -1,6 +1,6 @@
 #include "ostree_hash.h"
 
-#include <cstring>
+#include <cstring>  // memcmp, memcpy
 #include <iomanip>
 #include <sstream>
 
