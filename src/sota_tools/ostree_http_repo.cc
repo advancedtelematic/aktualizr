@@ -54,8 +54,8 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   if (fp == -1) {
     LOG_ERROR << "Failed to open file: " << filename;
-    ret = false;
-    goto cleanup;
+    curl_easy_cleanup(easy_handle);
+    return false;
   }
   curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
   curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
@@ -80,7 +80,6 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
     ret = false;
   }
 
-cleanup:
   curl_easy_cleanup(easy_handle);
   return ret;
 }
