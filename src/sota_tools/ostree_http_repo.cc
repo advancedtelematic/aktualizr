@@ -95,12 +95,17 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
   const std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   const std::string objpath = hash.string().insert(2, 1, '/');
 
-  for (const std::string &ext : exts) {
-    // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
-    if (Get(std::string("objects/") + objpath + ext)) {
-      OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
-      ObjectTable[hash] = obj;
-      return obj;
+  for (int i = 0; i < 3; ++i) {
+    if (i > 0) {
+      LOG_WARNING << "OSTree hash " << hash << " not found. Retrying (attempt " << i << " of 3)";
+    }
+    for (const std::string &ext : exts) {
+      // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
+      if (Get(std::string("objects/") + objpath + ext)) {
+        OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
+        ObjectTable[hash] = obj;
+        return obj;
+      }
     }
   }
   throw OSTreeObjectMissing(hash);
