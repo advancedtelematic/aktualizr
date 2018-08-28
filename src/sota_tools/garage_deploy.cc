@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
   boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
+  bool dry_run = false;
   po::options_description desc("garage-deploy command line options");
   // clang-format off
   desc.add_options()
@@ -31,7 +32,8 @@ int main(int argc, char **argv) {
     ("fetch-credentials,f", po::value<boost::filesystem::path>(&fetch_cred)->required(), "path to source credentials")
     ("push-credentials,p", po::value<boost::filesystem::path>(&push_cred)->required(), "path to destination credentials")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
-    ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert");
+    ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("dry-run,n", "check arguments and authenticate but don't upload");
   // clang-format on
 
   po::variables_map vm;
@@ -77,6 +79,10 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
+  if (vm.count("dry-run") != 0u) {
+    dry_run = true;
+  }
+
   ServerCredentials push_credentials(push_cred);
   ServerCredentials fetch_credentials(fetch_cred);
 
@@ -91,18 +97,21 @@ int main(int argc, char **argv) {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
     // isn't really any reason to upload in parallel
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, false, 1)) {
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, dry_run, 1)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
 
-    if (push_credentials.CanSignOffline()) {
-      bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
-      return static_cast<int>(!ok);
+    if (!dry_run) {
+      if (push_credentials.CanSignOffline()) {
+        bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
+        return static_cast<int>(!ok);
+      }
+      LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
+      return EXIT_FAILURE;
+    } else {
+      LOG_INFO << "Dry run. Not attempting offline signing.";
     }
-    LOG_FATAL << "Online signing with garage-deploy is currently unsupported";
-    return EXIT_FAILURE;
-
   } catch (OSTreeCommitParseError &e) {
     LOG_FATAL << e.what();
     return EXIT_FAILURE;  // TODO: tests
