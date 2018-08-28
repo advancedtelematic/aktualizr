@@ -107,23 +107,22 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     return false;
   }
 
-  bool ok = true;
   if (!dry_run) {
-    CURL *easy_handle = curl_easy_init();
-    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-    ref.PushRef(push_server, easy_handle);
-    CURLcode err = curl_easy_perform(easy_handle);
+    CurlEasyWrapper easy_handle;
+    curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+    ref.PushRef(push_server, easy_handle.get());
+    CURLcode err = curl_easy_perform(easy_handle.get());
     if (err != 0u) {
       LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
-      ok = false;
+      return false;
     }
     long rescode;  // NOLINT
-    curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+    curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-      ok = false;
+      return false;
     }
-    curl_easy_cleanup(easy_handle);
   }
-  return ok;
+
+  return true;
 }

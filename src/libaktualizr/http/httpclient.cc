@@ -45,6 +45,9 @@ static size_t writeString(void* contents, size_t size, size_t nmemb, void* userp
 
 HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERSION) {
   curl = curl_easy_init();
+  if (curl == nullptr) {
+    throw std::runtime_error("Could not initialize curl");
+  }
   headers = nullptr;
   http_code = 0;
 

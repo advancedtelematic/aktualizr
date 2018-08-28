@@ -43,45 +43,40 @@ OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTr
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
-  bool ret = false;
   CURLcode err = CURLE_OK;
-  CURL *easy_handle = curl_easy_init();
-  curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  server_->InjectIntoCurl(path.string(), easy_handle);
-  curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
+  CurlEasyWrapper easy_handle;
+  curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  server_->InjectIntoCurl(path.string(), easy_handle.get());
+  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
   std::string filename = (root_ / path).string();
   int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   if (fp == -1) {
     LOG_ERROR << "Failed to open file: " << filename;
-    curl_easy_cleanup(easy_handle);
     return false;
   }
-  curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
-  curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
-  err = curl_easy_perform(easy_handle);
+  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEDATA, &fp);
+  curl_easy_setopt(easy_handle.get(), CURLOPT_FAILONERROR, true);
+  err = curl_easy_perform(easy_handle.get());
   close(fp);
 
-  if (err == CURLE_OK) {
-    ret = true;
-  } else if (err == CURLE_HTTP_RETURNED_ERROR) {
+  if (err == CURLE_HTTP_RETURNED_ERROR) {
     // http error (error code >= 400)
     // verbose mode will display the details
-    ret = false;
-  } else {
+    return true;
+  } else if (err != CURLE_OK) {
     // other unexpected error
     char *last_url = nullptr;
-    curl_easy_getinfo(easy_handle, CURLINFO_EFFECTIVE_URL, &last_url);
+    curl_easy_getinfo(easy_handle.get(), CURLINFO_EFFECTIVE_URL, &last_url);
     LOG_ERROR << "Failed to get object:" << curl_easy_strerror(err);
     if (last_url != nullptr) {
       LOG_ERROR << "Url: " << last_url;
     }
     remove((root_ / path).c_str());
-    ret = false;
+    return false;
   }
 
-  curl_easy_cleanup(easy_handle);
-  return ret;
+  return true;
 }
 
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {

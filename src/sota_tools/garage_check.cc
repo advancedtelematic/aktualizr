@@ -12,6 +12,7 @@
 #include "logging/logging.h"
 #include "treehub_server.h"
 #include "uptane/tuf.h"
+#include "utilities/utils.h"
 
 namespace po = boost::program_options;
 using std::string;
@@ -25,20 +26,6 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
   // return size of written data
   return size * nmemb;
 }
-
-class CurlEasyWrapper {
- public:
-  CurlEasyWrapper() { handler = curl_easy_init(); }
-  ~CurlEasyWrapper() {
-    if (handler != nullptr) {
-      curl_easy_cleanup(handler);
-    }
-  }
-  CURL *get() { return handler; }
-
- private:
-  CURL *handler;
-};
 
 int main(int argc, char **argv) {
   logger_init();
