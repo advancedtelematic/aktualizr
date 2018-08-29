@@ -1,14 +1,16 @@
+#include "ostree_http_repo.h"
+
 #include <fcntl.h>
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
 #include "logging/logging.h"
-#include "ostree_hash.h"
-#include "ostree_http_repo.h"
 
 using std::string;
 namespace pt = boost::property_tree;
@@ -41,21 +43,39 @@ OSTreeRef OSTreeHttpRepo::GetRef(const std::string &refname) const { return OSTr
 OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
 
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
-  CURL *easy_handle = curl_easy_init();
-  curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  server_->InjectIntoCurl(path.string(), easy_handle);
-  curl_easy_setopt(easy_handle, CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
+  CURLcode err = CURLE_OK;
+  CurlEasyWrapper easy_handle;
+  curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  server_->InjectIntoCurl(path.string(), easy_handle.get());
+  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
-  int fp = open((root_ / path).c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-  curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, &fp);
-  curl_easy_setopt(easy_handle, CURLOPT_FAILONERROR, true);
-  CURLcode err = curl_easy_perform(easy_handle);
+  std::string filename = (root_ / path).string();
+  int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  if (fp == -1) {
+    LOG_ERROR << "Failed to open file: " << filename;
+    return false;
+  }
+  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEDATA, &fp);
+  curl_easy_setopt(easy_handle.get(), CURLOPT_FAILONERROR, true);
+  err = curl_easy_perform(easy_handle.get());
   close(fp);
-  curl_easy_cleanup(easy_handle);
-  if (err != 0u) {
+
+  if (err == CURLE_HTTP_RETURNED_ERROR) {
+    // http error (error code >= 400)
+    // verbose mode will display the details
+    return true;
+  } else if (err != CURLE_OK) {
+    // other unexpected error
+    char *last_url = nullptr;
+    curl_easy_getinfo(easy_handle.get(), CURLINFO_EFFECTIVE_URL, &last_url);
+    LOG_ERROR << "Failed to get object:" << curl_easy_strerror(err);
+    if (last_url != nullptr) {
+      LOG_ERROR << "Url: " << last_url;
+    }
     remove((root_ / path).c_str());
     return false;
   }
+
   return true;
 }
 
@@ -69,12 +89,17 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
   const std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   const std::string objpath = hash.string().insert(2, 1, '/');
 
-  for (const std::string &ext : exts) {
-    // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
-    if (Get(std::string("objects/") + objpath + ext)) {
-      OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
-      ObjectTable[hash] = obj;
-      return obj;
+  for (int i = 0; i < 3; ++i) {
+    if (i > 0) {
+      LOG_WARNING << "OSTree hash " << hash << " not found. Retrying (attempt " << i << " of 3)";
+    }
+    for (const std::string &ext : exts) {
+      // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
+      if (Get(std::string("objects/") + objpath + ext)) {
+        OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
+        ObjectTable[hash] = obj;
+        return obj;
+      }
     }
   }
   throw OSTreeObjectMissing(hash);

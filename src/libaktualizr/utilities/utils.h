@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include <curl/curl.h>
 #include <netinet/in.h>
 
 #include "json/json.h"
@@ -115,6 +116,26 @@ struct SocketCloser {
 
 using SocketHandle = std::unique_ptr<int, SocketCloser>;
 bool operator<(const sockaddr_storage &left, const sockaddr_storage &right);  // required by std::map
+
+// wrapper for curl handles
+class CurlEasyWrapper {
+ public:
+  CurlEasyWrapper() {
+    handle = curl_easy_init();
+    if (handle == nullptr) {
+      throw std::runtime_error("Could not initialize curl handle");
+    }
+  }
+  ~CurlEasyWrapper() {
+    if (handle != nullptr) {
+      curl_easy_cleanup(handle);
+    }
+  }
+  CURL *get() { return handle; }
+
+ private:
+  CURL *handle;
+};
 
 // this is reference implementation of make_unique which is not yet included to C++11
 namespace std_ {

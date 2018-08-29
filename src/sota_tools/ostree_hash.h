@@ -2,8 +2,6 @@
 #define SOTA_CLIENT_TOOLS_OSTREE_HASH_H_
 
 #include <cstdint>
-#include <cstring>  // memcmp, memcpy
-
 #include <iostream>
 #include <string>
 #include <utility>

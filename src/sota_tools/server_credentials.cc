@@ -1,16 +1,17 @@
 #include "server_credentials.h"
 
-#include "utilities/utils.h"
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 #include <archive.h>
 #include <archive_entry.h>
 #include <boost/optional.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <cstring>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
+
+#include "utilities/utils.h"
 
 using boost::optional;
 using boost::property_tree::json_parser::json_parser_error;

@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <sstream>
 #include <utility>
 
 #include "logging/logging.h"
@@ -33,17 +32,16 @@ OSTreeRef::OSTreeRef(const OSTreeRepo &repo, const string &ref_name) : ref_name_
 
 OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, string ref_name)
     : is_valid(true), ref_name_(std::move(ref_name)) {
-  CURL *curl_handle = curl_easy_init();
-  serve_repo.InjectIntoCurl(Url(), curl_handle);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, true);
-  CURLcode rc = curl_easy_perform(curl_handle);
+  CurlEasyWrapper curl_handle;
+  serve_repo.InjectIntoCurl(Url(), curl_handle.get());
+  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
+  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curl_easy_setopt(curl_handle.get(), CURLOPT_FAILONERROR, true);
+  CURLcode rc = curl_easy_perform(curl_handle.get());
   if (rc != CURLE_OK) {
     is_valid = false;
   }
-  curl_easy_cleanup(curl_handle);
   ref_content_ = http_response_.str();
 }
 

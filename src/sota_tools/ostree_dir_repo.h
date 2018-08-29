@@ -1,10 +1,11 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_DIR_REPO_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_DIR_REPO_H_
 
-#include <boost/filesystem.hpp>
 #include <list>
 #include <map>
 #include <utility>
+
+#include <boost/filesystem.hpp>
 
 #include "ostree_hash.h"
 #include "ostree_object.h"

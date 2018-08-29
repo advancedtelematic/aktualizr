@@ -2,16 +2,10 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "authenticate.h"
 #include "logging/logging.h"
-#include "ostree_dir_repo.h"
-#include "ostree_http_repo.h"
 #include "ostree_object.h"
-#include "ostree_ref.h"
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
@@ -113,23 +107,22 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     return false;
   }
 
-  bool ok = true;
   if (!dry_run) {
-    CURL *easy_handle = curl_easy_init();
-    curl_easy_setopt(easy_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
-    ref.PushRef(push_server, easy_handle);
-    CURLcode err = curl_easy_perform(easy_handle);
+    CurlEasyWrapper easy_handle;
+    curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+    ref.PushRef(push_server, easy_handle.get());
+    CURLcode err = curl_easy_perform(easy_handle.get());
     if (err != 0u) {
       LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
-      ok = false;
+      return false;
     }
     long rescode;  // NOLINT
-    curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &rescode);
+    curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";
-      ok = false;
+      return false;
     }
-    curl_easy_cleanup(easy_handle);
   }
-  return ok;
+
+  return true;
 }

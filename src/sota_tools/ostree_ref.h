@@ -1,9 +1,10 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_REF_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_REF_H_
 
+#include <sstream>
+
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
-#include <sstream>
 
 #include "ostree_hash.h"
 #include "ostree_repo.h"

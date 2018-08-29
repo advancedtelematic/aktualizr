@@ -1,12 +1,14 @@
 #include "ostree_object.h"
+
+#include <assert.h>
+
+#include <iostream>
+
+#include <glib.h>
+
 #include "logging/logging.h"
 #include "ostree_repo.h"
 #include "request_pool.h"
-
-#include <assert.h>
-#include <curl/curl.h>
-#include <glib.h>
-#include <iostream>
 
 using std::string;
 
@@ -166,6 +168,9 @@ string OSTreeObject::Url() const { return "objects/" + object_name_; }
 void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl_multi_handle) {
   assert(!curl_handle_);
   curl_handle_ = curl_easy_init();
+  if (curl_handle_ == nullptr) {
+    throw std::runtime_error("Could not initialize curl handle");
+  }
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
 
@@ -196,6 +201,9 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   assert(!curl_handle_);
 
   curl_handle_ = curl_easy_init();
+  if (curl_handle_ == nullptr) {
+    throw std::runtime_error("Could not initialize curl handle");
+  }
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
   // TODO: error checking

@@ -1,7 +1,8 @@
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <iomanip>
 #include <iostream>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 #include "accumulator.h"
 #include "deploy.h"

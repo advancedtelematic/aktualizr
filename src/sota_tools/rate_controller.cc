@@ -1,9 +1,9 @@
 #include "rate_controller.h"
 
-#include "logging/logging.h"
-
 #include <algorithm>  // min
 #include <cassert>
+
+#include "logging/logging.h"
 
 const RateController::clock::duration RateController::kMaxSleepTime = std::chrono::seconds(30);
 

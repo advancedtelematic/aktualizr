@@ -1,13 +1,14 @@
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+#include "ostree_dir_repo.h"
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+
 #include "logging/logging.h"
-#include "ostree_dir_repo.h"
-#include "ostree_hash.h"
 
 using std::string;
 namespace fs = boost::filesystem;

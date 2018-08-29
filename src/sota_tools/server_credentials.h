@@ -1,8 +1,9 @@
 #ifndef SOTA_CLIENT_TOOLS_SERVER_CREDENTIALS_H_
 #define SOTA_CLIENT_TOOLS_SERVER_CREDENTIALS_H_
 
-#include <boost/filesystem.hpp>
 #include <string>
+
+#include <boost/filesystem.hpp>
 
 enum class AuthMethod { kNone = 0, kBasic, kOauth2, kCert };
 
