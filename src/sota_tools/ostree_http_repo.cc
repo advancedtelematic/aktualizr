@@ -63,7 +63,7 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   if (err == CURLE_HTTP_RETURNED_ERROR) {
     // http error (error code >= 400)
     // verbose mode will display the details
-    return true;
+    return false;
   } else if (err != CURLE_OK) {
     // other unexpected error
     char *last_url = nullptr;
