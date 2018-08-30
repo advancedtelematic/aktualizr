@@ -42,18 +42,6 @@
    ...
 }
 {
-    glib
-    Memcheck:Leak
-    ...
-    obj:/lib/x86_64-linux-gnu/libglib-2.0.so*
-}
-{
-    gio
-    Memcheck:Leak
-    ...
-    obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so*
-}
-{
     openssl softhsm leak (https://github.com/opendnssec/SoftHSMv2/issues/133)
     Memcheck:Leak
     ...
