@@ -132,6 +132,32 @@ TEST(KeyManager, SignTufPkcs11) {
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 
+TEST(KeyManager, GenSignTufPkcs11) {
+  Json::Value tosign_json;
+  tosign_json["mykey"] = "value";
+
+  P11Config p11_conf;
+  p11_conf.module = TEST_PKCS11_MODULE_PATH;
+  p11_conf.pass = "1234";
+  p11_conf.uptane_key_id = "06";
+  Config config;
+  config.p11 = p11_conf;
+  config.uptane.key_source = CryptoSource::kPkcs11;
+
+  TemporaryDirectory temp_dir;
+  config.storage.path = temp_dir.Path();
+  std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
+  KeyManager keys(storage, config.keymanagerConfig());
+
+  P11EngineGuard p11(config.p11);
+  EXPECT_TRUE(p11->generateUptaneKeyPair());
+
+  EXPECT_GT(keys.UptanePublicKey().Value().size(), 0);
+  Json::Value signed_json = keys.signTuf(tosign_json);
+  EXPECT_EQ(signed_json["signed"]["mykey"].asString(), "value");
+  EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
+}
+
 TEST(KeyManager, InitPkcs11Valid) {
   Config config;
   P11Config p11_conf;
