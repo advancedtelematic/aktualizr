@@ -28,9 +28,9 @@ class RequestPool {
    */
   void Loop(bool dryrun);
   /**
-  * The number of HEAD + PUT requests that have been sent to curl. This
-  * includes requests that eventually returned 500 and get retried.
-  */
+   * The number of HEAD + PUT requests that have been sent to curl. This
+   * includes requests that eventually returned 500 and get retried.
+   */
   int total_requests_made() { return total_requests_made_; }
 
  private:

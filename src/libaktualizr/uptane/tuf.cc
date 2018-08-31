@@ -13,11 +13,11 @@
 #include "utilities/exceptions.h"
 
 using Uptane::Hash;
+using Uptane::MetaPack;
 using Uptane::Root;
 using Uptane::Target;
 using Uptane::TimeStamp;
 using Uptane::Version;
-using Uptane::MetaPack;
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Version &v) {
   if (v.version_ == Version::ANY_VERSION) {

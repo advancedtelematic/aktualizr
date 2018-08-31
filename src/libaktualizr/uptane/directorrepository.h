@@ -7,7 +7,7 @@ namespace Uptane {
 
 /* Director repository incapsulates state of metadata verification process. Subsequent verificaton steps rely on
  * previous ones.
-*/
+ */
 class DirectorRepository : public RepositoryCommon {
  public:
   DirectorRepository() : RepositoryCommon(RepositoryType::Director) {}
