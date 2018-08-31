@@ -7,7 +7,6 @@
 #include "package_manager/packagemanagerfactory.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
-#include "storage/invstorage.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path sysroot;

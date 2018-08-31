@@ -57,12 +57,18 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
 
 bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::string &name, const OSTreeHash &hash,
                      const std::string &hardwareids) {
-  if (!boost::filesystem::is_directory(boost::filesystem::path("./tuf/aktualizr"))) {
-    std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
-    if (system((init_cmd + push_credentials.GetPathOnDisk().string()).c_str()) != 0) {
-      LOG_ERROR << "Could not initilaize tuf repo for sign";
-      return false;
-    }
+  const boost::filesystem::path local_repo{"./tuf/aktualizr"};
+
+  // OTA-682: Do NOT keep the local tuf directory around in case the user tries
+  // a different set of push credentials.
+  if (boost::filesystem::is_directory(local_repo)) {
+    boost::filesystem::remove(local_repo);
+  }
+
+  std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
+  if (system((init_cmd + push_credentials.GetPathOnDisk().string()).c_str()) != 0) {
+    LOG_ERROR << "Could not initilaize tuf repo for sign";
+    return false;
   }
 
   if (system("garage-sign targets  pull --repo aktualizr") != 0) {
@@ -88,16 +94,17 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
     return false;
   }
 
+  boost::filesystem::remove(local_repo);
   LOG_INFO << "Success";
   return true;
 }
 
 bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref, const std::string &cacerts,
-                 bool dry_run) {
+                 const bool dry_run) {
   if (push_credentials.CanSignOffline()) {
     // In general, this is the wrong thing.  We should be using offline signing
     // if private key material is present in credentials.zip
-    LOG_WARNING << "Pushing by refname when credentials.zip can be used to sign-offline.";
+    LOG_WARNING << "Pushing by refname despite that credentials.zip can be used to sign offline.";
   }
 
   TreehubServer push_server;

@@ -208,7 +208,7 @@ TEST(sqlstorage, DbMigration7to8) {
 
 /**
  * Check that old metadata is still valid
-*/
+ */
 TEST(sqlstorage, migrate_root_works) {
   TemporaryDirectory temp_dir;
   StorageConfig config;

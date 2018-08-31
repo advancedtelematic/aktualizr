@@ -30,9 +30,9 @@ class RateController {
 
  private:
   /**
-    * After sleeping this long and still getting a 500 error, assume the
-    * server has failed permanently
-    */
+   * After sleeping this long and still getting a 500 error, assume the
+   * server has failed permanently
+   */
   static const clock::duration kMaxSleepTime;
 
   /**

@@ -11,8 +11,8 @@
 #include "oauth2.h"
 #include "utilities/utils.h"
 
-using boost::property_tree::json_parser::json_parser_error;
 using boost::property_tree::ptree;
+using boost::property_tree::json_parser::json_parser_error;
 using std::stringstream;
 
 /**
