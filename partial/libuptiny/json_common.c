@@ -1,4 +1,4 @@
-#include "jsmn/jsmn.h"
+#include "jsmn.h"
 
 extern jsmntok_t token_pool[];
 extern const unsigned int token_pool_size;

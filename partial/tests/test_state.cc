@@ -20,6 +20,7 @@ class TestKeyReader {
  private:
   PublicKey public_key;
 };
+crypto_key_t device_pub_key = TestKeyReader(boost::filesystem::path("partial/tests/repo/keys/director/public.key")).getKey();
 crypto_key_t key = TestKeyReader(boost::filesystem::path("partial/tests/repo/keys/director/public.key")).getKey();
 
 crypto_key_t *keys[] = {&key};
@@ -29,6 +30,8 @@ uptane_root_t out_stored_root;
 
 std::unique_ptr<uptane_targets_t> stored_targets;
 uptane_targets_t out_stored_targets;
+
+std::unique_ptr<uptane_installation_state_t> stored_installation_state;
 
 extern "C" {
   uptane_root_t* state_get_root(void) {
@@ -95,5 +98,28 @@ extern "C" {
 
   const char* state_get_hwid(void) {
     return "test_uptane_secondary";
+  }
+
+  crypto_hash_algorithm_t state_get_supported_hash(void) {
+    return CRYPTO_HASH_SHA512;
+  }
+
+  uptane_installation_state_t* state_get_installation_state(void) {
+    return stored_installation_state.get();
+  }
+
+  void state_set_installation_state(const uptane_installation_state_t* state) {
+    stored_installation_state = std_::make_unique<uptane_installation_state_t>();
+
+    memcpy(stored_installation_state->firmware_name, state->firmware_name, sizeof(state->firmware_name));
+    stored_installation_state->firmware_hash = state->firmware_hash;
+    stored_installation_state->firmware_length = state->firmware_length;
+    stored_installation_state->attack = state->attack;
+  }
+
+  void state_get_device_key(const crypto_key_t** pub, const uint8_t** priv) {
+    static std::string private_key = boost::algorithm::unhex(Utils::readFile("partial/tests/repo/keys/director/private.key"));
+    *priv = reinterpret_cast<const uint8_t*>(private_key.c_str());
+    *pub = &device_pub_key;
   }
 }

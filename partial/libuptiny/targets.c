@@ -186,7 +186,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
           continue;
         }
 
-        if (JSON_TOK_LEN(token_pool[idx]) != crypto_get_hashlen(alg) * 2) {
+        if ((size_t)JSON_TOK_LEN(token_pool[idx]) != crypto_get_hashlen(alg) * 2) {
           DEBUG_PRINTF("Invalid hash length: %d when %d expected\n", JSON_TOK_LEN(token_pool[idx]),
                        crypto_get_hashlen(alg));
           return PARSE_TARGET_ERROR;
@@ -275,7 +275,7 @@ static inline size_t consumed_chars_nonewtoken(const char *message, size_t len) 
 
 // prepare jsmn parser to a new jsmn_parse round. It might be in a broken state because some characters were fed to
 // jsmn_parse, but not really consumed by uptane_parse_targets_feed
-static void prepare_primary_parser() {
+static void prepare_primary_parser(void) {
   parser.pos = 0;
   parser.toknext = token_pos;
 
@@ -611,7 +611,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
   if (has_signed_begun) {
     in_signed = true;
     for (unsigned int i = 0; i < num_signatures; i++) {
-      crypto_verify_init(&crypto_ctx_pool[i], &signature_pool[i]);
+      crypto_verify_init(crypto_ctx_pool[i], &signature_pool[i]);
     }
   }
 
@@ -630,7 +630,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
     }
 
     for (unsigned int i = 0; i < num_signatures; i++) {
-      crypto_verify_feed(&crypto_ctx_pool[i], (const uint8_t *)message + first_signed, last_signed - first_signed);
+      crypto_verify_feed(crypto_ctx_pool[i], (const uint8_t *)message + first_signed, last_signed - first_signed);
     }
   }
 
@@ -638,7 +638,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
     in_signed = false;
     int num_valid_signatures = 0;
     for (unsigned int i = 0; i < num_signatures; i++) {
-      if (crypto_verify_result(&crypto_ctx_pool[i])) {
+      if (crypto_verify_result(crypto_ctx_pool[i])) {
         ++num_valid_signatures;
       } else {
         DEBUG_PRINTF("Signature verification failed for signature %d\n", i);

@@ -2,7 +2,7 @@
 #include "common_data_api.h"
 #include "crypto_common.h"
 #include "debug.h"
-#include "jsmn/jsmn.h"
+#include "jsmn.h"
 #include "json_common.h"
 #include "utils.h"
 
