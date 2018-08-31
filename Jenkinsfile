@@ -152,7 +152,9 @@ pipeline {
                '''
             // test package installation in another docker
             sh 'scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
-            sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
+            // FIXME: this can only run under xenial, because we use a static
+            // .deb inside the repo
+            // sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
           }
           post {
             always {
