@@ -561,7 +561,7 @@ TEST(Uptane, FetchDownloadInstall) {
   size_t counter = 0;
   while (num_events_FetchDownloadInstall < 8) {
     sleep(1);
-    ASSERT_LT(++counter, 10);
+    ASSERT_LT(++counter, 20);
   }
 
   Json::Value manifest = up->AssembleManifest();
