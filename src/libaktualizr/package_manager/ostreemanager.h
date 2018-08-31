@@ -5,7 +5,7 @@
 #include <string>
 
 #include <glib/gi18n.h>
-#include <ostree-1/ostree.h>
+#include <ostree.h>
 
 #include "crypto/keymanager.h"
 #include "packagemanagerconfig.h"

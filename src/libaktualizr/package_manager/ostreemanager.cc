@@ -6,7 +6,7 @@
 
 #include <gio/gio.h>
 #include <json/json.h>
-#include <ostree-1/ostree-async-progress.h>
+#include <ostree-async-progress.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
