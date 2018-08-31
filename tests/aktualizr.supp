@@ -8,24 +8,6 @@
    ...
 }
 {
-   ignore_externa_libs_Cond
-   Memcheck:Cond
-   ...
-   obj:*/lib/*/*
-}
-{
-   ignore_externa_libs_Addr4
-   Memcheck:Addr4
-   ...
-   obj:*/lib/*/*
-}
-{
-   ignore_externa_libs_Value4
-   Memcheck:Value4
-   ...
-   obj:*/lib/*/*
-}
-{
    boost 1.66.0 unique_path
    Memcheck:Cond
    ...
