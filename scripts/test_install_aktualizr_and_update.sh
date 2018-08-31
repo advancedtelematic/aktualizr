@@ -4,7 +4,7 @@ set -exuo pipefail
 
 /persistent/selfupdate_server.py 8000&
 
-dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb
+dpkg-deb -I /persistent/aktualizr*.deb && dpkg -i /persistent/aktualizr*.deb
 akt_version=$(aktualizr --version)
 (grep "$(cat /persistent/aktualizr-version)" <<< "$akt_version") || (echo "$akt_version"; false)
 

@@ -2,7 +2,7 @@
 
 set -exuo pipefail
 
-dpkg-deb -I /persistent/aktualizr.deb && dpkg -i /persistent/aktualizr.deb
+dpkg-deb -I /persistent/aktualizr*.deb && dpkg -i /persistent/aktualizr*.deb
 
 export PATH=${PATH}:/persistent
 

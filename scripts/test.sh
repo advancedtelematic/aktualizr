@@ -24,13 +24,15 @@ TEST_WITH_LOAD_TESTS=${TEST_WITH_LOAD_TESTS:-0}
 TEST_CC=${TEST_CC:-gcc}
 TEST_CMAKE_BUILD_TYPE=${TEST_CMAKE_BUILD_TYPE:-Valgrind}
 TEST_INSTALL_DESTDIR=${TEST_INSTALL_DESTDIR:-/persistent}
+TEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME:-}
 TEST_SOTA_PACKED_CREDENTIALS=${TEST_SOTA_PACKED_CREDENTIALS:-}
 TEST_DRYRUN=${TEST_DRYRUN:-0}
 TEST_PARALLEL_LEVEL=${TEST_PARALLEL_LEVEL:-6}
 TEST_TESTSUITE_ONLY=${TEST_TESTSUITE_ONLY:-}
 TEST_TESTSUITE_EXCLUDE=${TEST_TESTSUITE_EXCLUDE:-}
 TEST_PKCS11_MODULE_PATH=${TEST_PKCS11_MODULE_PATH:-/usr/lib/softhsm/libsofthsm2.so}
-TEST_PKCS11_ENGINE_PATH=${TEST_PKCS11_ENGINE_PATH:-/usr/lib/engines/engine_pkcs11.so}
+# note: on Ubuntu bionic, use /usr/lib/engines/engine_pkcs11.so on xenial
+TEST_PKCS11_ENGINE_PATH=${TEST_PKCS11_ENGINE_PATH:-/usr/lib/x86_64-linux-gnu/engines-1.1/libpkcs11.so}
 
 # Build CMake arguments
 CMAKE_ARGS=()
@@ -142,10 +144,10 @@ if [[ $TEST_WITH_INSTALL_DEB_PACKAGES = 1 ]]; then
         run_make package || add_failure "make package"
 
         # install garage-deploy
-        cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}/garage_deploy.deb"
+        cp ./*garage_deploy.deb "${TEST_INSTALL_DESTDIR}/garage_deploy${TEST_INSTALL_RELEASE_NAME}.deb"
 
         # install aktualizr.deb
-        cp ./*aktualizr.deb "${TEST_INSTALL_DESTDIR}/aktualizr.deb"
+        cp ./*aktualizr.deb "${TEST_INSTALL_DESTDIR}/aktualizr${TEST_INSTALL_RELEASE_NAME}.deb"
         set +x
     fi
 fi

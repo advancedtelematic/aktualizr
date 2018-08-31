@@ -50,7 +50,7 @@ pipeline {
         stage('coverage') {
           agent {
             dockerfile {
-              filename 'docker/Dockerfile.ubuntu.xenial'
+              filename 'docker/Dockerfile.ubuntu.bionic'
             }
           }
           environment {
@@ -87,7 +87,7 @@ pipeline {
         stage('nop11') {
           agent {
             dockerfile {
-              filename 'docker/Dockerfile.ubuntu.xenial'
+              filename 'docker/Dockerfile.ubuntu.bionic'
             }
           }
           environment {
@@ -99,15 +99,15 @@ pipeline {
             sh 'scripts/test.sh'
           }
         }
-        // run crypto tests with Openssl 1.1
-        stage('openssl11') {
+        // run crypto and static tests on debian testing (with clang)
+        stage('debian-testing') {
           agent {
             dockerfile {
               filename 'docker/Dockerfile.debian.testing'
             }
           }
           environment {
-            TEST_BUILD_DIR = 'build-openssl11'
+            TEST_BUILD_DIR = 'build-debian-testing'
             TEST_CC = 'clang'
             // should run with valgrind but some leaks are still unfixed
             // TEST_CMAKE_BUILD_TYPE = 'Valgrind'
@@ -128,31 +128,63 @@ pipeline {
                     [$class: 'SkippedThreshold', failureThreshold: '1'],
                     [$class: 'FailedThreshold', failureThreshold: '1']
                   ],
-                  tools: [[$class: 'CTestType', pattern: 'build-openssl11/**/Test.xml']]])
+                  tools: [[$class: 'CTestType', pattern: 'build-debian-testing/**/Test.xml']]])
             }
           }
         }
         // build and test aktualizr.deb and garage_deploy.deb
-        stage('debian_pkg') {
+        stage('bionic_pkg') {
           agent any
           environment {
-            TEST_INSTALL_DESTDIR = "${env.WORKSPACE}/build-ubuntu/pkg"
+            DOCKERFILE = 'docker/Dockerfile.ubuntu.bionic'
+            INSTALL_DOCKERFILE = 'docker/Dockerfile-test-install.ubuntu.bionic'
+            TEST_BUILD_DIR = 'build-bionic'
+            TEST_INSTALL_RELEASE_NAME = '-ubuntu_18.04'
+            TEST_INSTALL_DESTDIR = "${env.WORKSPACE}/build-bionic/pkg"
           }
           steps {
             // build package inside docker
             sh '''
                IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
                mkdir -p ${TEST_INSTALL_DESTDIR}
-               docker build -t ${IMG_TAG} -f docker/Dockerfile.ubuntu.xenial .
-               docker run -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
+               docker build -t ${IMG_TAG} -f ${DOCKERFILE} .
+               docker run -eTEST_BUILD_DIR=${TEST_BUILD_DIR} -eTEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME} -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
                '''
             // test package installation in another docker
-            sh 'scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR}'
-            sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR}'
+            sh 'scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
+            sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
           }
           post {
             always {
-              archiveArtifacts artifacts: "build-ubuntu/pkg/*.deb", fingerprint: true
+              archiveArtifacts artifacts: "build-bionic/pkg/*.deb", fingerprint: true
+            }
+          }
+        }
+        // build and test aktualizr.deb and garage_deploy.deb
+        stage('xenial_pkg') {
+          agent any
+          environment {
+            DOCKERFILE = 'docker/Dockerfile.ubuntu.xenial'
+            INSTALL_DOCKERFILE = 'docker/Dockerfile-test-install.ubuntu.xenial'
+            TEST_BUILD_DIR = 'build-xenial'
+            TEST_INSTALL_RELEASE_NAME = '-ubuntu_16.04'
+            TEST_INSTALL_DESTDIR = "${env.WORKSPACE}/build-xenial/pkg"
+          }
+          steps {
+            // build package inside docker
+            sh '''
+               IMG_TAG=deb-$(cat /proc/sys/kernel/random/uuid)
+               mkdir -p ${TEST_INSTALL_DESTDIR}
+               docker build -t ${IMG_TAG} -f ${DOCKERFILE} .
+               docker run -eTEST_BUILD_DIR=${TEST_BUILD_DIR} -eTEST_INSTALL_RELEASE_NAME=${TEST_INSTALL_RELEASE_NAME} -u $(id -u):$(id -g) -v $PWD:$PWD -v ${TEST_INSTALL_DESTDIR}:/persistent -w $PWD --rm ${IMG_TAG} $PWD/scripts/build_ubuntu.sh
+               '''
+            // test package installation in another docker
+            sh 'scripts/test_garage_deploy_deb.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
+            sh 'scripts/test_aktualizr_deb_ubuntu.sh ${TEST_INSTALL_DESTDIR} ${INSTALL_DOCKERFILE}'
+          }
+          post {
+            always {
+              archiveArtifacts artifacts: "build-xenial/pkg/*.deb", fingerprint: true
             }
           }
         }
