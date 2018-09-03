@@ -10,8 +10,8 @@ env:
   DARGS="-eTEST_CMAKE_BUILD_TYPE=Valgrind -eTEST_WITH_COVERAGE=1 -eTEST_WITH_P11=1 -eTEST_SOTA_PACKED_CREDENTIALS=/aktualizr/src/tests/test_data/credentials_ci.zip"
 - DOCKERFILE=docker/Dockerfile.debian.testing CACHE=latest-deb-unstable SCRIPT=src/scripts/test.sh
   DARGS="-eTEST_CC=clang -eTEST_WITH_LOAD_TESTS=1 -eTEST_WITH_TESTSUITE=0 -eTEST_WITH_STATICTESTS=1 -eTEST_WITH_OPCUA=1"
-- DEPLOY_PKGS=1 RELEASE_NAME='ubuntu_18.04' DOCKERFILE=docker/Dockerfile.ubuntu.bionic INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.bionic CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME='-ubuntu_18.04'"
-- DEPLOY_PKGS=1 RELEASE_NAME='ubuntu_16.04' DOCKERFILE=docker/Dockerfile.ubuntu.xenial INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.xenial CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME='-ubuntu_16.04'"
+- DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_18.04 DOCKERFILE=docker/Dockerfile.ubuntu.bionic INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.bionic CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_18.04"
+- DEPLOY_PKGS=1 RELEASE_NAME=ubuntu_16.04 DOCKERFILE=docker/Dockerfile.ubuntu.xenial INSTALL_DOCKERFILE=docker/Dockerfile-test-install.ubuntu.xenial CACHE=latest SCRIPT=src/scripts/build_ubuntu.sh DARGS="-eTEST_INSTALL_RELEASE_NAME=-ubuntu_16.04"
 services:
 - docker
 script:
@@ -22,7 +22,7 @@ script:
 - docker run -v /persistent:/persistent $ci_env $DARGS --name "$CACHE" -it advancedtelematic/aktualizr
   ${SCRIPT}
 - if [[ $DEPLOY_PKGS = 1 ]]; then ./scripts/test_garage_deploy_deb.sh /persistent "${INSTALL_DOCKERFILE}"; fi
-- if [[ $RELEASE_NAME = '-ubuntu_16.04' ]]; then ./scripts/test_aktualizr_deb_ubuntu.sh /persistent "${INSTALL_DOCKERFILE}"; fi
+- if [[ $RELEASE_NAME = ubuntu_16.04 ]]; then ./scripts/test_aktualizr_deb_ubuntu.sh /persistent "${INSTALL_DOCKERFILE}"; fi
 deploy:
         - provider: releases
           file: /persistent/garage_deploy-ubuntu_18.04.deb
