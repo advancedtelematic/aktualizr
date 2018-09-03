@@ -182,7 +182,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
   http_response_.str("");                                 // Empty the response buffer
 
-  CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
+  const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "err:" << curl_multi_strerror(err);
   }
@@ -206,7 +206,6 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   }
   curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
-  // TODO: error checking
   push_target.InjectIntoCurl(Url(), curl_handle_);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
   curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
@@ -214,16 +213,21 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
 
   assert(form_post_ == nullptr);
   struct curl_httppost *last_item = nullptr;
-  curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
+  const CURLFORMcode form_err =
+      curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
+  if (form_err != 0u) {
+    // Apparently there is not strerror for formadd.
+    LOG_ERROR << "curl_formadd error: " << form_err;
+  }
   curl_easy_setopt(curl_handle_, CURLOPT_POST, 1);
-  CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
+  const CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
   if (e != 0u) {
     LOG_ERROR << "curl_easy_setopt error: " << curl_easy_strerror(e);
   }
 
   curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
 
-  CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
+  const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
   }

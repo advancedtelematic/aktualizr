@@ -9,8 +9,10 @@ const RateController::clock::duration RateController::kMaxSleepTime = std::chron
 
 const RateController::clock::duration RateController::kInitialSleepTime = std::chrono::seconds(1);
 
-RateController::RateController(int concurrency_cap) : concurrency_cap_(concurrency_cap) { CheckInvariants(); }
-void RateController::RequestCompleted(clock::time_point start_time, clock::time_point end_time, bool succeeded) {
+RateController::RateController(const int concurrency_cap) : concurrency_cap_(concurrency_cap) { CheckInvariants(); }
+
+void RateController::RequestCompleted(const clock::time_point start_time, const clock::time_point end_time,
+                                      const bool succeeded) {
   if (last_concurrency_update_ < start_time) {
     last_concurrency_update_ = end_time;
     if (succeeded) {
