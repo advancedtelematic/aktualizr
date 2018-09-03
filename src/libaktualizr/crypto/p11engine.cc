@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "crypto/crypto.h"
 #include "utilities/config_utils.h"
 #include "utilities/utils.h"
 
@@ -208,18 +209,24 @@ bool P11Engine::generateUptaneKeyPair() {
   std::vector<unsigned char> id_hex;
   boost::algorithm::unhex(config_.uptane_key_id, std::back_inserter(id_hex));
 
-// PKCS11_generate_key() is deprecated in some versions of libp11, but has
-// been re-instated as of commit b1edde63c1738cd321793d04a7ed7cbd357c9f90 on
-// Oct 19th 2017
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  if (PKCS11_generate_key(slot->token, EVP_PKEY_RSA, 2048, nullptr, id_hex.data(),
-                          (config_.uptane_key_id.length() / 2)) != 0) {
-    LOG_ERROR << "Error of generating keypair on the device:" << ERR_error_string(ERR_get_error(), nullptr);
-
+  // Manually generate a key and store it on the HSM
+  // Note that libp11 has a dedicated function marked as deprecated, it
+  // worked the same way in version <= 0.4.7 but tries to generate the
+  // RSA key directly on the HSM from 0.4.8. As it would not work reliably
+  // with openssl 1.1, we reimplemented it here.
+  StructGuard<EVP_PKEY> pkey = Crypto::generateRSAKeyPairEVP(KeyType::kRSA2048);
+  if (pkey == nullptr) {
+    LOG_ERROR << "Error generating keypair on the device:" << ERR_error_string(ERR_get_error(), nullptr);
     return false;
   }
-#pragma GCC diagnostic pop
+
+  if (PKCS11_store_private_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    return false;
+  }
+  if (PKCS11_store_public_key(slot->token, pkey.get(), nullptr, id_hex.data(), id_hex.size()) != 0) {
+    return false;
+  }
+
   return true;
 }
 

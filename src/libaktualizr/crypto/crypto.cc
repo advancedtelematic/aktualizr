@@ -320,15 +320,7 @@ bool Crypto::extractSubjectCN(const std::string &cert, std::string *cn) {
   return true;
 }
 
-/**
- * Generate a RSA keypair
- * @param key_type Algorithm used to generate the key
- * @param public_key Generated public part of key
- * @param private_key Generated private part of key
- * @return true if the keys are present at the end of this function (either they were created or existed already)
- *         false if key generation failed
- */
-bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
+StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
   int bits;
   switch (key_type) {
     case KeyType::kRSA2048:
@@ -341,9 +333,8 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
       bits = 4096;
       break;
     default:
-      return false;
+      return {nullptr, EVP_PKEY_free};
   }
-  int ret = 0;
 
 #if AKTUALIZR_OPENSSL_PRE_11
   StructGuard<RSA> rsa(RSA_generate_key(bits,    /* number of bits for the key - 2048 is a sensible value */
@@ -353,10 +344,11 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
                                         ),
                        RSA_free);
 #else
+  int ret;
   StructGuard<BIGNUM> bne(BN_new(), BN_free);
   ret = BN_set_word(bne.get(), RSA_F4);
   if (ret != 1) {
-    return false;
+    return {nullptr, EVP_PKEY_free};
   }
   StructGuard<RSA> rsa(RSA_new(), RSA_free);
   ret = RSA_generate_key_ex(rsa.get(), bits, /* number of bits for the key - 2048 is a sensible value */
@@ -364,13 +356,28 @@ bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::
                             nullptr          /* callback argument - not needed in this case */
                             );
   if (ret != 1) {
-    return false;
+    return {nullptr, EVP_PKEY_free};
   }
 #endif
 
   StructGuard<EVP_PKEY> pkey(EVP_PKEY_new(), EVP_PKEY_free);
   // release the rsa pointer here, pkey is the new owner
   EVP_PKEY_assign_RSA(pkey.get(), rsa.release());  // NOLINT
+  return pkey;
+}
+
+/**
+ * Generate a RSA keypair
+ * @param key_type Algorithm used to generate the key
+ * @param public_key Generated public part of key
+ * @param private_key Generated private part of key
+ * @return true if the keys are present at the end of this function (either they were created or existed already)
+ *         false if key generation failed
+ */
+bool Crypto::generateRSAKeyPair(KeyType key_type, std::string *public_key, std::string *private_key) {
+  int ret = 0;
+  StructGuard<EVP_PKEY> pkey = generateRSAKeyPairEVP(key_type);
+
   char *pubkey_buf;
   StructGuard<BIO> pubkey_sink(BIO_new(BIO_s_mem()), BIO_vfree);
   if (pubkey_sink == nullptr) {

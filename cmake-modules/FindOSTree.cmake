@@ -9,12 +9,12 @@
 # OSTree
 find_path(LIBOSTREE_INCLUDE_DIR
     NAMES ostree.h
-    HINTS ${OSTREE_DIR}
+    HINTS ${OSTREE_DIR}/include
     PATH_SUFFIXES ostree-1 src/libostree)
 
 find_library(LIBOSTREE_LIBRARY
     NAMES libostree-1.so
-    HINTS ${OSTREE_DIR}
+    HINTS ${OSTREE_DIR}/lib
     PATH_SUFFIXES /.libs)
 
 message("libostree headers path: ${LIBOSTREE_INCLUDE_DIR}")

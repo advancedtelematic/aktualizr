@@ -1,25 +1,4 @@
 {
-   gobject Static Type initialization
-   Memcheck:Leak
-   ...
-   fun:g_type_register_static
-   ...
-}
-{
-   gobject Static Type initialization
-   Memcheck:Leak
-   ...
-   fun:g_type_register_fundamental
-   ...
-}
-{
-   gobject Static Interface initialization
-   Memcheck:Leak
-   ...
-   fun:g_type_add_interface_static
-   ...
-}
-{
    gobject _dl_init
    Memcheck:Leak
    fun:calloc
@@ -27,24 +6,6 @@
    ...
    fun:_dl_init
    ...
-}
-{
-   ignore_externa_libs_Cond
-   Memcheck:Cond
-   ...
-   obj:*/lib/*/*
-}
-{
-   ignore_externa_libs_Addr4
-   Memcheck:Addr4
-   ...
-   obj:*/lib/*/*
-}
-{
-   ignore_externa_libs_Value4
-   Memcheck:Value4
-   ...
-   obj:*/lib/*/*
 }
 {
    boost 1.66.0 unique_path
@@ -63,18 +24,6 @@
    ...
 }
 {
-    glib
-    Memcheck:Leak
-    ...
-    obj:/lib/x86_64-linux-gnu/libglib-2.0.so*
-}
-{
-    gio
-    Memcheck:Leak
-    ...
-    obj:/usr/lib/x86_64-linux-gnu/libgio-2.0.so*
-}
-{
     openssl softhsm leak (https://github.com/opendnssec/SoftHSMv2/issues/133)
     Memcheck:Leak
     ...
@@ -85,8 +34,24 @@
     openssl ENGINE_load_private_key (FIXME!)
     Memcheck:Leak
     ...
-    fun:CRYPTO_malloc
-    ...
     fun:ENGINE_load_private_key
+    ...
+}
+{
+    libp11 RSA leak with Openssl 1.1 (https://github.com/OpenSC/libp11/pull/246)
+    Memcheck:Leak
+    ...
+    fun:RSA_new_method
+    ...
+    fun:_ZN9P11Engine21generateUptaneKeyPairEv
+    ...
+}
+{
+    ostree leak in curl fetcher (https://github.com/ostreedev/ostree/pull/1716)
+    Memcheck:Leak
+    ...
+    fun:reinitialize_fetcher
+    ...
+    fun:ostree_repo_pull_with_options
     ...
 }

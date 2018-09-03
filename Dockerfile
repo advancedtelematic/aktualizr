@@ -1,1 +1,1 @@
-docker/Dockerfile.ubuntu.xenial
+docker/Dockerfile.ubuntu.bionic

@@ -5,5 +5,6 @@
     --num-callers=25 \
     --show-possibly-lost=yes \
     --errors-for-leak-kinds=definite \
+    "--suppressions=@PROJECT_SOURCE_DIR@/tests/glib.supp" \
     "--suppressions=@PROJECT_SOURCE_DIR@/tests/aktualizr.supp" \
     "$@"
