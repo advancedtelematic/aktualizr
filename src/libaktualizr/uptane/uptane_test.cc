@@ -406,6 +406,11 @@ TEST(Uptane, AssembleManifestGood) {
 
   Json::Value manifest = sota_client->AssembleManifest();
   EXPECT_EQ(manifest.size(), 2);
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"].asString(), config.provision.primary_ecu_serial);
+  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["ecu_serial"].asString(), "secondary_ecu_serial");
+  // Manifest should not have an installation result yet.
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
+  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
 TEST(Uptane, AssembleManifestBad) {
@@ -434,14 +439,15 @@ TEST(Uptane, AssembleManifestBad) {
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_public_key, public_key);
 
   auto storage = INvStorage::newStorage(config.storage);
-
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
 
   Json::Value manifest = sota_client->AssembleManifest();
-
   EXPECT_EQ(manifest.size(), 1);
   EXPECT_EQ(manifest["testecuserial"]["signed"]["ecu_serial"].asString(), config.provision.primary_ecu_serial);
+  // Manifest should not have an installation result yet.
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
+  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
 TEST(Uptane, PutManifest) {
@@ -546,6 +552,11 @@ void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>
   ++num_events_FetchDownloadInstall;
 }
 
+/*
+ * Using automatic control, test that pre-made updates are successfully
+ * downloaded and installed for both primary and secondary. Verify the exact
+ * sequence of expected events.
+ */
 TEST(Uptane, FetchDownloadInstall) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -581,7 +592,16 @@ TEST(Uptane, FetchDownloadInstall) {
   }
 
   Json::Value manifest = up->AssembleManifest();
-  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
+  // Make sure operation_result and filepath were correctly written and formatted.
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(),
+            "primary_firmware.txt");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
+            static_cast<int>(data::UpdateResultCode::kOk));
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
+            "Installing fake package was successful");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "primary_firmware.txt");
+  // Manifest should not have an installation result for the secondary.
+  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
 std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
@@ -595,7 +615,11 @@ std::vector<Uptane::Target> makePackage(const std::string& serial, const std::st
   return packages_to_install;
 }
 
-TEST(Uptane, Install) {
+/*
+ * Verify successful installation of a provided fake package. Skip fetching and
+ * downloading.
+ */
+TEST(Uptane, InstallOnly) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
