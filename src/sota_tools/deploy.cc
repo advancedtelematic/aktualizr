@@ -9,6 +9,7 @@
 #include "rate_controller.h"
 #include "request_pool.h"
 #include "treehub_server.h"
+#include "utilities/utils.h"
 
 bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
                      const OSTreeHash &ostree_commit, const std::string &cacerts, const bool dryrun,
@@ -116,7 +117,7 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
 
   if (!dry_run) {
     CurlEasyWrapper easy_handle;
-    curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+    curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
     ref.PushRef(push_server, easy_handle.get());
     CURLcode err = curl_easy_perform(easy_handle.get());
     if (err != 0u) {

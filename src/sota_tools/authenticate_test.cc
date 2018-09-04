@@ -8,6 +8,7 @@
 #include "server_credentials.h"
 #include "test_utils.h"
 #include "treehub_server.h"
+#include "utilities/utils.h"
 
 TEST(authenticate, good_zip) {
   boost::filesystem::path filepath = "sota_tools/auth_test_good.zip";
@@ -22,7 +23,7 @@ TEST(authenticate, good_cert_zip) {
   int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
-  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, 1);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
   treehub.InjectIntoCurl("test.txt", curl_handle.get());
   CURLcode rc = curl_easy_perform(curl_handle.get());
 
@@ -35,7 +36,7 @@ TEST(authenticate, good_cert_noauth_zip) {
   int r = authenticate("fake_http_server/client.crt", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
-  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, 1);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
   treehub.InjectIntoCurl("test.txt", curl_handle.get());
   CURLcode rc = curl_easy_perform(curl_handle.get());
 
@@ -48,7 +49,7 @@ TEST(authenticate, bad_cert_zip) {
   int r = authenticate("", ServerCredentials(filepath), treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
-  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, 1);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
   treehub.InjectIntoCurl("test.txt", curl_handle.get());
   CURLcode rc = curl_easy_perform(curl_handle.get());
 

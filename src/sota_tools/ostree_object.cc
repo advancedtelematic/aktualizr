@@ -172,16 +172,16 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }
-  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
 
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
 
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
-  http_response_.str("");                                 // Empty the response buffer
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
+  http_response_.str("");                                      // Empty the response buffer
 
   const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
@@ -205,11 +205,11 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }
-  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
   http_response_.str("");  // Empty the response buffer
 
   assert(form_post_ == nullptr);
@@ -220,13 +220,10 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
     // Apparently there is not strerror for formadd.
     LOG_ERROR << "curl_formadd error: " << form_err;
   }
-  curl_easy_setopt(curl_handle_, CURLOPT_POST, 1);
-  const CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
-  if (e != 0u) {
-    LOG_ERROR << "curl_easy_setopt error: " << curl_easy_strerror(e);
-  }
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_POST, 1);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_HTTPPOST, form_post_);
 
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
 
   const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
