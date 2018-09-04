@@ -505,18 +505,34 @@ void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>
     case 2:
       EXPECT_EQ(event->variant, "DownloadComplete");
       break;
-    case 3:
+    case 3: {
+      // Primary always gets installed first. (Not a requirement, just how it
+      // works at present.)
       EXPECT_EQ(event->variant, "InstallStarted");
+      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+      EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
-    case 4:
+    }
+    case 4: {
+      // Primary should complete before secondary begins. (Again not a
+      // requirement per se.)
       EXPECT_EQ(event->variant, "InstallComplete");
+      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
-    case 5:
+    }
+    case 5: {
       EXPECT_EQ(event->variant, "InstallStarted");
+      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+      EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
-    case 6:
+    }
+    case 6: {
       EXPECT_EQ(event->variant, "InstallComplete");
+      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       break;
+    }
     case 7:
       EXPECT_EQ(event->variant, "PutManifestComplete");
       break;
