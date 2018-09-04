@@ -27,7 +27,7 @@ Returns a list of the ECUs that are attached to the system. Each line starts wit
   <hardware-id[2]>
   ...
 
-Hardware IDs are used by Uptane to check if a firmware image is suitable for the particular device, so the hardware ID specified for your image in https://www.atsgarage.com/[ATS Garage] should exactly match what is returned by the flasher.
+Hardware IDs are used by Uptane to check if a firmware image is suitable for the particular device, so the hardware ID specified for your image in https://docs.atsgarage.com/[OTA Connect] should exactly match what is returned by the flasher.
 
 The ECU serial uniquely identifies an ECU in the Uptane repository, so it should be unique globally, not just within the vehicle scope. If a serial is not provided for an entry, a unique serial is generated randomly by the primary for that entry.
 
@@ -74,7 +74,7 @@ The flasher may ignore this option.
 
 == Integration with aktualizr
 
-The aktualizr update client has a `--legacy-interface /path/to/example-flasher` command line option which will make all the ECUs reported by the `list-ecus` command available to the aktualizr and https://www.atsgarage.com/[ATS Garage].
+Aktualizr has a `--legacy-interface /path/to/example-flasher` command line option which will make all the ECUs reported by the `list-ecus` command available to the aktualizr and https://docs.atsgarage.com/[OTA Connect].
 
 In most cases you will want to build your Uptane-enabled system using the https://github.com/advancedtelematic/meta-updater[meta-updater] Yocto layer. Please read the documentation listed in the README for general information about building with meta-updater. Adding support for legacy secondaries requires two more things to do:
 
