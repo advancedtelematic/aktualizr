@@ -31,12 +31,12 @@
 boost::filesystem::path sysroot;
 
 Uptane::SecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirectory& temp_dir,
-                                            const std::string& hw_id) {
+                                            const std::string& serial, const std::string& hw_id) {
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
   ecu_config.full_client_dir = temp_dir.Path();
-  ecu_config.ecu_serial = "secondary_ecu_serial";
+  ecu_config.ecu_serial = serial;
   ecu_config.ecu_hardware_id = hw_id;
   ecu_config.ecu_private_key = "sec.priv";
   ecu_config.ecu_public_key = "sec.pub";
@@ -45,6 +45,17 @@ Uptane::SecondaryConfig addDefaultSecondary(Config& config, const TemporaryDirec
   ecu_config.metadata_path = temp_dir / "secondary_metadata";
   config.uptane.secondary_configs.push_back(ecu_config);
   return ecu_config;
+}
+
+std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
+  std::vector<Uptane::Target> packages_to_install;
+  Json::Value ot_json;
+  ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
+  ot_json["custom"]["targetFormat"] = "OSTREE";
+  ot_json["length"] = 0;
+  ot_json["hashes"]["sha256"] = serial;
+  packages_to_install.emplace_back(serial, ot_json);
+  return packages_to_install;
 }
 
 TEST(Uptane, Verify) {
@@ -148,7 +159,7 @@ TEST(Uptane, AssembleManifestGood) {
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = PackageManager::kNone;
-  addDefaultSecondary(config, temp_dir, "secondary_hardware");
+  addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
@@ -180,7 +191,8 @@ TEST(Uptane, AssembleManifestBad) {
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = PackageManager::kNone;
-  Uptane::SecondaryConfig ecu_config = addDefaultSecondary(config, temp_dir, "secondary_hardware");
+  Uptane::SecondaryConfig ecu_config =
+      addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   std::string private_key, public_key;
   Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key);
@@ -217,7 +229,7 @@ TEST(Uptane, PutManifest) {
   config.uptane.repo_server = http->tls_server + "/repo";
   config.provision.primary_ecu_serial = "testecuserial";
   config.pacman.type = PackageManager::kNone;
-  addDefaultSecondary(config, temp_dir, "secondary_hardware");
+  addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
 
@@ -323,7 +335,7 @@ TEST(Uptane, FetchDownloadInstall) {
   conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.pacman.sysroot = sysroot;
   conf.tls.server = http->tls_server;
-  addDefaultSecondary(conf, temp_dir, "secondary_hw");
+  addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
 
   std::shared_ptr<event::Channel> sig =
       std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
@@ -354,17 +366,6 @@ TEST(Uptane, FetchDownloadInstall) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
-std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
-  std::vector<Uptane::Target> packages_to_install;
-  Json::Value ot_json;
-  ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
-  ot_json["custom"]["targetFormat"] = "OSTREE";
-  ot_json["length"] = 0;
-  ot_json["hashes"]["sha256"] = serial;
-  packages_to_install.emplace_back(serial, ot_json);
-  return packages_to_install;
-}
-
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
@@ -377,7 +378,6 @@ TEST(Uptane, InstallOnly) {
   conf.provision.primary_ecu_hardware_id = "testecuhwid";
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
-  conf.uptane.polling_sec = 1;
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = BasedPath("private.key");
   conf.storage.uptane_public_key_path = BasedPath("public.key");
@@ -398,6 +398,8 @@ TEST(Uptane, InstallOnly) {
   EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
             "Installing fake package was successful");
   EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
+  // Manifest should not have an installation result for the secondary.
+  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
@@ -415,7 +417,7 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.storage.uptane_private_key_path = BasedPath("private.key");
   config.storage.uptane_public_key_path = BasedPath("public.key");
   config.pacman.type = PackageManager::kNone;
-  addDefaultSecondary(config, temp_dir, "secondary_hardware");
+  addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
@@ -427,6 +429,72 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_EQ(ecu_data["ecus"][1]["hardware_identifier"].asString(), "secondary_hardware");
   EXPECT_EQ(ecu_data["ecus"][1]["clientKey"]["keytype"].asString(), "RSA");
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
+}
+
+bool success_InstallMultipleSecondaries = false;
+int started_InstallMultipleSecondaries = 0;
+int complete_InstallMultipleSecondaries = 0;
+void process_events_InstallMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "InstallStarted") {
+    ++started_InstallMultipleSecondaries;
+  } else if (event->variant == "InstallComplete") {
+    ++complete_InstallMultipleSecondaries;
+  } else if (event->variant == "PutManifestComplete") {
+    success_InstallMultipleSecondaries = true;
+  }
+}
+
+/*
+ * Verify successful installation of provided fake packages on multiple
+ * secondaries. Skip fetching and downloading.
+ */
+TEST(Uptane, InstallMultipleSecondaries) {
+  Config conf("tests/config/basic.toml");
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  conf.provision.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_hardware_id = "testecuhwid";
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
+  conf.storage.path = temp_dir.Path();
+  conf.storage.uptane_private_key_path = BasedPath("private.key");
+  conf.storage.uptane_public_key_path = BasedPath("public.key");
+  conf.pacman.sysroot = sysroot;
+  conf.tls.server = http->tls_server;
+  // kOnce or kFull is required to use the installationComplete event handler.
+  conf.uptane.running_mode = RunningMode::kOnce;
+
+  TemporaryDirectory temp_dir2;
+  addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
+  addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
+
+  std::shared_ptr<event::Channel> sig =
+      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallMultipleSecondaries;
+  sig->connect(f_cb);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  up->pending_ecus = 2;  // Hack!
+  EXPECT_NO_THROW(up->initialize());
+  std::vector<Uptane::Target> packages_to_install = makePackage("sec_serial1", "sec_hwid1");
+  std::vector<Uptane::Target> more_packages = makePackage("sec_serial2", "sec_hwid2");
+  packages_to_install.insert(packages_to_install.end(), more_packages.begin(), more_packages.end());
+  up->uptaneInstall(packages_to_install);
+
+  size_t counter = 0;
+  while (!success_InstallMultipleSecondaries) {
+    sleep(1);
+    ASSERT_LT(++counter, 20);
+  }
+
+  EXPECT_EQ(started_InstallMultipleSecondaries, 2);
+  EXPECT_EQ(complete_InstallMultipleSecondaries, 2);
+  // Manifest should not have an installation result for the primary.
+  // Don't bother checking installation result from secondaries because we
+  // didn't bother making valid metadata for the packages.
+  Json::Value manifest = up->AssembleManifest();
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
 /**
@@ -445,7 +513,6 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.device_id = "tst149_device_id";
   config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.provision.primary_ecu_serial = "tst149_ecu_serial";
-  config.uptane.polling_sec = 1;
   config.uptane.running_mode = RunningMode::kManual;
   config.storage.path = temp_dir.Path();
 
@@ -820,7 +887,7 @@ TEST(Uptane, restoreVerify) {
   config.storage.uptane_metadata_path = BasedPath("metadata");
   config.storage.uptane_private_key_path = BasedPath("private.key");
   config.storage.uptane_public_key_path = BasedPath("public.key");
-  addDefaultSecondary(config, temp_dir, "secondary_hw");
+  addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -876,7 +943,7 @@ TEST(Uptane, offlineIteration) {
   config.storage.uptane_metadata_path = BasedPath("metadata");
   config.storage.uptane_private_key_path = BasedPath("private.key");
   config.storage.uptane_public_key_path = BasedPath("public.key");
-  addDefaultSecondary(config, temp_dir, "secondary_hw");
+  addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);

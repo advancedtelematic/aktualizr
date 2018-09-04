@@ -149,7 +149,7 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
     }
   }
   detected_attack = "";
-  bool result = storeFirmware(expected_target_name, *data);
+  const bool result = storeFirmware(expected_target_name, *data);
   sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
   return result;
 }
