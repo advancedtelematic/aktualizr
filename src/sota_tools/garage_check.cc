@@ -104,8 +104,8 @@ int main(int argc, char **argv) {
     LOG_FATAL << "Error initializing curl";
     return EXIT_FAILURE;
   }
-  curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl.get(), CURLOPT_NOBODY, 1L);  // HEAD
+  curlEasySetoptWrapper(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl.get(), CURLOPT_NOBODY, 1L);  // HEAD
 
   treehub.InjectIntoCurl("objects/" + ref.substr(0, 2) + "/" + ref.substr(2) + ".commit", curl.get());
 
@@ -128,14 +128,14 @@ int main(int argc, char **argv) {
   LOG_INFO << "OSTree commit " << ref << " is found on treehub";
 
   // check if the ref is present in targets.json
-  curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl.get(), CURLOPT_HTTPGET, 1L);
-  curl_easy_setopt(curl.get(), CURLOPT_NOBODY, 0L);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl.get(), CURLOPT_HTTPGET, 1L);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_NOBODY, 0L);
   treehub.InjectIntoCurl("/api/v1/user_repo/targets.json", curl.get(), true);
 
   std::string targets_str;
-  curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, writeString);
-  curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, (void *)&targets_str);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_WRITEFUNCTION, writeString);
+  curlEasySetoptWrapper(curl.get(), CURLOPT_WRITEDATA, static_cast<void *>(&targets_str));
   result = curl_easy_perform(curl.get());
 
   if (result != CURLE_OK) {

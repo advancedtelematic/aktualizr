@@ -13,6 +13,7 @@
 #include <openssl/ssl.h>
 
 #include "crypto/openssl_compat.h"
+#include "utilities/utils.h"
 
 struct WriteStringArg {
   std::string out;
@@ -51,20 +52,20 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   headers = nullptr;
   http_code = 0;
 
-  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-  curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
-  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
+  curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_CONNECTTIMEOUT, 60L);
 
   // let curl use our write function
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeString);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEFUNCTION, writeString);
+  curlEasySetoptWrapper(curl, CURLOPT_WRITEDATA, NULL);
 
-  curl_easy_setopt(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl, CURLOPT_VERBOSE, get_curlopt_verbose());
 
   headers = curl_slist_append(headers, "Content-Type: application/json");
   headers = curl_slist_append(headers, "Accept: */*");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
+  curlEasySetoptWrapper(curl, CURLOPT_HTTPHEADER, headers);
+  curlEasySetoptWrapper(curl, CURLOPT_USERAGENT, user_agent.c_str());
 }
 
 HttpClient::HttpClient(const HttpClient& curl_in) : pkcs11_key(curl_in.pkcs11_key), pkcs11_cert(curl_in.pkcs11_key) {
@@ -99,26 +100,26 @@ HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
   if (pkcs11_key) {
-    curl_easy_setopt(curl_get, CURLOPT_SSLENGINE, "pkcs11");
-    curl_easy_setopt(curl_get, CURLOPT_SSLKEYTYPE, "ENG");
+    curlEasySetoptWrapper(curl_get, CURLOPT_SSLENGINE, "pkcs11");
+    curlEasySetoptWrapper(curl_get, CURLOPT_SSLKEYTYPE, "ENG");
   }
 
   if (pkcs11_cert) {
-    curl_easy_setopt(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
+    curlEasySetoptWrapper(curl_get, CURLOPT_SSLCERTTYPE, "ENG");
   }
 
   // Clear POSTFIELDS to remove any lingering references to strings that have
   // probably since been deallocated.
-  curl_easy_setopt(curl_get, CURLOPT_POSTFIELDS, "");
-  curl_easy_setopt(curl_get, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_get, CURLOPT_HTTPGET, 1L);
+  curlEasySetoptWrapper(curl_get, CURLOPT_POSTFIELDS, "");
+  curlEasySetoptWrapper(curl_get, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_get, CURLOPT_HTTPGET, 1L);
   if (maxsize >= 0) {
     // it will only take effect if the server declares the size in advance,
     //    writeString callback takes care of the other case
-    curl_easy_setopt(curl_get, CURLOPT_MAXFILESIZE_LARGE, maxsize);
+    curlEasySetoptWrapper(curl_get, CURLOPT_MAXFILESIZE_LARGE, maxsize);
   }
-  curl_easy_setopt(curl_get, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
-  curl_easy_setopt(curl_get, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  curlEasySetoptWrapper(curl_get, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curlEasySetoptWrapper(curl_get, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   LOG_DEBUG << "GET " << url;
   HttpResponse response = perform(curl_get, RETRY_TIMES, maxsize);
   curl_easy_cleanup(curl_get);
@@ -127,50 +128,50 @@ HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
 
 void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const std::string& cert,
                           CryptoSource cert_source, const std::string& pkey, CryptoSource pkey_source) {
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
-  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
-  curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+  curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYPEER, 1);
+  curlEasySetoptWrapper(curl, CURLOPT_SSL_VERIFYHOST, 2);
+  curlEasySetoptWrapper(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
   if (ca_source == CryptoSource::kPkcs11) {
     throw std::runtime_error("Accessing CA certificate on PKCS11 devices isn't currently supported");
   }
   std::unique_ptr<TemporaryFile> tmp_ca_file = std_::make_unique<TemporaryFile>("tls-ca");
   tmp_ca_file->PutContents(ca);
-  curl_easy_setopt(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
+  curlEasySetoptWrapper(curl, CURLOPT_CAINFO, tmp_ca_file->Path().c_str());
   tls_ca_file = std::move_if_noexcept(tmp_ca_file);
 
   if (cert_source == CryptoSource::kPkcs11) {
-    curl_easy_setopt(curl, CURLOPT_SSLCERT, cert.c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "ENG");
+    curlEasySetoptWrapper(curl, CURLOPT_SSLCERT, cert.c_str());
+    curlEasySetoptWrapper(curl, CURLOPT_SSLCERTTYPE, "ENG");
   } else {  // cert_source == CryptoSource::kFile
     std::unique_ptr<TemporaryFile> tmp_cert_file = std_::make_unique<TemporaryFile>("tls-cert");
     tmp_cert_file->PutContents(cert);
-    curl_easy_setopt(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+    curlEasySetoptWrapper(curl, CURLOPT_SSLCERT, tmp_cert_file->Path().c_str());
+    curlEasySetoptWrapper(curl, CURLOPT_SSLCERTTYPE, "PEM");
     tls_cert_file = std::move_if_noexcept(tmp_cert_file);
   }
   pkcs11_cert = (cert_source == CryptoSource::kPkcs11);
 
   if (pkey_source == CryptoSource::kPkcs11) {
-    curl_easy_setopt(curl, CURLOPT_SSLENGINE, "pkcs11");
-    curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSLKEY, pkey.c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "ENG");
+    curlEasySetoptWrapper(curl, CURLOPT_SSLENGINE, "pkcs11");
+    curlEasySetoptWrapper(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
+    curlEasySetoptWrapper(curl, CURLOPT_SSLKEY, pkey.c_str());
+    curlEasySetoptWrapper(curl, CURLOPT_SSLKEYTYPE, "ENG");
   } else {  // pkey_source == CryptoSource::kFile
     std::unique_ptr<TemporaryFile> tmp_pkey_file = std_::make_unique<TemporaryFile>("tls-pkey");
     tmp_pkey_file->PutContents(pkey);
-    curl_easy_setopt(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
-    curl_easy_setopt(curl, CURLOPT_SSLKEYTYPE, "PEM");
+    curlEasySetoptWrapper(curl, CURLOPT_SSLKEY, tmp_pkey_file->Path().c_str());
+    curlEasySetoptWrapper(curl, CURLOPT_SSLKEYTYPE, "PEM");
     tls_pkey_file = std::move_if_noexcept(tmp_pkey_file);
   }
   pkcs11_key = (pkey_source == CryptoSource::kPkcs11);
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_POST, 1);
+  curlEasySetoptWrapper(curl, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl, CURLOPT_POST, 1);
   std::string data_str = Json::FastWriter().write(data);
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data_str.c_str());
+  curlEasySetoptWrapper(curl, CURLOPT_POSTFIELDS, data_str.c_str());
   LOG_TRACE << "post request body:" << data;
   return perform(curl, RETRY_TIMES, HttpInterface::kPostRespLimit);
 }
@@ -180,18 +181,18 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
   if (pkcs11_key) {
-    curl_easy_setopt(curl_put, CURLOPT_SSLENGINE, "pkcs11");
-    curl_easy_setopt(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
+    curlEasySetoptWrapper(curl_put, CURLOPT_SSLENGINE, "pkcs11");
+    curlEasySetoptWrapper(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
   }
 
   if (pkcs11_cert) {
-    curl_easy_setopt(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
+    curlEasySetoptWrapper(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
   }
 
-  curl_easy_setopt(curl_put, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
   std::string data_str = Json::FastWriter().write(data);
-  curl_easy_setopt(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
-  curl_easy_setopt(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
+  curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
+  curlEasySetoptWrapper(curl_put, CURLOPT_CUSTOMREQUEST, "PUT");
   LOG_TRACE << "put request body:" << data;
   HttpResponse result = perform(curl_put, RETRY_TIMES, HttpInterface::kPutRespLimit);
   curl_easy_cleanup(curl_put);
@@ -201,7 +202,7 @@ HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
 HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t size_limit) {
   WriteStringArg response_arg;
   response_arg.limit = size_limit;
-  curl_easy_setopt(curl_handler, CURLOPT_WRITEDATA, (void*)&response_arg);
+  curlEasySetoptWrapper(curl_handler, CURLOPT_WRITEDATA, static_cast<void*>(&response_arg));
   CURLcode result = curl_easy_perform(curl_handler);
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
   HttpResponse response(response_arg.out, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
@@ -225,21 +226,21 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
   if (pkcs11_key) {
-    curl_easy_setopt(curl_download, CURLOPT_SSLENGINE, "pkcs11");
-    curl_easy_setopt(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
+    curlEasySetoptWrapper(curl_download, CURLOPT_SSLENGINE, "pkcs11");
+    curlEasySetoptWrapper(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
   }
 
   if (pkcs11_cert) {
-    curl_easy_setopt(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
+    curlEasySetoptWrapper(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
   }
 
-  curl_easy_setopt(curl_download, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl_download, CURLOPT_HTTPGET, 1L);
-  curl_easy_setopt(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
-  curl_easy_setopt(curl_download, CURLOPT_WRITEFUNCTION, callback);
-  curl_easy_setopt(curl_download, CURLOPT_WRITEDATA, userp);
-  curl_easy_setopt(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
-  curl_easy_setopt(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
+  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, callback);
+  curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
+  curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
+  curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
 
   CURLcode result = curl_easy_perform(curl_download);
   curl_easy_getinfo(curl_download, CURLINFO_RESPONSE_CODE, &http_code);

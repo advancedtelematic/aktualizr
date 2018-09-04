@@ -11,6 +11,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 using std::string;
 namespace pt = boost::property_tree;
@@ -45,9 +46,9 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const uint8_t sha256[32]) const { re
 bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   CURLcode err = CURLE_OK;
   CurlEasyWrapper easy_handle;
-  curl_easy_setopt(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
   server_->InjectIntoCurl(path.string(), easy_handle.get());
-  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
+  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeHttpRepo::curl_handle_write);
   boost::filesystem::create_directories((root_ / path).parent_path());
   std::string filename = (root_ / path).string();
   int fp = open(filename.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
@@ -55,8 +56,8 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
     LOG_ERROR << "Failed to open file: " << filename;
     return false;
   }
-  curl_easy_setopt(easy_handle.get(), CURLOPT_WRITEDATA, &fp);
-  curl_easy_setopt(easy_handle.get(), CURLOPT_FAILONERROR, true);
+  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_WRITEDATA, &fp);
+  curlEasySetoptWrapper(easy_handle.get(), CURLOPT_FAILONERROR, true);
   err = curl_easy_perform(easy_handle.get());
   close(fp);
 

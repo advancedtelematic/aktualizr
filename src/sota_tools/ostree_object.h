@@ -61,6 +61,8 @@ class OSTreeObject {
 
   void AppendChild(const OSTreeObject::ptr& child);
   std::string Url() const;
+  void PresenceUnknown(RequestPool& pool, int64_t rescode);
+  void ObjectMissing(RequestPool& pool, int64_t rescode);
 
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 

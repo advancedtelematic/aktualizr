@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <cstring>
 #include <iostream>
 
 #include <glib.h>
@@ -171,18 +172,18 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }
-  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
 
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_NOBODY, 1L);  // HEAD
 
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
-  http_response_.str("");                                 // Empty the response buffer
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
+  http_response_.str("");                                      // Empty the response buffer
 
-  CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
+  const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "err:" << curl_multi_strerror(err);
   }
@@ -204,26 +205,27 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   if (curl_handle_ == nullptr) {
     throw std::runtime_error("Could not initialize curl handle");
   }
-  curl_easy_setopt(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_VERBOSE, get_curlopt_verbose());
   current_operation_ = CurrentOp::kOstreeObjectUploading;
-  // TODO: error checking
   push_target.InjectIntoCurl(Url(), curl_handle_);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
-  curl_easy_setopt(curl_handle_, CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEFUNCTION, &OSTreeObject::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_WRITEDATA, this);
   http_response_.str("");  // Empty the response buffer
 
   assert(form_post_ == nullptr);
   struct curl_httppost *last_item = nullptr;
-  curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
-  curl_easy_setopt(curl_handle_, CURLOPT_POST, 1);
-  CURLcode e = curl_easy_setopt(curl_handle_, CURLOPT_HTTPPOST, form_post_);
-  if (e != 0u) {
-    LOG_ERROR << "curl_easy_setopt error: " << curl_easy_strerror(e);
+  const CURLFORMcode form_err =
+      curl_formadd(&form_post_, &last_item, CURLFORM_COPYNAME, "file", CURLFORM_FILE, file_path_.c_str(), CURLFORM_END);
+  if (form_err != 0u) {
+    // Apparently there is not strerror for formadd.
+    LOG_ERROR << "curl_formadd error: " << form_err;
   }
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_POST, 1);
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_HTTPPOST, form_post_);
 
-  curl_easy_setopt(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
+  curlEasySetoptWrapper(curl_handle_, CURLOPT_PRIVATE, this);  // Used by ostree_object_from_curl
 
-  CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
+  const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
   }
@@ -231,15 +233,39 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
+void OSTreeObject::PresenceUnknown(RequestPool &pool, const int64_t rescode) {
+  is_on_server_ = PresenceOnServer::kObjectStateUnknown;
+  LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
+  LOG_DEBUG << "Http response code:" << rescode;
+  LOG_DEBUG << http_response_.str();
+  last_operation_result_ = ServerResponse::kTemporaryFailure;
+  pool.AddQuery(this);
+}
+
+void OSTreeObject::ObjectMissing(RequestPool &pool, const int64_t rescode) {
+  LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
+  LOG_DEBUG << "Http response code:" << rescode;
+  LOG_DEBUG << http_response_.str();
+  is_on_server_ = PresenceOnServer::kObjectMissing;
+  last_operation_result_ = ServerResponse::kTemporaryFailure;
+  pool.AddUpload(this);
+}
+
 void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
   refcount_--;            // Because curl now doesn't have a reference to us
   assert(refcount_ > 0);  // At least our parent should have a reference to us
 
+  char *url = nullptr;
+  curl_easy_getinfo(curl_handle_, CURLINFO_EFFECTIVE_URL, &url);
   long rescode = 0;  // NOLINT
   curl_easy_getinfo(curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
   if (current_operation_ == CurrentOp::kOstreeObjectPresenceCheck) {
-    if (rescode == 200) {
-      LOG_INFO << "Already Present:" << object_name_;
+    // Sanity-check the handle's URL to make sure it contains the expected
+    // object hash.
+    if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
+      PresenceUnknown(pool, rescode);
+    } else if (rescode == 200) {
+      LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
@@ -258,19 +284,17 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
         pool.Abort();
       }
     } else {
-      is_on_server_ = PresenceOnServer::kObjectStateUnknown;
-      LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
-      LOG_DEBUG << "Http response code:" << rescode;
-      LOG_DEBUG << http_response_.str();
-      last_operation_result_ = ServerResponse::kTemporaryFailure;
-      pool.AddQuery(this);
+      PresenceUnknown(pool, rescode);
     }
 
   } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
-    // TODO: check that http_response_ matches the object hash
     curl_formfree(form_post_);
     form_post_ = nullptr;
-    if (rescode == 200) {
+    // Sanity-check the handle's URL to make sure it contains the expected
+    // object hash.
+    if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
+      ObjectMissing(pool, rescode);
+    } else if (rescode == 200) {
       LOG_TRACE << "OSTree upload successful";
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
@@ -281,14 +305,10 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else {
-      LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
-      LOG_DEBUG << "Http response code:" << rescode;
-      LOG_DEBUG << http_response_.str();
-      is_on_server_ = PresenceOnServer::kObjectMissing;
-      last_operation_result_ = ServerResponse::kTemporaryFailure;
-      pool.AddUpload(this);
+      ObjectMissing(pool, rescode);
     }
   } else {
+    LOG_ERROR << "Unknown operation: " << static_cast<int>(current_operation_);
     assert(0);
   }
   curl_multi_remove_handle(curl_multi_handle, curl_handle_);

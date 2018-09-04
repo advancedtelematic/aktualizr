@@ -19,10 +19,8 @@ int main(int argc, char **argv) {
   boost::filesystem::path repo_path;
   string ref;
   int max_curl_requests;
-
-  string home_path = string(getenv("HOME"));
   string cacerts;
-  boost::filesystem::path credentials_path(home_path + "/.sota_tools.json");
+  boost::filesystem::path credentials_path;
 
   int verbosity;
   bool dry_run = false;
@@ -34,7 +32,7 @@ int main(int argc, char **argv) {
     ("quiet,q", "Quiet mode")
     ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of ostree repo")
     ("ref,r", po::value<string>(&ref)->required(), "ref to push")
-    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path), "credentials (json or zip containing json)")
+    ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload");

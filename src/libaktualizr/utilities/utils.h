@@ -137,6 +137,14 @@ class CurlEasyWrapper {
   CURL *handle;
 };
 
+template <typename... T>
+static void curlEasySetoptWrapper(CURL *curl_handle, CURLoption option, T &&... args) {
+  const CURLcode retval = curl_easy_setopt(curl_handle, option, std::forward<T>(args)...);
+  if (retval != 0u) {
+    throw std::runtime_error(std::string("curl_easy_setopt error: ") + curl_easy_strerror(retval));
+  }
+}
+
 // this is reference implementation of make_unique which is not yet included to C++11
 namespace std_ {
 template <class T>

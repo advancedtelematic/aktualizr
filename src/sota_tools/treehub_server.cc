@@ -52,25 +52,25 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
 
   boost::trim_if(url, boost::is_any_of(" \t\r\n"));
 
-  curl_easy_setopt(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
+  curlEasySetoptWrapper(curl_handle, CURLOPT_URL, (url + url_suffix).c_str());
 
-  curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
+  curlEasySetoptWrapper(curl_handle, CURLOPT_HTTPHEADER, &auth_header_);
   // If we need authentication but don't have an OAuth2 token, fall back to
   // legacy username/password.
   if (method_ == AuthMethod::kBasic || method_ == AuthMethod::kCert) {
-    curl_easy_setopt(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-    curl_easy_setopt(curl_handle, CURLOPT_USERNAME, username_.c_str());
-    curl_easy_setopt(curl_handle, CURLOPT_PASSWORD, password_.c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curlEasySetoptWrapper(curl_handle, CURLOPT_USERNAME, username_.c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_PASSWORD, password_.c_str());
   }
 
   std::string all_root_certs;
   if (method_ == AuthMethod::kCert) {
-    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSL_VERIFYPEER, 1);
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSL_VERIFYHOST, 2);
+    curlEasySetoptWrapper(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
-    curl_easy_setopt(curl_handle, CURLOPT_SSLCERT, client_cert_path_.PathString().c_str());
-    curl_easy_setopt(curl_handle, CURLOPT_SSLKEY, client_key_path_.PathString().c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLCERT, client_cert_path_.PathString().c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_SSLKEY, client_key_path_.PathString().c_str());
     if (!root_cert_.empty()) {
       all_root_certs = root_cert_;
     }
@@ -80,8 +80,8 @@ void TreehubServer::InjectIntoCurl(const string& url_suffix, CURL* curl_handle, 
   }
   if (!all_root_certs.empty()) {
     Utils::writeFile(root_cert_path_.PathString(), all_root_certs);
-    curl_easy_setopt(curl_handle, CURLOPT_CAINFO, root_cert_path_.PathString().c_str());
-    curl_easy_setopt(curl_handle, CURLOPT_CAPATH, NULL);
+    curlEasySetoptWrapper(curl_handle, CURLOPT_CAINFO, root_cert_path_.PathString().c_str());
+    curlEasySetoptWrapper(curl_handle, CURLOPT_CAPATH, NULL);
   }
 }
 

@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 using std::string;
 
@@ -34,10 +35,10 @@ OSTreeRef::OSTreeRef(const TreehubServer &serve_repo, string ref_name)
     : is_valid(true), ref_name_(std::move(ref_name)) {
   CurlEasyWrapper curl_handle;
   serve_repo.InjectIntoCurl(Url(), curl_handle.get());
-  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
-  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl_handle.get(), CURLOPT_FAILONERROR, true);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_FAILONERROR, true);
   CURLcode rc = curl_easy_perform(curl_handle.get());
   if (rc != CURLE_OK) {
     is_valid = false;
@@ -49,14 +50,14 @@ void OSTreeRef::PushRef(const TreehubServer &push_target, CURL *curl_handle) con
   assert(IsValid());
 
   push_target.InjectIntoCurl(Url(), curl_handle);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, this);
-  curl_easy_setopt(curl_handle, CURLOPT_PRIVATE, this);  // Used by ostree_ref_from_curl
+  curlEasySetoptWrapper(curl_handle, CURLOPT_WRITEFUNCTION, &OSTreeRef::curl_handle_write);
+  curlEasySetoptWrapper(curl_handle, CURLOPT_WRITEDATA, this);
+  curlEasySetoptWrapper(curl_handle, CURLOPT_PRIVATE, this);  // Used by ostree_ref_from_curl
 
-  curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-  curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, ref_content_.size());
-  curl_easy_setopt(curl_handle, CURLOPT_COPYPOSTFIELDS, ref_content_.c_str());
-  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle, CURLOPT_POST, 1);
+  curlEasySetoptWrapper(curl_handle, CURLOPT_POSTFIELDSIZE, ref_content_.size());
+  curlEasySetoptWrapper(curl_handle, CURLOPT_COPYPOSTFIELDS, ref_content_.c_str());
+  curlEasySetoptWrapper(curl_handle, CURLOPT_VERBOSE, get_curlopt_verbose());
 }
 
 bool OSTreeRef::IsValid() const { return is_valid; }

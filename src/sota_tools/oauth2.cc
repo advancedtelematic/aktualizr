@@ -26,22 +26,22 @@ size_t curl_handle_write_sstream(void *buffer, size_t size, size_t nmemb, void *
 
 AuthenticationResult OAuth2::Authenticate() {
   CurlEasyWrapper curl_handle;
-  curl_easy_setopt(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
-  curl_easy_setopt(curl_handle.get(), CURLOPT_URL, (server_ + "/token").c_str());
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_URL, (server_ + "/token").c_str());
   if (ca_certs_ != "") {
-    curl_easy_setopt(curl_handle.get(), CURLOPT_CAINFO, ca_certs_.c_str());
-    curl_easy_setopt(curl_handle.get(), CURLOPT_CAPATH, NULL);
+    curlEasySetoptWrapper(curl_handle.get(), CURLOPT_CAINFO, ca_certs_.c_str());
+    curlEasySetoptWrapper(curl_handle.get(), CURLOPT_CAPATH, NULL);
   }
 
-  curl_easy_setopt(curl_handle.get(), CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-  curl_easy_setopt(curl_handle.get(), CURLOPT_USERNAME, client_id_.c_str());
-  curl_easy_setopt(curl_handle.get(), CURLOPT_PASSWORD, client_secret_.c_str());
-  curl_easy_setopt(curl_handle.get(), CURLOPT_POST, 1);
-  curl_easy_setopt(curl_handle.get(), CURLOPT_COPYPOSTFIELDS, "grant_type=client_credentials");
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_USERNAME, client_id_.c_str());
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_PASSWORD, client_secret_.c_str());
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_POST, 1);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_COPYPOSTFIELDS, "grant_type=client_credentials");
 
   stringstream body;
-  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEFUNCTION, &curl_handle_write_sstream);
-  curl_easy_setopt(curl_handle.get(), CURLOPT_WRITEDATA, &body);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEFUNCTION, &curl_handle_write_sstream);
+  curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEDATA, &body);
 
   curl_easy_perform(curl_handle.get());
 
