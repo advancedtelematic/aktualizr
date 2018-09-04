@@ -350,7 +350,7 @@ TEST(Uptane, FetchDownloadInstall) {
   size_t counter = 0;
   while (num_events_FetchDownloadInstall < 8) {
     sleep(1);
-    ASSERT_LT(++counter, 20);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for primary installation to complete.";
   }
 
   Json::Value manifest = up->AssembleManifest();
@@ -485,7 +485,7 @@ TEST(Uptane, InstallMultipleSecondaries) {
   size_t counter = 0;
   while (!success_InstallMultipleSecondaries) {
     sleep(1);
-    ASSERT_LT(++counter, 20);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for secondary installation to complete.";
   }
 
   EXPECT_EQ(started_InstallMultipleSecondaries, 2);

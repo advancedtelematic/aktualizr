@@ -39,7 +39,7 @@ TEST(ReportQueue, SingleEvent) {
   size_t num_events = 1;
   while (http->events_seen < num_events) {
     sleep(1);
-    ASSERT_LT(++counter, 30);
+    ASSERT_LT(++counter, 30) << "Timed out waiting for event report.";
   }
   EXPECT_EQ(http->events_seen, num_events);
 }
@@ -63,7 +63,7 @@ TEST(ReportQueue, MultipleEvents) {
   size_t num_events = 10;
   while (http->events_seen < num_events) {
     sleep(1);
-    ASSERT_LT(++counter, 30);
+    ASSERT_LT(++counter, 30) << "Timed out waiting for event reports.";
   }
   EXPECT_EQ(http->events_seen, num_events);
 }
@@ -88,7 +88,7 @@ TEST(ReportQueue, FailureRecovery) {
   size_t num_events = 10;
   while (http->events_seen < num_events) {
     sleep(1);
-    ASSERT_LT(++counter, 30);
+    ASSERT_LT(++counter, 30) << "Timed out waiting for event reports.";
   }
   EXPECT_EQ(http->events_seen, num_events);
 }
