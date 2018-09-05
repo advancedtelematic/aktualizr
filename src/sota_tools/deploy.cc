@@ -63,7 +63,7 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
   // OTA-682: Do NOT keep the local tuf directory around in case the user tries
   // a different set of push credentials.
   if (boost::filesystem::is_directory(local_repo)) {
-    boost::filesystem::remove(local_repo);
+    boost::filesystem::remove_all(local_repo);
   }
 
   std::string init_cmd("garage-sign init --repo aktualizr --credentials ");
@@ -95,7 +95,7 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
     return false;
   }
 
-  boost::filesystem::remove(local_repo);
+  boost::filesystem::remove_all(local_repo);
   LOG_INFO << "Success";
   return true;
 }
