@@ -193,13 +193,12 @@ Json::Value SotaUptaneClient::AssembleManifest() {
       unsigned_ecu_version["installed_image"]["filepath"].asString();
 
   result[uptane_manifest.getPrimaryEcuSerial().ToString()] = uptane_manifest.signVersionManifest(unsigned_ecu_version);
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
-  for (it = secondaries.begin(); it != secondaries.end(); it++) {
+  for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
     Json::Value secmanifest = it->second->getManifest();
     if (secmanifest.isMember("signatures") && secmanifest.isMember("signed")) {
-      auto public_key = it->second->getPublicKey();
-      std::string canonical = Json::FastWriter().write(secmanifest["signed"]);
-      bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
+      const auto public_key = it->second->getPublicKey();
+      const std::string canonical = Json::FastWriter().write(secmanifest["signed"]);
+      const bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
       if (verified) {
         result[it->first.ToString()] = secmanifest;
         installed_images[it->first] = secmanifest["signed"]["installed_image"]["filepath"].asString();

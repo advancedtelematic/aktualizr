@@ -5,12 +5,12 @@
 
 using Uptane::Root;
 
-Root::Root(RepositoryType repo, const Json::Value &json, Root &root) : Root(repo, json) {
+Root::Root(const RepositoryType repo, const Json::Value &json, Root &root) : Root(repo, json) {
   root.UnpackSignedObject(repo, json);
   this->UnpackSignedObject(repo, json);
 }
 
-Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kCheck) {
+Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy::kCheck) {
   if (!json.isObject() || !json.isMember("signed")) {
     throw InvalidMetadata("", "", "invalid metadata json");
   }
@@ -24,21 +24,21 @@ Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kChec
     throw InvalidMetadata(RepoString(repo), "root", "missing keys/roles field");
   }
 
-  Json::Value keys = json["signed"]["keys"];
+  const Json::Value keys = json["signed"]["keys"];
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
-    std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
+    const std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
       throw SecurityException(RepoString(repo), "Unsupported key type: " + (*it)["keytype"].asString());
     }
-    KeyId keyid = it.key().asString();
+    const KeyId keyid = it.key().asString();
     PublicKey key(*it);
     keys_[keyid] = key;
   }
 
-  Json::Value roles = json["signed"]["roles"];
+  const Json::Value roles = json["signed"]["roles"];
   for (Json::ValueIterator it = roles.begin(); it != roles.end(); it++) {
-    std::string role_name = it.key().asString();
-    Role role = Role(role_name);
+    const std::string role_name = it.key().asString();
+    const Role role = Role(role_name);
     if (role == Role::InvalidRole()) {
       LOG_WARNING << "Invalid role in root.json";
       LOG_TRACE << "Role name:" << role_name;
@@ -46,7 +46,7 @@ Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kChec
       continue;
     }
     // Threshold
-    int64_t requiredThreshold = (*it)["threshold"].asInt64();
+    const int64_t requiredThreshold = (*it)["threshold"].asInt64();
     if (requiredThreshold < kMinSignatures) {
       // static_cast<int64_t> is to stop << taking a reference to kMinSignatures
       // http://www.stroustrup.com/bs_faq2.html#in-class
@@ -66,17 +66,17 @@ Root::Root(RepositoryType repo, const Json::Value &json) : policy_(Policy::kChec
     thresholds_for_role_[role] = requiredThreshold;
 
     // KeyIds
-    Json::Value keyids = (*it)["keyids"];
+    const Json::Value keyids = (*it)["keyids"];
     for (Json::ValueIterator itk = keyids.begin(); itk != keyids.end(); ++itk) {
       keys_for_role_.insert(std::make_pair(role, (*itk).asString()));
     }
   }
 }
 
-void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &signed_object) {
-  std::string repository = RepoString(repo);
+void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Json::Value &signed_object) {
+  const std::string repository = RepoString(repo);
 
-  Uptane::Role role(signed_object["signed"]["_type"].asString());
+  const Uptane::Role role(signed_object["signed"]["_type"].asString());
   if (policy_ == Policy::kAcceptAll) {
     return;
   }
@@ -85,13 +85,13 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
   }
   assert(policy_ == Policy::kCheck);
 
-  std::string canonical = Json::FastWriter().write(signed_object["signed"]);
-  Json::Value signatures = signed_object["signatures"];
+  const std::string canonical = Json::FastWriter().write(signed_object["signed"]);
+  const Json::Value signatures = signed_object["signatures"];
   int valid_signatures = 0;
 
   std::set<std::string> used_keyids;
   for (Json::ValueIterator sig = signatures.begin(); sig != signatures.end(); ++sig) {
-    std::string keyid = (*sig)["keyid"].asString();
+    const std::string keyid = (*sig)["keyid"].asString();
     if (used_keyids.count(keyid) != 0) {
       throw NonUniqueSignatures(repository, role.ToString());
     }
@@ -113,14 +113,14 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
       LOG_WARNING << "KeyId " << keyid << " is not valid to sign for this role (" << role.ToString() << ").";
       continue;
     }
-    std::string signature = (*sig)["sig"].asString();
+    const std::string signature = (*sig)["sig"].asString();
     if (keys_[keyid].VerifySignature(signature, canonical)) {
       valid_signatures++;
     } else {
       LOG_WARNING << "Signature was present but invalid: " << signature << " with KeyId: " << keyid;
     }
   }
-  int64_t threshold = thresholds_for_role_[role];
+  const int64_t threshold = thresholds_for_role_[role];
   if (threshold < kMinSignatures || kMaxSignatures < threshold) {
     throw IllegalThreshold(repository, "Invalid signature threshold");
   }
@@ -133,7 +133,7 @@ void Uptane::Root::UnpackSignedObject(RepositoryType repo, const Json::Value &si
     throw UnmetThreshold(repository, role.ToString());
   }
 
-  Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));
+  const Uptane::Role actual_role(Uptane::Role(signed_object["signed"]["_type"].asString()));
   if (role != actual_role) {
     LOG_ERROR << "Object was signed for a different role";
     LOG_TRACE << "  role:" << role;
