@@ -53,6 +53,8 @@ class HttpFake : public HttpInterface {
           ++unstable_valid_count;
           path = metadata_path.Path() / url.substr(tls_server.size() + std::string("unstable/").length());
         }
+      } else if (url.find("multisec/") != std::string::npos) {
+        path = metadata_path.Path() / url.substr(tls_server.size() + strlen("multisec/"));
       } else {
         path = metadata_path.Path() / url.substr(tls_server.size());
       }
@@ -62,6 +64,9 @@ class HttpFake : public HttpInterface {
         if (url.find("unstable/") == std::string::npos) {
           if (boost::filesystem::exists(path)) {
             boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          } else if (url.find("/multisec") != std::string::npos) {
+            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_multisec.json", path,
                                          boost::filesystem::copy_option::overwrite_if_exists);
           } else {
             boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
@@ -76,12 +81,16 @@ class HttpFake : public HttpInterface {
         Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
         if (timestamp["signed"]["version"].asInt64() == 4) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
+        } else if (url.find("/multisec") != std::string::npos) {
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_multisec.json"), 200, CURLE_OK, "");
         } else {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
       } else if (url.find("director/targets.json") != std::string::npos) {
         if (boost::filesystem::exists(metadata_path.Path() / "repo/timestamp.json")) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
+        } else if (url.find("/multisec") != std::string::npos) {
+          return HttpResponse(Utils::readFile(path.parent_path() / "targets_multisec.json"), 200, CURLE_OK, "");
         } else {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
@@ -91,6 +100,9 @@ class HttpFake : public HttpInterface {
         if (url.find("unstable/") == std::string::npos) {
           if (boost::filesystem::exists(path)) {
             boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
+                                         boost::filesystem::copy_option::overwrite_if_exists);
+          } else if (url.find("/multisec") != std::string::npos) {
+            boost::filesystem::copy_file(path.parent_path() / "snapshot_multisec.json", path,
                                          boost::filesystem::copy_option::overwrite_if_exists);
           } else {
             boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
