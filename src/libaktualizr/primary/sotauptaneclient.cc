@@ -71,13 +71,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
     auto sec = Uptane::SecondaryFactory::makeSecondary(*it);
     addSecondary(sec);
   }
-
-  if (events_channel &&
-      (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce)) {
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-        [this](const std::shared_ptr<event::BaseEvent> &event) { this->installationComplete(event); };
-    conn = events_channel->connect(f_cb);
-  }
 }
 
 SotaUptaneClient::~SotaUptaneClient() { conn.disconnect(); }
@@ -693,16 +686,15 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
-      sendEvent(std::make_shared<event::DownloadComplete>(downloaded_targets));
       sendDownloadReport();
-      if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce) {
-        uptaneInstall(downloaded_targets);
-      }
+      sendEvent(std::make_shared<event::DownloadComplete>(downloaded_targets));
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
+      sendEvent(std::make_shared<event::Error>("Partial download"));
     }
   } else {
+    sendEvent(std::make_shared<event::NothingToDownload>());
     LOG_INFO << "No new updates to download.";
   }
 }
@@ -774,7 +766,6 @@ void SotaUptaneClient::sendDeviceData() {
 void SotaUptaneClient::fetchMeta() {
   if (updateMeta()) {
     sendEvent(std::make_shared<event::FetchMetaComplete>());
-    checkUpdates();
   } else {
     sendEvent(std::make_shared<event::Error>("Could not update metadata."));
   }
@@ -789,21 +780,14 @@ void SotaUptaneClient::checkUpdates() {
   } else {
     if (!updates.empty()) {
       sendEvent(std::make_shared<event::UpdateAvailable>(updates, ecus_count));
-      pending_ecus = ecus_count;
-      if (config.uptane.running_mode == RunningMode::kFull || config.uptane.running_mode == RunningMode::kOnce ||
-          config.uptane.running_mode == RunningMode::kDownload) {
-        downloadImages(updates);
-      } else if (config.uptane.running_mode == RunningMode::kInstall) {
-        uptaneInstall(updates);
-      }
     } else {
+      sendEvent(std::make_shared<event::NoUpdateAvailable>());
       LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }
 }
 
 void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
-  installing = true;
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
   //   6 - send metadata to all the ECUs
@@ -834,35 +818,6 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
   }
 
   sendImagesToEcus(updates);
-}
-
-void SotaUptaneClient::installationComplete(const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->variant == "InstallComplete") {
-    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
-    LOG_INFO << "ECU " << install_complete->serial << " installation has finished.";
-    pending_ecus--;
-    if (pending_ecus == 0) {
-      if (!putManifest()) {
-        sendEvent(std::make_shared<event::Error>("Could not put manifest."));
-      } else {
-        sendEvent(std::make_shared<event::PutManifestComplete>());
-      }
-
-      if (installing) {
-        installing = false;
-        const boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
-        if (boost::filesystem::exists(reboot_flag)) {
-          boost::filesystem::remove(reboot_flag);
-          if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
-            exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
-            // Systemd will start aktualizr automatically if it exit.
-          } else {  // Aktualizr runs from terminal
-            LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
-          }
-        }
-      }
-    }
-  }
 }
 
 void SotaUptaneClient::campaignCheck() {

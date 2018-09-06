@@ -124,13 +124,14 @@ int main(int argc, char *argv[]) {
     // launch the first event
     switch (running_mode) {
       case RunningMode::kCheck:
-      case RunningMode::kOnce:
         aktualizr.SendDeviceData();
         aktualizr.FetchMetadata();
         break;
       case RunningMode::kDownload:
+        aktualizr.CheckAndDownload();
+        break;
       case RunningMode::kInstall:
-        aktualizr.CheckUpdates();
+        aktualizr.CheckAndInstall();
         break;
       case RunningMode::kCampaignCheck:
         aktualizr.CampaignCheck();
@@ -141,6 +142,10 @@ int main(int argc, char *argv[]) {
         }
         aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>());
         break;
+      case RunningMode::kOnce:
+        aktualizr.UptaneCycle();
+        break;
+      case RunningMode::kFull:
       default:
         aktualizr.Run();
         break;

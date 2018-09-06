@@ -64,6 +64,14 @@ class PutManifestComplete : public BaseEvent {
 };
 
 /**
+ * No update is available for download from the server
+ */
+class NoUpdateAvailable : public BaseEvent {
+ public:
+  explicit NoUpdateAvailable();
+};
+
+/**
  * An update is available for download from the server.
  */
 class UpdateAvailable : public BaseEvent {
@@ -73,6 +81,14 @@ class UpdateAvailable : public BaseEvent {
   explicit UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in);
   std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
+};
+
+/**
+ * Nothing to download from the server
+ */
+class NothingToDownload : public BaseEvent {
+ public:
+  explicit NothingToDownload();
 };
 
 /**

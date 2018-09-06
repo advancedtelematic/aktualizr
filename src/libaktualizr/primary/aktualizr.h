@@ -89,6 +89,21 @@ class Aktualizr {
   void Install(const std::vector<Uptane::Target>& updates);
 
   /**
+   * Synchronously run a fun uptane cycle (check, download, install and report)
+   */
+  void UptaneCycle();
+
+  /**
+   * Synchronously check for updates and download them (no install)
+   */
+  void CheckAndDownload();
+
+  /**
+   * Synchronously check for updates and install available targets (no download)
+   */
+  void CheckAndInstall();
+
+  /**
    * Add new secondary to aktualizr.
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
@@ -116,6 +131,8 @@ class Aktualizr {
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
+
+  void FinalizeInstall();
 };
 
 #endif  // AKTUALIZR_H_
