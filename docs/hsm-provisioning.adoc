@@ -39,54 +39,13 @@ An example `.toml` configuration file can be found at link:../config/sota_hsm_pr
 +
 If you do not have your own CA certificate for signing device certificates, you can generate a self-signed certificate for testing.
 +
-ifdef::env-github[]
 You can examine the `new_server` function in link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L127[OTA Community Edition's `start.sh`] for one way of generating the cert.
-endif::[]
-ifndef::env-github[]
-First, create a directory structure for the keys, and grab sample configurations for the certificates from the OTA Community Edition project:
-+
-[source,bash]
-----
-export SERVER_NAME=myservername
-export SERVER_DIR="./${SERVER_NAME}" DEVICES_DIR="./${SERVER_NAME}/devices" CWD="${PWD}"
-mkdir -p "$DEVICES_DIR" certs
-for file in client.cnf device_ca.cnf server.ext client.ext server.cnf server_ca.cnf; do
-  curl -o certs/$file https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/certs/$file
-done
-----
-+
-Then, generate the key and cert using openssl on the command line:
-+
-[source,bash]
-----
-include::https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/start.sh[tags="genserverkeys"]
-----
-endif::[]
 +
 This will create a `./${SERVER_DIR}/devices/` directory with the `ca.crt` certificate and a `ca.key` private key. Keep the private key safe and secure.
 . Upload the root CA certificate to the server. To add a root CA certificate to link:https://connect.ota.here.com[HERE OTA Connect], contact link:mailto:ota-support@here.com[ota-support@here.com].
 . Generate a device certificate and key, and sign it with the root CA you just created.
 +
-ifdef::env-github[]
 Examine the link:https://github.com/advancedtelematic/ota-community-edition/blob/master/scripts/start.sh#L89[`new_client` function in start.sh] for one way to do that.
-endif::[]
-ifndef::env-github[]
-Generate a UUID for the device, and make a directory for it:
-+
-[source,bash]
-----
-export DEVICE_UUID=$(uuidgen | tr "[:upper:]" "[:lower:]")
-export device_id=${DEVICE_ID:-${DEVICE_UUID}} device_dir="${DEVICES_DIR}/${DEVICE_UUID}"
-mkdir -p "${device_dir}"
-----
-+
-Then, generate the device certificate and key using openssl:
-+
-[source,bash]
-----
-include::https://raw.githubusercontent.com/advancedtelematic/ota-community-edition/master/scripts/start.sh[tags="genclientkeys"]
-----
-endif::[]
 . Add the internal root CA certificate of the device gateway the device will connect to. To get the device gateway's certificate, use openssl:
 +
 ----
