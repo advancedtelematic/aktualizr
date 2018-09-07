@@ -323,7 +323,6 @@ TEST(Uptane, FetchDownloadInstall) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
-  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
   conf.uptane.running_mode = RunningMode::kFull;
@@ -362,8 +361,9 @@ TEST(Uptane, FetchDownloadInstall) {
   EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
             "Installing fake package was successful");
   EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "primary_firmware.txt");
-  // Manifest should not have an installation result for the secondary.
-  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
+  // installation_result has not been implemented for secondaries yet.
+  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
+            "secondary_firmware.txt");
 }
 
 /*
@@ -398,8 +398,8 @@ TEST(Uptane, InstallOnly) {
   EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
             "Installing fake package was successful");
   EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
-  // Manifest should not have an installation result for the secondary.
-  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
+  // Verify nothing has installed for the secondary.
+  EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("installed_image"));
 }
 
 TEST(Uptane, UptaneSecondaryAdd) {
@@ -466,7 +466,6 @@ TEST(Uptane, InstallMultipleSecondaries) {
   TemporaryDirectory temp_dir2;
   addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
   addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
-  boost::filesystem::copy_file("tests/test_data/secondary_firmware.txt", temp_dir / "secondary_firmware.txt");
 
   std::shared_ptr<event::Channel> sig =
       std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
@@ -487,17 +486,12 @@ TEST(Uptane, InstallMultipleSecondaries) {
   EXPECT_EQ(started_InstallMultipleSecondaries, 2);
   EXPECT_EQ(complete_InstallMultipleSecondaries, 2);
   Json::Value manifest = up->AssembleManifest();
-  // Make sure operation_result and filepath were correctly written and formatted.
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["custom"]["operation_result"]["id"].asString(), "");
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
-            static_cast<int>(data::UpdateResultCode::kOk));
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["custom"]["operation_result"]["result_text"].asString(), "");
+  // Make sure filepath were correctly written and formatted.
+  // installation_result has not been implemented for secondaries yet.
   EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["custom"]["operation_result"]["id"].asString(), "");
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
-            static_cast<int>(data::UpdateResultCode::kOk));
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["custom"]["operation_result"]["result_text"].asString(), "");
+  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 15);
   EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware2.txt");
+  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
   // Manifest should not have an installation result for the primary.
   EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
