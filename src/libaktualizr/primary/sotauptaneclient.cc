@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <memory>
 #include <utility>
-#include "json/json.h"
 
 #include "campaign/campaign.h"
 #include "crypto/crypto.h"

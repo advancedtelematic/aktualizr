@@ -2,11 +2,11 @@
 
 #include <chrono>
 
-#include "utilities/timer.h"
-
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <sodium.h>
+
+#include "utilities/timer.h"
 
 using std::make_shared;
 using std::shared_ptr;

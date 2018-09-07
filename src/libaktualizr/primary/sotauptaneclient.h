@@ -6,8 +6,9 @@
 #include <utility>
 #include <vector>
 
-#include <json/json.h>
+#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
+#include "json/json.h"
 
 #include "bootloader/bootloader.h"
 #include "config/config.h"
