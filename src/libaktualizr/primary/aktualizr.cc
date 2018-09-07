@@ -1,7 +1,6 @@
 #include "aktualizr.h"
 
 #include <chrono>
-#include <future>
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -47,8 +46,7 @@ void Aktualizr::systemSetup() {
 void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
 void Aktualizr::FinalizeInstall() {
-  // TODO: is it too much?
-  FetchMetadata();
+  uptane_client_->putManifest();
 
   boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
   if (boost::filesystem::exists(reboot_flag)) {
@@ -62,135 +60,73 @@ void Aktualizr::FinalizeInstall() {
   }
 }
 
+Aktualizr::CycleEventHandler::CycleEventHandler(Aktualizr &akt) : aktualizr(akt), fut(finished.get_future()) {}
+
+void Aktualizr::CycleEventHandler::breakLoop() {
+  running = false;
+  finished.set_value(true);
+}
+
+void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent> &event) {
+  std::lock_guard<std::mutex> l(m);
+  if (!running) {
+    return;
+  }
+
+  RunningMode running_mode = aktualizr.config_.uptane.running_mode;
+
+  if (event->variant == "FetchMetaComplete") {
+    aktualizr.CheckUpdates();
+  } else if (event->variant == "NoUpdateAvailable") {
+    breakLoop();
+  } else if (event->variant == "UpdateAvailable") {
+    auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
+    assert(!ua_event->updates.empty());
+    ecus_count = ua_event->updates.size();
+    if (running_mode == RunningMode::kInstall) {
+      aktualizr.Install(ua_event->updates);
+    } else {
+      aktualizr.Download(ua_event->updates);
+    }
+  } else if (event->variant == "NothingToDownload") {
+    breakLoop();
+  } else if (event->variant == "DownloadProgressReport") {
+    // silent
+  } else if (event->variant == "DownloadComplete") {
+    auto dc_event = dynamic_cast<event::DownloadComplete *>(event.get());
+    if (running_mode == RunningMode::kDownload) {
+      breakLoop();
+    } else {
+      aktualizr.Install(dc_event->updates);
+    }
+  } else if (event->variant == "InstallComplete") {
+    ecus_count -= 1;
+    if (ecus_count != 0) {
+      return;
+    }
+
+    aktualizr.FinalizeInstall();
+
+    // finished installing everything
+    breakLoop();
+  } else if (event->variant == "Error") {
+    auto err_event = dynamic_cast<event::Error *>(event.get());
+    LOG_WARNING << "got error event: " << err_event->message;
+    breakLoop();
+  }
+}
+
 void Aktualizr::UptaneCycle() {
-  std::promise<int> cycle_finished;
-  std::future<int> cf_fut = cycle_finished.get_future();
-  std::mutex m;
-  size_t ecus_count = 0;
+  CycleEventHandler ev_handler(*this);
 
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-      [this, &cycle_finished, &m, &ecus_count](const std::shared_ptr<event::BaseEvent> &event) {
-        if (event->variant == "FetchMetaComplete") {
-          CheckUpdates();
-        } else if (event->variant == "NoUpdateAvailable") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "UpdateAvailable") {
-          auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
-          assert(!ua_event->updates.empty());
-          ecus_count = ua_event->updates.size();
-          Download(ua_event->updates);
-        } else if (event->variant == "NothingToDownload") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "DownloadProgressReport") {
-          // silent
-        } else if (event->variant == "DownloadComplete") {
-          auto dc_event = dynamic_cast<event::DownloadComplete *>(event.get());
-          Install(dc_event->updates);
-        } else if (event->variant == "InstallComplete") {
-          {
-            std::lock_guard<std::mutex> l(m);
-            ecus_count -= 1;
-          }
-          if (ecus_count != 0) {
-            return;
-          }
-
-          FinalizeInstall();
-
-          // finished installing everything
-          cycle_finished.set_value(0);
-        } else if (event->variant == "Error") {
-          auto err_event = dynamic_cast<event::Error *>(event.get());
-          LOG_WARNING << "got error event: " << err_event->message;
-          cycle_finished.set_value(0);
-        }
-      };
-  auto conn = SetSignalHandler(f_cb);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> cb =
+      [&ev_handler](const std::shared_ptr<event::BaseEvent> &event) { ev_handler.handle(event); };
+  auto conn = SetSignalHandler(cb);
 
   // launch the cycle
   FetchMetadata();
 
-  cf_fut.wait();
-  conn.disconnect();
-}
-
-void Aktualizr::CheckAndDownload() {
-  std::promise<int> cycle_finished;
-  std::future<int> cf_fut = cycle_finished.get_future();
-
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-      [this, &cycle_finished](const std::shared_ptr<event::BaseEvent> &event) {
-        if (event->variant == "FetchMetaComplete") {
-          CheckUpdates();
-        } else if (event->variant == "NoUpdateAvailable") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "UpdateAvailable") {
-          auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
-          assert(!ua_event->updates.empty());
-          Download(ua_event->updates);
-        } else if (event->variant == "NothingToDownload") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "DownloadProgressReport") {
-          // silent
-        } else if (event->variant == "DownloadComplete") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "Error") {
-          auto err_event = dynamic_cast<event::Error *>(event.get());
-          LOG_WARNING << "got error event: " << err_event->message;
-          cycle_finished.set_value(0);
-        }
-      };
-  auto conn = SetSignalHandler(f_cb);
-
-  // launch the cycle
-  FetchMetadata();
-
-  cf_fut.wait();
-  conn.disconnect();
-}
-
-void Aktualizr::CheckAndInstall() {
-  std::promise<int> cycle_finished;
-  std::future<int> cf_fut = cycle_finished.get_future();
-  std::mutex m;
-  size_t ecus_count = 0;
-
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-      [this, &cycle_finished, &m, &ecus_count](const std::shared_ptr<event::BaseEvent> &event) {
-        if (event->variant == "FetchMetaComplete") {
-          CheckUpdates();
-        } else if (event->variant == "NoUpdateAvailable") {
-          cycle_finished.set_value(0);
-        } else if (event->variant == "UpdateAvailable") {
-          auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
-          assert(!ua_event->updates.empty());
-          ecus_count = ua_event->updates.size();
-          Install(ua_event->updates);
-        } else if (event->variant == "InstallComplete") {
-          {
-            std::lock_guard<std::mutex> l(m);
-            ecus_count -= 1;
-          }
-          if (ecus_count != 0) {
-            return;
-          }
-
-          FinalizeInstall();
-
-          // finished installing everything
-          cycle_finished.set_value(0);
-        } else if (event->variant == "Error") {
-          auto err_event = dynamic_cast<event::Error *>(event.get());
-          LOG_WARNING << "got error event: " << err_event->message;
-          cycle_finished.set_value(0);
-        }
-      };
-  auto conn = SetSignalHandler(f_cb);
-
-  // launch the cycle
-  FetchMetadata();
-
-  cf_fut.wait();
+  ev_handler.fut.wait();
   conn.disconnect();
 }
 

@@ -127,12 +127,6 @@ int main(int argc, char *argv[]) {
         aktualizr.SendDeviceData();
         aktualizr.FetchMetadata();
         break;
-      case RunningMode::kDownload:
-        aktualizr.CheckAndDownload();
-        break;
-      case RunningMode::kInstall:
-        aktualizr.CheckAndInstall();
-        break;
       case RunningMode::kCampaignCheck:
         aktualizr.CampaignCheck();
         break;
@@ -142,6 +136,8 @@ int main(int argc, char *argv[]) {
         }
         aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>());
         break;
+      case RunningMode::kDownload:
+      case RunningMode::kInstall:
       case RunningMode::kOnce:
         aktualizr.UptaneCycle();
         break;

@@ -44,6 +44,7 @@ class SotaUptaneClient {
   void downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
   void fetchMeta();
+  void putManifest();
   void checkUpdates();
   void uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
@@ -90,7 +91,7 @@ class SotaUptaneClient {
   void sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
-  bool putManifest();
+  bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);

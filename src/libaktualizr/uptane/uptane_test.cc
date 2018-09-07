@@ -218,7 +218,7 @@ TEST(Uptane, PutManifest) {
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
-  EXPECT_TRUE(sota_client->putManifest());
+  EXPECT_TRUE(sota_client->putManifestSimple());
 
   EXPECT_TRUE(boost::filesystem::exists(temp_dir / http->test_manifest));
   Json::Value json = Utils::parseJSONFile((temp_dir / http->test_manifest).string());

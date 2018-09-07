@@ -241,7 +241,7 @@ void SotaUptaneClient::initialize() {
 bool SotaUptaneClient::updateMeta() {
   reportNetworkInfo();
   // Uptane step 1 (build the vehicle version manifest):
-  if (!putManifest()) {
+  if (!putManifestSimple()) {
     LOG_ERROR << "could not put manifest";
     return false;
   }
@@ -858,7 +858,8 @@ void SotaUptaneClient::sendDownloadReport() {
   report_queue->enqueue(std::move(report));
 }
 
-bool SotaUptaneClient::putManifest() {
+bool SotaUptaneClient::putManifestSimple() {
+  // does not send event, so it can be used as a subset of other steps
   auto manifest = AssembleManifest();
   if (!hasPendingUpdates(manifest)) {
     auto signed_manifest = uptane_manifest.signManifest(manifest);
@@ -869,6 +870,14 @@ bool SotaUptaneClient::putManifest() {
     }
   }
   return false;
+}
+
+void SotaUptaneClient::putManifest() {
+  if (putManifestSimple()) {
+    sendEvent(std::make_shared<event::PutManifestComplete>());
+  } else {
+    sendEvent(std::make_shared<event::Error>("Could not put manifest."));
+  }
 }
 
 // Check stored secondaries list against secondaries known to aktualizr via

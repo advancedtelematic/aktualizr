@@ -64,7 +64,7 @@ class PutManifestComplete : public BaseEvent {
 };
 
 /**
- * No update is available for download from the server
+ * No update is available for download from the server.
  */
 class NoUpdateAvailable : public BaseEvent {
  public:
@@ -84,7 +84,7 @@ class UpdateAvailable : public BaseEvent {
 };
 
 /**
- * Nothing to download from the server
+ * Nothing to download from the server.
  */
 class NothingToDownload : public BaseEvent {
  public:

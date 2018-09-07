@@ -38,7 +38,7 @@ TEST(UptaneCI, OneCycleUpdate) {
 
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
-  EXPECT_TRUE(sota_client->putManifest());
+  EXPECT_TRUE(sota_client->putManifestSimple());
 }
 
 TEST(UptaneCI, CheckKeys) {

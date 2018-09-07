@@ -2,6 +2,7 @@
 #define AKTUALIZR_H_
 
 #include <atomic>
+#include <future>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -89,19 +90,12 @@ class Aktualizr {
   void Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Synchronously run a fun uptane cycle (check, download, install and report)
+   * Synchronously run an uptane cycle.
+   *
+   * Behaviour depends on the configured running mode (full cycle, check and
+   * download or check and install)
    */
   void UptaneCycle();
-
-  /**
-   * Synchronously check for updates and download them (no install)
-   */
-  void CheckAndDownload();
-
-  /**
-   * Synchronously check for updates and install available targets (no download)
-   */
-  void CheckAndInstall();
 
   /**
    * Add new secondary to aktualizr.
@@ -132,6 +126,18 @@ class Aktualizr {
   std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
 
+  struct CycleEventHandler {
+    Aktualizr& aktualizr;
+    std::mutex m{};
+    bool running{true};
+    std::promise<bool> finished{};
+    std::future<bool> fut{};
+    size_t ecus_count{0};
+
+    CycleEventHandler(Aktualizr& akt);
+    void breakLoop();
+    void handle(const std::shared_ptr<event::BaseEvent>& event);
+  };
   void FinalizeInstall();
 };
 
