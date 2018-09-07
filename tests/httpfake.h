@@ -38,10 +38,18 @@ class HttpFake : public HttpInterface {
     (void)pkey_source;
   }
 
+  /**
+   * The noupdates parts are only used by Uptane.FetchNoUpdates.
+   * The multisec parts are only used by Uptane.InstallMultipleSecondaries.
+   * The unstable parts are only used by Uptane.restoreVerify, although they
+   * mostly use the same hasupdates files.
+   *
+   * All other Uptane tests use the hasupdates set.
+   */
   HttpResponse get(const std::string &url, int64_t maxsize) {
     (void)maxsize;
 
-    std::cout << "URL:" << url << "\n";
+    std::cout << "URL requested: " << url << "\n";
     if (url.find(tls_server) == 0) {
       boost::filesystem::path path;
       if (url.find("unstable/") != std::string::npos) {
@@ -53,68 +61,57 @@ class HttpFake : public HttpInterface {
           ++unstable_valid_count;
           path = metadata_path.Path() / url.substr(tls_server.size() + std::string("unstable/").length());
         }
+      } else if (url.find("noupdates/") != std::string::npos) {
+        path = metadata_path.Path() / url.substr(tls_server.size() + strlen("noupdates/"));
       } else if (url.find("multisec/") != std::string::npos) {
         path = metadata_path.Path() / url.substr(tls_server.size() + strlen("multisec/"));
       } else {
         path = metadata_path.Path() / url.substr(tls_server.size());
       }
-      std::cout << "filetoopen: " << path << "\n\n\n";
+      std::cout << "file served: " << path << "\n";
       if (url.find("repo/timestamp.json") != std::string::npos) {
-        // "Unstable" requests always give "hasupdates" metadata set
-        if (url.find("unstable/") == std::string::npos) {
-          if (boost::filesystem::exists(path)) {
-            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          } else if (url.find("/multisec") != std::string::npos) {
-            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_multisec.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          } else {
-            boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          }
-          return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
+        if (url.find("noupdates/") != std::string::npos) {
+          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_noupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
+        } else if (url.find("multisec/") != std::string::npos) {
+          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_multisec.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
         } else {
-          return HttpResponse(Utils::readFile(metadata_path.Path() / "repo/timestamp_hasupdates.json"), 200, CURLE_OK,
-                              "");
+          boost::filesystem::copy_file(metadata_path.Path() / "repo/timestamp_hasupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
         }
+        return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else if (url.find("repo/targets.json") != std::string::npos) {
-        Json::Value timestamp = Utils::parseJSONFile(metadata_path.Path() / "repo/timestamp.json");
-        if (timestamp["signed"]["version"].asInt64() == 4) {
+        if (url.find("noupdates/") != std::string::npos) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
-        } else if (url.find("/multisec") != std::string::npos) {
+        } else if (url.find("multisec/") != std::string::npos) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_multisec.json"), 200, CURLE_OK, "");
         } else {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
       } else if (url.find("director/targets.json") != std::string::npos) {
-        if (boost::filesystem::exists(metadata_path.Path() / "repo/timestamp.json")) {
+        if (url.find("noupdates/") != std::string::npos) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_noupdates.json"), 200, CURLE_OK, "");
-        } else if (url.find("/multisec") != std::string::npos) {
+        } else if (url.find("multisec/") != std::string::npos) {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_multisec.json"), 200, CURLE_OK, "");
         } else {
           return HttpResponse(Utils::readFile(path.parent_path() / "targets_hasupdates.json"), 200, CURLE_OK, "");
         }
 
       } else if (url.find("snapshot.json") != std::string::npos) {
-        // "Unstable" requests always give "hasupdates" metadata set
-        if (url.find("unstable/") == std::string::npos) {
-          if (boost::filesystem::exists(path)) {
-            boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          } else if (url.find("/multisec") != std::string::npos) {
-            boost::filesystem::copy_file(path.parent_path() / "snapshot_multisec.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          } else {
-            boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
-                                         boost::filesystem::copy_option::overwrite_if_exists);
-          }
-          return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
+        if (url.find("noupdates/") != std::string::npos) {
+          boost::filesystem::copy_file(path.parent_path() / "snapshot_noupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
+        } else if (url.find("multisec/") != std::string::npos) {
+          boost::filesystem::copy_file(path.parent_path() / "snapshot_multisec.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
         } else {
-          return HttpResponse(Utils::readFile(path.parent_path() / "snapshot_hasupdates.json"), 200, CURLE_OK, "");
+          boost::filesystem::copy_file(path.parent_path() / "snapshot_hasupdates.json", path,
+                                       boost::filesystem::copy_option::overwrite_if_exists);
         }
+        return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
       } else {
         if (boost::filesystem::exists(path)) {
-          std::cout << "serving: " << path << "\n";
           return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
         } else {
           std::cout << "not found: " << path << "\n";

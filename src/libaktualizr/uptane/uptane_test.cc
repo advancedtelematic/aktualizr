@@ -253,6 +253,79 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
+int num_events_FetchNoUpdates = 0;
+void process_events_FetchNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "DownloadProgressReport") {
+    return;
+  }
+  switch (num_events_FetchNoUpdates) {
+    case 0:
+      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      break;
+    case 1:
+      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      break;
+    case 5:
+      // Don't let the test run indefinitely!
+      FAIL();
+    default:
+      std::cout << "event #" << num_events_FetchNoUpdates << " is: " << event->variant << "\n";
+      EXPECT_EQ(event->variant, "");
+  }
+  ++num_events_FetchNoUpdates;
+}
+
+/*
+ * Using automatic control, test that if there are no updates, no additional
+ * events are generated beyond the expected ones.
+ */
+TEST(Uptane, FetchNoUpdates) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf("tests/config/basic.toml");
+  conf.uptane.director_server = http->tls_server + "/noupdates/director";
+  conf.uptane.repo_server = http->tls_server + "/noupdates/repo";
+  conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
+  conf.uptane.running_mode = RunningMode::kFull;
+  conf.provision.primary_ecu_hardware_id = "primary_hw";
+  conf.storage.path = temp_dir.Path();
+  conf.storage.uptane_metadata_path = BasedPath("metadata");
+  conf.storage.uptane_private_key_path = BasedPath("private.key");
+  conf.storage.uptane_public_key_path = BasedPath("public.key");
+  conf.pacman.sysroot = sysroot;
+  conf.tls.server = http->tls_server;
+  addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
+
+  std::shared_ptr<event::Channel> sig =
+      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchNoUpdates;
+  sig->connect(f_cb);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  EXPECT_NO_THROW(up->initialize());
+  up->fetchMeta();
+  // Fetch twice so that we can check for a second FetchMetaComplete and
+  // guarantee that nothing unexpected happened after the first fetch.
+  up->fetchMeta();
+
+  size_t counter = 0;
+  while (num_events_FetchNoUpdates < 2) {
+    sleep(1);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
+  }
+
+  Json::Value manifest = up->AssembleManifest();
+  // Verify nothing has installed for the primary.
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(), "");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
+            static_cast<int>(data::UpdateResultCode::kOk));
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(), "");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "unknown");
+  // Verify nothing has installed for the secondary.
+  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(), "noimage");
+}
+
 int num_events_FetchDownloadInstall = 0;
 void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
