@@ -113,33 +113,35 @@ int main(int argc, char *argv[]) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
-    std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
+    Aktualizr aktualizr(config);
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
-    conn = aktualizr->SetSignalHandler(f_cb);
+    conn = aktualizr.SetSignalHandler(f_cb);
 
     if (commandline_map.count("secondary") != 0) {
       auto sconfigs = commandline_map["secondary"].as<std::vector<boost::filesystem::path>>();
       for (const auto &sconf : sconfigs) {
-        aktualizr->AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
+        aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
       }
     }
+
+    aktualizr.Initialize();
 
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       if (buffer == "Shutdown") {
-        aktualizr->Shutdown();
+        aktualizr.Shutdown();
         break;
       } else if (buffer == "SendDeviceData") {
-        aktualizr->SendDeviceData();
+        aktualizr.SendDeviceData();
       } else if (buffer == "FetchMeta") {
-        aktualizr->FetchMetadata();
+        aktualizr.FetchMetadata();
       } else if (buffer == "StartDownload") {
-        aktualizr->Download(updates);
+        aktualizr.Download(updates);
       } else if (buffer == "UptaneInstall") {
-        aktualizr->Install(updates);
+        aktualizr.Install(updates);
       } else if (buffer == "CampaignCheck") {
-        aktualizr->CampaignCheck();
+        aktualizr.CampaignCheck();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }

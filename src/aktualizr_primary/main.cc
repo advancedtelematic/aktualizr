@@ -114,10 +114,11 @@ int main(int argc, char *argv[]) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
-    Aktualizr aktualizr(config);
 
+    Aktualizr aktualizr(config);
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
     conn = aktualizr.SetSignalHandler(f_cb);
+    aktualizr.Initialize();
 
     RunningMode running_mode = config.uptane.running_mode;
     // launch the first event
