@@ -98,7 +98,7 @@ TEST(Aktualizr, FullNoUpdates) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullNoUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
-  EXPECT_NO_THROW(up->initialize());
+  aktualizr.Initialize();
   aktualizr.FetchMetadata();
   // Fetch twice so that we can check for a second FetchMetaComplete and
   // guarantee that nothing unexpected happened after the first fetch.
@@ -199,7 +199,7 @@ TEST(Aktualizr, FullWithUpdates) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
-  EXPECT_NO_THROW(up->initialize());
+  aktualizr.Initialize();
   aktualizr.FetchMetadata();
 
   size_t counter = 0;
@@ -209,6 +209,70 @@ TEST(Aktualizr, FullWithUpdates) {
   }
 
   verifyInstallation(up->AssembleManifest());
+}
+
+bool success_FullMultipleSecondaries = false;
+int started_FullMultipleSecondaries = 0;
+int complete_FullMultipleSecondaries = 0;
+void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "InstallStarted") {
+    ++started_FullMultipleSecondaries;
+  } else if (event->variant == "InstallComplete") {
+    ++complete_FullMultipleSecondaries;
+  } else if (event->variant == "PutManifestComplete") {
+    success_FullMultipleSecondaries = true;
+  }
+}
+
+/*
+ * Verify successful installation of multiple secondaries without updating the
+ * primary.
+ */
+TEST(Aktualizr, FullMultipleSecondaries) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf("tests/config/basic.toml");
+  conf.provision.primary_ecu_serial = "testecuserial";
+  conf.provision.primary_ecu_hardware_id = "testecuhwid";
+  conf.uptane.director_server = http->tls_server + "/multisec/director";
+  conf.uptane.repo_server = http->tls_server + "/multisec/repo";
+  conf.storage.path = temp_dir.Path();
+  conf.storage.uptane_private_key_path = BasedPath("private.key");
+  conf.storage.uptane_public_key_path = BasedPath("public.key");
+  conf.tls.server = http->tls_server;
+  conf.uptane.running_mode = RunningMode::kFull;
+
+  TemporaryDirectory temp_dir2;
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
+  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullMultipleSecondaries;
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
+  aktualizr.Initialize();
+  aktualizr.FetchMetadata();
+
+  size_t counter = 0;
+  while (!success_FullMultipleSecondaries) {
+    sleep(1);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for secondary installation to complete.";
+  }
+
+  EXPECT_EQ(started_FullMultipleSecondaries, 2);
+  EXPECT_EQ(complete_FullMultipleSecondaries, 2);
+  const Json::Value manifest = up->AssembleManifest();
+  // Make sure filepath were correctly written and formatted.
+  // installation_result has not been implemented for secondaries yet.
+  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
+  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 15);
+  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware2.txt");
+  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
+  // Manifest should not have an installation result for the primary.
+  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
 int num_events_CheckWithUpdates = 0;
@@ -254,7 +318,7 @@ TEST(Aktualizr, CheckWithUpdates) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
-  EXPECT_NO_THROW(up->initialize());
+  aktualizr.Initialize();
   aktualizr.FetchMetadata();
 
   size_t counter = 0;
@@ -313,7 +377,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_DownloadWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
-  EXPECT_NO_THROW(up->initialize());
+  aktualizr.Initialize();
   // First try downloading nothing. Nothing should happen.
   aktualizr.Download(std::vector<Uptane::Target>());
   aktualizr.FetchMetadata();
@@ -417,7 +481,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
-  EXPECT_NO_THROW(up->initialize());
+  aktualizr.Initialize();
   // First try installing nothing. Nothing should happen.
   aktualizr.Install(updates_InstallWithUpdates);
   conf.uptane.running_mode = RunningMode::kDownload;

@@ -242,7 +242,7 @@ TEST(Uptane, PutManifest) {
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
  */
-TEST(Uptane, InstallOnly) {
+TEST(Uptane, InstallFake) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -301,70 +301,6 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_EQ(ecu_data["ecus"][1]["hardware_identifier"].asString(), "secondary_hardware");
   EXPECT_EQ(ecu_data["ecus"][1]["clientKey"]["keytype"].asString(), "RSA");
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
-}
-
-bool success_InstallMultipleSecondaries = false;
-int started_InstallMultipleSecondaries = 0;
-int complete_InstallMultipleSecondaries = 0;
-void process_events_InstallMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "InstallStarted") {
-    ++started_InstallMultipleSecondaries;
-  } else if (event->variant == "InstallComplete") {
-    ++complete_InstallMultipleSecondaries;
-  } else if (event->variant == "PutManifestComplete") {
-    success_InstallMultipleSecondaries = true;
-  }
-}
-
-/*
- * Verify successful installation of provided fake packages on multiple
- * secondaries. Skip fetching and downloading.
- */
-TEST(Uptane, InstallMultipleSecondaries) {
-  Config conf("tests/config/basic.toml");
-  TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  conf.provision.primary_ecu_serial = "testecuserial";
-  conf.provision.primary_ecu_hardware_id = "testecuhwid";
-  conf.uptane.director_server = http->tls_server + "/multisec/director";
-  conf.uptane.repo_server = http->tls_server + "/multisec/repo";
-  conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
-  conf.tls.server = http->tls_server;
-  conf.uptane.running_mode = RunningMode::kFull;
-
-  TemporaryDirectory temp_dir2;
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
-  UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
-
-  std::shared_ptr<event::Channel> sig =
-      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallMultipleSecondaries;
-  sig->connect(f_cb);
-
-  auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  EXPECT_NO_THROW(up->initialize());
-  up->fetchMeta();
-
-  size_t counter = 0;
-  while (!success_InstallMultipleSecondaries) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for secondary installation to complete.";
-  }
-
-  EXPECT_EQ(started_InstallMultipleSecondaries, 2);
-  EXPECT_EQ(complete_InstallMultipleSecondaries, 2);
-  const Json::Value manifest = up->AssembleManifest();
-  // Make sure filepath were correctly written and formatted.
-  // installation_result has not been implemented for secondaries yet.
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 15);
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware2.txt");
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
-  // Manifest should not have an installation result for the primary.
-  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
 /**
