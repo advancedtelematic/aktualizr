@@ -63,12 +63,15 @@ void Aktualizr::FinalizeInstall() {
 Aktualizr::CycleEventHandler::CycleEventHandler(Aktualizr &akt) : aktualizr(akt), fut(finished.get_future()) {}
 
 void Aktualizr::CycleEventHandler::breakLoop() {
+  std::lock_guard<std::mutex> l(m);
+  if (!running) {
+    return;
+  }
   running = false;
   finished.set_value(true);
 }
 
 void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent> &event) {
-  std::lock_guard<std::mutex> l(m);
   if (!running) {
     return;
   }
@@ -100,9 +103,12 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
       aktualizr.Install(dc_event->updates);
     }
   } else if (event->variant == "InstallComplete") {
-    ecus_count -= 1;
-    if (ecus_count != 0) {
-      return;
+    {
+      std::lock_guard<std::mutex> l(m);
+      ecus_count -= 1;
+      if (ecus_count != 0) {
+        return;
+      }
     }
 
     aktualizr.FinalizeInstall();
