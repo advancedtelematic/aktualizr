@@ -90,6 +90,7 @@ TEST(Uptane, FetchNoUpdates) {
 }
 
 int num_events_FetchDownloadInstall = 0;
+int num_complete_FetchDownloadInstall = 0;
 void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -100,7 +101,7 @@ void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>
       break;
     case 1: {
       EXPECT_EQ(event->variant, "UpdateAvailable");
-      auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
+      const auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
       EXPECT_EQ(targets_event->updates.size(), 2u);
       EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
@@ -123,6 +124,7 @@ void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>
       EXPECT_EQ(event->variant, "InstallComplete");
       const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+      ++num_complete_FetchDownloadInstall;
       break;
     }
     case 5: {
@@ -131,14 +133,19 @@ void process_events_FetchDownloadInstall(const std::shared_ptr<event::BaseEvent>
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 6: {
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
-      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
-      break;
-    }
+    case 6:
     case 7:
-      EXPECT_EQ(event->variant, "PutManifestComplete");
+      // It is possible for the PutManifestComplete to come before we get the
+      // InstallComplete depending on the threading.
+      if (event->variant == "InstallComplete") {
+        ++num_complete_FetchDownloadInstall;
+        // Verify that we don't get three installation completes somehow.
+        EXPECT_EQ(num_complete_FetchDownloadInstall, 2);
+        const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+      } else {
+        EXPECT_EQ(event->variant, "PutManifestComplete");
+      }
       break;
     case 10:
       // Don't let the test run indefinitely!
@@ -172,15 +179,15 @@ TEST(Uptane, FetchDownloadInstall) {
   conf.tls.server = http->tls_server;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
 
-  std::shared_ptr<event::Channel> sig =
-      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchDownloadInstall;
-  sig->connect(f_cb);
-
   auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
   auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchDownloadInstall;
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
   EXPECT_NO_THROW(up->initialize());
-  up->fetchMeta();
+  aktualizr.FetchMetadata();
 
   size_t counter = 0;
   while (num_events_FetchDownloadInstall < 8) {

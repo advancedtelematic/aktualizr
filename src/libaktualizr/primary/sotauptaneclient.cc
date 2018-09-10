@@ -839,7 +839,7 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
 
 void SotaUptaneClient::installationComplete(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "InstallComplete") {
-    auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
     LOG_INFO << "ECU " << install_complete->serial << " installation has finished.";
     pending_ecus--;
     if (pending_ecus == 0) {
@@ -851,7 +851,7 @@ void SotaUptaneClient::installationComplete(const std::shared_ptr<event::BaseEve
 
       if (installing) {
         installing = false;
-        boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+        const boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
         if (boost::filesystem::exists(reboot_flag)) {
           boost::filesystem::remove(reboot_flag);
           if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd

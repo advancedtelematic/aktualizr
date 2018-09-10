@@ -4,8 +4,8 @@
 #include <atomic>
 #include <memory>
 
-#include <boost/signals2.hpp>
 #include <gtest/gtest.h>
+#include <boost/signals2.hpp>
 
 #include "config/config.h"
 #include "sotauptaneclient.h"
@@ -94,6 +94,7 @@ class Aktualizr {
 
  private:
   FRIEND_TEST(Uptane, FetchNoUpdates);
+  FRIEND_TEST(Uptane, FetchDownloadInstall);
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);
   void Initialize();
