@@ -356,7 +356,7 @@ TEST(Uptane, InstallMultipleSecondaries) {
 
   EXPECT_EQ(started_InstallMultipleSecondaries, 2);
   EXPECT_EQ(complete_InstallMultipleSecondaries, 2);
-  Json::Value manifest = up->AssembleManifest();
+  const Json::Value manifest = up->AssembleManifest();
   // Make sure filepath were correctly written and formatted.
   // installation_result has not been implemented for secondaries yet.
   EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");

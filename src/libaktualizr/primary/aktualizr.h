@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <boost/signals2.hpp>
+#include <gtest/gtest.h>
 
 #include "config/config.h"
 #include "sotauptaneclient.h"
@@ -92,6 +93,11 @@ class Aktualizr {
   boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
+  FRIEND_TEST(Uptane, FetchNoUpdates);
+  Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
+            std::shared_ptr<event::Channel> sig_in);
+  void Initialize();
+
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;

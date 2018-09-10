@@ -1,4 +1,5 @@
-#include <gtest/gtest.h>
+#ifndef SOTA_UPTANE_CLIENT_H_
+#define SOTA_UPTANE_CLIENT_H_
 
 #include <map>
 #include <memory>
@@ -128,3 +129,5 @@ class SerialCompare {
  private:
   Uptane::EcuSerial target;
 };
+
+#endif  // SOTA_UPTANE_CLIENT_H_

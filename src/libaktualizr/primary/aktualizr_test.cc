@@ -8,7 +8,7 @@
 
 #include "config/config.h"
 #include "httpfake.h"
-// #include "primary/aktualizr.h"
+#include "primary/aktualizr.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"
 #include "utilities/events.h"
@@ -59,18 +59,18 @@ TEST(Uptane, FetchNoUpdates) {
   conf.tls.server = http->tls_server;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
 
-  std::shared_ptr<event::Channel> sig =
-      std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchNoUpdates;
-  sig->connect(f_cb);
-
   auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
   auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FetchNoUpdates;
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
   EXPECT_NO_THROW(up->initialize());
-  up->fetchMeta();
+  aktualizr.FetchMetadata();
   // Fetch twice so that we can check for a second FetchMetaComplete and
   // guarantee that nothing unexpected happened after the first fetch.
-  up->fetchMeta();
+  aktualizr.FetchMetadata();
 
   size_t counter = 0;
   while (num_events_FetchNoUpdates < 2) {
