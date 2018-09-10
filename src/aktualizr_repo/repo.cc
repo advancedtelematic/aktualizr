@@ -181,21 +181,26 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
 }
 
 void Repo::addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial) {
-  Json::Value image_targets = Utils::parseJSONFile(path_ / "repo/image/targets.json")["signed"];
+  const boost::filesystem::path current = path_ / "repo/director/targets.json";
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+
+  const Json::Value image_targets = Utils::parseJSONFile(path_ / "repo/image/targets.json")["signed"];
   if (!image_targets["targets"].isMember(target_name)) {
     throw std::runtime_error("No such " + target_name + " target in the image repository");
   }
-  Json::Value director_targets = Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"];
-  if (boost::filesystem::exists(path_ / "repo/director/staging/targets.json")) {
-    director_targets = Utils::parseJSONFile(path_ / "repo/director/staging/targets.json");
+  Json::Value director_targets;
+  if (boost::filesystem::exists(staging)) {
+    director_targets = Utils::parseJSONFile(staging);
+  } else if (boost::filesystem::exists(current)) {
+    director_targets = Utils::parseJSONFile(current)["signed"];
   } else {
-    director_targets = Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"];
+    throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
+                             "!");
   }
   director_targets["targets"][target_name] = image_targets["targets"][target_name];
   director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
-  director_targets["version"] =
-      (Utils::parseJSONFile(path_ / "repo/director/targets.json")["signed"]["version"].asUInt()) + 1;
-  Utils::writeFile(path_ / "repo/director/staging/targets.json", director_targets);
+  director_targets["version"] = (Utils::parseJSONFile(current)["signed"]["version"].asUInt()) + 1;
+  Utils::writeFile(staging, director_targets);
 }
 
 void Repo::signTargets() {

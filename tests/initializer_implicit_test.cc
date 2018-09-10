@@ -3,7 +3,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
-#include "httpfake.h"
+#include "http/httpinterface.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
 #include "primary/sotauptaneclient.h"

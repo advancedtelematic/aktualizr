@@ -22,7 +22,7 @@ bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
 
 bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
   try {
-    std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(snapshot_raw));
+    const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(snapshot_raw));
     bool hash_exists = false;
     for (const auto& it : timestamp.snapshot_hashes()) {
       switch (it.type()) {
@@ -62,7 +62,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
 
 bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
   try {
-    std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(targets_raw));
+    const std::string canonical = Utils::jsonToCanonicalStr(Utils::parseJSON(targets_raw));
     bool hash_exists = false;
     for (const auto& it : snapshot.targets_hashes()) {
       switch (it.type()) {
@@ -101,8 +101,8 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
 }
 
 std::unique_ptr<Uptane::Target> ImagesRepository::getTarget(const Uptane::Target& director_target) {
-  auto it = std::find(targets.targets.begin(), targets.targets.end(), director_target);
-  if (it == targets.targets.end()) {
+  auto it = std::find(targets.targets.cbegin(), targets.targets.cend(), director_target);
+  if (it == targets.targets.cend()) {
     return std::unique_ptr<Uptane::Target>(nullptr);
   } else {
     return std_::make_unique<Uptane::Target>(*it);

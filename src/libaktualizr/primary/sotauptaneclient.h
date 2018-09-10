@@ -51,8 +51,10 @@ class SotaUptaneClient {
  private:
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
+  FRIEND_TEST(Uptane, FetchNoUpdates);
   FRIEND_TEST(Uptane, FetchDownloadInstall);
-  FRIEND_TEST(Uptane, Install);
+  FRIEND_TEST(Uptane, InstallOnly);
+  FRIEND_TEST(Uptane, InstallMultipleSecondaries);
   FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
