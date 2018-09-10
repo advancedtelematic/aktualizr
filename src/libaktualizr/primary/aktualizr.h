@@ -93,8 +93,9 @@ class Aktualizr {
   boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
-  FRIEND_TEST(Uptane, FetchNoUpdates);
-  FRIEND_TEST(Uptane, FetchDownloadInstall);
+  FRIEND_TEST(Aktualizr, FullNoUpdates);
+  FRIEND_TEST(Aktualizr, FullWithUpdates);
+  FRIEND_TEST(Aktualizr, CheckWithUpdates);
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);
   void Initialize();

@@ -51,10 +51,11 @@ class SotaUptaneClient {
   void campaignAccept(const std::string &campaign_id);
 
  private:
+  FRIEND_TEST(Aktualizr, FullNoUpdates);
+  FRIEND_TEST(Aktualizr, FullWithUpdates);
+  FRIEND_TEST(Aktualizr, CheckWithUpdates);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
-  FRIEND_TEST(Uptane, FetchNoUpdates);
-  FRIEND_TEST(Uptane, FetchDownloadInstall);
   FRIEND_TEST(Uptane, InstallOnly);
   FRIEND_TEST(Uptane, InstallMultipleSecondaries);
   FRIEND_TEST(Uptane, restoreVerify);
