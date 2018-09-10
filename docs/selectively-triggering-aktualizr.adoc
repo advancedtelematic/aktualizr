@@ -14,7 +14,7 @@ To run the update cycle manually, first stop and disable the aktualizr backgroun
 
 Assuming aktualizr is being built using Yocto and meta-updater, the `systemd` service can also be disabled by default by adding the following to `local.conf`:
 
-    `systemd`_AUTO_ENABLE_aktualizr = "disable"
+    SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
 ====
 
 WARNING: This interface may change in the future, possibly to a socket- or dbus-based system.
