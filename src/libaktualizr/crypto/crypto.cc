@@ -337,11 +337,10 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
   }
 
 #if AKTUALIZR_OPENSSL_PRE_11
-  StructGuard<RSA> rsa(RSA_generate_key(bits,    /* number of bits for the key - 2048 is a sensible value */
-                                        RSA_F4,  /* exponent - RSA_F4 is defined as 0x10001L */
-                                        nullptr, /* callback - can be NULL if we aren't displaying progress */
-                                        nullptr  /* callback argument - not needed in this case */
-                                        ),
+  StructGuard<RSA> rsa(RSA_generate_key(bits,     /* number of bits for the key - 2048 is a sensible value */
+                                        RSA_F4,   /* exponent - RSA_F4 is defined as 0x10001L */
+                                        nullptr,  /* callback - can be NULL if we aren't displaying progress */
+                                        nullptr), /* callback argument - not needed in this case */
                        RSA_free);
 #else
   int ret;
@@ -353,8 +352,7 @@ StructGuard<EVP_PKEY> Crypto::generateRSAKeyPairEVP(KeyType key_type) {
   StructGuard<RSA> rsa(RSA_new(), RSA_free);
   ret = RSA_generate_key_ex(rsa.get(), bits, /* number of bits for the key - 2048 is a sensible value */
                             bne.get(),       /* exponent - RSA_F4 is defined as 0x10001L */
-                            nullptr          /* callback argument - not needed in this case */
-                            );
+                            nullptr);        /* callback argument - not needed in this case */
   if (ret != 1) {
     return {nullptr, EVP_PKEY_free};
   }
