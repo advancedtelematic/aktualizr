@@ -68,7 +68,7 @@ If the device matches one or more campaigns, aktualizr prints details of each ap
 
 === Accept campaigns that target the device
 
-This running mode works together with the `campaign_check`. After you have received a list of applicable campaigns, you can accept specific campaigns so that they update the device.
+This running mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept specific campaigns so that they update the device.
 
     aktualizr --running-mode=campaign_accept <CAMPAIGN_ID>
 
