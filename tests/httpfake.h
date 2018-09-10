@@ -207,9 +207,9 @@ class HttpFake : public HttpInterface {
   HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) {
     (void)callback;
     (void)userp;
-    std::cout << "URL: " << url << "\n";
-    boost::filesystem::path path = metadata_path / "repo/targets" / url.substr(url.rfind("/targets/") + 9);
-    std::cout << "filetoopen: " << path << "\n\n\n";
+    std::cout << "URL requested: " << url << "\n";
+    const boost::filesystem::path path = metadata_path / "repo/targets" / url.substr(url.rfind("/targets/") + 9);
+    std::cout << "file served: " << path << "\n";
 
     std::string content = Utils::readFile(path.string());
 

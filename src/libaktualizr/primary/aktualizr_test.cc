@@ -43,6 +43,20 @@ void verifyNothingInstalled(const Json::Value& manifest) {
   EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(), "noimage");
 }
 
+void verifyInstallation(const Json::Value& manifest) {
+  // Make sure operation_result and filepath were correctly written and formatted.
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(),
+            "primary_firmware.txt");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
+            static_cast<int>(data::UpdateResultCode::kOk));
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
+            "Installing fake package was successful");
+  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "primary_firmware.txt");
+  // installation_result has not been implemented for secondaries yet.
+  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
+            "secondary_firmware.txt");
+}
+
 int num_events_FullNoUpdates = 0;
 void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
@@ -96,8 +110,7 @@ TEST(Aktualizr, FullNoUpdates) {
     ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
   }
 
-  const Json::Value manifest = up->AssembleManifest();
-  verifyNothingInstalled(manifest);
+  verifyNothingInstalled(up->AssembleManifest());
 }
 
 int num_events_FullWithUpdates = 0;
@@ -195,18 +208,7 @@ TEST(Aktualizr, FullWithUpdates) {
     ASSERT_LT(++counter, 20) << "Timed out waiting for primary installation to complete.";
   }
 
-  Json::Value manifest = up->AssembleManifest();
-  // Make sure operation_result and filepath were correctly written and formatted.
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(),
-            "primary_firmware.txt");
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
-            static_cast<int>(data::UpdateResultCode::kOk));
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
-            "Installing fake package was successful");
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "primary_firmware.txt");
-  // installation_result has not been implemented for secondaries yet.
-  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
-            "secondary_firmware.txt");
+  verifyInstallation(up->AssembleManifest());
 }
 
 int num_events_CheckWithUpdates = 0;
@@ -261,8 +263,175 @@ TEST(Aktualizr, CheckWithUpdates) {
     ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
   }
 
-  const Json::Value manifest = up->AssembleManifest();
-  verifyNothingInstalled(manifest);
+  verifyNothingInstalled(up->AssembleManifest());
+}
+
+int num_events_DownloadWithUpdates = 0;
+void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  if (event->variant == "DownloadProgressReport") {
+    return;
+  }
+  switch (num_events_DownloadWithUpdates) {
+    case 0:
+      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      break;
+    case 1: {
+      EXPECT_EQ(event->variant, "UpdateAvailable");
+      const auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
+      EXPECT_EQ(targets_event->updates.size(), 2u);
+      EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
+      EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+      break;
+    }
+    case 2:
+      EXPECT_EQ(event->variant, "DownloadComplete");
+      break;
+    case 5:
+      // Don't let the test run indefinitely!
+      FAIL();
+    default:
+      std::cout << "event #" << num_events_DownloadWithUpdates << " is: " << event->variant << "\n";
+      EXPECT_EQ(event->variant, "");
+  }
+  ++num_events_DownloadWithUpdates;
+}
+
+/*
+ * If only downloading, we shouldn't install anything. Start with a fetch, since
+ * download can't be called without a vector of updates.
+ */
+TEST(Aktualizr, DownloadWithUpdates) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  conf.uptane.running_mode = RunningMode::kDownload;
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_DownloadWithUpdates;
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
+  EXPECT_NO_THROW(up->initialize());
+  // First try downloading nothing. Nothing should happen.
+  aktualizr.Download(std::vector<Uptane::Target>());
+  aktualizr.FetchMetadata();
+
+  size_t counter = 0;
+  while (num_events_DownloadWithUpdates < 3) {
+    sleep(1);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for downloads to complete.";
+  }
+
+  verifyNothingInstalled(up->AssembleManifest());
+}
+
+int num_events_InstallWithUpdates = 0;
+int num_complete_InstallWithUpdates = 0;
+std::vector<Uptane::Target> updates_InstallWithUpdates;
+void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << "got " << event->variant << " event\n";
+  if (event->variant == "DownloadProgressReport") {
+    return;
+  }
+  switch (num_events_InstallWithUpdates) {
+    case 0:
+    case 3:
+      EXPECT_EQ(event->variant, "FetchMetaComplete");
+      break;
+    case 1:
+    case 4: {
+      EXPECT_EQ(event->variant, "UpdateAvailable");
+      const auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
+      EXPECT_EQ(targets_event->updates.size(), 2u);
+      EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
+      EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+      updates_InstallWithUpdates = targets_event->updates;
+      break;
+    }
+    case 2:
+      EXPECT_EQ(event->variant, "DownloadComplete");
+      break;
+    case 5: {
+      // Primary always gets installed first. (Not a requirement, just how it
+      // works at present.)
+      EXPECT_EQ(event->variant, "InstallStarted");
+      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+      EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
+      break;
+    }
+    case 6: {
+      // Primary should complete before secondary begins. (Again not a
+      // requirement per se.)
+      EXPECT_EQ(event->variant, "InstallComplete");
+      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+      ++num_complete_InstallWithUpdates;
+      break;
+    }
+    case 7: {
+      EXPECT_EQ(event->variant, "InstallStarted");
+      const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
+      EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
+      break;
+    }
+    case 8:
+    case 9:
+      // It is possible for the PutManifestComplete to come before we get the
+      // InstallComplete depending on the threading.
+      if (event->variant == "InstallComplete") {
+        ++num_complete_InstallWithUpdates;
+        // Verify that we don't get three installation completes somehow.
+        EXPECT_EQ(num_complete_InstallWithUpdates, 2);
+        const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+      } else {
+        EXPECT_EQ(event->variant, "PutManifestComplete");
+      }
+      break;
+    case 12:
+      // Don't let the test run indefinitely!
+      FAIL();
+    default:
+      std::cout << "event #" << num_events_InstallWithUpdates << " is: " << event->variant << "\n";
+      EXPECT_EQ(event->variant, "");
+  }
+  ++num_events_InstallWithUpdates;
+}
+
+/*
+ * After updates have been downloaded, try to install them. For the download and
+ * the install, rely on the fetch to automatically do the right thing.
+ */
+TEST(Aktualizr, InstallWithUpdates) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  conf.uptane.running_mode = RunningMode::kInstall;
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallWithUpdates;
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
+  EXPECT_NO_THROW(up->initialize());
+  // First try installing nothing. Nothing should happen.
+  aktualizr.Install(updates_InstallWithUpdates);
+  conf.uptane.running_mode = RunningMode::kDownload;
+  aktualizr.FetchMetadata();
+  conf.uptane.running_mode = RunningMode::kInstall;
+  aktualizr.FetchMetadata();
+
+  size_t counter = 0;
+  while (num_events_InstallWithUpdates < 8) {
+    sleep(1);
+    ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
+  }
+
+  verifyInstallation(up->AssembleManifest());
 }
 
 #ifndef __NO_MAIN__
