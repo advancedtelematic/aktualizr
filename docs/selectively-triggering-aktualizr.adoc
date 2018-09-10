@@ -1,20 +1,20 @@
 = Selectively triggering aktualizr
 
-Aktualizr normally runs as a systemd service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
+Aktualizr normally runs as a `systemd` service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
 
 It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option (or by setting `running_mode` in the `[uptane]` configuration section).
 
 [NOTE]
 ====
-To selectively trigger aktualizr, you should disable the systemd service; a continuously-running aktualizr will interfere with the manual triggering.
+To selectively trigger aktualizr, you should disable the `systemd` service. If aktualizr runs continuously, it interferes with the manual triggering.
 
 To run the update cycle manually, first stop and disable the aktualizr background service:
 
     systemctl stop aktualizr && systemctl disable aktualizr
 
-Assuming aktualizr is being built using Yocto and meta-updater, the systemd service can also be disabled by default by adding the following to `local.conf`:
+Assuming aktualizr is being built using Yocto and meta-updater, the `systemd` service can also be disabled by default by adding the following to `local.conf`:
 
-    SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
+    `systemd`_AUTO_ENABLE_aktualizr = "disable"
 ====
 
 WARNING: This interface may change in the future, possibly to a socket- or dbus-based system.
@@ -23,12 +23,12 @@ WARNING: This interface may change in the future, possibly to a socket- or dbus-
 
 An update cycle consists of:
 
-. Polling the server for updates and downloading (and verifying) update metadata
-. Downloading (and verifying) any update binaries available
-. Installing the update
-. Reporting the install results
+. Polling the server for updates and downloading (and verifying) update metadata.
+. Downloading (and verifying) any update binaries available.
+. Installing the update.
+. Reporting the install results.
 
-To trigger the whole cycle, use
+To trigger the whole cycle, use the following command:
 
     aktualizr --running-mode=once
 
@@ -58,3 +58,20 @@ Installation reports are sent when aktualizr polls the server for updates, so th
 
     aktualizr --running-mode=check
 
+=== Check for campaigns target the device
+
+In the OTA Connect web app, you can create smart groups that filter for devices based on specific criteria. When OTA Connect detects a new device that matches this criteria, it automatically publishes the campaign to the device. This running mode checks to see if the device matches the filter criteria used in an active campaign.
+
+    aktualizr --running-mode=campaign_check
+
+If the device matches one or more campaigns, aktualizr prints details of each applicable campaign including the campaign ID. You can then use the campaign ID for the `campaign_accept` command.
+
+=== Accept campaigns that target the device
+
+This running mode works together with the `campaign_check`. After you have received a list of applicable campaigns, you can accept specific campaigns so that they update the device.
+
+    aktualizr --running-mode=campaign_accept <CAMPAIGN_ID>
+
+For example:
+
+    aktualizr --running-mode=campaign_accept 4df1a199-59d4-47f6-a261-d79b83020f65
