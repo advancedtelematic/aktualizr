@@ -5,15 +5,15 @@
       "id" : "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493",
       "metadata" : [
         {
-          "type": "description",
+          "type": "DESCRIPTION",
           "value": "this is my message to show on the device"
         },
         {
-          "type": "estimatedInstallationDuration",
+          "type": "ESTIMATED_INSTALLATION_DURATION",
           "value": "10"
         },
         {
-          "type": "estimatedPreparationDuration",
+          "type": "ESTIMATED_PREPARATION_DURATION",
           "value": "20"
         }
       ],

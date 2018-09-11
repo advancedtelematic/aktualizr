@@ -26,17 +26,17 @@ Campaign Campaign::fromJson(const Json::Value &json) {
         continue;
       }
 
-      if (o["type"] == "description") {
+      if (o["type"] == "DESCRIPTION") {
         if (!description.empty()) {
           throw CampaignParseError();
         }
         description = o["value"].asString();
-      } else if (o["type"] == "estimatedInstallationDuration") {
+      } else if (o["type"] == "ESTIMATED_INSTALLATION_DURATION") {
         if (estInstallationDuration != 0) {
           throw CampaignParseError();
         }
         estInstallationDuration = std::stoi(o["value"].asString());
-      } else if (o["type"] == "estimatedPreparationDuration") {
+      } else if (o["type"] == "ESTIMATED_PREPARATION_DURATION") {
         if (estPreparationDuration != 0) {
           throw CampaignParseError();
         }
