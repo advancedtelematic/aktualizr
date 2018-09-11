@@ -20,6 +20,7 @@ All code should be developed according to the [Google C++ style guide](https://g
    * It must be easy for a developer checking out a project to run the test suite based on the information in the README.md file
    * All code must pass all unit tests before a merge request is made
       - Tests that don't pass should be marked pending (with justification) or should be fixed.
+   * All code must pass formatting and static linting tests
    * Features should be developed in feature branches
    * Only working code should go into the master branch.
       - master should always be in a deployable state
