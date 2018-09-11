@@ -3,10 +3,6 @@ LABEL Description="Aktualizr testing dockerfile for Debian Unstable + static che
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# for clang-format 3.8
-RUN echo "deb http://ftp.de.debian.org/debian stable main" >> /etc/apt/sources.list
-RUN echo "deb-src http://ftp.de.debian.org/debian stable main" >> /etc/apt/sources.list
-
 # It is important to run these in the same RUN command, because otherwise
 # Docker layer caching breaks us
 RUN apt-get update && apt-get -y install \
@@ -18,7 +14,7 @@ RUN apt-get update && apt-get -y install \
   clang-6.0 \
   clang-tidy-6.0 \
   clang-tools-6.0 \
-  clang-format-3.8 \
+  clang-format-6.0 \
   cmake \
   curl \
   dpkg-dev \

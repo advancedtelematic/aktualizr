@@ -162,9 +162,8 @@ endif()
 add_custom_target(build_tests)
 
 # clang-check and clang-format
-find_program(CLANG_FORMAT NAMES clang-format-3.8 clang-format-4.0 clang-format)
-find_program(CLANG_CHECK NAMES clang-check-6.0 clang-check-3.8 clang-check)
-find_program(CLANG_TIDY NAMES clang-tidy-6.0)
+find_program(CLANG_FORMAT NAMES clang-format-6.0 clang-format)
+find_program(CLANG_TIDY NAMES clang-tidy-6.0 clang-tidy)
 
 if(CLANG_FORMAT)
     function(aktualizr_clang_format)
@@ -190,30 +189,6 @@ if(CLANG_FORMAT)
 else()
     message(WARNING "clang-format not found, skipping")
     function(aktualizr_clang_format)
-    endfunction()
-endif()
-
-
-if(CLANG_CHECK)
-    add_custom_target(clang-check)
-    function(aktualizr_clang_check)
-        file(RELATIVE_PATH SUBDIR ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-        foreach(FILE ${ARGN})
-            if(NOT ${FILE} MATCHES "\\.h")
-                string(REPLACE "/" "_" TARGETNAME "aktualizr_clang_check-${SUBDIR}-${FILE}")
-                add_custom_target(${TARGETNAME}
-                    COMMAND ${CLANG_CHECK} -analyze -p ${CMAKE_BINARY_DIR} ${FILE}
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    VERBATIM)
-                # clang-check needs the binary to be built so it knows the compile flags
-                add_dependencies(${TARGETNAME} build_tests)
-                add_dependencies(clang-check ${TARGETNAME})
-            endif()
-        endforeach()
-    endfunction()
-else()
-    message(WARNING "clang-check not found, skipping")
-    function(aktualizr_clang_check)
     endfunction()
 endif()
 
@@ -252,7 +227,6 @@ function(aktualizr_source_file_checks)
             message(FATAL_ERROR "file ${FULL_FN} does not exist")
         endif()
     endforeach()
-    aktualizr_clang_check(${ARGN})
     aktualizr_clang_format(${ARGN})
 
     # exclude test files from clang-tidy because false positives in googletest
@@ -273,7 +247,7 @@ endfunction()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Export compile_commands.json for clang-check
+# Export compile_commands.json for clang-tidy
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ############### BUILD RULES

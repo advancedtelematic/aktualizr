@@ -119,21 +119,39 @@ You can also create a link:docs/deb-package-install.adoc[debian package]:
 make package
 ----
 
-=== Linting
+To use CMake's link:https://ninja-build.org/[Ninja] backend, add `-G Ninja` to the first CMake invocation. It has the advantage of running all targets in parallel by default and is recommended for local development.
 
-Before checking in code, the code linting checks should be run:
+=== Running tests
+
+Before checking in code, it must pass the following tests (along with their corresponding build targets):
+
+- compilation of the main targets and tests without warning: `make` and `make build_tests`
+- validation against the project's automatic formatting conventions: `make check-format` to run the check, `make format` to apply the transformation automatically
+- absence of clang-tidy warning: `make clang-tidy`
+- full test suite run: `make check` (test build included), `make test` (only run the tests)
+
+The `qa` target includes all of these checks, including auto-formatting:
 
 ----
 make qa
 ----
 
-This will reformat all the code with clang-format and run clang-tidy and the test suite. Please follow the https://google.github.io/styleguide/cppguide.html[Google C++ Style Guide] coding standard.
-
-By default, the compilation and tests run in sequence and the output of failing tests is suppressed. To run in parallel, for example with eight threads, and print the output of failing tests, run this:
+Note that, by default, the compilation and tests run in sequence and the output of failing tests is suppressed. To run in parallel, for example with eight threads, and print the output of failing tests, run this:
 
 ----
 CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=8 make -j8 qa
 ----
+
+Some tests require additional setups, such as code coverage, HSM emulation or provisioning credentials (link:docs/credentials.adoc[credentials.adoc]). The exact reference about these steps is the link:scripts/test.sh[main test script] used for CI. It is parametrized by a list of environment variables and is used by our CI environments. To use it, run it in the project's root directory:
+
+----
+./scripts/test.sh
+----
+
+Note that it will run CMake itself in a dedicated build directory.
+
+To get a list of the common environment variables and their corresponding system requirements, have a look at the link:Jenkinsfile[Jenkins Pipelines definitions] and the project's link:docker/[Dockerfiles].
+
 
 === Tags
 
@@ -142,36 +160,6 @@ Generate tags:
 ----
 make tags
 ----
-
-=== Testing
-
-To run the test suite:
-
-----
-make test
-----
-
-`make qa` will also run the test suite.
-
-Some of the tests require provisioning credentials. For details of the credentials format, see link:docs/credentials.adoc[credentials.adoc]. Tests that require valid credentials are disabled by default. To enable them, set `SOTA_PACKED_CREDENTIALS` in the cmake GUI, by passing `-DSOTA_PACKED_CREDENTIALS=...` to cmake, or by editing `CMakeCache.txt` in the build directory.
-
-=== Code coverage
-
-The project can be configured to generate a code coverage report. First, create a CMake build directory for coverage builds, and invoke CMake with the `-DBUILD_WITH_CODE_COVERAGE=ON` flag:
-
-----
-mkdir build-coverage
-cd build-coverage
-cmake -DBUILD_WITH_CODE_COVERAGE=ON ..
-----
-
-Then use Make from the `build-coverage` directory to run the coverage report:
-
-----
-make coverage
-----
-
-The report will be output to the `tests/coverage` folder in your `build-coverage` directory.
 
 === Building with Docker
 
