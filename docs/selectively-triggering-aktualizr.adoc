@@ -60,18 +60,18 @@ Installation reports are sent when aktualizr polls the server for updates, so th
 
 === Check for campaigns target the device
 
-In the OTA Connect web app, you can create smart groups that filter for devices based on specific criteria. When OTA Connect detects a new device that matches this criteria, it automatically publishes the campaign to the device. This running mode checks to see if the device matches the filter criteria used in an active campaign.
+Campaigns provide a way to target software updates to specific groups of devices. You can set up campaigns in the OTA Connect web app. When a device comes online that matches the targeting criteria of a campaign, the OTA Connect server notifies the device that new software updates are available. 
 
     aktualizr --running-mode=campaign_check
 
-If the device matches one or more campaigns, aktualizr prints details of each applicable campaign including the campaign ID. You can then use the campaign ID for the `campaign_accept` command.
+If the device is targeted by one or more campaigns, aktualizr prints details of each applicable campaign including the campaign ID. You can then use the campaign ID for the `campaign_accept` command.
 
 === Accept campaigns that target the device
 
-This running mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept specific campaigns so that they update the device.
+This running mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept the campaigns so that they are included in the software update process.
 
-    aktualizr --running-mode=campaign_accept <CAMPAIGN_ID>
+    aktualizr --running-mode=campaign_accept --campaign-id=<CAMPAIGN_ID>
 
 For example:
 
-    aktualizr --running-mode=campaign_accept 4df1a199-59d4-47f6-a261-d79b83020f65
+    aktualizr --running-mode=campaign_accept --campaign-id=4df1a199-59d4-47f6-a261-d79b83020f65
