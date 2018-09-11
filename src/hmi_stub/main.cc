@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <openssl/ssl.h>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -20,7 +21,7 @@ std::vector<Uptane::Target> updates;
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
-    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMeta, StartDownload, UptaneInstall\n";
+    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMetadata, Download, Install, CampaignCheck\n";
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
@@ -86,13 +87,21 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     }
     return;
   }
-  std::cout << "Received " << event->variant << " event\n";
   if (event->variant == "DownloadComplete") {
+    std::cout << "Received " << event->variant << " event\n";
     progress = 0;
   } else if (event->variant == "UpdateAvailable") {
     updates = dynamic_cast<event::UpdateAvailable *>(event.get())->updates;
+    std::cout << "Received " << event->variant << " event\n";
+  } else if (event->variant == "InstallStarted") {
+    const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
+    std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
   } else if (event->variant == "InstallComplete") {
+    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+    std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
     updates.clear();
+  } else {
+    std::cout << "Received " << event->variant << " event\n";
   }
 }
 
@@ -129,18 +138,19 @@ int main(int argc, char *argv[]) {
 
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
-      if (buffer == "Shutdown") {
+      boost::algorithm::to_lower(buffer);
+      if (buffer == "shutdown") {
         aktualizr.Shutdown();
         break;
-      } else if (buffer == "SendDeviceData") {
+      } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
-      } else if (buffer == "FetchMeta") {
+      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta") {
         aktualizr.FetchMetadata();
-      } else if (buffer == "StartDownload") {
+      } else if (buffer == "download" || buffer == "startdownload") {
         aktualizr.Download(updates);
-      } else if (buffer == "UptaneInstall") {
+      } else if (buffer == "install" || buffer == "uptaneinstall") {
         aktualizr.Install(updates);
-      } else if (buffer == "CampaignCheck") {
+      } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
