@@ -910,7 +910,10 @@ bool SotaUptaneClient::putManifest() {
   if (!hasPendingUpdates(manifest)) {
     auto signed_manifest = uptane_manifest.signManifest(manifest);
     HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
-    return response.isOk();
+    if (response.isOk()) {
+      storage->clearInstallationResult();
+      return true;
+    }
   }
   return false;
 }
