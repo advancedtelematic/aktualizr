@@ -43,9 +43,8 @@ The following debian packages are used in the project:
 * asn1c
 * build-essential
 * clang (optional)
-* clang-check-3.8 (optional)
-* clang-format-3.8 (optional)
-* clang-tidy-3.8 (optional)
+* clang-format-6.0 (optional)
+* clang-tidy-6.0 (optional)
 * cmake (>= 3.5)
 * curl (>= 7.47)
 * doxygen (when building additional documentation)
@@ -76,9 +75,7 @@ The following debian packages are used in the project:
 
 ==== Mac support
 
-On a Mac, building aktualizr with a link:https://brew.sh[brew] package manager
-standard installation is partially supported. You can install the necessary dependencies
-with brew as follows:
+On a Mac, building aktualizr with a link:https://brew.sh[brew] package manager standard installation is partially supported. You can install the necessary dependencies with brew as follows:
 
 ----
 brew install asn1c boost cmake libarchive libsodium pkgconfig
