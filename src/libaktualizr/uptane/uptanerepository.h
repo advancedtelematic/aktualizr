@@ -18,15 +18,15 @@ class Manifest {
   Manifest(const Config &config_in, std::shared_ptr<INvStorage> storage_in)
       : storage_{std::move(storage_in)}, keys_(storage_, config_in.keymanagerConfig()) {}
 
-  Json::Value signManifest(const Json::Value &version_manifests);
-  Json::Value signVersionManifest(const Json::Value &primary_version_manifests);
+  Json::Value signManifest(const Json::Value &version_manifests) const;
+  Json::Value signVersionManifest(const Json::Value &primary_version_manifests) const;
 
   void setPrimaryEcuSerialHwId(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &serials) {
     primary_ecu_serial = serials.first;
     primary_hardware_id = serials.second;
   }
 
-  EcuSerial getPrimaryEcuSerial() { return primary_ecu_serial; }
+  EcuSerial getPrimaryEcuSerial() const { return primary_ecu_serial; }
 
  private:
   Uptane::EcuSerial primary_ecu_serial{Uptane::EcuSerial::Unknown()};

@@ -1,6 +1,6 @@
 #include "packagemanagerfake.h"
 
-Json::Value PackageManagerFake::getInstalledPackages() {
+Json::Value PackageManagerFake::getInstalledPackages() const {
   Json::Value packages(Json::arrayValue);
   Json::Value package;
   package["name"] = "fake-package";
@@ -9,7 +9,7 @@ Json::Value PackageManagerFake::getInstalledPackages() {
   return packages;
 }
 
-Uptane::Target PackageManagerFake::getCurrent() {
+Uptane::Target PackageManagerFake::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   std::string current_hash = storage_->loadInstalledVersions(&installed_versions);
 

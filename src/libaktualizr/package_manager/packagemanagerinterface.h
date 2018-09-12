@@ -10,18 +10,18 @@
 class PackageManagerInterface {
  public:
   virtual ~PackageManagerInterface() = default;
-  virtual std::string name() = 0;
-  virtual Json::Value getInstalledPackages() = 0;
-  virtual Uptane::Target getCurrent() = 0;
+  virtual std::string name() const = 0;
+  virtual Json::Value getInstalledPackages() const = 0;
+  virtual Uptane::Target getCurrent() const = 0;
   virtual data::InstallOutcome install(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
-  Uptane::Target getUnknown() {
+  static Uptane::Target getUnknown() {
     Json::Value t_json;
     t_json["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
     t_json["length"] = 0;
     return Uptane::Target("unknown", t_json);
   }
-  Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) {
+  Json::Value getManifest(const Uptane::EcuSerial& ecu_serial) const {
     Uptane::Target installed_target = getCurrent();
     Json::Value installed_image;
     installed_image["filepath"] = installed_target.filename();
@@ -51,7 +51,7 @@ class PackageManagerInterface {
 
  private:
   data::OperationResult latest_operation_result_{};
-  std::mutex mutex_;
+  mutable std::mutex mutex_;
 };
 
 #endif  // PACKAGEMANAGERINTERFACE_H_

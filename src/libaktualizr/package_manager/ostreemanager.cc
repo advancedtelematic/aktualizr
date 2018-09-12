@@ -205,7 +205,7 @@ OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> 
   }
 }
 
-Json::Value OstreeManager::getInstalledPackages() {
+Json::Value OstreeManager::getInstalledPackages() const {
   std::string packages_str = Utils::readFile(config.packages_file);
   std::vector<std::string> package_lines;
   boost::split(package_lines, packages_str, boost::is_any_of("\n"));
@@ -226,7 +226,7 @@ Json::Value OstreeManager::getInstalledPackages() {
   return packages;
 }
 
-Uptane::Target OstreeManager::getCurrent() {
+Uptane::Target OstreeManager::getCurrent() const {
   GObjectUniquePtr<OstreeDeployment> staged_deployment = getStagedDeployment();
   if (!staged_deployment) {
     throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
@@ -267,7 +267,7 @@ bool OstreeManager::imageUpdated() {
   return !pending_found;
 }
 
-GObjectUniquePtr<OstreeDeployment> OstreeManager::getStagedDeployment() {
+GObjectUniquePtr<OstreeDeployment> OstreeManager::getStagedDeployment() const {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
   GPtrArray *deployments = nullptr;
