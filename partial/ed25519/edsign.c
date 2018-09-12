@@ -30,8 +30,8 @@ static void expand_key(uint8_t *expanded, const uint8_t *secret)
 
 static uint8_t upp(struct ed25519_pt *p, const uint8_t *packed)
 {
-	uint8_t x[F25519_SIZE];
-	uint8_t y[F25519_SIZE];
+	static uint8_t x[F25519_SIZE];
+	static uint8_t y[F25519_SIZE];
 	uint8_t ok = ed25519_try_unpack(x, y, packed);
 
 	ed25519_project(p, x, y);
@@ -40,8 +40,8 @@ static uint8_t upp(struct ed25519_pt *p, const uint8_t *packed)
 
 static void pp(uint8_t *packed, const struct ed25519_pt *p)
 {
-	uint8_t x[F25519_SIZE];
-	uint8_t y[F25519_SIZE];
+	static uint8_t x[F25519_SIZE];
+	static uint8_t y[F25519_SIZE];
 
 	ed25519_unproject(x, y, p);
 	ed25519_pack(packed, x, y);
@@ -49,7 +49,7 @@ static void pp(uint8_t *packed, const struct ed25519_pt *p)
 
 static void sm_pack(uint8_t *r, const uint8_t *k)
 {
-	struct ed25519_pt p;
+	static struct ed25519_pt p;
 
 	ed25519_smult(&p, &ed25519_base, k);
 	pp(r, &p);
@@ -57,7 +57,7 @@ static void sm_pack(uint8_t *r, const uint8_t *k)
 
 void edsign_sec_to_pub(uint8_t *pub, const uint8_t *secret)
 {
-	uint8_t expanded[EXPANDED_SIZE];
+	static uint8_t expanded[EXPANDED_SIZE];
 
 	expand_key(expanded, secret);
 	sm_pack(pub, expanded);
@@ -80,7 +80,7 @@ static void hash_message_prefix_init(struct sha512_state *s, uint8_t *block,
 static void hash_message_init(struct sha512_state *s, const uint8_t *r,
 			      const uint8_t *a, const uint8_t *m, size_t len)
 {
-	uint8_t block[SHA512_BLOCK_SIZE];
+	static uint8_t block[SHA512_BLOCK_SIZE];
 
 
 	memcpy(block, r, 32);
@@ -99,7 +99,7 @@ static void hash_message_final(struct sha512_state *s, const uint8_t *m, size_t 
 
 static void hash_message_finalize(struct sha512_state *s, uint8_t* z)
 {
-	uint8_t hash[SHA512_HASH_SIZE];
+	static uint8_t hash[SHA512_HASH_SIZE];
 
 	sha512_get(s, hash, 0, SHA512_HASH_SIZE);
 	fprime_from_bytes(z, hash, SHA512_HASH_SIZE, ed25519_order);
@@ -107,7 +107,7 @@ static void hash_message_finalize(struct sha512_state *s, uint8_t* z)
 
 static void hash_with_prefix(uint8_t *out_fp, uint8_t *init_block, int prefix_size,
 			     const uint8_t *message, size_t len) {
-	struct sha512_state s;
+	static struct sha512_state s;
 	size_t i;
 
 	if(len <= SHA512_BLOCK_SIZE - prefix_size) {
@@ -125,7 +125,7 @@ static void hash_with_prefix(uint8_t *out_fp, uint8_t *init_block, int prefix_si
 static void generate_k(uint8_t *k, const uint8_t *kgen_key,
 		       const uint8_t *message, size_t len)
 {
-	uint8_t block[SHA512_BLOCK_SIZE];
+	static uint8_t block[SHA512_BLOCK_SIZE];
 
 	memcpy(block, kgen_key, 32);
 	hash_with_prefix(k, block, 32, message, len);
@@ -135,13 +135,13 @@ void edsign_sign(uint8_t *signature, const uint8_t *pub,
 		 const uint8_t *secret,
 		 const uint8_t *message, size_t len)
 {
-	uint8_t expanded[EXPANDED_SIZE];
-	uint8_t e[FPRIME_SIZE];
-	uint8_t s[FPRIME_SIZE];
-	uint8_t k[FPRIME_SIZE];
-	uint8_t z[FPRIME_SIZE];
+	static uint8_t expanded[EXPANDED_SIZE];
+	static uint8_t e[FPRIME_SIZE];
+	static uint8_t s[FPRIME_SIZE];
+	static uint8_t k[FPRIME_SIZE];
+	static uint8_t z[FPRIME_SIZE];
 
-	uint8_t hash_block[SHA512_BLOCK_SIZE];
+	static uint8_t hash_block[SHA512_BLOCK_SIZE];
 
 	expand_key(expanded, secret);
 
@@ -168,11 +168,11 @@ static uint8_t edsign_verify_finalize(struct sha512_state* s, const uint8_t *sig
 {
         (void) message;
 
-	struct ed25519_pt p;
-	struct ed25519_pt q;
-	uint8_t lhs[F25519_SIZE];
-	uint8_t rhs[F25519_SIZE];
-	uint8_t z[FPRIME_SIZE];
+	static struct ed25519_pt p;
+	static struct ed25519_pt q;
+	static uint8_t lhs[F25519_SIZE];
+	static uint8_t rhs[F25519_SIZE];
+	static uint8_t z[FPRIME_SIZE];
 	uint8_t ok = 1;
 
 	hash_message_finalize(s, z);
