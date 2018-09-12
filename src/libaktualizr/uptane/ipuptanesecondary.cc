@@ -71,12 +71,12 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
     LOG_ERROR << "Failed to get response to sending firmware to secondary";
-    sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
+    sendEvent(std::make_shared<event::InstallComplete>(getSerial(), false));
     return false;
   }
 
   auto r = resp->sendFirmwareResp();
-  sendEvent(std::make_shared<event::InstallComplete>(getSerial()));
+  sendEvent(std::make_shared<event::InstallComplete>(getSerial(), true));
   return r->result == AKInstallationResult_success;
 }
 

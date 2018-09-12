@@ -90,7 +90,7 @@ void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryIn
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
   const Uptane::EcuSerial sec_serial = sec->getSerial();
   const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator map_it =
       secondaries.find(sec_serial);
   if (map_it != secondaries.end()) {
     LOG_WARNING << "Multiple secondaries found with the same serial: " << sec_serial;
@@ -803,7 +803,7 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
       bootloader->updateNotify();
       sendEvent(std::make_shared<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial()));
       PackageInstallSetResult(primary_update);
-      sendEvent(std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial()));
+      sendEvent(std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), true));
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
@@ -898,7 +898,7 @@ void SotaUptaneClient::verifySecondaries() {
     found[static_cast<size_t>(std::distance(serials.cbegin(), store_it))] = true;
   }
 
-  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator it;
+  std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator it;
   for (it = secondaries.cbegin(); it != secondaries.cend(); ++it) {
     SerialCompare secondary_comp(it->second->getSerial());
     store_it = std::find_if(serials.begin(), serials.end(), secondary_comp);
@@ -1002,7 +1002,16 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   }
 }
 
+void SotaUptaneClient::waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures) {
+  for (auto &f : firmwareFutures) {
+    f.wait();
+  }
+  sendEvent(std::make_shared<event::AllInstallsComplete>());
+}
+
 void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
+  std::vector<std::future<bool>> firmwareFutures;
+
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
@@ -1017,7 +1026,8 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
         Json::Value data;
         data["sysroot_path"] = config.pacman.sysroot.string();
         data["ref_hash"] = targets_it->sha256Hash();
-        sec->second->sendFirmwareAsync(std::make_shared<std::string>(Utils::jsonToStr(data)));
+        firmwareFutures.push_back(
+            sec->second->sendFirmwareAsync(std::make_shared<std::string>(Utils::jsonToStr(data))));
         continue;
       }
 
@@ -1027,15 +1037,17 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
         if (creds_archive.empty()) {
           continue;
         }
-        sec->second->sendFirmwareAsync(std::make_shared<std::string>(creds_archive));
+        firmwareFutures.push_back(sec->second->sendFirmwareAsync(std::make_shared<std::string>(creds_archive)));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
         const std::string fw = sstr.str();
-        sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw));
+        firmwareFutures.push_back(sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw)));
       }
     }
   }
+
+  std::async(std::launch::async, &SotaUptaneClient::waitAllInstallsComplete, this, std::move(firmwareFutures));
 }
 
 std::string SotaUptaneClient::secondaryTreehubCredentials() const {

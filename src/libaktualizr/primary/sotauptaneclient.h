@@ -99,6 +99,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
+  void waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures);
   void sendEvent(const std::shared_ptr<event::BaseEvent> &event);
 
   Config &config;

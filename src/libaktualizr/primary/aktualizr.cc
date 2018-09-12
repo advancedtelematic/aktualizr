@@ -85,7 +85,6 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
   } else if (event->variant == "UpdateAvailable") {
     auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
     assert(!ua_event->updates.empty());
-    ecus_count = ua_event->updates.size();
     if (running_mode == RunningMode::kInstall) {
       aktualizr.Install(ua_event->updates);
     } else {
@@ -102,15 +101,7 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
     } else {
       aktualizr.Install(dc_event->updates);
     }
-  } else if (event->variant == "InstallComplete") {
-    {
-      std::lock_guard<std::mutex> l(m);
-      ecus_count -= 1;
-      if (ecus_count != 0) {
-        return;
-      }
-    }
-
+  } else if (event->variant == "AllInstallsComplete") {
     aktualizr.FinalizeInstall();
 
     // finished installing everything

@@ -121,17 +121,26 @@ class DownloadComplete : public BaseEvent {
  */
 class InstallStarted : public BaseEvent {
  public:
-  InstallStarted(Uptane::EcuSerial serial_in);
+  explicit InstallStarted(Uptane::EcuSerial serial_in);
   Uptane::EcuSerial serial;
 };
 
 /**
- * An update has been successfully installed on an ECU.
+ * An update attempt on an ECU is finished
  */
 class InstallComplete : public BaseEvent {
  public:
-  InstallComplete(Uptane::EcuSerial serial_in);
+  InstallComplete(Uptane::EcuSerial serial_in, bool success_in);
   Uptane::EcuSerial serial;
+  bool success;
+};
+
+/**
+ * All ECU updates have been sent.
+ */
+class AllInstallsComplete : public BaseEvent {
+ public:
+  AllInstallsComplete();
 };
 
 /**

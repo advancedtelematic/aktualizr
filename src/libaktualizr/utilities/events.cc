@@ -109,9 +109,12 @@ InstallStarted::InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(s
   variant = "InstallStarted";
 }
 
-InstallComplete::InstallComplete(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) {
+InstallComplete::InstallComplete(Uptane::EcuSerial serial_in, bool success_in)
+    : serial(std::move(serial_in)), success(success_in) {
   variant = "InstallComplete";
 }
+
+AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
 
 CampaignCheckComplete::CampaignCheckComplete() { variant = "CampaignCheckComplete"; }
 

@@ -132,7 +132,6 @@ class Aktualizr {
     bool running{true};
     std::promise<bool> finished{};
     std::future<bool> fut{};
-    size_t ecus_count{0};
 
     CycleEventHandler(Aktualizr& akt);
     void breakLoop();
