@@ -30,8 +30,6 @@
 #endif
 #endif
 
-boost::filesystem::path sysroot;
-
 std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
@@ -253,7 +251,6 @@ TEST(Uptane, InstallFake) {
   conf.storage.path = temp_dir.Path();
   conf.storage.uptane_private_key_path = BasedPath("private.key");
   conf.storage.uptane_public_key_path = BasedPath("public.key");
-  conf.pacman.sysroot = sysroot;
   conf.tls.server = http->tls_server;
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -799,11 +796,6 @@ int main(int argc, char** argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif

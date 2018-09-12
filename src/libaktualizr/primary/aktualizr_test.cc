@@ -16,8 +16,6 @@
 #include "utilities/events.h"
 #include "utilities/utils.h"
 
-boost::filesystem::path sysroot;
-
 Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url) {
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = url + "/director";
@@ -28,7 +26,6 @@ Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url
   conf.storage.uptane_metadata_path = BasedPath("metadata");
   conf.storage.uptane_private_key_path = BasedPath("private.key");
   conf.storage.uptane_public_key_path = BasedPath("public.key");
-  conf.pacman.sysroot = sysroot;
   conf.tls.server = url;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
   return conf;
@@ -523,11 +520,6 @@ int main(int argc, char** argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
 
-  if (argc != 2) {
-    std::cerr << "Error: " << argv[0] << " requires the path to an OSTree sysroot as an input argument.\n";
-    return EXIT_FAILURE;
-  }
-  sysroot = argv[1];
   return RUN_ALL_TESTS();
 }
 #endif
