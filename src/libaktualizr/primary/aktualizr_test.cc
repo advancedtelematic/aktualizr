@@ -214,8 +214,6 @@ TEST(Aktualizr, FullWithUpdates) {
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
-
-  verifyInstallation(up->AssembleManifest());
 }
 
 int started_FullMultipleSecondaries = 0;
