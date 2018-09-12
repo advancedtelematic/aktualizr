@@ -58,7 +58,7 @@ Installation reports are sent when aktualizr polls the server for updates, so th
 
     aktualizr --running-mode=check
 
-=== Check for campaigns target the device
+=== Check for campaigns that target the device
 
 Campaigns provide a way to target software updates to specific groups of devices. You can set up campaigns in the OTA Connect web app. When a device comes online that matches the targeting criteria of a campaign, the OTA Connect server notifies the device that new software updates are available. 
 
@@ -75,3 +75,5 @@ This running mode works together with the `campaign_check` mode. After you have 
 For example:
 
     aktualizr --running-mode=campaign_accept --campaign-id=4df1a199-59d4-47f6-a261-d79b83020f65
+    
+Once aktualizr has accepted the campaign, the scheduled update becomes available to the device. The device can then install the update during a normal full update cycle or when the device runs in `check` mode.
