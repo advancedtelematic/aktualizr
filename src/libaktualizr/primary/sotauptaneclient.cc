@@ -95,8 +95,8 @@ void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryIn
 }
 
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
-  Uptane::EcuSerial sec_serial = sec->getSerial();
-  Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+  const Uptane::EcuSerial sec_serial = sec->getSerial();
+  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
       secondaries.find(sec_serial);
   if (map_it != secondaries.end()) {
@@ -1027,7 +1027,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
+      const Uptane::EcuSerial ecu_serial = ecus_it->first;
 
       auto sec = secondaries.find(ecu_serial);
       if (sec != secondaries.end()) {
@@ -1046,7 +1046,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
+      const Uptane::EcuSerial ecu_serial = ecus_it->first;
 
       auto sec = secondaries.find(ecu_serial);
       if (sec == secondaries.end()) {
@@ -1063,7 +1063,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
 
       if (targets_it->IsOstree()) {
         // empty firmware means OSTree secondaries: pack credentials instead
-        std::string creds_archive = secondaryTreehubCredentials();
+        const std::string creds_archive = secondaryTreehubCredentials();
         if (creds_archive.empty()) {
           continue;
         }
@@ -1071,7 +1071,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
-        std::string fw = sstr.str();
+        const std::string fw = sstr.str();
         sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw));
       }
     }

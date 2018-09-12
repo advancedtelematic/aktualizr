@@ -1,4 +1,7 @@
 #include <iostream>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #include <openssl/ssl.h>
 #include <boost/algorithm/string.hpp>
@@ -17,6 +20,8 @@ namespace bpo = boost::program_options;
 
 unsigned int progress = 0;
 std::vector<Uptane::Target> updates;
+std::mutex pending_ecus_mutex;
+unsigned int pending_ecus;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
@@ -91,15 +96,24 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     std::cout << "Received " << event->variant << " event\n";
     progress = 0;
   } else if (event->variant == "UpdateAvailable") {
-    updates = dynamic_cast<event::UpdateAvailable *>(event.get())->updates;
-    std::cout << "Received " << event->variant << " event\n";
+    const auto updateAvailable = dynamic_cast<event::UpdateAvailable *>(event.get());
+    updates = updateAvailable->updates;
+    pending_ecus = updateAvailable->ecus_count;
+    std::cout << pending_ecus << " updates available\n";
   } else if (event->variant == "InstallStarted") {
     const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
     std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
   } else if (event->variant == "InstallComplete") {
     const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+    {
+      std::lock_guard<std::mutex> guard(pending_ecus_mutex);
+      --pending_ecus;
+    }
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
-    updates.clear();
+    if (pending_ecus == 0) {
+      updates.clear();
+      std::cout << "All installations complete.\n";
+    }
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
@@ -158,7 +172,7 @@ int main(int argc, char *argv[]) {
     }
     r = 0;
   } catch (const std::exception &ex) {
-    LOG_ERROR << ex.what();
+    LOG_ERROR << "Fatal error in hmi_stub: " << ex.what();
   }
 
   conn.disconnect();

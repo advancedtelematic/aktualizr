@@ -21,6 +21,7 @@ namespace Uptane {
 class ManagedSecondary : public SecondaryInterface {
  public:
   explicit ManagedSecondary(const SecondaryConfig& sconfig_in);
+  ~ManagedSecondary() override = default;
 
   EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {

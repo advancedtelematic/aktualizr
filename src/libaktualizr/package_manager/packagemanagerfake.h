@@ -11,6 +11,7 @@
 class PackageManagerFake : public PackageManagerInterface {
  public:
   explicit PackageManagerFake(std::shared_ptr<INvStorage> storage) : storage_(std::move(storage)) {}
+  ~PackageManagerFake() override = default;
   std::string name() override { return "fake"; }
   Json::Value getInstalledPackages() override;
 
