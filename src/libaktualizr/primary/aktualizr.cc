@@ -2,16 +2,33 @@
 
 #include <chrono>
 
-#include "utilities/timer.h"
-
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <sodium.h>
+
+#include "utilities/timer.h"
 
 using std::make_shared;
 using std::shared_ptr;
 
 Aktualizr::Aktualizr(Config &config) : config_(config) {
+  systemSetup();
+  sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
+  storage_ = INvStorage::newStorage(config_.storage);
+  storage_->importData(config_.import);
+  uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, sig_);
+}
+
+Aktualizr::Aktualizr(Config &config, std::shared_ptr<INvStorage> storage_in,
+                     std::shared_ptr<SotaUptaneClient> uptane_client_in, std::shared_ptr<event::Channel> sig_in)
+    : config_(config) {
+  systemSetup();
+  storage_ = std::move(storage_in);
+  uptane_client_ = std::move(uptane_client_in);
+  sig_ = std::move(sig_in);
+}
+
+void Aktualizr::systemSetup() {
   if (sodium_init() == -1) {  // Note that sodium_init doesn't require a matching 'sodium_deinit'
     throw std::runtime_error("Unable to initialize libsodium");
   }
@@ -24,13 +41,9 @@ Aktualizr::Aktualizr(Config &config) : config_(config) {
   urandom.close();
   std::srand(seed);  // seeds pseudo random generator with random number
   LOG_TRACE << "... seeding complete in " << timer;
-
-  sig_ = make_shared<boost::signals2::signal<void(shared_ptr<event::BaseEvent>)>>();
-  storage_ = INvStorage::newStorage(config_.storage);
-  storage_->importData(config_.import);
-  uptane_client_ = SotaUptaneClient::newDefaultClient(config_, storage_, sig_);
-  uptane_client_->initialize();
 }
+
+void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
 int Aktualizr::Run() {
   SendDeviceData();

@@ -36,8 +36,12 @@ while ! curl -I -s -f "http://localhost:$PORT"; do
 done
 
 if [ "$2" == "valgrind" ]; then
-    valgrind --track-origins=yes --show-possibly-lost=no --error-exitcode=1 --suppressions="$1/aktualizr.supp" \
-      ./aktualizr_uptane_vector_tests "$PORT"
+    valgrind --track-origins=yes \
+             --show-possibly-lost=no \
+             --error-exitcode=1 \
+             --suppressions="$1/aktualizr.supp" \
+             --suppressions="$1/glib.supp" \
+             ./aktualizr_uptane_vector_tests "$PORT"
 else
     ./aktualizr_uptane_vector_tests "$PORT"
 fi

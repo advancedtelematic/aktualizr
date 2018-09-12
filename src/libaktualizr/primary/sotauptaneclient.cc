@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <memory>
 #include <utility>
-#include "json/json.h"
 
 #include "campaign/campaign.h"
 #include "crypto/crypto.h"
@@ -96,8 +95,8 @@ void SotaUptaneClient::addNewSecondary(const std::shared_ptr<Uptane::SecondaryIn
 }
 
 void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec) {
-  Uptane::EcuSerial sec_serial = sec->getSerial();
-  Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
+  const Uptane::EcuSerial sec_serial = sec->getSerial();
+  const Uptane::HardwareIdentifier sec_hw_id = sec->getHwId();
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::const_iterator map_it =
       secondaries.find(sec_serial);
   if (map_it != secondaries.end()) {
@@ -840,7 +839,7 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
 
 void SotaUptaneClient::installationComplete(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "InstallComplete") {
-    auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
     LOG_INFO << "ECU " << install_complete->serial << " installation has finished.";
     pending_ecus--;
     if (pending_ecus == 0) {
@@ -852,7 +851,7 @@ void SotaUptaneClient::installationComplete(const std::shared_ptr<event::BaseEve
 
       if (installing) {
         installing = false;
-        boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+        const boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
         if (boost::filesystem::exists(reboot_flag)) {
           boost::filesystem::remove(reboot_flag);
           if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
@@ -1028,7 +1027,7 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
+      const Uptane::EcuSerial ecu_serial = ecus_it->first;
 
       auto sec = secondaries.find(ecu_serial);
       if (sec != secondaries.end()) {
@@ -1047,7 +1046,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
+      const Uptane::EcuSerial ecu_serial = ecus_it->first;
 
       auto sec = secondaries.find(ecu_serial);
       if (sec == secondaries.end()) {
@@ -1064,7 +1063,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
 
       if (targets_it->IsOstree()) {
         // empty firmware means OSTree secondaries: pack credentials instead
-        std::string creds_archive = secondaryTreehubCredentials();
+        const std::string creds_archive = secondaryTreehubCredentials();
         if (creds_archive.empty()) {
           continue;
         }
@@ -1072,7 +1071,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
-        std::string fw = sstr.str();
+        const std::string fw = sstr.str();
         sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw));
       }
     }

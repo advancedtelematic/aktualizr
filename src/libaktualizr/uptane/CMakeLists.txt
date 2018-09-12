@@ -51,8 +51,7 @@ else(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 endif(BUILD_OSTREE AND SOTA_PACKED_CREDENTIALS)
 
 
-add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo)
+add_aktualizr_test(NAME uptane SOURCES uptane_test.cc PROJECT_WORKING_DIRECTORY)
 set_tests_properties(test_uptane PROPERTIES LABELS "crypto")
 
 add_aktualizr_test(NAME uptane_implicit SOURCES uptane_implicit_test.cc PROJECT_WORKING_DIRECTORY)

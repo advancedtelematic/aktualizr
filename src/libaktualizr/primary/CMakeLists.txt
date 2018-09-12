@@ -11,10 +11,8 @@ set(HEADERS aktualizr.h
 
 add_library(primary OBJECT ${SOURCES})
 
-# TODO: remove?:
-#add_aktualizr_test(NAME eventsinterpreter SOURCES eventsinterpreter_test.cc)
-
+add_aktualizr_test(NAME aktualizr SOURCES aktualizr_test.cc PROJECT_WORKING_DIRECTORY)
 add_aktualizr_test(NAME events SOURCES events_test.cc)
 add_aktualizr_test(NAME reportqueue SOURCES reportqueue_test.cc PROJECT_WORKING_DIRECTORY)
 
-aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES} eventsinterpreter_test.cc)
+aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})

@@ -1,4 +1,5 @@
-#include <gtest/gtest.h>
+#ifndef SOTA_UPTANE_CLIENT_H_
+#define SOTA_UPTANE_CLIENT_H_
 
 #include <map>
 #include <memory>
@@ -6,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include <json/json.h>
+#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
+#include "json/json.h"
 
 #include "bootloader/bootloader.h"
 #include "config/config.h"
@@ -49,12 +51,14 @@ class SotaUptaneClient {
   void campaignAccept(const std::string &campaign_id);
 
  private:
+  FRIEND_TEST(Aktualizr, FullNoUpdates);
+  FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
+  FRIEND_TEST(Aktualizr, CheckWithUpdates);
+  FRIEND_TEST(Aktualizr, DownloadWithUpdates);
+  FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
-  FRIEND_TEST(Uptane, FetchNoUpdates);
-  FRIEND_TEST(Uptane, FetchDownloadInstall);
-  FRIEND_TEST(Uptane, InstallOnly);
-  FRIEND_TEST(Uptane, InstallMultipleSecondaries);
+  FRIEND_TEST(Uptane, InstallFake);
   FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
@@ -127,3 +131,5 @@ class SerialCompare {
  private:
   Uptane::EcuSerial target;
 };
+
+#endif  // SOTA_UPTANE_CLIENT_H_

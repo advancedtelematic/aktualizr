@@ -34,6 +34,7 @@ struct PullMetaStruct {
 class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage);
+  ~OstreeManager() override = default;
   std::string name() override { return "ostree"; }
   Json::Value getInstalledPackages() override;
   Uptane::Target getCurrent() override;

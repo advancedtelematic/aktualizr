@@ -1,6 +1,10 @@
 #include <iostream>
+#include <mutex>
+#include <string>
+#include <vector>
 
 #include <openssl/ssl.h>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -16,11 +20,13 @@ namespace bpo = boost::program_options;
 
 unsigned int progress = 0;
 std::vector<Uptane::Target> updates;
+std::mutex pending_ecus_mutex;
+unsigned int pending_ecus;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
-    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMeta, StartDownload, UptaneInstall\n";
+    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMetadata, Download, Install, CampaignCheck\n";
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
@@ -86,13 +92,30 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     }
     return;
   }
-  std::cout << "Received " << event->variant << " event\n";
   if (event->variant == "DownloadComplete") {
+    std::cout << "Received " << event->variant << " event\n";
     progress = 0;
   } else if (event->variant == "UpdateAvailable") {
-    updates = dynamic_cast<event::UpdateAvailable *>(event.get())->updates;
+    const auto updateAvailable = dynamic_cast<event::UpdateAvailable *>(event.get());
+    updates = updateAvailable->updates;
+    pending_ecus = updateAvailable->ecus_count;
+    std::cout << pending_ecus << " updates available\n";
+  } else if (event->variant == "InstallStarted") {
+    const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
+    std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
   } else if (event->variant == "InstallComplete") {
-    updates.clear();
+    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+    {
+      std::lock_guard<std::mutex> guard(pending_ecus_mutex);
+      --pending_ecus;
+    }
+    std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
+    if (pending_ecus == 0) {
+      updates.clear();
+      std::cout << "All installations complete.\n";
+    }
+  } else {
+    std::cout << "Received " << event->variant << " event\n";
   }
 }
 
@@ -113,40 +136,43 @@ int main(int argc, char *argv[]) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
-    std::shared_ptr<Aktualizr> aktualizr = std::make_shared<Aktualizr>(config);
 
+    Aktualizr aktualizr(config);
     std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
-    conn = aktualizr->SetSignalHandler(f_cb);
+    conn = aktualizr.SetSignalHandler(f_cb);
 
     if (commandline_map.count("secondary") != 0) {
       auto sconfigs = commandline_map["secondary"].as<std::vector<boost::filesystem::path>>();
       for (const auto &sconf : sconfigs) {
-        aktualizr->AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
+        aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
       }
     }
 
+    aktualizr.Initialize();
+
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
-      if (buffer == "Shutdown") {
-        aktualizr->Shutdown();
+      boost::algorithm::to_lower(buffer);
+      if (buffer == "shutdown") {
+        aktualizr.Shutdown();
         break;
-      } else if (buffer == "SendDeviceData") {
-        aktualizr->SendDeviceData();
-      } else if (buffer == "FetchMeta") {
-        aktualizr->FetchMetadata();
-      } else if (buffer == "StartDownload") {
-        aktualizr->Download(updates);
-      } else if (buffer == "UptaneInstall") {
-        aktualizr->Install(updates);
-      } else if (buffer == "CampaignCheck") {
-        aktualizr->CampaignCheck();
+      } else if (buffer == "senddevicedata") {
+        aktualizr.SendDeviceData();
+      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta") {
+        aktualizr.FetchMetadata();
+      } else if (buffer == "download" || buffer == "startdownload") {
+        aktualizr.Download(updates);
+      } else if (buffer == "install" || buffer == "uptaneinstall") {
+        aktualizr.Install(updates);
+      } else if (buffer == "campaigncheck") {
+        aktualizr.CampaignCheck();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }
     }
     r = 0;
   } catch (const std::exception &ex) {
-    LOG_ERROR << ex.what();
+    LOG_ERROR << "Fatal error in hmi_stub: " << ex.what();
   }
 
   conn.disconnect();

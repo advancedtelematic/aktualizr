@@ -4,6 +4,7 @@
 #include <atomic>
 #include <memory>
 
+#include <gtest/gtest.h>
 #include <boost/signals2.hpp>
 
 #include "config/config.h"
@@ -24,14 +25,22 @@ class Aktualizr {
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
+  /*
+   * Initialize aktualizr. Any secondaries should be added before making this
+   * call. This will provision with the server if required. This must be called
+   * before using any other aktualizr functions except AddSecondary.
+   */
+  void Initialize();
+
   /**
-   * Launch aktualizr. Depending on the \ref RunningMode in the configuration,
-   * this may run indefinitely, so you may want to run this on its own thread.
+   * Run aktualizr indefinitely until a Shutdown event is received. Intended to
+   * be used with the Full \ref RunningMode setting. You may want to run this on
+   * its own thread.
    */
   int Run();
 
   /**
-   * Asynchronously shutdown Aktualizr
+   * Asynchronously shut aktualizr down.
    */
   void Shutdown();
 
@@ -92,6 +101,16 @@ class Aktualizr {
   boost::signals2::connection SetSignalHandler(std::function<void(std::shared_ptr<event::BaseEvent>)>& handler);
 
  private:
+  FRIEND_TEST(Aktualizr, FullNoUpdates);
+  FRIEND_TEST(Aktualizr, FullWithUpdates);
+  FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
+  FRIEND_TEST(Aktualizr, CheckWithUpdates);
+  FRIEND_TEST(Aktualizr, DownloadWithUpdates);
+  FRIEND_TEST(Aktualizr, InstallWithUpdates);
+  Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
+            std::shared_ptr<event::Channel> sig_in);
+  void systemSetup();
+
   Config& config_;
   std::shared_ptr<INvStorage> storage_;
   std::shared_ptr<SotaUptaneClient> uptane_client_;
