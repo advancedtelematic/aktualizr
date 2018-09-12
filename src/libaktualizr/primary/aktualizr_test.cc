@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <future>
 #include <string>
 #include <vector>
 
@@ -58,6 +60,8 @@ void verifyInstallation(const Json::Value& manifest) {
 }
 
 int num_events_FullNoUpdates = 0;
+std::future<void> future_FullNoUpdates{};
+std::promise<void> promise_FullNoUpdates{};
 void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -68,6 +72,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
       break;
     case 1:
       EXPECT_EQ(event->variant, "FetchMetaComplete");
+      promise_FullNoUpdates.set_value();
       break;
     case 5:
       // Don't let the test run indefinitely!
@@ -84,6 +89,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
  * events are generated beyond the expected ones.
  */
 TEST(Aktualizr, FullNoUpdates) {
+  future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
@@ -104,10 +110,9 @@ TEST(Aktualizr, FullNoUpdates) {
   // guarantee that nothing unexpected happened after the first fetch.
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (num_events_FullNoUpdates < 2) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
+  std::future_status status = future_FullNoUpdates.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
   verifyNothingInstalled(up->AssembleManifest());
@@ -115,6 +120,8 @@ TEST(Aktualizr, FullNoUpdates) {
 
 int num_events_FullWithUpdates = 0;
 int num_complete_FullWithUpdates = 0;
+std::future<void> future_FullWithUpdates{};
+std::promise<void> promise_FullWithUpdates{};
 void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -170,6 +177,9 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       } else {
         EXPECT_EQ(event->variant, "PutManifestComplete");
       }
+      if (num_events_FullWithUpdates == 7) {
+        promise_FullWithUpdates.set_value();
+      }
       break;
     case 10:
       // Don't let the test run indefinitely!
@@ -187,6 +197,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
  * sequence of expected events.
  */
 TEST(Aktualizr, FullWithUpdates) {
+  future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
@@ -202,25 +213,25 @@ TEST(Aktualizr, FullWithUpdates) {
   aktualizr.Initialize();
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (num_events_FullWithUpdates < 8) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for primary installation to complete.";
+  std::future_status status = future_FullWithUpdates.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for installation to complete.";
   }
 
   verifyInstallation(up->AssembleManifest());
 }
 
-bool success_FullMultipleSecondaries = false;
 int started_FullMultipleSecondaries = 0;
 int complete_FullMultipleSecondaries = 0;
+std::future<void> future_FullMultipleSecondaries{};
+std::promise<void> promise_FullMultipleSecondaries{};
 void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "InstallStarted") {
     ++started_FullMultipleSecondaries;
   } else if (event->variant == "InstallComplete") {
     ++complete_FullMultipleSecondaries;
   } else if (event->variant == "PutManifestComplete") {
-    success_FullMultipleSecondaries = true;
+    promise_FullMultipleSecondaries.set_value();
   }
 }
 
@@ -229,6 +240,7 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
  * primary.
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
+  future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
@@ -256,10 +268,9 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   aktualizr.Initialize();
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (!success_FullMultipleSecondaries) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for secondary installation to complete.";
+  std::future_status status = future_FullMultipleSecondaries.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for installation to complete.";
   }
 
   EXPECT_EQ(started_FullMultipleSecondaries, 2);
@@ -276,6 +287,8 @@ TEST(Aktualizr, FullMultipleSecondaries) {
 }
 
 int num_events_CheckWithUpdates = 0;
+std::future<void> future_CheckWithUpdates{};
+std::promise<void> promise_CheckWithUpdates{};
 void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -290,6 +303,7 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
       EXPECT_EQ(targets_event->updates.size(), 2u);
       EXPECT_EQ(targets_event->updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
+      promise_CheckWithUpdates.set_value();
       break;
     }
     case 5:
@@ -306,6 +320,7 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
  * If only checking for updates, we shouldn't download or install anything.
  */
 TEST(Aktualizr, CheckWithUpdates) {
+  future_CheckWithUpdates = promise_CheckWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
@@ -321,16 +336,17 @@ TEST(Aktualizr, CheckWithUpdates) {
   aktualizr.Initialize();
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (num_events_CheckWithUpdates < 2) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
+  std::future_status status = future_CheckWithUpdates.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
   verifyNothingInstalled(up->AssembleManifest());
 }
 
 int num_events_DownloadWithUpdates = 0;
+std::future<void> future_DownloadWithUpdates{};
+std::promise<void> promise_DownloadWithUpdates{};
 void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -349,6 +365,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
     }
     case 2:
       EXPECT_EQ(event->variant, "DownloadComplete");
+      promise_DownloadWithUpdates.set_value();
       break;
     case 5:
       // Don't let the test run indefinitely!
@@ -365,6 +382,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
  * download can't be called without a vector of updates.
  */
 TEST(Aktualizr, DownloadWithUpdates) {
+  future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
@@ -382,19 +400,21 @@ TEST(Aktualizr, DownloadWithUpdates) {
   aktualizr.Download(std::vector<Uptane::Target>());
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (num_events_DownloadWithUpdates < 3) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for downloads to complete.";
+  std::future_status status = future_DownloadWithUpdates.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for downloads to complete.";
   }
 
   verifyNothingInstalled(up->AssembleManifest());
 }
 
 int num_events_InstallWithUpdates = 0;
-int num_complete_InstallWithUpdates = 0;
 std::vector<Uptane::Target> updates_InstallWithUpdates;
+std::future<void> future_InstallWithUpdates{};
+std::promise<void> promise_InstallWithUpdates{};
 void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  // Note that we do not expect a PutManifestComplete since we are not using the
+  // kFull or kOnce running modes.
   std::cout << "got " << event->variant << " event\n";
   if (event->variant == "DownloadProgressReport") {
     return;
@@ -431,7 +451,6 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(event->variant, "InstallComplete");
       const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      ++num_complete_InstallWithUpdates;
       break;
     }
     case 7: {
@@ -440,20 +459,13 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 8:
-    case 9:
-      // It is possible for the PutManifestComplete to come before we get the
-      // InstallComplete depending on the threading.
-      if (event->variant == "InstallComplete") {
-        ++num_complete_InstallWithUpdates;
-        // Verify that we don't get three installation completes somehow.
-        EXPECT_EQ(num_complete_InstallWithUpdates, 2);
-        const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
-        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
-      } else {
-        EXPECT_EQ(event->variant, "PutManifestComplete");
-      }
+    case 8: {
+      EXPECT_EQ(event->variant, "InstallComplete");
+      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+      promise_InstallWithUpdates.set_value();
       break;
+    }
     case 12:
       // Don't let the test run indefinitely!
       FAIL();
@@ -469,6 +481,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
  * the install, rely on the fetch to automatically do the right thing.
  */
 TEST(Aktualizr, InstallWithUpdates) {
+  future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
@@ -489,10 +502,9 @@ TEST(Aktualizr, InstallWithUpdates) {
   conf.uptane.running_mode = RunningMode::kInstall;
   aktualizr.FetchMetadata();
 
-  size_t counter = 0;
-  while (num_events_InstallWithUpdates < 8) {
-    sleep(1);
-    ASSERT_LT(++counter, 20) << "Timed out waiting for metadata to be fetched.";
+  std::future_status status = future_InstallWithUpdates.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for installation to complete.";
   }
 
   verifyInstallation(up->AssembleManifest());
