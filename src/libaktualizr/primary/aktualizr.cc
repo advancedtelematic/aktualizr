@@ -85,7 +85,9 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
   } else if (event->variant == "UpdateAvailable") {
     auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
     assert(!ua_event->updates.empty());
-    if (running_mode == RunningMode::kInstall) {
+    if (running_mode == RunningMode::kCheck) {
+      breakLoop();
+    } else if (running_mode == RunningMode::kInstall) {
       aktualizr.Install(ua_event->updates);
     } else {
       aktualizr.Download(ua_event->updates);

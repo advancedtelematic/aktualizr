@@ -123,10 +123,6 @@ int main(int argc, char *argv[]) {
     RunningMode running_mode = config.uptane.running_mode;
     // launch the first event
     switch (running_mode) {
-      case RunningMode::kCheck:
-        aktualizr.SendDeviceData();
-        aktualizr.FetchMetadata();
-        break;
       case RunningMode::kCampaignCheck:
         aktualizr.CampaignCheck();
         break;
@@ -135,6 +131,10 @@ int main(int argc, char *argv[]) {
           throw std::runtime_error("Running mode " + StringFromRunningMode(running_mode) + " requires a campaign id");
         }
         aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>());
+        break;
+      case RunningMode::kCheck:
+        aktualizr.SendDeviceData();
+        aktualizr.UptaneCycle();
         break;
       case RunningMode::kDownload:
       case RunningMode::kInstall:
