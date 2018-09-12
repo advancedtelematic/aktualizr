@@ -26,7 +26,7 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
   bool sig_found = false;
   uint8_t sig_buf[CRYPTO_MAX_SIGNATURE_LEN + 2];  // '+2' because base64 operates in 3 byte granularity
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(json_sig, token_pool[idx], "keyid")) {
+    if (json_str_equal(json_sig, idx, "keyid")) {
       ++idx;  //  consume name token
       if (token_pool[idx].type != JSMN_STRING) {
         DEBUG_PRINTF("Key ID is not a string\n");
@@ -40,11 +40,11 @@ static inline int parse_sig(const char *json_sig, unsigned int *pos, crypto_key_
         }
         ++idx;  // consume key
       }
-    } else if (JSON_STR_EQUAL(json_sig, token_pool[idx], "method")) {
+    } else if (json_str_equal(json_sig, idx, "method")) {
       // method is ignored for now
       ++idx;                              //  consume name token
       idx = consume_recursive_json(idx);  // consume value
-    } else if (JSON_STR_EQUAL(json_sig, token_pool[idx], "sig")) {
+    } else if (json_str_equal(json_sig, idx, "sig")) {
       ++idx;  //  consume name token
       if (token_pool[idx].type != JSMN_STRING) {
         DEBUG_PRINTF("Signature is not a string\n");

@@ -2,6 +2,7 @@
 #define LIBUPTINY_JSON_COMMON_H
 
 #include <string.h>
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,9 +14,7 @@ unsigned int consume_recursive_json(unsigned int idx);
 #define JSON_TOK_LEN(token) ((token).end - (token).start)
 
 // compare token with a string literal
-#define JSON_STR_EQUAL(message, token, str_literal)  \
-  (JSON_TOK_LEN(token) == sizeof(str_literal) - 1 && \
-   strncmp((str_literal), (message) + (token).start, sizeof(str_literal) - 1) == 0)
+bool json_str_equal(const char* json, unsigned int idx, const char* value);
 
 #ifdef __cplusplus
 }

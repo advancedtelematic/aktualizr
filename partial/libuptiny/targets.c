@@ -100,7 +100,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
   ++idx;  // consume object token
 
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(message, token_pool[idx], "custom")) {
+    if (json_str_equal(message, idx, "custom")) {
       ++idx;  // consume name token
       if (token_pool[idx].type != JSMN_OBJECT) {
         DEBUG_PRINTF("Object expected\n");
@@ -110,7 +110,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
       ++idx;  // consume object token
 
       for (int j = 0; j < custom_size; ++j) {
-        if (JSON_STR_EQUAL(message, token_pool[idx], "ecuIdentifiers")) {
+        if (json_str_equal(message, idx, "ecuIdentifiers")) {
           ++idx;  // consume name token
           if (token_pool[idx].type != JSMN_OBJECT) {
             DEBUG_PRINTF("Object expected\n");
@@ -120,8 +120,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
           ++idx;  // consume object token
 
           for (int k = 0; k < ecu_identifiers_size; ++k) {
-            bool is_for_me = (strncmp(state_get_ecuid(), message + token_pool[idx].start,
-                                      (size_t)JSON_TOK_LEN(token_pool[idx])) == 0);
+            bool is_for_me = json_str_equal(message, idx, state_get_ecuid());
             ++idx;  // consume ECU ID token
             if (token_pool[idx].type != JSMN_OBJECT) {
               DEBUG_PRINTF("Object expected\n");
@@ -131,10 +130,9 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
             ++idx;  // consume object token
 
             for (int l = 0; l < hw_id_size; ++l) {
-              if (JSON_STR_EQUAL(message, token_pool[idx], "hardwareId")) {
+              if (json_str_equal(message, idx, "hardwareId")) {
                 ++idx;  // consume name token
-                if (is_for_me && (strncmp(state_get_hwid(), message + token_pool[idx].start,
-                                          (size_t)JSON_TOK_LEN(token_pool[idx])) != 0)) {
+                if (is_for_me && !json_str_equal(message, idx, state_get_hwid())) {
                   DEBUG_PRINTF("Invalid hardware identifier: %.*s\n", JSON_TOK_LEN(token_pool[idx]),
                                message + token_pool[idx].start);
                   return PARSE_TARGET_WRONG_HW_ID;
@@ -159,7 +157,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
           idx = consume_recursive_json(idx);
         }
       }
-    } else if (JSON_STR_EQUAL(message, token_pool[idx], "hashes")) {
+    } else if (json_str_equal(message, idx, "hashes")) {
       ++idx;  // consume name token
       if (token_pool[idx].type != JSMN_OBJECT) {
         DEBUG_PRINTF("Object expected\n");
@@ -202,7 +200,7 @@ static inline parse_target_result_t parse_target(const char *message, unsigned i
       }
       target->hashes_num = hash_idx;
 
-    } else if (JSON_STR_EQUAL(message, token_pool[idx], "length")) {
+    } else if (json_str_equal(message, idx, "length")) {
       ++idx;  // consume name token
       int32_t length;
       if (!dec2int(message + token_pool[idx].start, JSON_TOK_LEN(token_pool[idx]), &length) || length < 0) {
@@ -342,7 +340,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
         }
         break;
       case TARGETS_IN_TOP:
-        if (JSON_STR_EQUAL(message, token_pool[idx], "signatures")) {
+        if (json_str_equal(message, idx, "signatures")) {
           if (idx == parser.toknext - 1 || token_pool[idx + 1].end < 0) {  // got "signatures", but not actual object
             // remove partially parsed object from the container
             --token_pool[0].size;
@@ -353,7 +351,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
           ++idx;  // consume name token
 
           break;
-        } else if (JSON_STR_EQUAL(message, token_pool[idx], "signed")) {
+        } else if (json_str_equal(message, idx, "signed")) {
           if (num_signatures == 0) {
             DEBUG_PRINTF("Signatures are not available for the signed part\n");
             state = TARGETS_IN_ERROR;
@@ -435,7 +433,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
           break;
         }
 
-        if (JSON_STR_EQUAL(message, token_pool[idx], "_type")) {
+        if (json_str_equal(message, idx, "_type")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
             // remove partially parsed object from the container
             --token_pool[signed_top_token_pos].size;
@@ -444,14 +442,14 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
           }
           ++idx;  // consume name token
           ++signed_elems_read;
-          if (!JSON_STR_EQUAL(message, token_pool[idx], "Targets")) {
+          if (!json_str_equal(message, idx, "Targets")) {
             DEBUG_PRINTF("Wrong type of targets metadata: \"%.*s\"\n", JSON_TOK_LEN(token_pool[idx]),
                          message + token_pool[idx].start);
             state = TARGETS_IN_ERROR;
             break;
           }
           ++idx;  // consume value token
-        } else if (JSON_STR_EQUAL(message, token_pool[idx], "expires")) {
+        } else if (json_str_equal(message, idx, "expires")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
             // remove partially parsed object from the container
             --token_pool[signed_top_token_pos].size;
@@ -471,7 +469,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
             out_targets->expires = expires;
           }
           ++idx;  // consume value token
-        } else if (JSON_STR_EQUAL(message, token_pool[idx], "version")) {
+        } else if (json_str_equal(message, idx, "version")) {
           if (idx == parser.toknext - 1) {  // got name, but not respective value
             // remove partially parsed object from the container
             --token_pool[signed_top_token_pos].size;
@@ -495,7 +493,7 @@ int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t 
           }
           out_targets->version = version_tmp;
           ++idx;  // consume value token
-        } else if (JSON_STR_EQUAL(message, token_pool[idx], "targets")) {
+        } else if (json_str_equal(message, idx, "targets")) {
           if (idx == parser.toknext - 1) {  // got "targets", but not ': {'
             // remove partially parsed object from the container
             --token_pool[signed_top_token_pos].size;

@@ -31,7 +31,7 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
   int size = token_pool[0].size;
   unsigned idx = 1;  // consume object token
   for (int i = 0; i < size; ++i) {
-    if (JSON_STR_EQUAL(metadata, token_pool[idx], "signatures")) {
+    if (json_str_equal(metadata, idx, "signatures")) {
       ++idx;  // consume name token
       signatures_token = idx;
       num_signatures =
@@ -41,7 +41,7 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
         return false;
       }
 
-    } else if (JSON_STR_EQUAL(metadata, token_pool[idx], "signed")) {
+    } else if (json_str_equal(metadata, idx, "signed")) {
       ++idx;  // consume name token
       signed_begin = token_pool[idx].start;
       signed_end = token_pool[idx].end;
