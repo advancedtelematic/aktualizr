@@ -796,21 +796,18 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
   //   7 - send images to ECUs (deploy for OSTree)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update
-    std::vector<Uptane::Target>::const_iterator it;
-    for (it = primary_updates.begin(); it != primary_updates.end(); ++it) {
-      if (!isInstalledOnPrimary(*it)) {
-        // notify the bootloader before installation happens, because installation is not atomic and
-        //   a false notification doesn't hurt when rollbacks are implemented
-        bootloader->updateNotify();
-        sendEvent(std::make_shared<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial()));
-        PackageInstallSetResult(*it);
-        sendEvent(std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial()));
-      } else {
-        data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
-        data::OperationResult result(it->filename(), outcome);
-        storage->storeInstallationResult(result);
-      }
-      break;
+    const Uptane::Target &primary_update = primary_updates[0];
+    if (!isInstalledOnPrimary(primary_update)) {
+      // notify the bootloader before installation happens, because installation is not atomic and
+      //   a false notification doesn't hurt when rollbacks are implemented
+      bootloader->updateNotify();
+      sendEvent(std::make_shared<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial()));
+      PackageInstallSetResult(primary_update);
+      sendEvent(std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial()));
+    } else {
+      data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
+      data::OperationResult result(primary_update.filename(), outcome);
+      storage->storeInstallationResult(result);
     }
     // TODO: other updates for primary
   } else {
