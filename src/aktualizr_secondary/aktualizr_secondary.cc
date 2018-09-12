@@ -26,8 +26,8 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
   int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
   bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
-  bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) override {
-    return secondary.sendFirmwareResp(*data);
+  std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) override {
+    return std::async(std::launch::async, &AktualizrSecondary::sendFirmwareResp, &secondary, data);
   }
 
  private:
@@ -113,7 +113,7 @@ bool AktualizrSecondary::putRootResp(const std::string& root, bool director) {
   return false;
 }
 
-bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
+bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& firmware) {
   if (target_ == nullptr) {
     LOG_ERROR << "No valid installation target found";
     return false;
@@ -122,7 +122,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::string& firmware) {
   std::string treehub_server;
   try {
     std::string ca, cert, pkey, server_url;
-    extractCredentialsArchive(firmware, &ca, &cert, &pkey, &treehub_server);
+    extractCredentialsArchive(*firmware, &ca, &cert, &pkey, &treehub_server);
     keys_.loadKeys(&ca, &cert, &pkey);
     boost::trim(server_url);
     treehub_server = server_url;

@@ -27,7 +27,7 @@ class AktualizrSecondary : public AktualizrSecondaryInterface, private Aktualizr
   bool putMetadataResp(const Uptane::RawMetaPack& meta_pack);
   int32_t getRootVersionResp(bool director) const;
   bool putRootResp(const std::string& root, bool director);
-  bool sendFirmwareResp(const std::string& firmware);
+  bool sendFirmwareResp(const std::shared_ptr<std::string>& firmware);
 
   static void extractCredentialsArchive(const std::string& archive, std::string* ca, std::string* cert,
                                         std::string* pkey, std::string* treehub_server);

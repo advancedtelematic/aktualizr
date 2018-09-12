@@ -56,7 +56,11 @@ bool OpcuaSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return client.sendMetadataFiles(metadatafiles);
 }
 
-bool OpcuaSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
+std::future<bool> OpcuaSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
+  return std::async(std::launch::async, &OpcuaSecondary::sendFirmware, this, data);
+}
+
+bool OpcuaSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   sendEvent(std::make_shared<event::InstallStarted>(getSerial()));
 
   Json::Value data_json = Utils::parseJSON(*data);

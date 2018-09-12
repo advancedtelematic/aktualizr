@@ -104,10 +104,10 @@ void SocketServer::HandleOneConnection(int socket) {
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
         auto fw = msg->sendFirmwareReq();
-        bool ok = impl_->sendFirmwareAsync(std::make_shared<std::string>(ToString(fw->firmware)));
+        auto fut = impl_->sendFirmwareAsync(std::make_shared<std::string>(ToString(fw->firmware)));
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
-        r->result = ok ? AKInstallationResult_success : AKInstallationResult_failure;
+        r->result = fut.get() ? AKInstallationResult_success : AKInstallationResult_failure;
       } break;
       default:
         LOG_ERROR << "Unrecognised message type:" << msg->present();

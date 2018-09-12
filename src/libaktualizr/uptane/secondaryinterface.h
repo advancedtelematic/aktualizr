@@ -1,6 +1,7 @@
 #ifndef UPTANE_SECONDARYINTERFACE_H
 #define UPTANE_SECONDARYINTERFACE_H
 
+#include <future>
 #include <string>
 
 #include "json/json.h"
@@ -31,7 +32,7 @@ class SecondaryInterface {
   virtual int32_t getRootVersion(bool director) = 0;
   virtual bool putRoot(const std::string& root, bool director) = 0;
 
-  virtual bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) = 0;
+  virtual std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) = 0;
   const SecondaryConfig sconfig;
   void addEventsChannel(std::shared_ptr<event::Channel> channel) { events_channel = std::move(channel); }
 

@@ -34,7 +34,7 @@ class ManagedSecondary : public SecondaryInterface {
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;
 
-  bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
+  std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
   Json::Value getManifest() override;
 
   bool loadKeys(std::string* pub_key, std::string* priv_key);
@@ -50,7 +50,7 @@ class ManagedSecondary : public SecondaryInterface {
 
   MetaPack current_meta;
   RawMetaPack current_raw_meta;
-  std::future<bool> install_future;
+  std::mutex install_mutex;
 
   virtual bool storeFirmware(const std::string& target_name, const std::string& content) = 0;
   virtual bool getFirmwareInfo(std::string* target_name, size_t& target_len, std::string* sha256hash) = 0;

@@ -24,7 +24,7 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
   virtual int32_t getRootVersion(bool director) { return secondary.getRootVersionResp(director); }
   virtual bool putRoot(const std::string& root, bool director) { return secondary.putRootResp(root, director); }
-  virtual bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) { return secondary.sendFirmwareResp(*data); }
+  virtual std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) { return secondary.sendFirmwareResp(*data); }
 
  private:
   AktualizrSecondary& secondary;
