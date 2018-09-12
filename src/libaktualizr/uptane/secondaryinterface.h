@@ -37,7 +37,9 @@ class SecondaryInterface {
   void addEventsChannel(std::shared_ptr<event::Channel> channel) { events_channel = std::move(channel); }
 
  protected:
-  void sendEvent(std::shared_ptr<event::BaseEvent> event) {
+  template <class T, class... Args>
+  void sendEvent(Args&&... args) {
+    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
     if (events_channel) {
       (*events_channel)(std::move(event));
     }

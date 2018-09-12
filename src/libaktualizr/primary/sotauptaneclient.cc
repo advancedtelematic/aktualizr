@@ -680,21 +680,21 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
     if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
-      sendEvent(std::make_shared<event::Error>("Error downloading targets."));
+      sendEvent<event::Error>("Error downloading targets.");
       return;
     }
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       sendDownloadReport();
-      sendEvent(std::make_shared<event::DownloadComplete>(downloaded_targets));
+      sendEvent<event::DownloadComplete>(downloaded_targets);
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
-      sendEvent(std::make_shared<event::Error>("Partial download"));
+      sendEvent<event::Error>("Partial download");
     }
   } else {
-    sendEvent(std::make_shared<event::NothingToDownload>());
+    sendEvent<event::NothingToDownload>();
     LOG_INFO << "No new updates to download.";
   }
 }
@@ -760,14 +760,14 @@ void SotaUptaneClient::sendDeviceData() {
   reportInstalledPackages();
   reportNetworkInfo();
   putManifest();
-  sendEvent(std::make_shared<event::SendDeviceDataComplete>());
+  sendEvent<event::SendDeviceDataComplete>();
 }
 
 void SotaUptaneClient::fetchMeta() {
   if (updateMeta()) {
-    sendEvent(std::make_shared<event::FetchMetaComplete>());
+    sendEvent<event::FetchMetaComplete>();
   } else {
-    sendEvent(std::make_shared<event::Error>("Could not update metadata."));
+    sendEvent<event::Error>("Could not update metadata.");
   }
 }
 
@@ -779,9 +779,9 @@ void SotaUptaneClient::checkUpdates() {
     LOG_ERROR << "Invalid UPTANE metadata in storage";
   } else {
     if (!updates.empty()) {
-      sendEvent(std::make_shared<event::UpdateAvailable>(updates, ecus_count));
+      sendEvent<event::UpdateAvailable>(updates, ecus_count);
     } else {
-      sendEvent(std::make_shared<event::NoUpdateAvailable>());
+      sendEvent<event::NoUpdateAvailable>();
       LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }
@@ -801,9 +801,9 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
       // notify the bootloader before installation happens, because installation is not atomic and
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
-      sendEvent(std::make_shared<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial()));
+      sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
       PackageInstallSetResult(primary_update);
-      sendEvent(std::make_shared<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), true));
+      sendEvent<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
@@ -824,7 +824,7 @@ void SotaUptaneClient::campaignCheck() {
     LOG_INFO << "Campaign id: " << c.id;
     LOG_INFO << "Message: " << c.description;
   }
-  sendEvent(std::make_shared<event::CampaignCheckComplete>());
+  sendEvent<event::CampaignCheckComplete>();
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
@@ -836,7 +836,7 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   (*report)["eventType"]["version"] = 0;
   (*report)["event"]["campaignId"] = campaign_id;
   report_queue->enqueue(std::move(report));
-  sendEvent(std::make_shared<event::CampaignAcceptComplete>());
+  sendEvent<event::CampaignAcceptComplete>();
 }
 
 void SotaUptaneClient::sendDownloadReport() {
@@ -871,9 +871,9 @@ bool SotaUptaneClient::putManifestSimple() {
 
 void SotaUptaneClient::putManifest() {
   if (putManifestSimple()) {
-    sendEvent(std::make_shared<event::PutManifestComplete>());
+    sendEvent<event::PutManifestComplete>();
   } else {
-    sendEvent(std::make_shared<event::Error>("Could not put manifest."));
+    sendEvent<event::Error>("Could not put manifest.");
   }
 }
 
@@ -1006,7 +1006,7 @@ void SotaUptaneClient::waitAllInstallsComplete(std::vector<std::future<bool>> fi
   for (auto &f : firmwareFutures) {
     f.wait();
   }
-  sendEvent(std::make_shared<event::AllInstallsComplete>());
+  sendEvent<event::AllInstallsComplete>();
 }
 
 void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
@@ -1074,13 +1074,5 @@ std::string SotaUptaneClient::secondaryTreehubCredentials() const {
   } catch (std::runtime_error &exc) {
     LOG_ERROR << "Could not create credentials archive: " << exc.what();
     return "";
-  }
-}
-
-void SotaUptaneClient::sendEvent(const std::shared_ptr<event::BaseEvent> &event) {
-  if (events_channel) {
-    (*events_channel)(event);
-  } else if (event->variant != "DownloadProgressReport") {
-    LOG_INFO << "got " << event->variant << " event";
   }
 }

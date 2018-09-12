@@ -100,7 +100,16 @@ class SotaUptaneClient {
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
   void waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures);
-  void sendEvent(const std::shared_ptr<event::BaseEvent> &event);
+
+  template <class T, class... Args>
+  void sendEvent(Args &&... args) {
+    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
+    if (events_channel) {
+      (*events_channel)(std::move(event));
+    } else if (event->variant != "DownloadProgressReport") {
+      LOG_INFO << "got " << event->variant << " event";
+    }
+  }
 
   Config &config;
   Uptane::DirectorRepository director_repo;

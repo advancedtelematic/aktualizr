@@ -78,7 +78,7 @@ bool PartialVerificationSecondary::putRoot(const std::string &root, bool directo
 
 std::future<bool> PartialVerificationSecondary::sendFirmwareAsync(const std::shared_ptr<std::string> &data) {
   (void)data;
-  sendEvent(std::make_shared<event::InstallStarted>(getSerial()));
+  sendEvent<event::InstallStarted>(getSerial());
 
   throw NotImplementedException();
   return std::future<bool>{};
