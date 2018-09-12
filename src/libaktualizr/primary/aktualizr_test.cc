@@ -223,6 +223,7 @@ TEST(Aktualizr, FullWithUpdates) {
 
 int started_FullMultipleSecondaries = 0;
 int complete_FullMultipleSecondaries = 0;
+bool manifest_FullMultipleSecondaries = false;
 std::future<void> future_FullMultipleSecondaries{};
 std::promise<void> promise_FullMultipleSecondaries{};
 void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
@@ -231,6 +232,11 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
   } else if (event->variant == "InstallComplete") {
     ++complete_FullMultipleSecondaries;
   } else if (event->variant == "PutManifestComplete") {
+    manifest_FullMultipleSecondaries = true;
+  }
+  // It is possible for the PutManifestComplete to come before we get the
+  // InstallComplete depending on the threading, so check for both.
+  if (complete_FullMultipleSecondaries == 2 && manifest_FullMultipleSecondaries) {
     promise_FullMultipleSecondaries.set_value();
   }
 }
