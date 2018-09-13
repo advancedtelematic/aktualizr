@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  boost::filesystem::path directory = "/var/sota/token";
+  boost::filesystem::path directory = "/var/sota/import";
   BasedPath pkey_file = BasedPath("pkey.pem");
   BasedPath cert_file = BasedPath("client.pem");
   BasedPath ca_file = BasedPath("root.crt");
