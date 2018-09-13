@@ -142,7 +142,7 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
-      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+      if (!boost::filesystem::exists(db_path) && FSStorageRead::FSStoragePresent(config)) {
         if (readonly) {
           throw StorageException("Migration from FS is not possible, because of readonly database");
         }

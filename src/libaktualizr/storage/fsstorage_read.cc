@@ -426,3 +426,7 @@ void FSStorageRead::cleanUpAll() {
   boost::filesystem::remove_all(config_.uptane_metadata_path.get(config_.path));
   boost::filesystem::remove_all(config_.path / "targets");
 }
+
+bool FSStorageRead::FSStoragePresent(const StorageConfig& config) {
+  return boost::filesystem::exists(Utils::absolutePath(config.path, "is_registered").string());
+}
