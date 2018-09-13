@@ -138,31 +138,35 @@ void INvStorage::importData(const ImportConfig& import_config) {
                import_config.tls_pkey_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, bool readonly) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
       if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
-        if (readonly) {
-          throw StorageException("Migration from FS is not possible, because of readonly database");
-        }
-
-        LOG_INFO << "Starting FS to SQL storage migration";
         if (access(config.path.c_str(), R_OK | W_OK | X_OK) != 0) {
           throw StorageException(std::string("Cannot read prior filesystem configuration from ") +
                                  config.path.string() + " due to insufficient permissions.");
         }
+
         StorageConfig old_config = config;
         old_config.type = StorageType::kFileSystem;
         old_config.path = config.path;
 
-        auto sql_storage = std::make_shared<SQLStorage>(config, readonly);
         FSStorageRead fs_storage(old_config);
-        INvStorage::FSSToSQLS(fs_storage, *sql_storage);
-        return sql_storage;
+        bool check_exists = true;
+        if (INvStorage::FSSToSQLS(fs_storage, nullptr, check_exists)) {
+          LOG_INFO << "Found existing FS storage. Starting FS to SQL storage migration.";
+          if (readonly) {
+            throw StorageException("Migration from FS is not possible because of readonly database.");
+          }
+          auto sql_storage = std::make_shared<SQLStorage>(config, readonly);
+          check_exists = false;
+          INvStorage::FSSToSQLS(fs_storage, sql_storage, check_exists);
+          return sql_storage;
+        }
       }
       if (!boost::filesystem::exists(db_path)) {
-        LOG_INFO << "Bootstrap empty SQL storage";
+        LOG_INFO << "No storage found. Bootstrapping new SQL storage at: " << db_path;
       } else {
         LOG_INFO << "Use existing SQL storage: " << db_path;
       }
@@ -174,56 +178,97 @@ std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, 
   }
 }
 
-void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
+bool INvStorage::FSSToSQLS(FSStorageRead& fs_storage, const std::shared_ptr<SQLStorage>& sql_storage,
+                           const bool check_exists) {
   std::string public_key;
   std::string private_key;
   if (fs_storage.loadPrimaryKeys(&public_key, &private_key)) {
-    sql_storage.storePrimaryKeys(public_key, private_key);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storePrimaryKeys(public_key, private_key);
+    }
   }
 
   std::string ca;
   if (fs_storage.loadTlsCa(&ca)) {
-    sql_storage.storeTlsCa(ca);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeTlsCa(ca);
+    }
   }
 
   std::string cert;
   if (fs_storage.loadTlsCert(&cert)) {
-    sql_storage.storeTlsCert(cert);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeTlsCert(cert);
+    }
   }
 
   std::string pkey;
   if (fs_storage.loadTlsPkey(&pkey)) {
-    sql_storage.storeTlsPkey(pkey);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeTlsPkey(pkey);
+    }
   }
 
   std::string device_id;
   if (fs_storage.loadDeviceId(&device_id)) {
-    sql_storage.storeDeviceId(device_id);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeDeviceId(device_id);
+    }
   }
 
   EcuSerials serials;
   if (fs_storage.loadEcuSerials(&serials)) {
-    sql_storage.storeEcuSerials(serials);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeEcuSerials(serials);
+    }
   }
 
   if (fs_storage.loadEcuRegistered()) {
-    sql_storage.storeEcuRegistered();
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeEcuRegistered();
+    }
   }
 
   std::vector<MisconfiguredEcu> ecus;
   if (fs_storage.loadMisconfiguredEcus(&ecus)) {
-    sql_storage.storeMisconfiguredEcus(ecus);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeMisconfiguredEcus(ecus);
+    }
   }
 
   data::OperationResult res;
   if (fs_storage.loadInstallationResult(&res)) {
-    sql_storage.storeInstallationResult(res);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeInstallationResult(res);
+    }
   }
 
   std::vector<Uptane::Target> installed_versions;
   std::string current_hash = fs_storage.loadInstalledVersions(&installed_versions);
   if (installed_versions.size() != 0u) {
-    sql_storage.storeInstalledVersions(installed_versions, current_hash);
+    if (check_exists) {
+      return true;
+    } else {
+      sql_storage->storeInstalledVersions(installed_versions, current_hash);
+    }
   }
 
   // migrate latest versions of all metadata
@@ -235,7 +280,11 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
     std::string meta;
     for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
       if (fs_storage.loadNonRoot(&meta, repo, role)) {
-        sql_storage.storeNonRoot(meta, repo, role);
+        if (check_exists) {
+          return true;
+        } else {
+          sql_storage->storeNonRoot(meta, repo, role);
+        }
       }
     }
   }
@@ -247,14 +296,21 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
       for (int version = 0; version <= latest_version; ++version) {
         std::string root;
         if (fs_storage.loadRoot(&root, repo, Uptane::Version(version))) {
-          sql_storage.storeRoot(root, repo, Uptane::Version(version));
+          if (check_exists) {
+            return true;
+          } else {
+            sql_storage->storeRoot(root, repo, Uptane::Version(version));
+          }
         }
       }
     }
   }
 
-  // if everything is ok, remove old files.
-  fs_storage.cleanUpAll();
+  if (!check_exists) {
+    // if everything is ok, remove old files.
+    fs_storage.cleanUpAll();
+  }
+  return false;
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {
