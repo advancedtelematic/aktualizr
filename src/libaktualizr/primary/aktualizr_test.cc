@@ -102,7 +102,6 @@ TEST(Aktualizr, FullNoUpdates) {
 }
 
 int num_events_FullWithUpdates = 0;
-int num_complete_FullWithUpdates = 0;
 std::future<void> future_FullWithUpdates{};
 std::promise<void> promise_FullWithUpdates{};
 void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
@@ -139,7 +138,6 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(event->variant, "InstallComplete");
       const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
-      ++num_complete_FullWithUpdates;
       break;
     }
     case 5: {
@@ -150,8 +148,6 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
     }
     case 6:
       EXPECT_EQ(event->variant, "InstallComplete");
-      ++num_complete_FullWithUpdates;
-      EXPECT_EQ(num_complete_FullWithUpdates, 2);
       {
         const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
         EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");

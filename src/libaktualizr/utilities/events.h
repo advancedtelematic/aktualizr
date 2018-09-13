@@ -126,7 +126,7 @@ class InstallStarted : public BaseEvent {
 };
 
 /**
- * An update attempt on an ECU is finished
+ * An update attempt on an ECU is finished.
  */
 class InstallComplete : public BaseEvent {
  public:
@@ -136,7 +136,7 @@ class InstallComplete : public BaseEvent {
 };
 
 /**
- * All ECU updates have been sent.
+ * All ECU update attempts have completed.
  */
 class AllInstallsComplete : public BaseEvent {
  public:

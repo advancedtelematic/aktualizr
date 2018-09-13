@@ -45,21 +45,6 @@ void Aktualizr::systemSetup() {
 
 void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
-void Aktualizr::FinalizeInstall() {
-  uptane_client_->putManifest();
-
-  boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
-  if (boost::filesystem::exists(reboot_flag)) {
-    boost::filesystem::remove(reboot_flag);
-    if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
-      exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
-      // Systemd will start aktualizr automatically if it exit.
-    } else {  // Aktualizr runs from terminal
-      LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
-    }
-  }
-}
-
 Aktualizr::CycleEventHandler::CycleEventHandler(Aktualizr &akt) : aktualizr(akt), fut(finished.get_future()) {}
 
 void Aktualizr::CycleEventHandler::breakLoop() {
@@ -104,9 +89,19 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
       aktualizr.Install(dc_event->updates);
     }
   } else if (event->variant == "AllInstallsComplete") {
-    aktualizr.FinalizeInstall();
-
     // finished installing everything
+    aktualizr.uptane_client_->putManifest();
+  } else if (event->variant == "PutManifestComplete") {
+    boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+    if (boost::filesystem::exists(reboot_flag)) {
+      boost::filesystem::remove(reboot_flag);
+      if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
+        exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
+        // Systemd will start aktualizr automatically if it exit.
+      } else {  // Aktualizr runs from terminal
+        LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
+      }
+    }
     breakLoop();
   } else if (event->variant == "Error") {
     auto err_event = dynamic_cast<event::Error *>(event.get());

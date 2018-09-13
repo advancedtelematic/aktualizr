@@ -137,7 +137,6 @@ class Aktualizr {
     void breakLoop();
     void handle(const std::shared_ptr<event::BaseEvent>& event);
   };
-  void FinalizeInstall();
 };
 
 #endif  // AKTUALIZR_H_
