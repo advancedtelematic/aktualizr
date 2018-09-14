@@ -106,7 +106,7 @@ SOTA_CLIENT_PROV = "aktualizr-hsm-prov"
 . Copy the device credentials and device gateway root CA certificate to the device's HSM. For the QEMU simulated HSM, enter the device directory whose credentials you wish to copy, then do:
 +
 ----
-scp -P 2222 -pr ./ root@localhost:/var/sota/token
+scp -P 2222 -pr ./ root@localhost:/var/sota/import
 ----
 . The server authenticates the client device by verifying that the client's certificate was signed by the root CA private key that was uploaded in step 2.
 . The client device authenticates the server by verifying that the server's certificate was signed by the server's internal root CA private key.
