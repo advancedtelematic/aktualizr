@@ -636,19 +636,22 @@ TEST(Uptane, offlineIteration) {
 TEST(Uptane, Pkcs11Provision) {
   Config config;
   TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
+  Utils::createDirectories(temp_dir / "import", S_IRWXU);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/root.crt");
   config.tls.cert_source = CryptoSource::kPkcs11;
   config.tls.pkey_source = CryptoSource::kPkcs11;
   config.p11.module = TEST_PKCS11_MODULE_PATH;
   config.p11.pass = "1234";
   config.p11.tls_clientcert_id = "01";
   config.p11.tls_pkey_id = "02";
+  config.import.base_path = (temp_dir / "import").string();
+  config.import.tls_cacert_path = BasedPath("root.crt");
 
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
   Initializer initializer(config.provision, storage, http, keys, {});
