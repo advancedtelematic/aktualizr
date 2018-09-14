@@ -10,6 +10,9 @@ tls_cacert_path = "/persistent/prov_selfupdate/ca.pem"
 tls_pkey_path = "/persistent/prov_selfupdate/pkey.pem"
 tls_clientcert_path = "/persistent/prov_selfupdate/client.pem"
 
+[import]
+base_path = "/tmp/aktualizr-storage/import"
+
 [uptane]
 polling = false
 polling_sec = 10

@@ -453,6 +453,27 @@ TEST(Uptane, fs_to_sql_full) {
   EXPECT_EQ(sql_images_snapshot, images_snapshot);
 }
 
+TEST(Uptane, InstalledVersionImport) {
+  Config config;
+
+  TemporaryDirectory temp_dir;
+  Utils::createDirectories(temp_dir / "import", S_IRWXU);
+  config.storage.path = temp_dir.Path();
+  config.import.base_path = temp_dir / "import";
+  config.postUpdateValues();
+
+  boost::filesystem::copy_file("tests/test_data/prov/installed_versions",
+                               temp_dir.Path() / "import/installed_versions");
+
+  auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
+
+  std::vector<Uptane::Target> installed_versions;
+  storage->loadInstalledVersions(&installed_versions);
+  EXPECT_EQ(installed_versions.at(0).filename(),
+            "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
+}
+
 TEST(Uptane, SaveVersion) {
   TemporaryDirectory temp_dir;
   Config config;

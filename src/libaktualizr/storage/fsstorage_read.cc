@@ -244,31 +244,8 @@ bool FSStorageRead::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
 }
 
 std::string FSStorageRead::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
-  std::string current_hash;
-  if (!boost::filesystem::exists(Utils::absolutePath(config_.path, "installed_versions"))) {
-    return current_hash;
-  }
-  Json::Value installed_versions_json =
-      Utils::parseJSONFile(Utils::absolutePath(config_.path, "installed_versions").string());
-  std::vector<Uptane::Target> new_versions;
-  for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
-    if (!(*it).isObject()) {
-      // We loaded old format, migrate to new one.
-      Json::Value t_json;
-      t_json["hashes"]["sha256"] = it.key();
-      Uptane::Target t((*it).asString(), t_json);
-      new_versions.push_back(t);
-    } else {
-      if ((*it)["is_current"].asBool()) {
-        current_hash = (*it)["hashes"]["sha256"].asString();
-      }
-      Uptane::Target t(it.key().asString(), *it);
-      new_versions.push_back(t);
-    }
-  }
-  *installed_versions = new_versions;
-
-  return current_hash;
+  const boost::filesystem::path path = Utils::absolutePath(config_.path, "installed_versions");
+  return INvStorage::fsReadInstalledVersions(path, installed_versions);
 }
 
 bool FSStorageRead::loadInstallationResult(data::OperationResult* result) {
