@@ -130,9 +130,6 @@ TEST(Uptane, AssembleManifestGood) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
@@ -162,9 +159,6 @@ TEST(Uptane, AssembleManifestBad) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
@@ -200,9 +194,6 @@ TEST(Uptane, PutManifest) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   boost::filesystem::copy_file("tests/test_data/cred.zip", (temp_dir / "cred.zip").string());
   boost::filesystem::copy_file("tests/test_data/firmware.txt", (temp_dir / "firmware.txt").string());
   boost::filesystem::copy_file("tests/test_data/firmware_name.txt", (temp_dir / "firmware_name.txt").string());
@@ -249,8 +240,6 @@ TEST(Uptane, InstallFake) {
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.tls.server = http->tls_server;
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -283,8 +272,6 @@ TEST(Uptane, UptaneSecondaryAdd) {
   config.tls.server = http->tls_server;
   config.provision.primary_ecu_serial = "testecuserial";
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   config.pacman.type = PackageManager::kNone;
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
@@ -337,11 +324,7 @@ TEST(Uptane, fs_to_sql_full) {
   Utils::copyDir("tests/test_data/prov", temp_dir.Path());
   StorageConfig config;
   config.type = StorageType::kSqlite;
-  config.uptane_metadata_path = BasedPath("metadata");
   config.path = temp_dir.Path();
-
-  config.uptane_private_key_path = BasedPath("ecukey.der");
-  config.tls_cacert_path = BasedPath("root.crt");
 
   FSStorageRead fs_storage(config);
 
@@ -474,9 +457,6 @@ TEST(Uptane, SaveVersion) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
@@ -503,9 +483,6 @@ TEST(Uptane, LoadVersion) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
@@ -555,9 +532,6 @@ TEST(Uptane, restoreVerify) {
   config.pacman.type = PackageManager::kNone;
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
   config.postUpdateValues();
 
@@ -611,9 +585,6 @@ TEST(Uptane, offlineIteration) {
   config.pacman.type = PackageManager::kNone;
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.uptane_private_key_path = BasedPath("private.key");
-  config.storage.uptane_public_key_path = BasedPath("public.key");
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
   config.postUpdateValues();
 

@@ -25,10 +25,6 @@ TEST(UptaneImplicit, ImplicitFailure) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -47,9 +43,6 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.provision.device_id = "device_id";
   config.postUpdateValues();
 

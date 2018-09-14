@@ -59,8 +59,6 @@ TEST(Uptane, InitializeTwice) {
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
   conf.provision.primary_ecu_serial = "testecuserial";
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
 
   auto storage = INvStorage::newStorage(conf.storage);
   std::string pkey1;
@@ -117,8 +115,6 @@ TEST(Uptane, PetNameProvided) {
   /* Make sure provided device ID is read as expected. */
   Config conf("tests/config/device_id.toml");
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -156,8 +152,6 @@ TEST(Uptane, PetNameCreation) {
   // Make sure name is created.
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.provision.primary_ecu_serial = "testecuserial";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir.Path() / "cred.zip");
   conf.provision.provision_path = temp_dir.Path() / "cred.zip";
@@ -239,8 +233,6 @@ TEST(Uptane, InitializeFail) {
   Config conf("tests/config/basic.toml");
   conf.uptane.repo_server = http->tls_server + "/director";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
 
   conf.uptane.repo_server = http->tls_server + "/repo";
   conf.tls.server = http->tls_server;

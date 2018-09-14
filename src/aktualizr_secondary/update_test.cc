@@ -52,7 +52,6 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   Utils::copyDir("tests/test_data/secondary_meta", temp_dir.Path());
   StorageConfig storage2_config;
   storage2_config.path = temp_dir.Path();
-  storage2_config.uptane_metadata_path = BasedPath("metadata");
   auto storage2 = INvStorage::newStorage(storage2_config);
 
   Uptane::RawMetaPack metadata;
