@@ -49,8 +49,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
 
   // storage
   TemporaryDirectory temp_dir;
-  int ret = system((std::string("cp -rf tests/test_data/secondary_meta/* ") + temp_dir.PathString()).c_str());
-  (void)ret;
+  Utils::copyDir("tests/test_data/secondary_meta", temp_dir.Path());
   StorageConfig storage2_config;
   storage2_config.path = temp_dir.Path();
   storage2_config.uptane_metadata_path = BasedPath("metadata");

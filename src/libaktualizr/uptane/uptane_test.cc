@@ -334,8 +334,7 @@ TEST(Uptane, ProvisionOnServer) {
 
 TEST(Uptane, fs_to_sql_full) {
   TemporaryDirectory temp_dir;
-  int result = system((std::string("cp -rf tests/test_data/prov/* ") + temp_dir.PathString()).c_str());
-  (void)result;
+  Utils::copyDir("tests/test_data/prov", temp_dir.Path());
   StorageConfig config;
   config.type = StorageType::kSqlite;
   config.uptane_metadata_path = BasedPath("metadata");
