@@ -30,6 +30,8 @@ Error Error::fromJson(const std::string& json_str) {
   return Error(json["fields"][0].asString());
 }
 
+NoUpdateAvailable::NoUpdateAvailable() { variant = "NoUpdateAvailable"; }
+
 UpdateAvailable::UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in)
     : updates(std::move(updates_in)), ecus_count(ecus_count_in) {
   variant = "UpdateAvailable";
@@ -62,6 +64,8 @@ UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
 }
 
 FetchMetaComplete::FetchMetaComplete() { variant = "FetchMetaComplete"; }
+
+NothingToDownload::NothingToDownload() { variant = "NothingToDownload"; }
 
 DownloadProgressReport::DownloadProgressReport(Uptane::Target target_in, std::string description_in,
                                                unsigned int progress_in)
@@ -105,9 +109,12 @@ InstallStarted::InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(s
   variant = "InstallStarted";
 }
 
-InstallComplete::InstallComplete(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) {
+InstallComplete::InstallComplete(Uptane::EcuSerial serial_in, bool success_in)
+    : serial(std::move(serial_in)), success(success_in) {
   variant = "InstallComplete";
 }
+
+AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
 
 CampaignCheckComplete::CampaignCheckComplete() { variant = "CampaignCheckComplete"; }
 

@@ -45,10 +45,89 @@ void Aktualizr::systemSetup() {
 
 void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
+Aktualizr::CycleEventHandler::CycleEventHandler(Aktualizr &akt) : aktualizr(akt), fut(finished.get_future()) {}
+
+void Aktualizr::CycleEventHandler::breakLoop() {
+  std::lock_guard<std::mutex> l(m);
+  if (!running) {
+    return;
+  }
+  running = false;
+  finished.set_value(true);
+}
+
+void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent> &event) {
+  if (!running) {
+    return;
+  }
+
+  RunningMode running_mode = aktualizr.config_.uptane.running_mode;
+
+  if (event->variant == "FetchMetaComplete") {
+    aktualizr.CheckUpdates();
+  } else if (event->variant == "NoUpdateAvailable") {
+    breakLoop();
+  } else if (event->variant == "UpdateAvailable") {
+    auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
+    assert(!ua_event->updates.empty());
+    if (running_mode == RunningMode::kCheck) {
+      breakLoop();
+    } else if (running_mode == RunningMode::kInstall) {
+      aktualizr.Install(ua_event->updates);
+    } else {
+      aktualizr.Download(ua_event->updates);
+    }
+  } else if (event->variant == "NothingToDownload") {
+    breakLoop();
+  } else if (event->variant == "DownloadProgressReport") {
+    // silent
+  } else if (event->variant == "DownloadComplete") {
+    auto dc_event = dynamic_cast<event::DownloadComplete *>(event.get());
+    if (running_mode == RunningMode::kDownload) {
+      breakLoop();
+    } else {
+      aktualizr.Install(dc_event->updates);
+    }
+  } else if (event->variant == "AllInstallsComplete") {
+    // finished installing everything
+    aktualizr.uptane_client_->putManifest();
+  } else if (event->variant == "PutManifestComplete") {
+    boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
+    if (boost::filesystem::exists(reboot_flag)) {
+      boost::filesystem::remove(reboot_flag);
+      if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
+        exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
+        // Systemd will start aktualizr automatically if it exit.
+      } else {  // Aktualizr runs from terminal
+        LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
+      }
+    }
+    breakLoop();
+  } else if (event->variant == "Error") {
+    auto err_event = dynamic_cast<event::Error *>(event.get());
+    LOG_WARNING << "got error event: " << err_event->message;
+    breakLoop();
+  }
+}
+
+void Aktualizr::UptaneCycle() {
+  CycleEventHandler ev_handler(*this);
+
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> cb =
+      [&ev_handler](const std::shared_ptr<event::BaseEvent> &event) { ev_handler.handle(event); };
+  auto conn = SetSignalHandler(cb);
+
+  // launch the cycle
+  FetchMetadata();
+
+  ev_handler.fut.wait();
+  conn.disconnect();
+}
+
 int Aktualizr::Run() {
   SendDeviceData();
   while (!shutdown_) {
-    FetchMetadata();
+    UptaneCycle();
     std::this_thread::sleep_for(std::chrono::seconds(config_.uptane.polling_sec));
   }
   return EXIT_SUCCESS;

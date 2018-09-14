@@ -83,7 +83,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
-void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "DownloadProgressReport") {
     unsigned int new_progress = dynamic_cast<event::DownloadProgressReport *>(event.get())->progress;
     if (new_progress > progress) {
@@ -92,28 +92,24 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     }
     return;
   }
-  if (event->variant == "DownloadComplete") {
+  if (event->variant == "FetchMetaComplete") {
+    aktualizr.CheckUpdates();
+  } else if (event->variant == "DownloadComplete") {
     std::cout << "Received " << event->variant << " event\n";
     progress = 0;
   } else if (event->variant == "UpdateAvailable") {
     const auto updateAvailable = dynamic_cast<event::UpdateAvailable *>(event.get());
     updates = updateAvailable->updates;
-    pending_ecus = updateAvailable->ecus_count;
-    std::cout << pending_ecus << " updates available\n";
+    std::cout << updateAvailable->ecus_count << " updates available\n";
   } else if (event->variant == "InstallStarted") {
     const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
     std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
   } else if (event->variant == "InstallComplete") {
     const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
-    {
-      std::lock_guard<std::mutex> guard(pending_ecus_mutex);
-      --pending_ecus;
-    }
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
-    if (pending_ecus == 0) {
-      updates.clear();
-      std::cout << "All installations complete.\n";
-    }
+  } else if (event->variant == "AllInstallsComplete") {
+    updates.clear();
+    std::cout << "All installations complete.\n";
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
@@ -131,14 +127,14 @@ int main(int argc, char *argv[]) {
 
   try {
     Config config(commandline_map);
-    config.uptane.running_mode = RunningMode::kManual;
     if (config.logger.loglevel <= boost::log::trivial::debug) {
       SSL_load_error_strings();
     }
     LOG_DEBUG << "Current directory: " << boost::filesystem::current_path().string();
 
     Aktualizr aktualizr(config);
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_event;
+    std::function<void(const std::shared_ptr<event::BaseEvent> event)> f_cb =
+        [&aktualizr](const std::shared_ptr<event::BaseEvent> event) { process_event(aktualizr, event); };
     conn = aktualizr.SetSignalHandler(f_cb);
 
     if (commandline_map.count("secondary") != 0) {

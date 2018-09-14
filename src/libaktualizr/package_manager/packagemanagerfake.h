@@ -12,10 +12,10 @@ class PackageManagerFake : public PackageManagerInterface {
  public:
   explicit PackageManagerFake(std::shared_ptr<INvStorage> storage) : storage_(std::move(storage)) {}
   ~PackageManagerFake() override = default;
-  std::string name() override { return "fake"; }
-  Json::Value getInstalledPackages() override;
+  std::string name() const override { return "fake"; }
+  Json::Value getInstalledPackages() const override;
 
-  Uptane::Target getCurrent() override;
+  Uptane::Target getCurrent() const override;
   bool imageUpdated() override { return true; };
 
   data::InstallOutcome install(const Uptane::Target &target) const override;

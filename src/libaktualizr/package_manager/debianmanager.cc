@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-Json::Value DebianManager::getInstalledPackages() {
+Json::Value DebianManager::getInstalledPackages() const {
   Json::Value packages(Json::arrayValue);
   struct pkg_array array {};
   dpkg_program_init("a.out");
@@ -50,7 +50,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, output);
 }
 
-Uptane::Target DebianManager::getCurrent() {
+Uptane::Target DebianManager::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   std::string current_hash = storage_->loadInstalledVersions(&installed_versions);
 

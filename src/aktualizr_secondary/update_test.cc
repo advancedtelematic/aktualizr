@@ -24,7 +24,9 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
   virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
   virtual int32_t getRootVersion(bool director) { return secondary.getRootVersionResp(director); }
   virtual bool putRoot(const std::string& root, bool director) { return secondary.putRootResp(root, director); }
-  virtual bool sendFirmwareAsync(const std::shared_ptr<std::string>& data) { return secondary.sendFirmwareResp(*data); }
+  virtual std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
+    return std::async(std::launch::async, &AktualizrSecondary::sendFirmwareResp, &secondary, data);
+  }
 
  private:
   AktualizrSecondary& secondary;
@@ -68,7 +70,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");
 
   EXPECT_TRUE(sec_iface.putMetadata(metadata));
-  EXPECT_TRUE(sec_iface.sendFirmwareAsync(std::make_shared<std::string>(firmware)));
+  EXPECT_TRUE(sec_iface.sendFirmwareAsync(std::make_shared<std::string>(firmware)).get());
   Json::Value manifest = sec_iface.getManifest();
 
   EXPECT_EQ(manifest["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"],

@@ -55,7 +55,7 @@ TEST(event, DownloadComplete_event_to_json) {
 }
 
 TEST(event, InstallComplete_event_to_json) {
-  event::InstallComplete event(Uptane::EcuSerial("123456"));
+  event::InstallComplete event(Uptane::EcuSerial("123456"), true);
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);

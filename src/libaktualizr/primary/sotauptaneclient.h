@@ -41,9 +41,10 @@ class SotaUptaneClient {
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  bool downloadImages(const std::vector<Uptane::Target> &targets);
+  void downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
   void fetchMeta();
+  void putManifest();
   void checkUpdates();
   void uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
@@ -55,7 +56,6 @@ class SotaUptaneClient {
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
   FRIEND_TEST(Aktualizr, CheckWithUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
-  FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);
   FRIEND_TEST(Uptane, InstallFake);
@@ -90,7 +90,7 @@ class SotaUptaneClient {
   void sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
-  bool putManifest();
+  bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
@@ -98,7 +98,17 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
-  void sendEvent(const std::shared_ptr<event::BaseEvent> &event);
+  void waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures);
+
+  template <class T, class... Args>
+  void sendEvent(Args &&... args) {
+    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
+    if (events_channel) {
+      (*events_channel)(std::move(event));
+    } else if (event->variant != "DownloadProgressReport") {
+      LOG_INFO << "got " << event->variant << " event";
+    }
+  }
 
   Config &config;
   Uptane::DirectorRepository director_repo;
@@ -113,8 +123,6 @@ class SotaUptaneClient {
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
   std::map<Uptane::EcuSerial, std::string> installed_images;
-  bool installing{false};
-  unsigned int pending_ecus{0};
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
   Uptane::Exception last_exception{"", ""};

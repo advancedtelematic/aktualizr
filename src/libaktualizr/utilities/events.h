@@ -64,6 +64,14 @@ class PutManifestComplete : public BaseEvent {
 };
 
 /**
+ * No update is available for download from the server.
+ */
+class NoUpdateAvailable : public BaseEvent {
+ public:
+  explicit NoUpdateAvailable();
+};
+
+/**
  * An update is available for download from the server.
  */
 class UpdateAvailable : public BaseEvent {
@@ -73,6 +81,14 @@ class UpdateAvailable : public BaseEvent {
   explicit UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in);
   std::string toJson() override;
   static UpdateAvailable fromJson(const std::string& json_str);
+};
+
+/**
+ * Nothing to download from the server.
+ */
+class NothingToDownload : public BaseEvent {
+ public:
+  explicit NothingToDownload();
 };
 
 /**
@@ -105,17 +121,26 @@ class DownloadComplete : public BaseEvent {
  */
 class InstallStarted : public BaseEvent {
  public:
-  InstallStarted(Uptane::EcuSerial serial_in);
+  explicit InstallStarted(Uptane::EcuSerial serial_in);
   Uptane::EcuSerial serial;
 };
 
 /**
- * An update has been successfully installed on an ECU.
+ * An update attempt on an ECU is finished.
  */
 class InstallComplete : public BaseEvent {
  public:
-  InstallComplete(Uptane::EcuSerial serial_in);
+  InstallComplete(Uptane::EcuSerial serial_in, bool success_in);
   Uptane::EcuSerial serial;
+  bool success;
+};
+
+/**
+ * All ECU update attempts have completed.
+ */
+class AllInstallsComplete : public BaseEvent {
+ public:
+  AllInstallsComplete();
 };
 
 /**

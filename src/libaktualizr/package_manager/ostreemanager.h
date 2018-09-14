@@ -35,13 +35,13 @@ class OstreeManager : public PackageManagerInterface {
  public:
   OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage);
   ~OstreeManager() override = default;
-  std::string name() override { return "ostree"; }
-  Json::Value getInstalledPackages() override;
-  Uptane::Target getCurrent() override;
+  std::string name() const override { return "ostree"; }
+  Json::Value getInstalledPackages() const override;
+  Uptane::Target getCurrent() const override;
   bool imageUpdated() override;
   data::InstallOutcome install(const Uptane::Target &target) const override;
 
-  GObjectUniquePtr<OstreeDeployment> getStagedDeployment();
+  GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);
   static GObjectUniquePtr<OstreeRepo> LoadRepo(OstreeSysroot *sysroot, GError **error);
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
