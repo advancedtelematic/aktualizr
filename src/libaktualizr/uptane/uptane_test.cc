@@ -465,6 +465,7 @@ TEST(Uptane, InstalledVersionImport) {
   boost::filesystem::copy_file("tests/test_data/prov/installed_versions",
                                temp_dir.Path() / "import/installed_versions");
 
+  // test basic import
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
 
@@ -472,6 +473,19 @@ TEST(Uptane, InstalledVersionImport) {
   storage->loadInstalledVersions(&installed_versions);
   EXPECT_EQ(installed_versions.at(0).filename(),
             "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
+
+  // check that data is not re-imported later: store new data, reload a new
+  // storage with import and see that the new data is still there
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
+  target_json["length"] = 123;
+  std::vector<Uptane::Target> new_installed_versions = {{"filename", target_json}};
+  storage->storeInstalledVersions(new_installed_versions, "");
+
+  auto new_storage = INvStorage::newStorage(config.storage);
+  new_storage->importData(config.import);
+  new_storage->loadInstalledVersions(&installed_versions);
+  EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
 TEST(Uptane, SaveVersion) {

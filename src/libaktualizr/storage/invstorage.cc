@@ -128,10 +128,15 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
 
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
   std::vector<Uptane::Target> installed_versions;
-  std::string current_hash =
-      fsReadInstalledVersions(BasedPath("installed_versions").get(base_path), &installed_versions);
+  boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
+  loadInstalledVersions(&installed_versions);
+  if (!installed_versions.empty()) {
+    return;
+  }
+  std::string current_hash = fsReadInstalledVersions(file_path, &installed_versions);
   if (!installed_versions.empty()) {
     storeInstalledVersions(installed_versions, current_hash);
+    boost::filesystem::remove(file_path);
   }
 }
 
