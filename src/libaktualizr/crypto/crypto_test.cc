@@ -47,6 +47,12 @@ TEST(crypto, sign_verify_rsa_file) {
 }
 
 #ifdef BUILD_P11
+TEST(crypto, findPkcsLibrary) {
+  const boost::filesystem::path pkcs11Path = P11Engine::findPkcsLibrary();
+  EXPECT_NE(pkcs11Path, "");
+  EXPECT_TRUE(boost::filesystem::exists(pkcs11Path));
+}
+
 TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;

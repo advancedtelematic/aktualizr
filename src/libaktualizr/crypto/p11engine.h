@@ -1,14 +1,14 @@
 #ifndef P11ENGINE_H_
 #define P11ENGINE_H_
 
-#include <openssl/engine.h>
-#include <openssl/err.h>
-#include <boost/filesystem.hpp>
 #include <memory>
 
-#include "p11_config.h"
+#include <gtest/gtest.h>
+#include <openssl/engine.h>
+#include <openssl/err.h>
 
 #include "logging/logging.h"
+#include "p11_config.h"
 
 class P11ContextWrapper {
  public:
@@ -68,11 +68,13 @@ class P11Engine {
   P11ContextWrapper ctx_;
   P11SlotsWrapper slots_;
 
+  static boost::filesystem::path findPkcsLibrary();
   PKCS11_slot_st *findTokenSlot() const;
 
   explicit P11Engine(P11Config config);
 
   friend class P11EngineGuard;
+  FRIEND_TEST(crypto, findPkcsLibrary);
 };
 
 class P11EngineGuard {

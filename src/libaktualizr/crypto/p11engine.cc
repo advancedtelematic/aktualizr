@@ -1,22 +1,18 @@
 #include "p11engine.h"
 
+#include <utility>
+#include <vector>
+
 #include <libp11.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <boost/algorithm/hex.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/scoped_array.hpp>
-#include <utility>
-#include <vector>
 
 #include "crypto/crypto.h"
 #include "utilities/config_utils.h"
 #include "utilities/utils.h"
-
-#ifdef TEST_PKCS11_ENGINE_PATH
-#define kPkcs11Path TEST_PKCS11_ENGINE_PATH
-#else
-#define kPkcs11Path "/usr/lib/engines/pkcs11.so"
-#endif
 
 P11Engine* P11EngineGuard::instance = nullptr;
 int P11EngineGuard::ref_counter = 0;
@@ -90,8 +86,10 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
   }
 
   try {
-    if (ENGINE_ctrl_cmd_string(engine, "SO_PATH", kPkcs11Path, 0) == 0) {
-      throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + kPkcs11Path);
+    const boost::filesystem::path pkcs11Path = findPkcsLibrary();
+    LOG_INFO << "Loading PKCS#11 engine library: " << pkcs11Path.string();
+    if (ENGINE_ctrl_cmd_string(engine, "SO_PATH", pkcs11Path.c_str(), 0) == 0) {
+      throw std::runtime_error(std::string("Engine command failed: SO_PATH ") + pkcs11Path.string());
     }
 
     if (ENGINE_ctrl_cmd_string(engine, "ID", "pkcs11", 0) == 0) {
@@ -126,6 +124,23 @@ P11Engine::P11Engine(P11Config config) : config_(std::move(config)), ctx_(config
   }
 
   ssl_engine_ = engine;
+}
+
+boost::filesystem::path P11Engine::findPkcsLibrary() {
+#ifdef TEST_PKCS11_ENGINE_PATH
+  const boost::filesystem::path custom_path = TEST_PKCS11_ENGINE_PATH;
+#else
+  const boost::filesystem::path custom_path;
+#endif
+  const boost::filesystem::path openssl11_path = "/usr/lib/engines-1.1/pkcs11.so";
+  const boost::filesystem::path default_path = "/usr/lib/engines/pkcs11.so";
+  if (boost::filesystem::exists(custom_path)) {
+    return custom_path;
+  } else if (boost::filesystem::exists(openssl11_path)) {
+    return openssl11_path;
+  } else {
+    return default_path;
+  }
 }
 
 PKCS11_SLOT* P11Engine::findTokenSlot() const {
