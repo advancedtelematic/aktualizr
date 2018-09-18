@@ -28,12 +28,6 @@
 class Uptane_Vector_Test {
  private:
   static bool match_error(const Json::Value& error, const Uptane::Exception& e) {
-    std::cout << "name: " << e.getName() << std::endl;
-    std::cout << "e.what: " << e.what() << std::endl;
-    std::cout << "1: " << error["director"]["update"]["err_msg"].asString() << std::endl;
-    std::cout << "2: " << error["director"]["targets"][e.getName()]["err_msg"].asString() << std::endl;
-    std::cout << "3: " << error["image_repo"]["update"]["err_msg"].asString() << std::endl;
-    std::cout << "4: " << error["image_repo"]["targets"][e.getName()]["err_msg"].asString() << std::endl;
     if (error["director"]["update"]["err_msg"].asString() == e.what() ||
         error["director"]["targets"][e.getName()]["err_msg"].asString() == e.what() ||
         error["image_repo"]["update"]["err_msg"].asString() == e.what() ||
@@ -53,8 +47,9 @@ class Uptane_Vector_Test {
     config.uptane.director_server = address + test_name + "/director";
     config.uptane.repo_server = address + test_name + "/image_repo";
     config.storage.path = temp_dir.Path();
-    config.storage.uptane_metadata_path = BasedPath(address + "aktualizr_repos");
+    config.storage.uptane_metadata_path = BasedPath(temp_dir.Path() / "metadata");
     config.pacman.type = PackageManager::kNone;
+    logger_set_threshold(boost::log::trivial::trace);
 
     auto storage = INvStorage::newStorage(config.storage);
     Uptane::Manifest uptane_manifest{config, storage};
@@ -63,7 +58,6 @@ class Uptane_Vector_Test {
     Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
     uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
     uptane_client->installed_images[ecu_serial] = "test_filename";
-    logger_set_threshold(boost::log::trivial::trace);
 
     HttpClient http_client;
     while (true) {
@@ -98,20 +92,21 @@ class Uptane_Vector_Test {
           if (should_fail) {
             throw uptane_client->getLastException();
           }
-          std::cout << "aktualizr return error but should not\n";
+          std::cout << "uptaneIteration unexpectedly failed.\n";
           return false;
         }
         std::vector<Uptane::Target> updates;
         if (!uptane_client->uptaneOfflineIteration(&updates, nullptr)) {
-          std::cout << "uptaneOfflineIteration returns false\n";
+          std::cout << "uptaneOfflineIteration unexpectedly failed.\n";
           return false;
-        } else {
-          if (updates.size()) {
-            if (!uptane_client->downloadImages(updates)) {
-              if (should_fail) {
-                throw uptane_client->getLastException();
-              }
+        }
+        if (updates.size()) {
+          if (!uptane_client->downloadImages(updates)) {
+            if (should_fail) {
+              throw uptane_client->getLastException();
             }
+            std::cout << "downloadImages unexpectedly failed.\n";
+            return false;
           }
         }
 
@@ -126,7 +121,7 @@ class Uptane_Vector_Test {
       }
 
       if (should_fail) {
-        std::cout << "No exceptions happen, but expects \n";
+        std::cout << "No exceptions happen, but expects ";
         if (!vector["director"]["update"]["is_success"].asBool()) {
           std::cout << "exception from director: '" << vector["director"]["update"]["err"]
                     << " with message: " << vector["director"]["update"]["err_msg"] << "\n";
@@ -134,7 +129,6 @@ class Uptane_Vector_Test {
           std::cout << "exception from image_repo: '" << vector["image_repo"]["update"]["err"]
                     << " with message: " << vector["image_repo"]["update"]["err_msg"] << "\n";
         }
-
         return false;
       }
     }
@@ -164,7 +158,7 @@ int main(int argc, char* argv[]) {
   for (Json::ValueConstIterator it = json_vectors.begin(); it != json_vectors.end(); it++) {
     std::cout << "Running test vector " << (*it).asString() << "\n";
 
-    bool pass = Uptane_Vector_Test::run_test((*it).asString(), address);
+    const bool pass = Uptane_Vector_Test::run_test((*it).asString(), address);
     std::cout << "Finished test vector " << (*it).asString() << "\n";
     if (pass) {
       passed++;

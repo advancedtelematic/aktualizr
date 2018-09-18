@@ -666,7 +666,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<Uptane::Target> downloaded_targets;
@@ -676,6 +676,7 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
+      sendEvent<event::Error>("Target hash mismatch.");
       return false;
     }
     downloaded_targets.push_back(*it);
@@ -683,7 +684,7 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     // TODO: check if the file is already there before downloading
     if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
       sendEvent<event::Error>("Error downloading targets.");
-      return;
+      return false;
     }
   }
   if (!targets.empty()) {
@@ -694,11 +695,13 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
       sendEvent<event::Error>("Partial download");
+      return false;
     }
   } else {
     sendEvent<event::NothingToDownload>();
     LOG_INFO << "No new updates to download.";
   }
+  return true;
 }
 
 bool SotaUptaneClient::uptaneIteration() {
