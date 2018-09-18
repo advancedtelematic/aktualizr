@@ -504,6 +504,37 @@ TEST(Aktualizr, InstallWithUpdates) {
   }
 }
 
+TEST(Aktualizr, CampaignCheck) {
+  std::promise<void> promise{};
+  std::future<void> fut = promise.get_future();
+
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
+      [&promise](std::shared_ptr<event::BaseEvent> event) {
+        if (event->variant == "CampaignCheckComplete") {
+          auto* ev = dynamic_cast<const event::CampaignCheckComplete*>(event.get());
+          EXPECT_EQ(ev->campaigns.size(), 1);
+          promise.set_value();
+        }
+      };
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+
+  aktualizr.Initialize();
+  aktualizr.CampaignCheck();
+
+  std::future_status status = fut.wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timeout out waiting for campaign check.";
+  }
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
