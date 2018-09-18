@@ -156,6 +156,8 @@ class INvStorage {
   // Special constructors and utilities
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config, bool readonly = false);
   static void FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage);
+  static std::string fsReadInstalledVersions(const boost::filesystem::path& filename,
+                                             std::vector<Uptane::Target>* installed_versions);
 
   // Not purely virtual
   void importData(const ImportConfig& import_config);
@@ -168,6 +170,7 @@ class INvStorage {
                           const BasedPath& imported_data_path);
   void importPrimaryKeys(const boost::filesystem::path& base_path, const BasedPath& import_pubkey_path,
                          const BasedPath& import_privkey_path);
+  void importInstalledVersions(const boost::filesystem::path& base_path);
 
  protected:
   const StorageConfig& config_;

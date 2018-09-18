@@ -126,6 +126,20 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
   storePrimaryKeys(pub_content, priv_content);
 }
 
+void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
+  std::vector<Uptane::Target> installed_versions;
+  boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
+  loadInstalledVersions(&installed_versions);
+  if (!installed_versions.empty()) {
+    return;
+  }
+  std::string current_hash = fsReadInstalledVersions(file_path, &installed_versions);
+  if (!installed_versions.empty()) {
+    storeInstalledVersions(installed_versions, current_hash);
+    boost::filesystem::remove(file_path);
+  }
+}
+
 void INvStorage::importData(const ImportConfig& import_config) {
   importPrimaryKeys(import_config.base_path, import_config.uptane_public_key_path,
                     import_config.uptane_private_key_path);
@@ -136,13 +150,15 @@ void INvStorage::importData(const ImportConfig& import_config) {
                import_config.tls_clientcert_path);
   importSimple(import_config.base_path, &INvStorage::storeTlsPkey, &INvStorage::loadTlsPkey,
                import_config.tls_pkey_path);
+
+  importInstalledVersions(import_config.base_path);
 }
 
 std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, bool readonly) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
-      if (!boost::filesystem::exists(db_path) && boost::filesystem::exists(config.path)) {
+      if (!boost::filesystem::exists(db_path) && FSStorageRead::FSStoragePresent(config)) {
         if (readonly) {
           throw StorageException("Migration from FS is not possible, because of readonly database");
         }
@@ -255,6 +271,34 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
 
   // if everything is ok, remove old files.
   fs_storage.cleanUpAll();
+}
+
+std::string INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename,
+                                                std::vector<Uptane::Target>* installed_versions) {
+  std::string current_hash;
+  if (!boost::filesystem::exists(filename)) {
+    return current_hash;
+  }
+  Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
+  std::vector<Uptane::Target> new_versions;
+  for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
+    if (!(*it).isObject()) {
+      // We loaded old format, migrate to new one.
+      Json::Value t_json;
+      t_json["hashes"]["sha256"] = it.key();
+      Uptane::Target t((*it).asString(), t_json);
+      new_versions.push_back(t);
+    } else {
+      if ((*it)["is_current"].asBool()) {
+        current_hash = (*it)["hashes"]["sha256"].asString();
+      }
+      Uptane::Target t(it.key().asString(), *it);
+      new_versions.push_back(t);
+    }
+  }
+  *installed_versions = new_versions;
+
+  return current_hash;
 }
 
 void INvStorage::saveInstalledVersion(const Uptane::Target& target) {

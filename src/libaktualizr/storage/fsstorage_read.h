@@ -32,6 +32,8 @@ class FSStorageRead {
 
   void cleanUpAll();
 
+  static bool FSStoragePresent(const StorageConfig& config);
+
  private:
   const StorageConfig& config_;
 

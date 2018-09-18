@@ -34,12 +34,8 @@ TEST(Uptane, RandomSerial) {
   conf_2.storage.path = temp_dir2.Path();
 
   conf_1.provision.primary_ecu_serial = "";
-  conf_1.storage.uptane_private_key_path = BasedPath("private.key");
-  conf_1.storage.uptane_public_key_path = BasedPath("public.key");
 
   conf_2.provision.primary_ecu_serial = "";
-  conf_2.storage.uptane_private_key_path = BasedPath("private.key");
-  conf_2.storage.uptane_public_key_path = BasedPath("public.key");
 
   // add secondaries
   Uptane::SecondaryConfig ecu_config;
@@ -114,8 +110,6 @@ TEST(Uptane, ReloadSerial) {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
     conf.provision.primary_ecu_serial = "";
-    conf.storage.uptane_private_key_path = BasedPath("private.key");
-    conf.storage.uptane_public_key_path = BasedPath("public.key");
     conf.uptane.secondary_configs.push_back(ecu_config);
 
     auto storage = INvStorage::newStorage(conf.storage);
@@ -133,8 +127,6 @@ TEST(Uptane, ReloadSerial) {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
     conf.provision.primary_ecu_serial = "";
-    conf.storage.uptane_private_key_path = BasedPath("private.key");
-    conf.storage.uptane_public_key_path = BasedPath("public.key");
     conf.uptane.secondary_configs.push_back(ecu_config);
 
     auto storage = INvStorage::newStorage(conf.storage);
@@ -177,8 +169,6 @@ TEST(Uptane, LegacySerial) {
   {
     Config conf(cmd);
     conf.provision.primary_ecu_serial = "";
-    conf.storage.uptane_private_key_path = BasedPath("private.key");
-    conf.storage.uptane_public_key_path = BasedPath("public.key");
 
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -195,8 +185,6 @@ TEST(Uptane, LegacySerial) {
   {
     Config conf(cmd);
     conf.provision.primary_ecu_serial = "";
-    conf.storage.uptane_private_key_path = BasedPath("private.key");
-    conf.storage.uptane_public_key_path = BasedPath("public.key");
 
     auto storage = INvStorage::newStorage(conf.storage);
     auto http = std::make_shared<HttpFake>(temp_dir.Path());

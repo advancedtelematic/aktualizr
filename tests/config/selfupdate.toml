@@ -1,14 +1,10 @@
 [tls]
 server = "http://localhost:8000"
 
-[storage]
-path = "/tmp/aktualizr-storage"
-uptane_metadata_path = "/tmp/aktualizr-storage/metadata"
-uptane_private_key_path = "/persistent/prov_selfupdate/ecukey.pem"
-uptane_public_key_path = "/persistent/prov_selfupdate/ecukey.pub"
-tls_cacert_path = "/persistent/prov_selfupdate/ca.pem"
-tls_pkey_path = "/persistent/prov_selfupdate/pkey.pem"
-tls_clientcert_path = "/persistent/prov_selfupdate/client.pem"
+[import]
+tls_cacert_path = "ca.pem"
+tls_pkey_path = "pkey.pem"
+tls_clientcert_path = "client.pem"
 
 [uptane]
 polling = false

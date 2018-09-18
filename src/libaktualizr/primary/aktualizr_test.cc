@@ -23,9 +23,6 @@ Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_metadata_path = BasedPath("metadata");
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.tls.server = url;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "secondary_ecu_serial", "secondary_hw");
   return conf;
@@ -236,8 +233,6 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   conf.uptane.director_server = http->tls_server + "/multisec/director";
   conf.uptane.repo_server = http->tls_server + "/multisec/repo";
   conf.storage.path = temp_dir.Path();
-  conf.storage.uptane_private_key_path = BasedPath("private.key");
-  conf.storage.uptane_public_key_path = BasedPath("public.key");
   conf.tls.server = http->tls_server;
   conf.uptane.running_mode = RunningMode::kFull;
 

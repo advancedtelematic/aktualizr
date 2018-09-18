@@ -25,10 +25,6 @@ TEST(UptaneImplicit, ImplicitFailure) {
 
   TemporaryDirectory temp_dir;
   config.storage.path = temp_dir.Path();
-  config.storage.uptane_metadata_path = BasedPath("metadata");
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.postUpdateValues();
 
   auto storage = INvStorage::newStorage(config.storage);
@@ -47,9 +43,6 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
   config.provision.device_id = "device_id";
   config.postUpdateValues();
 
@@ -131,15 +124,18 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
 TEST(UptaneImplicit, ImplicitProvision) {
   Config config;
   TemporaryDirectory temp_dir;
-  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "ca.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "client.pem");
-  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "pkey.pem");
+  Utils::createDirectories(temp_dir / "import", S_IRWXU);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "import/pkey.pem");
   config.storage.path = temp_dir.Path();
-  config.storage.tls_cacert_path = BasedPath("ca.pem");
-  config.storage.tls_clientcert_path = BasedPath("client.pem");
-  config.storage.tls_pkey_path = BasedPath("pkey.pem");
+  config.import.base_path = temp_dir / "import";
+  config.import.tls_cacert_path = BasedPath("ca.pem");
+  config.import.tls_clientcert_path = BasedPath("client.pem");
+  config.import.tls_pkey_path = BasedPath("pkey.pem");
 
   auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   KeyManager keys(storage, config.keymanagerConfig());
 

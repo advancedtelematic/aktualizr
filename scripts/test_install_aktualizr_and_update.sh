@@ -8,8 +8,11 @@ dpkg-deb -I /persistent/aktualizr*.deb && dpkg -i /persistent/aktualizr*.deb
 akt_version=$(aktualizr --version)
 (grep "$(cat /persistent/aktualizr-version)" <<< "$akt_version") || (echo "$akt_version"; false)
 
-mkdir -m 700 -p /tmp/aktualizr-storage
-aktualizr -c /persistent/selfupdate.toml --running-mode=once
+TEMP_DIR=$(mktemp -d)
+mkdir -m 700 -p "$TEMP_DIR/import"
+cp /persistent/prov_selfupdate/* "$TEMP_DIR/import"
+echo -e "[storage]\\npath = \"$TEMP_DIR\"\\n[import]\\nbase_path = \"$TEMP_DIR/import\"" > "$TEMP_DIR/conf.toml"
+aktualizr -c /persistent/selfupdate.toml -c "$TEMP_DIR/conf.toml" --running-mode=once
 
 # check that the version was updated
 akt_version=$(aktualizr --version)
