@@ -116,7 +116,10 @@ InstallComplete::InstallComplete(Uptane::EcuSerial serial_in, bool success_in)
 
 AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
 
-CampaignCheckComplete::CampaignCheckComplete() { variant = "CampaignCheckComplete"; }
+CampaignCheckComplete::CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in)
+    : campaigns(std::move(campaigns_in)) {
+  variant = "CampaignCheckComplete";
+}
 
 CampaignAcceptComplete::CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
 
