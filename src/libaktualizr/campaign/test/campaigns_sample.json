@@ -17,7 +17,8 @@
           "value": "20"
         }
       ],
-      "name" : "campaign1"
+      "name" : "campaign1",
+      "autoAccept": true
     }
   ],
   "deviceId" : "15d655cb-7174-4ee7-9422-f10d587d344b"

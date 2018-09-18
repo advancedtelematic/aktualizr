@@ -13,9 +13,20 @@ TEST(campaign, Campaigns_from_json) {
   EXPECT_EQ(campaigns.size(), 1);
 
   EXPECT_EQ(campaigns.at(0).name, "campaign1");
+  EXPECT_EQ(campaigns.at(0).id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+  EXPECT_TRUE(campaigns.at(0).autoAccept);
   EXPECT_EQ(campaigns.at(0).description, "this is my message to show on the device");
   EXPECT_EQ(campaigns.at(0).estInstallationDuration, 10);
   EXPECT_EQ(campaigns.at(0).estPreparationDuration, 20);
+
+  // legacy: no autoAccept
+  Json::Value bad4;
+  bad4["campaigns"] = Json::Value(Json::arrayValue);
+  bad4["campaigns"][0] = Json::Value();
+  bad4["campaigns"][0]["name"] = "a";
+  bad4["campaigns"][0]["id"] = "a";
+  auto campaignsNoAutoAccept = campaign::campaignsFromJson(bad4);
+  EXPECT_FALSE(campaignsNoAutoAccept.at(0).autoAccept);
 }
 
 TEST(campaign, Campaigns_from_invalid_json) {

@@ -7,6 +7,7 @@
 #include <json/json.h>
 #include <boost/signals2.hpp>
 
+#include "campaign/campaign.h"
 #include "uptane/tuf.h"
 #include "utilities/types.h"
 
@@ -148,7 +149,8 @@ class AllInstallsComplete : public BaseEvent {
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete();
+  explicit CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in);
+  std::vector<campaign::Campaign> campaigns;
 };
 
 /**

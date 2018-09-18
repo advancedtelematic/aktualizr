@@ -22,6 +22,7 @@ class Campaign {
 
   std::string id;
   std::string name;
+  bool autoAccept;
   std::string description;
   int estInstallationDuration;
   int estPreparationDuration;

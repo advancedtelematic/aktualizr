@@ -24,6 +24,7 @@ class HttpFake : public HttpInterface {
         ecu_registered(is_initialized) {
     Utils::copyDir("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
     Utils::copyDir("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
+    Utils::copyDir("tests/test_data/repo/campaigner", metadata_path.Path() / "campaigner");
   }
 
   ~HttpFake() {}
@@ -65,6 +66,8 @@ class HttpFake : public HttpInterface {
         path = metadata_path.Path() / url.substr(tls_server.size() + strlen("noupdates/"));
       } else if (url.find("multisec/") != std::string::npos) {
         path = metadata_path.Path() / url.substr(tls_server.size() + strlen("multisec/"));
+      } else if (url.find("campaigner/") != std::string::npos) {
+        path = metadata_path.Path() / url.substr(tls_server.size() + strlen("campaigner/"));
       } else {
         path = metadata_path.Path() / url.substr(tls_server.size());
       }
@@ -110,6 +113,8 @@ class HttpFake : public HttpInterface {
                                        boost::filesystem::copy_option::overwrite_if_exists);
         }
         return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");
+      } else if (url.find("campaigner/campaigns") != std::string::npos) {
+        return HttpResponse(Utils::readFile(path.parent_path() / "campaigner/campaigns.json"), 200, CURLE_OK, "");
       } else {
         if (boost::filesystem::exists(path)) {
           return HttpResponse(Utils::readFile(path), 200, CURLE_OK, "");

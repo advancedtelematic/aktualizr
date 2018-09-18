@@ -824,9 +824,10 @@ void SotaUptaneClient::campaignCheck() {
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
     LOG_INFO << "Campaign id: " << c.id;
+    LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
-  sendEvent<event::CampaignCheckComplete>();
+  sendEvent<event::CampaignCheckComplete>(std::move(campaigns));
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
