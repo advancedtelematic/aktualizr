@@ -111,8 +111,8 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
   if (loadPrimaryKeys(nullptr, nullptr) || import_pubkey_path.empty() || import_privkey_path.empty()) {
     return;
   }
-  boost::filesystem::path pubkey_abs_path = import_pubkey_path.get(base_path);
-  boost::filesystem::path privkey_abs_path = import_privkey_path.get(base_path);
+  const boost::filesystem::path pubkey_abs_path = import_pubkey_path.get(base_path);
+  const boost::filesystem::path privkey_abs_path = import_privkey_path.get(base_path);
   if (!boost::filesystem::exists(pubkey_abs_path)) {
     LOG_ERROR << "Couldn't import data: " << pubkey_abs_path << " doesn't exist.";
     return;
@@ -121,19 +121,19 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
     LOG_ERROR << "Couldn't import data: " << privkey_abs_path << " doesn't exist.";
     return;
   }
-  std::string pub_content = Utils::readFile(pubkey_abs_path.string());
-  std::string priv_content = Utils::readFile(privkey_abs_path.string());
+  const std::string pub_content = Utils::readFile(pubkey_abs_path.string());
+  const std::string priv_content = Utils::readFile(privkey_abs_path.string());
   storePrimaryKeys(pub_content, priv_content);
 }
 
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
   std::vector<Uptane::Target> installed_versions;
-  boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
+  const boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
   loadInstalledVersions(&installed_versions);
   if (!installed_versions.empty()) {
     return;
   }
-  std::string current_hash = fsReadInstalledVersions(file_path, &installed_versions);
+  const std::string current_hash = fsReadInstalledVersions(file_path, &installed_versions);
   if (!installed_versions.empty()) {
     storeInstalledVersions(installed_versions, current_hash);
     boost::filesystem::remove(file_path);
@@ -154,13 +154,14 @@ void INvStorage::importData(const ImportConfig& import_config) {
   importInstalledVersions(import_config.base_path);
 }
 
-std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, bool readonly) {
+std::shared_ptr<INvStorage> INvStorage::newStorage(const StorageConfig& config, const bool readonly) {
   switch (config.type) {
     case StorageType::kSqlite: {
       boost::filesystem::path db_path = config.sqldb_path.get(config.path);
       if (!boost::filesystem::exists(db_path) && FSStorageRead::FSStoragePresent(config)) {
         if (readonly) {
-          throw StorageException("Migration from FS is not possible, because of readonly database");
+          throw StorageException(
+              "Migration from FS is not possible because the SQL database is configured to be readonly");
         }
 
         LOG_INFO << "Starting FS to SQL storage migration";
@@ -276,10 +277,10 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
 std::string INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename,
                                                 std::vector<Uptane::Target>* installed_versions) {
   std::string current_hash;
-  if (!boost::filesystem::exists(filename)) {
+  if (access(filename.c_str(), R_OK) != 0) {
     return current_hash;
   }
-  Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
+  const Json::Value installed_versions_json = Utils::parseJSONFile(filename.string());
   std::vector<Uptane::Target> new_versions;
   for (Json::ValueIterator it = installed_versions_json.begin(); it != installed_versions_json.end(); ++it) {
     if (!(*it).isObject()) {
