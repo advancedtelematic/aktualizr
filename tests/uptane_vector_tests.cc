@@ -28,12 +28,6 @@
 class Uptane_Vector_Test {
  private:
   static bool match_error(const Json::Value& error, const Uptane::Exception& e) {
-    std::cout << "name: " << e.getName() << std::endl;
-    std::cout << "e.what: " << e.what() << std::endl;
-    std::cout << "1: " << error["director"]["update"]["err_msg"].asString() << std::endl;
-    std::cout << "2: " << error["director"]["targets"][e.getName()]["err_msg"].asString() << std::endl;
-    std::cout << "3: " << error["image_repo"]["update"]["err_msg"].asString() << std::endl;
-    std::cout << "4: " << error["image_repo"]["targets"][e.getName()]["err_msg"].asString() << std::endl;
     if (error["director"]["update"]["err_msg"].asString() == e.what() ||
         error["director"]["targets"][e.getName()]["err_msg"].asString() == e.what() ||
         error["image_repo"]["update"]["err_msg"].asString() == e.what() ||
@@ -45,67 +39,100 @@ class Uptane_Vector_Test {
   }
 
  public:
-  static bool run_test(const std::string& test_name, const Json::Value& vector, const std::string& port) {
-    std::cout << "VECTOR: " << vector;
+  static bool run_test(const std::string& test_name, const std::string& address) {
     TemporaryDirectory temp_dir;
     Config config;
     config.provision.primary_ecu_serial = "test_primary_ecu_serial";
     config.provision.primary_ecu_hardware_id = "test_primary_hardware_id";
-    config.uptane.director_server = "http://127.0.0.1:" + port + "/" + test_name + "/director";
-    config.uptane.repo_server = "http://127.0.0.1:" + port + "/" + test_name + "/image_repo";
+    config.uptane.director_server = address + test_name + "/director";
+    config.uptane.repo_server = address + test_name + "/image_repo";
     config.storage.path = temp_dir.Path();
-    config.storage.uptane_metadata_path = BasedPath(port + "/aktualizr_repos");
+    config.storage.uptane_metadata_path = BasedPath(temp_dir.Path() / "metadata");
     config.pacman.type = PackageManager::kNone;
     logger_set_threshold(boost::log::trivial::trace);
 
-    try {
-      auto storage = INvStorage::newStorage(config.storage);
-      Uptane::Manifest uptane_manifest{config, storage};
-      auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage);
-      Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
-      Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
-      uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
-      uptane_client->installed_images[ecu_serial] = "test_filename";
-      if (!uptane_client->uptaneIteration()) {
-        throw uptane_client->getLastException();
+    auto storage = INvStorage::newStorage(config.storage);
+    Uptane::Manifest uptane_manifest{config, storage};
+    auto uptane_client = SotaUptaneClient::newDefaultClient(config, storage);
+    Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
+    Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
+    uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
+    uptane_client->installed_images[ecu_serial] = "test_filename";
+
+    HttpClient http_client;
+    while (true) {
+      HttpResponse response = http_client.post(address + test_name + "/step", Json::Value());
+      if (response.http_status_code == 204) {
+        return true;
       }
+      const auto vector(response.getJson());
+      std::cout << "VECTOR: " << vector;
 
-    } catch (const Uptane::Exception& e) {
-      return match_error(vector, e);
-    } catch (const std::exception& e) {
-      std::cout << "aktualizr failed with unrecognized exception " << typeid(e).name() << ": " << e.what() << "\n";
-      return false;
-    }
-
-    if (vector["director"]["update"]["is_success"].asBool() && vector["image_repo"]["update"]["is_success"].asBool()) {
-      for (Json::ValueConstIterator it = vector["director"]["targets"].begin();
-           it != vector["director"]["targets"].end(); ++it) {
-        if (!(*it)["is_success"].asBool()) {
-          std::cout << "aktualizr did not fail as expected.\n";
-          return false;
+      bool should_fail = false;
+      if (vector["director"]["update"]["is_success"].asBool() == false ||
+          vector["image_repo"]["update"]["is_success"].asBool() == false) {
+        should_fail = true;
+      } else {
+        for (const auto& t : vector["director"]["targets"]) {
+          if (t["is_success"].asBool() == false) {
+            should_fail = true;
+            break;
+          }
+        }
+        for (const auto& t : vector["image_repo"]["targets"]) {
+          if (t["is_success"].asBool() == false) {
+            should_fail = true;
+            break;
+          }
         }
       }
-      for (Json::ValueConstIterator it = vector["image_repo"]["targets"].begin();
-           it != vector["image_repo"]["targets"].end(); ++it) {
-        if (!(*it)["is_success"].asBool()) {
-          std::cout << "aktualizr did not fail as expected.\n";
+
+      try {
+        if (!uptane_client->uptaneIteration()) {
+          if (should_fail) {
+            throw uptane_client->getLastException();
+          }
+          std::cout << "uptaneIteration unexpectedly failed.\n";
           return false;
         }
+        std::vector<Uptane::Target> updates;
+        if (!uptane_client->uptaneOfflineIteration(&updates, nullptr)) {
+          std::cout << "uptaneOfflineIteration unexpectedly failed.\n";
+          return false;
+        }
+        if (updates.size()) {
+          if (!uptane_client->downloadImages(updates)) {
+            if (should_fail) {
+              throw uptane_client->getLastException();
+            }
+            std::cout << "downloadImages unexpectedly failed.\n";
+            return false;
+          }
+        }
+
+      } catch (const Uptane::Exception& e) {
+        if (match_error(vector, e)) {
+          continue;
+        }
+        return false;
+      } catch (const std::exception& e) {
+        std::cout << "aktualizr failed with unrecognized exception " << typeid(e).name() << ": " << e.what() << "\n";
+        return false;
       }
 
-      return true;
-    } else {
-      std::cout << "No exceptions happen, but expects ";
-      if (!vector["director"]["update"]["is_success"].asBool()) {
-        std::cout << "exception from director: '" << vector["director"]["update"]["err"]
-                  << " with message: " << vector["director"]["update"]["err_msg"] << "\n";
-      } else if (!vector["image_repo"]["update"]["is_success"].asBool()) {
-        std::cout << "exception from image_repo: '" << vector["image_repo"]["update"]["err"]
-                  << " with message: " << vector["image_repo"]["update"]["err_msg"] << "\n";
+      if (should_fail) {
+        std::cout << "No exceptions happen, but expects ";
+        if (!vector["director"]["update"]["is_success"].asBool()) {
+          std::cout << "exception from director: '" << vector["director"]["update"]["err"]
+                    << " with message: " << vector["director"]["update"]["err_msg"] << "\n";
+        } else if (!vector["image_repo"]["update"]["is_success"].asBool()) {
+          std::cout << "exception from image_repo: '" << vector["image_repo"]["update"]["err"]
+                    << " with message: " << vector["image_repo"]["update"]["err_msg"] << "\n";
+        }
+        return false;
       }
-
-      return false;
     }
+    return false;
   }
 };
 
@@ -130,21 +157,15 @@ int main(int argc, char* argv[]) {
   int failed = 0;
   for (Json::ValueConstIterator it = json_vectors.begin(); it != json_vectors.end(); it++) {
     std::cout << "Running test vector " << (*it).asString() << "\n";
-    while (true) {
-      HttpResponse response = http_client.post(address + (*it).asString() + "/step", Json::Value());
-      if (response.http_status_code == 204) {
-        break;
-      }
 
-      bool pass = Uptane_Vector_Test::run_test((*it).asString(), response.getJson(), port);
-      std::cout << "Finished test vector " << (*it).asString() << "\n";
-      if (pass) {
-        passed++;
-        std::cout << "TEST: PASS\n";
-      } else {
-        failed++;
-        std::cout << "TEST: FAIL\n";
-      }
+    const bool pass = Uptane_Vector_Test::run_test((*it).asString(), address);
+    std::cout << "Finished test vector " << (*it).asString() << "\n";
+    if (pass) {
+      passed++;
+      std::cout << "TEST: PASS\n";
+    } else {
+      failed++;
+      std::cout << "TEST: FAIL\n";
     }
   }
   std::cout << "\n\n\nPASSED TESTS: " << passed << "\n";

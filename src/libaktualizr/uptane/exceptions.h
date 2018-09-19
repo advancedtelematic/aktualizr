@@ -104,6 +104,13 @@ class BadEcuId : public Exception {
   ~BadEcuId() noexcept override = default;
 };
 
+class BadHardwareId : public Exception {
+ public:
+  BadHardwareId(const std::string& reponame)
+      : Exception(reponame, "The target had a hardware ID that did not match the client's configured hardware id.") {}
+  ~BadHardwareId() noexcept override = default;
+};
+
 }  // namespace Uptane
 
 #endif

@@ -642,6 +642,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 
       if (hwid_it->second != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
+        last_exception = Uptane::BadHardwareId(targets_it->filename());
         return false;
       }
 
@@ -665,7 +666,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<Uptane::Target> downloaded_targets;
@@ -673,15 +674,17 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     // TODO: delegations
     auto images_target = images_repo.getTarget(*it);
     if (images_target == nullptr) {
+      last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
-      continue;
+      sendEvent<event::Error>("Target hash mismatch.");
+      return false;
     }
     downloaded_targets.push_back(*it);
     // TODO: support downloading encrypted targets from director
     // TODO: check if the file is already there before downloading
     if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
       sendEvent<event::Error>("Error downloading targets.");
-      return;
+      return false;
     }
   }
   if (!targets.empty()) {
@@ -692,11 +695,13 @@ void SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
       sendEvent<event::Error>("Partial download");
+      return false;
     }
   } else {
     sendEvent<event::NothingToDownload>();
     LOG_INFO << "No new updates to download.";
   }
+  return true;
 }
 
 bool SotaUptaneClient::uptaneIteration() {

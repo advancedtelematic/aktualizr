@@ -24,7 +24,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   uint64_t downloaded = size * nmemb;
   auto expected = static_cast<uint64_t>(ds->target.length());
   if ((ds->downloaded_length + downloaded) > expected) {
-    return ds->downloaded_length + downloaded;  // curl will abort if return unexpected size;
+    return downloaded + 1;  // curl will abort if return unexpected size;
   }
 
   // incomplete writes will stop the download (written_size != nmemb*size)
