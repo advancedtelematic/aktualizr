@@ -35,15 +35,16 @@ while ! curl -I -s -f "http://localhost:$PORT"; do
     tries=$((tries+1))
 done
 
+# TODO: Why doesn't gtest_output work?
 if [ "$2" == "valgrind" ]; then
     valgrind --track-origins=yes \
              --show-possibly-lost=no \
              --error-exitcode=1 \
              --suppressions="$1/aktualizr.supp" \
              --suppressions="$1/glib.supp" \
-             ./aktualizr_uptane_vector_tests "$PORT"
+             ./aktualizr_uptane_vector_tests "$PORT" --gtest_output="xml:results/"
 else
-    ./aktualizr_uptane_vector_tests "$PORT"
+    ./aktualizr_uptane_vector_tests "$PORT" --gtest_output="xml:results/"
 fi
 
 RES=$?

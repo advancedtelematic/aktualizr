@@ -348,6 +348,8 @@ endif(BUILD_WITH_CODE_COVERAGE)
 
 include(CTest)
 ENABLE_TESTING()
+# It would be great to use GTEST_OUTPUT directly, but I couldn't get it to work.
+set(GOOGLE_TEST_OUTPUT --gtest_output=xml:results/)
 
 add_subdirectory("fuzz")
 add_subdirectory("config")
