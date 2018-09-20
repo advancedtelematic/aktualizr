@@ -16,10 +16,11 @@
 #include "utilities/utils.h"
 
 /**
- * \verify{\tst{185}} Verify that when using implicit provisioning, aktualizr
- * halts if credentials are not available.
+ * Verify that when using implicit provisioning, aktualizr halts if credentials
+ * are not available.
  */
 TEST(UptaneImplicit, ImplicitFailure) {
+  RecordProperty("zephyr_key", "OTA-603,TST-185");
   Config config;
   config.provision.device_id = "device_id";
 
@@ -36,10 +37,11 @@ TEST(UptaneImplicit, ImplicitFailure) {
 }
 
 /**
- * \verify{\tst{187}} Verfiy that aktualizr halts when provided incomplete
- * implicit provisioning credentials.
+ * Verfiy that aktualizr halts when provided incomplete implicit provisioning
+ * credentials.
  */
 TEST(UptaneImplicit, ImplicitIncomplete) {
+  RecordProperty("zephyr_key", "OTA-603,TST-187");
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
@@ -118,10 +120,10 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
 }
 
 /**
- * \verify{\tst{186}} Verify that aktualizr can implicitly provision with
- * provided credentials.
+ * Verify that aktualizr can implicitly provision with provided credentials.
  */
 TEST(UptaneImplicit, ImplicitProvision) {
+  RecordProperty("zephyr_key", "OTA-601,REQ-349,TST-186");
   Config config;
   TemporaryDirectory temp_dir;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);

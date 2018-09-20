@@ -288,11 +288,12 @@ TEST(Uptane, UptaneSecondaryAdd) {
 }
 
 /**
- * \verify{\tst{149}} Check that basic device info sent by aktualizr on provisioning are on server
+ * Check that basic device info sent by aktualizr on provisioning are on server
  * Also test that installation works as expected with the fake package manager.
  * TODO: does that actually work? And is this the right way to test it anyway?
  */
 TEST(Uptane, ProvisionOnServer) {
+  RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
   Config config("tests/config/basic.toml");
   const std::string server = "tst149";

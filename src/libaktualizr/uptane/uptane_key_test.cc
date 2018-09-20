@@ -104,10 +104,10 @@ class UptaneKey_Check_Test {
 };
 
 /**
- * \verify{\tst{159}} Check that all keys are present after successful
- * provisioning.
+ * Check that all keys are present after successful provisioning.
  */
 TEST(UptaneKey, CheckAllKeys) {
+  RecordProperty("zephyr_key", "OTA-987,TST-159");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
@@ -122,10 +122,10 @@ TEST(UptaneKey, CheckAllKeys) {
 }
 
 /**
- * \verify{\tst{160}} Check that aktualizr can recover from a half done device
- * registration.
+ * Check that aktualizr can recover from a half done device registration.
  */
 TEST(UptaneKey, RecoverWithoutKeys) {
+  RecordProperty("zephyr_key", "OTA-987,TST-160");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;

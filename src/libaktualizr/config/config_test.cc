@@ -153,10 +153,10 @@ TEST(config, legacy_interface_config) {
 }
 
 /**
- * \verify{\tst{184}} Verify that aktualizr can start in implicit provisioning
- * mode.
+ * Verify that aktualizr can start in implicit provisioning mode.
  */
 TEST(config, implicit_mode) {
+  RecordProperty("zephyr_key", "OTA-601,TST-184");
   Config config;
   EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 }

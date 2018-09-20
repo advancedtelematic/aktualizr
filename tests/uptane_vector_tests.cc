@@ -16,11 +16,11 @@
 #include "utilities/utils.h"
 
 /**
- * \verify{\tst{49}} Check that aktualizr fails on expired metadata
- */
-
-/**
- * \verify{\tst{52}} Check that aktualizr fails on bad threshold
+ * TODO: Convert this into proper unit tests?
+ * Check that aktualizr fails on expired metadata.
+ * RecordProperty("zephyr_key", "REQ-150,TST-49");
+ * Check that aktualizr fails on bad threshold.
+ * RecordProperty("zephyr_key", "REQ-153,TST-52");
  */
 
 // This is a class solely for the purpose of being a FRIEND_TEST to

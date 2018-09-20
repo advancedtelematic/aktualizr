@@ -23,10 +23,11 @@ namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
 
 /**
- * \verify{\tst{155}} Check that aktualizr generates random ecu_serial for
- * primary and all secondaries.
+ * Check that aktualizr generates random ecu_serial for primary and all
+ * secondaries.
  */
 TEST(Uptane, RandomSerial) {
+  RecordProperty("zephyr_key", "OTA-989,TST-155");
   TemporaryDirectory temp_dir1, temp_dir2;
   Config conf_1("tests/config/basic.toml");
   conf_1.storage.path = temp_dir1.Path();
@@ -34,7 +35,6 @@ TEST(Uptane, RandomSerial) {
   conf_2.storage.path = temp_dir2.Path();
 
   conf_1.provision.primary_ecu_serial = "";
-
   conf_2.provision.primary_ecu_serial = "";
 
   // add secondaries
@@ -85,10 +85,10 @@ TEST(Uptane, RandomSerial) {
 }
 
 /**
- * \verify{\tst{156}} Check that aktualizr saves random ecu_serial for primary
- * and all secondaries.
+ * Check that aktualizr saves random ecu_serial for primary and all secondaries.
  */
 TEST(Uptane, ReloadSerial) {
+  RecordProperty("zephyr_key", "OTA-989,TST-156");
   TemporaryDirectory temp_dir;
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;

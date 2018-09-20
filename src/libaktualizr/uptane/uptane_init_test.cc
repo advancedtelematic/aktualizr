@@ -11,10 +11,10 @@
 #include "utilities/utils.h"
 
 /*
- * \verify{\tst{153}} Check that aktualizr creates provisioning files if they
- * don't exist already.
+ * Check that aktualizr creates provisioning files if they don't exist already.
  */
 TEST(Uptane, Initialize) {
+  RecordProperty("zephyr_key", "OTA-983,TST-153");
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
@@ -51,10 +51,11 @@ TEST(Uptane, Initialize) {
 }
 
 /*
- * \verify{\tst{154}} Check that aktualizr does NOT change provisioning files if
- * they DO exist already.
+ * Check that aktualizr does NOT change provisioning files if they DO exist
+ * already.
  */
 TEST(Uptane, InitializeTwice) {
+  RecordProperty("zephyr_key", "OTA-983,TST-154");
   TemporaryDirectory temp_dir;
   Config conf("tests/config/basic.toml");
   conf.storage.path = temp_dir.Path();
@@ -103,11 +104,12 @@ TEST(Uptane, InitializeTwice) {
 }
 
 /**
- * \verify{\tst{146}} Check that aktualizr does not generate a pet name when
- * device ID is specified. This is currently provisional and not a finalized
- * requirement at this time.
+ * Check that aktualizr does not generate a pet name when device ID is
+ * specified. This is currently provisional and not a finalized requirement at
+ * this time.
  */
 TEST(Uptane, PetNameProvided) {
+  RecordProperty("zephyr_key", "OTA-985,TST-146");
   TemporaryDirectory temp_dir;
   std::string test_name = "test-name-123";
   boost::filesystem::path device_path = temp_dir.Path() / "device_id";
@@ -142,10 +144,10 @@ TEST(Uptane, PetNameProvided) {
 }
 
 /**
- * \verify{\tst{145}} Check that aktualizr generates a pet name if no device ID
- * is specified.
+ * Check that aktualizr generates a pet name if no device ID is specified.
  */
 TEST(Uptane, PetNameCreation) {
+  RecordProperty("zephyr_key", "OTA-985,TST-145");
   TemporaryDirectory temp_dir;
   boost::filesystem::path device_path = temp_dir.Path() / "device_id";
 

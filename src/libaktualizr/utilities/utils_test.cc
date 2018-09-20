@@ -58,9 +58,10 @@ TEST(Utils, getNetworkInfo) {
 TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
 
 /**
- * \verify{\tst{144}} Check that aktualizr can generate a pet name
+ * Check that aktualizr can generate a pet name.
  */
 TEST(Utils, GenPrettyNameSane) {
+  RecordProperty("zephyr_key", "OTA-986,TST-144");
   std::set<std::string> names;
   for (int i = 0; i < 100; i++) {
     std::string name = Utils::genPrettyName();
