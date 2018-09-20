@@ -51,3 +51,4 @@ CTestTestfile.cmake
 compile_commands.json
 
 __pycache__/
+results/
