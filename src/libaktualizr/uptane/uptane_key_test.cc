@@ -19,12 +19,12 @@
 
 void initKeyTests(Config& config, Uptane::SecondaryConfig& ecu_config1, Uptane::SecondaryConfig& ecu_config2,
                   TemporaryDirectory& temp_dir, const std::string& tls_server) {
-  config.uptane.repo_server = tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.primary_ecu_serial = "testecuserial";
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
   config.tls.server = tls_server;
+  config.uptane.director_server = tls_server + "/director";
   config.uptane.repo_server = tls_server + "/repo";
   config.storage.path = temp_dir.Path();
   config.pacman.type = PackageManager::kNone;

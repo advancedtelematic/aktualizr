@@ -264,10 +264,10 @@ TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config;
-  config.uptane.repo_server = http->tls_server + "/director";
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
+  config.uptane.director_server = http->tls_server + "/director";
   config.uptane.repo_server = http->tls_server + "/repo";
   config.tls.server = http->tls_server;
   config.provision.primary_ecu_serial = "testecuserial";

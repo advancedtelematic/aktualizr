@@ -18,11 +18,9 @@ TEST(Uptane, Initialize) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
-  conf.uptane.repo_server = http->tls_server + "/director";
-
+  conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
   conf.tls.server = http->tls_server;
-
   conf.storage.path = temp_dir.Path();
   conf.provision.primary_ecu_serial = "testecuserial";
 
@@ -233,12 +231,10 @@ TEST(Uptane, InitializeFail) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf("tests/config/basic.toml");
-  conf.uptane.repo_server = http->tls_server + "/director";
-  conf.storage.path = temp_dir.Path();
-
+  conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
   conf.tls.server = http->tls_server;
-
+  conf.storage.path = temp_dir.Path();
   conf.provision.primary_ecu_serial = "testecuserial";
 
   auto storage = INvStorage::newStorage(conf.storage);
