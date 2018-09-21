@@ -20,7 +20,7 @@
  * are not available.
  */
 TEST(UptaneImplicit, ImplicitFailure) {
-  RecordProperty("zephyr_key", "OTA-603,TST-185");
+  RecordProperty("zephyr_key", "REQ-345,TST-185");
   Config config;
   config.provision.device_id = "device_id";
 
@@ -41,7 +41,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
  * credentials.
  */
 TEST(UptaneImplicit, ImplicitIncomplete) {
-  RecordProperty("zephyr_key", "OTA-603,TST-187");
+  RecordProperty("zephyr_key", "REQ-345,TST-187");
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
@@ -123,7 +123,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
  * Verify that aktualizr can implicitly provision with provided credentials.
  */
 TEST(UptaneImplicit, ImplicitProvision) {
-  RecordProperty("zephyr_key", "OTA-601,REQ-349,TST-186");
+  RecordProperty("zephyr_key", "OTA-996,REQ-349,TST-186");
   Config config;
   TemporaryDirectory temp_dir;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
