@@ -1,7 +1,0 @@
-[storage]
-type = "sqlite"
-
-[import]
-base_path = "/var/sota/import"
-tls_pkey_path = "pkey.pem"
-tls_clientcert_path = "client.pem"

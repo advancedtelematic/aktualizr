@@ -490,13 +490,13 @@ int main(int argc, char* argv[]) {
 
   if (!local_dir.empty()) {
     std::cout << "Writing client certificate and keys to " << local_dir << " ...\n";
-    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get("").filename());
-    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get("").filename());
+    copyLocal(tmp_pkey_file.PathString(), local_dir / pkey_file.get(directory));
+    copyLocal(tmp_cert_file.PathString(), local_dir / cert_file.get(directory));
     if (provide_ca) {
-      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get("").filename());
+      copyLocal(tmp_ca_file.PathString(), local_dir / ca_file.get(directory));
     }
     if (provide_url) {
-      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get("").filename());
+      copyLocal(tmp_url_file.PathString(), local_dir / url_file.get(""));
     }
     std::cout << "...success\n";
   }
