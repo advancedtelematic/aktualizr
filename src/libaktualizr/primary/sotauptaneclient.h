@@ -93,6 +93,7 @@ class SotaUptaneClient {
   bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
+  std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool updateImagesMeta();
@@ -126,6 +127,7 @@ class SotaUptaneClient {
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
   Uptane::Exception last_exception{"", ""};
+  std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures_;
 
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;

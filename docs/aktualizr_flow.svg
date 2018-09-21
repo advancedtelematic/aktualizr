@@ -237,7 +237,7 @@
            y="12"
            font-size="12px"
            id="text86"
-           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000">DownloadComplete</text>
+           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000">AllDownloadsComplete</text>
       </switch>
     </g>
     <rect

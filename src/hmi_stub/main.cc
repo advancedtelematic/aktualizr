@@ -94,7 +94,7 @@ void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent>
   }
   if (event->variant == "FetchMetaComplete") {
     aktualizr.CheckUpdates();
-  } else if (event->variant == "DownloadComplete") {
+  } else if (event->variant == "AllDownloadsComplete") {
     std::cout << "Received " << event->variant << " event\n";
     progress = 0;
   } else if (event->variant == "UpdateAvailable") {

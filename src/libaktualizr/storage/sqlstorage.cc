@@ -9,7 +9,7 @@
 #include "logging/logging.h"
 #include "sql_utils.h"
 #include "utilities/utils.h"
-
+std::mutex sql_mutex;
 boost::filesystem::path SQLStorage::dbPath() const { return config_.sqldb_path.get(config_.path); }
 
 // find metadata with version set to -1 (e.g. after migration) and assign proper version to it
@@ -941,19 +941,17 @@ class SQLTargetWHandle : public StorageTargetWHandle {
         expected_size_(size),
         written_size_(0),
         closed_(false),
-        blob_(nullptr) {
+        blob_(nullptr),
+        row_id_(0) {
     StorageTargetWHandle::WriteError exc("could not save file " + filename_ + " to sql storage");
-
+    std::lock_guard<std::mutex> lock(sql_mutex);
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw exc;
     }
-
-    // allocate a zero blob
     if (!db_.beginTransaction()) {
       throw exc;
     }
-
     auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
         "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
         SQLZeroBlob{expected_size_});
@@ -962,14 +960,10 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       LOG_ERROR << "Statement step failure: " << db_.errmsg();
       throw exc;
     }
+    db_.commitTransaction();
 
     // open the created blob for writing
-    sqlite3_int64 row_id = sqlite3_last_insert_rowid(db_.get());
-
-    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 1, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob " << db_.errmsg();
-      throw exc;
-    }
+    row_id_ = sqlite3_last_insert_rowid(db_.get());
   }
 
   ~SQLTargetWHandle() override {
@@ -980,11 +974,22 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
+    std::lock_guard<std::mutex> lock(sql_mutex);
+    StorageTargetWHandle::WriteError exc("could not save file " + filename_ + " to sql storage");
+
+    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
+      LOG_ERROR << "Could not open blob " << db_.errmsg();
+      wabort();
+      throw exc;
+    }
+
     if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
       LOG_ERROR << "Could not write in blob: " << db_.errmsg();
+      wabort();
       return 0;
     }
     written_size_ += size;
+    wcommit();
     return size;
   }
 
@@ -992,9 +997,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     closed_ = true;
     sqlite3_blob_close(blob_);
     blob_ = nullptr;
-    if (!db_.commitTransaction()) {
-      throw StorageTargetWHandle::WriteError("could not save file " + filename_ + " to sql storage");
-    }
   }
 
   void wabort() noexcept override {
@@ -1003,8 +1005,10 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
     }
-
-    db_.rollbackTransaction();
+    if (sqlite3_changes(db_.get()) > 0) {
+      auto statement = db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", filename_);
+      statement.step();
+    }
   }
 
  private:
@@ -1014,6 +1018,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   size_t written_size_;
   bool closed_;
   sqlite3_blob* blob_;
+  sqlite3_int64 row_id_;
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const std::string& filename,
@@ -1143,8 +1148,6 @@ std::string SQLStorage::getTableSchemaFromDb(const std::string& tablename) {
 }
 
 bool SQLStorage::dbMigrate() {
-  SQLite3Guard db = dbConnection();
-
   DbVersion schema_version = getVersion();
 
   if (schema_version == DbVersion::kInvalid) {
@@ -1167,6 +1170,7 @@ bool SQLStorage::dbMigrate() {
     return false;
   }
 
+  SQLite3Guard db = dbConnection();
   for (int32_t k = schema_num_version + 1; k <= current_schema_version; k++) {
     if (db.exec(schema_migrations.at(static_cast<size_t>(k)), nullptr, nullptr) != SQLITE_OK) {
       LOG_ERROR << "Can't migrate db from version " << (k - 1) << " to version " << k << ": " << db.errmsg();

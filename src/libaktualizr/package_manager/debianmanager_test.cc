@@ -53,8 +53,9 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "bad.deb", 2);
   std::stringstream("ab") >> *fhandle;
 
-  EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(pacman->install(target).second, std::string("Error installing"));
+  auto result = pacman->install(target);
+  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
+  EXPECT_EQ(result.second, std::string("Error installing"));
 }
 
 #ifndef __NO_MAIN__

@@ -80,11 +80,11 @@ std::string DownloadProgressReport::toJson() {
   return BaseEvent::toJson(json);
 }
 
-DownloadComplete::DownloadComplete(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
-  variant = "DownloadComplete";
+AllDownloadsComplete::AllDownloadsComplete(std::vector<Uptane::Target> updates_in) : updates(std::move(updates_in)) {
+  variant = "AllDownloadsComplete";
 }
 
-std::string DownloadComplete::toJson() {
+std::string AllDownloadsComplete::toJson() {
   Json::Value json;
   Json::Value targets;
   for (const auto& target : updates) {
@@ -94,7 +94,17 @@ std::string DownloadComplete::toJson() {
   return BaseEvent::toJson(json);
 }
 
-DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
+DownloadTargetComplete::DownloadTargetComplete(Uptane::Target update_in) : update(std::move(update_in)) {
+  variant = "DownloadTargetComplete";
+}
+
+std::string DownloadTargetComplete::toJson() {
+  Json::Value json;
+  json["fields"].append(update.toDebugJson());
+  return BaseEvent::toJson(json);
+}
+
+AllDownloadsComplete AllDownloadsComplete::fromJson(const std::string& json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
@@ -102,7 +112,7 @@ DownloadComplete DownloadComplete::fromJson(const std::string& json_str) {
   for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
     updates.emplace_back(Uptane::Target(it.key().asString(), *it));
   }
-  return DownloadComplete(updates);
+  return AllDownloadsComplete(updates);
 }
 
 InstallStarted::InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) {

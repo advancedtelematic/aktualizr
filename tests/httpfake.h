@@ -4,8 +4,10 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <chrono>
 #include <fstream>
 #include <string>
+#include <thread>
 
 #include "json/json.h"
 
@@ -68,6 +70,8 @@ class HttpFake : public HttpInterface {
         path = metadata_path.Path() / url.substr(tls_server.size() + strlen("multisec/"));
       } else if (url.find("campaigner/") != std::string::npos) {
         path = metadata_path.Path() / url.substr(tls_server.size() + strlen("campaigner/"));
+      } else if (url.find("downloads/") != std::string::npos) {
+        path = metadata_path.Path() / url.substr(tls_server.size() + strlen("downloads/"));
       } else {
         path = metadata_path.Path() / url.substr(tls_server.size());
       }
@@ -144,13 +148,13 @@ class HttpFake : public HttpInterface {
         }
       }
     } else if (url == "reportqueue/SingleEvent/events") {
-      EXPECT_EQ(data[0]["eventType"]["id"], "DownloadComplete");
+      EXPECT_EQ(data[0]["eventType"]["id"], "AllDownloadsComplete");
       EXPECT_EQ(data[0]["event"], "SingleEvent");
       ++events_seen;
       return HttpResponse("", 200, CURLE_OK, "");
     } else if (url.find("reportqueue/MultipleEvents") == 0) {
       for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-        EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
+        EXPECT_EQ(data[i]["eventType"]["id"], "AllDownloadsComplete");
         EXPECT_EQ(data[i]["event"], "MultipleEvents" + std::to_string(events_seen++));
       }
       return HttpResponse("", 200, CURLE_OK, "");
@@ -159,7 +163,7 @@ class HttpFake : public HttpInterface {
         return HttpResponse("", 400, CURLE_OK, "");
       } else {
         for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-          EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
+          EXPECT_EQ(data[i]["eventType"]["id"], "AllDownloadsComplete");
           EXPECT_EQ(data[i]["event"], "FailureRecovery" + std::to_string(i));
         }
         events_seen = data.size();
@@ -210,16 +214,18 @@ class HttpFake : public HttpInterface {
   }
 
   HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) {
-    (void)callback;
     (void)userp;
     std::cout << "URL requested: " << url << "\n";
     const boost::filesystem::path path = metadata_path / "repo/targets" / url.substr(url.rfind("/targets/") + 9);
     std::cout << "file served: " << path << "\n";
 
     std::string content = Utils::readFile(path.string());
-
-    // Hack since the signature strangely requires non-const.
-    callback(const_cast<char *>(content.c_str()), content.size(), 1, userp);
+    for (unsigned int i = 0; i < content.size(); ++i) {
+      callback(const_cast<char *>(&content[i]), 1, 1, userp);
+      if (url.find("downloads/repo/targets/primary_firmware.txt") != std::string::npos) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Simulate big file
+      }
+    }
     return HttpResponse(content, 200, CURLE_OK, "");
   }
 

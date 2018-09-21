@@ -108,13 +108,25 @@ class DownloadProgressReport : public BaseEvent {
 /**
  * An update has been successfully downloaded.
  */
-class DownloadComplete : public BaseEvent {
+class AllDownloadsComplete : public BaseEvent {
  public:
   std::vector<Uptane::Target> updates;
   std::string toJson() override;
 
-  explicit DownloadComplete(std::vector<Uptane::Target> updates_in);
-  static DownloadComplete fromJson(const std::string& json_str);
+  explicit AllDownloadsComplete(std::vector<Uptane::Target> updates_in);
+  static AllDownloadsComplete fromJson(const std::string& json_str);
+};
+
+/**
+ * An target has been successfully downloaded.
+ */
+class DownloadTargetComplete : public BaseEvent {
+ public:
+  Uptane::Target update;
+  std::string toJson() override;
+
+  explicit DownloadTargetComplete(Uptane::Target update_in);
+  static DownloadTargetComplete fromJson(const std::string& json_str);
 };
 
 /**

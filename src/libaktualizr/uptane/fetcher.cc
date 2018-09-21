@@ -75,7 +75,6 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         }
         throw Exception("image", "Could not download file, error: " + response.error_message);
       }
-      fhandle->wcommit();
 
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
         throw TargetHashMismatch(target.filename());
