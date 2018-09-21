@@ -21,12 +21,12 @@
  */
 TEST(UptaneImplicit, ImplicitFailure) {
   RecordProperty("zephyr_key", "REQ-345,TST-185");
-  Config config;
-  config.provision.device_id = "device_id";
-
   TemporaryDirectory temp_dir;
+  Config config;
+  // Set device_id to prevent trying to read it from the certificate.
+  config.provision.device_id = "device_id";
   config.storage.path = temp_dir.Path();
-  config.postUpdateValues();
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 
   auto storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -44,16 +44,22 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   RecordProperty("zephyr_key", "REQ-345,TST-187");
   TemporaryDirectory temp_dir;
   Config config;
-  config.storage.path = temp_dir.Path();
+  // Set device_id to prevent trying to read it from the certificate.
   config.provision.device_id = "device_id";
-  config.postUpdateValues();
+  config.storage.path = temp_dir.Path();
+  config.import.base_path = temp_dir / "import";
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
 
   {
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
+    config.import.tls_cacert_path = BasedPath("ca.pem");
+    config.import.tls_clientcert_path = BasedPath("");
+    config.import.tls_pkey_path = BasedPath("");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -61,10 +67,14 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   }
 
   {
+    config.import.tls_cacert_path = BasedPath("");
+    config.import.tls_clientcert_path = BasedPath("client.pem");
+    config.import.tls_pkey_path = BasedPath("");
     boost::filesystem::remove_all(temp_dir.Path());
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -72,10 +82,14 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   }
 
   {
+    config.import.tls_cacert_path = BasedPath("");
+    config.import.tls_clientcert_path = BasedPath("");
+    config.import.tls_pkey_path = BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "import/pkey.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -83,11 +97,15 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   }
 
   {
+    config.import.tls_cacert_path = BasedPath("ca.pem");
+    config.import.tls_clientcert_path = BasedPath("client.pem");
+    config.import.tls_pkey_path = BasedPath("");
     boost::filesystem::remove_all(temp_dir.Path());
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
-    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
+    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -95,11 +113,15 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   }
 
   {
+    config.import.tls_cacert_path = BasedPath("ca.pem");
+    config.import.tls_clientcert_path = BasedPath("");
+    config.import.tls_pkey_path = BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir.Path() / "ca.pem");
-    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
+    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "import/pkey.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
@@ -107,16 +129,37 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
   }
 
   {
+    config.import.tls_cacert_path = BasedPath("");
+    config.import.tls_clientcert_path = BasedPath("client.pem");
+    config.import.tls_pkey_path = BasedPath("pkey.pem");
     boost::filesystem::remove_all(temp_dir.Path());
-    boost::filesystem::create_directory(temp_dir.Path());
-    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir.Path() / "client.pem");
-    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir.Path() / "pkey.pem");
+    Utils::createDirectories(temp_dir / "import", S_IRWXU);
+    boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
+    boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "import/pkey.pem");
     auto storage = INvStorage::newStorage(config.storage);
+    storage->importData(config.import);
     KeyManager keys(storage, config.keymanagerConfig());
 
     Initializer initializer(config.provision, storage, http, keys, {});
     EXPECT_FALSE(initializer.isSuccessful());
   }
+
+  // Do one last round with all three files to make sure it actually works as
+  // expected.
+  config.import.tls_cacert_path = BasedPath("ca.pem");
+  config.import.tls_clientcert_path = BasedPath("client.pem");
+  config.import.tls_pkey_path = BasedPath("pkey.pem");
+  boost::filesystem::remove_all(temp_dir.Path());
+  Utils::createDirectories(temp_dir / "import", S_IRWXU);
+  boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
+  boost::filesystem::copy_file("tests/test_data/implicit/pkey.pem", temp_dir / "import/pkey.pem");
+  auto storage = INvStorage::newStorage(config.storage);
+  storage->importData(config.import);
+  KeyManager keys(storage, config.keymanagerConfig());
+
+  Initializer initializer(config.provision, storage, http, keys, {});
+  EXPECT_TRUE(initializer.isSuccessful());
 }
 
 /**
@@ -124,8 +167,8 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
  */
 TEST(UptaneImplicit, ImplicitProvision) {
   RecordProperty("zephyr_key", "OTA-996,REQ-349,TST-186");
-  Config config;
   TemporaryDirectory temp_dir;
+  Config config;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
   boost::filesystem::copy_file("tests/test_data/implicit/ca.pem", temp_dir / "import/ca.pem");
   boost::filesystem::copy_file("tests/test_data/implicit/client.pem", temp_dir / "import/client.pem");
@@ -135,6 +178,7 @@ TEST(UptaneImplicit, ImplicitProvision) {
   config.import.tls_cacert_path = BasedPath("ca.pem");
   config.import.tls_clientcert_path = BasedPath("client.pem");
   config.import.tls_pkey_path = BasedPath("pkey.pem");
+  EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
