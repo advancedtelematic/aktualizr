@@ -331,7 +331,7 @@ void copyLocal(const boost::filesystem::path& src, const boost::filesystem::path
   if (boost::filesystem::exists(dest_dir)) {
     boost::filesystem::remove(dest);
   } else {
-    boost::filesystem::create_directory(dest_dir);
+    boost::filesystem::create_directories(dest_dir);
   }
   boost::filesystem::copy_file(src, dest);
 }
