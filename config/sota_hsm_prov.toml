@@ -1,4 +1,5 @@
 [tls]
+server_url_path = "/var/sota/gateway.url"
 cert_source = "pkcs11"
 pkey_source = "pkcs11"
 
@@ -18,5 +19,3 @@ type = "sqlite"
 [import]
 base_path = "/var/sota/import"
 tls_cacert_path = "root.crt"
-tls_clientcert_path = "client.pem"
-tls_pkey_path = "pkey.pem"
