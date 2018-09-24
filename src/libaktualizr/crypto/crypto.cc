@@ -13,6 +13,7 @@
 PublicKey::PublicKey(const boost::filesystem::path &path) : value_(Utils::readFile(path)) {
   type_ = Crypto::IdentifyRSAKeyType(value_);
 }
+
 PublicKey::PublicKey(Json::Value uptane_json) {
   if (!uptane_json["keytype"].isString()) {
     type_ = KeyType::kUnknown;
@@ -47,6 +48,7 @@ PublicKey::PublicKey(Json::Value uptane_json) {
   type_ = type;
   value_ = keyvalue;
 }
+
 PublicKey::PublicKey(std::string value, KeyType type) : value_(std::move(value)), type_(type) {
   if (Crypto::IsRsaKeyType(type)) {
     if (type != Crypto::IdentifyRSAKeyType(value)) {
