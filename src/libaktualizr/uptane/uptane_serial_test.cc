@@ -28,6 +28,7 @@ boost::filesystem::path build_dir;
  */
 TEST(Uptane, RandomSerial) {
   RecordProperty("zephyr_key", "OTA-989,TST-155");
+  // Make two configs, neither of which specify a primary serial.
   TemporaryDirectory temp_dir1, temp_dir2;
   Config conf_1("tests/config/basic.toml");
   conf_1.storage.path = temp_dir1.Path();
@@ -37,7 +38,7 @@ TEST(Uptane, RandomSerial) {
   conf_1.provision.primary_ecu_serial = "";
   conf_2.provision.primary_ecu_serial = "";
 
-  // add secondaries
+  // Add a secondary to each config, again not specifying serials.
   Uptane::SecondaryConfig ecu_config;
   ecu_config.secondary_type = Uptane::SecondaryType::kVirtual;
   ecu_config.partial_verifying = false;
@@ -56,6 +57,7 @@ TEST(Uptane, RandomSerial) {
   ecu_config.metadata_path = temp_dir2.Path() / "secondary_metadata";
   conf_2.uptane.secondary_configs.push_back(ecu_config);
 
+  // Initialize.
   auto storage_1 = INvStorage::newStorage(conf_1.storage);
   auto storage_2 = INvStorage::newStorage(conf_2.storage);
   auto http1 = std::make_shared<HttpFake>(temp_dir1.Path());
@@ -67,9 +69,9 @@ TEST(Uptane, RandomSerial) {
   auto uptane_client2 = SotaUptaneClient::newTestClient(conf_2, storage_2, http2);
   EXPECT_NO_THROW(uptane_client2->initialize());
 
+  // Verify that none of the serials match.
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;
-
   EXPECT_TRUE(storage_1->loadEcuSerials(&ecu_serials_1));
   EXPECT_TRUE(storage_2->loadEcuSerials(&ecu_serials_2));
   EXPECT_EQ(ecu_serials_1.size(), 2);
@@ -86,6 +88,8 @@ TEST(Uptane, RandomSerial) {
 
 /**
  * Check that aktualizr saves random ecu_serial for primary and all secondaries.
+ *
+ * Test with a virtual secondary.
  */
 TEST(Uptane, ReloadSerial) {
   RecordProperty("zephyr_key", "OTA-989,TST-156");
@@ -105,7 +109,7 @@ TEST(Uptane, ReloadSerial) {
   ecu_config.target_name_path = temp_dir.Path() / "firmware_name.txt";
   ecu_config.metadata_path = temp_dir.Path() / "secondary_metadata";
 
-  // Initialize and store serials.
+  // Initialize. Should store new serials.
   {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
@@ -122,7 +126,8 @@ TEST(Uptane, ReloadSerial) {
     EXPECT_FALSE(ecu_serials_1[1].first.ToString().empty());
   }
 
-  // Initialize new objects and load serials.
+  // Keep storage directory, but initialize new objects. Should load existing
+  // serials.
   {
     Config conf("tests/config/basic.toml");
     conf.storage.path = temp_dir.Path();
@@ -139,13 +144,21 @@ TEST(Uptane, ReloadSerial) {
     EXPECT_FALSE(ecu_serials_2[1].first.ToString().empty());
   }
 
+  // Verify that serials match across initializations.
   EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
+  // Sanity check that primary and secondary serials do not match.
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
   EXPECT_NE(ecu_serials_2[0].first, ecu_serials_2[1].first);
 }
 
+/**
+ * Check that aktualizr saves random ecu_serial for primary and all secondaries.
+ *
+ * Test with a legacy secondary interface with two secondaries.
+ */
 TEST(Uptane, LegacySerial) {
+  RecordProperty("zephyr_key", "OTA-989,TST-156");
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
   TestUtils::writePathToConfig("tests/config/basic.toml", conf_path_str, temp_dir.Path());
@@ -165,7 +178,7 @@ TEST(Uptane, LegacySerial) {
   EcuSerials ecu_serials_1;
   EcuSerials ecu_serials_2;
 
-  // Initialize and store serials.
+  // Initialize. Should store new serials.
   {
     Config conf(cmd);
     conf.provision.primary_ecu_serial = "";
@@ -181,7 +194,8 @@ TEST(Uptane, LegacySerial) {
     EXPECT_FALSE(ecu_serials_1[2].first.ToString().empty());
   }
 
-  // Initialize new objects and load serials.
+  // Keep storage directory, but initialize new objects. Should load existing
+  // serials.
   {
     Config conf(cmd);
     conf.provision.primary_ecu_serial = "";
@@ -197,10 +211,12 @@ TEST(Uptane, LegacySerial) {
     EXPECT_FALSE(ecu_serials_2[2].first.ToString().empty());
   }
 
+  // Verify that serials match across initializations.
   EXPECT_EQ(ecu_serials_1[0].first, ecu_serials_2[0].first);
   EXPECT_EQ(ecu_serials_1[1].first, ecu_serials_2[1].first);
   EXPECT_EQ(ecu_serials_1[2].first, ecu_serials_2[2].first);
 
+  // Sanity check that primary and secondary serials do not match.
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[1].first);
   EXPECT_NE(ecu_serials_1[0].first, ecu_serials_1[2].first);
   EXPECT_NE(ecu_serials_1[1].first, ecu_serials_1[2].first);
