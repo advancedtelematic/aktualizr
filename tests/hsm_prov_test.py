@@ -119,7 +119,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', str(certs_dir), '-r', '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', '/', '-r', '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())

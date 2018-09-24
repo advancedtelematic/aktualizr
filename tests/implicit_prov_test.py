@@ -33,6 +33,7 @@ path = "{tmp_dir}"
 type = "sqlite"
 
 [import]
+base_path = "{tmp_dir}/import"
 tls_pkey_path = "{pkey_path}"
 tls_clientcert_path = "{clientcert_path}"
 '''
@@ -45,8 +46,8 @@ def provision(tmp_dir, build_dir, creds):
     conf_server = conf_dir / '30-implicit_server.toml'
     with conf_prov.open('w') as f:
         f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir,
-                                       pkey_path=tmp_dir / 'import/pkey.pem',
-                                       clientcert_path=tmp_dir / 'import/client.pem'
+                                       pkey_path='pkey.pem',
+                                       clientcert_path='client.pem'
                                        ))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
@@ -84,7 +85,7 @@ def provision(tmp_dir, build_dir, creds):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', str(tmp_dir / 'import'), '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', '/', '-s', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
