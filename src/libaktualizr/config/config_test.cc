@@ -16,41 +16,51 @@
 namespace bpo = boost::program_options;
 boost::filesystem::path build_dir;
 
-TEST(config, config_initialized_values) {
+TEST(config, DefaultValues) {
   Config conf;
-
   EXPECT_EQ(conf.uptane.running_mode, RunningMode::kFull);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 }
 
-TEST(config, config_toml_parsing) {
+TEST(config, TomlBasic) {
   Config conf("tests/config/basic.toml");
-
   EXPECT_EQ(conf.pacman.type, PackageManager::kNone);
 }
 
-TEST(config, config_toml_parsing_empty_file) {
+TEST(config, TomlEmpty) {
   Config conf;
   conf.updateFromTomlString("");
-
   EXPECT_EQ(conf.uptane.running_mode, RunningMode::kFull);
   EXPECT_EQ(conf.uptane.polling_sec, 10u);
 }
 
-TEST(config, config_toml_int) {
+TEST(config, TomlInt) {
   Config conf;
   conf.updateFromTomlString("[uptane]\nrunning_mode = once\npolling_sec = 99\n");
-
   EXPECT_EQ(conf.uptane.running_mode, RunningMode::kOnce);
   EXPECT_EQ(conf.uptane.polling_sec, 99u);
 }
-TEST(config, config_toml_netport) {
+
+TEST(config, TomlNetport) {
   Config conf;
   conf.updateFromTomlString("[network]\nipuptane_port = 9099\n\n");
   EXPECT_EQ(conf.network.ipuptane_port, 9099);
 }
 
-TEST(config, config_cmdl_parsing) {
+/*
+ * Check that user can specify primary serial via a config file.
+ */
+TEST(config, TomlPrimarySerial) {
+  RecordProperty("zephyr_key", "OTA-988");
+  Config conf("tests/config/selfupdate.toml");
+  EXPECT_EQ(conf.provision.primary_ecu_serial, "723f79763eda1c753ce565c16862c79acdde32eb922d6662f088083c51ffde66");
+}
+
+/*
+ * Check that user can specify primary serial on the command line.
+ */
+TEST(config, CmdlPrimarySerial) {
+  RecordProperty("zephyr_key", "OTA-988");
   constexpr int argc = 5;
   const char *argv[argc] = {"./aktualizr", "--primary-ecu-serial", "test-serial", "-c", "tests/config/minimal.toml"};
 
@@ -68,7 +78,7 @@ TEST(config, config_cmdl_parsing) {
   EXPECT_EQ(conf.provision.primary_ecu_serial, "test-serial");
 }
 
-TEST(config, config_extract_credentials) {
+TEST(config, ExtractCredentials) {
   TemporaryDirectory temp_dir;
   Config conf;
   conf.storage.path = temp_dir.Path();
@@ -88,7 +98,7 @@ TEST(config, config_extract_credentials) {
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 }
 
-TEST(config, secondary_config) {
+TEST(config, SecondaryConfig) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
   TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
@@ -124,7 +134,7 @@ void checkSecondaryConfig(const Config &conf) {
   EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
 }
 
-TEST(config, legacy_interface_cmdline) {
+TEST(config, CmdlLegacyInterface) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
   TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
@@ -145,7 +155,7 @@ TEST(config, legacy_interface_cmdline) {
   checkSecondaryConfig(conf);
 }
 
-TEST(config, legacy_interface_config) {
+TEST(config, TomlLegacyInterface) {
   Config conf("tests/config/minimal.toml");
   conf.uptane.legacy_interface = build_dir / "src/external_secondaries/example-interface";
   conf.postUpdateValues();
@@ -155,20 +165,20 @@ TEST(config, legacy_interface_config) {
 /**
  * Verify that aktualizr can start in implicit provisioning mode.
  */
-TEST(config, implicit_mode) {
+TEST(config, ImplicitMode) {
   RecordProperty("zephyr_key", "OTA-996,TST-184");
   Config config;
   EXPECT_EQ(config.provision.mode, ProvisionMode::kImplicit);
 }
 
-TEST(config, automatic_mode) {
+TEST(config, AutomaticMode) {
   Config config("tests/config/basic.toml");
   EXPECT_EQ(config.provision.mode, ProvisionMode::kAutomatic);
 }
 
 /* We don't normally dump the config to file anymore, but we do write it to the
  * log. */
-TEST(config, consistent_toml_empty) {
+TEST(config, TomlConsistentEmpty) {
   TemporaryDirectory temp_dir;
   Config config1;
   std::ofstream sink1((temp_dir / "output1.toml").c_str(), std::ofstream::out);
@@ -183,7 +193,7 @@ TEST(config, consistent_toml_empty) {
   EXPECT_EQ(conf_str1, conf_str2);
 }
 
-TEST(config, consistent_toml_nonempty) {
+TEST(config, TomlConsistentNonempty) {
   TemporaryDirectory temp_dir;
   Config config1("tests/config/basic.toml");
   std::ofstream sink1((temp_dir / "output1.toml").c_str(), std::ofstream::out);
@@ -198,14 +208,14 @@ TEST(config, consistent_toml_nonempty) {
   EXPECT_EQ(conf_str1, conf_str2);
 }
 
-TEST(config, config_dirs_one_dir) {
+TEST(config, OneDir) {
   Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
   EXPECT_EQ(config.storage.path.string(), "path_z");
   EXPECT_EQ(config.pacman.sysroot.string(), "sysroot_z");
   EXPECT_EQ(config.pacman.os, "os_a");
 }
 
-TEST(config, config_dirs_two_dirs) {
+TEST(config, TwoDirs) {
   std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
                                                    "tests/test_data/config_dirs/second_one_dir"};
   Config config(config_dirs);
@@ -230,7 +240,7 @@ void checkConfigExpectations(const Config &conf) {
 /* This test is designed to catch a bug in which storage.type and pacman.type
  * set in the first config file read could be overwritten by the defaults when
  * reading a second config file. */
-TEST(config, two_config_correctness) {
+TEST(config, TwoTomlCorrectness) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
   TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());

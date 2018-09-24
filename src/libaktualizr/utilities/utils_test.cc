@@ -59,17 +59,20 @@ TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
 
 /**
  * Check that aktualizr can generate a pet name.
+ *
+ * Try 100 times and check that no duplicate names are produced. Tolerate 1
+ * duplicate, since we have actually seen it before and it is statistically
+ * not unreasonable with our current inputs.
  */
 TEST(Utils, GenPrettyNameSane) {
   RecordProperty("zephyr_key", "OTA-986,TST-144");
   std::set<std::string> names;
   for (int i = 0; i < 100; i++) {
-    std::string name = Utils::genPrettyName();
+    const std::string name = Utils::genPrettyName();
     names.insert(name);
-    auto count = names.count(name);
+    const auto count = names.count(name);
     if (count > 2) {
-      std::cerr << "Something wrong with randomness: " << name;
-      FAIL();
+      FAIL() << "Something wrong with randomness: " << name;
     } else if (count == 2) {
       std::cerr << "Lucky draw: " << name;
     }

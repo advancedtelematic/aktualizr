@@ -25,12 +25,13 @@ std::string port;
 
 bool doTestInit(StorageType storage_type, const std::string &device_register_state,
                 const std::string &ecu_register_state) {
+  LOG_INFO << "First attempt to initialize.";
   TemporaryDirectory temp_dir;
   conf.storage.type = storage_type;
   conf.storage.path = temp_dir.Path();
   conf.provision.expiry_days = device_register_state;
   conf.provision.primary_ecu_serial = ecu_register_state;
-  std::string good_url = conf.provision.server;
+  const std::string good_url = conf.provision.server;
   if (device_register_state == "noconnection") {
     conf.provision.server = conf.provision.server.substr(conf.provision.server.size() - 2) + "11";
   }
@@ -40,13 +41,12 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
   auto store = INvStorage::newStorage(conf.storage);
   {
     KeyManager keys(store, conf.keymanagerConfig());
-
     Initializer initializer(conf.provision, store, http, keys, {});
     result = initializer.isSuccessful();
   }
-  if (device_register_state != "noerrors" || conf.provision.primary_ecu_serial != "noerrors") {
+  if (device_register_state != "noerrors" || ecu_register_state != "noerrors") {
     EXPECT_FALSE(result);
-    LOG_INFO << "Reinit without error";
+    LOG_INFO << "Second attempt to initialize.";
     conf.provision.server = good_url;
     conf.provision.expiry_days = "noerrors";
     conf.provision.primary_ecu_serial = "noerrors";
@@ -61,7 +61,6 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
     }
 
     KeyManager keys(store, conf.keymanagerConfig());
-
     Initializer initializer(conf.provision, store, http, keys, {});
     result = initializer.isSuccessful();
   }
@@ -69,10 +68,6 @@ bool doTestInit(StorageType storage_type, const std::string &device_register_sta
   return result;
 }
 
-// Clang tries to cram these all on single lines, which is ugly.
-// clang-format off
-
-// Run tests with sqlite backend
 TEST(UptaneNetwork, device_drop_request_sqlite) {
   RecordProperty("zephyr_key", "OTA-991,TST-158");
   EXPECT_TRUE(doTestInit(StorageType::kSqlite, "drop_request", "noerrors"));
@@ -117,7 +112,6 @@ TEST(UptaneNetwork, no_errors_sqlite) {
   RecordProperty("zephyr_key", "OTA-991,TST-158");
   EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "noerrors"));
 }
-// clang-format on
 
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
