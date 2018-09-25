@@ -45,6 +45,7 @@ RUN apt-get update && apt-get -y install \
   libssl-dev \
   libsystemd-dev \
   libtool \
+  lshw \
   make \
   opensc \
   pkg-config \
