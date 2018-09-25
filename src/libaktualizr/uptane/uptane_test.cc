@@ -288,9 +288,11 @@ TEST(Uptane, UptaneSecondaryAdd) {
 }
 
 /**
- * Check that basic device info sent by aktualizr on provisioning are on server
- * Also test that installation works as expected with the fake package manager.
- * TODO: does that actually work? And is this the right way to test it anyway?
+ * Check that basic device info sent by aktualizr during provisioning matches
+ * our expectations.
+ *
+ * Ideally, we would compare what we have with what the server reports, but in
+ * lieu of that, we can check what we send via http.
  */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
@@ -301,6 +303,7 @@ TEST(Uptane, ProvisionOnServer) {
   config.tls.server = server;
   config.uptane.director_server = server + "/director";
   config.uptane.repo_server = server + "/repo";
+  config.provision.ecu_registration_endpoint = server + "/director/ecus";
   config.provision.device_id = "tst149_device_id";
   config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.provision.primary_ecu_serial = "tst149_ecu_serial";
@@ -309,18 +312,49 @@ TEST(Uptane, ProvisionOnServer) {
 
   auto storage = INvStorage::newStorage(config.storage);
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto up = SotaUptaneClient::newTestClient(config, storage, http);
+
+  EXPECT_EQ(http->devices_count, 0);
+  EXPECT_EQ(http->ecus_count, 0);
+  EXPECT_EQ(http->manifest_count, 0);
+  EXPECT_EQ(http->installed_count, 0);
+  EXPECT_EQ(http->system_info_count, 0);
+  EXPECT_EQ(http->network_count, 0);
+
+  EXPECT_NO_THROW(up->initialize());
+  EXPECT_EQ(http->devices_count, 1);
+  EXPECT_EQ(http->ecus_count, 1);
+
+  EXPECT_NO_THROW(up->sendDeviceData());
+  EXPECT_EQ(http->manifest_count, 1);
+  EXPECT_EQ(http->installed_count, 1);
+  EXPECT_EQ(http->system_info_count, 1);
+  EXPECT_EQ(http->network_count, 1);
+
+  // We need to fetch metadata, but we currently expect a target hash mismatch
+  // since our update is bogus.
+  EXPECT_THROW(up->fetchMeta(), Uptane::InvalidMetadata);
+  EXPECT_EQ(http->manifest_count, 2);
+
+  // Testing downloading is not strictly necessary here and will not work due to
+  // the metadata concerns anyway.
   std::vector<Uptane::Target> packages_to_install =
       makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
+  EXPECT_FALSE(up->downloadImages(packages_to_install));
 
-  auto up = SotaUptaneClient::newTestClient(config, storage, http);
-  EXPECT_NO_THROW(up->initialize());
-  EXPECT_NO_THROW(up->sendDeviceData());
-  EXPECT_THROW(up->fetchMeta(), Uptane::InvalidMetadata);
-  up->downloadImages(packages_to_install);
+  // Test installation to make sure the metadata put to the server is correct.
   up->uptaneInstall(packages_to_install);
+  up->putManifest();
+
+  EXPECT_EQ(http->devices_count, 1);
+  EXPECT_EQ(http->ecus_count, 1);
+  EXPECT_EQ(http->manifest_count, 3);
+  EXPECT_EQ(http->installed_count, 1);
+  EXPECT_EQ(http->system_info_count, 1);
+  EXPECT_EQ(http->network_count, 1);
 }
 
-TEST(Uptane, fs_to_sql_full) {
+TEST(Uptane, FsToSqlFull) {
   TemporaryDirectory temp_dir;
   Utils::copyDir("tests/test_data/prov", temp_dir.Path());
   StorageConfig config;
@@ -536,7 +570,7 @@ TEST(Uptane, LoadVersion) {
   EXPECT_EQ(t, versions[0]);
 }
 
-TEST(Uptane, krejectallTest) {
+TEST(Uptane, kRejectAllTest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config config("tests/config/basic.toml");
