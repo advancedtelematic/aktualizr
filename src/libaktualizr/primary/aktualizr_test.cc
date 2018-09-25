@@ -139,6 +139,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(event->variant, "InstallTargetComplete");
       const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+      EXPECT_TRUE(install_complete->success);
       break;
     }
     case 7: {
@@ -147,13 +148,13 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 8:
+    case 8: {
       EXPECT_EQ(event->variant, "InstallTargetComplete");
-      {
-        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
-        EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
-      }
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
+      EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+      EXPECT_TRUE(install_complete->success);
       break;
+    }
     case 9:
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       break;
@@ -461,6 +462,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(event->variant, "InstallTargetComplete");
       const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
+      EXPECT_TRUE(install_complete->success);
       break;
     }
     case 10: {
@@ -473,6 +475,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(event->variant, "InstallTargetComplete");
       const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
+      EXPECT_TRUE(install_complete->success);
       break;
     }
     case 12: {
