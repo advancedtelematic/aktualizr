@@ -136,8 +136,8 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
     case 6: {
       // Primary should complete before secondary begins. (Again not a
       // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
@@ -148,9 +148,9 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       break;
     }
     case 8:
-      EXPECT_EQ(event->variant, "InstallComplete");
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
       {
-        const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
         EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       }
       break;
@@ -208,7 +208,7 @@ std::promise<void> promise_FullMultipleSecondaries{};
 void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "InstallStarted") {
     ++started_FullMultipleSecondaries;
-  } else if (event->variant == "InstallComplete") {
+  } else if (event->variant == "InstallTargetComplete") {
     ++complete_FullMultipleSecondaries;
   } else if (event->variant == "AllInstallsComplete") {
     allcomplete_FullMultipleSecondaries = true;
@@ -216,7 +216,7 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
     manifest_FullMultipleSecondaries = true;
   }
   // It is possible for the PutManifestComplete to come before we get the
-  // InstallComplete depending on the threading, so check for both.
+  // InstallTargetComplete depending on the threading, so check for both.
   if (allcomplete_FullMultipleSecondaries && complete_FullMultipleSecondaries == 2 &&
       manifest_FullMultipleSecondaries) {
     promise_FullMultipleSecondaries.set_value();
@@ -458,8 +458,8 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     case 9: {
       // Primary should complete before secondary begins. (Again not a
       // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
@@ -470,8 +470,8 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       break;
     }
     case 11: {
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       break;
     }

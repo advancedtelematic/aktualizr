@@ -141,9 +141,9 @@ class InstallStarted : public BaseEvent {
 /**
  * An update attempt on an ECU is finished.
  */
-class InstallComplete : public BaseEvent {
+class InstallTargetComplete : public BaseEvent {
  public:
-  InstallComplete(Uptane::EcuSerial serial_in, bool success_in);
+  InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in);
   Uptane::EcuSerial serial;
   bool success;
 };

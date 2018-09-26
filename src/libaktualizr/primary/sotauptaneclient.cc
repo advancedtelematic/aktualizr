@@ -820,13 +820,13 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
       bootloader->updateNotify();
       sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
       PackageInstallSetResult(primary_update);
-      sendEvent<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
+      sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
       storage->storeInstallationResult(result);
       sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
-      sendEvent<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
+      sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     // TODO: other updates for primary
   } else {

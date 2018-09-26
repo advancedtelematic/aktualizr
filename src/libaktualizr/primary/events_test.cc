@@ -54,13 +54,13 @@ TEST(event, AllDownloadsComplete_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "AllDownloadsComplete");
 }
 
-TEST(event, InstallComplete_event_to_json) {
-  event::InstallComplete event(Uptane::EcuSerial("123456"), true);
+TEST(event, InstallTargetComplete_event_to_json) {
+  event::InstallTargetComplete event(Uptane::EcuSerial("123456"), true);
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  EXPECT_EQ(json["variant"].asString(), "InstallComplete");
+  EXPECT_EQ(json["variant"].asString(), "InstallTargetComplete");
 }
 
 TEST(event, Error_event_from_json) {

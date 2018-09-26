@@ -104,8 +104,8 @@ void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent>
   } else if (event->variant == "InstallStarted") {
     const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
     std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
-  } else if (event->variant == "InstallComplete") {
-    const auto install_complete = dynamic_cast<event::InstallComplete *>(event.get());
+  } else if (event->variant == "InstallTargetComplete") {
+    const auto install_complete = dynamic_cast<event::InstallTargetComplete *>(event.get());
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
   } else if (event->variant == "AllInstallsComplete") {
     updates.clear();
