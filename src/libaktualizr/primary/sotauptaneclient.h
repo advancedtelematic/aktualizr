@@ -127,7 +127,6 @@ class SotaUptaneClient {
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
   Uptane::Exception last_exception{"", ""};
-  std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures_;
 
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;

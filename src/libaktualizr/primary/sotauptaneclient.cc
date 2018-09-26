@@ -669,7 +669,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
-  download_futures_.clear();
+  std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
@@ -680,9 +680,9 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       sendEvent<event::Error>("Target hash mismatch.");
       return false;
     }
-    download_futures_.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
+    download_futures.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
   }
-  for (auto &f : download_futures_) {
+  for (auto &f : download_futures) {
     auto result = f.get();
     if (result.first) {
       downloaded_targets.push_back(result.second);

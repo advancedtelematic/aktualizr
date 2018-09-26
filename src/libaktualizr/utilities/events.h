@@ -118,7 +118,7 @@ class AllDownloadsComplete : public BaseEvent {
 };
 
 /**
- * An target has been successfully downloaded.
+ * A target has been successfully downloaded.
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
