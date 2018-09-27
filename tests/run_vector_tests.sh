@@ -45,7 +45,6 @@ while ! curl -I -s -f "http://localhost:$PORT"; do
     tries=$((tries+1))
 done
 
-# TODO: Why doesn't gtest_output work?
 if [[ $WITH_VALGRIND = 1 ]]; then
     valgrind --track-origins=yes \
              --show-possibly-lost=no \

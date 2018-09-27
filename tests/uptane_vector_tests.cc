@@ -69,18 +69,18 @@ class Uptane_Vector_Test {
       std::cout << "VECTOR: " << vector;
 
       bool should_fail = false;
-      if (vector["director"]["update"]["is_success"].asBool() == false ||
-          vector["image_repo"]["update"]["is_success"].asBool() == false) {
+      if (!vector["director"]["update"]["is_success"].asBool() ||
+          !vector["image_repo"]["update"]["is_success"].asBool()) {
         should_fail = true;
       } else {
         for (const auto& t : vector["director"]["targets"]) {
-          if (t["is_success"].asBool() == false) {
+          if (!t["is_success"].asBool()) {
             should_fail = true;
             break;
           }
         }
         for (const auto& t : vector["image_repo"]["targets"]) {
-          if (t["is_success"].asBool() == false) {
+          if (!t["is_success"].asBool()) {
             should_fail = true;
             break;
           }
@@ -136,21 +136,13 @@ class Uptane_Vector_Test {
   }
 };
 
-int main(int argc, char* argv[]) {
-  ::testing::InitGoogleTest(&argc, argv);
-  logger_init();
-  logger_set_threshold(boost::log::trivial::trace);
+std::string port;
 
-  if (argc != 2) {
-    std::cerr << "This program is intended to be run from run_vector_tests.sh!\n";
-    return 1;
-  }
-
+TEST(uptane_vector_tests, VectorTests) {
   HttpClient http_client;
   /* Use ports to distinguish both the server connection and local storage so
    * that parallel runs of this code don't cause problems that are difficult to
    * debug. */
-  const std::string port = argv[1];
   const std::string address = "http://127.0.0.1:" + port + "/";
   const Json::Value json_vectors = http_client.get(address, HttpInterface::kNoLimit).getJson();
   int passed = 0;
@@ -170,5 +162,21 @@ int main(int argc, char* argv[]) {
   }
   std::cout << "\n\n\nPASSED TESTS: " << passed << "\n";
   std::cout << "FAILED TESTS: " << failed << "\n";
-  return failed;
+
+  EXPECT_EQ(failed, 0);
+}
+
+int main(int argc, char* argv[]) {
+  ::testing::InitGoogleTest(&argc, argv);
+  logger_init();
+  logger_set_threshold(boost::log::trivial::trace);
+
+  if (argc != 2) {
+    std::cerr << "This program is intended to be run from run_vector_tests.sh!\n";
+    return 1;
+  }
+
+  port = argv[1];
+
+  return RUN_ALL_TESTS();
 }
