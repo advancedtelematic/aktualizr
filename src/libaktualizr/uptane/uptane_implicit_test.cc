@@ -20,7 +20,7 @@
  * are not available.
  */
 TEST(UptaneImplicit, ImplicitFailure) {
-  RecordProperty("zephyr_key", "REQ-345,TST-185");
+  RecordProperty("zephyr_key", "OTA-1209,TST-185");
   TemporaryDirectory temp_dir;
   Config config;
   // Set device_id to prevent trying to read it from the certificate.
@@ -41,7 +41,7 @@ TEST(UptaneImplicit, ImplicitFailure) {
  * credentials.
  */
 TEST(UptaneImplicit, ImplicitIncomplete) {
-  RecordProperty("zephyr_key", "REQ-345,TST-187");
+  RecordProperty("zephyr_key", "OTA-1209,TST-187");
   TemporaryDirectory temp_dir;
   Config config;
   // Set device_id to prevent trying to read it from the certificate.
@@ -166,7 +166,7 @@ TEST(UptaneImplicit, ImplicitIncomplete) {
  * Verify that aktualizr can implicitly provision with provided credentials.
  */
 TEST(UptaneImplicit, ImplicitProvision) {
-  RecordProperty("zephyr_key", "OTA-996,REQ-349,TST-186");
+  RecordProperty("zephyr_key", "OTA-996,OTA-1210,TST-186");
   TemporaryDirectory temp_dir;
   Config config;
   Utils::createDirectories(temp_dir / "import", S_IRWXU);
