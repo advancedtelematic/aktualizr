@@ -133,6 +133,11 @@ if (BUILD_SOTA_TOOLS)
                         sota_tools_static_lib
                         ${Boost_LIBRARIES})
 
+    add_aktualizr_test(NAME ostree_dir_repo SOURCES ostree_dir_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME treehub_server SOURCES treehub_server_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+
     # Check the --help option works
     add_test(NAME option-help
         COMMAND garage-push --help)
@@ -141,16 +146,6 @@ if (BUILD_SOTA_TOOLS)
     add_test(NAME bad-option
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-    # Detect that the thing we passed in to --repo is not a repository
-    add_test(NAME invalid-repo
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-invalid-repo $<TARGET_FILE:garage-push>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-    # Detect a --repo that isn't in 'archive-z2' mode
-    add_test(NAME bare-mode-repo
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bare-mode-repo $<TARGET_FILE:garage-push>
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
 
     # Detect that the ref we passed in to --ref is not present
     add_test(NAME missing-ref
@@ -231,6 +226,22 @@ if (BUILD_SOTA_TOOLS)
     add_test(NAME garage-deploy-nonexistent-option
         COMMAND garage-deploy --test )
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
+
+    # Invalid arguments result in a failure
+    add_test(NAME garage-deploy-bad-option
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Detect that the commit we passed in to --commit is not present
+    add_test(NAME garage-deploy-missing-commit
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-missing-commit $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    # Handle a missing credentials.zip
+    add_test(NAME garage-deploy-missing-credentials
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-credentials $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 endif (BUILD_SOTA_TOOLS)
 aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${GARAGE_DEPLOY_SRCS} ${SOTA_TOOLS_LIB_SRC} ${ALL_SOTA_TOOLS_HEADERS} ${TEST_SOURCES})
 

@@ -16,7 +16,7 @@ struct TestUtils {
 
 class TestHelperProcess {
  public:
-  TestHelperProcess(const std::string &argv0, const std::string &argv1);
+  TestHelperProcess(const std::string &argv0, const std::string &argv1, const std::string &argv2 = "");
   ~TestHelperProcess();
 
  private:

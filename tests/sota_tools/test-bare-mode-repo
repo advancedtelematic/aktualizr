@@ -1,5 +1,0 @@
-#!/bin/bash
-set -eu
-
-TARGET="OSTree repo is not in archive-z2 format"
-$1 --ref master --repo sota_tools/bare-repo --credentials sota_tools/auth_test_good.zip | grep -q "$TARGET"

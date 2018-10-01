@@ -1,5 +1,0 @@
-#!/bin/bash
-set -eu
-
-TARGET="does not appear to contain a valid OSTree repository"
-$1 --ref master --repo invalid --credentials sota_tools/auth_test_good.zip | grep -q "$TARGET"
