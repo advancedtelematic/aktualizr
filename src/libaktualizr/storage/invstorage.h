@@ -53,11 +53,8 @@ class StorageTargetWHandle {
     std::array<uint8_t, 256> arr{};
     while (!is.eof()) {
       is.read(reinterpret_cast<char*>(arr.data()), arr.size());
-
       handle.wfeed(arr.data(), static_cast<size_t>(is.gcount()));
     }
-    handle.wcommit();
-
     return is;
   }
 };

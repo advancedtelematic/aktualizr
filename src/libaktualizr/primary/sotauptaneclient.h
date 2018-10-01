@@ -93,6 +93,7 @@ class SotaUptaneClient {
   bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
+  std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target);
   void rotateSecondaryRoot(Uptane::RepositoryType repo, Uptane::SecondaryInterface &secondary);
   bool updateDirectorMeta();
   bool updateImagesMeta();

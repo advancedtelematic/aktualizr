@@ -35,7 +35,7 @@ TEST(event, UpdateAvailable_event_to_json) {
   EXPECT_EQ(json["variant"].asString(), "UpdateAvailable");
 }
 
-TEST(event, DownloadComplete_event_to_json) {
+TEST(event, AllDownloadsComplete_event_to_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifiers"]["ecu1"]["hardwareId"] = "hw1";
   target_json["hashes"]["sha256"] = "12AB";
@@ -43,7 +43,7 @@ TEST(event, DownloadComplete_event_to_json) {
   Uptane::Target target("test", target_json);
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
-  event::DownloadComplete event(targets);
+  event::AllDownloadsComplete event(targets);
 
   Json::Reader reader;
   Json::Value json;
@@ -51,16 +51,16 @@ TEST(event, DownloadComplete_event_to_json) {
 
   EXPECT_EQ(json["fields"][0]["test"]["custom"]["ecuIdentifiers"]["ecu1"]["hardwareId"], "hw1");
   EXPECT_EQ(json["fields"][0]["test"]["hashes"]["sha256"], "12AB");
-  EXPECT_EQ(json["variant"].asString(), "DownloadComplete");
+  EXPECT_EQ(json["variant"].asString(), "AllDownloadsComplete");
 }
 
-TEST(event, InstallComplete_event_to_json) {
-  event::InstallComplete event(Uptane::EcuSerial("123456"), true);
+TEST(event, InstallTargetComplete_event_to_json) {
+  event::InstallTargetComplete event(Uptane::EcuSerial("123456"), true);
   Json::Reader reader;
   Json::Value json;
   reader.parse(event.toJson(), json);
 
-  EXPECT_EQ(json["variant"].asString(), "InstallComplete");
+  EXPECT_EQ(json["variant"].asString(), "InstallTargetComplete");
 }
 
 TEST(event, Error_event_from_json) {
@@ -87,7 +87,7 @@ TEST(event, UpdateAvailable_event_from_json) {
   EXPECT_EQ(event.updates[0].sha256Hash(), "12ab");
 }
 
-TEST(event, DownloadComplete_event_from_json) {
+TEST(event, AllDownloadsComplete_event_from_json) {
   Json::Value target_json;
   target_json["custom"]["ecuIdentifiers"]["ecu1"]["hardwareId"] = "hw1";
   target_json["hashes"]["sha256"] = "12ab";
@@ -95,10 +95,10 @@ TEST(event, DownloadComplete_event_from_json) {
   Uptane::Target target("test", target_json);
   std::vector<Uptane::Target> targets;
   targets.push_back(target);
-  event::DownloadComplete update_available(targets);
-  event::DownloadComplete event = event::DownloadComplete::fromJson(update_available.toJson());
+  event::AllDownloadsComplete update_available(targets);
+  event::AllDownloadsComplete event = event::AllDownloadsComplete::fromJson(update_available.toJson());
 
-  EXPECT_EQ(event.variant, "DownloadComplete");
+  EXPECT_EQ(event.variant, "AllDownloadsComplete");
   EXPECT_TRUE(event.updates[0].ecus().find(Uptane::EcuSerial("ecu1")) != event.updates[0].ecus().end());
   EXPECT_EQ(event.updates[0].filename(), "test");
   EXPECT_EQ(event.updates[0].sha256Hash(), "12ab");

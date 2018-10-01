@@ -669,6 +669,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
+  std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
@@ -679,18 +680,18 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       sendEvent<event::Error>("Target hash mismatch.");
       return false;
     }
-    downloaded_targets.push_back(*it);
-    // TODO: support downloading encrypted targets from director
-    // TODO: check if the file is already there before downloading
-    if (!uptane_fetcher->fetchVerifyTarget(*images_target)) {
-      sendEvent<event::Error>("Error downloading targets.");
-      return false;
+    download_futures.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
+  }
+  for (auto &f : download_futures) {
+    auto result = f.get();
+    if (result.first) {
+      downloaded_targets.push_back(result.second);
     }
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       sendDownloadReport();
-      sendEvent<event::DownloadComplete>(downloaded_targets);
+      sendEvent<event::AllDownloadsComplete>(downloaded_targets);
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
@@ -702,6 +703,17 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
     LOG_INFO << "No new updates to download.";
   }
   return true;
+}
+
+std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {
+  // TODO: support downloading encrypted targets from director
+  // TODO: check if the file is already there before downloading
+  if (!uptane_fetcher->fetchVerifyTarget(target)) {
+    sendEvent<event::Error>("Error downloading targets.");
+    return {false, target};
+  }
+  sendEvent<event::DownloadTargetComplete>(target);
+  return {true, target};
 }
 
 bool SotaUptaneClient::uptaneIteration() {
@@ -808,13 +820,13 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
       bootloader->updateNotify();
       sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
       PackageInstallSetResult(primary_update);
-      sendEvent<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
+      sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
       storage->storeInstallationResult(result);
       sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
-      sendEvent<event::InstallComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
+      sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     // TODO: other updates for primary
   } else {
@@ -856,7 +868,7 @@ void SotaUptaneClient::sendDownloadReport() {
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
   (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "DownloadComplete";
+  (*report)["eventType"]["id"] = "AllDownloadsComplete";
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = director_targets;
 

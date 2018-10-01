@@ -3,6 +3,7 @@
 
 #include <list>
 #include <memory>
+#include <mutex>
 
 #include <boost/filesystem.hpp>
 #include <boost/optional.hpp>
@@ -130,23 +131,30 @@ class SQLiteStatement {
 };
 
 // Unique ownership SQLite3 connection
+extern std::mutex sql_mutex;
 class SQLite3Guard {
  public:
   sqlite3* get() { return handle_.get(); }
   int get_rc() { return rc_; }
 
   explicit SQLite3Guard(const char* path, bool readonly) : handle_(nullptr, sqlite3_close), rc_(0) {
+    if (sqlite3_threadsafe() == 0) {
+      throw std::runtime_error("sqlite3 has been compiled without multitheading support");
+    }
     sqlite3* h;
     if (readonly) {
       rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READONLY, nullptr);
     } else {
-      rc_ = sqlite3_open(path, &h);
+      rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
     }
     handle_.reset(h);
   }
 
   explicit SQLite3Guard(const boost::filesystem::path& path, bool readonly = false)
       : SQLite3Guard(path.c_str(), readonly) {}
+  SQLite3Guard(SQLite3Guard&& guard) noexcept : handle_(std::move(guard.handle_)), rc_(guard.rc_) {}
+  SQLite3Guard(const SQLite3Guard& guard) = delete;
+  SQLite3Guard operator=(const SQLite3Guard& guard) = delete;
 
   int exec(const char* sql, int (*callback)(void*, int, char**, char**), void* cb_arg) {
     return sqlite3_exec(handle_.get(), sql, callback, cb_arg, nullptr);

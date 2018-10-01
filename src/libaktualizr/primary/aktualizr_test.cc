@@ -119,9 +119,13 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       break;
     }
     case 2:
-      EXPECT_EQ(event->variant, "DownloadComplete");
+    case 3:
+      EXPECT_EQ(event->variant, "DownloadTargetComplete");
       break;
-    case 3: {
+    case 4:
+      EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      break;
+    case 5: {
       // Primary always gets installed first. (Not a requirement, just how it
       // works at present.)
       EXPECT_EQ(event->variant, "InstallStarted");
@@ -129,35 +133,35 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
-    case 4: {
+    case 6: {
       // Primary should complete before secondary begins. (Again not a
       // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
-    case 5: {
+    case 7: {
       EXPECT_EQ(event->variant, "InstallStarted");
       const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 6:
-      EXPECT_EQ(event->variant, "InstallComplete");
+    case 8:
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
       {
-        const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+        const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
         EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       }
       break;
-    case 7:
+    case 9:
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       break;
-    case 8:
+    case 10:
       EXPECT_EQ(event->variant, "PutManifestComplete");
       promise_FullWithUpdates.set_value();
       break;
-    case 10:
+    case 12:
       // Don't let the test run indefinitely!
       FAIL();
     default:
@@ -204,7 +208,7 @@ std::promise<void> promise_FullMultipleSecondaries{};
 void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "InstallStarted") {
     ++started_FullMultipleSecondaries;
-  } else if (event->variant == "InstallComplete") {
+  } else if (event->variant == "InstallTargetComplete") {
     ++complete_FullMultipleSecondaries;
   } else if (event->variant == "AllInstallsComplete") {
     allcomplete_FullMultipleSecondaries = true;
@@ -212,7 +216,7 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
     manifest_FullMultipleSecondaries = true;
   }
   // It is possible for the PutManifestComplete to come before we get the
-  // InstallComplete depending on the threading, so check for both.
+  // InstallTargetComplete depending on the threading, so check for both.
   if (allcomplete_FullMultipleSecondaries && complete_FullMultipleSecondaries == 2 &&
       manifest_FullMultipleSecondaries) {
     promise_FullMultipleSecondaries.set_value();
@@ -330,6 +334,7 @@ int num_events_DownloadWithUpdates = 0;
 std::future<void> future_DownloadWithUpdates{};
 std::promise<void> promise_DownloadWithUpdates{};
 void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << "Got " << event->variant << " event\n";
   if (event->variant == "DownloadProgressReport") {
     return;
   }
@@ -348,11 +353,23 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
       EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
       break;
     }
-    case 3:
-      EXPECT_EQ(event->variant, "DownloadComplete");
+    case 3: {
+      EXPECT_EQ(event->variant, "DownloadTargetComplete");
+      const auto target_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+      EXPECT_EQ(target_event->update.filename(), "secondary_firmware.txt");
+      break;
+    }
+    case 4: {
+      EXPECT_EQ(event->variant, "DownloadTargetComplete");
+      const auto target_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+      EXPECT_EQ(target_event->update.filename(), "primary_firmware.txt");
+      break;
+    }
+    case 5:
+      EXPECT_EQ(event->variant, "AllDownloadsComplete");
       promise_DownloadWithUpdates.set_value();
       break;
-    case 6:
+    case 8:
       // Don't let the test run indefinitely!
       FAIL();
     default:
@@ -371,6 +388,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
+  conf.uptane.repo_server = http->tls_server + "/downloads/repo";
   conf.uptane.running_mode = RunningMode::kDownload;
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -409,11 +427,11 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       break;
     case 1:
-    case 4:
+    case 6:
       EXPECT_EQ(event->variant, "FetchMetaComplete");
       break;
     case 2:
-    case 5: {
+    case 7: {
       EXPECT_EQ(event->variant, "UpdateAvailable");
       const auto targets_event = dynamic_cast<event::UpdateAvailable*>(event.get());
       EXPECT_EQ(targets_event->updates.size(), 2u);
@@ -423,9 +441,13 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       break;
     }
     case 3:
-      EXPECT_EQ(event->variant, "DownloadComplete");
+    case 4:
+      EXPECT_EQ(event->variant, "DownloadTargetComplete");
       break;
-    case 6: {
+    case 5:
+      EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      break;
+    case 8: {
       // Primary always gets installed first. (Not a requirement, just how it
       // works at present.)
       EXPECT_EQ(event->variant, "InstallStarted");
@@ -433,36 +455,36 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
-    case 7: {
+    case 9: {
       // Primary should complete before secondary begins. (Again not a
       // requirement per se.)
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
-    case 8: {
+    case 10: {
       EXPECT_EQ(event->variant, "InstallStarted");
       const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 9: {
-      EXPECT_EQ(event->variant, "InstallComplete");
-      const auto install_complete = dynamic_cast<event::InstallComplete*>(event.get());
+    case 11: {
+      EXPECT_EQ(event->variant, "InstallTargetComplete");
+      const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 10: {
+    case 12: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       break;
     }
-    case 11: {
+    case 13: {
       EXPECT_EQ(event->variant, "PutManifestComplete");
       promise_InstallWithUpdates.set_value();
       break;
     }
-    case 13:
+    case 14:
       // Don't let the test run indefinitely!
       FAIL();
     default:

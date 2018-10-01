@@ -159,9 +159,11 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
   config.path = temp_dir.Path();
-  SQLite3Guard db(config.sqldb_path.get(config.path).c_str());
-  if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
-    FAIL();
+  {
+    SQLite3Guard db(config.sqldb_path.get(config.path).c_str());
+    if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
+      FAIL();
+    }
   }
 
   SQLStorage storage(config, false);

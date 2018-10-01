@@ -81,8 +81,8 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
     breakLoop();
   } else if (event->variant == "DownloadProgressReport") {
     // silent
-  } else if (event->variant == "DownloadComplete") {
-    auto dc_event = dynamic_cast<event::DownloadComplete *>(event.get());
+  } else if (event->variant == "AllDownloadsComplete") {
+    auto dc_event = dynamic_cast<event::AllDownloadsComplete *>(event.get());
     if (running_mode == RunningMode::kDownload) {
       breakLoop();
     } else {
