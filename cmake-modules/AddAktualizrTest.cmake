@@ -16,11 +16,11 @@ function(add_aktualizr_test)
     # run tests under valgrind if the correct CMAKE_BUILD_TYPE is set
     if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
         add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                 COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                 COMMAND ${RUN_VALGRIND} ${CMAKE_CURRENT_BINARY_DIR}/t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS} ${GOOGLE_TEST_OUTPUT}
                  ${WD})
     else()
         add_test(NAME test_${AKTUALIZR_TEST_NAME}
-                 COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS}
+                 COMMAND t_${AKTUALIZR_TEST_NAME} ${AKTUALIZR_TEST_ARGS} ${GOOGLE_TEST_OUTPUT}
                  ${WD})
     endif()
 

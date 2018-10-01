@@ -79,7 +79,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Valgrind")
     set(VECTOR_TESTS_ARGS "valgrind")
 endif(CMAKE_BUILD_TYPE MATCHES "Valgrind")
 add_test(NAME test_uptane_vectors COMMAND ${PROJECT_SOURCE_DIR}/tests/run_vector_tests.sh
-         ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS})
+    ${PROJECT_SOURCE_DIR}/tests ${VECTOR_TESTS_ARGS} ${GOOGLE_TEST_OUTPUT})
 add_dependencies(build_tests aktualizr_uptane_vector_tests)
 set_tests_properties(test_uptane_vectors PROPERTIES LABELS "uptane_vectors")
 

@@ -105,7 +105,7 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
     breakLoop();
   } else if (event->variant == "Error") {
     auto err_event = dynamic_cast<event::Error *>(event.get());
-    LOG_WARNING << "got error event: " << err_event->message;
+    LOG_WARNING << "got Error event: " << err_event->message;
     breakLoop();
   }
 }

@@ -62,7 +62,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Uptane, restoreVerify);
   FRIEND_TEST(Uptane, PutManifest);
   FRIEND_TEST(Uptane, offlineIteration);
-  FRIEND_TEST(Uptane, krejectallTest);
+  FRIEND_TEST(Uptane, kRejectAllTest);
   FRIEND_TEST(Uptane, Vector);  // Note hacky name (see uptane_vector_tests.cc)
   FRIEND_TEST(UptaneCI, OneCycleUpdate);
   FRIEND_TEST(UptaneCI, CheckKeys);
@@ -106,6 +106,9 @@ class SotaUptaneClient {
     std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
     if (events_channel) {
       (*events_channel)(std::move(event));
+    } else if (event->variant == "Error") {
+      auto err_event = dynamic_cast<event::Error *>(event.get());
+      LOG_WARNING << "got Error event: " << err_event->message;
     } else if (event->variant != "DownloadProgressReport") {
       LOG_INFO << "got " << event->variant << " event";
     }
