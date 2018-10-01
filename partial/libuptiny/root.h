@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "state_api.h"
-bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root);
+bool uptane_parse_root(const char *metadata, int16_t len, uptane_root_t *out_root);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@ typedef enum {
 } targets_result_t;
 
 void uptane_parse_targets_init(void);
-int uptane_parse_targets_feed(const char *message, size_t len, uptane_targets_t *out_targets, uint16_t *result);
+int uptane_parse_targets_feed(const char *message, int16_t len, uptane_targets_t *out_targets, uint16_t *result);
 
 #ifdef __cplusplus
 }

@@ -22,17 +22,17 @@ static inline bool parse_keyval(const char *keyval, int len, crypto_key_t *key) 
   }
 }
 
-static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
-  unsigned int idx = *pos;
+static inline bool parse_keys(const char *metadata_str, int16_t *pos) {
+  int16_t idx = *pos;
 
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
   }
-  int size = token_pool[idx].size;
+  int16_t size = token_pool[idx].size;
   ++idx;  // consume object token
 
-  for (int i = 0; i < size; ++i) {
+  for (int16_t i = 0; i < size; ++i) {
     bool keytype_supported = false;
     bool keyval_found = false;
 
@@ -44,14 +44,14 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
 
     if (JSON_TOK_LEN(token_pool[idx]) != (2 * CRYPTO_KEYID_LEN)) {
       DEBUG_PRINTF("Invalid key ID length\n");
-      idx = consume_recursive_json(idx + 1);  // consume key
+      idx = consume_recursive_json((int16_t)(idx + 1));  // consume key
       free_crypto_key(keys[num_keys]);
       continue;
     }
 
     if (!hex2bin(metadata_str + token_pool[idx].start, JSON_TOK_LEN(token_pool[idx]), keys[num_keys]->keyid)) {
       DEBUG_PRINTF("Invalid key ID\n");
-      idx = consume_recursive_json(idx + 1);  // consume key
+      idx = consume_recursive_json((int16_t)(idx + 1));  // consume key
       free_crypto_key(keys[num_keys]);
       continue;
     }
@@ -64,10 +64,10 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
       free_crypto_key(keys[num_keys]);
     }
 
-    int key_size = token_pool[idx].size;
+    int16_t key_size = token_pool[idx].size;
     ++idx;  // consume object token
 
-    for (int j = 0; j < key_size; ++j) {
+    for (int16_t j = 0; j < key_size; ++j) {
       if (json_str_equal(metadata_str, idx, "keytype")) {
         ++idx;  // consume name token
         keys[num_keys]->key_type =
@@ -120,9 +120,9 @@ static inline bool parse_keys(const char *metadata_str, unsigned int *pos) {
   return true;
 }
 
-static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32_t *threshold, int32_t *out_key_num,
+static inline bool parse_role(const char *metadata_str, int16_t *pos, int32_t *threshold, int32_t *out_key_num,
                               crypto_key_t **out_keys) {
-  unsigned int idx = *pos;
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
@@ -173,13 +173,13 @@ static inline bool parse_role(const char *metadata_str, unsigned int *pos, int32
   return threshold_found && keyids_found;
 }
 
-static inline bool parse_roles(const char *metadata_str, unsigned int *pos, uptane_root_t *root) {
-  unsigned int idx = *pos;
+static inline bool parse_roles(const char *metadata_str, int16_t *pos, uptane_root_t *root) {
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
   }
-  int size = token_pool[idx].size;
+  int16_t size = token_pool[idx].size;
   ++idx;  // consume object token
 
   bool root_found = false;
@@ -204,8 +204,8 @@ static inline bool parse_roles(const char *metadata_str, unsigned int *pos, upta
   return root_found && targets_found;
 }
 
-bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptane_root_t *out_root) {
-  unsigned int idx = *pos;
+bool uptane_parse_root_signed(const char *metadata_str, int16_t *pos, uptane_root_t *out_root) {
+  int16_t idx = *pos;
   if (token_pool[idx].type != JSMN_OBJECT) {
     DEBUG_PRINTF("Object expected\n");
     return false;
@@ -213,7 +213,7 @@ bool uptane_parse_root_signed(const char *metadata_str, unsigned int *pos, uptan
   int size = token_pool[idx].size;
   ++idx;  // consume object token
 
-  for (int i = 0; i < size; ++i) {
+  for (int16_t i = 0; i < size; ++i) {
     if (json_str_equal(metadata_str, idx, "_type")) {
       ++idx;  //  consume name token
 

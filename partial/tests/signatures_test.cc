@@ -19,7 +19,7 @@ TEST(tiny_signatures, parse_simple) {
   int parsed = jsmn_parse(&parser, signatures_str.c_str(), signatures_str.length(), token_pool, token_pool_size);
   EXPECT_GT(parsed, 0);
 
-  unsigned int token_idx = 0;
+  int16_t token_idx = 0;
   EXPECT_EQ(uptane_parse_signatures(ROLE_ROOT, signatures_str.c_str(), &token_idx, sigs, 10, state_get_root()), 1);
   EXPECT_TRUE(sigs[0].key != nullptr);
   EXPECT_EQ(sigs[0].key->key_type, CRYPTO_ALG_ED25519);
@@ -44,7 +44,7 @@ TEST(tiny_signatures, parse_one_of_two) {
   int parsed = jsmn_parse(&parser, signatures_str.c_str(), signatures_str.length(), token_pool, token_pool_size);
   EXPECT_GT(parsed, 0);
 
-  unsigned int token_idx = 0;
+  int16_t token_idx = 0;
   EXPECT_EQ(uptane_parse_signatures(ROLE_ROOT, signatures_str.c_str(), &token_idx, sigs, 10, state_get_root()), 1);
   EXPECT_TRUE(sigs[0].key != nullptr);
   EXPECT_TRUE(sigs[0].key->key_type == CRYPTO_ALG_ED25519);
@@ -75,7 +75,7 @@ TEST(tiny_signatures, parse_plus_garbage) {
   int parsed = jsmn_parse(&parser, signatures_str.c_str(), signatures_str.length(), token_pool, token_pool_size);
   EXPECT_GT(parsed, 0);
 
-  unsigned int token_idx = 0;
+  int16_t token_idx = 0;
   EXPECT_EQ(uptane_parse_signatures(ROLE_ROOT, signatures_str.c_str(), &token_idx, sigs, 10, state_get_root()), 1);
   EXPECT_TRUE(sigs[0].key != nullptr);
   EXPECT_TRUE(sigs[0].key->key_type == CRYPTO_ALG_ED25519);

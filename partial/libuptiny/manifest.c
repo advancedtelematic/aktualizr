@@ -1,4 +1,5 @@
 #include "manifest.h"
+#include "firmware.h"
 #include "base64.h"
 #include "crypto_api.h"
 #include "state_api.h"
@@ -92,11 +93,14 @@ void uptane_write_manifest(char* signed_part, char* signatures_part) {
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
   strcat(signed_part, "\"}");
 
-  crypto_key_and_signature_t sig;
-  const uint8_t* priv;
-  state_get_device_key(&sig.key, &priv);
+  static crypto_key_and_signature_t sig;
 
-  crypto_sign_data(signed_part, strlen(signed_part), &sig, priv);
+  if (uptane_firmware_updated()) {
+    const uint8_t* priv;
+    state_get_device_key(&sig.key, &priv);
+
+    crypto_sign_data(signed_part, strlen(signed_part), &sig, priv);
+  }
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
   strcpy(signatures_part, "[{\"keyid\":\"");
   bin2hex(sig.key->keyid, CRYPTO_KEYID_LEN, signatures_part + strlen(signatures_part));

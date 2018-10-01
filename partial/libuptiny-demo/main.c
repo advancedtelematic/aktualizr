@@ -198,42 +198,8 @@ int uptane_recv(void) {
 
 int main(void)
 {
-    /*static conn_can_raw_t raw_conn;
-    static struct can_filter filter = {
-        .can_id = 0x7E8,
-	.can_mask = 0x000007f8,
-    };*/
-
     xtimer_sleep(1); // TODO: better way to wait till CAN gets initialized?
 
     uptane_recv();
-    /*conn_can_raw_create(&raw_conn, &filter, 1, 0, 0);
-
-    for(;;) {
-      gpio_clear(LED0_PIN);
-      gpio_set(LED1_PIN);
-      gpio_clear(LED2_PIN);
-      gpio_set(LED3_PIN);
-
-      struct can_frame frame;
-      //memset(frame.data, 0x55, 8);
-      //frame.data[0] = 0x02;
-      //frame.data[1] = 0x1;
-      //frame.data[2] = 0x0;
-      //frame.can_dlc = 8;
-      //frame.can_id = 0x7DF;
-
-      while(conn_can_raw_recv(&raw_conn, &frame, 1000) <= 0);
-      //conn_can_raw_send(&raw_conn, &frame, 0);
-      //xtimer_sleep(1);
-
-      gpio_set(LED0_PIN);
-      gpio_clear(LED1_PIN);
-      gpio_set(LED2_PIN);
-      gpio_clear(LED3_PIN);
-      while(conn_can_raw_recv(&raw_conn, &frame, 1000) <= 0);
-
-      //xtimer_sleep(1);
-    }*/
     return 0;
 }

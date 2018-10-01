@@ -36,7 +36,7 @@ TEST(tiny_root_signed, parse_simple) {
   int parsed = jsmn_parse(&parser, signed_root_str.c_str(), signed_root_str.length(), token_pool, token_pool_size);
 
   EXPECT_GT(parsed, 0);
-  unsigned int idx = 0;
+  int16_t idx = 0;
   uptane_root_t root;
   EXPECT_TRUE(uptane_parse_root_signed (signed_root_str.c_str(), &idx, &root));
   check_root(root);
@@ -59,7 +59,7 @@ TEST(tiny_root_signed, parse_with_garbage) {
   int parsed = jsmn_parse(&parser, signed_root_str.c_str(), signed_root_str.length(), token_pool, token_pool_size);
 
   EXPECT_GT(parsed, 0);
-  unsigned int idx = 0;
+  int16_t idx = 0;
   uptane_root_t root;
   EXPECT_TRUE(uptane_parse_root_signed (signed_root_str.c_str(), &idx, &root));
   check_root(root);

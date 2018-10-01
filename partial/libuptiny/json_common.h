@@ -8,13 +8,13 @@ extern "C" {
 #endif
 
 // consumes a token in token_pool indexed by idx recursively, returns index immediately after the consumed token
-unsigned int consume_recursive_json(unsigned int idx);
+int16_t consume_recursive_json(int16_t idx);
 
 // token's length
 #define JSON_TOK_LEN(token) ((token).end - (token).start)
 
 // compare token with a string literal
-bool json_str_equal(const char* json, unsigned int idx, const char* value);
+bool json_str_equal(const char* json, int16_t idx, const char* value);
 
 #ifdef __cplusplus
 }

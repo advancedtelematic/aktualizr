@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 extern jsmntok_t token_pool[];
-extern const unsigned int token_pool_size;
+extern const int16_t token_pool_size;
 
 extern crypto_key_and_signature_t signature_pool[];
 extern const unsigned int signature_pool_size;

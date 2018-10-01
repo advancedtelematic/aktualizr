@@ -6,6 +6,13 @@
 #include <string.h>
 
 const crypto_hash_t *expected_hash;
+bool firmware_updated = true;
+
+bool uptane_firmware_updated(void) {
+  bool res = firmware_updated;
+  firmware_updated = false;
+  return res;
+}
 
 bool uptane_verify_firmware_init(void) {
   const uptane_targets_t *targets = state_get_targets();
@@ -58,4 +65,5 @@ void uptane_firmware_confirm(void) {
   new_state.attack = ATTACK_NONE;
 
   state_set_installation_state(&new_state);
+  firmware_updated = true;
 }

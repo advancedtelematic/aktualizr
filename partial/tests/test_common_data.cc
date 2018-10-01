@@ -8,7 +8,7 @@
 
 extern "C" {
 jsmntok_t token_pool[TOKEN_POOL_SIZE];
-const unsigned int token_pool_size = TOKEN_POOL_SIZE;
+const int16_t token_pool_size = TOKEN_POOL_SIZE;
 
 #define SIGNATURE_POOL_SIZE 16
 crypto_key_and_signature_t signature_pool[SIGNATURE_POOL_SIZE];

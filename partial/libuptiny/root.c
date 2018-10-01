@@ -7,11 +7,11 @@
 #include "root_signed.h"
 #include "signatures.h"
 
-bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root) {
+bool uptane_parse_root(const char *metadata, int16_t len, uptane_root_t *out_root) {
   int num_signatures = 0;
-  unsigned int signatures_token = 0;
-  int signed_begin = 0;
-  int signed_end = 0;
+  int16_t signatures_token = 0;
+  int16_t signed_begin = 0;
+  int16_t signed_end = 0;
 
   uptane_root_t *old_root = state_get_root();
   jsmn_parser parser;
@@ -28,8 +28,8 @@ bool uptane_parse_root(const char *metadata, size_t len, uptane_root_t *out_root
     return false;
   }
 
-  int size = token_pool[0].size;
-  unsigned idx = 1;  // consume object token
+  int16_t size = token_pool[0].size;
+  int16_t idx = 1;  // consume object token
   for (int i = 0; i < size; ++i) {
     if (json_str_equal(metadata, idx, "signatures")) {
       ++idx;  // consume name token
