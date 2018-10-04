@@ -16,8 +16,6 @@ link:./hsm-provisioning.adoc[hsm-provisioning.adoc] - An explanation of aktualiz
 
 link:./implicit-provisioning.adoc[implicit-provisioning.adoc] - Implicit provisioning an alternative to automatic provisioning. It's distinct from automatic provisioning in that it requires each image to have some unique credentials side-loaded.
 
-link:./legacysecondary.adoc[legacysecondary.adoc] - Aktualizr is designed for automotive use cases, including sending updates to secondary ECUs that don't have their own internet connection.
-
 link:./linux-secondaries.adoc[linux-secondaries.adoc] - A quick how-to demonstrating aktualizr on a secondary ECU, using two QEMU devices.
 
 link:./opcua-bridge.adoc[opcua-bridge.adoc] - Some basic documentation on getting OPC-UA working. OPC-UA is a protocol for in-vehicle inter-ECU communication.

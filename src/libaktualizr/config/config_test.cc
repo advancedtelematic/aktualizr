@@ -123,45 +123,6 @@ TEST(config, SecondaryConfig) {
   EXPECT_TRUE(conf.uptane.secondary_configs[0].ecu_serial.empty());
 }
 
-void checkSecondaryConfig(const Config &conf) {
-  EXPECT_EQ(conf.uptane.secondary_configs.size(), 2);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].secondary_type, Uptane::SecondaryType::kLegacy);
-  EXPECT_EQ(conf.uptane.secondary_configs[0].ecu_hardware_id, "example1");
-  EXPECT_FALSE(conf.uptane.secondary_configs[0].ecu_serial.empty());
-  EXPECT_EQ(conf.uptane.secondary_configs[1].secondary_type, Uptane::SecondaryType::kLegacy);
-  EXPECT_EQ(conf.uptane.secondary_configs[1].ecu_hardware_id, "example2");
-  // If not provided, serial is not generated until SotaUptaneClient is initialized.
-  EXPECT_TRUE(conf.uptane.secondary_configs[1].ecu_serial.empty());
-}
-
-TEST(config, CmdlLegacyInterface) {
-  TemporaryDirectory temp_dir;
-  const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
-  TestUtils::writePathToConfig("tests/config/minimal.toml", conf_path_str, temp_dir.Path());
-
-  bpo::variables_map cmd;
-  bpo::options_description description("some text");
-  // clang-format off
-  description.add_options()
-    ("legacy-interface", bpo::value<boost::filesystem::path>()->composing(), "path to legacy secondary ECU interface program")
-    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
-
-  // clang-format on
-  std::string path = (build_dir / "src/external_secondaries/example-interface").string();
-  const char *argv[] = {"aktualizr", "--legacy-interface", path.c_str(), "-c", conf_path_str.c_str()};
-  bpo::store(bpo::parse_command_line(5, argv, description), cmd);
-
-  Config conf(cmd);
-  checkSecondaryConfig(conf);
-}
-
-TEST(config, TomlLegacyInterface) {
-  Config conf("tests/config/minimal.toml");
-  conf.uptane.legacy_interface = build_dir / "src/external_secondaries/example-interface";
-  conf.postUpdateValues();
-  checkSecondaryConfig(conf);
-}
-
 /**
  * Verify that aktualizr can start in implicit provisioning mode.
  */

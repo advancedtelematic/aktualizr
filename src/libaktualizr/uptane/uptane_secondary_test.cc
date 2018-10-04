@@ -22,21 +22,13 @@ TEST(SecondaryFactory, Virtual) {
   EXPECT_TRUE(sec);
 }
 
+/* Legacy secondaries are deprecated and are no longer supported. */
 TEST(SecondaryFactory, Legacy) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
   sconfig.secondary_type = Uptane::SecondaryType::kLegacy;
-  sconfig.partial_verifying = false;
-  sconfig.full_client_dir = temp_dir.Path();
-  sconfig.ecu_serial = "";
-  sconfig.ecu_hardware_id = "secondary_hardware";
-  sconfig.ecu_private_key = "sec.priv";
-  sconfig.ecu_public_key = "sec.pub";
-  sconfig.firmware_path = temp_dir.Path() / "firmware.txt";
-  sconfig.target_name_path = temp_dir.Path() / "firmware_name.txt";
-  sconfig.metadata_path = temp_dir.Path() / "metadata";
   std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
-  EXPECT_TRUE(sec);
+  EXPECT_FALSE(sec);
 }
 
 TEST(SecondaryFactory, Uptane_get_key) {

@@ -1,7 +1,6 @@
 set(SOURCES fetcher.cc
     ipsecondarydiscovery.cc
     ipuptanesecondary.cc
-    legacysecondary.cc
     managedsecondary.cc
     partialverificationsecondary.cc
     role.cc
@@ -16,7 +15,6 @@ set(HEADERS exceptions.h
     fetcher.h
     ipsecondarydiscovery.h
     ipuptanesecondary.h
-    legacysecondary.h
     managedsecondary.h
     partialverificationsecondary.h
     secondaryconfig.h

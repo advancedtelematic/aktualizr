@@ -152,15 +152,6 @@ add_test(NAME test-help-with-nonexistent-options
 set_tests_properties(test-help-with-nonexistent-options
                      PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr command line options")
 
-# --tls-server is provided only to prevent the credentials file from getting
-# read before the desired error message is printed. This was a problem if
-# /var/sota existed but was owned by root, because aktualizr would crash.
-add_test(NAME test-legacy-interface-with-nonexistent-file
-         COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml
-         --tls-server fake --legacy-interface nonexistentfile)
-set_tests_properties(test-legacy-interface-with-nonexistent-file
-                     PROPERTIES PASS_REGULAR_EXPRESSION "Legacy external flasher not found: nonexistentfile")
-
 add_test(NAME test-secondary-config-with-nonexistent-file
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml
          --tls-server fake --secondary-config nonexistentfile)

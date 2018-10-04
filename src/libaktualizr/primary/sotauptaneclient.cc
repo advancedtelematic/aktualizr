@@ -897,8 +897,7 @@ void SotaUptaneClient::putManifest() {
   }
 }
 
-// Check stored secondaries list against secondaries known to aktualizr via
-// commandline input and legacy interface.
+// Check stored secondaries list against secondaries known to aktualizr.
 void SotaUptaneClient::verifySecondaries() {
   EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.empty()) {

@@ -3,7 +3,6 @@
 
 #include "logging/logging.h"
 #include "uptane/ipuptanesecondary.h"
-#include "uptane/legacysecondary.h"
 #include "uptane/opcuasecondary.h"
 #include "uptane/secondaryconfig.h"
 #include "uptane/secondaryinterface.h"
@@ -18,17 +17,16 @@ class SecondaryFactory {
     switch (sconfig.secondary_type) {
       case SecondaryType::kVirtual:
         return std::make_shared<VirtualSecondary>(sconfig);
-        break;
       case SecondaryType::kLegacy:
-        return std::make_shared<LegacySecondary>(sconfig);
-        break;
+        LOG_ERROR << "Legacy secondary support is deprecated.";
+        return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
       case SecondaryType::kIpUptane:
         return std::make_shared<IpUptaneSecondary>(sconfig);
       case SecondaryType::kOpcuaUptane:
 #ifdef OPCUA_SECONDARY_ENABLED
         return std::make_shared<OpcuaSecondary>(sconfig);
 #else
-        LOG_ERROR << "Built with no OPC-UA secondary support";
+        LOG_ERROR << "libaktualizr was built without OPC-UA secondary support.";
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
 #endif
       default:
