@@ -61,7 +61,7 @@ add_library(testutilities test_utils.cc)
 # Setup coverage
 if(BUILD_WITH_CODE_COVERAGE)
     add_definitions(${COVERAGE_COMPILER_FLAGS})
-    setup_target_for_coverage(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
+    setup_target_for_coverage_lcov(NAME coverage EXECUTABLE ${CMAKE_CTEST_COMMAND} ${CTEST_EXTRA_ARGS})
     add_dependencies(coverage build_tests)
 endif(BUILD_WITH_CODE_COVERAGE)
 

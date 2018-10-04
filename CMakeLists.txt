@@ -339,7 +339,7 @@ endif()
 
 set (TEST_LIBS ${AKTUALIZR_EXTERNAL_LIBS} gtest gmock)
 if(BUILD_WITH_CODE_COVERAGE)
-    set(COVERAGE_EXCLUDES '/usr/include/*' 'build*' 'third_party/*' 'tests/*' '*_test.cc')
+    set(COVERAGE_LCOV_EXCLUDES '/usr/include/*' ${CMAKE_BINARY_DIR}'*' ${CMAKE_SOURCE_DIR}'/third_party/*' ${CMAKE_SOURCE_DIR}'/tests/*' '*_test.cc')
     include(CodeCoverage)
     set(COVERAGE_COMPILER_FLAGS "--coverage -fprofile-arcs -ftest-coverage" CACHE INTERNAL "")
     list(APPEND TEST_LIBS gcov)
