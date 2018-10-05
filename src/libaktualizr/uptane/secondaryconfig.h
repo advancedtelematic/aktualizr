@@ -15,8 +15,7 @@ enum class SecondaryType {
 
   kVirtual,  // Virtual secondary (in-process fake implementation).
 
-  kLegacy,  // legacy non-UPTANE secondary. All the UPTANE metadata is managed locally. All commands are sent to an
-            // external firmware loader via shell.
+  kLegacy,  // Deprecated. Do not use.
 
   kOpcuaUptane,  // Uptane protocol over OPC-UA
 
@@ -38,7 +37,7 @@ class SecondaryConfig {
     if (stype == "virtual") {
       secondary_type = Uptane::SecondaryType::kVirtual;
     } else if (stype == "legacy") {
-      throw FatalException("Legacy secondaries should be initialized with --legacy-interface.");
+      throw FatalException("Legacy secondaries are deprecated.");
     } else if (stype == "ip_uptane") {
       secondary_type = Uptane::SecondaryType::kIpUptane;
     } else if (stype == "opcua_uptane") {
@@ -56,7 +55,6 @@ class SecondaryConfig {
     firmware_path = boost::filesystem::path(config_json["firmware_path"].asString());
     metadata_path = boost::filesystem::path(config_json["metadata_path"].asString());
     target_name_path = boost::filesystem::path(config_json["target_name_path"].asString());
-    flasher = "";
 
     std::string key_type_str = config_json["key_type"].asString();
     if (key_type_str.size() != 0u) {
@@ -81,12 +79,10 @@ class SecondaryConfig {
 
   std::string opcua_lds_url;
 
-  boost::filesystem::path full_client_dir;   // SecondaryType::kVirtual, SecondaryType::kLegacy
-  boost::filesystem::path firmware_path;     // SecondaryType::kVirtual, SecondaryType::kLegacy
-  boost::filesystem::path metadata_path;     // SecondaryType::kVirtual, SecondaryType::kLegacy
-  boost::filesystem::path target_name_path;  // SecondaryType::kVirtual, SecondaryType::kLegacy
-
-  boost::filesystem::path flasher;  // SecondaryType::kLegacy
+  boost::filesystem::path full_client_dir;   // SecondaryType::kVirtual
+  boost::filesystem::path firmware_path;     // SecondaryType::kVirtual
+  boost::filesystem::path metadata_path;     // SecondaryType::kVirtual
+  boost::filesystem::path target_name_path;  // SecondaryType::kVirtual
 
   sockaddr_storage ip_addr{};  // SecondaryType::kIpUptane
 };

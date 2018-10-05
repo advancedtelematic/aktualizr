@@ -87,10 +87,7 @@ TEST(UptaneCI, CheckKeys) {
 
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface> >::iterator it;
   for (it = sota_client->secondaries.begin(); it != sota_client->secondaries.end(); it++) {
-    if (it->second->sconfig.secondary_type != Uptane::SecondaryType::kVirtual &&
-        it->second->sconfig.secondary_type != Uptane::SecondaryType::kLegacy) {
-      continue;
-    }
+    EXPECT_EQ(it->second->sconfig.secondary_type, Uptane::SecondaryType::kVirtual);
     std::shared_ptr<Uptane::ManagedSecondary> managed =
         boost::polymorphic_pointer_downcast<Uptane::ManagedSecondary>(it->second);
     std::string public_key;

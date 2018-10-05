@@ -14,6 +14,4 @@ add_subdirectory("cert_provider")
 add_subdirectory("implicit_writer")
 add_subdirectory("hmi_stub")
 
-add_subdirectory("external_secondaries")
-
 add_subdirectory("load_tests")

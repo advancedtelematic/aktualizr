@@ -42,10 +42,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("primary-ecu-serial", bpo::value<std::string>(), "serial number of primary ecu")
       ("primary-ecu-hardware-id", bpo::value<std::string>(), "hardware ID of primary ecu")
       ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
-      ("legacy-interface", bpo::value<boost::filesystem::path>(), "path to legacy secondary ECU interface program")
-      ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on")
-      ("disable-keyid-validation", "deprecated")
-      ("gateway-socket", bpo::value<bool>(), "deprecated");
+      ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on");
   // clang-format on
 
   // consider the first positional argument as the aktualizr running mode

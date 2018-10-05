@@ -15,8 +15,9 @@
 
 namespace Uptane {
 
-// Managed secondary is an abstraction over virtual and legacy secondaries. Both of them have all the UPTANE-related
-// functionality implemented in aktualizr itself, so there's some shared code.
+// Managed secondary is an abstraction over virtual and other types of legacy
+// (non-UPTANE) secondaries. They require all the UPTANE-related functionality
+// to be implemented in aktualizr itself, so there's some shared code.
 
 class ManagedSecondary : public SecondaryInterface {
  public:

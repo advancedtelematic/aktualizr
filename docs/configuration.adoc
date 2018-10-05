@@ -101,7 +101,6 @@ Options for Uptane.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.
 | `key_source`              | `"file"`     | Where to read the device's private key from. Options: `"file"`, `"pkcs11"`.
 | `key_type`                | `"RSA2048"`  | Type of cryptographic keys to use. Options: `"ED25519"`, `"RSA2048"`, `"RSA3072"` or `"RSA4096"`.
-| `legacy_interface`        |              | Path to an executable interface for communicating with legacy secondary ECUs. See link:{aktualizr-github-url}/docs/legacysecondary.adoc[] for more information.
 |==========================================================================================
 
 == `discovery`

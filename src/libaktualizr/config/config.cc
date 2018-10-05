@@ -76,9 +76,8 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   CopyFromConfig(repo_server, "repo_server", pt);
   CopyFromConfig(key_source, "key_source", pt);
   CopyFromConfig(key_type, "key_type", pt);
-  CopyFromConfig(legacy_interface, "legacy_interface", pt);
   // uptane.secondary_configs is populated by processing secondary configs from
-  // the commandline and uptane.legacy_interface.
+  // the commandline.
 }
 
 void UptaneConfig::writeToStream(std::ostream& out_stream) const {
@@ -88,7 +87,6 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, repo_server, "repo_server");
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
-  writeOption(out_stream, legacy_interface, "legacy_interface");
 }
 
 void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -192,8 +190,6 @@ void Config::postUpdateValues() {
     }
   }
 
-  checkLegacyVersion();
-  initLegacySecondaries();
   LOG_TRACE << "Final configuration that will be used: \n" << (*this);
 }
 
@@ -256,86 +252,11 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
     std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path>>();
     readSecondaryConfigs(sconfigs);
   }
-  if (cmd.count("legacy-interface") != 0) {
-    uptane.legacy_interface = cmd["legacy-interface"].as<boost::filesystem::path>();
-  }
 }
 
 void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
   for (auto it = sconfigs.cbegin(); it != sconfigs.cend(); ++it) {
     uptane.secondary_configs.emplace_back(Uptane::SecondaryConfig(*it));
-  }
-}
-
-void Config::checkLegacyVersion() {
-  if (uptane.legacy_interface.empty()) {
-    return;
-  }
-  if (!boost::filesystem::exists(uptane.legacy_interface)) {
-    throw FatalException(std::string("Legacy external flasher not found: ") + uptane.legacy_interface.string());
-  }
-  std::stringstream command;
-  std::string output;
-  command << uptane.legacy_interface << " api-version --loglevel " << loggerGetSeverity();
-  int rs = Utils::shell(command.str(), &output);
-  if (rs != 0) {
-    throw FatalException(std::string("Legacy external flasher api-version command failed: ") + output);
-  }
-  boost::trim_if(output, boost::is_any_of(" \n\r\t"));
-  if (output != "1") {
-    throw FatalException(std::string("Unexpected legacy external flasher API version: ") + output);
-  }
-}
-
-void Config::initLegacySecondaries() {
-  if (uptane.legacy_interface.empty()) {
-    return;
-  }
-  std::stringstream command;
-  std::string output;
-  command << uptane.legacy_interface << " list-ecus --loglevel " << loggerGetSeverity();
-  int rs = Utils::shell(command.str(), &output);
-  if (rs != 0) {
-    LOG_ERROR << "Legacy external flasher list-ecus command failed: " << output;
-    return;
-  }
-
-  std::stringstream ss(output);
-  std::string buffer;
-  while (std::getline(ss, buffer, '\n')) {
-    Uptane::SecondaryConfig sconfig;
-    sconfig.secondary_type = Uptane::SecondaryType::kLegacy;
-    std::vector<std::string> ecu_info;
-    boost::split(ecu_info, buffer, boost::is_any_of(" \n\r\t"), boost::token_compress_on);
-    if (ecu_info.size() == 0) {
-      // Could print a warning but why bother.
-      continue;
-    }
-    if (ecu_info.size() == 1) {
-      sconfig.ecu_hardware_id = ecu_info[0];
-      // Use getSerial, which will get the public_key_id, initialized in ManagedSecondary constructor.
-      sconfig.ecu_serial = "";
-      sconfig.full_client_dir = storage.path / sconfig.ecu_hardware_id;
-      LOG_INFO << "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id;
-    } else if (ecu_info.size() >= 2) {
-      // For now, silently ignore anything after the second token.
-      sconfig.ecu_hardware_id = ecu_info[0];
-      sconfig.ecu_serial = ecu_info[1];
-      sconfig.full_client_dir = storage.path / (sconfig.ecu_hardware_id + "-" + sconfig.ecu_serial);
-      LOG_INFO << "Legacy ECU configured with hardware ID " << sconfig.ecu_hardware_id << " and serial "
-               << sconfig.ecu_serial;
-    }
-
-    sconfig.partial_verifying = false;
-    sconfig.ecu_private_key = "sec.private";
-    sconfig.ecu_public_key = "sec.public";
-
-    sconfig.firmware_path = sconfig.full_client_dir / "firmware.bin";
-    sconfig.metadata_path = sconfig.full_client_dir / "metadata";
-    sconfig.target_name_path = sconfig.full_client_dir / "target_name";
-    sconfig.flasher = uptane.legacy_interface;
-
-    uptane.secondary_configs.push_back(sconfig);
   }
 }
 
