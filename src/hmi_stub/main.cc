@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@
 
 namespace bpo = boost::program_options;
 
-unsigned int progress = 0;
+std::map<std::string, unsigned int> progress;
 std::vector<Uptane::Target> updates;
 std::mutex pending_ecus_mutex;
 unsigned int pending_ecus;
@@ -84,19 +85,26 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
 }
 
 void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->variant == "DownloadProgressReport") {
-    unsigned int new_progress = dynamic_cast<event::DownloadProgressReport *>(event.get())->progress;
-    if (new_progress > progress) {
-      progress = new_progress;
-      std::cout << "Download progress: " << progress << "%\n";
-    }
-    return;
-  }
   if (event->variant == "FetchMetaComplete") {
     aktualizr.CheckUpdates();
+  } else if (event->variant == "DownloadProgressReport") {
+    const auto download_progress = dynamic_cast<event::DownloadProgressReport *>(event.get());
+    if (progress.find(download_progress->target.sha256Hash()) == progress.end()) {
+      progress[download_progress->target.sha256Hash()] = 0;
+    }
+    const unsigned int prev_progress = progress[download_progress->target.sha256Hash()];
+    const unsigned int new_progress = download_progress->progress;
+    if (new_progress > prev_progress) {
+      progress[download_progress->target.sha256Hash()] = new_progress;
+      std::cout << "Download progress for file " << download_progress->target.filename() << ": " << new_progress
+                << "%\n";
+    }
+  } else if (event->variant == "DownloadTargetComplete") {
+    const auto download_complete = dynamic_cast<event::DownloadTargetComplete *>(event.get());
+    std::cout << "Download complete for file " << download_complete->update.filename() << "\n";
+    progress.erase(download_complete->update.sha256Hash());
   } else if (event->variant == "AllDownloadsComplete") {
-    std::cout << "Received " << event->variant << " event\n";
-    progress = 0;
+    std::cout << "All downloads complete.\n";
   } else if (event->variant == "UpdateAvailable") {
     const auto updateAvailable = dynamic_cast<event::UpdateAvailable *>(event.get());
     updates = updateAvailable->updates;

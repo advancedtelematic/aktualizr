@@ -119,12 +119,23 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       break;
     }
     case 2:
-    case 3:
+    case 3: {
       EXPECT_EQ(event->variant, "DownloadTargetComplete");
+      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                  download_event->update.filename() == "secondary_firmware.txt");
       break;
-    case 4:
+    }
+    case 4: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+      EXPECT_EQ(downloads_complete->updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
       break;
+    }
     case 5: {
       // Primary always gets installed first. (Not a requirement, just how it
       // works at present.)
@@ -354,22 +365,25 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
       EXPECT_EQ(targets_event->updates[1].filename(), "secondary_firmware.txt");
       break;
     }
-    case 3: {
-      EXPECT_EQ(event->variant, "DownloadTargetComplete");
-      const auto target_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
-      EXPECT_EQ(target_event->update.filename(), "secondary_firmware.txt");
-      break;
-    }
+    case 3:
     case 4: {
       EXPECT_EQ(event->variant, "DownloadTargetComplete");
-      const auto target_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
-      EXPECT_EQ(target_event->update.filename(), "primary_firmware.txt");
+      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                  download_event->update.filename() == "secondary_firmware.txt");
       break;
     }
-    case 5:
+    case 5: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+      EXPECT_EQ(downloads_complete->updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
       promise_DownloadWithUpdates.set_value();
       break;
+    }
     case 8:
       // Don't let the test run indefinitely!
       FAIL();
@@ -442,12 +456,23 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       break;
     }
     case 3:
-    case 4:
+    case 4: {
       EXPECT_EQ(event->variant, "DownloadTargetComplete");
+      const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
+      EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
+                  download_event->update.filename() == "secondary_firmware.txt");
       break;
-    case 5:
+    }
+    case 5: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+      EXPECT_EQ(downloads_complete->updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
       break;
+    }
     case 8: {
       // Primary always gets installed first. (Not a requirement, just how it
       // works at present.)
