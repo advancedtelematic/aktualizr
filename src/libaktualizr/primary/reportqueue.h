@@ -13,9 +13,7 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 
-namespace report {
-
-class Event {
+class ReportEvent {
  public:
   std::string id;
   std::string type;
@@ -26,7 +24,7 @@ class Event {
   Json::Value toJson();
 
  protected:
-  Event(std::string event_type, int event_version, const Json::Value& event_custom)
+  ReportEvent(std::string event_type, int event_version, const Json::Value& event_custom)
       : id(Utils::randomUuid()),
         type(std::move(event_type)),
         version(event_version),
@@ -34,22 +32,22 @@ class Event {
         timestamp(TimeStamp::Now()) {}
 };
 
-class DownloadComplete : public Event {
+class DownloadCompleteReport : public ReportEvent {
  public:
-  DownloadComplete(const std::string& director_target);
+  DownloadCompleteReport(const std::string& director_target);
 };
 
-class CampaignAccepted : public Event {
+class CampaignAcceptedReport : public ReportEvent {
  public:
-  CampaignAccepted(const std::string& campaign_id);
+  CampaignAcceptedReport(const std::string& campaign_id);
 };
 
-class Queue {
+class ReportQueue {
  public:
-  Queue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
-  ~Queue();
+  ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
+  ~ReportQueue();
   void run();
-  void enqueue(std::unique_ptr<report::Event> event);
+  void enqueue(std::unique_ptr<ReportEvent> event);
 
  private:
   const Config& config;
@@ -58,10 +56,8 @@ class Queue {
   std::condition_variable cv_;
   std::mutex thread_mutex_;
   std::mutex queue_mutex_;
-  std::queue<std::unique_ptr<report::Event>> report_queue_;
+  std::queue<std::unique_ptr<ReportEvent>> report_queue_;
   bool shutdown_;
 };
-
-};  // namespace report
 
 #endif  // REPORTQUEUE_H_

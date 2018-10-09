@@ -21,7 +21,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
-  std::shared_ptr<report::Queue> report_queue_in = std::make_shared<report::Queue>(config_in, http_client_in);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
                                             report_queue_in, events_channel_in);
@@ -34,7 +34,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
-  std::shared_ptr<report::Queue> report_queue_in = std::make_shared<report::Queue>(config_in, http_client_in);
+  std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
                                             report_queue_in, events_channel_in);
 }
@@ -43,7 +43,7 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
                                    std::shared_ptr<HttpInterface> http_client,
                                    std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                                    std::shared_ptr<Bootloader> bootloader_in,
-                                   std::shared_ptr<report::Queue> report_queue_in,
+                                   std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
     : config(config_in),
       uptane_manifest(config, storage_in),
@@ -848,7 +848,7 @@ void SotaUptaneClient::campaignCheck() {
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
-  report_queue->enqueue(std_::make_unique<report::CampaignAccepted>(campaign_id));
+  report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
   sendEvent<event::CampaignAcceptComplete>();
 }
 
@@ -858,7 +858,7 @@ void SotaUptaneClient::sendDownloadReport() {
     LOG_ERROR << "Unable to load director targets metadata";
     return;
   }
-  report_queue->enqueue(std_::make_unique<report::DownloadComplete>(director_targets));
+  report_queue->enqueue(std_::make_unique<DownloadCompleteReport>(director_targets));
 }
 
 bool SotaUptaneClient::putManifestSimple() {

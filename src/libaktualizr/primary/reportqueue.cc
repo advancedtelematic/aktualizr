@@ -4,14 +4,12 @@
 
 #include "config/config.h"
 
-namespace report {
-
-Queue::Queue(const Config& config_in, std::shared_ptr<HttpInterface> http_client)
+ReportQueue::ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client)
     : config(config_in), http(std::move(http_client)), shutdown_(false) {
-  thread_ = std::thread(std::bind(&Queue::run, this));
+  thread_ = std::thread(std::bind(&ReportQueue::run, this));
 }
 
-Queue::~Queue() {
+ReportQueue::~ReportQueue() {
   shutdown_ = true;
   {
     std::unique_lock<std::mutex> thread_lock(thread_mutex_);
@@ -20,7 +18,7 @@ Queue::~Queue() {
   thread_.join();
 }
 
-void Queue::run() {
+void ReportQueue::run() {
   // Check if queue is nonempty. If so, move any reports to the Json array and
   // try to send it to the server. Clear the Json array only if the send
   // succeeds.
@@ -46,7 +44,7 @@ void Queue::run() {
   }
 }
 
-void Queue::enqueue(std::unique_ptr<report::Event> event) {
+void ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
   {
     std::lock_guard<std::mutex> queue_lock(queue_mutex_);
     report_queue_.push(std::move(event));
@@ -54,7 +52,7 @@ void Queue::enqueue(std::unique_ptr<report::Event> event) {
   cv_.notify_all();
 }
 
-Json::Value Event::toJson() {
+Json::Value ReportEvent::toJson() {
   Json::Value out;
 
   out["id"] = id;
@@ -66,12 +64,12 @@ Json::Value Event::toJson() {
   return out;
 }
 
-DownloadComplete::DownloadComplete(const std::string& director_target) : Event("DownloadComplete", 1, Json::Value()) {
+DownloadCompleteReport::DownloadCompleteReport(const std::string& director_target)
+    : ReportEvent("DownloadComplete", 1, Json::Value()) {
   custom = director_target;
 }
 
-CampaignAccepted::CampaignAccepted(const std::string& campaign_id) : Event("campaign_accepted", 0, Json::Value()) {
+CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id)
+    : ReportEvent("campaign_accepted", 0, Json::Value()) {
   custom["campaignId"] = campaign_id;
 }
-
-};  // namespace report
