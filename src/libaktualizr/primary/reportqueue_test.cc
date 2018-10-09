@@ -16,7 +16,7 @@ std::unique_ptr<Json::Value> makeEvent(const std::string& name) {
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
   (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "AllDownloadsComplete";
+  (*report)["eventType"]["id"] = "DownloadComplete";
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = name;
   return report;

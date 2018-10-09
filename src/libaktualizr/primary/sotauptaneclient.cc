@@ -868,7 +868,7 @@ void SotaUptaneClient::sendDownloadReport() {
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
   (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "AllDownloadsComplete";
+  (*report)["eventType"]["id"] = "DownloadComplete";
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = director_targets;
 
