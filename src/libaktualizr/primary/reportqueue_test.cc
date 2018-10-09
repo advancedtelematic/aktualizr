@@ -12,16 +12,6 @@
 #include "utilities/types.h"  // TimeStamp
 #include "utilities/utils.h"
 
-std::unique_ptr<Json::Value> makeEvent(const std::string& name) {
-  auto report = std_::make_unique<Json::Value>();
-  (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "DownloadComplete";
-  (*report)["eventType"]["version"] = 1;
-  (*report)["event"] = name;
-  return report;
-}
-
 /* Test one event. */
 TEST(ReportQueue, SingleEvent) {
   TemporaryDirectory temp_dir;
@@ -30,9 +20,9 @@ TEST(ReportQueue, SingleEvent) {
   config.tls.server = "reportqueue/SingleEvent";
 
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  ReportQueue report_queue(config, http);
+  report::Queue report_queue(config, http);
 
-  report_queue.enqueue(makeEvent("SingleEvent"));
+  report_queue.enqueue(std_::make_unique<report::DownloadComplete>("SingleEvent"));
 
   // Wait at most 30 seconds for the message to get processed.
   size_t counter = 0;
@@ -52,10 +42,10 @@ TEST(ReportQueue, MultipleEvents) {
   config.tls.server = "reportqueue/MultipleEvents";
 
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  ReportQueue report_queue(config, http);
+  report::Queue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(makeEvent("MultipleEvents" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<report::DownloadComplete>("MultipleEvents" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.
@@ -77,10 +67,10 @@ TEST(ReportQueue, FailureRecovery) {
   config.tls.server = "reportqueue/FailureRecovery";
 
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  ReportQueue report_queue(config, http);
+  report::Queue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(makeEvent("FailureRecovery" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<report::DownloadComplete>("FailureRecovery" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.
