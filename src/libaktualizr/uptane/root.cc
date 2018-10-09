@@ -17,7 +17,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy:
 
   version_ = json["signed"]["version"].asInt();
 
-  expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
+  expiry_ = TimeStamp(json["signed"]["expires"].asString());
   original_object_ = json;
 
   if (!json.isObject() || !json["signed"].isMember("keys") || !json["signed"].isMember("roles")) {

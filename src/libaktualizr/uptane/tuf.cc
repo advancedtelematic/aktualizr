@@ -16,7 +16,6 @@ using Uptane::Hash;
 using Uptane::MetaPack;
 using Uptane::Root;
 using Uptane::Target;
-using Uptane::TimeStamp;
 using Uptane::Version;
 
 std::ostream &Uptane::operator<<(std::ostream &os, const Version &v) {
@@ -25,44 +24,6 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Version &v) {
   } else {
     os << "v" << v.version_;
   }
-  return os;
-}
-
-TimeStamp TimeStamp::Now() {
-  time_t raw_time;
-  struct tm time_struct {};
-  time(&raw_time);
-  gmtime_r(&raw_time, &time_struct);
-  char formatted[22];
-  strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time_struct);
-  return TimeStamp(formatted);
-}
-
-TimeStamp::TimeStamp(std::string rfc3339) {
-  if (rfc3339.length() != 20 || rfc3339[19] != 'Z') {
-    throw Uptane::InvalidMetadata("", "", "Invalid timestamp");
-  }
-  time_ = rfc3339;
-}
-
-bool TimeStamp::IsValid() const { return time_.length() != 0; }
-
-bool TimeStamp::IsExpiredAt(const TimeStamp &now) const {
-  if (!IsValid()) {
-    return true;
-  }
-  if (!now.IsValid()) {
-    return true;
-  }
-  return *this < now;
-}
-
-bool TimeStamp::operator<(const TimeStamp &other) const { return IsValid() && other.IsValid() && time_ < other.time_; }
-
-bool TimeStamp::operator>(const TimeStamp &other) const { return (other < *this); }
-
-std::ostream &Uptane::operator<<(std::ostream &os, const TimeStamp &t) {
-  os << t.time_;
   return os;
 }
 
@@ -203,7 +164,11 @@ void Uptane::BaseMeta::init(const Json::Value &json) {
   }
 
   version_ = json["signed"]["version"].asInt();
-  expiry_ = Uptane::TimeStamp(json["signed"]["expires"].asString());
+  try {
+    expiry_ = TimeStamp(json["signed"]["expires"].asString());
+  } catch (const TimeStamp::InvalidTimeStamp &exc) {
+    throw Uptane::InvalidMetadata("", "", "Invalid timestamp");
+  }
   original_object_ = json;
 }
 Uptane::BaseMeta::BaseMeta(const Json::Value &json) { init(json); }

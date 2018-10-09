@@ -66,7 +66,7 @@ Json::Value AktualizrSecondary::getManifestResp() const {
 }
 
 bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
-  Uptane::TimeStamp now(Uptane::TimeStamp::Now());
+  TimeStamp now(TimeStamp::Now());
   detected_attack_.clear();
 
   // TODO: proper partial verification

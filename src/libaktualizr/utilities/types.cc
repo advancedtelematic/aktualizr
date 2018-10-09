@@ -3,6 +3,44 @@
 #include <stdexcept>
 #include <utility>
 
+TimeStamp TimeStamp::Now() {
+  time_t raw_time;
+  struct tm time_struct {};
+  time(&raw_time);
+  gmtime_r(&raw_time, &time_struct);
+  char formatted[22];
+  strftime(formatted, 22, "%Y-%m-%dT%H:%M:%SZ", &time_struct);
+  return TimeStamp(formatted);
+}
+
+TimeStamp::TimeStamp(std::string rfc3339) {
+  if (rfc3339.length() != 20 || rfc3339[19] != 'Z') {
+    throw TimeStamp::InvalidTimeStamp();
+  }
+  time_ = rfc3339;
+}
+
+bool TimeStamp::IsValid() const { return time_.length() != 0; }
+
+bool TimeStamp::IsExpiredAt(const TimeStamp &now) const {
+  if (!IsValid()) {
+    return true;
+  }
+  if (!now.IsValid()) {
+    return true;
+  }
+  return *this < now;
+}
+
+bool TimeStamp::operator<(const TimeStamp &other) const { return IsValid() && other.IsValid() && time_ < other.time_; }
+
+bool TimeStamp::operator>(const TimeStamp &other) const { return (other < *this); }
+
+std::ostream &operator<<(std::ostream &os, const TimeStamp &t) {
+  os << t.time_;
+  return os;
+}
+
 namespace data {
 Json::Value Package::toJson() {
   Json::Value json;
@@ -11,7 +49,7 @@ Json::Value Package::toJson() {
   return json;
 }
 
-Package Package::fromJson(const std::string& json_str) {
+Package Package::fromJson(const std::string &json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
@@ -37,7 +75,7 @@ Json::Value OperationResult::toJson() const {
   return json;
 }
 
-OperationResult OperationResult::fromJson(const std::string& json_str) {
+OperationResult OperationResult::fromJson(const std::string &json_str) {
   Json::Reader reader;
   Json::Value json;
   reader.parse(json_str, json);
@@ -48,14 +86,14 @@ OperationResult OperationResult::fromJson(const std::string& json_str) {
   return operation_result;
 }
 
-OperationResult OperationResult::fromOutcome(const std::string& id, const InstallOutcome& outcome) {
+OperationResult OperationResult::fromOutcome(const std::string &id, const InstallOutcome &outcome) {
   OperationResult operation_result(id, outcome);
   return operation_result;
 }
 
 }  // namespace data
 
-RunningMode RunningModeFromString(const std::string& mode) {
+RunningMode RunningModeFromString(const std::string &mode) {
   if (mode == "full" || mode.empty()) {
     return RunningMode::kFull;
   } else if (mode == "once") {

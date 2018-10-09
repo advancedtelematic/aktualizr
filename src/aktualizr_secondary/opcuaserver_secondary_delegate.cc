@@ -61,7 +61,7 @@ void OpcuaServerSecondaryDelegate::handleMetaDataFileReceived(opcuabridge::Serve
 }
 
 void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::ServerModel* model) {
-  Uptane::TimeStamp now(Uptane::TimeStamp::Now());
+  TimeStamp now(TimeStamp::Now());
   secondary_->detected_attack_.clear();
 
   std::string root_str;

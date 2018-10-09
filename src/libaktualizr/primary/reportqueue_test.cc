@@ -9,13 +9,13 @@
 #include "config/config.h"
 #include "httpfake.h"
 #include "reportqueue.h"
-#include "uptane/tuf.h"  // TimeStamp
+#include "utilities/types.h"  // TimeStamp
 #include "utilities/utils.h"
 
 std::unique_ptr<Json::Value> makeEvent(const std::string& name) {
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+  (*report)["deviceTime"] = TimeStamp::Now().ToString();
   (*report)["eventType"]["id"] = "DownloadComplete";
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = name;

@@ -851,7 +851,7 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   auto report_array = Json::Value(Json::arrayValue);
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+  (*report)["deviceTime"] = TimeStamp::Now().ToString();
   (*report)["eventType"]["id"] = "campaign_accepted";
   (*report)["eventType"]["version"] = 0;
   (*report)["event"]["campaignId"] = campaign_id;
@@ -867,7 +867,7 @@ void SotaUptaneClient::sendDownloadReport() {
   }
   auto report = std_::make_unique<Json::Value>();
   (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
+  (*report)["deviceTime"] = TimeStamp::Now().ToString();
   (*report)["eventType"]["id"] = "DownloadComplete";
   (*report)["eventType"]["version"] = 1;
   (*report)["event"] = director_targets;

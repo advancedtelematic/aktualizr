@@ -7,8 +7,6 @@
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 
-Uptane::TimeStamp now("2017-01-01T01:00:00Z");
-
 TEST(Root, RootValidates) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOG_INFO << "Root is:" << initial_root;
@@ -44,30 +42,6 @@ TEST(Root, RootJsonRsassaPssSha256) {
 
   Uptane::Root root(Uptane::RepositoryType::Director, initial_root, root1);
   EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root));
-}
-
-TEST(TimeStamp, Parsing) {
-  Uptane::TimeStamp t_old("2038-01-19T02:00:00Z");
-  Uptane::TimeStamp t_new("2038-01-19T03:14:06Z");
-
-  Uptane::TimeStamp t_invalid;
-
-  EXPECT_LT(t_old, t_new);
-  EXPECT_GT(t_new, t_old);
-  EXPECT_FALSE(t_invalid < t_old);
-  EXPECT_FALSE(t_old < t_invalid);
-  EXPECT_FALSE(t_invalid < t_invalid);
-}
-
-TEST(TimeStamp, ParsingInvalid) { EXPECT_THROW(Uptane::TimeStamp("2038-01-19T0"), Uptane::InvalidMetadata); }
-
-TEST(TimeStamp, Now) {
-  Uptane::TimeStamp t_past("1982-12-13T02:00:00Z");
-  Uptane::TimeStamp t_future("2038-01-19T03:14:06Z");
-  Uptane::TimeStamp t_now(Uptane::TimeStamp::Now());
-
-  EXPECT_LT(t_past, t_now);
-  EXPECT_LT(t_now, t_future);
 }
 
 #ifndef __NO_MAIN__

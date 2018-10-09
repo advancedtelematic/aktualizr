@@ -20,6 +20,7 @@ include(AddAktualizrTest)
 
 add_aktualizr_test(NAME dequeue_buffer SOURCES dequeue_buffer_test.cc)
 add_aktualizr_test(NAME timer SOURCES timer_test.cc)
+add_aktualizr_test(NAME types SOURCES types_test.cc)
 add_aktualizr_test(NAME utils SOURCES utils_test.cc PROJECT_WORKING_DIRECTORY)
 
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} ${TEST_SOURCES})
