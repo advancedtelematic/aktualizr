@@ -1007,13 +1007,6 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   }
 }
 
-void SotaUptaneClient::waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures) {
-  for (auto &f : firmwareFutures) {
-    f.wait();
-  }
-  sendEvent<event::AllInstallsComplete>();
-}
-
 void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<std::future<bool>> firmwareFutures;
 
@@ -1052,7 +1045,10 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
     }
   }
 
-  std::async(std::launch::async, &SotaUptaneClient::waitAllInstallsComplete, this, std::move(firmwareFutures));
+  for (auto &f : firmwareFutures) {
+    f.wait();
+  }
+  sendEvent<event::AllInstallsComplete>();
 }
 
 std::string SotaUptaneClient::secondaryTreehubCredentials() const {
