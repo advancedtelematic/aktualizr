@@ -52,6 +52,8 @@ void ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
   cv_.notify_all();
 }
 
+void ReportEvent::setEcu(const Uptane::EcuSerial& ecu) { custom["ecu"] = ecu.ToString(); }
+
 Json::Value ReportEvent::toJson() {
   Json::Value out;
 
@@ -65,11 +67,32 @@ Json::Value ReportEvent::toJson() {
 }
 
 DownloadCompleteReport::DownloadCompleteReport(const std::string& director_target)
-    : ReportEvent("DownloadComplete", 1, Json::Value()) {
+    : ReportEvent("DownloadComplete", 1) {
   custom = director_target;
 }
 
-CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id)
-    : ReportEvent("campaign_accepted", 0, Json::Value()) {
+CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) : ReportEvent("campaign_accepted", 0) {
   custom["campaignId"] = campaign_id;
+}
+
+EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu)
+    : ReportEvent("ecu_download_started", 0) {
+  setEcu(ecu);
+}
+
+EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success)
+    : ReportEvent("ecu_download_completed", 0) {
+  setEcu(ecu);
+  custom["success"] = success;
+}
+
+EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu)
+    : ReportEvent("ecu_installation_started", 0) {
+  setEcu(ecu);
+}
+
+EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success)
+    : ReportEvent("ecu_installation_completed", 0) {
+  setEcu(ecu);
+  custom["success"] = success;
 }

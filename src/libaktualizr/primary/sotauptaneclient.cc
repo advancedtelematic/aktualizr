@@ -708,12 +708,27 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {
   // TODO: support downloading encrypted targets from director
   // TODO: check if the file is already there before downloading
-  if (!uptane_fetcher->fetchVerifyTarget(target)) {
-    sendEvent<event::Error>("Error downloading targets.");
-    return {false, target};
+
+  // send an event for all ecus that are touched by this target
+  for (const auto &ecu : target.ecus()) {
+    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first));
   }
-  sendEvent<event::DownloadTargetComplete>(target);
-  return {true, target};
+
+  bool success = uptane_fetcher->fetchVerifyTarget(target);
+
+  // send this asynchronously before `sendEvent`, so that the report timestamp
+  // would not be delayed by callbacks on events
+  for (const auto &ecu : target.ecus()) {
+    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, true));
+  }
+
+  if (success) {
+    sendEvent<event::DownloadTargetComplete>(target);
+  } else {
+    sendEvent<event::Error>("Error downloading targets.");
+  }
+
+  return {success, target};
 }
 
 bool SotaUptaneClient::uptaneIteration() {
@@ -814,18 +829,24 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update
     const Uptane::Target &primary_update = primary_updates[0];
+
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial()));
+    sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
+
     if (!isInstalledOnPrimary(primary_update)) {
       // notify the bootloader before installation happens, because installation is not atomic and
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
-      sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
       PackageInstallSetResult(primary_update);
+      report_queue->enqueue(
+          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), true));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
       storage->storeInstallationResult(result);
-      sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
+      report_queue->enqueue(
+          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), false));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     // TODO: other updates for primary
@@ -1011,7 +1032,9 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
                                                       const std::shared_ptr<std::string> &data) {
   auto f = [this, &secondary, data]() {
     sendEvent<event::InstallStarted>(secondary.getSerial());
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial()));
     bool ret = secondary.sendFirmware(data);
+    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), ret));
     sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
     return ret;
@@ -1026,7 +1049,7 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      const Uptane::EcuSerial ecu_serial = ecus_it->first;
+      const Uptane::EcuSerial &ecu_serial = ecus_it->first;
 
       auto f = secondaries.find(ecu_serial);
       if (f == secondaries.end()) {

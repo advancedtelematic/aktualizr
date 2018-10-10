@@ -12,6 +12,7 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "uptane/tuf.h"
 
 class ReportEvent {
  public:
@@ -24,14 +25,13 @@ class ReportEvent {
   Json::Value toJson();
 
  protected:
-  ReportEvent(std::string event_type, int event_version, const Json::Value& event_custom)
-      : id(Utils::randomUuid()),
-        type(std::move(event_type)),
-        version(event_version),
-        custom(event_custom),
-        timestamp(TimeStamp::Now()) {}
+  ReportEvent(std::string event_type, int event_version)
+      : id(Utils::randomUuid()), type(std::move(event_type)), version(event_version), timestamp(TimeStamp::Now()) {}
+
+  void setEcu(const Uptane::EcuSerial& ecu);
 };
 
+// old style event: should disappear
 class DownloadCompleteReport : public ReportEvent {
  public:
   DownloadCompleteReport(const std::string& director_target);
@@ -40,6 +40,26 @@ class DownloadCompleteReport : public ReportEvent {
 class CampaignAcceptedReport : public ReportEvent {
  public:
   CampaignAcceptedReport(const std::string& campaign_id);
+};
+
+class EcuDownloadStartedReport : public ReportEvent {
+ public:
+  EcuDownloadStartedReport(const Uptane::EcuSerial& ecu);
+};
+
+class EcuDownloadCompletedReport : public ReportEvent {
+ public:
+  EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success);
+};
+
+class EcuInstallationStartedReport : public ReportEvent {
+ public:
+  EcuInstallationStartedReport(const Uptane::EcuSerial& ecu);
+};
+
+class EcuInstallationCompletedReport : public ReportEvent {
+ public:
+  EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success);
 };
 
 class ReportQueue {
