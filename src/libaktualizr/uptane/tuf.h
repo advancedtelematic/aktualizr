@@ -11,6 +11,7 @@
 #include "uptane/exceptions.h"
 
 #include "crypto/crypto.h"
+#include "utilities/types.h"
 
 namespace Uptane {
 
@@ -68,26 +69,6 @@ class Version {
 };
 
 std::ostream &operator<<(std::ostream &os, const Version &v);
-
-class TimeStamp {
- public:
-  static TimeStamp Now();
-  /** An invalid TimeStamp */
-  TimeStamp() { ; }
-  explicit TimeStamp(std::string rfc3339);
-  bool IsExpiredAt(const TimeStamp &now) const;
-  bool IsValid() const;
-  std::string ToString() const { return time_; }
-  bool operator<(const TimeStamp &other) const;
-  bool operator>(const TimeStamp &other) const;
-  friend std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
-  bool operator==(const TimeStamp &rhs) const { return time_ == rhs.time_; }
-
- private:
-  std::string time_;
-};
-
-std::ostream &operator<<(std::ostream &os, const TimeStamp &t);
 
 class HardwareIdentifier {
  public:

@@ -28,7 +28,7 @@ void ReportQueue::run() {
     if (!report_queue_.empty()) {
       std::lock_guard<std::mutex> queue_lock(queue_mutex_);
       while (!report_queue_.empty()) {
-        report_array.append(*report_queue_.front());
+        report_array.append(report_queue_.front()->toJson());
         report_queue_.pop();
       }
     }
@@ -44,10 +44,32 @@ void ReportQueue::run() {
   }
 }
 
-void ReportQueue::enqueue(std::unique_ptr<Json::Value> report) {
+void ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
   {
     std::lock_guard<std::mutex> queue_lock(queue_mutex_);
-    report_queue_.push(std::move(report));
+    report_queue_.push(std::move(event));
   }
   cv_.notify_all();
+}
+
+Json::Value ReportEvent::toJson() {
+  Json::Value out;
+
+  out["id"] = id;
+  out["deviceTime"] = timestamp.ToString();
+  out["eventType"]["id"] = type;
+  out["eventType"]["version"] = version;
+  out["event"] = custom;
+
+  return out;
+}
+
+DownloadCompleteReport::DownloadCompleteReport(const std::string& director_target)
+    : ReportEvent("DownloadComplete", 1, Json::Value()) {
+  custom = director_target;
+}
+
+CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id)
+    : ReportEvent("campaign_accepted", 0, Json::Value()) {
+  custom["campaignId"] = campaign_id;
 }

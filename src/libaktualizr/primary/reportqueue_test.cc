@@ -9,18 +9,8 @@
 #include "config/config.h"
 #include "httpfake.h"
 #include "reportqueue.h"
-#include "uptane/tuf.h"  // TimeStamp
+#include "utilities/types.h"  // TimeStamp
 #include "utilities/utils.h"
-
-std::unique_ptr<Json::Value> makeEvent(const std::string& name) {
-  auto report = std_::make_unique<Json::Value>();
-  (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "AllDownloadsComplete";
-  (*report)["eventType"]["version"] = 1;
-  (*report)["event"] = name;
-  return report;
-}
 
 /* Test one event. */
 TEST(ReportQueue, SingleEvent) {
@@ -32,7 +22,7 @@ TEST(ReportQueue, SingleEvent) {
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
   ReportQueue report_queue(config, http);
 
-  report_queue.enqueue(makeEvent("SingleEvent"));
+  report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("SingleEvent"));
 
   // Wait at most 30 seconds for the message to get processed.
   size_t counter = 0;
@@ -55,7 +45,7 @@ TEST(ReportQueue, MultipleEvents) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(makeEvent("MultipleEvents" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("MultipleEvents" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.
@@ -80,7 +70,7 @@ TEST(ReportQueue, FailureRecovery) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(makeEvent("FailureRecovery" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("FailureRecovery" + std::to_string(i)));
   }
 
   // Wait at most 30 seconds for the messages to get processed.

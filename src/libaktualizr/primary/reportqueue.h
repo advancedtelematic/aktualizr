@@ -13,21 +13,50 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 
+class ReportEvent {
+ public:
+  std::string id;
+  std::string type;
+  int version;
+  Json::Value custom;
+  TimeStamp timestamp;
+
+  Json::Value toJson();
+
+ protected:
+  ReportEvent(std::string event_type, int event_version, const Json::Value& event_custom)
+      : id(Utils::randomUuid()),
+        type(std::move(event_type)),
+        version(event_version),
+        custom(event_custom),
+        timestamp(TimeStamp::Now()) {}
+};
+
+class DownloadCompleteReport : public ReportEvent {
+ public:
+  DownloadCompleteReport(const std::string& director_target);
+};
+
+class CampaignAcceptedReport : public ReportEvent {
+ public:
+  CampaignAcceptedReport(const std::string& campaign_id);
+};
+
 class ReportQueue {
  public:
-  ReportQueue(const Config &config_in, std::shared_ptr<HttpInterface> http_client);
+  ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
   ~ReportQueue();
   void run();
-  void enqueue(std::unique_ptr<Json::Value> report);
+  void enqueue(std::unique_ptr<ReportEvent> event);
 
  private:
-  const Config &config;
+  const Config& config;
   std::shared_ptr<HttpInterface> http;
   std::thread thread_;
   std::condition_variable cv_;
   std::mutex thread_mutex_;
   std::mutex queue_mutex_;
-  std::queue<std::unique_ptr<Json::Value>> report_queue_;
+  std::queue<std::unique_ptr<ReportEvent>> report_queue_;
   bool shutdown_;
 };
 

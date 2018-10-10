@@ -149,13 +149,13 @@ class HttpFake : public HttpInterface {
       }
     } else if (url.find("reportqueue") == 0) {
       if (url == "reportqueue/SingleEvent/events") {
-        EXPECT_EQ(data[0]["eventType"]["id"], "AllDownloadsComplete");
+        EXPECT_EQ(data[0]["eventType"]["id"], "DownloadComplete");
         EXPECT_EQ(data[0]["event"], "SingleEvent");
         ++events_seen;
         return HttpResponse("", 200, CURLE_OK, "");
       } else if (url.find("reportqueue/MultipleEvents") == 0) {
         for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-          EXPECT_EQ(data[i]["eventType"]["id"], "AllDownloadsComplete");
+          EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
           EXPECT_EQ(data[i]["event"], "MultipleEvents" + std::to_string(events_seen++));
         }
         return HttpResponse("", 200, CURLE_OK, "");
@@ -164,7 +164,7 @@ class HttpFake : public HttpInterface {
           return HttpResponse("", 400, CURLE_OK, "");
         } else {
           for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-            EXPECT_EQ(data[i]["eventType"]["id"], "AllDownloadsComplete");
+            EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
             EXPECT_EQ(data[i]["event"], "FailureRecovery" + std::to_string(i));
           }
           events_seen = data.size();

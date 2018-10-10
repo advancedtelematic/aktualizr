@@ -4,6 +4,7 @@
 
 #include <json/json.h>
 #include <boost/filesystem.hpp>
+#include <stdexcept>
 
 // Keep these int sync with AKIpUptaneKeyType ASN.1 definitions
 enum class KeyType {
@@ -106,6 +107,34 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
   os << '"' << cs_str << '"';
   return os;
 }
+
+// timestamp, compatible with tuf
+
+class TimeStamp {
+ public:
+  static TimeStamp Now();
+  /** An invalid TimeStamp */
+  TimeStamp() { ; }
+  explicit TimeStamp(std::string rfc3339);
+  bool IsExpiredAt(const TimeStamp& now) const;
+  bool IsValid() const;
+  std::string ToString() const { return time_; }
+  bool operator<(const TimeStamp& other) const;
+  bool operator>(const TimeStamp& other) const;
+  friend std::ostream& operator<<(std::ostream& os, const TimeStamp& t);
+  bool operator==(const TimeStamp& rhs) const { return time_ == rhs.time_; }
+
+  class InvalidTimeStamp : public std::domain_error {
+   public:
+    InvalidTimeStamp() : std::domain_error("invalid timestamp") {}
+    ~InvalidTimeStamp() noexcept override = default;
+  };
+
+ private:
+  std::string time_;
+};
+
+std::ostream& operator<<(std::ostream& os, const TimeStamp& t);
 
 /// General data structures.
 namespace data {

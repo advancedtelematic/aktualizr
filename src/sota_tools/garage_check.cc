@@ -11,7 +11,7 @@
 #include "authenticate.h"
 #include "logging/logging.h"
 #include "treehub_server.h"
-#include "uptane/tuf.h"
+#include "utilities/types.h"
 #include "utilities/utils.h"
 
 namespace po = boost::program_options;
@@ -151,9 +151,9 @@ int main(int argc, char **argv) {
 
   Json::Value targets_json = Utils::parseJSON(targets_str);
   std::string expiry_time_str = targets_json["signed"]["expires"].asString();
-  Uptane::TimeStamp timestamp(expiry_time_str);
+  TimeStamp timestamp(expiry_time_str);
 
-  if (timestamp.IsExpiredAt(Uptane::TimeStamp::Now())) {
+  if (timestamp.IsExpiredAt(TimeStamp::Now())) {
     LOG_FATAL << "targets.json has been expired.";
     return EXIT_FAILURE;
   }

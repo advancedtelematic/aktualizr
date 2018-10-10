@@ -848,14 +848,7 @@ void SotaUptaneClient::campaignCheck() {
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
-  auto report_array = Json::Value(Json::arrayValue);
-  auto report = std_::make_unique<Json::Value>();
-  (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "campaign_accepted";
-  (*report)["eventType"]["version"] = 0;
-  (*report)["event"]["campaignId"] = campaign_id;
-  report_queue->enqueue(std::move(report));
+  report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
   sendEvent<event::CampaignAcceptComplete>();
 }
 
@@ -865,14 +858,7 @@ void SotaUptaneClient::sendDownloadReport() {
     LOG_ERROR << "Unable to load director targets metadata";
     return;
   }
-  auto report = std_::make_unique<Json::Value>();
-  (*report)["id"] = Utils::randomUuid();
-  (*report)["deviceTime"] = Uptane::TimeStamp::Now().ToString();
-  (*report)["eventType"]["id"] = "AllDownloadsComplete";
-  (*report)["eventType"]["version"] = 1;
-  (*report)["event"] = director_targets;
-
-  report_queue->enqueue(std::move(report));
+  report_queue->enqueue(std_::make_unique<DownloadCompleteReport>(director_targets));
 }
 
 bool SotaUptaneClient::putManifestSimple() {
