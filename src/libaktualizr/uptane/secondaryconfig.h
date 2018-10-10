@@ -5,6 +5,7 @@
 
 #include <sys/socket.h>
 #include <boost/filesystem.hpp>
+#include "logging/logging.h"
 #include "utilities/exceptions.h"
 #include "utilities/types.h"
 #include "utilities/utils.h"
@@ -43,7 +44,7 @@ class SecondaryConfig {
     } else if (stype == "opcua_uptane") {
       secondary_type = Uptane::SecondaryType::kOpcuaUptane;
     } else {
-      throw FatalException(std::string("Unrecognized secondary type: ") + stype);
+      LOG_ERROR << "Unrecognized secondary type: " << stype;
     }
     ecu_serial = config_json["ecu_serial"].asString();
     ecu_hardware_id = config_json["ecu_hardware_id"].asString();
