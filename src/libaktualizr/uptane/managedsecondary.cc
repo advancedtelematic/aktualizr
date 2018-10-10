@@ -104,10 +104,6 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
   return true;
 }
 
-std::future<bool> ManagedSecondary::sendFirmwareAsync(const std::shared_ptr<std::string> &data) {
-  return std::async(std::launch::async, &ManagedSecondary::sendFirmware, this, data);
-}
-
 bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   std::lock_guard<std::mutex> l(install_mutex);
   sendEvent<event::InstallStarted>(getSerial());

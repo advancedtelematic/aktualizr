@@ -1,5 +1,7 @@
 #include "socket_server.h"
 
+#include <future>
+
 #include "AKIpUptaneMes.h"
 #include "asn1/asn1_message.h"
 #include "logging/logging.h"
@@ -104,7 +106,8 @@ void SocketServer::HandleOneConnection(int socket) {
       } break;
       case AKIpUptaneMes_PR_sendFirmwareReq: {
         auto fw = msg->sendFirmwareReq();
-        auto fut = impl_->sendFirmwareAsync(std::make_shared<std::string>(ToString(fw->firmware)));
+        auto fw_data = std::make_shared<std::string>(ToString(fw->firmware));
+        auto fut = std::async(std::launch::async, &Uptane::SecondaryInterface::sendFirmware, impl_, fw_data);
         resp->present(AKIpUptaneMes_PR_sendFirmwareResp);
         auto r = resp->sendFirmwareResp();
         r->result = fut.get() ? AKInstallationResult_success : AKInstallationResult_failure;

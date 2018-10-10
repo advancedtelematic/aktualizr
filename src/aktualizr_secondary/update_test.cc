@@ -15,18 +15,16 @@ class ShortCircuitSecondary : public Uptane::SecondaryInterface {
  public:
   ShortCircuitSecondary(const Uptane::SecondaryConfig& sconfig_in, AktualizrSecondary& sec)
       : SecondaryInterface(sconfig_in), secondary(sec) {}
-  virtual ~ShortCircuitSecondary() {}
+  ~ShortCircuitSecondary() override = default;
 
-  virtual Uptane::EcuSerial getSerial() { return secondary.getSerialResp(); }
-  virtual Uptane::HardwareIdentifier getHwId() { return secondary.getHwIdResp(); }
-  virtual PublicKey getPublicKey() { return secondary.getPublicKeyResp(); }
-  virtual Json::Value getManifest() { return secondary.getManifestResp(); }
-  virtual bool putMetadata(const Uptane::RawMetaPack& meta_pack) { return secondary.putMetadataResp(meta_pack); }
-  virtual int32_t getRootVersion(bool director) { return secondary.getRootVersionResp(director); }
-  virtual bool putRoot(const std::string& root, bool director) { return secondary.putRootResp(root, director); }
-  virtual std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
-    return std::async(std::launch::async, &AktualizrSecondary::sendFirmwareResp, &secondary, data);
-  }
+  Uptane::EcuSerial getSerial() override { return secondary.getSerialResp(); }
+  Uptane::HardwareIdentifier getHwId() override { return secondary.getHwIdResp(); }
+  PublicKey getPublicKey() override { return secondary.getPublicKeyResp(); }
+  Json::Value getManifest() override { return secondary.getManifestResp(); }
+  bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
+  int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
+  bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
+  bool sendFirmware(const std::shared_ptr<std::string>& data) override { return secondary.sendFirmwareResp(data); }
 
  private:
   AktualizrSecondary& secondary;
@@ -68,7 +66,7 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");
 
   EXPECT_TRUE(sec_iface.putMetadata(metadata));
-  EXPECT_TRUE(sec_iface.sendFirmwareAsync(std::make_shared<std::string>(firmware)).get());
+  EXPECT_TRUE(sec_iface.sendFirmware(std::make_shared<std::string>(firmware)));
   Json::Value manifest = sec_iface.getManifest();
 
   EXPECT_EQ(manifest["signed"]["installed_image"]["fileinfo"]["hashes"]["sha256"],

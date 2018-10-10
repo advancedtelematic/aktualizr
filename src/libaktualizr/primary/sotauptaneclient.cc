@@ -1007,6 +1007,17 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
   }
 }
 
+std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
+                                                      const std::shared_ptr<std::string> &data) {
+  auto f = [&secondary, data]() {
+    bool ret = secondary.sendFirmware(data);
+
+    return ret;
+  };
+
+  return std::async(std::launch::async, f);
+}
+
 void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<std::future<bool>> firmwareFutures;
 
@@ -1015,17 +1026,17 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
     for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
       const Uptane::EcuSerial ecu_serial = ecus_it->first;
 
-      auto sec = secondaries.find(ecu_serial);
-      if (sec == secondaries.end()) {
+      auto f = secondaries.find(ecu_serial);
+      if (f == secondaries.end()) {
         continue;
       }
+      Uptane::SecondaryInterface &sec = *f->second;
 
-      if (sec->second->sconfig.secondary_type == Uptane::SecondaryType::kOpcuaUptane) {
+      if (sec.sconfig.secondary_type == Uptane::SecondaryType::kOpcuaUptane) {
         Json::Value data;
         data["sysroot_path"] = config.pacman.sysroot.string();
         data["ref_hash"] = targets_it->sha256Hash();
-        firmwareFutures.push_back(
-            sec->second->sendFirmwareAsync(std::make_shared<std::string>(Utils::jsonToStr(data))));
+        sendFirmwareAsync(sec, std::make_shared<std::string>(Utils::jsonToStr(data)));
         continue;
       }
 
@@ -1035,12 +1046,12 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
         if (creds_archive.empty()) {
           continue;
         }
-        firmwareFutures.push_back(sec->second->sendFirmwareAsync(std::make_shared<std::string>(creds_archive)));
+        sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
         const std::string fw = sstr.str();
-        firmwareFutures.push_back(sec->second->sendFirmwareAsync(std::make_shared<std::string>(fw)));
+        sendFirmwareAsync(sec, std::make_shared<std::string>(fw));
       }
     }
   }
