@@ -2,7 +2,28 @@
 
 ### External actions
 
-- [ ] Send system/network info to server
+- [x] Provisioning
+  - [x] Initialization
+    - [x] aktualizr can use a provided primary serial (OTA-988, config_test.cc)
+    - [x] aktualizr can generate primary serial and keys (OTA-989, uptane_serial_test.cc)
+    - [x] aktualizr can use a provided device ID (OTA-985, uptane_init_test.cc)
+    - [x] aktualizr can generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
+    - [x] aktualizr can generate RSA 2048 key pairs (crypto_test.cc)
+    - [x] aktualizr can generate RSA 4096 key pairs (crypto_test.cc)
+    - [x] aktualizr can generate ED25519 key pairs (crypto_test.cc)
+  - [x] aktualizr can automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
+    - [x] aktualizr can extract credentials from a provided archive (config_test.cc, utils_test.cc)
+    - [x] aktualizr can parse a p12 file containing TLS credentials (crypto_test.cc)
+    - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
+    - [x] aktualizr can recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
+  - [x] aktualizr can implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
+    - [x] aktualizr fails if it does not have TLS credentials (OTA-1209, uptane_implicit_test.cc)
+  - [x] aktualizr can implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
+    - [x] aktualizr can generate RSA keypairs via PKCS#11 (crypto_test.cc)
+    - [x] aktualizr can read a TLS certificate via PKCS#11 (crypto_test.cc)
+    - [x] aktualizr can generate RSA keys with PKCS#11 (keymanager_test.cc)
+    - [x] aktualizr can sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
+- [x] Send system/network info to server
   - [x] aktualizr reports basic device information to the server (OTA-984, uptane_test.cc)
   - [x] aktualizr can read networking info from the system (utils_test.cc)
   - [ ] aktualizr can send networking info to the server
@@ -52,28 +73,13 @@
 - [x] Send installation report
   - [x] aktualizr can assemble a manifest (uptane_test.cc)
   - [x] aktualizr can send a manifest to the server (uptane_test.cc)
+- [x] Send event reports
+  - [x] aktualizr can report an event to the server (reportqueue_test.cc)
+  - [x] aktualizr can report a series of events to the server (reportqueue_test.cc)
+  - [x] aktualizr can recover from errors while sending event reports (reportqueue_test.cc)
 
 ### Internal requirements
 
-- [x] aktualizr can automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
-  - [x] aktualizr can use a provided primary serial (OTA-988, config_test.cc)
-  - [x] aktualizr can generate primary serial and keys (OTA-989, uptane_serial_test.cc)
-  - [x] aktualizr can use a provided device ID (OTA-985, uptane_init_test.cc)
-  - [x] aktualizr can generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
-  - [x] aktualizr can recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
-  - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
-  - [x] aktualizr can extract credentials from a provided archive (config_test.cc, utils_test.cc)
-  - [x] aktualizr can parse a p12 file containing TLS credentials (crypto_test.cc)
-  - [x] aktualizr can generate RSA 2048 key pairs (crypto_test.cc)
-  - [x] aktualizr can generate RSA 4096 key pairs (crypto_test.cc)
-  - [x] aktualizr can generate ED25519 key pairs (crypto_test.cc)
-- [x] aktualizr can implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
-  - [x] aktualizr fails if it does not have TLS credentials (OTA-1209, uptane_implicit_test.cc)
-- [x] aktualizr can implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
-  - [x] aktualizr can generate RSA keypairs via PKCS#11 (crypto_test.cc)
-  - [x] aktualizr can read a TLS certificate via PKCS#11 (crypto_test.cc)
-  - [x] aktualizr can generate RSA keys with PKCS#11 (keymanager_test.cc)
-  - [x] aktualizr can sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
 - [x] aktualizr supports OSTree as a package manager (packagemanagerfactory_test.cc, ostreemanager_test.cc)
   - [x] aktualizr rejects bad OSTree server URIs (ostreemanager_test.cc)
   - [x] aktualizr aborts if the OSTree sysroot is invalid (ostreemanager_test.cc)
@@ -85,9 +91,6 @@
   - [x] aktualizr supports virtual Uptane secondaries for testing (uptane_secondary_test.cc)
   - [x] aktualizr can install a fake package for testing (uptane_test.cc)
   - [x] aktualizr can add secondaries (uptane_test.cc)
-- [x] aktualizr can report an event to the server (reportqueue_test.cc)
-  - [x] aktualizr can report a series of events to the server (reportqueue_test.cc)
-  - [x] aktualizr can recover from errors while sending event reports (reportqueue_test.cc)
 - [x] aktualizr stores its state in an SQL database
   - [x] aktualizr can migrate forward through SQL schemas (sqlstorage_test.cc)
   - [x] aktualizr rejects invalid SQL databases (sqlstorage_test.cc)
@@ -102,7 +105,7 @@
   - [x] aktualizr can load and store an installation result in an SQL database (storage_common_test.cc)
   - [x] aktualizr can load and store targets in an SQL database (storage_common_test.cc)
   - [x] aktualizr can import keys and credentials from file into an SQL database (storage_common_test.cc)
-- [x] aktualizr can be configured
+- [x] Configuration
   - [x] aktualizr can parse config files in TOML format (config_test.cc)
   - [x] aktualizr can parse secondary config files in JSON format (config_test.cc)
   - [x] aktualizr can write its config to file or to the log (config_test.cc)
