@@ -4,10 +4,10 @@ import sys
 import codecs
 import socket
 import ssl
+import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from json import dump
 from tempfile import NamedTemporaryFile
-
 
 class TreehubServerHandler(BaseHTTPRequestHandler):
     def __init__(self, *args):
@@ -15,17 +15,27 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         
-        if self.path.endswith("/config"):
-            config = b"[core]\nrepo_version=1\nmode=archive-z2"
-            self.send_text(config)
-        elif self.path.endswith("refs/heads/master"):
-            self.send_text(b"16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe")
-        elif self.path.endswith("/objects/2a/28dac42b76c2015ee3c41cc4183bb8b5c790fd21fa5cfa0802c6e11fd0edbe.filez"):
-            self.send_text(b"good")
+        path = os.path.join(repo_path, self.path[1:])
+        if(os.path.exists(path)):
+            self.send_response_only(200)
+            self.end_headers()
+            with open(path, 'rb') as source:
+                while True:
+                    data = source.read(1000)
+                    if not data:
+                        break
+                    self.wfile.write(data)
         else:
             self.send_response_only(404)
             self.end_headers()
-    
+    def do_HEAD(self):
+        path = os.path.join(repo_path, self.path[1:])
+        if(os.path.exists(path)):
+            self.send_response_only(200)
+        else:
+            self.send_response_only(404)
+        self.end_headers()
+        
     def send_text(self, text):
         self.send_response_only(200)
         self.send_header('Content-type', 'text/text')
@@ -40,6 +50,7 @@ class ReUseHTTPServer(HTTPServer):
 
 server_address = ('', int(sys.argv[1]))
 httpd = ReUseHTTPServer(server_address, TreehubServerHandler)
+repo_path = sys.argv[2]
 
 try:
     httpd.serve_forever()

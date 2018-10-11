@@ -37,7 +37,7 @@ TEST(http_repo, GetObject) {
   auto object = src_repo->GetObject(hash);
   std::stringstream s;
   s << object;
-  EXPECT_EQ(s.str(), std::string("2a/28dac42b76c2015ee3c41cc4183bb8b5c790fd21fa5cfa0802c6e11fd0edbe.filez"));
+  EXPECT_EQ(s.str(), std::string("2a/28dac42b76c2015ee3c41cc4183bb8b5c790fd21fa5cfa0802c6e11fd0edbe.dirmeta"));
 }
 
 TEST(http_repo, GetWrongObject) {
@@ -56,7 +56,7 @@ TEST(http_repo, root) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&server);
   EXPECT_TRUE(src_repo->LooksValid());
   std::string conf = Utils::readFile(src_repo->root() / "config");
-  EXPECT_EQ(conf, std::string("[core]\nrepo_version=1\nmode=archive-z2"));
+  EXPECT_EQ(conf, std::string("[core]\nrepo_version=1\nmode=archive-z2\n"));
 }
 
 #ifndef __NO_MAIN__
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   std::string server = "tests/sota_tools/treehub_server.py";
   port = TestUtils::getFreePort();
 
-  TestHelperProcess server_process(server, port);
+  TestHelperProcess server_process(server, port, argv[1]);
   sleep(3);
 
   return RUN_ALL_TESTS();

@@ -6,9 +6,12 @@
 
 OSTreeHash OSTreeHash::Parse(const std::string& hash) {
   uint8_t sha256[32];
-  std::istringstream refstr(hash);
+  std::string trimmed_hash = hash.substr(0, hash.find_last_not_of(" \t\n\r\f\v") + 1);
+  
+  std::istringstream refstr(trimmed_hash);
 
-  if (hash.size() != 64) {
+  if (trimmed_hash.size() != 64) {
+    std::cout << "HASH size: " << trimmed_hash.size() << "\n";
     throw OSTreeCommitParseError("OSTree Hash has invalid length");
   }
   // sha256 is always 256 bits == 32 bytes long

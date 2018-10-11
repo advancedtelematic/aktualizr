@@ -57,11 +57,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  if ((vm.count("commit") == 0u) && (vm.count("fetch-credentials") == 0u) && (vm.count("push-credentials") != 0u)) {
-    LOG_INFO << "You must specify credentials for source repo, destination repo, and package name";
-    return EXIT_FAILURE;
-  }
-
   // Configure logging
   if (verbosity == 0) {
     // 'verbose' trumps 'quiet'
