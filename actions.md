@@ -4,49 +4,114 @@
 
 These are the primary actions that a user of libaktualizr can perform through the API.
 
-- [x] Provisioning
-  - [x] Initialization
-    - [x] Use a provided primary serial (OTA-988, config_test.cc)
-    - [x] Generate primary serial and keys (OTA-989, uptane_serial_test.cc)
+- [x] Initialization
+  - [ ] Set boot count to 0 to indicate successful boot
+  - [x] Initialize device ID
+    - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
+    - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
+  - [x] Provision with the server
+    - [x] Automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
+      - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
+      - [x] Parse a p12 file containing TLS credentials (crypto_test.cc)
+      - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
+      - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
+    - [x] Implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
+      - [x] Fail if TLS credentials are unavailable (OTA-1209, uptane_implicit_test.cc)
+    - [x] Implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
+      - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc)
+      - [x] Read a TLS certificate via PKCS#11 (crypto_test.cc)
+      - [x] Generate RSA keys with PKCS#11 (keymanager_test.cc)
+      - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
+  - [x] Initialize primary ECU keys
+    - [x] Generate primary ECU keys (OTA-989, uptane_serial_test.cc)
       - [x] Generate RSA 2048 key pairs (crypto_test.cc)
       - [x] Generate RSA 4096 key pairs (crypto_test.cc)
       - [x] Generate ED25519 key pairs (crypto_test.cc)
-    - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
-    - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
+  - [x] Initialize primary ECU serial
+    - [x] Use a provided primary serial (OTA-988, config_test.cc)
+    - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
     - [ ] TODO Use a provided hardware ID
-    - [ ] TODO Uses the system hostname as hardware ID if one is not provided
-      - [x] Read the hostname from the system (utils_test.cc)
-  - [x] Automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
-    - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
-    - [x] Parse a p12 file containing TLS credentials (crypto_test.cc)
-    - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
-    - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
-  - [x] Implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
-    - [x] Fail if TLS credentials are unavailable (OTA-1209, uptane_implicit_test.cc)
-  - [x] Implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
-    - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc)
-    - [x] Read a TLS certificate via PKCS#11 (crypto_test.cc)
-    - [x] Generate RSA keys with PKCS#11 (keymanager_test.cc)
-    - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
+    - [ ] TODO Use the system hostname as hardware ID if one is not provided
+  - [x] Register ECUs with director (uptane_test.cc)
+    - [x] Read the hostname from the system (utils_test.cc)
 - [x] Send system/network info to server
-  - [x] Read networking info from the system (utils_test.cc)
-  - [x] Send networking info to the server (OTA-984, uptane_test.cc)
+  - [x] TODO Read hardware info from the system (utils_test.cc)
+  - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
   - [x] Import a list of installed packages into an SQL database (uptane_test.cc)
   - [x] Load and store a list of installed package versions (uptane_test.cc)
   - [x] Send a list of installed packages to the server (OTA-984, uptane_test.cc)
+  - [x] Read networking info from the system (utils_test.cc)
+  - [x] Send networking info to the server (OTA-984, uptane_test.cc)
+  - [x] Generate and send manifest (see below)
+  - [x] TODO send SendDeviceDataComplete event
 - [x] Fetch metadata from server
-  - [x] Assemble a manifest (uptane_test.cc)
-  - [x] Send a manifest to the server (uptane_test.cc)
+  - [x] Generate and send manifest (see below)
   - [ ] TODO Fetch metadata from the director
+  - [ ] TODO Check metadata from the director
+    - [x] Validate Uptane metadata (see below)
   - [ ] TODO Identify targets for known ECUs
   - [ ] TODO Ignore updates for unrecognized ECUs
   - [ ] TODO Fetch metadata from the images repo
+  - [ ] TODO Check metadata from the images repo
+    - [x] Validate Uptane metadata (see below)
+  - [x] TODO Send FetchMetaComplete event after success
+  - [ ] TODO Send Error event after failure
+  - [x] Do nothing in automatic mode if there are no updates to install (aktualizr_test.cc)
 - [x] Check for campaigns
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
+  - [x] TODO Fetch campaigns from the server (aktualizr_test.cc)
   - [x] Parse campaigns from JSON (campaign_test.cc)
-- [ ] Accept campaigns
+  - [x] TODO send CampaignCheckComplete event
+- [ ] Accept a campaign
+  - [ ] Send campaign acceptance report
+    - [x] Send an event report (see below)
 - [x] Check for updates
-  - [x] Do nothing if there are no updates to install (aktualizr_test.cc)
+  - [ ] TODO Check metadata from the director
+    - [x] Validate Uptane metadata (see below)
+  - [ ] TODO Identify targets for known ECUs
+  - [ ] TODO Ignore updates for unrecognized ECUs
+  - [ ] TODO Check metadata from the images repo
+    - [x] Validate Uptane metadata (see below)
+  - [x] TODO send UpdateAvailable event if updates are available
+  - [x] Send NoUpdateAvailable event if no updates are available
+- [x] Download updates
+  - [ ] TODO Detect target hash mismatches
+  - [x] TODO Download and verify an update
+    - [x] TODO Download an OSTree package
+    - [x] TODO Verify an OSTree package
+    - [x] TODO Download a binary package
+    - [x] TODO Verify a binary package
+  - [x] TODO Send DownloadTargetComplete event if download is successful
+  - [ ] Send Error event if download is unsuccessful
+  - [ ] Send download report
+    - [x] Send an event report (see below)
+  - [x] TODO Send AllDownloadsComplete after all downloads are finished
+  - [x] Download with manual control (aktualizr_test.cc)
+  - [x] Do not download automatically with manual control (aktualizr_test.cc)
+- [x] Install updates
+  - [ ] TODO Send metadata to secondary ECUs
+  - [ ] TODO Check if there are updates to install for the primary
+  - [ ] TODO Check if an update is already installed
+  - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
+  - [x] TODO Send InstallStarted event
+  - [ ] TODO Install an update on the primary
+  - [ ] TODO Store installation result
+  - [ ] TODO Send images to secondary ECUs
+  - [x] TODO Send InstallTargetComplete event
+  - [x] TODO Send AllInstallsComplete event after all installations are finished
+  - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
+  - [x] Install with manual control (aktualizr_test.cc)
+  - [x] Do not install automatically with manual control (aktualizr_test.cc)
+- [x] Send installation report
+  - [x] Generate and send manifest (see below)
+  - [x] TODO send PutManifestComplete event if send is successful
+  - [ ] send Error event if send fails
+
+### Internal requirements
+
+These are internal requirements that are relatively opaque to the user and/or common to multiple external actions.
+
+- [x] Validate Uptane metadata
   - [x] Validate SHA256 hashes (crypto_test.cc)
   - [x] Validate SHA512 hashes (crypto_test.cc)
   - [x] Sign and verify a file with RSA stored in a file (crypto_test.cc)
@@ -69,29 +134,18 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Abort update if any metadata is unsigned (uptane_vector_tests.cc)
   - [x] Abort update if any metadata has an invalid key ID (uptane_vector_tests.cc)
   - [x] Abort update if a target is smaller than stated in the metadata (uptane_vector_tests.cc)
-  - [x] Update with rotated Uptane roots (uptane_vector_tests.cc)
+  - [x] Accept update with rotated Uptane roots (uptane_vector_tests.cc)
   - [x] Abort update with incorrectly rotated Uptane roots (uptane_vector_tests.cc)
   - [x] Abort update if any metadata has an invalid hardware ID (uptane_vector_tests.cc)
   - [x] Abort update if the director targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
-- [x] Download updates
-  - [x] Download with manual control (aktualizr_test.cc)
-  - [x] Do not download automatically with manual control (aktualizr_test.cc)
-- [x] Install updates
-  - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
-  - [x] Install with manual control (aktualizr_test.cc)
-  - [x] Do not install automatically with manual control (aktualizr_test.cc)
-- [x] Send installation report
-  - [x] Assemble a manifest (uptane_test.cc)
-  - [x] Send a manifest to the server (uptane_test.cc)
-- [x] Send event reports
+- [x] Generate and send manifest
+  - [x] Assemble manifest (uptane_test.cc)
+  - [x] Send manifest to the server (uptane_test.cc)
+- [x] Send an event report
+  - [x] Generate a random UUID (utils_test.cc)
   - [x] Report an event to the server (reportqueue_test.cc)
   - [x] Report a series of events to the server (reportqueue_test.cc)
   - [x] Recover from errors while sending event reports (reportqueue_test.cc)
-
-### Internal requirements
-
-These are internal requirements that are relatively opaque to the user and possibly common to multiple external actions.
-
 - [x] Support OSTree as a package manager (packagemanagerfactory_test.cc, ostreemanager_test.cc)
   - [x] Reject bad OSTree server URIs (ostreemanager_test.cc)
   - [x] Abort if the OSTree sysroot is invalid (ostreemanager_test.cc)
@@ -124,14 +178,11 @@ These are internal requirements that are relatively opaque to the user and possi
   - [x] Write its config to file or to the log (config_test.cc)
   - [x] Parse multiple config files in a directory (config_test.cc)
   - [x] Parse multiple config files in multiple directories (config_test.cc)
-- [x] Host system interaction
-  - [x] Generate a random UUID (utils_test.cc)
+- [ ] Miscellaneous
   - [x] Create a temporary file (utils_test.cc)
   - [x] Create a temporary directory (utils_test.cc)
-- [ ] Miscellaneous
   - [x] Convert Events to and from JSON (events_test.cc)
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
-  - [ ] Reset bootcount and rollback flag
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
   - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
 
