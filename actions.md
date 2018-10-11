@@ -1,16 +1,21 @@
-## aktualizr
+## libaktualizr
 
 ### External actions
+
+These are the primary actions that a user of libaktualizr can perform through the API.
 
 - [x] Provisioning
   - [x] Initialization
     - [x] aktualizr can use a provided primary serial (OTA-988, config_test.cc)
     - [x] aktualizr can generate primary serial and keys (OTA-989, uptane_serial_test.cc)
+      - [x] aktualizr can generate RSA 2048 key pairs (crypto_test.cc)
+      - [x] aktualizr can generate RSA 4096 key pairs (crypto_test.cc)
+      - [x] aktualizr can generate ED25519 key pairs (crypto_test.cc)
     - [x] aktualizr can use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] aktualizr can generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
-    - [x] aktualizr can generate RSA 2048 key pairs (crypto_test.cc)
-    - [x] aktualizr can generate RSA 4096 key pairs (crypto_test.cc)
-    - [x] aktualizr can generate ED25519 key pairs (crypto_test.cc)
+    - [ ] TODO aktualizr can use a provided hardware ID
+    - [ ] TODO aktualizr uses the system hostname as hardware ID if one is not provided
+      - [x] aktualizr can read the hostname from the system (utils_test.cc)
   - [x] aktualizr can automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
     - [x] aktualizr can extract credentials from a provided archive (config_test.cc, utils_test.cc)
     - [x] aktualizr can parse a p12 file containing TLS credentials (crypto_test.cc)
@@ -24,13 +29,18 @@
     - [x] aktualizr can generate RSA keys with PKCS#11 (keymanager_test.cc)
     - [x] aktualizr can sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
 - [x] Send system/network info to server
-  - [x] aktualizr reports basic device information to the server (OTA-984, uptane_test.cc)
   - [x] aktualizr can read networking info from the system (utils_test.cc)
-  - [ ] aktualizr can send networking info to the server
+  - [x] aktualizr can send networking info to the server (OTA-984, uptane_test.cc)
   - [x] aktualizr can import a list of installed packages into an SQL database (uptane_test.cc)
   - [x] aktualizr can load and store a list of installed package versions (uptane_test.cc)
-  - [ ] aktualizr can send a list of installed packages to the server
-- [ ] Fetch metadata from server
+  - [x] aktualizr can send a list of installed packages to the server (OTA-984, uptane_test.cc)
+- [x] Fetch metadata from server
+  - [x] aktualizr can assemble a manifest (uptane_test.cc)
+  - [x] aktualizr can send a manifest to the server (uptane_test.cc)
+  - [ ] TODO aktualizr can fetch metadata from the director
+  - [ ] TODO aktualizr identifies targets for known ECUs
+  - [ ] TODO aktualizr ignores updates for unrecognized ECUs
+  - [ ] TODO aktualizr can fetch metadata from the images repo
 - [x] Check for campaigns
   - [x] aktualizr can check for campaigns with manual control (aktualizr_test.cc)
   - [x] aktualizr can parse campaigns from JSON (campaign_test.cc)
@@ -80,6 +90,8 @@
 
 ### Internal requirements
 
+These are internal requirements that are relatively opaque to the user and possibly common to multiple external actions.
+
 - [x] aktualizr supports OSTree as a package manager (packagemanagerfactory_test.cc, ostreemanager_test.cc)
   - [x] aktualizr rejects bad OSTree server URIs (ostreemanager_test.cc)
   - [x] aktualizr aborts if the OSTree sysroot is invalid (ostreemanager_test.cc)
@@ -91,6 +103,7 @@
   - [x] aktualizr supports virtual Uptane secondaries for testing (uptane_secondary_test.cc)
   - [x] aktualizr can install a fake package for testing (uptane_test.cc)
   - [x] aktualizr can add secondaries (uptane_test.cc)
+  - [x] (?) aktualizr supports OPC-UA (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 - [x] aktualizr stores its state in an SQL database
   - [x] aktualizr can migrate forward through SQL schemas (sqlstorage_test.cc)
   - [x] aktualizr rejects invalid SQL databases (sqlstorage_test.cc)
@@ -111,27 +124,29 @@
   - [x] aktualizr can write its config to file or to the log (config_test.cc)
   - [x] aktualizr can parse multiple config files in a directory (config_test.cc)
   - [x] aktualizr can parse multiple config files in multiple directories (config_test.cc)
+- [x] Host system interaction
+  - [x] aktualizr can generate a random UUID (utils_test.cc)
+  - [x] aktualizr can create a temporary file (utils_test.cc)
+  - [x] aktualizr can create a temporary directory (utils_test.cc)
+- [ ] Miscellaneous
+  - [x] aktualizr can convert Events to and from JSON (events_test.cc)
+  - [x] aktualizr can serialize and deserialize asn1 (asn1_test.cc)
+  - [ ] aktualizr can reset bootcount and rollback flag
+  - [x] aktualizr has a fake package manager for testing (packagemanagerfactory_test.cc)
+  - [x] ~~aktualizr has a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
 
-### Miscellaneous
+## aktualizr-primary
 
-- [x] aktualizr can convert Events to and from JSON (events_test.cc)
-- [x] aktualizr can serialize and deserialize asn1 (asn1_test.cc)
-- [ ] aktualizr can reset bootcount and rollback flag
-- [x] aktualizr supports OPC-UA (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
-- [x] aktualizr has a fake package manager for testing (packagemanagerfactory_test.cc)
-- [x] ~~aktualizr has a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
+`aktualizr-primary` is the reference user of the libaktualizr API. Note that for historical reasons, it is usually simply known as `aktualizr`.
 
-- [x] aktualizr can read the hostname from the system (utils_test.cc)
-- [x] aktualizr can generate a random UUID (utils_test.cc)
-- [x] aktualizr can create a temporary file (utils_test.cc)
-- [x] aktualizr can create a temporary directory (utils_test.cc)
-
-- [x] aktualizr aborts when given bogus command line options (tests/CMakeLists.txt)
-- [x] aktualizr aborts when given a nonexistant config file (tests/CMakeLists.txt)
-- [x] aktualizr supports debug logging (tests/CMakeLists.txt)
-- [x] aktualizr defaults to informational logging (tests/CMakeLists.txt)
+- [x] aktualizr-primary aborts when given bogus command line options (tests/CMakeLists.txt)
+- [x] aktualizr-primary aborts when given a nonexistant config file (tests/CMakeLists.txt)
+- [x] aktualizr-primary supports debug logging (tests/CMakeLists.txt)
+- [x] aktualizr-primary defaults to informational logging (tests/CMakeLists.txt)
 
 ## aktualizr-secondary
+
+`aktualizr-secondary` was designed to demonstrate an Uptane-compliant secondary but is currently not part of the core product.
 
 - [x] aktualizr-secondary can parse config files in TOML format (aktualizr_secondary_config_test.cc)
 - [x] aktualizr-secondary can write its config to file or to the log (aktualizr_secondary_config_test.cc)
@@ -149,17 +164,23 @@
 
 ## aktualizr-info
 
+`aktualizr-info` is designed to provide information to a developer with access to a device running aktualizr.
+
 - [x] aktualizr-info can parse config files in TOML format (aktualizr_info_config_test.cc)
 - [x] aktualizr-info can write its config to file or to the log (aktualizr_info_config_test.cc)
 - [x] aktualizr-info can print information about aktualizr (run_aktualizr_info_tests.sh)
 
 ## aktualizr-repo
 
+`aktualizr-repo` is used in testing to simulate the generation of Uptane repositories.
+
 - [x] aktualizr-repo can generate images and director repos (repo_test.cc)
 - [x] aktualizr-repo can add an image to the images repo (repo_test.cc)
 - [x] aktualizr-repo can copy an image to the director repo (repo_test.cc)
 
 ## garage-push
+
+`garage-push` pushes OSTree objects to a remote Treehub server.
 
 - [x] garage-push can extract credentials from a provided archive (authenticate_test.cc)
 - [x] garage-push can extract credentials from a provided JSON file (authenticate_test.cc)
@@ -177,6 +198,8 @@
 - [x] garage-push supports debug logging (sota_tools/CMakeLists.txt)
 
 ## garage-deploy
+
+`garage-deploy` moves OSTree objects from one remote Treehub server to another.
 
 - [x] garage-deploy can extract credentials from a provided archive (authenticate_test.cc)
 - [x] garage-deploy can extract credentials from a provided JSON file (authenticate_test.cc)
@@ -198,14 +221,20 @@
 
 ## garage-check
 
+`garage-check` simply verifies that a given OSTree commit exists on a remote Treehub server.
+
 - [ ] garage-check can verify that a commit exists in a remote repo
 
 ## cert-provider
+
+`cert-provider` assists with generating credentials and uploading them to a device.
 
 - [ ] cert-provider can copy credentials to a device
 - [ ] cert-provider can generate a fleet root CA
 
 ## meta-updater
+
+`meta-updater` is a Yocto layer used to build aktualizr and OSTree.
 
 - [x] meta-updater can run garage-push
 - [x] meta-updater can run garage-deploy
