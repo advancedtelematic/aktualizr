@@ -106,21 +106,17 @@ bool ManagedSecondary::putRoot(const std::string &root, const bool director) {
 
 bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   std::lock_guard<std::mutex> l(install_mutex);
-  sendEvent<event::InstallStarted>(getSerial());
 
   if (expected_target_name.empty()) {
-    sendEvent<event::InstallTargetComplete>(getSerial(), false);
-    return true;
+    return false;
   }
   if (!detected_attack.empty()) {
-    sendEvent<event::InstallTargetComplete>(getSerial(), false);
-    return true;
+    return false;
   }
 
   if (data->size() > static_cast<size_t>(expected_target_length)) {
     detected_attack = "overflow";
-    sendEvent<event::InstallTargetComplete>(getSerial(), false);
-    return true;
+    return false;
   }
 
   std::vector<Hash>::const_iterator it;
@@ -129,21 +125,18 @@ bool ManagedSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
       if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(*data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
-        sendEvent<event::InstallTargetComplete>(getSerial(), false);
-        return true;
+        return false;
       }
     } else if (it->TypeString() == "sha512") {
       if (boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(*data))) !=
           boost::algorithm::to_lower_copy(it->HashString())) {
         detected_attack = "wrong_hash";
-        sendEvent<event::InstallTargetComplete>(getSerial(), false);
-        return true;
+        return false;
       }
     }
   }
   detected_attack = "";
   const bool result = storeFirmware(expected_target_name, *data);
-  sendEvent<event::InstallTargetComplete>(getSerial(), true);
   return result;
 }
 

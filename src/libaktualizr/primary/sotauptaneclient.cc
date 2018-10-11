@@ -1009,8 +1009,10 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
 
 std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
                                                       const std::shared_ptr<std::string> &data) {
-  auto f = [&secondary, data]() {
+  auto f = [this, &secondary, data]() {
+    sendEvent<event::InstallStarted>(secondary.getSerial());
     bool ret = secondary.sendFirmware(data);
+    sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
     return ret;
   };
