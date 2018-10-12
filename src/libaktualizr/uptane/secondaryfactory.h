@@ -3,7 +3,6 @@
 
 #include "ipuptanesecondary.h"
 #include "isotpsecondary.h"
-#include "legacysecondary.h"
 #include "logging/logging.h"
 #include "uptane/ipuptanesecondary.h"
 #include "uptane/opcuasecondary.h"

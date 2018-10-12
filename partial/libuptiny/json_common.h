@@ -1,8 +1,9 @@
 #ifndef LIBUPTINY_JSON_COMMON_H
 #define LIBUPTINY_JSON_COMMON_H
 
-#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -10,8 +10,8 @@
 
 #include <cstring>
 
-#include <thread>
 #include <chrono>
+#include <thread>
 
 #include <boost/algorithm/hex.hpp>
 
@@ -57,7 +57,7 @@ bool IsoTpSendRecv::canSend(const uint32_t arbitration_id, const uint8_t* data, 
   }
 
   LOG_TRACE << "Sending CAN message AF: 0x" << std::hex << arbitration_id << "; Data:";
-  LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*) data, size));
+  LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)data, size));
 
   int can_socket = instance->can_socket;
 
@@ -95,8 +95,8 @@ bool IsoTpSendRecv::Send(const std::string& out) {
       FD_ZERO(&read_set);
       FD_SET(can_socket, &read_set);
 
-      //struct timeval timeout = {0, 20000};  // 20 ms
-      //if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
+      // struct timeval timeout = {0, 20000};  // 20 ms
+      // if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
       if (select((can_socket + 1), &read_set, nullptr, nullptr, nullptr) >= 0) {
         if (FD_ISSET(can_socket, &read_set)) {
           struct can_frame f {};
@@ -107,7 +107,7 @@ bool IsoTpSendRecv::Send(const std::string& out) {
           }
 
           LOG_TRACE << "Reveived CAN message in Send method AF: 0x" << std::hex << f.can_id << "; Data:";
-          LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*) f.data, f.can_dlc));
+          LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)f.data, f.can_dlc));
 
           if (!isotp_receive_flowcontrol(&isotp_shims, &send_handle, (uint16_t)f.can_id, f.data, f.can_dlc)) {
             std::cerr << "IsoTp receiving error" << std::endl;
@@ -115,25 +115,25 @@ bool IsoTpSendRecv::Send(const std::string& out) {
           }
 
           while (send_handle.to_send != 0) {
-	    if (send_handle.gap_ms != 0) {
+            if (send_handle.gap_ms != 0) {
               std::this_thread::sleep_for(std::chrono::milliseconds(send_handle.gap_ms));
-	    }
-	    if (send_handle.gap_us != 0) {
+            }
+            if (send_handle.gap_us != 0) {
               std::this_thread::sleep_for(std::chrono::microseconds(send_handle.gap_us));
-	    }
+            }
 
             if (!isotp_continue_send(&isotp_shims, &send_handle)) {
               LOG_ERROR << "IsoTp sending error";
               return false;
             }
             if (send_handle.completed) {
-	      // Wait before (potentially) sending another packet
+              // Wait before (potentially) sending another packet
               if (send_handle.gap_ms != 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(send_handle.gap_ms));
-	      }
-	      if (send_handle.gap_us != 0) {
+              }
+              if (send_handle.gap_us != 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(send_handle.gap_us));
-	      }
+              }
 
               if (send_handle.success) {
                 return true;
@@ -167,8 +167,8 @@ bool IsoTpSendRecv::Recv(std::string* in) {
     FD_ZERO(&read_set);
     FD_SET(can_socket, &read_set);
 
-    //struct timeval timeout = {0, 2000000};  // 20 ms
-    //if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
+    // struct timeval timeout = {0, 2000000};  // 20 ms
+    // if (select((can_socket + 1), &read_set, nullptr, nullptr, &timeout) >= 0) {
     if (select((can_socket + 1), &read_set, nullptr, nullptr, nullptr) >= 0) {
       if (FD_ISSET(can_socket, &read_set)) {
         struct can_frame f {};
@@ -179,8 +179,9 @@ bool IsoTpSendRecv::Recv(std::string* in) {
         }
 
         LOG_TRACE << "Reveived CAN message in Recv method AF: 0x" << std::hex << f.can_id << "; Data:";
-        LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*) f.data, f.can_dlc));
-	//std::this_thread::sleep_for(std::chrono::milliseconds(10)); // hack for RIOT to start waiting for flow control
+        LOG_TRACE << " " << boost::algorithm::hex(std::string((const char*)f.data, f.can_dlc));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(10)); // hack for RIOT to start waiting for flow
+        // control
         IsoTpMessage message_rx = isotp_continue_receive(&isotp_shims, &recv_handle, f.can_id, f.data, f.can_dlc);
         if (message_rx.completed && recv_handle.completed) {
           if (!recv_handle.success) {

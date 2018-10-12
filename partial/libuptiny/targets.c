@@ -11,8 +11,8 @@
 /*
  * State variables, initialized in uptane_parse_targets_init()
  */
-static jsmn_parser parser;         // jsmn parser
-static int16_t token_pos;     // current position in jsmn token array
+static jsmn_parser parser;             // jsmn parser
+static int16_t token_pos;              // current position in jsmn token array
 static int16_t ignored_top_token_pos;  // position of ignored object token in jsmn token array
 static int16_t signed_top_token_pos;   // position of "signed" object token in jsmn token array
 static int16_t targets_top_token_pos;  // position of "signed"."targets" object token in jsmn token array
@@ -40,8 +40,8 @@ static int targets_elems_read;  // number of elements of "signed".targets object
  * Values to be returned via getters
  */
 static unsigned int num_signatures;  // number of signatures read
-static int16_t begin_signed;             // position in incoming message part where signed object begins
-static int16_t end_signed;               // position in incoming message part where signed object ends
+static int16_t begin_signed;         // position in incoming message part where signed object begins
+static int16_t end_signed;           // position in incoming message part where signed object ends
 
 bool in_signed;  // if the signature verification is in progress. Different from 'state == TARGETS_IN_SIGNED' in that
                  // the state machine operates independently of signature verification and the two values can be out of
@@ -247,7 +247,7 @@ static inline int16_t consumed_chars_newtoken(const char *message, int16_t len, 
     return res;
   } else {
     // NOLINTNEXTLINE(misc-misplaced-widening-cast)
-    return (int16_t) (token_pool[idx - 1].start + 1);  // start should not be negative if jsmn_parse works correctly
+    return (int16_t)(token_pool[idx - 1].start + 1);  // start should not be negative if jsmn_parse works correctly
   }
 }
 
@@ -283,9 +283,9 @@ static void prepare_primary_parser(void) {
   if (token_pos > 0) {
     if (token_pool[token_pos - 1].type == JSMN_STRING &&
         token_pool[token_pool[token_pos - 1].parent].type == JSMN_OBJECT) {
-      parser.toksuper = (int16_t) (token_pos - 1);  // token_pos >= 1
+      parser.toksuper = (int16_t)(token_pos - 1);  // token_pos >= 1
     } else {
-      int16_t i = (int16_t) (token_pos - 1);  // token_pos >= 1
+      int16_t i = (int16_t)(token_pos - 1);  // token_pos >= 1
       while (i >= 0 &&
              ((token_pool[i].type != JSMN_OBJECT && token_pool[i].type != JSMN_ARRAY) || token_pool[i].end >= 0)) {
         i = token_pool[i].parent;
@@ -578,7 +578,7 @@ int uptane_parse_targets_feed(const char *message, int16_t len, uptane_targets_t
           idx = target_elem_idx;  // target_elem_idx has been advanced by parse_target to point to the next target
           ++targets_elems_read;
         } else {
-          idx = (int16_t) (target_elem_idx - 1);  // rewind to the point before target name
+          idx = (int16_t)(target_elem_idx - 1);  // rewind to the point before target name
           --token_pool[targets_top_token_pos].size;
           break_parsing = true;
           break;
@@ -628,7 +628,8 @@ int uptane_parse_targets_feed(const char *message, int16_t len, uptane_targets_t
     }
 
     for (unsigned int i = 0; i < num_signatures; i++) {
-      crypto_verify_feed(crypto_ctx_pool[i], (const uint8_t *)message + first_signed, (size_t) (last_signed - first_signed));
+      crypto_verify_feed(crypto_ctx_pool[i], (const uint8_t *)message + first_signed,
+                         (size_t)(last_signed - first_signed));
     }
   }
 
@@ -672,6 +673,6 @@ int uptane_parse_targets_feed(const char *message, int16_t len, uptane_targets_t
     ret = consumed_chars_nonewtoken(message, len);
   }
 
-  tail_length = (int16_t) (len - ret);
+  tail_length = (int16_t)(len - ret);
   return (int)ret;
 }

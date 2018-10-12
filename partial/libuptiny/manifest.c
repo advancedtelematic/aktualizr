@@ -1,7 +1,7 @@
 #include "manifest.h"
-#include "firmware.h"
 #include "base64.h"
 #include "crypto_api.h"
+#include "firmware.h"
 #include "state_api.h"
 #include "utils.h"
 

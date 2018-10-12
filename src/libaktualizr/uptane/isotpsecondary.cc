@@ -7,6 +7,7 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/lexical_cast.hpp>
+#include <future>
 
 #define LIBUPTINY_ISOTP_PRIMARY_CANID 0x7D8
 
@@ -136,7 +137,11 @@ bool IsoTpSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return conn.Send(out);
 }
 
-bool IsoTpSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
+std::future<bool> IsoTpSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
+  return std::async(std::launch::async, &IsoTpSecondary::sendFirmware, this, data);
+}
+
+bool IsoTpSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   long num_chunks = 1 + (data->length() - 1) / kChunkSize;
 
   if (num_chunks < 0 || num_chunks > 127) {
@@ -167,4 +172,4 @@ bool IsoTpSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data)
   }
   return true;
 }
-}
+}  // namespace Uptane
