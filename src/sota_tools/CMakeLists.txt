@@ -134,7 +134,7 @@ if (BUILD_SOTA_TOOLS)
                         ${Boost_LIBRARIES})
 
     add_aktualizr_test(NAME ostree_dir_repo SOURCES ostree_dir_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
-    add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} ARGS ${CMAKE_SOURCE_DIR}/tests/sota_tools/repo PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
     add_aktualizr_test(NAME treehub_server SOURCES treehub_server_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
     add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
 

@@ -21,7 +21,7 @@ class OSTreeHttpRepo : public OSTreeRepo {
   OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
   OSTreeRef GetRef(const std::string& refname) const override;
 
-  const boost::filesystem::path root() const override { return root_.PathString(); }
+  const boost::filesystem::path root() const override { return root_.Path(); }
 
  private:
   bool Get(const boost::filesystem::path& path) const;

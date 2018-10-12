@@ -3,6 +3,7 @@
 #include "crypto/crypto.h"
 #include "deploy.h"
 #include "ostree_dir_repo.h"
+#include "ostree_http_repo.h"
 #include "ostree_ref.h"
 #include "test_utils.h"
 std::string port = "2443";
