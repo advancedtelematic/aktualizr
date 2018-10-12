@@ -6,6 +6,13 @@ These are the primary actions that a user of libaktualizr can perform through th
 
 - [x] Initialization
   - [ ] Set boot count to 0 to indicate successful boot
+  - [x] Initialize secondaries
+    - [x] Discover secondaries over TCP-IP (ipsecondary_discovery_test.cc)
+    - [x] Add secondaries from configuration (uptane_test.cc)
+      - [x] TODO Support virtual secondaries for testing (uptane_secondary_test.cc)
+      - [x] TODO Support virtual Uptane secondaries for testing (uptane_secondary_test.cc)
+      - [x] TODO Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
+    - [ ] TODO Add secondaries via API
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
@@ -34,6 +41,10 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [ ] TODO Use the system hostname as hardware ID if one is not provided
   - [x] Register ECUs with director (uptane_test.cc)
     - [x] Read the hostname from the system (utils_test.cc)
+  - [ ] TODO Abort if initialization fails
+  - [ ] TODO Verify secondaries against storage
+    - [ ] TODO Identify previously unknown secondaries
+    - [ ] TODO Identify currently unavailable secondaries
 - [x] Send system/network info to server
   - [x] TODO Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
@@ -44,6 +55,15 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send networking info to the server (OTA-984, uptane_test.cc)
   - [x] Generate and send manifest (see below)
   - [x] TODO send SendDeviceDataComplete event
+- [x] Check for campaigns
+  - [x] Check for campaigns with manual control (aktualizr_test.cc)
+  - [x] TODO Fetch campaigns from the server (aktualizr_test.cc)
+  - [x] Parse campaigns from JSON (campaign_test.cc)
+  - [x] TODO send CampaignCheckComplete event with campaign data
+- [ ] Accept a campaign
+  - [ ] Send campaign acceptance report
+    - [x] Send an event report (see below)
+  - [ ] TODO send CampaignAcceptComplete event
 - [x] Fetch metadata from server
   - [x] Generate and send manifest (see below)
   - [ ] TODO Fetch metadata from the director
@@ -57,29 +77,24 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] TODO Send FetchMetaComplete event after success
   - [ ] TODO Send Error event after failure
   - [x] Do nothing in automatic mode if there are no updates to install (aktualizr_test.cc)
-- [x] Check for campaigns
-  - [x] Check for campaigns with manual control (aktualizr_test.cc)
-  - [x] TODO Fetch campaigns from the server (aktualizr_test.cc)
-  - [x] Parse campaigns from JSON (campaign_test.cc)
-  - [x] TODO send CampaignCheckComplete event
-- [ ] Accept a campaign
-  - [ ] Send campaign acceptance report
-    - [x] Send an event report (see below)
-- [x] Check for updates
+- [ ] Check for updates
   - [ ] TODO Check metadata from the director
     - [x] Validate Uptane metadata (see below)
-  - [ ] TODO Identify targets for known ECUs
+  - [ ] TODO Identify updates for known ECUs
   - [ ] TODO Ignore updates for unrecognized ECUs
   - [ ] TODO Check metadata from the images repo
     - [x] Validate Uptane metadata (see below)
   - [x] TODO send UpdateAvailable event if updates are available
   - [x] Send NoUpdateAvailable event if no updates are available
-- [x] Download updates
-  - [ ] TODO Detect target hash mismatches
-  - [x] TODO Download and verify an update
+- [ ] Download updates
+  - [ ] TODO Identify ECU for each target
+    - [ ] TODO Reject targets which do not match a known ECU
+  - [x] TODO Download an update for a primary or secondary
     - [x] TODO Download an OSTree package
-    - [x] TODO Verify an OSTree package
     - [x] TODO Download a binary package
+  - [x] TODO Report download progress
+  - [x] TODO Verify a downloaded update for a primary or secondary
+    - [x] TODO Verify an OSTree package
     - [x] TODO Verify a binary package
   - [x] TODO Send DownloadTargetComplete event if download is successful
   - [ ] Send Error event if download is unsuccessful
@@ -88,16 +103,24 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] TODO Send AllDownloadsComplete after all downloads are finished
   - [x] Download with manual control (aktualizr_test.cc)
   - [x] Do not download automatically with manual control (aktualizr_test.cc)
-- [x] Install updates
+- [ ] Install updates
   - [ ] TODO Send metadata to secondary ECUs
-  - [ ] TODO Check if there are updates to install for the primary
-  - [ ] TODO Check if an update is already installed
-  - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
-  - [x] TODO Send InstallStarted event
-  - [ ] TODO Install an update on the primary
-  - [ ] TODO Store installation result
-  - [ ] TODO Send images to secondary ECUs
-  - [x] TODO Send InstallTargetComplete event
+  - [ ] TODO Identify ECU for each target
+    - [ ] TODO Reject targets which do not match a known ECU
+  - [ ] TODO Install updates on primary
+    - [ ] TODO Check if there are updates to install for the primary
+    - [ ] TODO Check if an update is already installed
+    - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
+    - [x] TODO Send InstallStarted event for primary
+    - [ ] TODO Install an update on the primary
+      - [ ] TODO Install an OSTree update on the primary
+      - [ ] TODO Install a binary update on the primary
+    - [ ] TODO Store installation result for primary
+    - [x] TODO Send InstallTargetComplete event for primary
+  - [ ] TODO Install updates on secondaries
+    - [x] TODO Send InstallStarted event for secondaries
+    - [ ] TODO Send images to secondary ECUs
+    - [x] TODO Send InstallTargetComplete event for secondaries
   - [x] TODO Send AllInstallsComplete event after all installations are finished
   - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
   - [x] Install with manual control (aktualizr_test.cc)
@@ -139,7 +162,10 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Abort update if any metadata has an invalid hardware ID (uptane_vector_tests.cc)
   - [x] Abort update if the director targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
 - [x] Generate and send manifest
-  - [x] Assemble manifest (uptane_test.cc)
+  - [x] Get manifest from primary (uptane_test.cc)
+  - [x] TODO Get primary installation result
+  - [x] Get manifest from secondaries (uptane_test.cc)
+  - [x] TODO Get secondary installation result
   - [x] Send manifest to the server (uptane_test.cc)
 - [x] Send an event report
   - [x] Generate a random UUID (utils_test.cc)
@@ -151,13 +177,6 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Abort if the OSTree sysroot is invalid (ostreemanager_test.cc)
   - [x] Parse a provided list of installed packages (ostreemanager_test.cc)
   - [x] Communicate with a remote OSTree server (ostreemanager_test.cc)
-- [x] Update secondaries (aktualizr_test.cc)
-  - [x] Discover secondaries over TCP-IP (ipsecondary_discovery_test.cc)
-  - [x] Support virtual secondaries for testing (uptane_secondary_test.cc)
-  - [x] Support virtual Uptane secondaries for testing (uptane_secondary_test.cc)
-  - [x] Install a fake package for testing (uptane_test.cc)
-  - [x] Add secondaries (uptane_test.cc)
-  - [x] TODO Supports OPC-UA (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 - [x] Store state in an SQL database
   - [x] Migrate forward through SQL schemas (sqlstorage_test.cc)
   - [x] Reject invalid SQL databases (sqlstorage_test.cc)
@@ -184,7 +203,9 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Convert Events to and from JSON (events_test.cc)
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
+  - [x] Install a fake package for testing (uptane_test.cc)
   - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
+  - [x] Update secondaries (aktualizr_test.cc)
 
 ## aktualizr-primary
 
