@@ -268,8 +268,12 @@ if (BUILD_SOTA_TOOLS)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
     # Handle a missing credentials.zip
-    add_test(NAME garage-deploy-missing-credentials
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-credentials $<TARGET_FILE:garage-deploy>
+    add_test(NAME garage-deploy-missing-fetch-credentials
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-fetch-credentials $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    add_test(NAME garage-deploy-missing-push-credentials
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-push-credentials $<TARGET_FILE:garage-deploy>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 endif (BUILD_SOTA_TOOLS)
