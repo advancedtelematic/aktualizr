@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 TEMP_DIR=$(mktemp -d)
 
