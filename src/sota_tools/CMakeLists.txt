@@ -251,6 +251,12 @@ if (BUILD_SOTA_TOOLS)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     set_tests_properties(garage-deploy-online-signing PROPERTIES PASS_REGULAR_EXPRESSION "Online signing with garage-deploy is currently unsupported")
 
+    add_test(NAME garage-deploy-offline-signing
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-offline-signing $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-offline-signing PROPERTIES PASS_REGULAR_EXPRESSION "Success")
+
+
     add_test(NAME garage-deploy-upload-failed
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-upload-failed $<TARGET_FILE:garage-deploy>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
