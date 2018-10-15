@@ -78,17 +78,12 @@ if(BUILD_OSTREE)
                        SOURCES aktualizr_secondary_discovery_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
-    add_aktualizr_test(NAME aktualizr_secondary_protocol
-                       SOURCES protocol_test.cc
-                       ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-    target_link_libraries(t_aktualizr_secondary_protocol aktualizr_secondary_static_lib aktualizr_static_lib)
-
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
     target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
 else(BUILD_OSTREE)
-    list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc protocol_test.cc uptane_test.cc)
+    list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc uptane_test.cc)
 endif(BUILD_OSTREE)
 
 # test running the executable with command line option --help
