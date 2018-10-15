@@ -115,6 +115,10 @@ if (NOT BUILD_SOTA_TOOLS)
         authenticate_test.cc
         ostree_hash_test.cc
         rate_controller_test.cc
+        ostree_dir_repo_test.cc
+        ostree_http_repo_test.cc
+        treehub_server_test.cc
+        deploy_test.cc
     )
 endif(NOT BUILD_SOTA_TOOLS)
 
