@@ -30,7 +30,7 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
   }
 
   RequestPool request_pool(push_server, max_curl_requests);
-  std::cout << "-----------------------------------------------------\n\n\n";
+
   // Add commit object to the queue
   request_pool.AddQuery(root_object);
 

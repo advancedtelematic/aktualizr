@@ -79,7 +79,7 @@ TEST(http_repo, bad_connection) {
 
   int result = system(
       (std::string("diff -r ") + (src_repo->root() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());
-  EXPECT_EQ(result, 0);
+  EXPECT_EQ(result, 0) << "Diff between source and destination repos is nonzero.";
 }
 
 TEST(http_repo, root) {

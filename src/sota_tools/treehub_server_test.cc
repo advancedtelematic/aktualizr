@@ -54,7 +54,7 @@ TEST(treehub_server, basic_auth) {
     auto response_json = Utils::parseJSON(response);
     EXPECT_EQ(response_json["Authorization"], "Basic bG9naW46cGFzc3dvcmQ=");
   } else {
-    FAIL();
+    FAIL() << "Failed to authenticate login/password with server";
   }
 }
 
