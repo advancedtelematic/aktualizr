@@ -133,6 +133,11 @@ if (BUILD_SOTA_TOOLS)
                         sota_tools_static_lib
                         ${Boost_LIBRARIES})
 
+    add_aktualizr_test(NAME ostree_dir_repo SOURCES ostree_dir_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME treehub_server SOURCES treehub_server_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+
     # Check the --help option works
     add_test(NAME option-help
         COMMAND garage-push --help)
@@ -141,16 +146,6 @@ if (BUILD_SOTA_TOOLS)
     add_test(NAME bad-option
         COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-push>
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-    # Detect that the thing we passed in to --repo is not a repository
-    add_test(NAME invalid-repo
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-invalid-repo $<TARGET_FILE:garage-push>
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-    # Detect a --repo that isn't in 'archive-z2' mode
-    add_test(NAME bare-mode-repo
-        COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bare-mode-repo $<TARGET_FILE:garage-push>
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
 
     # Detect that the ref we passed in to --ref is not present
     add_test(NAME missing-ref
@@ -227,10 +222,66 @@ if (BUILD_SOTA_TOOLS)
     # garage-deploy tests
     add_test(NAME garage-deploy-option-help
         COMMAND garage-deploy --help)
+    
+    add_test(NAME garage-deploy-option-version
+        COMMAND garage-deploy --version)
+    set_tests_properties(garage-deploy-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-deploy version is:")
 
     add_test(NAME garage-deploy-nonexistent-option
         COMMAND garage-deploy --test )
-    set_tests_properties(garage-deploy-nonexistent-option PROPERTIES WILL_FAIL TRUE)
+    set_tests_properties(garage-deploy-nonexistent-option PROPERTIES PASS_REGULAR_EXPRESSION "garage-deploy command line options:")
+
+    add_test(NAME garage-deploy-debug-level
+        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v 
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-debug-level PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled")
+
+    add_test(NAME garage-deploy-trace-level
+        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -h 3 --name 123 -v -v
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-trace-level PROPERTIES PASS_REGULAR_EXPRESSION "Trace level debugging enabled")
+
+    add_test(NAME garage-deploy-dry-run
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-dry-run $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-dry-run PROPERTIES PASS_REGULAR_EXPRESSION "Dry run. No objects uploaded.")
+
+    add_test(NAME garage-deploy-online-signing
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-online-signing $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-online-signing PROPERTIES PASS_REGULAR_EXPRESSION "Online signing with garage-deploy is currently unsupported")
+
+    add_test(NAME garage-deploy-offline-signing
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-offline-signing $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-offline-signing PROPERTIES PASS_REGULAR_EXPRESSION "Success")
+
+
+    add_test(NAME garage-deploy-upload-failed
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-upload-failed $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(garage-deploy-upload-failed PROPERTIES PASS_REGULAR_EXPRESSION "Upload to treehub failed")
+
+
+    # Invalid arguments result in a failure
+    add_test(NAME garage-deploy-bad-option
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Detect that the commit we passed in to --commit is not present
+    add_test(NAME garage-deploy-missing-commit
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-missing-commit $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    # Handle a missing credentials.zip
+    add_test(NAME garage-deploy-missing-fetch-credentials
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-fetch-credentials $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    add_test(NAME garage-deploy-missing-push-credentials
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-missing-push-credentials $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 endif (BUILD_SOTA_TOOLS)
 aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${GARAGE_DEPLOY_SRCS} ${SOTA_TOOLS_LIB_SRC} ${ALL_SOTA_TOOLS_HEADERS} ${TEST_SOURCES})
 

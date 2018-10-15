@@ -64,6 +64,7 @@ bool OSTreeHttpRepo::Get(const boost::filesystem::path &path) const {
   if (err == CURLE_HTTP_RETURNED_ERROR) {
     // http error (error code >= 400)
     // verbose mode will display the details
+    remove((root_ / path).c_str());
     return false;
   } else if (err != CURLE_OK) {
     // other unexpected error

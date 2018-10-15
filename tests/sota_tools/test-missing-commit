@@ -1,0 +1,21 @@
+#!/bin/bash
+set -eu
+
+TEMP_DIR=$(mktemp -d)
+
+PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+TREEHUB="{\
+  \"ostree\": {\
+    \"server\": \"http://localhost:$PORT/\"\
+  }\
+}"
+
+echo $TREEHUB > $TEMP_DIR/treehub.json
+./tests/sota_tools/treehub_deploy_server.py $PORT $TEMP_DIR &
+sleep 1
+
+TARGET="OSTree Commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe was not found in src repository"
+$1 --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -f $TEMP_DIR/treehub.json -p $TEMP_DIR/treehub.json --name testname -h hwids | grep -x "$TARGET"
+exit_code=$?
+kill %1
+exit $exit_code

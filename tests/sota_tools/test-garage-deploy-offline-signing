@@ -1,0 +1,28 @@
+#!/bin/bash
+set -uo pipefail
+
+TEMP_DIR=$(mktemp -d)
+
+PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+TREEHUB="{\
+  \"ostree\": {\
+    \"server\": \"http://localhost:$PORT/\"\
+  }\
+}"
+
+echo "#!/bin/bash" > $TEMP_DIR/garage-sign
+echo "mkdir -p ./tuf/aktualizr" >> $TEMP_DIR/garage-sign
+chmod +x $TEMP_DIR/garage-sign
+export PATH=$PATH:$TEMP_DIR
+
+echo $TREEHUB > $TEMP_DIR/treehub.json
+./tests/sota_tools/treehub_server.py $PORT &
+sleep 1
+$1 --commit 16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe -f $TEMP_DIR/treehub.json -p "./tests/sota_tools/auth_test_good_offline.zip" --name testname -h hwids
+exit_code=$?
+if [ -d "./tuf/aktualizr" ]; then
+  echo "garage-sign tuf repo still present!"
+  exit_code=1
+fi
+kill %1
+exit $exit_code
