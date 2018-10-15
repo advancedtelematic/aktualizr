@@ -6,6 +6,7 @@
 #include "ostree_http_repo.h"
 #include "ostree_ref.h"
 #include "test_utils.h"
+
 std::string port = "2443";
 TemporaryDirectory temp_dir;
 

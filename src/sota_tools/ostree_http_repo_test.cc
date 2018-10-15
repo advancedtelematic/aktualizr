@@ -3,7 +3,9 @@
 #include "deploy.h"
 #include "ostree_http_repo.h"
 #include "ostree_ref.h"
+#include "server_credentials.h"
 #include "test_utils.h"
+
 std::string port;
 
 TEST(http_repo, valid_repo) {

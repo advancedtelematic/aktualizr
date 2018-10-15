@@ -235,6 +235,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
+    return;
   }
   refcount_++;  // Because curl now has a reference to us
   request_start_time_ = std::chrono::steady_clock::now();

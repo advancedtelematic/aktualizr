@@ -113,12 +113,13 @@ set(ALL_SOTA_TOOLS_HEADERS
 if (NOT BUILD_SOTA_TOOLS)
     set (TEST_SOURCES
         authenticate_test.cc
-        ostree_hash_test.cc
-        rate_controller_test.cc
-        ostree_dir_repo_test.cc
-        ostree_http_repo_test.cc
-        treehub_server_test.cc
         deploy_test.cc
+        ostree_dir_repo_test.cc
+        ostree_hash_test.cc
+        ostree_http_repo_test.cc
+        ostree_object_test.cc
+        rate_controller_test.cc
+        treehub_server_test.cc
     )
 endif(NOT BUILD_SOTA_TOOLS)
 
@@ -141,6 +142,7 @@ if (BUILD_SOTA_TOOLS)
     add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
     add_aktualizr_test(NAME treehub_server SOURCES treehub_server_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
     add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME ostree_object SOURCES ostree_object_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
 
     # Check the --help option works
     add_test(NAME option-help

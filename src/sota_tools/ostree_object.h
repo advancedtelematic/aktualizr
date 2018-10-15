@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <curl/curl.h>
+#include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 
@@ -61,6 +62,10 @@ class OSTreeObject {
 
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
+  FRIEND_TEST(OstreeObject, Request);
+  FRIEND_TEST(OstreeObject, UploadDryRun);
+  FRIEND_TEST(OstreeObject, UploadFail);
+  FRIEND_TEST(OstreeObject, UploadSuccess);
   friend void intrusive_ptr_add_ref(OSTreeObject* /*h*/);
   friend void intrusive_ptr_release(OSTreeObject* /*h*/);
   friend std::ostream& operator<<(std::ostream& stream, const OSTreeObject& o);
