@@ -845,6 +845,8 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       data::OperationResult result(primary_update.filename(), outcome);
       storage->storeInstallationResult(result);
+      // TODO: distinguish this case from regular failure for local and remote
+      // event reporting
       report_queue->enqueue(
           std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), false));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
