@@ -70,6 +70,8 @@ class ReportQueue {
   void enqueue(std::unique_ptr<ReportEvent> event);
 
  private:
+  void flushQueue();
+
   const Config& config;
   std::shared_ptr<HttpInterface> http;
   std::thread thread_;
@@ -77,6 +79,7 @@ class ReportQueue {
   std::mutex thread_mutex_;
   std::mutex queue_mutex_;
   std::queue<std::unique_ptr<ReportEvent>> report_queue_;
+  Json::Value report_array{Json::arrayValue};
   bool shutdown_;
 };
 
