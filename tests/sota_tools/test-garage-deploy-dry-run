@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 trap 'kill %1' EXIT
 
 TEMP_DIR=$(mktemp -d)

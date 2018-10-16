@@ -55,7 +55,7 @@ TEST(http_repo, bad_connection) {
   TemporaryDirectory temp_dir;
   std::string sp = TestUtils::getFreePort();
 
-  TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, "3");
+  TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, "2");
   sleep(3);
 
   TreehubServer server;
