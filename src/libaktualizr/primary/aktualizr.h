@@ -66,12 +66,12 @@ class Aktualizr {
   void SendDeviceData();
 
   /**
-   * Fetch Uptane metadata.
+   * Fetch Uptane metadata and check for updates.
    * This collects a client manifest, PUTs it to the director, updates the
-   * Uptane metadata (including root and targets), and then cheks the metadata
+   * Uptane metadata (including root and targets), and then checks the metadata
    * for target updates.
    */
-  std::vector<Uptane::Target> FetchMetadata();
+  std::vector<Uptane::Target> CheckUpdates();
 
   /**
    * Download targets.

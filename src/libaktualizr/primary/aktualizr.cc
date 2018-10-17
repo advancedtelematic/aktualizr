@@ -116,7 +116,7 @@ void Aktualizr::UptaneCycle() {
   auto conn = SetSignalHandler(cb);
 
   // launch the cycle
-  FetchMetadata();
+  CheckUpdates();
 
   ev_handler.fut.wait();
   conn.disconnect();
@@ -143,7 +143,7 @@ void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_-
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
-std::vector<Uptane::Target> Aktualizr::FetchMetadata() { return uptane_client_->fetchMeta(); }
+std::vector<Uptane::Target> Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
 
 std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) { return uptane_client_->downloadImages(updates); }
 

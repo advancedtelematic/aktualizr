@@ -26,7 +26,7 @@ unsigned int pending_ecus;
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
-    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMetadata, Download, Install, CampaignCheck\n";
+    std::cout << "Available commands: Shutdown, SendDeviceData, CheckUpdates, Download, Install, CampaignCheck\n";
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
@@ -151,8 +151,8 @@ int main(int argc, char *argv[]) {
         break;
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
-      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta") {
-        updates = aktualizr.FetchMetadata();
+      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
+        updates = aktualizr.CheckUpdates();
         std::cout << updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
         aktualizr.Download(updates);

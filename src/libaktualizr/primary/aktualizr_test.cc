@@ -85,10 +85,10 @@ TEST(Aktualizr, FullNoUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  aktualizr.FetchMetadata();
+  aktualizr.CheckUpdates();
   // Fetch twice so that we can check for a second FetchMetaComplete and
   // guarantee that nothing unexpected happened after the first fetch.
-  aktualizr.FetchMetadata();
+  aktualizr.CheckUpdates();
 
   std::future_status status = future_FullNoUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
