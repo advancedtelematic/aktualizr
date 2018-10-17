@@ -87,6 +87,7 @@ class SotaUptaneClient {
   void addSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
+  std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
   void sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
@@ -99,7 +100,6 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
-  void waitAllInstallsComplete(std::vector<std::future<bool>> firmwareFutures);
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {

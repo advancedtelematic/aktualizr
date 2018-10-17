@@ -76,12 +76,10 @@ bool PartialVerificationSecondary::putRoot(const std::string &root, bool directo
   return false;
 }
 
-std::future<bool> PartialVerificationSecondary::sendFirmwareAsync(const std::shared_ptr<std::string> &data) {
+bool PartialVerificationSecondary::sendFirmware(const std::shared_ptr<std::string> &data) {
   (void)data;
-  sendEvent<event::InstallStarted>(getSerial());
-
   throw NotImplementedException();
-  return std::future<bool>{};
+  return false;
 }
 
 void PartialVerificationSecondary::storeKeys(const std::string &public_key, const std::string &private_key) {

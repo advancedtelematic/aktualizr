@@ -1,7 +1,6 @@
 #include "aktualizr_secondary.h"
 
 #include <sys/types.h>
-#include <future>
 #include <memory>
 
 #include "logging/logging.h"
@@ -26,8 +25,8 @@ class SecondaryAdapter : public Uptane::SecondaryInterface {
   bool putMetadata(const Uptane::RawMetaPack& meta_pack) override { return secondary.putMetadataResp(meta_pack); }
   int32_t getRootVersion(bool director) override { return secondary.getRootVersionResp(director); }
   bool putRoot(const std::string& root, bool director) override { return secondary.putRootResp(root, director); }
-  std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) override {
-    return std::async(std::launch::async, &AktualizrSecondary::sendFirmwareResp, &secondary, data);
+  bool sendFirmware(const std::shared_ptr<std::string>& data) override {
+    return secondary.AktualizrSecondary::sendFirmwareResp(data);
   }
 
  private:

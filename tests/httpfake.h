@@ -134,6 +134,16 @@ class HttpFake : public HttpInterface {
         devices_count++;
         EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
         return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+      } else if (url == "tst149/events") {
+        ++events_seen;
+        if (events_seen == 1) {
+          EXPECT_EQ(data[0]["eventType"]["id"], "ecu_installation_started");
+        } else if (events_seen == 2) {
+          EXPECT_EQ(data[0]["eventType"]["id"], "ecu_installation_completed");
+        } else {
+          EXPECT_EQ(0, 1);
+        }
+        return HttpResponse("", 200, CURLE_OK, "");
       } else if (url == "tst149/director/ecus") {
         ecus_count++;
         EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");

@@ -24,8 +24,7 @@ class OpcuaSecondary : public SecondaryInterface {
   Json::Value getManifest() override;
   bool putMetadata(const RawMetaPack& meta_pack) override;
 
-  std::future<bool> sendFirmwareAsync(const std::shared_ptr<std::string>& data) override;
-  bool sendFirmware(const std::shared_ptr<std::string>& data);
+  bool sendFirmware(const std::shared_ptr<std::string>& data) override;
 
   int getRootVersion(bool director) override;
   bool putRoot(const std::string& root, bool director) override;

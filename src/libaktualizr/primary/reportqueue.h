@@ -12,6 +12,7 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "logging/logging.h"
+#include "uptane/tuf.h"
 
 class ReportEvent {
  public:
@@ -24,14 +25,13 @@ class ReportEvent {
   Json::Value toJson();
 
  protected:
-  ReportEvent(std::string event_type, int event_version, const Json::Value& event_custom)
-      : id(Utils::randomUuid()),
-        type(std::move(event_type)),
-        version(event_version),
-        custom(event_custom),
-        timestamp(TimeStamp::Now()) {}
+  ReportEvent(std::string event_type, int event_version)
+      : id(Utils::randomUuid()), type(std::move(event_type)), version(event_version), timestamp(TimeStamp::Now()) {}
+
+  void setEcu(const Uptane::EcuSerial& ecu);
 };
 
+// old style event: should disappear
 class DownloadCompleteReport : public ReportEvent {
  public:
   DownloadCompleteReport(const std::string& director_target);
@@ -42,6 +42,26 @@ class CampaignAcceptedReport : public ReportEvent {
   CampaignAcceptedReport(const std::string& campaign_id);
 };
 
+class EcuDownloadStartedReport : public ReportEvent {
+ public:
+  EcuDownloadStartedReport(const Uptane::EcuSerial& ecu);
+};
+
+class EcuDownloadCompletedReport : public ReportEvent {
+ public:
+  EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success);
+};
+
+class EcuInstallationStartedReport : public ReportEvent {
+ public:
+  EcuInstallationStartedReport(const Uptane::EcuSerial& ecu);
+};
+
+class EcuInstallationCompletedReport : public ReportEvent {
+ public:
+  EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success);
+};
+
 class ReportQueue {
  public:
   ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
@@ -50,6 +70,8 @@ class ReportQueue {
   void enqueue(std::unique_ptr<ReportEvent> event);
 
  private:
+  void flushQueue();
+
   const Config& config;
   std::shared_ptr<HttpInterface> http;
   std::thread thread_;
@@ -57,6 +79,7 @@ class ReportQueue {
   std::mutex thread_mutex_;
   std::mutex queue_mutex_;
   std::queue<std::unique_ptr<ReportEvent>> report_queue_;
+  Json::Value report_array{Json::arrayValue};
   bool shutdown_;
 };
 

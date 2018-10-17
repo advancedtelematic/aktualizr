@@ -54,14 +54,9 @@ bool IpUptaneSecondary::putMetadata(const RawMetaPack& meta_pack) {
   return r->result == AKInstallationResult_success;
 }
 
-std::future<bool> IpUptaneSecondary::sendFirmwareAsync(const std::shared_ptr<std::string>& data) {
-  return std::async(std::launch::async, &IpUptaneSecondary::sendFirmware, this, data);
-}
-
 bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
   std::lock_guard<std::mutex> l(install_mutex);
   LOG_INFO << "Sending firmware to the secondary";
-  sendEvent<event::InstallStarted>(getSerial());
   Asn1Message::Ptr req(Asn1Message::Empty());
   req->present(AKIpUptaneMes_PR_sendFirmwareReq);
 
@@ -71,12 +66,10 @@ bool IpUptaneSecondary::sendFirmware(const std::shared_ptr<std::string>& data) {
 
   if (resp->present() != AKIpUptaneMes_PR_sendFirmwareResp) {
     LOG_ERROR << "Failed to get response to sending firmware to secondary";
-    sendEvent<event::InstallTargetComplete>(getSerial(), false);
     return false;
   }
 
   auto r = resp->sendFirmwareResp();
-  sendEvent<event::InstallTargetComplete>(getSerial(), true);
   return r->result == AKInstallationResult_success;
 }
 

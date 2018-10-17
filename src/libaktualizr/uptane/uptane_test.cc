@@ -378,7 +378,7 @@ TEST(Uptane, FsToSqlFull) {
   EcuSerials serials;
   fs_storage.loadEcuSerials(&serials);
 
-  bool ecu_registered = fs_storage.loadEcuRegistered() ? true : false;
+  bool ecu_registered = fs_storage.loadEcuRegistered();
 
   std::vector<Uptane::Target> installed_versions;
   fs_storage.loadInstalledVersions(&installed_versions);
@@ -451,7 +451,7 @@ TEST(Uptane, FsToSqlFull) {
   EcuSerials sql_serials;
   sql_storage->loadEcuSerials(&sql_serials);
 
-  bool sql_ecu_registered = sql_storage->loadEcuRegistered() ? true : false;
+  bool sql_ecu_registered = sql_storage->loadEcuRegistered();
 
   std::vector<Uptane::Target> sql_installed_versions;
   sql_storage->loadInstalledVersions(&sql_installed_versions);
