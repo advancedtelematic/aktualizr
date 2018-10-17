@@ -46,51 +46,45 @@ class Aktualizr {
   void Shutdown();
 
   /**
-   * Asynchronously perform a check for campaigns.
+   * Check for campaigns.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
-  void CampaignCheck();
+  std::vector<campaign::Campaign> CampaignCheck();
 
   /**
-   * Asynchronously accept a campaign for the current device
+   * Accept a campaign for the current device
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
   void CampaignAccept(const std::string& campaign_id);
 
   /**
-   * Asynchronously send local device data to the server.
+   * Send local device data to the server.
    * This includes network status, installed packages, hardware etc.
    */
   void SendDeviceData();
 
   /**
-   * Asynchronously fetch Uptane metadata.
-   * This collects a client manifest, PUTs it to the director, then updates
-   * the Uptane metadata, including root and targets.
+   * Fetch Uptane metadata.
+   * This collects a client manifest, PUTs it to the director, updates the
+   * Uptane metadata (including root and targets), and then cheks the metadata
+   * for target updates.
    */
-  void FetchMetadata();
+  std::vector<Uptane::Target> FetchMetadata();
 
   /**
-   * Asynchronously load already-fetched Uptane metadata from disk.
-   * This is only needed when the metadata fetch and downloads/installation are
-   * in separate aktualizr runs.
+   * Download targets.
    */
-  void CheckUpdates();
+  std::pair<bool, std::vector<Uptane::Target>> Download(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Asynchronously download targets.
-   */
-  void Download(const std::vector<Uptane::Target>& updates);
-
-  /**
-   * Asynchronously install targets.
+   * Install targets.
    */
   void Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Synchronously run an uptane cycle.
+   * Run an uptane cycle.
    *
    * Behaviour depends on the configured running mode (full cycle, check and
    * download or check and install)

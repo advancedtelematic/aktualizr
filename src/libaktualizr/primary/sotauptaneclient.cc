@@ -666,7 +666,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+std::pair<bool, std::vector<Uptane::Target>> SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
@@ -678,7 +678,7 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
       sendEvent<event::Error>("Target hash mismatch.");
-      return false;
+      return {false, downloaded_targets};
     }
     download_futures.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
   }
@@ -696,13 +696,13 @@ bool SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
       sendEvent<event::Error>("Partial download");
-      return false;
+      return {false, downloaded_targets};
     }
   } else {
     sendEvent<event::NothingToDownload>();
     LOG_INFO << "No new updates to download.";
   }
-  return true;
+  return {true, downloaded_targets};
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {
@@ -795,15 +795,18 @@ void SotaUptaneClient::sendDeviceData() {
   sendEvent<event::SendDeviceDataComplete>();
 }
 
-void SotaUptaneClient::fetchMeta() {
+std::vector<Uptane::Target> SotaUptaneClient::fetchMeta() {
+  std::vector<Uptane::Target> updates;
   if (updateMeta()) {
     sendEvent<event::FetchMetaComplete>();
+    updates = checkUpdates();
   } else {
     sendEvent<event::Error>("Could not update metadata.");
   }
+  return updates;
 }
 
-void SotaUptaneClient::checkUpdates() {
+std::vector<Uptane::Target> SotaUptaneClient::checkUpdates() {
   AssembleManifest();  // populates list of connected devices and installed images
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
@@ -817,6 +820,7 @@ void SotaUptaneClient::checkUpdates() {
       LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }
+  return updates;
 }
 
 void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
@@ -859,7 +863,7 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
   sendImagesToEcus(updates);
 }
 
-void SotaUptaneClient::campaignCheck() {
+std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
   auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
@@ -868,7 +872,8 @@ void SotaUptaneClient::campaignCheck() {
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
-  sendEvent<event::CampaignCheckComplete>(std::move(campaigns));
+  sendEvent<event::CampaignCheckComplete>(campaigns);
+  return campaigns;
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {

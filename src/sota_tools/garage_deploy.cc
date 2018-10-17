@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
     }
   } catch (OSTreeCommitParseError &e) {
     LOG_FATAL << e.what();
-    return EXIT_FAILURE;  // TODO: tests
+    return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }

@@ -63,9 +63,7 @@ void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent
 
   RunningMode running_mode = aktualizr.config_.uptane.running_mode;
 
-  if (event->variant == "FetchMetaComplete") {
-    aktualizr.CheckUpdates();
-  } else if (event->variant == "NoUpdateAvailable") {
+  if (event->variant == "NoUpdateAvailable") {
     breakLoop();
   } else if (event->variant == "UpdateAvailable") {
     auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
@@ -139,17 +137,15 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
 
 void Aktualizr::Shutdown() { shutdown_ = true; }
 
-void Aktualizr::CampaignCheck() { uptane_client_->campaignCheck(); }
+std::vector<campaign::Campaign> Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
 
 void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
-void Aktualizr::FetchMetadata() { uptane_client_->fetchMeta(); }
+std::vector<Uptane::Target> Aktualizr::FetchMetadata() { return uptane_client_->fetchMeta(); }
 
-void Aktualizr::CheckUpdates() { uptane_client_->checkUpdates(); }
-
-void Aktualizr::Download(const std::vector<Uptane::Target> &updates) { uptane_client_->downloadImages(updates); }
+std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) { return uptane_client_->downloadImages(updates); }
 
 void Aktualizr::Install(const std::vector<Uptane::Target> &updates) { uptane_client_->uptaneInstall(updates); }
 

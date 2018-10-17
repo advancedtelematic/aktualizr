@@ -12,6 +12,7 @@
 #include "json/json.h"
 
 #include "bootloader/bootloader.h"
+#include "campaign/campaign.h"
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
@@ -41,14 +42,14 @@ class SotaUptaneClient {
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  bool downloadImages(const std::vector<Uptane::Target> &targets);
+  std::pair<bool, std::vector<Uptane::Target>> downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
-  void fetchMeta();
+  std::vector<Uptane::Target> fetchMeta();
   void putManifest();
-  void checkUpdates();
+  std::vector<Uptane::Target> checkUpdates();
   void uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
-  void campaignCheck();
+  std::vector<campaign::Campaign> campaignCheck();
   void campaignAccept(const std::string &campaign_id);
 
  private:
