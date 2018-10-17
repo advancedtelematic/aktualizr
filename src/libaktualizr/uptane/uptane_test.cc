@@ -525,7 +525,7 @@ TEST(Uptane, InstalledVersionImport) {
   EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
-TEST(Uptane, SaveVersion) {
+TEST(Uptane, SaveAndLoadVersion) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
@@ -549,27 +549,7 @@ TEST(Uptane, SaveVersion) {
   EXPECT_NE(f, installed_versions.end());
   EXPECT_EQ(f->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(f->length(), 123);
-}
-
-TEST(Uptane, LoadVersion) {
-  TemporaryDirectory temp_dir;
-  Config config;
-  config.storage.path = temp_dir.Path();
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
-  target_json["length"] = 0;
-
-  Uptane::Target t("target_name", target_json);
-  storage->saveInstalledVersion(t);
-
-  std::vector<Uptane::Target> versions;
-  storage->loadInstalledVersions(&versions);
-  EXPECT_EQ(t, versions[0]);
+  EXPECT_EQ(*f, t);
 }
 
 TEST(Uptane, kRejectAllTest) {
