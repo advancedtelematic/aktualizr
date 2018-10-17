@@ -44,6 +44,8 @@ class SotaUptaneClient {
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
+  void pause() { uptane_fetcher->setPause(true); }
+  void resume() { uptane_fetcher->setPause(false); }
   void sendDeviceData();
   UpdateCheckResult fetchMeta();
   bool putManifest();
@@ -93,6 +95,7 @@ class SotaUptaneClient {
   std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
+
   bool putManifestSimple();
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
@@ -129,7 +132,6 @@ class SotaUptaneClient {
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
   Uptane::Exception last_exception{"", ""};
-
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
 };

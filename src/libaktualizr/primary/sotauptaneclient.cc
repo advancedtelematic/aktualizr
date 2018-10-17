@@ -701,6 +701,7 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
                 << " were successfully downloaded. Report not sent.";
       result = DownloadResult(downloaded_targets, DownloadStatus::kPartialSuccess, "");
     }
+
   } else {
     LOG_INFO << "No new updates to download.";
     result = DownloadResult({}, DownloadStatus::kNothingToDownload, "");

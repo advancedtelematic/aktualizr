@@ -44,12 +44,26 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
       std::cout << "\n";
     }
   }
-
   if (ds->events_channel) {
     auto event = std::make_shared<event::DownloadProgressReport>(ds->target, "Downloading", calculated);
     (*(ds->events_channel))(event);
   }
+  if (ds->fetcher->isPaused()) {
+    return written_size + 1;
+  }
   return written_size;
+}
+
+void Fetcher::setPause(bool pause) {
+  if (pause_ == pause) {
+    return;
+  }
+  if (pause) {
+    pause_mutex_.lock();
+  } else {
+    pause_mutex_.unlock();
+  }
+  pause_ = pause;
 }
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
@@ -57,24 +71,33 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
   try {
     if (!target.IsOstree()) {
       DownloadMetaStruct ds(target, events_channel);
+      ds.fetcher = this;
       std::unique_ptr<StorageTargetWHandle> fhandle =
           storage->allocateTargetFile(false, target.filename(), static_cast<size_t>(target.length()));
       ds.fhandle = fhandle.get();
-      ds.downloaded_length = 0;
+      ds.downloaded_length = fhandle->getWrittenSize();
 
       if (target.hashes().empty()) {
         throw Exception("image", "No hash defined for the target");
       }
-
-      HttpResponse response =
-          http->download(config.uptane.repo_server + "/targets/" + target.filename(), DownloadHandler, &ds);
-      if (!response.isOk()) {
-        fhandle->wabort();
-        if (response.curl_code == CURLE_WRITE_ERROR) {
-          throw OversizedTarget(target.filename());
+      bool retry = false;
+      do {
+        retry = false;
+        HttpResponse response = http->download(config.uptane.repo_server + "/targets/" + target.filename(),
+                                               DownloadHandler, &ds, ds.downloaded_length);
+        if (!response.isOk() && !pause_) {
+          fhandle->wabort();
+          if (response.curl_code == CURLE_WRITE_ERROR) {
+            throw OversizedTarget(target.filename());
+          }
+          throw Exception("image", "Could not download file, error: " + response.error_message);
         }
-        throw Exception("image", "Could not download file, error: " + response.error_message);
-      }
+        if (pause_) {
+          std::lock_guard<std::mutex> lock(pause_mutex_);
+          LOG_INFO << "Download restored";
+          retry = true;
+        }
+      } while (retry);
 
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
         throw TargetHashMismatch(target.filename());

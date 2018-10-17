@@ -92,7 +92,17 @@ class Aktualizr {
   InstallResult Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Run an Uptane cycle.
+   * Pause download process.
+   */
+  void Pause();
+
+  /**
+   * Resume download process.
+   */
+  void Resume();
+
+  /**
+   * Synchronously run an uptane cycle.
    *
    * Behaviour depends on the configured running mode (full cycle, check and
    * download or check and install)

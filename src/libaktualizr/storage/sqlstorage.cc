@@ -939,7 +939,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       : db_(storage.dbPath()),
         filename_(std::move(filename)),
         expected_size_(size),
-        written_size_(0),
         closed_(false),
         blob_(nullptr),
         row_id_(0) {
@@ -952,18 +951,31 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     if (!db_.beginTransaction()) {
       throw exc;
     }
-    auto statement = db_.prepareStatement<std::string, SQLZeroBlob>(
-        "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
-        SQLZeroBlob{expected_size_});
 
-    if (statement.step() != SQLITE_DONE) {
-      LOG_ERROR << "Statement step failure: " << db_.errmsg();
-      throw exc;
+    auto statement =
+        db_.prepareStatement<std::string>("SELECT rowid, real_size FROM target_images WHERE filename = ?;", filename_);
+
+    int result = statement.step();
+
+    if (result == SQLITE_ROW) {
+      auto real_size = static_cast<size_t>(statement.get_result_col_int(1));
+      if (real_size < expected_size_) {
+        written_size_ = real_size;
+      }
+      row_id_ = statement.get_result_col_int(0);
+    } else {
+      statement = db_.prepareStatement<std::string, SQLZeroBlob>(
+          "INSERT OR REPLACE INTO target_images (filename, image_data) VALUES (?, ?);", filename_,
+          SQLZeroBlob{expected_size_});
+
+      if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Statement step failure: " << db_.errmsg();
+        throw exc;
+      }
+
+      row_id_ = sqlite3_last_insert_rowid(db_.get());
     }
     db_.commitTransaction();
-
-    // open the created blob for writing
-    row_id_ = sqlite3_last_insert_rowid(db_.get());
   }
 
   ~SQLTargetWHandle() override {
@@ -989,6 +1001,16 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       return 0;
     }
     written_size_ += size;
+
+    auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
+                                                            static_cast<int64_t>(written_size_), row_id_);
+
+    int err = statement.step();
+    if (err != SQLITE_DONE) {
+      LOG_ERROR << "Could not save size in db";
+      throw exc;
+    }
+
     wcommit();
     return size;
   }
@@ -1015,7 +1037,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   SQLite3Guard db_;
   const std::string filename_;
   size_t expected_size_;
-  size_t written_size_;
   bool closed_;
   sqlite3_blob* blob_;
   sqlite3_int64 row_id_;
@@ -1043,7 +1064,8 @@ class SQLTargetRHandle : public StorageTargetRHandle {
       throw exc;
     }
 
-    auto statement = db_.prepareStatement<std::string>("SELECT rowid FROM target_images WHERE filename = ?;", filename);
+    auto statement =
+        db_.prepareStatement<std::string>("SELECT rowid, real_size FROM target_images WHERE filename = ?;", filename);
 
     int err = statement.step();
     if (err == SQLITE_DONE) {
@@ -1056,12 +1078,17 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     }
 
     auto row_id = statement.get_result_col_int(0);
-
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id, 0, &blob_) != SQLITE_OK) {
       LOG_ERROR << "Could not open blob: " << db_.errmsg();
       throw exc;
     }
     size_ = static_cast<size_t>(sqlite3_blob_bytes(blob_));
+
+    auto complete_bytes = statement.get_result_col_int(1);
+    if (complete_bytes != static_cast<unsigned int>(size_)) {
+      LOG_ERROR << "Image " << filename << " is not complete\n";
+      throw exc;
+    }
 
     if (!db_.commitTransaction()) {
       throw exc;

@@ -56,6 +56,16 @@ class UpdateCheckComplete : public BaseEvent {
   UpdateCheckResult result;
 };
 
+class DownloadPaused : public BaseEvent {
+ public:
+  DownloadPaused() { variant = "DownloadPaused"; }
+};
+
+class DownloadResumed : public BaseEvent {
+ public:
+  DownloadResumed() { variant = "DownloadResumed"; }
+};
+
 /**
  * A report for a download in progress.
  */

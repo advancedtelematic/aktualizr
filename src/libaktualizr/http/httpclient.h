@@ -32,7 +32,7 @@ class HttpClient : public HttpInterface {
   HttpResponse post(const std::string &url, const Json::Value &data) override;
   HttpResponse put(const std::string &url, const Json::Value &data) override;
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) override;
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override;
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
   long http_code{};  // NOLINT

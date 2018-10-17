@@ -151,12 +151,20 @@ int main(int argc, char *argv[]) {
         updates = result.updates;
         std::cout << updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
-        aktualizr.Download(updates);
+        std::thread([&aktualizr] {
+          aktualizr.Download(updates);
+          std::cout << "API Download finished\n";
+        })
+            .detach();
       } else if (buffer == "install" || buffer == "uptaneinstall") {
         aktualizr.Install(updates);
         updates.clear();
       } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
+      } else if (buffer == "pause") {
+        aktualizr.Pause();
+      } else if (buffer == "resume") {
+        aktualizr.Resume();
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }

@@ -33,7 +33,7 @@ TEST(GetTest, download_size_limit) {
   std::string path = "/large_file";
   HttpResponse resp = http.get(server + path, 1024);
   std::cout << "RESP SIZE " << resp.body.length() << std::endl;
-  EXPECT_EQ(resp.curl_code, CURLE_WRITE_ERROR);
+  EXPECT_EQ(resp.curl_code, CURLE_FILESIZE_EXCEEDED);
 }
 
 TEST(GetTest, download_speed_limit) {

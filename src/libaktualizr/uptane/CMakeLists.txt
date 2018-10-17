@@ -68,4 +68,6 @@ add_aktualizr_test(NAME uptane_serial SOURCES uptane_serial_test.cc ARGS ${PROJE
 
 add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc PROJECT_WORKING_DIRECTORY)
+
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h ${TEST_SOURCES})
