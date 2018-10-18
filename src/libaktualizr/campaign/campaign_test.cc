@@ -14,6 +14,7 @@ TEST(campaign, Campaigns_from_json) {
 
   EXPECT_EQ(campaigns.at(0).name, "campaign1");
   EXPECT_EQ(campaigns.at(0).id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+  EXPECT_EQ(campaigns.at(0).size, 62470);
   EXPECT_TRUE(campaigns.at(0).autoAccept);
   EXPECT_EQ(campaigns.at(0).description, "this is my message to show on the device");
   EXPECT_EQ(campaigns.at(0).estInstallationDuration, 10);
