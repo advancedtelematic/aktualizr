@@ -630,22 +630,22 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   if (ecus_count != nullptr) {
     *ecus_count = 0;
   }
-  for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
+  for (const Uptane::Target &target : targets) {
     bool is_new = false;
-    for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
-      Uptane::HardwareIdentifier hw_id = ecus_it->second;
+    for (const auto &ecu : target.ecus()) {
+      Uptane::EcuSerial ecu_serial = ecu.first;
+      Uptane::HardwareIdentifier hw_id = ecu.second;
 
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
-        last_exception = Uptane::BadEcuId(targets_it->filename());
+        last_exception = Uptane::BadEcuId(target.filename());
         return false;
       }
 
       if (hwid_it->second != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
-        last_exception = Uptane::BadHardwareId(targets_it->filename());
+        last_exception = Uptane::BadHardwareId(target.filename());
         return false;
       }
 
@@ -654,7 +654,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
         break;
       }
-      if (images_it->second != targets_it->filename()) {
+      if (images_it->second != target.filename()) {
         is_new = true;
         if (ecus_count != nullptr) {
           (*ecus_count)++;
@@ -663,7 +663,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       // no updates for this image => continue
     }
     if (is_new) {
-      new_targets->push_back(*targets_it);
+      new_targets->push_back(target);
     }
   }
   return true;

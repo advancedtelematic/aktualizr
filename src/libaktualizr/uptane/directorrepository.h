@@ -5,7 +5,7 @@
 
 namespace Uptane {
 
-/* Director repository incapsulates state of metadata verification process. Subsequent verificaton steps rely on
+/* Director repository encapsulates state of metadata verification process. Subsequent verificaton steps rely on
  * previous ones.
  */
 class DirectorRepository : public RepositoryCommon {
@@ -14,8 +14,8 @@ class DirectorRepository : public RepositoryCommon {
   void resetMeta();
 
   bool verifyTargets(const std::string& targets_raw);
-  std::vector<Target>& getTargets() { return targets.targets; }
-  bool targetsExpired() { return targets.isExpired(TimeStamp::Now()); }
+  const std::vector<Target>& getTargets() const { return targets.targets; }
+  bool targetsExpired() const { return targets.isExpired(TimeStamp::Now()); }
 
   Exception getLastException() const { return last_exception; }
 
