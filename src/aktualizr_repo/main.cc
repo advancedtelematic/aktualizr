@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
     ("hwid", po::value<std::string>(), "target hardware identifier")
     ("serial", po::value<std::string>(), "target ECU serial")
     ("expires", po::value<std::string>(), "expiration time")
+    ("correlationid", po::value<std::string>()->default_value(""), "correlation id")
     ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type");
   // clang-format on
 
@@ -44,7 +45,11 @@ int main(int argc, char **argv) {
       if (vm.count("expires") != 0) {
         expiration_time = vm["expires"].as<std::string>();
       }
-      Repo repo(vm["path"].as<boost::filesystem::path>(), expiration_time);
+      std::string correlation_id;
+      if (vm.count("correlationid") != 0) {
+        correlation_id = vm["correlationid"].as<std::string>();
+      }
+      Repo repo(vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
       std::string command = vm["command"].as<std::string>();
       if (command == "generate") {
         std::string key_type_arg = vm["keytype"].as<std::string>();

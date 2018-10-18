@@ -1,9 +1,12 @@
-#include "repo.h"
 #include <ctime>
 #include <regex>
 #include "crypto/crypto.h"
+#include "logging/logging.h"
 
-Repo::Repo(boost::filesystem::path path, const std::string &expires) : path_(std::move(path)) {
+#include "repo.h"
+
+Repo::Repo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
+    : path_(std::move(path)), correlation_id_(std::move(correlation_id)) {
   expiration_time_ = getExpirationTime(expires);
 }
 
@@ -96,6 +99,10 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
+  LOG_ERROR << "repo: " << repo_type;
+  if (repo_type == "director" && correlation_id_ != "") {
+    targets["custom"]["correlationId"] = correlation_id_;
+  }
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(repo_type, targets));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 
@@ -142,8 +149,10 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
 
   boost::filesystem::path targets_path = repo_dir / "targets";
   boost::filesystem::create_directories(targets_path);
-  boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
-                               boost::filesystem::copy_option::overwrite_if_exists);
+  if (image_path != targets_path / image_path.filename()) {
+    boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
+                                 boost::filesystem::copy_option::overwrite_if_exists);
+  }
   std::string image = Utils::readFile(image_path);
 
   Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];

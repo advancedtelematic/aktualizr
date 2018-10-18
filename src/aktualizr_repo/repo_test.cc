@@ -14,7 +14,7 @@ KeyType key_type = KeyType::kUnknown;
 
 TEST(aktualizr_repo, generate_repo) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "");
+  Repo repo(temp_dir.Path(), "", "correlation");
   repo.generateRepo(key_type);
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/root.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/targets.json"));
@@ -33,11 +33,12 @@ TEST(aktualizr_repo, generate_repo) {
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 0);
   Json::Value director_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 0);
+  EXPECT_EQ(director_targets["signed"]["custom"]["correlationId"], "correlation");
 }
 
 TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "");
+  Repo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   repo.addImage(temp_dir.Path() / "repo/director/manifest");
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
@@ -48,7 +49,7 @@ TEST(aktualizr_repo, add_image) {
 
 TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "");
+  Repo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   repo.addImage(temp_dir.Path() / "repo/director/manifest");
   repo.addTarget("manifest", "test-hw", "test-serial");

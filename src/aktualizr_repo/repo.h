@@ -7,7 +7,7 @@
 
 class Repo {
  public:
-  Repo(boost::filesystem::path path, const std::string &expires);
+  Repo(boost::filesystem::path path, const std::string &expires, std::string correlation_id);
   void generateRepo(KeyType key_type = KeyType::kRSA2048);
   void addImage(const boost::filesystem::path &image_path);
   void addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial);
@@ -21,6 +21,7 @@ class Repo {
 
   PublicKey GetPublicKey(const std::string &repo_type) const;
   boost::filesystem::path path_;
+  std::string correlation_id_;
   std::string expiration_time_;
 };
 
