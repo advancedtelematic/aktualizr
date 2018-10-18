@@ -139,13 +139,15 @@ void Aktualizr::Shutdown() { shutdown_ = true; }
 
 std::vector<campaign::Campaign> Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
 
-void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
+bool Aktualizr::CampaignAccept(const std::string &campaign_id) { return uptane_client_->campaignAccept(campaign_id); }
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
 std::vector<Uptane::Target> Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
 
-std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) { return uptane_client_->downloadImages(updates); }
+std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
+  return uptane_client_->downloadImages(updates);
+}
 
 void Aktualizr::Install(const std::vector<Uptane::Target> &updates) { uptane_client_->uptaneInstall(updates); }
 

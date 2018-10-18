@@ -666,7 +666,8 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-std::pair<bool, std::vector<Uptane::Target>> SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+std::pair<bool, std::vector<Uptane::Target>> SotaUptaneClient::downloadImages(
+    const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
@@ -792,7 +793,6 @@ void SotaUptaneClient::sendDeviceData() {
   reportInstalledPackages();
   reportNetworkInfo();
   putManifestSimple();
-  sendEvent<event::SendDeviceDataComplete>();
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::fetchMeta() {
@@ -872,13 +872,11 @@ std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
-  sendEvent<event::CampaignCheckComplete>(campaigns);
   return campaigns;
 }
 
-void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
-  report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
-  sendEvent<event::CampaignAcceptComplete>();
+bool SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
+  return report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id)).get();
 }
 
 void SotaUptaneClient::sendDownloadReport() {

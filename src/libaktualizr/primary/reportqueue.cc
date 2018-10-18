@@ -32,28 +32,40 @@ void ReportQueue::run() {
   }
 }
 
-void ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
+std::future<bool> ReportQueue::enqueue(std::unique_ptr<ReportEvent> event) {
+  event->promise = std_::make_unique<std::promise<bool>>();
+  auto report_future = event->promise->get_future();
   {
     std::lock_guard<std::mutex> queue_lock(queue_mutex_);
-    report_queue_.push(std::move(event));
+    report_queue_.emplace_back(std::unique_ptr<ReportEvent>(std::move(event)));
   }
   cv_.notify_all();
+  return report_future;
 }
 
 void ReportQueue::flushQueue() {
-  if (!report_queue_.empty()) {
-    std::lock_guard<std::mutex> queue_lock(queue_mutex_);
-    while (!report_queue_.empty()) {
-      report_array.append(report_queue_.front()->toJson());
-      report_queue_.pop();
-    }
+  std::lock_guard<std::mutex> queue_lock(queue_mutex_);
+  Json::Value report_array(Json::arrayValue);
+  for (const auto& item : report_queue_) {
+    report_array.append(item->toJson());
   }
+
   if (report_array.size() > 0) {
     HttpResponse response = http->post(config.tls.server + "/events", report_array);
     // 404 implies the server does not support this feature. Nothing we can
     // do, just move along.
     if (response.isOk() || response.http_status_code == 404) {
-      report_array = Json::arrayValue;
+      for (const auto& item : report_queue_) {
+        item->promise->set_value(true);
+      }
+      report_queue_.clear();
+    } else {
+      if (report_queue_.size() > 20) {  // report_queue_ shouldn't grow infinitely
+        for (const auto& item : report_queue_) {
+          item->promise->set_value(false);
+        }
+        report_queue_.clear();
+      }
     }
   }
 }

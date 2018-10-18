@@ -2,6 +2,7 @@
 #define REPORTQUEUE_H_
 
 #include <condition_variable>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -21,6 +22,7 @@ class ReportEvent {
   int version;
   Json::Value custom;
   TimeStamp timestamp;
+  std::unique_ptr<std::promise<bool>> promise;
 
   Json::Value toJson();
 
@@ -67,7 +69,7 @@ class ReportQueue {
   ReportQueue(const Config& config_in, std::shared_ptr<HttpInterface> http_client);
   ~ReportQueue();
   void run();
-  void enqueue(std::unique_ptr<ReportEvent> event);
+  std::future<bool> enqueue(std::unique_ptr<ReportEvent> event);
 
  private:
   void flushQueue();
@@ -78,8 +80,7 @@ class ReportQueue {
   std::condition_variable cv_;
   std::mutex thread_mutex_;
   std::mutex queue_mutex_;
-  std::queue<std::unique_ptr<ReportEvent>> report_queue_;
-  Json::Value report_array{Json::arrayValue};
+  std::vector<std::unique_ptr<ReportEvent>> report_queue_;
   bool shutdown_;
 };
 
