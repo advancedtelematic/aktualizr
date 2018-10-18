@@ -15,6 +15,7 @@ class DirectorRepository : public RepositoryCommon {
 
   bool verifyTargets(const std::string& targets_raw);
   const std::vector<Target>& getTargets() const { return targets.targets; }
+  const std::string& getCorrelationId() const { return targets.correlation_id(); }
   bool targetsExpired() const { return targets.isExpired(TimeStamp::Now()); }
 
   Exception getLastException() const { return last_exception; }

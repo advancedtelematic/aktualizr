@@ -714,10 +714,10 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // TODO: support downloading encrypted targets from director
   // TODO: check if the file is already there before downloading
 
+  const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ecus that are touched by this target
   for (const auto &ecu : target.ecus()) {
-    // TODO: correlation id
-    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, ""));
+    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
   bool success = uptane_fetcher->fetchVerifyTarget(target);
@@ -725,8 +725,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // send this asynchronously before `sendEvent`, so that the report timestamp
   // would not be delayed by callbacks on events
   for (const auto &ecu : target.ecus()) {
-    // TODO: correlation id
-    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, "", success));
+    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, correlation_id, success));
   }
 
   sendEvent<event::DownloadTargetComplete>(target, success);
@@ -834,13 +833,14 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
 
+  const std::string &correlation_id = director_repo.getCorrelationId();
   //   7 - send images to ECUs (deploy for OSTree)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update
     const Uptane::Target &primary_update = primary_updates[0];
 
-    // TODO: correlation id
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial(), ""));
+    report_queue->enqueue(
+        std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial(), correlation_id));
     sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
 
     data::OperationResult status;
@@ -849,9 +849,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
       status = PackageInstallSetResult(primary_update);
-      // TODO: correlation id
-      report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), "", true));
+      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(),
+                                                                              correlation_id, true));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
@@ -859,9 +858,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       storage->storeInstallationResult(status);
       // TODO: distinguish this case from regular failure for local and remote
       // event reporting
-      //TODO: correlation id
-      report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), "", false));
+      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(),
+                                                                              correlation_id, false));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     result.reports.emplace(result.reports.begin(), primary_update, uptane_manifest.getPrimaryEcuSerial(), status);
@@ -1051,12 +1049,12 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
 std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
                                                       const std::shared_ptr<std::string> &data) {
   auto f = [this, &secondary, data]() {
+    const std::string &correlation_id = director_repo.getCorrelationId();
     sendEvent<event::InstallStarted>(secondary.getSerial());
-    // TODO: correlation id
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), ""));
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
     bool ret = secondary.sendFirmware(data);
-    // TODO: correlation id
-    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), "", ret));
+    report_queue->enqueue(
+        std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, ret));
     sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
     return ret;

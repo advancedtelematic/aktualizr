@@ -193,6 +193,12 @@ void Uptane::Targets::init(const Json::Value &json) {
     Target t(t_it.key().asString(), *t_it);
     targets.push_back(t);
   }
+
+  if (json["signed"]["custom"].isObject()) {
+    correlation_id_ = json["signed"]["custom"]["correlationId"].asString();
+  } else {
+    correlation_id_ = "";
+  }
 }
 
 Uptane::Targets::Targets(const Json::Value &json) : BaseMeta(json) { init(json); }

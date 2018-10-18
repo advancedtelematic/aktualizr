@@ -304,9 +304,12 @@ class Targets : public BaseMeta {
   bool operator==(const Targets &rhs) const {
     return version_ == rhs.version() && expiry_ == rhs.expiry() && targets == rhs.targets;
   }
+  const std::string &correlation_id() const { return correlation_id_; }
 
  private:
   void init(const Json::Value &json);
+
+  std::string correlation_id_;  // custom non-tuf
 };
 
 class TimestampMeta : public BaseMeta {
