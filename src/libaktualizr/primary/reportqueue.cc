@@ -60,6 +60,11 @@ void ReportQueue::flushQueue() {
 }
 
 void ReportEvent::setEcu(const Uptane::EcuSerial& ecu) { custom["ecu"] = ecu.ToString(); }
+void ReportEvent::setCorrelationId(const std::string& correlation_id) {
+  if (correlation_id != "") {
+    custom["correlationId"] = correlation_id;
+  }
+}
 
 Json::Value ReportEvent::toJson() {
   Json::Value out;
@@ -82,24 +87,31 @@ CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) :
   custom["campaignId"] = campaign_id;
 }
 
-EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu)
+EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id)
     : ReportEvent("ecu_download_started", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
 }
 
-EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success)
+EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id,
+                                                       bool success)
     : ReportEvent("ecu_download_completed", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
   custom["success"] = success;
 }
 
-EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu)
+EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu,
+                                                           const std::string& correlation_id)
     : ReportEvent("ecu_installation_started", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
 }
 
-EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success)
+EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu,
+                                                               const std::string& correlation_id, bool success)
     : ReportEvent("ecu_installation_completed", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
   custom["success"] = success;
 }

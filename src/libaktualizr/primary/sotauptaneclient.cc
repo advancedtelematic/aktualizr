@@ -716,7 +716,8 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
 
   // send an event for all ecus that are touched by this target
   for (const auto &ecu : target.ecus()) {
-    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first));
+    // TODO: correlation id
+    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, ""));
   }
 
   bool success = uptane_fetcher->fetchVerifyTarget(target);
@@ -724,7 +725,8 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // send this asynchronously before `sendEvent`, so that the report timestamp
   // would not be delayed by callbacks on events
   for (const auto &ecu : target.ecus()) {
-    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, success));
+    // TODO: correlation id
+    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, "", success));
   }
 
   sendEvent<event::DownloadTargetComplete>(target, success);
@@ -837,7 +839,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
     // assuming one OSTree OS per primary => there can be only one OSTree update
     const Uptane::Target &primary_update = primary_updates[0];
 
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial()));
+    // TODO: correlation id
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial(), ""));
     sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
 
     data::OperationResult status;
@@ -846,8 +849,9 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
       status = PackageInstallSetResult(primary_update);
+      // TODO: correlation id
       report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), true));
+          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), "", true));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
@@ -855,8 +859,9 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       storage->storeInstallationResult(status);
       // TODO: distinguish this case from regular failure for local and remote
       // event reporting
+      //TODO: correlation id
       report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), false));
+          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), "", false));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     result.reports.emplace(result.reports.begin(), primary_update, uptane_manifest.getPrimaryEcuSerial(), status);
@@ -1047,9 +1052,11 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
                                                       const std::shared_ptr<std::string> &data) {
   auto f = [this, &secondary, data]() {
     sendEvent<event::InstallStarted>(secondary.getSerial());
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial()));
+    // TODO: correlation id
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), ""));
     bool ret = secondary.sendFirmware(data);
-    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), ret));
+    // TODO: correlation id
+    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), "", ret));
     sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
     return ret;

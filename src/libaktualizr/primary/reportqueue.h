@@ -29,6 +29,7 @@ class ReportEvent {
       : id(Utils::randomUuid()), type(std::move(event_type)), version(event_version), timestamp(TimeStamp::Now()) {}
 
   void setEcu(const Uptane::EcuSerial& ecu);
+  void setCorrelationId(const std::string& correlation_id);
 };
 
 // old style event: should disappear
@@ -44,22 +45,22 @@ class CampaignAcceptedReport : public ReportEvent {
 
 class EcuDownloadStartedReport : public ReportEvent {
  public:
-  EcuDownloadStartedReport(const Uptane::EcuSerial& ecu);
+  EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id);
 };
 
 class EcuDownloadCompletedReport : public ReportEvent {
  public:
-  EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success);
+  EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id, bool success);
 };
 
 class EcuInstallationStartedReport : public ReportEvent {
  public:
-  EcuInstallationStartedReport(const Uptane::EcuSerial& ecu);
+  EcuInstallationStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id);
 };
 
 class EcuInstallationCompletedReport : public ReportEvent {
  public:
-  EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success);
+  EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id, bool success);
 };
 
 class ReportQueue {
