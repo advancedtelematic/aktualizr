@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
   bool res = true;
   for (int type = static_cast<int>(KeyType::kFirstKnown); type <= static_cast<int>(KeyType::kLastKnown); type++) {
-    LOG_TRACE << "Running tests for key type " << type;
+    LOG_TRACE << "Running tests for key type " << static_cast<KeyType>(type);
     key_type = static_cast<KeyType>(type);
     res &= RUN_ALL_TESTS();
   }
