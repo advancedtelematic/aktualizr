@@ -864,6 +864,7 @@ void SotaUptaneClient::campaignCheck() {
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
     LOG_INFO << "Campaign id: " << c.id;
+    LOG_INFO << "Campaign size: " << c.size;
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }

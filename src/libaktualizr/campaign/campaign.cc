@@ -18,6 +18,7 @@ Campaign Campaign::fromJson(const Json::Value &json) {
       throw CampaignParseError();
     }
 
+    int64_t size = json.get("size", 0).asInt64();
     bool autoAccept = json.get("autoAccept", false).asBool();
 
     std::string description;
@@ -46,7 +47,7 @@ Campaign Campaign::fromJson(const Json::Value &json) {
       }
     }
 
-    return {id, name, autoAccept, description, estInstallationDuration, estPreparationDuration};
+    return {id, name, size, autoAccept, description, estInstallationDuration, estPreparationDuration};
   } catch (const std::runtime_error &exc) {
     LOG_ERROR << exc.what();
     throw CampaignParseError();
