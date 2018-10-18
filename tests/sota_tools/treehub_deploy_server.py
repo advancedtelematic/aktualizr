@@ -16,11 +16,11 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_HEAD(self):
-        print("HEAD: %s\n"%self.path)
+        print("HEAD: %s\n" % self.path)
         self.send_response_only(404)
         self.end_headers()
     def do_POST(self):
-        print("POST: %s\n"%self.path)
+        print("POST: %s\n" % self.path)
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
         if ctype == 'multipart/form-data':
             pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
@@ -42,12 +42,16 @@ class ReUseHTTPServer(HTTPServer):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         HTTPServer.server_bind(self)
 
+
 tmp_dir = sys.argv[2]
 server_address = ('', int(sys.argv[1]))
 httpd = ReUseHTTPServer(server_address, TreehubServerHandler)
 
-httpd.socket = ssl.wrap_socket (httpd.socket, certfile='tests/fake_http_server/client.crt', keyfile='tests/fake_http_server/client.key',
-     server_side=True, ca_certs = "tests/fake_http_server/client.crt")
+httpd.socket = ssl.wrap_socket (httpd.socket,
+                                certfile='tests/fake_http_server/client.crt',
+                                keyfile='tests/fake_http_server/client.key',
+                                server_side=True,
+                                ca_certs = "tests/fake_http_server/client.crt")
 
 try:
     httpd.serve_forever()

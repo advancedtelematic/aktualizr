@@ -1,0 +1,204 @@
+#include <gtest/gtest.h>
+
+#include <curl/curl.h>
+
+#include "authenticate.h"
+#include "ostree_dir_repo.h"
+#include "ostree_object.h"
+#include "request_pool.h"
+#include "server_credentials.h"
+#include "test_utils.h"
+
+std::string port;
+
+/* Verify that constructor does not accept a nonexistent repo. */
+TEST(OstreeObject, ConstructorBad) {
+  OSTreeDirRepo bad_repo("nonexistentrepo");
+  ASSERT_DEATH(OSTreeObject(bad_repo, "bad"), "");
+}
+
+/* Verify that constructor accepts a valid repo and commit hash. */
+TEST(OstreeObject, ConstructorGood) {
+  OSTreeDirRepo good_repo("tests/sota_tools/repo");
+  OSTreeHash hash = good_repo.GetRef("master").GetHash();
+  boost::filesystem::path objpath = hash.string().insert(2, 1, '/');
+  OSTreeObject(good_repo, objpath.string() + ".commit");
+}
+
+// This is a class solely for the purpose of being a FRIEND_TEST to
+// OSTreeObject. The name is carefully constructed for this purpose.
+class OstreeObject_Request_Test {
+ public:
+  static void MakeTestRequest(const OSTreeRepo::ptr src_repo, const OSTreeHash& hash, const long expected) {
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    CURLM* multi = curl_multi_init();
+    curl_multi_setopt(multi, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
+
+    TreehubServer push_server;
+    push_server.root_url("http://localhost:" + port);
+    OSTreeObject::ptr object = src_repo->GetObject(hash);
+
+    object->MakeTestRequest(push_server, multi);
+
+    // This bit is basically copied from RequestPool::LoopListen().
+    int running_requests;
+    do {
+      CURLMcode mc = curl_multi_perform(multi, &running_requests);
+      EXPECT_EQ(mc, CURLM_OK);
+    } while (running_requests > 0);
+
+    int msgs_in_queue;
+    do {
+      CURLMsg* msg = curl_multi_info_read(multi, &msgs_in_queue);
+      if ((msg != nullptr) && msg->msg == CURLMSG_DONE) {
+        OSTreeObject::ptr h = ostree_object_from_curl(msg->easy_handle);
+        EXPECT_EQ(object, h);
+        EXPECT_EQ(h->current_operation_, CurrentOp::kOstreeObjectPresenceCheck);
+
+        // This bit is basically copied from OSTreeObject::CurlDone().
+        h->refcount_--;
+        EXPECT_GE(h->refcount_, 1);
+        long rescode = 0;  // NOLINT
+        curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
+        EXPECT_EQ(rescode, expected);
+        curl_multi_remove_handle(multi, h->curl_handle_);
+        curl_easy_cleanup(h->curl_handle_);
+        h->curl_handle_ = nullptr;
+      }
+    } while (msgs_in_queue > 0);
+
+    curl_multi_cleanup(multi);
+    curl_global_cleanup();
+  }
+};
+
+/* Check for a hash that we expect the server to know about. */
+TEST(OstreeObject, MakeTestRequestPresent) {
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeHash hash = src_repo->GetRef("master").GetHash();
+  OstreeObject_Request_Test::MakeTestRequest(src_repo, hash, 200);
+}
+
+/* Check for a hash that we expect the server not to know about (because it is
+ * from a different repo). */
+TEST(OstreeObject, MakeTestRequestMissing) {
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/bigger_repo");
+  OSTreeHash hash = src_repo->GetRef("master").GetHash();
+  OstreeObject_Request_Test::MakeTestRequest(src_repo, hash, 404);
+}
+
+/* Verify that a dry run short-circuits the actual upload. */
+TEST(OstreeObject, UploadDryRun) {
+  TreehubServer push_server;
+  push_server.root_url("http://localhost:" + port);
+
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeHash hash = src_repo->GetRef("master").GetHash();
+  OSTreeObject::ptr object = src_repo->GetObject(hash);
+
+  object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
+  object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
+  object->Upload(push_server, nullptr, true);
+  EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectPresent);
+  // This currently does not get reset.
+  EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectPresenceCheck);
+  // This should not get allocated.
+  EXPECT_EQ(object->form_post_, nullptr);
+}
+
+/* Verify that a null curl pointer will cause the upload to fail. */
+TEST(OstreeObject, UploadFail) {
+  TreehubServer push_server;
+  push_server.root_url("http://localhost:" + port);
+
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeHash hash = src_repo->GetRef("master").GetHash();
+  OSTreeObject::ptr object = src_repo->GetObject(hash);
+
+  object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
+  object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
+  object->Upload(push_server, nullptr, false);
+  EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectStateUnknown);
+  EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectUploading);
+  // This currently will get allocated and we need to free it.
+  EXPECT_NE(object->form_post_, nullptr);
+  curl_formfree(object->form_post_);
+  object->form_post_ = nullptr;
+}
+
+/* Verify that uploading works as expected. */
+TEST(OstreeObject, UploadSuccess) {
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  CURLM* multi = curl_multi_init();
+  curl_multi_setopt(multi, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
+
+  TemporaryDirectory temp_dir;
+  const std::string dp = TestUtils::getFreePort();
+  Json::Value auth;
+  auth["ostree"]["server"] = std::string("https://localhost:") + dp;
+  Utils::writeFile(temp_dir.Path() / "auth.json", auth);
+  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp);
+  sleep(3);
+
+  TreehubServer push_server;
+  push_server.root_url("http://localhost:" + dp);
+
+  boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
+  boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
+  EXPECT_EQ(authenticate(cert_path.string(), ServerCredentials(filepath), push_server), EXIT_SUCCESS);
+
+  OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
+  OSTreeHash hash = src_repo->GetRef("master").GetHash();
+  OSTreeObject::ptr object = src_repo->GetObject(hash);
+
+  object->Upload(push_server, multi, false);
+
+  // This bit is basically copied from RequestPool::LoopListen().
+  int running_requests;
+  do {
+    CURLMcode mc = curl_multi_perform(multi, &running_requests);
+    EXPECT_EQ(mc, CURLM_OK);
+  } while (running_requests > 0);
+
+  int msgs_in_queue;
+  do {
+    CURLMsg* msg = curl_multi_info_read(multi, &msgs_in_queue);
+    if ((msg != nullptr) && msg->msg == CURLMSG_DONE) {
+      OSTreeObject::ptr h = ostree_object_from_curl(msg->easy_handle);
+      EXPECT_EQ(object, h);
+      EXPECT_EQ(h->current_operation_, CurrentOp::kOstreeObjectUploading);
+
+      // This bit is basically copied from OSTreeObject::CurlDone().
+      h->refcount_--;
+      EXPECT_GE(h->refcount_, 1);
+      long rescode = 0;  // NOLINT
+      curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
+      EXPECT_EQ(rescode, 200);
+
+      curl_formfree(h->form_post_);
+      h->form_post_ = nullptr;
+      curl_multi_remove_handle(multi, h->curl_handle_);
+      curl_easy_cleanup(h->curl_handle_);
+      h->curl_handle_ = nullptr;
+    }
+  } while (msgs_in_queue > 0);
+
+  curl_multi_cleanup(multi);
+  curl_global_cleanup();
+}
+
+#ifndef __NO_MAIN__
+int main(int argc, char** argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+
+  std::string server = "tests/sota_tools/treehub_server.py";
+  port = TestUtils::getFreePort();
+
+  TestHelperProcess server_process(server, port);
+  sleep(3);
+
+  return RUN_ALL_TESTS();
+}
+#endif
+
+// vim: set tabstop=2 shiftwidth=2 expandtab:

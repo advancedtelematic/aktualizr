@@ -25,6 +25,13 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
   assert(boost::filesystem::is_regular_file(file_path_));
 }
 
+OSTreeObject::~OSTreeObject() {
+  if (curl_handle_ != nullptr) {
+    curl_easy_cleanup(curl_handle_);
+    curl_handle_ = nullptr;
+  }
+}
+
 void OSTreeObject::AddParent(OSTreeObject *parent, std::list<OSTreeObject::ptr>::iterator parent_it) {
   parentref par;
 
@@ -67,7 +74,7 @@ void OSTreeObject::PopulateChildren() {
   const GVariantType *content_type;
   bool is_commit;
 
-  // variant types are borrowed from libostree/ostree_core.h,
+  // variant types are borrowed from libostree/ostree-core.h,
   // but we don't want to create dependency on it
   if (ext.compare(".commit") == 0) {
     content_type = G_VARIANT_TYPE("(a{sv}aya(say)sstayay)");
@@ -228,6 +235,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   const CURLMcode err = curl_multi_add_handle(curl_multi_handle, curl_handle_);
   if (err != 0) {
     LOG_ERROR << "curl_multi_add_handle error:" << curl_multi_strerror(err);
+    return;
   }
   refcount_++;  // Because curl now has a reference to us
   request_start_time_ = std::chrono::steady_clock::now();
@@ -320,13 +328,6 @@ size_t OSTreeObject::curl_handle_write(void *buffer, size_t size, size_t nmemb, 
   auto *that = static_cast<OSTreeObject *>(userp);
   that->http_response_.write(static_cast<const char *>(buffer), static_cast<std::streamsize>(size * nmemb));
   return size * nmemb;
-}
-
-OSTreeObject::~OSTreeObject() {
-  if (curl_handle_ != nullptr) {
-    curl_easy_cleanup(curl_handle_);
-    curl_handle_ = nullptr;
-  }
 }
 
 OSTreeObject::ptr ostree_object_from_curl(CURL *curlhandle) {
