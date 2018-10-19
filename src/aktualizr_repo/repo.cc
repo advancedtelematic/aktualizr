@@ -214,7 +214,19 @@ void Repo::addTarget(const std::string &target_name, const std::string &hardware
 
 void Repo::signTargets() {
   std::string private_key = Utils::readFile(path_ / "keys/director/private.key");
-  Json::Value targets_unsigned = Utils::parseJSONFile(path_ / "repo/director/staging/targets.json");
+  const boost::filesystem::path current = path_ / "repo/director/targets.json";
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+  Json::Value targets_unsigned;
+
+  if (boost::filesystem::exists(staging)) {
+    targets_unsigned = Utils::parseJSONFile(staging);
+  } else if (boost::filesystem::exists(current)) {
+    targets_unsigned = Utils::parseJSONFile(current)["signed"];
+  } else {
+    throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
+                             "!");
+  }
+
   Utils::writeFile(path_ / "repo/director/targets.json",
                    Utils::jsonToCanonicalStr(signTuf("director", targets_unsigned)));
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
