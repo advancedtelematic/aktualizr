@@ -2,7 +2,6 @@
 #define AKTUALIZR_H_
 
 #include <atomic>
-#include <future>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -120,18 +119,6 @@ class Aktualizr {
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
-
-  struct CycleEventHandler {
-    Aktualizr& aktualizr;
-    std::mutex m{};
-    bool running{true};
-    std::promise<bool> finished{};
-    std::future<bool> fut{};
-
-    CycleEventHandler(Aktualizr& akt);
-    void breakLoop();
-    void handle(const std::shared_ptr<event::BaseEvent>& event);
-  };
 };
 
 #endif  // AKTUALIZR_H_

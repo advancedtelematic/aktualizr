@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
         break;
       case RunningMode::kCheck:
         aktualizr.SendDeviceData();
-        aktualizr.UptaneCycle();
+        aktualizr.CheckUpdates();
         break;
       case RunningMode::kDownload:
       case RunningMode::kInstall:
