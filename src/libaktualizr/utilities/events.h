@@ -49,6 +49,14 @@ class FetchMetaComplete : public BaseEvent {
 };
 
 /**
+ * Device data has been successfully sent to the server.
+ */
+class SendDeviceDataComplete : public BaseEvent {
+ public:
+  explicit SendDeviceDataComplete();
+};
+
+/**
  * A manifest has been successfully sent to the server.
  */
 class PutManifestComplete : public BaseEvent {
@@ -146,6 +154,23 @@ class InstallTargetComplete : public BaseEvent {
 class AllInstallsComplete : public BaseEvent {
  public:
   AllInstallsComplete();
+};
+
+/**
+ * The server has been successfully queried for available campaigns.
+ */
+class CampaignCheckComplete : public BaseEvent {
+ public:
+  explicit CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in);
+  std::vector<campaign::Campaign> campaigns;
+};
+
+/**
+ * A campaign has been successfully accepted.
+ */
+class CampaignAcceptComplete : public BaseEvent {
+ public:
+  explicit CampaignAcceptComplete();
 };
 
 using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;

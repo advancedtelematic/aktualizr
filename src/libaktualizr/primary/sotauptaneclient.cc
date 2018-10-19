@@ -793,6 +793,7 @@ void SotaUptaneClient::sendDeviceData() {
   reportInstalledPackages();
   reportNetworkInfo();
   putManifestSimple();
+  sendEvent<event::SendDeviceDataComplete>();
 }
 
 std::vector<Uptane::Target> SotaUptaneClient::fetchMeta() {
@@ -872,10 +873,12 @@ std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
+  sendEvent<event::CampaignCheckComplete>(campaigns);
   return campaigns;
 }
 
 bool SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
+  sendEvent<event::CampaignAcceptComplete>();
   return report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id)).get();
 }
 

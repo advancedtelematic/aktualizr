@@ -37,6 +37,8 @@ UpdateAvailable::UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigne
   variant = "UpdateAvailable";
 }
 
+SendDeviceDataComplete::SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
+
 PutManifestComplete::PutManifestComplete() { variant = "PutManifestComplete"; }
 
 std::string UpdateAvailable::toJson() {
@@ -123,5 +125,12 @@ InstallTargetComplete::InstallTargetComplete(Uptane::EcuSerial serial_in, bool s
 }
 
 AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
+
+CampaignCheckComplete::CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in)
+    : campaigns(std::move(campaigns_in)) {
+  variant = "CampaignCheckComplete";
+}
+
+CampaignAcceptComplete::CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
 
 }  // namespace event
