@@ -50,7 +50,7 @@ class SotaUptaneClient {
   void uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   std::vector<campaign::Campaign> campaignCheck();
-  bool campaignAccept(const std::string &campaign_id);
+  void campaignAccept(const std::string &campaign_id);
 
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);

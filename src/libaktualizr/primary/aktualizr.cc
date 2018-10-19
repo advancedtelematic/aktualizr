@@ -139,7 +139,7 @@ void Aktualizr::Shutdown() { shutdown_ = true; }
 
 std::vector<campaign::Campaign> Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
 
-bool Aktualizr::CampaignAccept(const std::string &campaign_id) { return uptane_client_->campaignAccept(campaign_id); }
+void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 

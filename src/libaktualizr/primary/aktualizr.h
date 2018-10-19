@@ -57,7 +57,7 @@ class Aktualizr {
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
-  bool CampaignAccept(const std::string& campaign_id);
+  void CampaignAccept(const std::string& campaign_id);
 
   /**
    * Send local device data to the server.

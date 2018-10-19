@@ -877,9 +877,9 @@ std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
   return campaigns;
 }
 
-bool SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
+void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   sendEvent<event::CampaignAcceptComplete>();
-  return report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id)).get();
+  report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
 }
 
 void SotaUptaneClient::sendDownloadReport() {
