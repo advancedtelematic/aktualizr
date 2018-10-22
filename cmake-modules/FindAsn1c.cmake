@@ -9,6 +9,10 @@ message(STATUS "Found asn1c: ${ASN1C}")
 # -fline-refs isn't available on Ubuntu 16.04
 set(ASN1C_FLAGS ${ASN1C_FLAGS} -fskeletons-copy -fnative-types -pdu=all)
 
+if (ASN1C_SKELETONS_DIR)
+  set(ASN1C_FLAGS ${ASN1C_FLAGS} -S ${ASN1C_SKELETONS_DIR})
+endif (ASN1C_SKELETONS_DIR)
+
 define_property(GLOBAL PROPERTY ASN1_FILES_GLOBAL
                 BRIEF_DOCS "List of all input files for asn1c"
                 FULL_DOCS "List of all input files for asn1c")
