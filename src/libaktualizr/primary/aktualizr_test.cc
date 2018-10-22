@@ -20,6 +20,7 @@ Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = url + "/director";
   conf.uptane.repo_server = url + "/repo";
+  conf.provision.server = url;
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.storage.path = temp_dir.Path();
@@ -82,10 +83,8 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
 TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.director_server = http->tls_server + "/noupdates/director";
-  conf.uptane.repo_server = http->tls_server + "/noupdates/repo";
   conf.uptane.running_mode = RunningMode::kFull;
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -217,7 +216,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
 TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
   conf.uptane.running_mode = RunningMode::kFull;
 
@@ -268,14 +267,14 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
 TEST(Aktualizr, FullMultipleSecondaries) {
   future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "multisec");
   Config conf("tests/config/basic.toml");
   conf.provision.primary_ecu_serial = "testecuserial";
   conf.provision.primary_ecu_hardware_id = "testecuhwid";
-  conf.uptane.director_server = http->tls_server + "/multisec/director";
-  conf.uptane.repo_server = http->tls_server + "/multisec/repo";
   conf.storage.path = temp_dir.Path();
   conf.tls.server = http->tls_server;
+  conf.uptane.director_server = http->tls_server + "/director";
+  conf.uptane.repo_server = http->tls_server + "/repo";
   conf.uptane.running_mode = RunningMode::kFull;
 
   TemporaryDirectory temp_dir2;
@@ -345,7 +344,7 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
 TEST(Aktualizr, CheckWithUpdates) {
   future_CheckWithUpdates = promise_CheckWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
   conf.uptane.running_mode = RunningMode::kCheck;
 
@@ -431,9 +430,8 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
 TEST(Aktualizr, DownloadWithUpdates) {
   future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.repo_server = http->tls_server + "/downloads/repo";
   conf.uptane.running_mode = RunningMode::kDownload;
 
   auto storage = INvStorage::newStorage(conf.storage);
@@ -570,7 +568,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
 TEST(Aktualizr, InstallWithUpdates) {
   future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
   conf.uptane.running_mode = RunningMode::kInstall;
 
@@ -596,9 +594,24 @@ TEST(Aktualizr, InstallWithUpdates) {
   }
 }
 
+class HttpFakeCampaign : public HttpFake {
+ public:
+  HttpFakeCampaign(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+
+  HttpResponse get(const std::string& url, int64_t maxsize) override {
+    EXPECT_NE(url.find("campaigner/"), std::string::npos);
+    boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size() + strlen("campaigner/"));
+
+    if (url.find("campaigner/campaigns") != std::string::npos) {
+      return HttpResponse(Utils::readFile(path.parent_path() / "campaigner/campaigns.json"), 200, CURLE_OK, "");
+    }
+    return HttpFake::get(url, maxsize);
+  }
+};
+
 TEST(Aktualizr, CampaignCheck) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
