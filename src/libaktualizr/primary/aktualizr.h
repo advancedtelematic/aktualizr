@@ -76,7 +76,7 @@ class Aktualizr {
   /**
    * Download targets.
    */
-  std::pair<bool, std::vector<Uptane::Target>> Download(const std::vector<Uptane::Target>& updates);
+  DownloadResult Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Install targets.

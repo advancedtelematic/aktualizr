@@ -669,11 +669,11 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-std::pair<bool, std::vector<Uptane::Target>> SotaUptaneClient::downloadImages(
-    const std::vector<Uptane::Target> &targets) {
+DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
+  DownloadResult result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
@@ -681,32 +681,33 @@ std::pair<bool, std::vector<Uptane::Target>> SotaUptaneClient::downloadImages(
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
-      sendEvent<event::Error>("Target hash mismatch.");
-      return {false, downloaded_targets};
+      result = DownloadResult(downloaded_targets, DownloadStatus::kError, "Target hash mismatch.");
+      sendEvent<event::AllDownloadsComplete>(result);
+      return result;
     }
     download_futures.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
   }
   for (auto &f : download_futures) {
-    auto result = f.get();
-    if (result.first) {
-      downloaded_targets.push_back(result.second);
+    auto fut_result = f.get();
+    if (fut_result.first) {
+      downloaded_targets.push_back(fut_result.second);
     }
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       sendDownloadReport();
-      sendEvent<event::AllDownloadsComplete>(downloaded_targets);
+      result = DownloadResult(downloaded_targets, DownloadStatus::kSuccess, "");
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
-      sendEvent<event::Error>("Partial download");
-      return {false, downloaded_targets};
+      result = DownloadResult(downloaded_targets, DownloadStatus::kPartialSuccess, "");
     }
   } else {
-    sendEvent<event::NothingToDownload>();
     LOG_INFO << "No new updates to download.";
+    result = DownloadResult({}, DownloadStatus::kNothingToDownload, "");
   }
-  return {true, downloaded_targets};
+  sendEvent<event::AllDownloadsComplete>(result);
+  return result;
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {

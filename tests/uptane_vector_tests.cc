@@ -101,9 +101,8 @@ class Uptane_Vector_Test {
           return false;
         }
         if (updates.size()) {
-          bool downloaded = false;
-          std::tie(downloaded, std::ignore) = uptane_client->downloadImages(updates);
-          if (!downloaded) {
+          DownloadResult result = uptane_client->downloadImages(updates);
+          if (result.status != DownloadStatus::kSuccess) {
             if (should_fail) {
               throw uptane_client->getLastException();
             }

@@ -27,8 +27,6 @@ class BaseEvent {
   BaseEvent(std::string variant_in) : variant(std::move(variant_in)) {}
   virtual ~BaseEvent() = default;
   std::string variant;
-  virtual std::string toJson(Json::Value json);
-  virtual std::string toJson();
 };
 
 /**
@@ -36,10 +34,8 @@ class BaseEvent {
  */
 class Error : public BaseEvent {
  public:
-  std::string message;
   explicit Error(std::string /*message_in*/);
-  std::string toJson() override;
-  static Error fromJson(const std::string& /*json_str*/);
+  std::string message;
 };
 
 /**
@@ -68,36 +64,14 @@ class UpdateCheckComplete : public BaseEvent {
 };
 
 /**
- * Nothing to download from the server.
- */
-class NothingToDownload : public BaseEvent {
- public:
-  explicit NothingToDownload();
-};
-
-/**
  * A report for a download in progress.
  */
 class DownloadProgressReport : public BaseEvent {
  public:
+  DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in);
   Uptane::Target target;
   std::string description;
   unsigned int progress;
-  std::string toJson() override;
-
-  explicit DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in);
-};
-
-/**
- * An update has been successfully downloaded.
- */
-class AllDownloadsComplete : public BaseEvent {
- public:
-  std::vector<Uptane::Target> updates;
-  std::string toJson() override;
-
-  explicit AllDownloadsComplete(std::vector<Uptane::Target> updates_in);
-  static AllDownloadsComplete fromJson(const std::string& json_str);
 };
 
 /**
@@ -105,11 +79,17 @@ class AllDownloadsComplete : public BaseEvent {
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
-  Uptane::Target update;
-  std::string toJson() override;
-
   explicit DownloadTargetComplete(Uptane::Target update_in);
-  static DownloadTargetComplete fromJson(const std::string& json_str);
+  Uptane::Target update;
+};
+
+/**
+ * An update has been successfully downloaded.
+ */
+class AllDownloadsComplete : public BaseEvent {
+ public:
+  explicit AllDownloadsComplete(DownloadResult result_in);
+  DownloadResult result;
 };
 
 /**

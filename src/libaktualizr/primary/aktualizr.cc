@@ -56,14 +56,14 @@ void Aktualizr::UptaneCycle() {
     return;
   }
 
-  bool result;
   std::vector<Uptane::Target> downloaded_updates;
-  std::tie(result, downloaded_updates) = Download(update_result.updates);
-  if (running_mode == RunningMode::kDownload || !result || downloaded_updates.size() == 0) {
+  DownloadResult download_result = Download(update_result.updates);
+  if (running_mode == RunningMode::kDownload || download_result.status != DownloadStatus::kSuccess ||
+      download_result.updates.size() == 0) {
     return;
   }
 
-  Install(downloaded_updates);
+  Install(download_result.updates);
   uptane_client_->putManifest();
 }
 
@@ -90,7 +90,7 @@ void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
 UpdateCheckResult Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
 
-std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
+DownloadResult Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
   return uptane_client_->downloadImages(updates);
 }
 

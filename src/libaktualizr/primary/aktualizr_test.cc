@@ -145,11 +145,12 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
     case 3: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
       const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
       break;
     }
     case 4: {
@@ -366,9 +367,13 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
   }
   LOG_INFO << "Got " << event->variant;
   switch (num_events_DownloadWithUpdates) {
-    case 0:
-      EXPECT_EQ(event->variant, "NothingToDownload");
+    case 0: {
+      EXPECT_EQ(event->variant, "AllDownloadsComplete");
+      const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
+      EXPECT_EQ(downloads_complete->result.updates.size(), 0);
+      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kNothingToDownload);
       break;
+    }
     case 1: {
       EXPECT_EQ(event->variant, "UpdateCheckComplete");
       const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
@@ -390,11 +395,12 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
     case 4: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
       const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
       promise_DownloadWithUpdates.set_value();
       break;
     }
@@ -429,7 +435,9 @@ TEST(Aktualizr, DownloadWithUpdates) {
 
   aktualizr.Initialize();
   // First try downloading nothing. Nothing should happen.
-  aktualizr.Download(std::vector<Uptane::Target>());
+  DownloadResult result = aktualizr.Download(std::vector<Uptane::Target>());
+  EXPECT_EQ(result.updates.size(), 0);
+  EXPECT_EQ(result.status, DownloadStatus::kNothingToDownload);
   aktualizr.UptaneCycle();
 
   std::future_status status = future_DownloadWithUpdates.wait_for(std::chrono::seconds(20));
@@ -478,11 +486,12 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     case 4: {
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
       const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
-      EXPECT_EQ(downloads_complete->updates.size(), 2);
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "primary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "primary_firmware.txt");
-      EXPECT_TRUE(downloads_complete->updates[0].filename() == "secondary_firmware.txt" ||
-                  downloads_complete->updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.updates.size(), 2);
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "primary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
+      EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
+                  downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
+      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
       break;
     }
     case 6: {
