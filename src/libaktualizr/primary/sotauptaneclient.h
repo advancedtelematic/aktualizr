@@ -25,6 +25,7 @@
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
 #include "utilities/events.h"
+#include "utilities/results.h"
 
 class SotaUptaneClient {
  public:
@@ -44,12 +45,12 @@ class SotaUptaneClient {
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   std::pair<bool, std::vector<Uptane::Target>> downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
-  std::vector<Uptane::Target> fetchMeta();
+  UpdateCheckResult fetchMeta();
   void putManifest();
-  std::vector<Uptane::Target> checkUpdates();
-  void uptaneInstall(const std::vector<Uptane::Target> &updates);
+  UpdateCheckResult checkUpdates();
+  bool uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
-  std::vector<campaign::Campaign> campaignCheck();
+  CampaignCheckResult campaignCheck();
   void campaignAccept(const std::string &campaign_id);
 
  private:
@@ -89,7 +90,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
-  void sendImagesToEcus(const std::vector<Uptane::Target> &targets);
+  bool sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
   bool putManifestSimple();

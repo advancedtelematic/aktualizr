@@ -3,12 +3,14 @@
 /** \file */
 
 #include <map>
+#include <string>
 
 #include <json/json.h>
 #include <boost/signals2.hpp>
 
 #include "campaign/campaign.h"
 #include "uptane/tuf.h"
+#include "utilities/results.h"
 #include "utilities/types.h"
 
 /**
@@ -41,14 +43,6 @@ class Error : public BaseEvent {
 };
 
 /**
- * Metadata has been successfully fetched from the server.
- */
-class FetchMetaComplete : public BaseEvent {
- public:
-  explicit FetchMetaComplete();
-};
-
-/**
  * Device data has been successfully sent to the server.
  */
 class SendDeviceDataComplete : public BaseEvent {
@@ -65,23 +59,12 @@ class PutManifestComplete : public BaseEvent {
 };
 
 /**
- * No update is available for download from the server.
- */
-class NoUpdateAvailable : public BaseEvent {
- public:
-  explicit NoUpdateAvailable();
-};
-
-/**
  * An update is available for download from the server.
  */
-class UpdateAvailable : public BaseEvent {
+class UpdateCheckComplete : public BaseEvent {
  public:
-  std::vector<Uptane::Target> updates;
-  unsigned int ecus_count;
-  explicit UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in);
-  std::string toJson() override;
-  static UpdateAvailable fromJson(const std::string& json_str);
+  explicit UpdateCheckComplete(UpdateCheckResult result_in);
+  UpdateCheckResult result;
 };
 
 /**
@@ -161,8 +144,8 @@ class AllInstallsComplete : public BaseEvent {
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in);
-  std::vector<campaign::Campaign> campaigns;
+  explicit CampaignCheckComplete(CampaignCheckResult result_in);
+  CampaignCheckResult result;
 };
 
 /**
@@ -177,4 +160,4 @@ using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>
 
 }  // namespace event
 
-#endif
+#endif  // EVENTS_H_

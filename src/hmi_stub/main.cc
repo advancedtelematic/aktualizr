@@ -152,8 +152,8 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
-        updates = aktualizr.CheckUpdates();
-        std::cout << updates.size() << " updates available\n";
+        UpdateCheckResult result = aktualizr.CheckUpdates();
+        std::cout << result.updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
         aktualizr.Download(updates);
       } else if (buffer == "install" || buffer == "uptaneinstall") {

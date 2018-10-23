@@ -47,18 +47,18 @@ void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
 void Aktualizr::UptaneCycle() {
   RunningMode running_mode = config_.uptane.running_mode;
-  std::vector<Uptane::Target> updates = CheckUpdates();
-  if (running_mode == RunningMode::kCheck || updates.size() == 0) {
+  UpdateCheckResult update_result = CheckUpdates();
+  if (running_mode == RunningMode::kCheck || update_result.updates.size() == 0) {
     return;
   } else if (running_mode == RunningMode::kInstall) {
-    Install(updates);
+    Install(update_result.updates);
     uptane_client_->putManifest();
     return;
   }
 
   bool result;
   std::vector<Uptane::Target> downloaded_updates;
-  std::tie(result, downloaded_updates) = Download(updates);
+  std::tie(result, downloaded_updates) = Download(update_result.updates);
   if (running_mode == RunningMode::kDownload || !result || downloaded_updates.size() == 0) {
     return;
   }
@@ -82,13 +82,13 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
 
 void Aktualizr::Shutdown() { shutdown_ = true; }
 
-std::vector<campaign::Campaign> Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
+CampaignCheckResult Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
 
 void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
-std::vector<Uptane::Target> Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
+UpdateCheckResult Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
 
 std::pair<bool, std::vector<Uptane::Target>> Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
   return uptane_client_->downloadImages(updates);

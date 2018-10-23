@@ -1,6 +1,7 @@
 #include "events.h"
 
 #include <utility>
+
 namespace event {
 
 std::string BaseEvent::toJson() {
@@ -30,40 +31,13 @@ Error Error::fromJson(const std::string& json_str) {
   return Error(json["fields"][0].asString());
 }
 
-NoUpdateAvailable::NoUpdateAvailable() { variant = "NoUpdateAvailable"; }
-
-UpdateAvailable::UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in)
-    : updates(std::move(updates_in)), ecus_count(ecus_count_in) {
-  variant = "UpdateAvailable";
+UpdateCheckComplete::UpdateCheckComplete(UpdateCheckResult result_in) : result(std::move(result_in)) {
+  variant = "UpdateCheckComplete";
 }
 
 SendDeviceDataComplete::SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
 
 PutManifestComplete::PutManifestComplete() { variant = "PutManifestComplete"; }
-
-std::string UpdateAvailable::toJson() {
-  Json::Value json;
-  Json::Value targets;
-  for (const auto& target : updates) {
-    targets[target.filename()] = target.toDebugJson();
-  }
-  json["fields"].append(targets);
-  json["fields"].append(ecus_count);
-  return BaseEvent::toJson(json);
-}
-
-UpdateAvailable UpdateAvailable::fromJson(const std::string& json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  std::vector<Uptane::Target> updates;
-  for (auto it = json["fields"][0].begin(); it != json["fields"][0].end(); ++it) {
-    updates.emplace_back(Uptane::Target(it.key().asString(), *it));
-  }
-  return UpdateAvailable(updates, json["fields"][1].asUInt());
-}
-
-FetchMetaComplete::FetchMetaComplete() { variant = "FetchMetaComplete"; }
 
 NothingToDownload::NothingToDownload() { variant = "NothingToDownload"; }
 
@@ -126,8 +100,7 @@ InstallTargetComplete::InstallTargetComplete(Uptane::EcuSerial serial_in, bool s
 
 AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
 
-CampaignCheckComplete::CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in)
-    : campaigns(std::move(campaigns_in)) {
+CampaignCheckComplete::CampaignCheckComplete(CampaignCheckResult result_in) : result(std::move(result_in)) {
   variant = "CampaignCheckComplete";
 }
 

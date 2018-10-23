@@ -128,6 +128,7 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
   }
 }
 
+// TODO: return operation result?
 void SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::OperationResult result;
   if (!target.IsOstree() && config.pacman.type == PackageManager::kOstree) {
@@ -147,6 +148,8 @@ void SotaUptaneClient::reportHwInfo() {
   Json::Value hw_info = Utils::getHardwareInfo();
   if (!hw_info.empty()) {
     http->put(config.tls.server + "/core/system_info", hw_info);
+  } else {
+    LOG_WARNING << "Unable to fetch hardware information from host system.";
   }
 }
 
@@ -796,35 +799,37 @@ void SotaUptaneClient::sendDeviceData() {
   sendEvent<event::SendDeviceDataComplete>();
 }
 
-std::vector<Uptane::Target> SotaUptaneClient::fetchMeta() {
-  std::vector<Uptane::Target> updates;
+UpdateCheckResult SotaUptaneClient::fetchMeta() {
+  UpdateCheckResult result;
   if (updateMeta()) {
-    sendEvent<event::FetchMetaComplete>();
-    updates = checkUpdates();
+    result = checkUpdates();
   } else {
-    sendEvent<event::Error>("Could not update metadata.");
+    result = UpdateCheckResult({}, 0, UpdateStatus::kError, "Could not update metadata.");
   }
-  return updates;
+  sendEvent<event::UpdateCheckComplete>(result);
+  return result;
 }
 
-std::vector<Uptane::Target> SotaUptaneClient::checkUpdates() {
+UpdateCheckResult SotaUptaneClient::checkUpdates() {
   AssembleManifest();  // populates list of connected devices and installed images
+  UpdateCheckResult result;
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
-    LOG_ERROR << "Invalid UPTANE metadata in storage";
+    LOG_ERROR << "Invalid UPTANE metadata in storage.";
+    result = UpdateCheckResult({}, 0, UpdateStatus::kError, "Invalid UPTANE metadata in storage.");
   } else {
     if (!updates.empty()) {
-      sendEvent<event::UpdateAvailable>(updates, ecus_count);
+      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kUpdatesAvailable, "");
     } else {
-      sendEvent<event::NoUpdateAvailable>();
+      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kNoUpdatesAvailable, "");
       LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }
-  return updates;
+  return result;
 }
 
-void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
+bool SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
   //   6 - send metadata to all the ECUs
@@ -861,10 +866,10 @@ void SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates)
     LOG_INFO << "No update to install on primary";
   }
 
-  sendImagesToEcus(updates);
+  return sendImagesToEcus(updates);
 }
 
-std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
+CampaignCheckResult SotaUptaneClient::campaignCheck() {
   auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
@@ -873,8 +878,9 @@ std::vector<campaign::Campaign> SotaUptaneClient::campaignCheck() {
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
-  sendEvent<event::CampaignCheckComplete>(campaigns);
-  return campaigns;
+  CampaignCheckResult result(campaigns);
+  sendEvent<event::CampaignCheckComplete>(result);
+  return result;
 }
 
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
@@ -1052,7 +1058,7 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
   return std::async(std::launch::async, f);
 }
 
-void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
+bool SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
   std::vector<std::future<bool>> firmwareFutures;
 
   // target images should already have been downloaded to metadata_path/targets/
@@ -1090,10 +1096,13 @@ void SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targe
     }
   }
 
+  bool retval = true;
   for (auto &f : firmwareFutures) {
-    f.wait();
+    bool result = f.get();
+    retval &= result;
   }
   sendEvent<event::AllInstallsComplete>();
+  return retval;
 }
 
 std::string SotaUptaneClient::secondaryTreehubCredentials() const {

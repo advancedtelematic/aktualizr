@@ -40,7 +40,8 @@ class Aktualizr {
   int Run();
 
   /**
-   * Asynchronously shut aktualizr down.
+   * Asynchronously shut aktualizr down if it is running indefinitely with the
+   * Full \ref RunningMode.
    */
   void Shutdown();
 
@@ -49,10 +50,10 @@ class Aktualizr {
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
-  std::vector<campaign::Campaign> CampaignCheck();
+  CampaignCheckResult CampaignCheck();
 
   /**
-   * Accept a campaign for the current device
+   * Accept a campaign for the current device.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    */
@@ -70,7 +71,7 @@ class Aktualizr {
    * Uptane metadata (including root and targets), and then checks the metadata
    * for target updates.
    */
-  std::vector<Uptane::Target> CheckUpdates();
+  UpdateCheckResult CheckUpdates();
 
   /**
    * Download targets.
