@@ -107,12 +107,11 @@ TEST(config, SecondaryConfig) {
   bpo::options_description description("some text");
   // clang-format off
   description.add_options()
-    ("secondary-config", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
-    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration directory");
+    ("secondary-configs-dir", bpo::value<boost::filesystem::path>(), "directory containing secondary ECU configuration files")
+    ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory");
 
   // clang-format on
-  const char *argv[] = {"aktualizr", "--secondary-config", "config/secondary/virtualsec.json", "-c",
-                        conf_path_str.c_str()};
+  const char *argv[] = {"aktualizr", "--secondary-configs-dir", "config/secondary", "-c", conf_path_str.c_str()};
   bpo::store(bpo::parse_command_line(5, argv, description), cmd);
 
   Config conf(cmd);

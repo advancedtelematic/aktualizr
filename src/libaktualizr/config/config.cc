@@ -76,8 +76,8 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
   CopyFromConfig(repo_server, "repo_server", pt);
   CopyFromConfig(key_source, "key_source", pt);
   CopyFromConfig(key_type, "key_type", pt);
-  // uptane.secondary_configs is populated by processing secondary configs from
-  // the commandline.
+  CopyFromConfig(secondary_configs_dir, "secondary_configs_dir", pt);
+  // uptane.secondary_configs is populated by processing secondary_configs_dir
 }
 
 void UptaneConfig::writeToStream(std::ostream& out_stream) const {
@@ -87,6 +87,7 @@ void UptaneConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, repo_server, "repo_server");
   writeOption(out_stream, key_source, "key_source");
   writeOption(out_stream, key_type, "key_type");
+  writeOption(out_stream, secondary_configs_dir, "secondary_configs_dir");
 }
 
 void DiscoveryConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
@@ -190,6 +191,10 @@ void Config::postUpdateValues() {
     }
   }
 
+  if (!uptane.secondary_configs_dir.empty()) {
+    readSecondaryConfigs(uptane.secondary_configs_dir);
+  }
+
   LOG_TRACE << "Final configuration that will be used: \n" << (*this);
 }
 
@@ -248,15 +253,19 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   if (cmd.count("primary-ecu-hardware-id") != 0) {
     provision.primary_ecu_hardware_id = cmd["primary-ecu-hardware-id"].as<std::string>();
   }
-  if (cmd.count("secondary-config") != 0) {
-    std::vector<boost::filesystem::path> sconfigs = cmd["secondary-config"].as<std::vector<boost::filesystem::path>>();
-    readSecondaryConfigs(sconfigs);
+  if (cmd.count("secondary-configs-dir") != 0) {
+    uptane.secondary_configs_dir = cmd["secondary-configs-dir"].as<boost::filesystem::path>();
   }
 }
 
-void Config::readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs) {
-  for (auto it = sconfigs.cbegin(); it != sconfigs.cend(); ++it) {
-    uptane.secondary_configs.emplace_back(Uptane::SecondaryConfig(*it));
+void Config::readSecondaryConfigs(const boost::filesystem::path& sconfigs_dir) {
+  if (!boost::filesystem::is_directory(sconfigs_dir)) {
+    LOG_ERROR << "Could not read secondary configs from " << sconfigs_dir << ": not a directory";
+    return;
+  }
+  for (const auto& config_file : Utils::glob((sconfigs_dir / "*.json").string())) {
+    LOG_INFO << "Parsing secondary config: " << config_file;
+    uptane.secondary_configs.emplace_back(config_file);
   }
 }
 

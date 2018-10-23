@@ -7,7 +7,6 @@ Requires=network-online.target
 [Service]
 RestartSec=10
 Restart=always
-Environment="AKTUALIZR_SECONDARY_CONFIG=--secondary-config /usr/lib/sota/demo_secondary.json"
 EnvironmentFile=-/usr/lib/sota/sota.env
 ExecStart=/usr/bin/aktualizr --config /usr/lib/sota/sota.toml $AKTUALIZR_SECONDARY_CONFIG
 

@@ -152,11 +152,11 @@ add_test(NAME test-help-with-nonexistent-options
 set_tests_properties(test-help-with-nonexistent-options
                      PROPERTIES PASS_REGULAR_EXPRESSION "aktualizr command line options")
 
-add_test(NAME test-secondary-config-with-nonexistent-file
+add_test(NAME test-secondary-config-with-nonexisting-dir
          COMMAND aktualizr -c ${PROJECT_SOURCE_DIR}/config/sota_autoprov.toml
-         --tls-server fake --secondary-config nonexistentfile)
-set_tests_properties(test-secondary-config-with-nonexistent-file
-                     PROPERTIES PASS_REGULAR_EXPRESSION "nonexistentfile does not exist!")
+         --tls-server fake --secondary-configs-dir nonexistingdir)
+set_tests_properties(test-secondary-config-with-nonexisting-dir
+                     PROPERTIES PASS_REGULAR_EXPRESSION "\"nonexistingdir\": not a directory")
 
 # Check verbose config parsing output with debug loglevel.
 add_test(NAME test_log_debug
