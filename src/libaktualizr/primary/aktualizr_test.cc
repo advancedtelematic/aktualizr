@@ -114,10 +114,43 @@ TEST(Aktualizr, FullNoUpdates) {
   verifyNothingInstalled(up->AssembleManifest());
 }
 
+class HttpFakeEventCounter : public HttpFake {
+ public:
+  HttpFakeEventCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    // do something in child instances
+    for (const Json::Value& event : data) {
+      ++events_seen;
+      std::string event_type = event["eventType"]["id"].asString();
+      if (event_type.find("Ecu") == 0) {
+        EXPECT_EQ(event["event"]["correlationId"], "id0");
+      }
+
+      std::cout << "got event #" << events_seen << ": " << event_type << "\n";
+      if (events_seen >= 1 && events_seen <= 4) {
+        EXPECT_TRUE(event_type == "EcuDownloadStarted" || event_type == "EcuDownloadCompleted");
+      } else if (events_seen == 5) {
+        EXPECT_EQ(event_type, "DownloadComplete");
+      } else if (events_seen >= 6 && events_seen <= 9) {
+        EXPECT_TRUE(event_type == "EcuInstallationStarted" || event_type == "EcuInstallationCompleted");
+      } else {
+        std::cout << "Unexpected event";
+        EXPECT_EQ(0, 1);
+      }
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  unsigned int events_seen{0};
+};
+
 int num_events_FullWithUpdates = 0;
 std::future<void> future_FullWithUpdates{};
 std::promise<void> promise_FullWithUpdates{};
 void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << "Got " << event->variant << "\n";
   if (event->variant == "DownloadProgressReport") {
     return;
   }
@@ -216,7 +249,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
 TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
   conf.uptane.running_mode = RunningMode::kFull;
 

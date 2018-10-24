@@ -449,6 +449,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->events_seen, 2);
 }
 
 TEST(Uptane, FsToSqlFull) {
