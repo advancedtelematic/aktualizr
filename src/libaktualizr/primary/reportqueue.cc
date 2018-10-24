@@ -88,14 +88,14 @@ CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) :
 }
 
 EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id)
-    : ReportEvent("ecu_download_started", 0) {
+    : ReportEvent("EcuDownloadStarted", 0) {
   setEcu(ecu);
   setCorrelationId(correlation_id);
 }
 
 EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id,
                                                        bool success)
-    : ReportEvent("ecu_download_completed", 0) {
+    : ReportEvent("EcuDownloadCompleted", 0) {
   setEcu(ecu);
   setCorrelationId(correlation_id);
   custom["success"] = success;
@@ -103,14 +103,14 @@ EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& 
 
 EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu,
                                                            const std::string& correlation_id)
-    : ReportEvent("ecu_installation_started", 0) {
+    : ReportEvent("EcuInstallationStarted", 0) {
   setEcu(ecu);
   setCorrelationId(correlation_id);
 }
 
 EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu,
                                                                const std::string& correlation_id, bool success)
-    : ReportEvent("ecu_installation_completed", 0) {
+    : ReportEvent("EcuInstallationCompleted", 0) {
   setEcu(ecu);
   setCorrelationId(correlation_id);
   custom["success"] = success;

@@ -327,9 +327,9 @@ class HttpFakeProv : public HttpFake {
     (void)url;
     ++events_seen;
     if (events_seen == 1) {
-      EXPECT_EQ(data[0]["eventType"]["id"], "ecu_installation_started");
+      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
     } else if (events_seen == 2) {
-      EXPECT_EQ(data[0]["eventType"]["id"], "ecu_installation_completed");
+      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
     } else {
       std::cout << "Unexpected event: " << data[0]["eventType"]["id"];
       EXPECT_EQ(0, 1);
