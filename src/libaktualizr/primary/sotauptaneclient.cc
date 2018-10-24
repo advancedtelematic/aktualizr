@@ -1077,7 +1077,7 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
         Json::Value data;
         data["sysroot_path"] = config.pacman.sysroot.string();
         data["ref_hash"] = targets_it->sha256Hash();
-        firmwareFutures.push_back(std::pair<InstallReport, std::future<bool>>(
+        firmwareFutures.emplace_back(std::pair<InstallReport, std::future<bool>>(
             InstallReport(*targets_it, ecu_serial, data::OperationResult()),
             sendFirmwareAsync(sec, std::make_shared<std::string>(Utils::jsonToStr(data)))));
       } else if (targets_it->IsOstree()) {
@@ -1086,14 +1086,14 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
         if (creds_archive.empty()) {
           continue;
         }
-        firmwareFutures.push_back(std::pair<InstallReport, std::future<bool>>(
+        firmwareFutures.emplace_back(std::pair<InstallReport, std::future<bool>>(
             InstallReport(*targets_it, ecu_serial, data::OperationResult()),
             sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive))));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(targets_it->filename());
         const std::string fw = sstr.str();
-        firmwareFutures.push_back(
+        firmwareFutures.emplace_back(
             std::pair<InstallReport, std::future<bool>>(InstallReport(*targets_it, ecu_serial, data::OperationResult()),
                                                         sendFirmwareAsync(sec, std::make_shared<std::string>(fw))));
       }
