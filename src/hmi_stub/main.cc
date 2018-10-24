@@ -45,7 +45,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("help,h", "print usage")
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
-      ("secondary", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "secondary ECU json configuration file")
+      ("secondary-configs-dir", bpo::value<boost::filesystem::path>(), "directory containing seconday ECU configuration files")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)");
   // clang-format on
 
@@ -144,13 +144,6 @@ int main(int argc, char *argv[]) {
     std::function<void(const std::shared_ptr<event::BaseEvent> event)> f_cb =
         [&aktualizr](const std::shared_ptr<event::BaseEvent> event) { process_event(aktualizr, event); };
     conn = aktualizr.SetSignalHandler(f_cb);
-
-    if (commandline_map.count("secondary") != 0) {
-      auto sconfigs = commandline_map["secondary"].as<std::vector<boost::filesystem::path>>();
-      for (const auto &sconf : sconfigs) {
-        aktualizr.AddSecondary(Uptane::SecondaryFactory::makeSecondary(sconf));
-      }
-    }
 
     aktualizr.Initialize();
 
