@@ -30,15 +30,6 @@ class BaseEvent {
 };
 
 /**
- * An error occurred processing a command.
- */
-class Error : public BaseEvent {
- public:
-  explicit Error(std::string /*message_in*/);
-  std::string message;
-};
-
-/**
  * Device data has been successfully sent to the server.
  */
 class SendDeviceDataComplete : public BaseEvent {
@@ -51,7 +42,8 @@ class SendDeviceDataComplete : public BaseEvent {
  */
 class PutManifestComplete : public BaseEvent {
  public:
-  explicit PutManifestComplete();
+  explicit PutManifestComplete(bool success_in);
+  bool success;
 };
 
 /**
@@ -79,8 +71,9 @@ class DownloadProgressReport : public BaseEvent {
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
-  explicit DownloadTargetComplete(Uptane::Target update_in);
+  DownloadTargetComplete(Uptane::Target update_in, bool success_in);
   Uptane::Target update;
+  bool success;
 };
 
 /**

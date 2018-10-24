@@ -4,15 +4,13 @@
 
 namespace event {
 
-Error::Error(std::string message_in) : message(std::move(message_in)) { variant = "Error"; }
-
 UpdateCheckComplete::UpdateCheckComplete(UpdateCheckResult result_in) : result(std::move(result_in)) {
   variant = "UpdateCheckComplete";
 }
 
 SendDeviceDataComplete::SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
 
-PutManifestComplete::PutManifestComplete() { variant = "PutManifestComplete"; }
+PutManifestComplete::PutManifestComplete(bool success_in) : success(success_in) { variant = "PutManifestComplete"; }
 
 DownloadProgressReport::DownloadProgressReport(Uptane::Target target_in, std::string description_in,
                                                unsigned int progress_in)
@@ -20,7 +18,8 @@ DownloadProgressReport::DownloadProgressReport(Uptane::Target target_in, std::st
   variant = "DownloadProgressReport";
 }
 
-DownloadTargetComplete::DownloadTargetComplete(Uptane::Target update_in) : update(std::move(update_in)) {
+DownloadTargetComplete::DownloadTargetComplete(Uptane::Target update_in, bool success_in)
+    : update(std::move(update_in)), success(success_in) {
   variant = "DownloadTargetComplete";
 }
 

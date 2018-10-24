@@ -140,6 +140,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
       EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
                   download_event->update.filename() == "secondary_firmware.txt");
+      EXPECT_TRUE(download_event->success);
       break;
     }
     case 3: {
@@ -191,10 +192,13 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
       break;
     }
-    case 9:
+    case 9: {
       EXPECT_EQ(event->variant, "PutManifestComplete");
+      const auto put_complete = dynamic_cast<event::PutManifestComplete*>(event.get());
+      EXPECT_TRUE(put_complete->success);
       promise_FullWithUpdates.set_value();
       break;
+    }
     case 12:
       // Don't let the test run indefinitely!
       FAIL();
@@ -395,6 +399,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
       const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
       EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
                   download_event->update.filename() == "secondary_firmware.txt");
+      EXPECT_TRUE(download_event->success);
       break;
     }
     case 4: {
@@ -489,6 +494,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       const auto download_event = dynamic_cast<event::DownloadTargetComplete*>(event.get());
       EXPECT_TRUE(download_event->update.filename() == "primary_firmware.txt" ||
                   download_event->update.filename() == "secondary_firmware.txt");
+      EXPECT_TRUE(download_event->success);
       break;
     }
     case 4: {
@@ -542,6 +548,8 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     }
     case 11: {
       EXPECT_EQ(event->variant, "PutManifestComplete");
+      const auto put_complete = dynamic_cast<event::PutManifestComplete*>(event.get());
+      EXPECT_TRUE(put_complete->success);
       promise_InstallWithUpdates.set_value();
       break;
     }

@@ -46,7 +46,7 @@ class SotaUptaneClient {
   DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
   void sendDeviceData();
   UpdateCheckResult fetchMeta();
-  void putManifest();
+  bool putManifest();
   UpdateCheckResult checkUpdates();
   InstallResult uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
@@ -108,9 +108,6 @@ class SotaUptaneClient {
     std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
     if (events_channel) {
       (*events_channel)(std::move(event));
-    } else if (event->variant == "Error") {
-      auto err_event = dynamic_cast<event::Error *>(event.get());
-      LOG_WARNING << "got Error event: " << err_event->message;
     } else if (event->variant != "DownloadProgressReport") {
       LOG_INFO << "got " << event->variant << " event";
     }

@@ -724,15 +724,10 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // send this asynchronously before `sendEvent`, so that the report timestamp
   // would not be delayed by callbacks on events
   for (const auto &ecu : target.ecus()) {
-    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, true));
+    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, success));
   }
 
-  if (success) {
-    sendEvent<event::DownloadTargetComplete>(target);
-  } else {
-    sendEvent<event::Error>("Error downloading targets.");
-  }
-
+  sendEvent<event::DownloadTargetComplete>(target, success);
   return {success, target};
 }
 
@@ -918,12 +913,10 @@ bool SotaUptaneClient::putManifestSimple() {
   return false;
 }
 
-void SotaUptaneClient::putManifest() {
-  if (putManifestSimple()) {
-    sendEvent<event::PutManifestComplete>();
-  } else {
-    sendEvent<event::Error>("Could not put manifest.");
-  }
+bool SotaUptaneClient::putManifest() {
+  bool success = putManifestSimple();
+  sendEvent<event::PutManifestComplete>(success);
+  return success;
 }
 
 // Check stored secondaries list against secondaries known to aktualizr.
