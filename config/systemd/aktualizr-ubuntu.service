@@ -8,7 +8,7 @@ Requires=network-online.target
 RestartSec=10
 Restart=always
 EnvironmentFile=-/usr/lib/sota/sota.env
-ExecStart=/usr/bin/aktualizr --config /usr/lib/sota/sota.toml $AKTUALIZR_SECONDARY_CONFIG
+ExecStart=/usr/bin/aktualizr --config /usr/lib/sota/sota.toml
 
 [Install]
 WantedBy=multi-user.target
