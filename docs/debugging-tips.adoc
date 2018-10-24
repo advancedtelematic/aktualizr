@@ -32,7 +32,9 @@ Edit ../config/basic.toml to point `provision_path` to your automatic provisioni
     src/aktualizr_primary/aktualizr --config ../config/basic.toml
 
 == Debuging secondaries update
+
 To do it, You need to create temporary OSTree environment described above and add `sysroot` and `os` to your config file:
+
 ```
 [ostree]
 os = "myos"
@@ -40,7 +42,8 @@ sysroot = "/tmp/sysroot "
 
 ```
 
-Then for each secondary You need to create a config file:
+Then for each secondary you need to create a config file:
+
 ```
 {
     "ecu_serial": "Your secondary serial",
@@ -49,11 +52,13 @@ Then for each secondary You need to create a config file:
     "ecu_public_key": "/tmp/pub.key",
     "firmware_path": "/firmware.txt"
 }
-
 ```
+
+Then, save them as `.json` files in a common directory.
+
 Now You are ready to run aktualizr:
 
-`./aktualizr -c config.toml --secondary-config mysecondary1.json --secondary-config mysecondary2.json`
+`./aktualizr -c config.toml --secondary-config secondaries_dir`
 
 This will create needed keys and register Your secondaries. But currently You cannot shcedule updates
 for secondaries because of it is not implemented in UI. So You have 2 options, You can change the ecu_serial

@@ -76,6 +76,7 @@ struct UptaneConfig {
   std::string repo_server;
   CryptoSource key_source{CryptoSource::kFile};
   KeyType key_type{KeyType::kRSA2048};
+  boost::filesystem::path secondary_configs_dir;
   std::vector<Uptane::SecondaryConfig> secondary_configs{};
 
   void updateFromPropertyTree(const boost::property_tree::ptree& pt);
@@ -127,7 +128,7 @@ class Config : public BaseConfig {
  private:
   void updateFromPropertyTree(const boost::property_tree::ptree& pt) override;
   void updateFromCommandLine(const boost::program_options::variables_map& cmd);
-  void readSecondaryConfigs(const std::vector<boost::filesystem::path>& sconfigs);
+  void readSecondaryConfigs(const boost::filesystem::path& sconfigs_dir);
 
   std::vector<boost::filesystem::path> config_dirs_ = {"/usr/lib/sota/conf.d", "/etc/sota/conf.d/"};
   bool loglevel_from_cmdline{false};

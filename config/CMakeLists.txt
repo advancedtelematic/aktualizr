@@ -6,13 +6,13 @@ install(FILES systemd/aktualizr-ubuntu.service
         COMPONENT aktualizr)
 
 install(FILES sota_ubuntu.toml
-        DESTINATION lib/sota
+        DESTINATION lib/sota/conf.d
         RENAME sota.toml
         PERMISSIONS OWNER_READ OWNER_WRITE
         COMPONENT aktualizr)
 
 install(FILES secondary/virtualsec.json
-        DESTINATION lib/sota
+        DESTINATION lib/sota/secondaries
         RENAME demo_secondary.json
         PERMISSIONS OWNER_READ OWNER_WRITE
         COMPONENT aktualizr)
