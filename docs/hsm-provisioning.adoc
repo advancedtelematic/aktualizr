@@ -29,7 +29,7 @@ The following items are relevant for implicit provisioning:
 
 // end::summary-table[]
 
-An example `.toml` configuration file can be found at link:../config/sota_hsm_prov.toml[]. This is what is used as in input to `implicit_writer` during bitbaking with meta-updater.
+An example `.toml` configuration file can be found at link:../config/sota_hsm_prov.toml[]. This is what is used during bitbaking with meta-updater.
 
 == Steps
 
@@ -75,21 +75,19 @@ scp -P 2222 -pr ./ root@localhost:/var/sota/import
 
 == Simulated implicit provisioning with `cert_provider`
 
-Implicit provisioning can be simulated with `cert_provider` without need for the user to create a root CA. `cert_provider` uses the existing autoprovisioning mechanisms to pre-install a certificate and key on the device.
+Implicit provisioning can be simulated with `cert_provider` without need for the user to create a root CA. `cert_provider` can use the existing autoprovisioning mechanisms to pre-install a certificate and key on the device.
 
 // tag::quick-instructions[]
 
-1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
+1. In meta-updater, set `SOTA_CLIENT_PROV = "aktualizr-hsm-prov"` and `SOTA_DEPLOY_CREDENTIALS = "0"`. Currently, you will also need to set `SOTA_PACKED_CREDENTIALS` to provisioning credentials zip file.
 1. Build a standard image using bitbake.
 1. Boot the image.
-1. Optionally, verify that Aktualizr is not provisioning and that the device is not visible in the Garage.
-1. Load credentials onto the device, for example with `cert_provider` from the Aktualizr repo: `cert_provider -c credentials.zip -t <device> -d /var/sota`
+1. Optionally, verify that Aktualizr has not provisioned and that the device is not known to the server.
+1. Load credentials onto the device, for example with `cert_provider` from the Aktualizr repo: `cert_provider -c credentials.zip -t <device> -d /var/sota -r -u`
 1. Verify that Aktualizr provisions correctly with the server using the expected Device ID.
 
 // end::quick-instructions[]
 
 == Credentials format
 
-The provisioning credentials zip file format is specified in link:credentials.adoc[]. However, the only files in the archive used by `implicit_writer` are `autoprov.url` and `autoprov_credentials.p12`. Optionally, instead of including `autoprov_credentials.p12`, `implicit_writer` will also try looking for a file named `server_ca.pem` from which to read the server's root CA certificate. Note that `treehub.json` is required by `garage-sign`, and offline signing may require additional files.
-
-`cert_provider`, if used, also requires `autoprov.url` and `autoprov_credentials.p12`. Because `cert_provider` autoprovisions with the server, `server_ca.pem` cannot be substituted in place of `autoprov_credentials.p12`.
+The provisioning credentials zip file format is specified in link:credentials.adoc[]. However, the only files in the archive used by `cert_provider` are `autoprov.url` and `autoprov_credentials.p12`. Note that `treehub.json` is required by `garage-sign`, and offline signing may require additional files.
