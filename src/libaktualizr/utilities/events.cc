@@ -37,7 +37,9 @@ InstallTargetComplete::InstallTargetComplete(Uptane::EcuSerial serial_in, bool s
   variant = "InstallTargetComplete";
 }
 
-AllInstallsComplete::AllInstallsComplete() { variant = "AllInstallsComplete"; }
+AllInstallsComplete::AllInstallsComplete(InstallResult result_in) : result(std::move(result_in)) {
+  variant = "AllInstallsComplete";
+}
 
 CampaignCheckComplete::CampaignCheckComplete(CampaignCheckResult result_in) : result(std::move(result_in)) {
   variant = "CampaignCheckComplete";

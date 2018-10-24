@@ -48,4 +48,20 @@ class DownloadResult {
   std::string message;
 };
 
+class InstallReport {
+ public:
+  InstallReport(Uptane::Target update_in, Uptane::EcuSerial serial_in, data::OperationResult status_in)
+      : update(std::move(update_in)), serial(std::move(serial_in)), status(std::move(status_in)) {}
+  Uptane::Target update;
+  Uptane::EcuSerial serial;
+  data::OperationResult status;
+};
+
+class InstallResult {
+ public:
+  InstallResult() = default;
+  explicit InstallResult(std::vector<InstallReport> reports_in) : reports(std::move(reports_in)) {}
+  std::vector<InstallReport> reports;
+};
+
 #endif  // RESULTS_H_

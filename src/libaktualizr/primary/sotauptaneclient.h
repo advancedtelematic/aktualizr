@@ -48,7 +48,7 @@ class SotaUptaneClient {
   UpdateCheckResult fetchMeta();
   void putManifest();
   UpdateCheckResult checkUpdates();
-  bool uptaneInstall(const std::vector<Uptane::Target> &updates);
+  InstallResult uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
   CampaignCheckResult campaignCheck();
   void campaignAccept(const std::string &campaign_id);
@@ -82,7 +82,7 @@ class SotaUptaneClient {
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
-  void PackageInstallSetResult(const Uptane::Target &target);
+  data::OperationResult PackageInstallSetResult(const Uptane::Target &target);
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
@@ -90,7 +90,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
-  bool sendImagesToEcus(const std::vector<Uptane::Target> &targets);
+  std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
   bool putManifestSimple();

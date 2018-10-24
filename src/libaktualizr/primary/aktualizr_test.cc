@@ -183,9 +183,14 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_TRUE(install_complete->success);
       break;
     }
-    case 8:
+    case 8: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
+      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+      EXPECT_EQ(installs_complete->result.reports.size(), 2);
+      EXPECT_EQ(installs_complete->result.reports[0].status.result_code, data::UpdateResultCode::kOk);
+      EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
       break;
+    }
     case 9:
       EXPECT_EQ(event->variant, "PutManifestComplete");
       promise_FullWithUpdates.set_value();
@@ -460,9 +465,12 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
   }
   LOG_INFO << "Got " << event->variant;
   switch (num_events_InstallWithUpdates) {
-    case 0:
+    case 0: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
+      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+      EXPECT_EQ(installs_complete->result.reports.size(), 0);
       break;
+    }
     case 1:
     case 5: {
       EXPECT_EQ(event->variant, "UpdateCheckComplete");
@@ -526,6 +534,10 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     }
     case 10: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
+      const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
+      EXPECT_EQ(installs_complete->result.reports.size(), 2);
+      EXPECT_EQ(installs_complete->result.reports[0].status.result_code, data::UpdateResultCode::kOk);
+      EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
       break;
     }
     case 11: {
@@ -563,7 +575,8 @@ TEST(Aktualizr, InstallWithUpdates) {
 
   aktualizr.Initialize();
   // First try installing nothing. Nothing should happen.
-  aktualizr.Install(updates_InstallWithUpdates);
+  InstallResult result = aktualizr.Install(updates_InstallWithUpdates);
+  EXPECT_EQ(result.reports.size(), 0);
   conf.uptane.running_mode = RunningMode::kDownload;
   aktualizr.UptaneCycle();
   conf.uptane.running_mode = RunningMode::kInstall;

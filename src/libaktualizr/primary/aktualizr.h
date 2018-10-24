@@ -81,7 +81,7 @@ class Aktualizr {
   /**
    * Install targets.
    */
-  void Install(const std::vector<Uptane::Target>& updates);
+  InstallResult Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * Run an uptane cycle.

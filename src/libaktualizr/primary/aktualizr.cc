@@ -94,7 +94,9 @@ DownloadResult Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
   return uptane_client_->downloadImages(updates);
 }
 
-void Aktualizr::Install(const std::vector<Uptane::Target> &updates) { uptane_client_->uptaneInstall(updates); }
+InstallResult Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
+  return uptane_client_->uptaneInstall(updates);
+}
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

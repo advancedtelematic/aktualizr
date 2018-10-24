@@ -116,7 +116,8 @@ class InstallTargetComplete : public BaseEvent {
  */
 class AllInstallsComplete : public BaseEvent {
  public:
-  AllInstallsComplete();
+  explicit AllInstallsComplete(InstallResult result_in);
+  InstallResult result;
 };
 
 /**
