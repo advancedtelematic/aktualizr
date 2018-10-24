@@ -30,7 +30,7 @@ class BaseEvent {
 };
 
 /**
- * Device data has been successfully sent to the server.
+ * Device data has been sent to the server.
  */
 class SendDeviceDataComplete : public BaseEvent {
  public:
@@ -38,7 +38,7 @@ class SendDeviceDataComplete : public BaseEvent {
 };
 
 /**
- * A manifest has been successfully sent to the server.
+ * A manifest has been sent to the server.
  */
 class PutManifestComplete : public BaseEvent {
  public:
@@ -67,7 +67,7 @@ class DownloadProgressReport : public BaseEvent {
 };
 
 /**
- * A target has been successfully downloaded.
+ * A target has been downloaded.
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
@@ -77,7 +77,7 @@ class DownloadTargetComplete : public BaseEvent {
 };
 
 /**
- * An update has been successfully downloaded.
+ * All targets for an update have been downloaded.
  */
 class AllDownloadsComplete : public BaseEvent {
  public:
@@ -95,7 +95,7 @@ class InstallStarted : public BaseEvent {
 };
 
 /**
- * An update attempt on an ECU is finished.
+ * An installation attempt on an ECU has completed.
  */
 class InstallTargetComplete : public BaseEvent {
  public:
@@ -105,7 +105,7 @@ class InstallTargetComplete : public BaseEvent {
 };
 
 /**
- * All ECU update attempts have completed.
+ * All ECU installation attempts for an update have completed.
  */
 class AllInstallsComplete : public BaseEvent {
  public:
@@ -114,7 +114,7 @@ class AllInstallsComplete : public BaseEvent {
 };
 
 /**
- * The server has been successfully queried for available campaigns.
+ * The server has been queried for available campaigns.
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
@@ -123,7 +123,7 @@ class CampaignCheckComplete : public BaseEvent {
 };
 
 /**
- * A campaign has been successfully accepted.
+ * A campaign has been accepted.
  */
 class CampaignAcceptComplete : public BaseEvent {
  public:

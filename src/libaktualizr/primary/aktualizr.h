@@ -33,9 +33,9 @@ class Aktualizr {
   void Initialize();
 
   /**
-   * Run aktualizr indefinitely until a Shutdown event is received. Intended to
-   * be used with the Full \ref RunningMode setting. You may want to run this on
-   * its own thread.
+   * Run aktualizr indefinitely until Shutdown is called. Intended to be used
+   * with the Full \ref RunningMode setting. You may want to run this on its own
+   * thread.
    */
   int RunForever();
 
@@ -49,6 +49,7 @@ class Aktualizr {
    * Check for campaigns.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
+   * @return Data about available campaigns.
    */
   CampaignCheckResult CampaignCheck();
 
@@ -56,6 +57,7 @@ class Aktualizr {
    * Accept a campaign for the current device.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
+   * @param campaign_id Campaign ID as provided by CampaignCheck.
    */
   void CampaignAccept(const std::string& campaign_id);
 
@@ -70,21 +72,27 @@ class Aktualizr {
    * This collects a client manifest, PUTs it to the director, updates the
    * Uptane metadata (including root and targets), and then checks the metadata
    * for target updates.
+   * @return Information about available updates.
    */
   UpdateCheckResult CheckUpdates();
 
   /**
    * Download targets.
+   * @param updates Vector of targets to download as provided by CheckUpdates.
+   * @return Information about download results.
    */
   DownloadResult Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Install targets.
+   * @param updates Vector of targets to install as provided by CheckUpdates or
+   * Download.
+   * @return Information about installation results.
    */
   InstallResult Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Run an uptane cycle.
+   * Run an Uptane cycle.
    *
    * Behaviour depends on the configured running mode (full cycle, check and
    * download or check and install)
@@ -92,7 +100,8 @@ class Aktualizr {
   void UptaneCycle();
 
   /**
-   * Add new secondary to aktualizr.
+   * Add new secondary to aktualizr. Must be called before Initialize.
+   * @param secondary An object to perform installation on a secondary ECU.
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
 
