@@ -67,7 +67,7 @@ void Aktualizr::UptaneCycle() {
   uptane_client_->putManifest();
 }
 
-int Aktualizr::Run() {
+int Aktualizr::RunForever() {
   SendDeviceData();
   while (!shutdown_) {
     UptaneCycle();

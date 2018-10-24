@@ -37,7 +37,7 @@ class Aktualizr {
    * be used with the Full \ref RunningMode setting. You may want to run this on
    * its own thread.
    */
-  int Run();
+  int RunForever();
 
   /**
    * Asynchronously shut aktualizr down if it is running indefinitely with the
