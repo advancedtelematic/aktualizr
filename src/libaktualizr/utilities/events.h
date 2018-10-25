@@ -2,13 +2,11 @@
 #define EVENTS_H_
 /** \file */
 
-#include <map>
+#include <memory>
 #include <string>
 
-#include <json/json.h>
 #include <boost/signals2.hpp>
 
-#include "campaign/campaign.h"
 #include "uptane/tuf.h"
 #include "utilities/results.h"
 #include "utilities/types.h"
@@ -34,7 +32,7 @@ class BaseEvent {
  */
 class SendDeviceDataComplete : public BaseEvent {
  public:
-  explicit SendDeviceDataComplete();
+  SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
 };
 
 /**
@@ -42,7 +40,7 @@ class SendDeviceDataComplete : public BaseEvent {
  */
 class PutManifestComplete : public BaseEvent {
  public:
-  explicit PutManifestComplete(bool success_in);
+  explicit PutManifestComplete(bool success_in) : success(success_in) { variant = "PutManifestComplete"; }
   bool success;
 };
 
@@ -51,7 +49,10 @@ class PutManifestComplete : public BaseEvent {
  */
 class UpdateCheckComplete : public BaseEvent {
  public:
-  explicit UpdateCheckComplete(UpdateCheckResult result_in);
+  explicit UpdateCheckComplete(UpdateCheckResult result_in) : result(std::move(result_in)) {
+    variant = "UpdateCheckComplete";
+  }
+
   UpdateCheckResult result;
 };
 
@@ -60,7 +61,11 @@ class UpdateCheckComplete : public BaseEvent {
  */
 class DownloadProgressReport : public BaseEvent {
  public:
-  DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in);
+  DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in)
+      : target{std::move(target_in)}, description{std::move(description_in)}, progress{progress_in} {
+    variant = "DownloadProgressReport";
+  }
+
   Uptane::Target target;
   std::string description;
   unsigned int progress;
@@ -71,7 +76,11 @@ class DownloadProgressReport : public BaseEvent {
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
-  DownloadTargetComplete(Uptane::Target update_in, bool success_in);
+  DownloadTargetComplete(Uptane::Target update_in, bool success_in)
+      : update(std::move(update_in)), success(success_in) {
+    variant = "DownloadTargetComplete";
+  }
+
   Uptane::Target update;
   bool success;
 };
@@ -81,7 +90,10 @@ class DownloadTargetComplete : public BaseEvent {
  */
 class AllDownloadsComplete : public BaseEvent {
  public:
-  explicit AllDownloadsComplete(DownloadResult result_in);
+  explicit AllDownloadsComplete(DownloadResult result_in) : result(std::move(result_in)) {
+    variant = "AllDownloadsComplete";
+  }
+
   DownloadResult result;
 };
 
@@ -90,7 +102,7 @@ class AllDownloadsComplete : public BaseEvent {
  */
 class InstallStarted : public BaseEvent {
  public:
-  explicit InstallStarted(Uptane::EcuSerial serial_in);
+  explicit InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) { variant = "InstallStarted"; }
   Uptane::EcuSerial serial;
 };
 
@@ -99,7 +111,11 @@ class InstallStarted : public BaseEvent {
  */
 class InstallTargetComplete : public BaseEvent {
  public:
-  InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in);
+  InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in)
+      : serial(std::move(serial_in)), success(success_in) {
+    variant = "InstallTargetComplete";
+  }
+
   Uptane::EcuSerial serial;
   bool success;
 };
@@ -109,7 +125,10 @@ class InstallTargetComplete : public BaseEvent {
  */
 class AllInstallsComplete : public BaseEvent {
  public:
-  explicit AllInstallsComplete(InstallResult result_in);
+  explicit AllInstallsComplete(InstallResult result_in) : result(std::move(result_in)) {
+    variant = "AllInstallsComplete";
+  }
+
   InstallResult result;
 };
 
@@ -118,7 +137,10 @@ class AllInstallsComplete : public BaseEvent {
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete(CampaignCheckResult result_in);
+  explicit CampaignCheckComplete(CampaignCheckResult result_in) : result(std::move(result_in)) {
+    variant = "CampaignCheckComplete";
+  }
+
   CampaignCheckResult result;
 };
 
@@ -127,7 +149,7 @@ class CampaignCheckComplete : public BaseEvent {
  */
 class CampaignAcceptComplete : public BaseEvent {
  public:
-  explicit CampaignAcceptComplete();
+  CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
 };
 
 using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;

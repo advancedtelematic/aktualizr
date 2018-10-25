@@ -2,8 +2,7 @@ set(SOURCES dequeue_buffer.cc
             sockaddr_io.cc
             timer.cc
             types.cc
-            utils.cc
-            events.cc)
+            utils.cc)
 
 set(HEADERS config_utils.h
             dequeue_buffer.h
