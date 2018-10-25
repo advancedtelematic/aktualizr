@@ -1,5 +1,6 @@
 #!/bin/bash
-set -uo pipefail
+set -euo pipefail
+trap 'kill %1' EXIT
 
 TEMP_DIR=$(mktemp -d)
 
@@ -24,5 +25,5 @@ if [ -d "./tuf/aktualizr" ]; then
   echo "garage-sign tuf repo still present!"
   exit_code=1
 fi
-kill %1
+
 exit $exit_code

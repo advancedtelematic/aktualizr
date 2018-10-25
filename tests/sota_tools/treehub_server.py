@@ -9,15 +9,18 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from json import dump
 from tempfile import NamedTemporaryFile
 
-made_requests = 0
+HEAD_requests = {}
+GET_requests = {}
 
 class TreehubServerHandler(BaseHTTPRequestHandler):
     def __init__(self, *args):
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_GET(self):
-        if self.drop_check():
+        if self.drop_check(GET_requests):
+            print("Dropping GET request %s" % self.path)
             return
+        print("Processing GET request %s" % self.path)
         path = os.path.join(repo_path, self.path[1:])
         if(os.path.exists(path)):
             self.send_response_only(200)
@@ -32,23 +35,27 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
             self.send_response_only(404)
             self.end_headers()
     def do_HEAD(self):
-        if self.drop_check():
+        print("GOT HEAD request")
+        if self.drop_check(HEAD_requests):
+            print("Dropping HEAD request %s" % self.path)
             return
+        print("Processing HEAD request %s" % self.path)
         path = os.path.join(repo_path, self.path[1:])
         if(os.path.exists(path)):
             self.send_response_only(200)
         else:
             self.send_response_only(404)
         self.end_headers()
-    def drop_check(self):
-        global made_requests
-        print("made requests: %d" % made_requests)
-        if drop_connection_every_n_request and made_requests + 1 == drop_connection_every_n_request:
-            made_requests = 0
-            print("Dropping this connection")
+    def drop_check(self, made_requests):
+        if drop_connection_every_n_request == 0:
+            return False
+        made_requests[self.path] = made_requests.get(self.path, 0) + 1
+        print("request number: %d" % made_requests[self.path])
+        if made_requests[self.path] == 1:
             return True
         else:
-            made_requests += 1
+            if drop_connection_every_n_request == made_requests[self.path]:
+                made_requests[self.path] = 0
             return False
 
 
