@@ -4,10 +4,14 @@ endif()
 if(NOT GMOCK_ROOT )
     set(GMOCK_ROOT ${PROJECT_SOURCE_DIR}/third_party/googletest/googlemock)
 endif()
+
 # Temporarily remove flags not supported by gtest.
 remove_definitions(-Wswitch-default -Wconversion)
 add_subdirectory(${GMOCK_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/gmock EXCLUDE_FROM_ALL)
 add_definitions(-Wswitch-default -Wconversion)
+add_subdirectory(uptane_repo_generation)
+
+include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 
 # use the same libraries as the normal target but add our test utility library, gtest, gmock and gcov
 set (TEST_LIBS
@@ -15,20 +19,13 @@ set (TEST_LIBS
     testutilities
     gtest gmock)
 
-
 add_dependencies(build_tests aktualizr)
-
 if(BUILD_SOTA_TOOLS)
     add_dependencies(build_tests garage-push)
     add_dependencies(build_tests garage-check)
 endif(BUILD_SOTA_TOOLS)
-
-include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
-
 add_dependencies(build_tests aktualizr-secondary)
-
 add_dependencies(build_tests aktualizr-info)
-
 add_dependencies(build_tests aktualizr-repo)
 
 set(CTEST_EXTRA_ARGS -T Test --no-compress-output)
