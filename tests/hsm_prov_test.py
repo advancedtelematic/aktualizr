@@ -79,23 +79,20 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     os.environ['CERTS_DIR'] = str(certs_dir)
     shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
 
-    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
-        try:
-            # Verify that device has NOT yet provisioned.
-            for delay in [1, 2, 5, 10, 15]:
-                sleep(delay)
-                stdout, stderr, retcode = run_subprocess([str(akt_info),
-                                                          '--config', str(conf_dir)])
-                if retcode == 0 and stderr == b'':
-                    break
-            if (b'Couldn\'t load device ID' not in stdout or
-                    b'Couldn\'t load ECU serials' not in stdout or
-                    b'Provisioned on server: no' not in stdout or
-                    b'Fetched metadata: no' not in stdout):
-                print('Error: aktualizr failure or device already provisioned: \n' + stderr.decode() + stdout.decode())
-                return 1
-        finally:
-            proc.kill()
+    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    # Verify that device has NOT yet provisioned.
+    for delay in [1, 2, 5, 10, 15]:
+        sleep(delay)
+        stdout, stderr, retcode = run_subprocess([str(akt_info),
+                                                  '--config', str(conf_dir)])
+        if retcode == 0 and stderr == b'':
+            break
+    if (b'Couldn\'t load device ID' not in stdout or
+            b'Couldn\'t load ECU serials' not in stdout or
+            b'Provisioned on server: no' not in stdout or
+            b'Fetched metadata: no' not in stdout):
+        print('Error: aktualizr failure or device already provisioned: \n' + stderr.decode() + stdout.decode())
+        return 1
 
     # Unlike in meta-updater's oe-selftest, don't check if the HSM is already
     # initialized. If setup_hsm.sh was already run, it *should* be initialized.
@@ -150,14 +147,9 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
               hsm_err.decode() + hsm_out.decode())
         return 1
 
-    r = 1
     (tmp_dir / 'sql.db').unlink()
-    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
-        try:
-            r = verify_provisioned(akt_info, conf_dir)
-        finally:
-            proc.kill()
-    return r
+    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    return verify_provisioned(akt_info, conf_dir)
 
 
 if __name__ == '__main__':
