@@ -120,6 +120,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
   FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Aktualizr, CampaignCheck);
+  FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);
   void systemSetup();

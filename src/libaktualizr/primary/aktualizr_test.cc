@@ -16,6 +16,8 @@
 #include "utilities/events.h"
 #include "utilities/utils.h"
 
+boost::filesystem::path uptane_repos_dir;
+
 Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url) {
   Config conf("tests/config/basic.toml");
   conf.uptane.director_server = url + "/director";
@@ -120,7 +122,6 @@ class HttpFakeEventCounter : public HttpFake {
 
   HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
     (void)url;
-    // do something in child instances
     for (const Json::Value& event : data) {
       ++events_seen;
       std::string event_type = event["eventType"]["id"].asString();
@@ -265,6 +266,7 @@ TEST(Aktualizr, FullWithUpdates) {
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
   }
+  EXPECT_EQ(http->events_seen, 8);
 }
 
 int started_FullMultipleSecondaries = 0;
@@ -655,9 +657,56 @@ TEST(Aktualizr, CampaignCheck) {
   EXPECT_EQ(result.campaigns.size(), 1);
 }
 
+class HttpFakeNoCorrelationId : public HttpFake {
+ public:
+  HttpFakeNoCorrelationId(const boost::filesystem::path& test_dir_in)
+      : HttpFake(test_dir_in, "", uptane_repos_dir / "full_no_correlation_id") {}
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    for (const Json::Value& event : data) {
+      ++events_seen;
+      EXPECT_EQ(event["event"]["correlationId"].asString(), "");
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  unsigned int events_seen{0};
+};
+
+TEST(Aktualizr, FullNoCorrelationId) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path());
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+
+  aktualizr.Initialize();
+  UpdateCheckResult update_result = aktualizr.CheckUpdates();
+  EXPECT_EQ(update_result.status, UpdateStatus::kUpdatesAvailable);
+
+  DownloadResult download_result = aktualizr.Download(update_result.updates);
+  EXPECT_EQ(download_result.status, DownloadStatus::kSuccess);
+
+  InstallResult install_result = aktualizr.Install(download_result.updates);
+  for (const auto& r : install_result.reports) {
+    EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
+  }
+
+  EXPECT_EQ(http->events_seen, 8);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  if (argc != 2) {
+    std::cerr << "Error: " << argv[0] << " requires the path to the base directory of uptane repos.\n";
+    return EXIT_FAILURE;
+  }
+  uptane_repos_dir = argv[1];
 
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);

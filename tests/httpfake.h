@@ -20,11 +20,15 @@ enum class ProvisioningResult { kOK, kFailure };
 
 class HttpFake : public HttpInterface {
  public:
-  HttpFake(const boost::filesystem::path &test_dir_in, std::string flavor = "")
+  // old style HttpFake with centralized multi repo and url rewriting
+  HttpFake(const boost::filesystem::path &test_dir_in, std::string flavor = "",
+           const boost::filesystem::path &repo_dir_in = "tests/test_data/repo")
       : test_dir(test_dir_in), flavor_(std::move(flavor)) {
-    Utils::copyDir("tests/test_data/repo/repo/image", metadata_path.Path() / "repo");
-    Utils::copyDir("tests/test_data/repo/repo/director", metadata_path.Path() / "director");
-    Utils::copyDir("tests/test_data/repo/campaigner", metadata_path.Path() / "campaigner");
+    Utils::copyDir(repo_dir_in / "repo" / "image", metadata_path.Path() / "repo");
+    Utils::copyDir(repo_dir_in / "repo" / "director", metadata_path.Path() / "director");
+    if (boost::filesystem::is_directory(repo_dir_in / "campaigner")) {
+      Utils::copyDir(repo_dir_in / "campaigner", metadata_path.Path() / "campaigner");
+    }
   }
 
   virtual ~HttpFake() {}
