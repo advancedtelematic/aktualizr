@@ -137,7 +137,7 @@ TEST(OstreeObject, UploadSuccess) {
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp);
+  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.Path().string());
   sleep(3);
 
   TreehubServer push_server;
