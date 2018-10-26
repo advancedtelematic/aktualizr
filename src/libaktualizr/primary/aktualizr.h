@@ -84,6 +84,14 @@ class Aktualizr {
   DownloadResult Download(const std::vector<Uptane::Target>& updates);
 
   /**
+   * Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date
+   * according to the Uptane metadata downloaded in CheckUpdates call.
+   * @param filename Name of the binary in the storage
+   * @return Handle to the stored binary. nullptr if none is found.
+   */
+  std::unique_ptr<StorageTargetRHandle> GetStoredTarget(const std::string& filename);
+
+  /**
    * Install targets.
    * @param updates Vector of targets to install as provided by CheckUpdates or
    * Download.

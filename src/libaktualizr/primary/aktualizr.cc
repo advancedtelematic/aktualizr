@@ -101,3 +101,11 @@ InstallResult Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);
 }
+
+std::unique_ptr<StorageTargetRHandle> Aktualizr::GetStoredTarget(const std::string &filename) {
+  try {
+    return storage_->openTargetFile(filename);
+  } catch (...) {
+    return std::unique_ptr<StorageTargetRHandle>();
+  }
+}
