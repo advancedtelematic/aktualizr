@@ -282,11 +282,15 @@ If you intend to use aktualizr to authenticate with a server, you will need some
 
 == Maintainers
 
-This code is maintained by the team at https://www.advancedtelematic.com[ATS Advanced Telematic Systems GmbH]. If you have questions about the project, please reach us through Github issues for this repository.
+This code is maintained by the OTA team at https://www.here.com/en/products-services/here-automotive-suite/ota-software-management/here-ota-connect[HERE Technologies]. If you have questions about the project, please reach us through Github issues for this repository.
 
 == Contribute
 
 Complete contribution guidelines can be found in link:CONTRIBUTING.md[].
+
+== Changelog
+
+A changelog can be found in link:CHANGELOG.md[].
 
 == License
 

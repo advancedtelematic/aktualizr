@@ -472,10 +472,19 @@ int main(int argc, char* argv[]) {
     if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map)) {
       return 1;
     }
-    // TODO: backend should issue credentials.zip for implicit provision that will contain
-    //  root CA certificate as a separate file. Until then extract it from autoprov.p12
-    Bootstrap boot(credentials_path, "");
-    ca = boot.getCa();
+
+    // Read server root CA from server_ca.pem in archive if found (to support
+    // community edition use case). Otherwise, default to the old version of
+    // expecting it to be in the p12.
+    ca = Bootstrap::readServerCa(credentials_path);
+    if (ca.empty()) {
+      Bootstrap boot(credentials_path, "");
+      ca = boot.getCa();
+      std::cout << "Server root CA read from autoprov_credentials.p12 in zipped archive.\n";
+    } else {
+      std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
+    }
+
     serverUrl = Bootstrap::readServerUrl(credentials_path);
   }
 

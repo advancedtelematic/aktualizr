@@ -311,7 +311,6 @@ These are internal requirements that are relatively opaque to the user and/or co
 - [x] Run garage-deploy
 - [x] Run garage-sign
 - [x] Build credentials into an image
-- [x] ~~Run aktualizr_implicit_writer~~
 - [x] Run aktualizr_cert_provider
 - [x] Build an image with automatic provisioning that provisions successfully
 - [x] Build an image with implicit provisioning that provisions successfully

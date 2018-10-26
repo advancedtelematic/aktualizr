@@ -33,6 +33,7 @@ CONFIG_TEMPLATE = '''
 type = "none"
 
 [tls]
+server_url_path = "{tmp_dir}/gateway.url"
 cert_source = "pkcs11"
 pkey_source = "pkcs11"
 
@@ -49,12 +50,9 @@ key_source = "pkcs11"
 [storage]
 type = "sqlite"
 path = "{tmp_dir}"
-tls_cacert_path = "token/root.crt"
-tls_clientcert_path = "token/client.pem"
-tls_pkey_path = "token/pkey.pem"
 
 [import]
-base_path = "{tmp_dir}/certs"
+base_path = "{tmp_dir}/import"
 tls_cacert_path = "root.crt"
 tls_clientcert_path = "client.pem"
 tls_pkey_path = "pkey.pem"
@@ -65,50 +63,36 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
     conf_prov = conf_dir / '20-sota_hsm_prov.toml'
-    conf_server = conf_dir / '30-implicit_server.toml'
     with conf_prov.open('w') as f:
         f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir, pkcs11_module=pkcs11_module))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
-    akt_iw = build_dir / 'src/implicit_writer/aktualizr_implicit_writer'
     akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
     setup_hsm = src_dir / 'scripts/export_to_hsm.sh'
     hsm_conf = tmp_dir / 'softhsm2.conf'
     token_dir = tmp_dir / 'token'
-    certs_dir = tmp_dir / 'certs'
+    certs_dir = tmp_dir / 'import'
 
-
-    # Run implicit_writer (equivalent to aktualizr-hsm-prov.bb).
-    stdout, stderr, retcode = run_subprocess([str(akt_iw),
-                                              '-c', str(creds),
-                                              '--no-root-ca', '-o', str(conf_server)])
-    if retcode > 0:
-        print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
-              stderr.decode() + stdout.decode())
-        return retcode
 
     os.environ['TOKEN_DIR'] = str(token_dir)
     os.environ['SOFTHSM2_CONF'] = str(hsm_conf)
     os.environ['CERTS_DIR'] = str(certs_dir)
     shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
 
-    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
-        try:
-            # Verify that device has NOT yet provisioned.
-            for delay in [1, 2, 5, 10, 15]:
-                sleep(delay)
-                stdout, stderr, retcode = run_subprocess([str(akt_info),
-                                                          '--config', str(conf_dir)])
-                if retcode == 0 and stderr == b'':
-                    break
-            if (b'Couldn\'t load device ID' not in stdout or
-                    b'Couldn\'t load ECU serials' not in stdout or
-                    b'Provisioned on server: no' not in stdout or
-                    b'Fetched metadata: no' not in stdout):
-                print('Error: aktualizr failure or device already provisioned: \n' + stderr.decode() + stdout.decode())
-                return 1
-        finally:
-            proc.kill()
+    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    # Verify that device has NOT yet provisioned.
+    for delay in [1, 2, 5, 10, 15]:
+        sleep(delay)
+        stdout, stderr, retcode = run_subprocess([str(akt_info),
+                                                  '--config', str(conf_dir)])
+        if retcode == 0 and stderr == b'':
+            break
+    if (b'Couldn\'t load device ID' not in stdout or
+            b'Couldn\'t load ECU serials' not in stdout or
+            b'Provisioned on server: no' not in stdout or
+            b'Fetched metadata: no' not in stdout):
+        print('Error: aktualizr failure or device already provisioned: \n' + stderr.decode() + stdout.decode())
+        return 1
 
     # Unlike in meta-updater's oe-selftest, don't check if the HSM is already
     # initialized. If setup_hsm.sh was already run, it *should* be initialized.
@@ -119,7 +103,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', '/', '-r', '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', '/', '-r', '-s', '-u', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
@@ -163,14 +147,9 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
               hsm_err.decode() + hsm_out.decode())
         return 1
 
-    r = 1
     (tmp_dir / 'sql.db').unlink()
-    with popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once']) as proc:
-        try:
-            r = verify_provisioned(akt_info, conf_dir)
-        finally:
-            proc.kill()
-    return r
+    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    return verify_provisioned(akt_info, conf_dir)
 
 
 if __name__ == '__main__':

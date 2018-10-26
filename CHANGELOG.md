@@ -9,6 +9,8 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - Secondaries configuration files must now lie in a common directory which is passed in command line arguments or in static configuration
+- API has been upgraded: FetchMeta has been merged with CheckUpdates and most functions now have meaningful return values.
+- implicit_writer has been removed as it was no longer being used.
 
 ## [2018.12] - 2018-10-10
 
