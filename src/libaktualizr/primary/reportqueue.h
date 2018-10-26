@@ -32,12 +32,6 @@ class ReportEvent {
   void setCorrelationId(const std::string& correlation_id);
 };
 
-// old style event: should disappear
-class DownloadCompleteReport : public ReportEvent {
- public:
-  DownloadCompleteReport(const std::string& director_target);
-};
-
 class CampaignAcceptedReport : public ReportEvent {
  public:
   CampaignAcceptedReport(const std::string& campaign_id);

@@ -131,9 +131,7 @@ class HttpFakeEventCounter : public HttpFake {
       std::cout << "got event #" << events_seen << ": " << event_type << "\n";
       if (events_seen >= 1 && events_seen <= 4) {
         EXPECT_TRUE(event_type == "EcuDownloadStarted" || event_type == "EcuDownloadCompleted");
-      } else if (events_seen == 5) {
-        EXPECT_EQ(event_type, "DownloadComplete");
-      } else if (events_seen >= 6 && events_seen <= 9) {
+      } else if (events_seen >= 5 && events_seen <= 8) {
         EXPECT_TRUE(event_type == "EcuInstallationStarted" || event_type == "EcuInstallationCompleted");
       } else {
         std::cout << "Unexpected event";

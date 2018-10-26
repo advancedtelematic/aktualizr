@@ -21,8 +21,8 @@ class HttpFakeRq : public HttpFake {
   HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
     (void)data;
     if (url == "reportqueue/SingleEvent/events") {
-      EXPECT_EQ(data[0]["eventType"]["id"], "DownloadComplete");
-      EXPECT_EQ(data[0]["event"], "SingleEvent");
+      EXPECT_EQ(data[0]["eventType"]["id"], "EcuDownloadCompleted");
+      EXPECT_EQ(data[0]["event"]["ecu"], "SingleEvent");
       ++events_seen;
       if (events_seen == expected_events_) {
         expected_events_received.set_value(true);
@@ -30,8 +30,8 @@ class HttpFakeRq : public HttpFake {
       return HttpResponse("", 200, CURLE_OK, "");
     } else if (url.find("reportqueue/MultipleEvents") == 0) {
       for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-        EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
-        EXPECT_EQ(data[i]["event"], "MultipleEvents" + std::to_string(events_seen++));
+        EXPECT_EQ(data[i]["eventType"]["id"], "EcuDownloadCompleted");
+        EXPECT_EQ(data[i]["event"]["ecu"], "MultipleEvents" + std::to_string(events_seen++));
       }
       if (events_seen == expected_events_) {
         expected_events_received.set_value(true);
@@ -42,8 +42,8 @@ class HttpFakeRq : public HttpFake {
         return HttpResponse("", 400, CURLE_OK, "");
       } else {
         for (int i = 0; i < static_cast<int>(data.size()); ++i) {
-          EXPECT_EQ(data[i]["eventType"]["id"], "DownloadComplete");
-          EXPECT_EQ(data[i]["event"], "FailureRecovery" + std::to_string(i));
+          EXPECT_EQ(data[i]["eventType"]["id"], "EcuDownloadCompleted");
+          EXPECT_EQ(data[i]["event"]["ecu"], "FailureRecovery" + std::to_string(i));
         }
         events_seen = data.size();
         if (events_seen == expected_events_) {
@@ -72,7 +72,7 @@ TEST(ReportQueue, SingleEvent) {
   auto http = std::make_shared<HttpFakeRq>(temp_dir.Path(), num_events);
   ReportQueue report_queue(config, http);
 
-  report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("SingleEvent"));
+  report_queue.enqueue(std_::make_unique<EcuDownloadCompletedReport>(Uptane::EcuSerial("SingleEvent"), "", true));
 
   // Wait at most 30 seconds for the message to get processed.
   http->expected_events_received.get_future().wait_for(std::chrono::seconds(20));
@@ -91,7 +91,8 @@ TEST(ReportQueue, MultipleEvents) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("MultipleEvents" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<EcuDownloadCompletedReport>(
+        Uptane::EcuSerial("MultipleEvents" + std::to_string(i)), "", true));
   }
 
   // Wait at most 30 seconds for the messages to get processed.
@@ -112,7 +113,8 @@ TEST(ReportQueue, FailureRecovery) {
   ReportQueue report_queue(config, http);
 
   for (int i = 0; i < 10; ++i) {
-    report_queue.enqueue(std_::make_unique<DownloadCompleteReport>("FailureRecovery" + std::to_string(i)));
+    report_queue.enqueue(std_::make_unique<EcuDownloadCompletedReport>(
+        Uptane::EcuSerial("FailureRecovery" + std::to_string(i)), "", true));
   }
 
   // Wait at most 30 seconds for the messages to get processed.

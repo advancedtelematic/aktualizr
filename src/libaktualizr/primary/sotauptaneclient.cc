@@ -695,7 +695,6 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
-      sendDownloadReport();
       result = DownloadResult(downloaded_targets, DownloadStatus::kSuccess, "");
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
@@ -891,15 +890,6 @@ CampaignCheckResult SotaUptaneClient::campaignCheck() {
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   sendEvent<event::CampaignAcceptComplete>();
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
-}
-
-void SotaUptaneClient::sendDownloadReport() {
-  std::string director_targets;
-  if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
-    LOG_ERROR << "Unable to load director targets metadata";
-    return;
-  }
-  report_queue->enqueue(std_::make_unique<DownloadCompleteReport>(director_targets));
 }
 
 bool SotaUptaneClient::putManifestSimple() {

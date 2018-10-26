@@ -78,11 +78,6 @@ Json::Value ReportEvent::toJson() {
   return out;
 }
 
-DownloadCompleteReport::DownloadCompleteReport(const std::string& director_target)
-    : ReportEvent("DownloadComplete", 1) {
-  custom = director_target;
-}
-
 CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) : ReportEvent("campaign_accepted", 0) {
   custom["campaignId"] = campaign_id;
 }
