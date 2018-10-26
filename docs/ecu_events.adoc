@@ -29,7 +29,7 @@ Example:
         "deviceTime" : "2018-10-25T12:35:42Z",
         "event" :
         {
-                "correlationId" : "here-ota:mtus:c017f968-5c7e-4bf6-9992-2134ff06432c",
+                "correlationId" : "here-ota:campaigns:c017f968-5c7e-4bf6-9992-2134ff06432c",
                 "ecu" : "secondary_ecu_serial"
         },
         "eventType" :
@@ -57,7 +57,7 @@ Example:
         "deviceTime" : "2018-10-25T12:35:42Z",
         "event" :
         {
-                "correlationId" : "here-ota:mtus:c017f968-5c7e-4bf6-9992-2134ff06432c",
+                "correlationId" : "here-ota:campaigns:c017f968-5c7e-4bf6-9992-2134ff06432c",
                 "ecu" : "CA:FE:A6:D2:84:9D",
                 "success" : true
         },
@@ -83,7 +83,7 @@ Example:
         "deviceTime" : "2018-10-25T12:35:42Z",
         "event" :
         {
-                "correlationId" : "here-ota:mtus:c017f968-5c7e-4bf6-9992-2134ff06432c",
+                "correlationId" : "here-ota:campaigns:c017f968-5c7e-4bf6-9992-2134ff06432c",
                 "ecu" : "CA:FE:A6:D2:84:9D"
         },
         "eventType" :
@@ -114,7 +114,7 @@ Example:
         "deviceTime" : "2018-10-25T12:35:42Z",
         "event" :
         {
-                "correlationId" : "here-ota:mtus:c017f968-5c7e-4bf6-9992-2134ff06432c",
+                "correlationId" : "here-ota:campaigns:c017f968-5c7e-4bf6-9992-2134ff06432c",
                 "ecu" : "CA:FE:A6:D2:84:9D",
                 "success" : true
         },
