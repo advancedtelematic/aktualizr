@@ -200,7 +200,6 @@ These are internal requirements that are relatively opaque to the user and/or co
 - [ ] Miscellaneous
   - [x] Create a temporary file (utils_test.cc)
   - [x] Create a temporary directory (utils_test.cc)
-  - [x] Convert Events to and from JSON (events_test.cc)
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
   - [x] Install a fake package for testing (uptane_test.cc)

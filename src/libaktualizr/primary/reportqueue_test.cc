@@ -77,6 +77,7 @@ TEST(ReportQueue, FailureRecovery) {
   size_t counter = 0;
   size_t num_events = 10;
   while (http->events_seen < num_events) {
+    std::cout << "events_seen: " << http->events_seen << "\n";
     sleep(1);
     ASSERT_LT(++counter, 30) << "Timed out waiting for event reports.";
   }

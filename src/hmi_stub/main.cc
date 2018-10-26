@@ -20,14 +20,13 @@
 namespace bpo = boost::program_options;
 
 std::map<std::string, unsigned int> progress;
-std::vector<Uptane::Target> updates;
 std::mutex pending_ecus_mutex;
 unsigned int pending_ecus;
 
 void check_info_options(const bpo::options_description &description, const bpo::variables_map &vm) {
   if (vm.count("help") != 0) {
     std::cout << description << '\n';
-    std::cout << "Available commands: Shutdown, SendDeviceData, FetchMetadata, Download, Install, CampaignCheck\n";
+    std::cout << "Available commands: Shutdown, SendDeviceData, CheckUpdates, Download, Install, CampaignCheck\n";
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
@@ -84,10 +83,8 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
   return vm;
 }
 
-void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent> &event) {
-  if (event->variant == "FetchMetaComplete") {
-    aktualizr.CheckUpdates();
-  } else if (event->variant == "DownloadProgressReport") {
+void process_event(const std::shared_ptr<event::BaseEvent> &event) {
+  if (event->variant == "DownloadProgressReport") {
     const auto download_progress = dynamic_cast<event::DownloadProgressReport *>(event.get());
     if (progress.find(download_progress->target.sha256Hash()) == progress.end()) {
       progress[download_progress->target.sha256Hash()] = 0;
@@ -101,23 +98,16 @@ void process_event(Aktualizr &aktualizr, const std::shared_ptr<event::BaseEvent>
     }
   } else if (event->variant == "DownloadTargetComplete") {
     const auto download_complete = dynamic_cast<event::DownloadTargetComplete *>(event.get());
-    std::cout << "Download complete for file " << download_complete->update.filename() << "\n";
+    std::cout << "Download complete for file " << download_complete->update.filename() << ": "
+              << (download_complete->success ? "success" : "failure") << "\n";
     progress.erase(download_complete->update.sha256Hash());
-  } else if (event->variant == "AllDownloadsComplete") {
-    std::cout << "All downloads complete.\n";
-  } else if (event->variant == "UpdateAvailable") {
-    const auto updateAvailable = dynamic_cast<event::UpdateAvailable *>(event.get());
-    updates = updateAvailable->updates;
-    std::cout << updateAvailable->ecus_count << " updates available\n";
   } else if (event->variant == "InstallStarted") {
     const auto install_started = dynamic_cast<event::InstallStarted *>(event.get());
     std::cout << "Installation started for device " << install_started->serial.ToString() << "\n";
   } else if (event->variant == "InstallTargetComplete") {
     const auto install_complete = dynamic_cast<event::InstallTargetComplete *>(event.get());
-    std::cout << "Installation complete for device " << install_complete->serial.ToString() << "\n";
-  } else if (event->variant == "AllInstallsComplete") {
-    updates.clear();
-    std::cout << "All installations complete.\n";
+    std::cout << "Installation complete for device " << install_complete->serial.ToString() << ": "
+              << (install_complete->success ? "success" : "failure") << "\n";
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
@@ -142,11 +132,12 @@ int main(int argc, char *argv[]) {
 
     Aktualizr aktualizr(config);
     std::function<void(const std::shared_ptr<event::BaseEvent> event)> f_cb =
-        [&aktualizr](const std::shared_ptr<event::BaseEvent> event) { process_event(aktualizr, event); };
+        [](const std::shared_ptr<event::BaseEvent> event) { process_event(event); };
     conn = aktualizr.SetSignalHandler(f_cb);
 
     aktualizr.Initialize();
 
+    std::vector<Uptane::Target> updates;
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
@@ -155,12 +146,15 @@ int main(int argc, char *argv[]) {
         break;
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
-      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta") {
-        aktualizr.FetchMetadata();
+      } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
+        UpdateCheckResult result = aktualizr.CheckUpdates();
+        updates = result.updates;
+        std::cout << updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
         aktualizr.Download(updates);
       } else if (buffer == "install" || buffer == "uptaneinstall") {
         aktualizr.Install(updates);
+        updates.clear();
       } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
       } else if (!buffer.empty()) {

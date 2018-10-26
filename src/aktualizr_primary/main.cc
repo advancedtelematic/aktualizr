@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
         break;
       case RunningMode::kCheck:
         aktualizr.SendDeviceData();
-        aktualizr.UptaneCycle();
+        aktualizr.CheckUpdates();
         break;
       case RunningMode::kDownload:
       case RunningMode::kInstall:
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
         break;
       case RunningMode::kFull:
       default:
-        aktualizr.Run();
+        aktualizr.RunForever();
         break;
     }
     r = 0;

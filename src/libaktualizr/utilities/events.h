@@ -2,13 +2,13 @@
 #define EVENTS_H_
 /** \file */
 
-#include <map>
+#include <memory>
+#include <string>
 
-#include <json/json.h>
 #include <boost/signals2.hpp>
 
-#include "campaign/campaign.h"
 #include "uptane/tuf.h"
+#include "utilities/results.h"
 #include "utilities/types.h"
 
 /**
@@ -25,71 +25,35 @@ class BaseEvent {
   BaseEvent(std::string variant_in) : variant(std::move(variant_in)) {}
   virtual ~BaseEvent() = default;
   std::string variant;
-  virtual std::string toJson(Json::Value json);
-  virtual std::string toJson();
 };
 
 /**
- * An error occurred processing a command.
- */
-class Error : public BaseEvent {
- public:
-  std::string message;
-  explicit Error(std::string /*message_in*/);
-  std::string toJson() override;
-  static Error fromJson(const std::string& /*json_str*/);
-};
-
-/**
- * Metadata has been successfully fetched from the server.
- */
-class FetchMetaComplete : public BaseEvent {
- public:
-  explicit FetchMetaComplete();
-};
-
-/**
- * Device data has been successfully sent to the server.
+ * Device data has been sent to the server.
  */
 class SendDeviceDataComplete : public BaseEvent {
  public:
-  explicit SendDeviceDataComplete();
+  SendDeviceDataComplete() { variant = "SendDeviceDataComplete"; }
 };
 
 /**
- * A manifest has been successfully sent to the server.
+ * A manifest has been sent to the server.
  */
 class PutManifestComplete : public BaseEvent {
  public:
-  explicit PutManifestComplete();
-};
-
-/**
- * No update is available for download from the server.
- */
-class NoUpdateAvailable : public BaseEvent {
- public:
-  explicit NoUpdateAvailable();
+  explicit PutManifestComplete(bool success_in) : success(success_in) { variant = "PutManifestComplete"; }
+  bool success;
 };
 
 /**
  * An update is available for download from the server.
  */
-class UpdateAvailable : public BaseEvent {
+class UpdateCheckComplete : public BaseEvent {
  public:
-  std::vector<Uptane::Target> updates;
-  unsigned int ecus_count;
-  explicit UpdateAvailable(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in);
-  std::string toJson() override;
-  static UpdateAvailable fromJson(const std::string& json_str);
-};
+  explicit UpdateCheckComplete(UpdateCheckResult result_in) : result(std::move(result_in)) {
+    variant = "UpdateCheckComplete";
+  }
 
-/**
- * Nothing to download from the server.
- */
-class NothingToDownload : public BaseEvent {
- public:
-  explicit NothingToDownload();
+  UpdateCheckResult result;
 };
 
 /**
@@ -97,36 +61,40 @@ class NothingToDownload : public BaseEvent {
  */
 class DownloadProgressReport : public BaseEvent {
  public:
+  DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in)
+      : target{std::move(target_in)}, description{std::move(description_in)}, progress{progress_in} {
+    variant = "DownloadProgressReport";
+  }
+
   Uptane::Target target;
   std::string description;
   unsigned int progress;
-  std::string toJson() override;
-
-  explicit DownloadProgressReport(Uptane::Target target_in, std::string description_in, unsigned int progress_in);
 };
 
 /**
- * An update has been successfully downloaded.
- */
-class AllDownloadsComplete : public BaseEvent {
- public:
-  std::vector<Uptane::Target> updates;
-  std::string toJson() override;
-
-  explicit AllDownloadsComplete(std::vector<Uptane::Target> updates_in);
-  static AllDownloadsComplete fromJson(const std::string& json_str);
-};
-
-/**
- * A target has been successfully downloaded.
+ * A target has been downloaded.
  */
 class DownloadTargetComplete : public BaseEvent {
  public:
-  Uptane::Target update;
-  std::string toJson() override;
+  DownloadTargetComplete(Uptane::Target update_in, bool success_in)
+      : update(std::move(update_in)), success(success_in) {
+    variant = "DownloadTargetComplete";
+  }
 
-  explicit DownloadTargetComplete(Uptane::Target update_in);
-  static DownloadTargetComplete fromJson(const std::string& json_str);
+  Uptane::Target update;
+  bool success;
+};
+
+/**
+ * All targets for an update have been downloaded.
+ */
+class AllDownloadsComplete : public BaseEvent {
+ public:
+  explicit AllDownloadsComplete(DownloadResult result_in) : result(std::move(result_in)) {
+    variant = "AllDownloadsComplete";
+  }
+
+  DownloadResult result;
 };
 
 /**
@@ -134,47 +102,58 @@ class DownloadTargetComplete : public BaseEvent {
  */
 class InstallStarted : public BaseEvent {
  public:
-  explicit InstallStarted(Uptane::EcuSerial serial_in);
+  explicit InstallStarted(Uptane::EcuSerial serial_in) : serial(std::move(serial_in)) { variant = "InstallStarted"; }
   Uptane::EcuSerial serial;
 };
 
 /**
- * An update attempt on an ECU is finished.
+ * An installation attempt on an ECU has completed.
  */
 class InstallTargetComplete : public BaseEvent {
  public:
-  InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in);
+  InstallTargetComplete(Uptane::EcuSerial serial_in, bool success_in)
+      : serial(std::move(serial_in)), success(success_in) {
+    variant = "InstallTargetComplete";
+  }
+
   Uptane::EcuSerial serial;
   bool success;
 };
 
 /**
- * All ECU update attempts have completed.
+ * All ECU installation attempts for an update have completed.
  */
 class AllInstallsComplete : public BaseEvent {
  public:
-  AllInstallsComplete();
+  explicit AllInstallsComplete(InstallResult result_in) : result(std::move(result_in)) {
+    variant = "AllInstallsComplete";
+  }
+
+  InstallResult result;
 };
 
 /**
- * The server has been successfully queried for available campaigns.
+ * The server has been queried for available campaigns.
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete(std::vector<campaign::Campaign> campaigns_in);
-  std::vector<campaign::Campaign> campaigns;
+  explicit CampaignCheckComplete(CampaignCheckResult result_in) : result(std::move(result_in)) {
+    variant = "CampaignCheckComplete";
+  }
+
+  CampaignCheckResult result;
 };
 
 /**
- * A campaign has been successfully accepted.
+ * A campaign has been accepted.
  */
 class CampaignAcceptComplete : public BaseEvent {
  public:
-  explicit CampaignAcceptComplete();
+  CampaignAcceptComplete() { variant = "CampaignAcceptComplete"; }
 };
 
 using Channel = boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>;
 
 }  // namespace event
 
-#endif
+#endif  // EVENTS_H_

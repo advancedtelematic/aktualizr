@@ -340,7 +340,9 @@ TEST(Uptane, ProvisionOnServer) {
   // the metadata concerns anyway.
   std::vector<Uptane::Target> packages_to_install =
       makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
-  EXPECT_FALSE(up->downloadImages(packages_to_install));
+  DownloadResult result = up->downloadImages(packages_to_install);
+  EXPECT_EQ(result.updates.size(), 0);
+  EXPECT_EQ(result.status, DownloadStatus::kError);
 
   // Test installation to make sure the metadata put to the server is correct.
   up->uptaneInstall(packages_to_install);

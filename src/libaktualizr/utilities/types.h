@@ -109,7 +109,6 @@ inline std::ostream& operator<<(std::ostream& os, CryptoSource cs) {
 }
 
 // timestamp, compatible with tuf
-
 class TimeStamp {
  public:
   static TimeStamp Now();

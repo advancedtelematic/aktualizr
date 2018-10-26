@@ -2,7 +2,6 @@
 #define AKTUALIZR_H_
 
 #include <atomic>
-#include <future>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -34,63 +33,66 @@ class Aktualizr {
   void Initialize();
 
   /**
-   * Run aktualizr indefinitely until a Shutdown event is received. Intended to
-   * be used with the Full \ref RunningMode setting. You may want to run this on
-   * its own thread.
+   * Run aktualizr indefinitely until Shutdown is called. Intended to be used
+   * with the Full \ref RunningMode setting. You may want to run this on its own
+   * thread.
    */
-  int Run();
+  int RunForever();
 
   /**
-   * Asynchronously shut aktualizr down.
+   * Asynchronously shut aktualizr down if it is running indefinitely with the
+   * Full \ref RunningMode.
    */
   void Shutdown();
 
   /**
-   * Asynchronously perform a check for campaigns.
+   * Check for campaigns.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
+   * @return Data about available campaigns.
    */
-  void CampaignCheck();
+  CampaignCheckResult CampaignCheck();
 
   /**
-   * Asynchronously accept a campaign for the current device
+   * Accept a campaign for the current device.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
+   * @param campaign_id Campaign ID as provided by CampaignCheck.
    */
   void CampaignAccept(const std::string& campaign_id);
 
   /**
-   * Asynchronously send local device data to the server.
+   * Send local device data to the server.
    * This includes network status, installed packages, hardware etc.
    */
   void SendDeviceData();
 
   /**
-   * Asynchronously fetch Uptane metadata.
-   * This collects a client manifest, PUTs it to the director, then updates
-   * the Uptane metadata, including root and targets.
+   * Fetch Uptane metadata and check for updates.
+   * This collects a client manifest, PUTs it to the director, updates the
+   * Uptane metadata (including root and targets), and then checks the metadata
+   * for target updates.
+   * @return Information about available updates.
    */
-  void FetchMetadata();
+  UpdateCheckResult CheckUpdates();
 
   /**
-   * Asynchronously load already-fetched Uptane metadata from disk.
-   * This is only needed when the metadata fetch and downloads/installation are
-   * in separate aktualizr runs.
+   * Download targets.
+   * @param updates Vector of targets to download as provided by CheckUpdates.
+   * @return Information about download results.
    */
-  void CheckUpdates();
+  DownloadResult Download(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Asynchronously download targets.
+   * Install targets.
+   * @param updates Vector of targets to install as provided by CheckUpdates or
+   * Download.
+   * @return Information about installation results.
    */
-  void Download(const std::vector<Uptane::Target>& updates);
+  InstallResult Install(const std::vector<Uptane::Target>& updates);
 
   /**
-   * Asynchronously install targets.
-   */
-  void Install(const std::vector<Uptane::Target>& updates);
-
-  /**
-   * Synchronously run an uptane cycle.
+   * Run an Uptane cycle.
    *
    * Behaviour depends on the configured running mode (full cycle, check and
    * download or check and install)
@@ -98,7 +100,8 @@ class Aktualizr {
   void UptaneCycle();
 
   /**
-   * Add new secondary to aktualizr.
+   * Add new secondary to aktualizr. Must be called before Initialize.
+   * @param secondary An object to perform installation on a secondary ECU.
    */
   void AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface>& secondary);
 
@@ -126,18 +129,6 @@ class Aktualizr {
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
-
-  struct CycleEventHandler {
-    Aktualizr& aktualizr;
-    std::mutex m{};
-    bool running{true};
-    std::promise<bool> finished{};
-    std::future<bool> fut{};
-
-    CycleEventHandler(Aktualizr& akt);
-    void breakLoop();
-    void handle(const std::shared_ptr<event::BaseEvent>& event);
-  };
 };
 
 #endif  // AKTUALIZR_H_

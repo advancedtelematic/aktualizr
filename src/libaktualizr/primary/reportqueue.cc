@@ -48,6 +48,7 @@ void ReportQueue::flushQueue() {
       report_queue_.pop();
     }
   }
+
   if (report_array.size() > 0) {
     HttpResponse response = http->post(config.tls.server + "/events", report_array);
     // 404 implies the server does not support this feature. Nothing we can

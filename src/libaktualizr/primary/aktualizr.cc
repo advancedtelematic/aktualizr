@@ -45,86 +45,29 @@ void Aktualizr::systemSetup() {
 
 void Aktualizr::Initialize() { uptane_client_->initialize(); }
 
-Aktualizr::CycleEventHandler::CycleEventHandler(Aktualizr &akt) : aktualizr(akt), fut(finished.get_future()) {}
-
-void Aktualizr::CycleEventHandler::breakLoop() {
-  std::lock_guard<std::mutex> l(m);
-  if (!running) {
-    return;
-  }
-  running = false;
-  finished.set_value(true);
-}
-
-void Aktualizr::CycleEventHandler::handle(const std::shared_ptr<event::BaseEvent> &event) {
-  if (!running) {
-    return;
-  }
-
-  RunningMode running_mode = aktualizr.config_.uptane.running_mode;
-
-  if (event->variant == "FetchMetaComplete") {
-    aktualizr.CheckUpdates();
-  } else if (event->variant == "NoUpdateAvailable") {
-    breakLoop();
-  } else if (event->variant == "UpdateAvailable") {
-    auto ua_event = dynamic_cast<event::UpdateAvailable *>(event.get());
-    assert(!ua_event->updates.empty());
-    if (running_mode == RunningMode::kCheck) {
-      breakLoop();
-    } else if (running_mode == RunningMode::kInstall) {
-      aktualizr.Install(ua_event->updates);
-    } else {
-      aktualizr.Download(ua_event->updates);
-    }
-  } else if (event->variant == "NothingToDownload") {
-    breakLoop();
-  } else if (event->variant == "DownloadProgressReport") {
-    // silent
-  } else if (event->variant == "AllDownloadsComplete") {
-    auto dc_event = dynamic_cast<event::AllDownloadsComplete *>(event.get());
-    if (running_mode == RunningMode::kDownload) {
-      breakLoop();
-    } else {
-      aktualizr.Install(dc_event->updates);
-    }
-  } else if (event->variant == "AllInstallsComplete") {
-    // finished installing everything
-    aktualizr.uptane_client_->putManifest();
-  } else if (event->variant == "PutManifestComplete") {
-    boost::filesystem::path reboot_flag = "/tmp/aktualizr_reboot_flag";
-    if (boost::filesystem::exists(reboot_flag)) {
-      boost::filesystem::remove(reboot_flag);
-      if (getppid() == 1) {  // if parent process id is 1, aktualizr runs under systemd
-        exit(0);             // aktualizr service runs with 'Restart=always' systemd option.
-        // Systemd will start aktualizr automatically if it exit.
-      } else {  // Aktualizr runs from terminal
-        LOG_INFO << "Aktualizr has been updated and requires restarting to run the new version.";
-      }
-    }
-    breakLoop();
-  } else if (event->variant == "Error") {
-    auto err_event = dynamic_cast<event::Error *>(event.get());
-    LOG_WARNING << "got Error event: " << err_event->message;
-    breakLoop();
-  }
-}
-
 void Aktualizr::UptaneCycle() {
-  CycleEventHandler ev_handler(*this);
+  RunningMode running_mode = config_.uptane.running_mode;
+  UpdateCheckResult update_result = CheckUpdates();
+  if (running_mode == RunningMode::kCheck || update_result.updates.size() == 0) {
+    return;
+  } else if (running_mode == RunningMode::kInstall) {
+    Install(update_result.updates);
+    uptane_client_->putManifest();
+    return;
+  }
 
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> cb =
-      [&ev_handler](const std::shared_ptr<event::BaseEvent> &event) { ev_handler.handle(event); };
-  auto conn = SetSignalHandler(cb);
+  std::vector<Uptane::Target> downloaded_updates;
+  DownloadResult download_result = Download(update_result.updates);
+  if (running_mode == RunningMode::kDownload || download_result.status != DownloadStatus::kSuccess ||
+      download_result.updates.size() == 0) {
+    return;
+  }
 
-  // launch the cycle
-  FetchMetadata();
-
-  ev_handler.fut.wait();
-  conn.disconnect();
+  Install(download_result.updates);
+  uptane_client_->putManifest();
 }
 
-int Aktualizr::Run() {
+int Aktualizr::RunForever() {
   SendDeviceData();
   while (!shutdown_) {
     UptaneCycle();
@@ -139,19 +82,21 @@ void Aktualizr::AddSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &
 
 void Aktualizr::Shutdown() { shutdown_ = true; }
 
-void Aktualizr::CampaignCheck() { uptane_client_->campaignCheck(); }
+CampaignCheckResult Aktualizr::CampaignCheck() { return uptane_client_->campaignCheck(); }
 
 void Aktualizr::CampaignAccept(const std::string &campaign_id) { uptane_client_->campaignAccept(campaign_id); }
 
 void Aktualizr::SendDeviceData() { uptane_client_->sendDeviceData(); }
 
-void Aktualizr::FetchMetadata() { uptane_client_->fetchMeta(); }
+UpdateCheckResult Aktualizr::CheckUpdates() { return uptane_client_->fetchMeta(); }
 
-void Aktualizr::CheckUpdates() { uptane_client_->checkUpdates(); }
+DownloadResult Aktualizr::Download(const std::vector<Uptane::Target> &updates) {
+  return uptane_client_->downloadImages(updates);
+}
 
-void Aktualizr::Download(const std::vector<Uptane::Target> &updates) { uptane_client_->downloadImages(updates); }
-
-void Aktualizr::Install(const std::vector<Uptane::Target> &updates) { uptane_client_->uptaneInstall(updates); }
+InstallResult Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
+  return uptane_client_->uptaneInstall(updates);
+}
 
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);

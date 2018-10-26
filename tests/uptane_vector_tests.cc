@@ -101,7 +101,8 @@ class Uptane_Vector_Test {
           return false;
         }
         if (updates.size()) {
-          if (!uptane_client->downloadImages(updates)) {
+          DownloadResult result = uptane_client->downloadImages(updates);
+          if (result.status != DownloadStatus::kSuccess) {
             if (should_fail) {
               throw uptane_client->getLastException();
             }
