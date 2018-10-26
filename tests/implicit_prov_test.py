@@ -28,14 +28,18 @@ CONFIG_TEMPLATE = '''
 [pacman]
 type = "none"
 
+[tls]
+server_url_path = "{tmp_dir}/gateway.url"
+
 [storage]
 path = "{tmp_dir}"
 type = "sqlite"
 
 [import]
 base_path = "{tmp_dir}/import"
-tls_pkey_path = "{pkey_path}"
-tls_clientcert_path = "{clientcert_path}"
+tls_cacert_path = "root.crt"
+tls_clientcert_path = "client.pem"
+tls_pkey_path = "pkey.pem"
 '''
 
 
@@ -43,26 +47,11 @@ def provision(tmp_dir, build_dir, creds):
     conf_dir = tmp_dir / 'conf.d'
     os.mkdir(str(conf_dir))
     conf_prov = conf_dir / '20-implicit_prov.toml'
-    conf_server = conf_dir / '30-implicit_server.toml'
     with conf_prov.open('w') as f:
-        f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir,
-                                       pkey_path='pkey.pem',
-                                       clientcert_path='client.pem'
-                                       ))
+        f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
-    akt_iw = build_dir / 'src/implicit_writer/aktualizr_implicit_writer'
     akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
-
-    # Run implicit_writer (equivalent to aktualizr-implicit-prov.bb).
-    cacert_path = tmp_dir / 'import/root.crt'
-    stdout, stderr, retcode = run_subprocess([str(akt_iw),
-                                              '-c', str(creds), '-o',
-                                              str(conf_server), '-r', str(cacert_path)])
-    if retcode > 0:
-        print('aktualizr_implicit_writer failed (' + str(retcode) + '): ' +
-              stderr.decode() + stdout.decode())
-        return retcode
 
     with popen_subprocess([str(akt), '--config', str(conf_dir)]) as proc:
         try:
@@ -85,7 +74,7 @@ def provision(tmp_dir, build_dir, creds):
     # Run cert_provider.
     print('Device has not yet provisioned (as expected). Running cert_provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
-        '-c', str(creds), '-l', '/', '-s', '-g', str(conf_prov)])
+        '-c', str(creds), '-l', '/', '-s', '-u', '-r', '-g', str(conf_prov)])
     if retcode > 0:
         print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())

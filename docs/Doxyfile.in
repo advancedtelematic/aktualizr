@@ -796,7 +796,6 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/../CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/aktualizr_secondary \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/cert_provider \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/hmi_stub \
-                         @CMAKE_CURRENT_SOURCE_DIR@/../src/implicit_writer \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/asn1 \
                          @CMAKE_CURRENT_SOURCE_DIR@/../src/libaktualizr/asn1/messages \
