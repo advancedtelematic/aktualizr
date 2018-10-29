@@ -24,6 +24,8 @@ class ManagedSecondary : public SecondaryInterface {
   explicit ManagedSecondary(const SecondaryConfig& sconfig_in);
   ~ManagedSecondary() override = default;
 
+  void Initialize() override;
+
   EcuSerial getSerial() override {
     if (!sconfig.ecu_serial.empty()) {
       return EcuSerial(sconfig.ecu_serial);
