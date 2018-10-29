@@ -44,8 +44,8 @@ class SotaUptaneClient {
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
-  void pause() { uptane_fetcher->setPause(true); }
-  void resume() { uptane_fetcher->setPause(false); }
+  PauseResult pause() { return uptane_fetcher->setPause(true); }
+  PauseResult resume() { return uptane_fetcher->setPause(false); }
   void sendDeviceData();
   UpdateCheckResult fetchMeta();
   bool putManifest();

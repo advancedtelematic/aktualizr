@@ -54,27 +54,40 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return written_size;
 }
 
-void Fetcher::setPause(bool pause) {
+PauseResult Fetcher::setPause(bool pause) {
   std::lock_guard<std::mutex> guard(mutex_);
   if (pause_ == pause) {
     if (pause) {
-      LOG_INFO << "We already on pause";
+      LOG_INFO << "Download is already paused.";
+      sendEvent<event::DownloadPaused>(PauseResult::kAlreadyPaused);
+      return PauseResult::kAlreadyPaused;
     } else {
-      LOG_INFO << "We are not paused, can't resume";
+      LOG_INFO << "Download is not paused, can't resume.";
+      sendEvent<event::DownloadResumed>(PauseResult::kNotPaused);
+      return PauseResult::kNotPaused;
     }
-    return;
   }
+
   if (pause) {
     if (downloading_ != 0u) {
       pause_mutex_.lock();
     } else {
-      LOG_INFO << "We are not downloading, skipping pause";
-      return;
+      LOG_INFO << "No download in progress, can't pause.";
+      sendEvent<event::DownloadPaused>(PauseResult::kNotDownloading);
+      return PauseResult::kNotDownloading;
     }
   } else {
     pause_mutex_.unlock();
   }
   pause_ = pause;
+
+  if (pause) {
+    sendEvent<event::DownloadPaused>(PauseResult::kPaused);
+    return PauseResult::kPaused;
+  } else {
+    sendEvent<event::DownloadResumed>(PauseResult::kResumed);
+    return PauseResult::kResumed;
+  }
 }
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
@@ -110,15 +123,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           throw Exception("image", "Could not download file, error: " + response.error_message);
         }
         if (pause_) {
-          if (events_channel) {
-            auto event = std::make_shared<event::DownloadPaused>();
-            (*(events_channel))(event);
-          }
           std::lock_guard<std::mutex> lock(pause_mutex_);
-          if (events_channel) {
-            auto event = std::make_shared<event::DownloadResumed>();
-            (*(events_channel))(event);
-          }
           retry = true;
         }
       } while (retry);
