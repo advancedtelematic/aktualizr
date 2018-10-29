@@ -56,7 +56,6 @@ void Aktualizr::UptaneCycle() {
     return;
   }
 
-  std::vector<Uptane::Target> downloaded_updates;
   DownloadResult download_result = Download(update_result.updates);
   if (running_mode == RunningMode::kDownload || download_result.status != DownloadStatus::kSuccess ||
       download_result.updates.size() == 0) {

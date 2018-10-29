@@ -30,7 +30,7 @@
 #endif
 #endif
 
-std::vector<Uptane::Target> makePackage(const std::string& serial, const std::string& hw_id) {
+std::vector<Uptane::Target> makePackage(const std::string &serial, const std::string &hw_id) {
   std::vector<Uptane::Target> packages_to_install;
   Json::Value ot_json;
   ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
@@ -120,8 +120,8 @@ TEST(Uptane, VerifyDataBadThreshold) {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
     Uptane::Root(Uptane::RepositoryType::Director, data_json, root);
     FAIL();
-  } catch (const Uptane::IllegalThreshold& ex) {
-  } catch (const Uptane::UnmetThreshold& ex) {
+  } catch (const Uptane::IllegalThreshold &ex) {
+  } catch (const Uptane::UnmetThreshold &ex) {
   }
 }
 
@@ -294,11 +294,107 @@ TEST(Uptane, UptaneSecondaryAdd) {
  * Ideally, we would compare what we have with what the server reports, but in
  * lieu of that, we can check what we send via http.
  */
+class HttpFakeProv : public HttpFake {
+ public:
+  HttpFakeProv(const boost::filesystem::path &test_dir_in, std::string flavor = "")
+      : HttpFake(test_dir_in, std::move(flavor)) {}
+
+  HttpResponse post(const std::string &url, const Json::Value &data) override {
+    std::cout << "post " << url << "\n";
+
+    if (url.find("/devices") != std::string::npos) {
+      devices_count++;
+      EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
+      return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
+    } else if (url.find("/director/ecus") != std::string::npos) {
+      ecus_count++;
+      EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
+      EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
+      EXPECT_EQ(data["ecus"][0]["ecu_serial"].asString(), "tst149_ecu_serial");
+      if (ecus_count == 1) {
+        return HttpResponse("{}", 200, CURLE_OK, "");
+      } else {
+        return HttpResponse(R"({"code":"ecu_already_registered"})", 409, CURLE_OK, "");
+      }
+    } else if (url.find("/events") != std::string::npos) {
+      return handle_event(url, data);
+    }
+    EXPECT_EQ(0, 1) << "Unexpected post to URL: " << url;
+    return HttpResponse("", 400, CURLE_OK, "");
+  }
+
+  HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
+    (void)url;
+    ++events_seen;
+    if (events_seen == 1) {
+      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
+    } else if (events_seen == 2) {
+      EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
+    } else {
+      std::cout << "Unexpected event: " << data[0]["eventType"]["id"];
+      EXPECT_EQ(0, 1);
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  HttpResponse put(const std::string &url, const Json::Value &data) override {
+    std::cout << "put " << url << "\n";
+    if (url.find("core/installed") != std::string::npos) {
+      installed_count++;
+      EXPECT_EQ(data.size(), 1);
+      EXPECT_EQ(data[0]["name"].asString(), "fake-package");
+      EXPECT_EQ(data[0]["version"].asString(), "1.0");
+    } else if (url.find("/core/system_info") != std::string::npos) {
+      system_info_count++;
+      Json::Value hwinfo = Utils::getHardwareInfo();
+      EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
+      EXPECT_EQ(hwinfo["description"].asString(), data["description"].asString());
+      EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
+      EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
+    } else if (url.find("/director/manifest") != std::string::npos) {
+      manifest_count++;
+      std::string hash;
+      if (manifest_count <= 2) {
+        // Check for default initial value of packagemanagerfake.
+        hash = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest("")));
+      } else {
+        hash = "tst149_ecu_serial";
+      }
+      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["filepath"]
+                    .asString(),
+                (hash == "tst149_ecu_serial") ? hash : "unknown");
+      EXPECT_EQ(data["signed"]["ecu_version_manifests"]["tst149_ecu_serial"]["signed"]["installed_image"]["fileinfo"]
+                    ["hashes"]["sha256"]
+                        .asString(),
+                hash);
+    } else if (url.find("/system_info/network") != std::string::npos) {
+      network_count++;
+      Json::Value nwinfo = Utils::getNetworkInfo();
+      EXPECT_EQ(nwinfo["local_ipv4"].asString(), data["local_ipv4"].asString());
+      EXPECT_EQ(nwinfo["mac"].asString(), data["mac"].asString());
+      EXPECT_EQ(nwinfo["hostname"].asString(), data["hostname"].asString());
+    } else {
+      EXPECT_EQ(0, 1) << "Unexpected put to URL: " << url;
+    }
+
+    return HttpFake::put(url, data);
+  }
+
+  size_t events_seen{0};
+  int devices_count{0};
+  int ecus_count{0};
+  int manifest_count{0};
+  int installed_count{0};
+  int system_info_count{0};
+  int network_count{0};
+};
+
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
   Config config("tests/config/basic.toml");
-  const std::string server = "tst149";
+  auto http = std::make_shared<HttpFakeProv>(temp_dir.Path(), "hasupdates");
+  const std::string &server = http->tls_server;
   config.provision.server = server;
   config.tls.server = server;
   config.uptane.director_server = server + "/director";
@@ -311,7 +407,6 @@ TEST(Uptane, ProvisionOnServer) {
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
   auto up = SotaUptaneClient::newTestClient(config, storage, http);
 
   EXPECT_EQ(http->devices_count, 0);
@@ -333,7 +428,7 @@ TEST(Uptane, ProvisionOnServer) {
 
   // We need to fetch metadata, but we currently expect a target hash mismatch
   // since our update is bogus.
-  EXPECT_THROW(up->fetchMeta(), Uptane::InvalidMetadata);
+  up->fetchMeta();  // TODO check that it failed with return value
   EXPECT_EQ(http->manifest_count, 2);
 
   // Testing downloading is not strictly necessary here and will not work due to
@@ -354,6 +449,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->installed_count, 1);
   EXPECT_EQ(http->system_info_count, 1);
   EXPECT_EQ(http->network_count, 1);
+  EXPECT_EQ(http->events_seen, 2);
 }
 
 TEST(Uptane, FsToSqlFull) {
@@ -525,14 +621,14 @@ TEST(Uptane, InstalledVersionImport) {
   EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
-TEST(Uptane, SaveVersion) {
+TEST(Uptane, SaveAndLoadVersion) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
   config.provision.device_id = "device_id";
   config.postUpdateValues();
   auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
@@ -545,36 +641,16 @@ TEST(Uptane, SaveVersion) {
   storage->loadInstalledVersions(&installed_versions);
 
   auto f = std::find_if(installed_versions.begin(), installed_versions.end(),
-                        [](const Uptane::Target& t_) { return t_.filename() == "target_name"; });
+                        [](const Uptane::Target &t_) { return t_.filename() == "target_name"; });
   EXPECT_NE(f, installed_versions.end());
   EXPECT_EQ(f->sha256Hash(), "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d");
   EXPECT_EQ(f->length(), 123);
-}
-
-TEST(Uptane, LoadVersion) {
-  TemporaryDirectory temp_dir;
-  Config config;
-  config.storage.path = temp_dir.Path();
-  config.provision.device_id = "device_id";
-  config.postUpdateValues();
-  auto storage = INvStorage::newStorage(config.storage);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
-
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
-  target_json["length"] = 0;
-
-  Uptane::Target t("target_name", target_json);
-  storage->saveInstalledVersion(t);
-
-  std::vector<Uptane::Target> versions;
-  storage->loadInstalledVersions(&versions);
-  EXPECT_EQ(t, versions[0]);
+  EXPECT_EQ(*f, t);
 }
 
 TEST(Uptane, kRejectAllTest) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "/director";
@@ -594,14 +670,32 @@ TEST(Uptane, kRejectAllTest) {
   EXPECT_TRUE(sota_client->uptaneIteration());
 }
 
+class HttpFakeUnstable : public HttpFake {
+ public:
+  HttpFakeUnstable(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+  HttpResponse get(const std::string &url, int64_t maxsize) override {
+    if (unstable_valid_count >= unstable_valid_num) {
+      ++unstable_valid_num;
+      unstable_valid_count = 0;
+      return HttpResponse({}, 503, CURLE_OK, "");
+    } else {
+      ++unstable_valid_count;
+      return HttpFake::get(url, maxsize);
+    }
+  }
+
+  int unstable_valid_num{0};
+  int unstable_valid_count{0};
+};
+
 TEST(Uptane, restoreVerify) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFakeUnstable>(temp_dir.Path());
   Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
-  config.uptane.director_server = http->tls_server + "/unstable/director";
-  config.uptane.repo_server = http->tls_server + "/unstable/repo";
   config.pacman.type = PackageManager::kNone;
+  config.uptane.director_server = http->tls_server + "director";
+  config.uptane.repo_server = http->tls_server + "repo";
   config.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   config.provision.primary_ecu_hardware_id = "primary_hw";
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
@@ -649,7 +743,7 @@ TEST(Uptane, restoreVerify) {
 
 TEST(Uptane, offlineIteration) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config config("tests/config/basic.toml");
   config.storage.path = temp_dir.Path();
   config.uptane.director_server = http->tls_server + "director";
@@ -695,7 +789,7 @@ TEST(Uptane, Pkcs11Provision) {
 
   auto storage = INvStorage::newStorage(config.storage);
   storage->importData(config.import);
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   KeyManager keys(storage, config.keymanagerConfig());
   Initializer initializer(config.provision, storage, http, keys, {});
 
@@ -704,7 +798,7 @@ TEST(Uptane, Pkcs11Provision) {
 #endif
 
 #ifndef __NO_MAIN__
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   logger_init();

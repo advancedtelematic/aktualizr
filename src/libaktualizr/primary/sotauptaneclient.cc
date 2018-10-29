@@ -630,22 +630,22 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   if (ecus_count != nullptr) {
     *ecus_count = 0;
   }
-  for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
+  for (const Uptane::Target &target : targets) {
     bool is_new = false;
-    for (auto ecus_it = targets_it->ecus().cbegin(); ecus_it != targets_it->ecus().cend(); ++ecus_it) {
-      Uptane::EcuSerial ecu_serial = ecus_it->first;
-      Uptane::HardwareIdentifier hw_id = ecus_it->second;
+    for (const auto &ecu : target.ecus()) {
+      Uptane::EcuSerial ecu_serial = ecu.first;
+      Uptane::HardwareIdentifier hw_id = ecu.second;
 
       auto hwid_it = hw_ids.find(ecu_serial);
       if (hwid_it == hw_ids.end()) {
         LOG_WARNING << "Unknown ECU ID in director targets metadata: " << ecu_serial.ToString();
-        last_exception = Uptane::BadEcuId(targets_it->filename());
+        last_exception = Uptane::BadEcuId(target.filename());
         return false;
       }
 
       if (hwid_it->second != hw_id) {
         LOG_ERROR << "Wrong hardware identifier for ECU " << ecu_serial.ToString();
-        last_exception = Uptane::BadHardwareId(targets_it->filename());
+        last_exception = Uptane::BadHardwareId(target.filename());
         return false;
       }
 
@@ -654,7 +654,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
         break;
       }
-      if (images_it->second != targets_it->filename()) {
+      if (images_it->second != target.filename()) {
         is_new = true;
         if (ecus_count != nullptr) {
           (*ecus_count)++;
@@ -663,7 +663,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
       // no updates for this image => continue
     }
     if (is_new) {
-      new_targets->push_back(*targets_it);
+      new_targets->push_back(target);
     }
   }
   return true;
@@ -695,7 +695,6 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
   }
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
-      sendDownloadReport();
       result = DownloadResult(downloaded_targets, DownloadStatus::kSuccess, "");
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
@@ -714,9 +713,10 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // TODO: support downloading encrypted targets from director
   // TODO: check if the file is already there before downloading
 
+  const std::string &correlation_id = director_repo.getCorrelationId();
   // send an event for all ecus that are touched by this target
   for (const auto &ecu : target.ecus()) {
-    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first));
+    report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
   bool success = uptane_fetcher->fetchVerifyTarget(target);
@@ -724,7 +724,7 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   // send this asynchronously before `sendEvent`, so that the report timestamp
   // would not be delayed by callbacks on events
   for (const auto &ecu : target.ecus()) {
-    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, success));
+    report_queue->enqueue(std_::make_unique<EcuDownloadCompletedReport>(ecu.first, correlation_id, success));
   }
 
   sendEvent<event::DownloadTargetComplete>(target, success);
@@ -832,12 +832,14 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
   //   6 - send metadata to all the ECUs
   sendMetadataToEcus(updates);
 
+  const std::string &correlation_id = director_repo.getCorrelationId();
   //   7 - send images to ECUs (deploy for OSTree)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update
     const Uptane::Target &primary_update = primary_updates[0];
 
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial()));
+    report_queue->enqueue(
+        std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial(), correlation_id));
     sendEvent<event::InstallStarted>(uptane_manifest.getPrimaryEcuSerial());
 
     data::OperationResult status;
@@ -846,8 +848,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
       status = PackageInstallSetResult(primary_update);
-      report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), true));
+      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(),
+                                                                              correlation_id, true));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
@@ -855,8 +857,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       storage->storeInstallationResult(status);
       // TODO: distinguish this case from regular failure for local and remote
       // event reporting
-      report_queue->enqueue(
-          std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(), false));
+      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(),
+                                                                              correlation_id, false));
       sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), false);
     }
     result.reports.emplace(result.reports.begin(), primary_update, uptane_manifest.getPrimaryEcuSerial(), status);
@@ -888,15 +890,6 @@ CampaignCheckResult SotaUptaneClient::campaignCheck() {
 void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   sendEvent<event::CampaignAcceptComplete>();
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
-}
-
-void SotaUptaneClient::sendDownloadReport() {
-  std::string director_targets;
-  if (!storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets())) {
-    LOG_ERROR << "Unable to load director targets metadata";
-    return;
-  }
-  report_queue->enqueue(std_::make_unique<DownloadCompleteReport>(director_targets));
 }
 
 bool SotaUptaneClient::putManifestSimple() {
@@ -1046,10 +1039,12 @@ void SotaUptaneClient::sendMetadataToEcus(const std::vector<Uptane::Target> &tar
 std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface &secondary,
                                                       const std::shared_ptr<std::string> &data) {
   auto f = [this, &secondary, data]() {
+    const std::string &correlation_id = director_repo.getCorrelationId();
     sendEvent<event::InstallStarted>(secondary.getSerial());
-    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial()));
+    report_queue->enqueue(std_::make_unique<EcuInstallationStartedReport>(secondary.getSerial(), correlation_id));
     bool ret = secondary.sendFirmware(data);
-    report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), ret));
+    report_queue->enqueue(
+        std_::make_unique<EcuInstallationCompletedReport>(secondary.getSerial(), correlation_id, ret));
     sendEvent<event::InstallTargetComplete>(secondary.getSerial(), ret);
 
     return ret;

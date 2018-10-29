@@ -42,7 +42,7 @@ if __name__ == '__main__':
         for i, line in enumerate(open(schemas_header)):
             for match in re.finditer(pattern, line):
                 if int(match.groups()[0]) == int(max_file_stamp):
-                    print("Skipping because header is actual")
+                    # header up to date, exiting
                     sys.exit(0)
 
     with open(schemas_header, 'w') as header_file:

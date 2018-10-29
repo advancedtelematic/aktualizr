@@ -1,9 +1,12 @@
-#include "repo.h"
 #include <ctime>
 #include <regex>
 #include "crypto/crypto.h"
+#include "logging/logging.h"
 
-Repo::Repo(boost::filesystem::path path, const std::string &expires) : path_(std::move(path)) {
+#include "repo.h"
+
+Repo::Repo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
+    : path_(std::move(path)), correlation_id_(std::move(correlation_id)) {
   expiration_time_ = getExpirationTime(expires);
 }
 
@@ -96,6 +99,10 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
+  LOG_ERROR << "repo: " << repo_type;
+  if (repo_type == "director" && correlation_id_ != "") {
+    targets["custom"]["correlationId"] = correlation_id_;
+  }
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(repo_type, targets));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 
@@ -142,8 +149,10 @@ void Repo::addImage(const boost::filesystem::path &image_path) {
 
   boost::filesystem::path targets_path = repo_dir / "targets";
   boost::filesystem::create_directories(targets_path);
-  boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
-                               boost::filesystem::copy_option::overwrite_if_exists);
+  if (image_path != targets_path / image_path.filename()) {
+    boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
+                                 boost::filesystem::copy_option::overwrite_if_exists);
+  }
   std::string image = Utils::readFile(image_path);
 
   Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
@@ -205,7 +214,19 @@ void Repo::addTarget(const std::string &target_name, const std::string &hardware
 
 void Repo::signTargets() {
   std::string private_key = Utils::readFile(path_ / "keys/director/private.key");
-  Json::Value targets_unsigned = Utils::parseJSONFile(path_ / "repo/director/staging/targets.json");
+  const boost::filesystem::path current = path_ / "repo/director/targets.json";
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+  Json::Value targets_unsigned;
+
+  if (boost::filesystem::exists(staging)) {
+    targets_unsigned = Utils::parseJSONFile(staging);
+  } else if (boost::filesystem::exists(current)) {
+    targets_unsigned = Utils::parseJSONFile(current)["signed"];
+  } else {
+    throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
+                             "!");
+  }
+
   Utils::writeFile(path_ / "repo/director/targets.json",
                    Utils::jsonToCanonicalStr(signTuf("director", targets_unsigned)));
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");

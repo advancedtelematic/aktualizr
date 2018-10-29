@@ -60,6 +60,11 @@ void ReportQueue::flushQueue() {
 }
 
 void ReportEvent::setEcu(const Uptane::EcuSerial& ecu) { custom["ecu"] = ecu.ToString(); }
+void ReportEvent::setCorrelationId(const std::string& correlation_id) {
+  if (correlation_id != "") {
+    custom["correlationId"] = correlation_id;
+  }
+}
 
 Json::Value ReportEvent::toJson() {
   Json::Value out;
@@ -73,33 +78,35 @@ Json::Value ReportEvent::toJson() {
   return out;
 }
 
-DownloadCompleteReport::DownloadCompleteReport(const std::string& director_target)
-    : ReportEvent("DownloadComplete", 1) {
-  custom = director_target;
-}
-
 CampaignAcceptedReport::CampaignAcceptedReport(const std::string& campaign_id) : ReportEvent("campaign_accepted", 0) {
   custom["campaignId"] = campaign_id;
 }
 
-EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu)
-    : ReportEvent("ecu_download_started", 0) {
+EcuDownloadStartedReport::EcuDownloadStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id)
+    : ReportEvent("EcuDownloadStarted", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
 }
 
-EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, bool success)
-    : ReportEvent("ecu_download_completed", 0) {
+EcuDownloadCompletedReport::EcuDownloadCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id,
+                                                       bool success)
+    : ReportEvent("EcuDownloadCompleted", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
   custom["success"] = success;
 }
 
-EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu)
-    : ReportEvent("ecu_installation_started", 0) {
+EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSerial& ecu,
+                                                           const std::string& correlation_id)
+    : ReportEvent("EcuInstallationStarted", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
 }
 
-EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, bool success)
-    : ReportEvent("ecu_installation_completed", 0) {
+EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu,
+                                                               const std::string& correlation_id, bool success)
+    : ReportEvent("EcuInstallationCompleted", 0) {
   setEcu(ecu);
+  setCorrelationId(correlation_id);
   custom["success"] = success;
 }
