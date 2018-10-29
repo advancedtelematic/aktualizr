@@ -151,11 +151,7 @@ int main(int argc, char *argv[]) {
         updates = result.updates;
         std::cout << updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
-        std::thread([&aktualizr] {
-          aktualizr.Download(updates);
-          std::cout << "API Download finished\n";
-        })
-            .detach();
+        std::thread([&aktualizr, updates] { aktualizr.Download(updates); }).detach();
       } else if (buffer == "install" || buffer == "uptaneinstall") {
         aktualizr.Install(updates);
         updates.clear();

@@ -16,6 +16,15 @@ constexpr int64_t kMaxTimestampSize = 64 * 1024;
 constexpr int64_t kMaxSnapshotSize = 64 * 1024;
 constexpr int64_t kMaxImagesTargetsSize = 1024 * 1024;
 
+class DownloadCounter {
+ public:
+  DownloadCounter(std::atomic_uint* value) : value_(value) { (*value_)++; }
+  ~DownloadCounter() { (*value_)--; }
+
+ private:
+  std::atomic_uint* value_;
+};
+
 class Fetcher {
  public:
   Fetcher(const Config& config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in,
@@ -38,7 +47,9 @@ class Fetcher {
   const Config& config;
   std::shared_ptr<event::Channel> events_channel;
   std::atomic_bool pause_{false};
+  std::atomic_uint downloading_{0};
   std::mutex pause_mutex_;
+  std::mutex mutex_;
 };
 
 struct DownloadMetaStruct {

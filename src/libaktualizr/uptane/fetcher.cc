@@ -49,17 +49,28 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
     (*(ds->events_channel))(event);
   }
   if (ds->fetcher->isPaused()) {
-    return written_size + 1;
+    return written_size + 1;  // Abort downloading, because pause is requested.
   }
   return written_size;
 }
 
 void Fetcher::setPause(bool pause) {
+  std::lock_guard<std::mutex> guard(mutex_);
   if (pause_ == pause) {
+    if (pause) {
+      LOG_INFO << "We already on pause";
+    } else {
+      LOG_INFO << "We are not paused, can't resume";
+    }
     return;
   }
   if (pause) {
-    pause_mutex_.lock();
+    if (downloading_ != 0u) {
+      pause_mutex_.lock();
+    } else {
+      LOG_INFO << "We are not downloading, skipping pause";
+      return;
+    }
   } else {
     pause_mutex_.unlock();
   }
@@ -68,6 +79,7 @@ void Fetcher::setPause(bool pause) {
 
 bool Fetcher::fetchVerifyTarget(const Target& target) {
   bool result = false;
+  DownloadCounter counter(&downloading_);
   try {
     if (!target.IsOstree()) {
       DownloadMetaStruct ds(target, events_channel);
@@ -93,8 +105,15 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           throw Exception("image", "Could not download file, error: " + response.error_message);
         }
         if (pause_) {
+          if (events_channel) {
+            auto event = std::make_shared<event::DownloadPaused>();
+            (*(events_channel))(event);
+          }
           std::lock_guard<std::mutex> lock(pause_mutex_);
-          LOG_INFO << "Download restored";
+          if (events_channel) {
+            auto event = std::make_shared<event::DownloadResumed>();
+            (*(events_channel))(event);
+          }
           retry = true;
         }
       } while (retry);
