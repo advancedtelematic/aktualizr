@@ -221,7 +221,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   return response;
 }
 
-HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp) {
+HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, size_t from) {
   CURL* curl_download = curl_easy_duphandle(curl);
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
@@ -241,6 +241,7 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
+  curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM, from);
 
   CURLcode result = curl_easy_perform(curl_download);
   curl_easy_getinfo(curl_download, CURLINFO_RESPONSE_CODE, &http_code);

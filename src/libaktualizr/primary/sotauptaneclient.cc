@@ -672,6 +672,7 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
 DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
+  std::lock_guard<std::mutex> guard(download_mutex);
   std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
   DownloadResult result;
   std::vector<Uptane::Target> downloaded_targets;
@@ -701,6 +702,7 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
                 << " were successfully downloaded. Report not sent.";
       result = DownloadResult(downloaded_targets, DownloadStatus::kPartialSuccess, "");
     }
+
   } else {
     LOG_INFO << "No new updates to download.";
     result = DownloadResult({}, DownloadStatus::kNothingToDownload, "");

@@ -118,8 +118,9 @@ class HttpFake : public HttpInterface {
     return HttpResponse(url, 200, CURLE_OK, "");
   }
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) override {
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override {
     (void)userp;
+    (void)from;
     std::cout << "URL requested: " << url << "\n";
     const boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
     std::cout << "file served: " << path << "\n";

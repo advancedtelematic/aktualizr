@@ -21,7 +21,7 @@ struct HttpResponse {
   long http_status_code;  // NOLINT
   CURLcode curl_code;
   std::string error_message;
-  bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 205); }
+  bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
   Json::Value getJson() { return Utils::parseJSON(body); }
 };
 
@@ -33,7 +33,7 @@ class HttpInterface {
   virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
-  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp) = 0;
+  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) = 0;
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data

@@ -97,6 +97,10 @@ InstallResult Aktualizr::Install(const std::vector<Uptane::Target> &updates) {
   return uptane_client_->uptaneInstall(updates);
 }
 
+PauseResult Aktualizr::Pause() { return uptane_client_->pause(); }
+
+PauseResult Aktualizr::Resume() { return uptane_client_->resume(); }
+
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);
 }

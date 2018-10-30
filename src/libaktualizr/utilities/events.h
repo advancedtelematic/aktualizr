@@ -57,6 +57,24 @@ class UpdateCheckComplete : public BaseEvent {
 };
 
 /**
+ * A download in progress has been paused.
+ */
+class DownloadPaused : public BaseEvent {
+ public:
+  explicit DownloadPaused(PauseResult result_in) : result(result_in) { variant = "DownloadPaused"; }
+  PauseResult result;
+};
+
+/**
+ * A paused download has been resumed.
+ */
+class DownloadResumed : public BaseEvent {
+ public:
+  explicit DownloadResumed(PauseResult result_in) : result(result_in) { variant = "DownloadResumed"; }
+  PauseResult result;
+};
+
+/**
  * A report for a download in progress.
  */
 class DownloadProgressReport : public BaseEvent {

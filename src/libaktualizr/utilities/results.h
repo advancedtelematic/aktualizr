@@ -45,6 +45,24 @@ class UpdateCheckResult {
 };
 
 /**
+ * Result of an attempt to pause or resume a download.
+ */
+enum class PauseResult {
+  /* Download was paused successfully. */
+  kPaused = 0,
+  /* Download was resumed successfully. */
+  kResumed,
+  /* Download was already paused, so there is nothing to do. */
+  kAlreadyPaused,
+  /* Download has already completed, so there is nothing to do. */
+  kAlreadyComplete,
+  /* No download is in progress, so there is nothing to do. */
+  kNotDownloading,
+  /* Download was not paused, so there is nothing to do. */
+  kNotPaused,
+};
+
+/**
  * Status of an update download.
  */
 enum class DownloadStatus {
