@@ -1063,7 +1063,6 @@ class SQLTargetRHandle : public StorageTargetRHandle {
     if (!db_.beginTransaction()) {
       throw exc;
     }
-
     auto statement =
         db_.prepareStatement<std::string>("SELECT rowid, real_size FROM target_images WHERE filename = ?;", filename);
 
@@ -1086,8 +1085,7 @@ class SQLTargetRHandle : public StorageTargetRHandle {
 
     auto complete_bytes = statement.get_result_col_int(1);
     if (complete_bytes != static_cast<unsigned int>(size_)) {
-      LOG_ERROR << "Image " << filename << " is not complete\n";
-      throw exc;
+      LOG_WARNING << "Image " << filename << " is not complete\n";
     }
 
     if (!db_.commitTransaction()) {

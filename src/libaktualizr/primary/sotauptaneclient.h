@@ -134,6 +134,7 @@ class SotaUptaneClient {
   Uptane::Exception last_exception{"", ""};
   // ecu_serial => secondary*
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>> secondaries;
+  std::mutex download_mutex;
 };
 
 class SerialCompare {

@@ -88,7 +88,12 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           storage->allocateTargetFile(false, target.filename(), static_cast<size_t>(target.length()));
       ds.fhandle = fhandle.get();
       ds.downloaded_length = fhandle->getWrittenSize();
-
+      if (ds.downloaded_length > 0) {
+        auto target_handle = storage->openTargetFile(target.filename());
+        unsigned char buf[ds.downloaded_length];
+        target_handle->rread(buf, ds.downloaded_length);
+        ds.hasher().update(buf, ds.downloaded_length);
+      }
       if (target.hashes().empty()) {
         throw Exception("image", "No hash defined for the target");
       }
