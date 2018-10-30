@@ -9,8 +9,6 @@
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
-  boost::filesystem::create_directories(sconfig.metadata_path);
-
   // TODO: FIX
   // loadMetadata(meta_pack);
   std::string public_key_string;
@@ -21,9 +19,32 @@ ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : Secondar
                 << sconfig.ecu_hardware_id;
       throw std::runtime_error("Unable to generate secondary rsa keys");
     }
-    storeKeys(public_key_string, private_key);
+
+    // do not store keys yet, wait until SotaUptaneClient performed device initialization
   }
   public_key_ = PublicKey(public_key_string, sconfig.key_type);
+}
+
+void ManagedSecondary::Initialize() {
+  struct stat st {};
+
+  if (!boost::filesystem::is_directory(sconfig.metadata_path)) {
+    Utils::createDirectories(sconfig.metadata_path, S_IRWXU);
+  }
+  stat(sconfig.metadata_path.c_str(), &st);
+  if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+    throw std::runtime_error("Secondary metadata directory has unsafe permissions");
+  }
+
+  if (!boost::filesystem::is_directory(sconfig.full_client_dir)) {
+    Utils::createDirectories(sconfig.full_client_dir, S_IRWXU);
+  }
+  stat(sconfig.full_client_dir.c_str(), &st);
+  if ((st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+    throw std::runtime_error("Secondary client directory has unsafe permissions");
+  }
+
+  storeKeys(public_key_.Value(), private_key);
 }
 
 void ManagedSecondary::rawToMeta() {
