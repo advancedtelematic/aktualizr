@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package aktualizr_grpc;
+
+service HmiServer {
+
+  rpc Check (CheckRequest) returns (CheckResponse) {}
+
+  rpc Download (DownloadRequest) returns (stream DownloadResponse) {}
+
+  rpc Install (InstallRequest) returns (InstallResponse) {}
+
+}
+
+message Campaign {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool auto_accept = 4;
+  int64 size = 5;
+  int32 install_sec = 6;
+  int32 prepare_sec = 7;
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+  repeated Campaign campaigns = 1;
+}
+
+message DownloadRequest {
+  string campaign_id = 1;
+}
+
+message DownloadResponse {
+  int32 progress = 1;
+}
+
+message InstallRequest {
+  string campaign_id = 1;
+}
+
+message InstallResponse {
+  string status = 1;
+}
