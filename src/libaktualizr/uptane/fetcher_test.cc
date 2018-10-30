@@ -49,6 +49,7 @@ TEST(fetcher, fetch_with_pause) {
   Uptane::Fetcher f(config, storage, http, events_channel);
 
   std::thread([&f] {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
     f.setPause(true);
     std::this_thread::sleep_for(std::chrono::seconds(2));
     f.setPause(false);

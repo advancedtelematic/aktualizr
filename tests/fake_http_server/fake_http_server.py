@@ -38,6 +38,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200)
             self.send_header('Content-Length', response_size)
             self.end_headers()
+            sleep(0.5)
             for i in range(response_size):
               self.wfile.write(b'@')
         elif self.path == '/slow_file':
