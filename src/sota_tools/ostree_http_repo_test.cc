@@ -57,7 +57,7 @@ TEST(http_repo, bad_connection) {
   TemporaryDirectory temp_dir;
   std::string sp = TestUtils::getFreePort();
 
-  TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, "2");
+  TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, std::string("2"));
   sleep(3);
 
   TreehubServer server;
@@ -68,7 +68,8 @@ TEST(http_repo, bad_connection) {
   Json::Value auth;
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
-  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(), "2");
+  TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
+                                          std::string("2"));
   sleep(3);
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();

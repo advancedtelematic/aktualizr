@@ -46,17 +46,16 @@ void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const 
   cs << "\n[storage]\npath = " << storage_path.string() << "\n";
 }
 
-TestHelperProcess::TestHelperProcess(const std::string &argv0, const std::string &argv1, const std::string &argv2,
-                                     const std::string &argv3) {
+void TestHelperProcess::run(const char *argv0, const char *args[]) {
   pid_ = fork();
   if (pid_ == -1) {
-    throw std::runtime_error("Failed to execute process:" + argv0);
+    throw std::runtime_error("Failed to execute process:" + std::string(argv0));
   }
   if (pid_ == 0) {
 #if defined(OS_LINUX)
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
-    execlp(argv0.c_str(), argv0.c_str(), argv1.c_str(), argv2.c_str(), argv3.c_str(), (char *)0);
+    execvp(argv0, const_cast<char *const *>(args));
   }
 }
 

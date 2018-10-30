@@ -100,8 +100,8 @@ TEST(authenticate, offline_sign_creds) {
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  TestHelperProcess server_process("tests/fake_http_server/ssl_server.py", "");
-  TestHelperProcess server_noauth_process("tests/fake_http_server/ssl_noauth_server.py", "");
+  TestHelperProcess server_process("tests/fake_http_server/ssl_server.py");
+  TestHelperProcess server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
   sleep(4);
   return RUN_ALL_TESTS();
 }
