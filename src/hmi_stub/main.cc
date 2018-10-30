@@ -108,6 +108,8 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
     const auto install_complete = dynamic_cast<event::InstallTargetComplete *>(event.get());
     std::cout << "Installation complete for device " << install_complete->serial.ToString() << ": "
               << (install_complete->success ? "success" : "failure") << "\n";
+  } else if (event->variant == "DownloadPaused" || event->variant == "DownloadResumed") {
+    // Do nothing.
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
@@ -158,9 +160,34 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
       } else if (buffer == "pause") {
-        aktualizr.Pause();
+        PauseResult pause_result = aktualizr.Pause();
+        switch (pause_result) {
+          case PauseResult::kPaused:
+            std::cout << "Download paused.\n";
+            break;
+          case PauseResult::kAlreadyPaused:
+            std::cout << "Download already paused.\n";
+            break;
+          case PauseResult::kNotDownloading:
+            std::cout << "Download is not in progress.\n";
+            break;
+          default:
+            std::cout << "Unrecognized pause result.\n";
+            break;
+        }
       } else if (buffer == "resume") {
-        aktualizr.Resume();
+        PauseResult resume_result = aktualizr.Resume();
+        switch (resume_result) {
+          case PauseResult::kResumed:
+            std::cout << "Download resumed.\n";
+            break;
+          case PauseResult::kNotPaused:
+            std::cout << "Download not paused.\n";
+            break;
+          default:
+            std::cout << "Unrecognized resume result.\n";
+            break;
+        }
       } else if (!buffer.empty()) {
         std::cout << "Unknown command.\n";
       }

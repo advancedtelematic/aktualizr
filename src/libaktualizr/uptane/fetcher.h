@@ -7,6 +7,7 @@
 #include "http/httpinterface.h"
 #include "storage/invstorage.h"
 #include "utilities/events.h"
+#include "utilities/results.h"
 
 namespace Uptane {
 
@@ -39,9 +40,17 @@ class Fetcher {
     return fetchRole(result, maxsize, repo, role, Version());
   }
   bool isPaused() { return pause_; }
-  void setPause(bool pause);
+  PauseResult setPause(bool pause);
 
  private:
+  template <class T, class... Args>
+  void sendEvent(Args&&... args) {
+    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
+    if (events_channel) {
+      (*events_channel)(std::move(event));
+    }
+  }
+
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<INvStorage> storage;
   const Config& config;
