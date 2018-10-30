@@ -17,12 +17,18 @@ void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>&
     return;
   }
   switch (num_events_DownloadPause) {
-    case 0:
+    case 0: {
       EXPECT_EQ(event->variant, "DownloadPaused");
+      const auto pause_event = dynamic_cast<event::DownloadPaused*>(event.get());
+      EXPECT_EQ(pause_event->result, PauseResult::kPaused);
       break;
-    case 1:
+    }
+    case 1: {
       EXPECT_EQ(event->variant, "DownloadResumed");
+      const auto resume_event = dynamic_cast<event::DownloadResumed*>(event.get());
+      EXPECT_EQ(resume_event->result, PauseResult::kResumed);
       break;
+    }
     default:
       std::cout << "event #" << num_events_DownloadPause << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
