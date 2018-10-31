@@ -14,13 +14,29 @@ struct TestUtils {
                                 const boost::filesystem::path &storage_path);
 };
 
+/**
+ * Launch a simple child subprocess, automatically kill it the object is destroyed
+ */
 class TestHelperProcess {
  public:
-  TestHelperProcess(const std::string &argv0, const std::string &argv1, const std::string &argv2 = "",
-                    const std::string &argv3 = "");
+  /**
+   * Launch the process: executable then arguments
+   *
+   * note: it uses templates for argument types but `args` are expected to be
+   * `std::string`
+   */
+  template <typename... Strings>
+  TestHelperProcess(const std::string &argv0, const Strings &... args) {
+    const int size = sizeof...(args);
+    const char *cmd_args[size + 2] = {argv0.c_str(), (args.c_str())..., nullptr};
+
+    run(cmd_args[0], cmd_args);
+  }
   ~TestHelperProcess();
 
  private:
+  void run(const char *argv0, const char *args[]);
+
   pid_t pid_;
 };
 

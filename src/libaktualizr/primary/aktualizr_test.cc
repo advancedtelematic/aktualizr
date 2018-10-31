@@ -677,23 +677,28 @@ class HttpFakeNoCorrelationId : public HttpFake {
 TEST(Aktualizr, FullNoCorrelationId) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path());
-  Config conf = makeTestConfig(temp_dir, http->tls_server);
 
-  auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  // scope `Aktualizr` object, so that the ReportQueue flushes its events before
+  // we count them at the end
+  {
+    Config conf = makeTestConfig(temp_dir, http->tls_server);
 
-  aktualizr.Initialize();
-  UpdateCheckResult update_result = aktualizr.CheckUpdates();
-  EXPECT_EQ(update_result.status, UpdateStatus::kUpdatesAvailable);
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+    Aktualizr aktualizr(conf, storage, up, sig);
 
-  DownloadResult download_result = aktualizr.Download(update_result.updates);
-  EXPECT_EQ(download_result.status, DownloadStatus::kSuccess);
+    aktualizr.Initialize();
+    UpdateCheckResult update_result = aktualizr.CheckUpdates();
+    EXPECT_EQ(update_result.status, UpdateStatus::kUpdatesAvailable);
 
-  InstallResult install_result = aktualizr.Install(download_result.updates);
-  for (const auto& r : install_result.reports) {
-    EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
+    DownloadResult download_result = aktualizr.Download(update_result.updates);
+    EXPECT_EQ(download_result.status, DownloadStatus::kSuccess);
+
+    InstallResult install_result = aktualizr.Install(download_result.updates);
+    for (const auto& r : install_result.reports) {
+      EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
+    }
   }
 
   EXPECT_EQ(http->events_seen, 8);
