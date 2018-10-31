@@ -9,15 +9,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from json import dump
 from tempfile import NamedTemporaryFile
 
-HEAD_requests = {}
-GET_requests = {}
-
 class TreehubServerHandler(BaseHTTPRequestHandler):
+    made_requests = {}
+
     def __init__(self, *args):
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_GET(self):
-        if self.drop_check(GET_requests):
+        if self.drop_check():
             print("Dropping GET request %s" % self.path)
             return
         print("Processing GET request %s" % self.path)
@@ -34,9 +33,10 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
         else:
             self.send_response_only(404)
             self.end_headers()
+
     def do_HEAD(self):
         print("GOT HEAD request")
-        if self.drop_check(HEAD_requests):
+        if self.drop_check():
             print("Dropping HEAD request %s" % self.path)
             return
         print("Processing HEAD request %s" % self.path)
@@ -46,16 +46,17 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
         else:
             self.send_response_only(404)
         self.end_headers()
-    def drop_check(self, made_requests):
+
+    def drop_check(self):
         if drop_connection_every_n_request == 0:
             return False
-        made_requests[self.path] = made_requests.get(self.path, 0) + 1
-        print("request number: %d" % made_requests[self.path])
-        if made_requests[self.path] == 1:
+        self.made_requests[self.path] = self.made_requests.get(self.path, 0) + 1
+        print("request number: %d" % self.made_requests[self.path])
+        if self.made_requests[self.path] == 1:
             return True
         else:
-            if drop_connection_every_n_request == made_requests[self.path]:
-                made_requests[self.path] = 0
+            if drop_connection_every_n_request == self.made_requests[self.path]:
+                self.made_requests[self.path] = 0
             return False
 
 
