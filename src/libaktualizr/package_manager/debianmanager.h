@@ -1,6 +1,7 @@
 #ifndef DEB_H_
 #define DEB_H_
 
+#include <mutex>
 #include <string>
 #include <utility>
 
@@ -22,6 +23,9 @@ class DebianManager : public PackageManagerInterface {
   bool imageUpdated() override { return true; }
   PackageConfig config_;
   std::shared_ptr<INvStorage> storage_;
+
+ private:
+  mutable std::mutex mutex_;
 };
 
 #endif  // DEB_H_

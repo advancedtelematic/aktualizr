@@ -105,10 +105,6 @@ boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(share
   return sig_->connect(handler);
 }
 
-std::unique_ptr<StorageTargetRHandle> Aktualizr::GetStoredTarget(const std::string &filename) {
-  try {
-    return storage_->openTargetFile(filename);
-  } catch (...) {
-    return std::unique_ptr<StorageTargetRHandle>();
-  }
+std::unique_ptr<StorageTargetRHandle> Aktualizr::GetStoredTarget(const Uptane::Target &target) {
+  return storage_->openTargetFile(target);
 }

@@ -64,9 +64,8 @@ class SQLStorage : public INvStorage {
   bool loadInstallationResult(data::OperationResult* result) override;
   void clearInstallationResult() override;
 
-  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
-                                                           size_t size) override;
-  std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) override;
+  std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;
+  std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) override;
   void removeTargetFile(const std::string& filename) override;
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };

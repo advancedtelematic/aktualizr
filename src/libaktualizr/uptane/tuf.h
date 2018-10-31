@@ -170,7 +170,7 @@ class Target {
 
   bool MatchWith(const Hash &hash) const;
 
-  int64_t length() const { return length_; }
+  uint64_t length() const { return length_; }
 
   bool IsForSecondary(const EcuSerial &ecuIdentifier) const {
     return (std::find_if(ecus_.cbegin(), ecus_.cend(), [&ecuIdentifier](std::pair<EcuSerial, HardwareIdentifier> pair) {

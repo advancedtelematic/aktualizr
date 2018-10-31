@@ -89,7 +89,7 @@ class Aktualizr {
    * @param filename Name of the binary in the storage
    * @return Handle to the stored binary. nullptr if none is found.
    */
-  std::unique_ptr<StorageTargetRHandle> GetStoredTarget(const std::string& filename);
+  std::unique_ptr<StorageTargetRHandle> GetStoredTarget(const Uptane::Target& target);
 
   /**
    * Install targets.

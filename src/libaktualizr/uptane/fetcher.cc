@@ -95,18 +95,24 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
   DownloadCounter counter(&downloading_);
   try {
     if (!target.IsOstree()) {
+      auto target_handle = storage->openTargetFile(target);
+      if (target_handle != nullptr && !target_handle->isPartial()) {
+        LOG_INFO << "Image already downloaded skipping download";
+        return true;
+      }
       DownloadMetaStruct ds(target, events_channel);
       ds.fetcher = this;
-      std::unique_ptr<StorageTargetWHandle> fhandle =
-          storage->allocateTargetFile(false, target.filename(), static_cast<size_t>(target.length()));
-      ds.fhandle = fhandle.get();
-      ds.downloaded_length = fhandle->getWrittenSize();
-      if (ds.downloaded_length > 0) {
-        auto target_handle = storage->openTargetFile(target.filename());
+      std::unique_ptr<StorageTargetWHandle> fhandle{};
+      if (target_handle == nullptr) {
+        fhandle = storage->allocateTargetFile(false, target);
+      } else {
+        ds.downloaded_length = target_handle->rsize();
+        fhandle = target_handle->toWriteHandle();
         unsigned char buf[ds.downloaded_length];
         target_handle->rread(buf, ds.downloaded_length);
         ds.hasher().update(buf, ds.downloaded_length);
       }
+      ds.fhandle = fhandle.get();
       if (target.hashes().empty()) {
         throw Exception("image", "No hash defined for the target");
       }

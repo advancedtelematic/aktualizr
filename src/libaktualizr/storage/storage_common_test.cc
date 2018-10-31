@@ -306,10 +306,14 @@ TEST(storage, load_store_installation_result) {
 TEST(storage, store_target) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "hash";
+  target_json["length"] = 2;
+  Uptane::Target target("some.deb", target_json);
 
   // write
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -318,7 +322,7 @@ TEST(storage, store_target) {
 
   // read
   {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
     uint8_t rb[3] = {0};
     EXPECT_EQ(rhandle->rsize(), 2);
     rhandle->rread(rb, 1);
@@ -329,7 +333,7 @@ TEST(storage, store_target) {
 
   // write again
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -338,14 +342,14 @@ TEST(storage, store_target) {
 
   // delete
   {
-    storage->removeTargetFile("testfile");
-    EXPECT_THROW(storage->openTargetFile("testfile"), StorageTargetRHandle::ReadError);
-    EXPECT_THROW(storage->removeTargetFile("testfile"), std::runtime_error);
+    storage->removeTargetFile(target.filename());
+    EXPECT_EQ(storage->openTargetFile(target), (nullptr));
+    EXPECT_THROW(storage->removeTargetFile(target.filename()), std::runtime_error);
   }
 
   // write stream
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
 
     std::stringstream("ab") >> *fhandle;
   }
@@ -353,7 +357,7 @@ TEST(storage, store_target) {
   // read stream
   {
     std::stringstream sstr;
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
     sstr << *rhandle;
     EXPECT_STREQ(sstr.str().c_str(), "ab");
   }

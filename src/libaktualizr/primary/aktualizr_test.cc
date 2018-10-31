@@ -613,20 +613,36 @@ TEST(Aktualizr, InstallWithUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
+  Json::Value primary_json;
+  primary_json["hashes"]["sha256"] = "74e653bbf6c00a88b21f0992159b1002f5af38506e6d2fbc7eb9846711b2d75f";
+  primary_json["hashes"]["sha512"] =
+      "91814ad1c13ebe2af8d65044893633c4c3ce964edb8cb58b0f357406c255f7be94f42547e108b300346a42cd57662e4757b9d843b7acbc09"
+      "0df0bc05fe55297f";
+  primary_json["length"] = 2;
+  Uptane::Target primary_target("primary_firmware.txt", primary_json);
+
+  Json::Value secondary_json;
+  secondary_json["hashes"]["sha256"] = "1bbb15aa921ffffd5079567d630f43298dbe5e7cbc1b14e0ccdd6718fde28e47";
+  secondary_json["hashes"]["sha512"] =
+      "7dbae4c36a2494b731a9239911d3085d53d3e400886edb4ae2b9b78f40bda446649e83ba2d81653f614cc66f5dd5d4dbd95afba854f148af"
+      "bfae48d0ff4cc38a";
+  secondary_json["length"] = 2;
+  Uptane::Target secondary_target("secondary_firmware.txt", secondary_json);
+
   // First try installing nothing. Nothing should happen.
   InstallResult result = aktualizr.Install(updates_InstallWithUpdates);
   EXPECT_EQ(result.reports.size(), 0);
 
-  EXPECT_EQ(aktualizr.GetStoredTarget("primary_firmware.txt").get(), nullptr)
-      << "Primary irmware is present in storage before the download";
-  EXPECT_EQ(aktualizr.GetStoredTarget("secondary_firmware.txt").get(), nullptr)
+  EXPECT_EQ(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
+      << "Primary firmware is present in storage before the download";
+  EXPECT_EQ(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is present in storage before the download";
 
   conf.uptane.running_mode = RunningMode::kDownload;
   aktualizr.UptaneCycle();
-  EXPECT_NE(aktualizr.GetStoredTarget("primary_firmware.txt").get(), nullptr)
+  EXPECT_NE(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
       << "Primary firmware is not present in storage after the download";
-  EXPECT_NE(aktualizr.GetStoredTarget("secondary_firmware.txt").get(), nullptr)
+  EXPECT_NE(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is not present in storage after the download";
 
   conf.uptane.running_mode = RunningMode::kInstall;
