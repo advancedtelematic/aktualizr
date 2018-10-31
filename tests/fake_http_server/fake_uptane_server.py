@@ -8,7 +8,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        pass
+        if self.path.startswith("/repo/targets/"):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'content')
 
     def do_POST(self):
         length = int(self.headers.get('content-length'))
@@ -36,6 +39,9 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             f = open('tests/test_data/cred.p12', 'rb')
             self.wfile.write(f.read())
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     def do_ecuRegister(self, data):
         if data["primary_ecu_serial"] == "drop_request":
@@ -47,6 +53,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"{}")
+        else:
+            self.send_response(404)
+            self.end_headers()
 
 
 class ReUseHTTPServer(HTTPServer):

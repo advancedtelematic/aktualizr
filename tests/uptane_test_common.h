@@ -2,9 +2,13 @@
 #define UPTANE_TEST_COMMON_H_
 
 #include <string>
+#include <vector>
+
+#include "json/json.h"
 
 #include "config/config.h"
 #include "uptane/secondaryconfig.h"
+#include "uptane/tuf.h"
 #include "utilities/utils.h"
 
 struct UptaneTestCommon {
@@ -23,6 +27,17 @@ struct UptaneTestCommon {
     ecu_config.metadata_path = temp_dir / "secondary_metadata";
     config.uptane.secondary_configs.push_back(ecu_config);
     return ecu_config;
+  }
+
+  static std::vector<Uptane::Target> makePackage(const std::string &serial, const std::string &hw_id) {
+    std::vector<Uptane::Target> packages_to_install;
+    Json::Value ot_json;
+    ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
+    ot_json["custom"]["targetFormat"] = "OSTREE";
+    ot_json["length"] = 0;
+    ot_json["hashes"]["sha256"] = serial;
+    packages_to_install.emplace_back(serial, ot_json);
+    return packages_to_install;
   }
 };
 

@@ -726,7 +726,14 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
     report_queue->enqueue(std_::make_unique<EcuDownloadStartedReport>(ecu.first, correlation_id));
   }
 
-  bool success = uptane_fetcher->fetchVerifyTarget(target);
+  bool success = false;
+  int tries = 0;
+  while (tries++ < 3 && !success) {
+    success = uptane_fetcher->fetchVerifyTarget(target);
+  }
+  if (!success) {
+    LOG_ERROR << "Download unsuccessful after three attempts.";
+  }
 
   // send this asynchronously before `sendEvent`, so that the report timestamp
   // would not be delayed by callbacks on events

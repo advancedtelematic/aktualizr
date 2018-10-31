@@ -15,9 +15,11 @@
 #include "http/httpclient.h"
 #include "logging/logging.h"
 #include "primary/initializer.h"
+#include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "test_utils.h"
 #include "uptane/uptanerepository.h"
+#include "uptane_test_common.h"
 #include "utilities/utils.h"
 
 Config conf("tests/config/basic.toml");
@@ -111,6 +113,30 @@ TEST(UptaneNetwork, no_connection_sqlite) {
 TEST(UptaneNetwork, no_errors_sqlite) {
   RecordProperty("zephyr_key", "OTA-991,TST-158");
   EXPECT_TRUE(doTestInit(StorageType::kSqlite, "noerrors", "noerrors"));
+}
+
+TEST(UptaneNetwork, DownloadFailure) {
+  TemporaryDirectory temp_dir;
+  conf.storage.path = temp_dir.Path();
+  conf.provision.expiry_days = "noerrors";
+  conf.provision.primary_ecu_serial = "noerrors";
+  conf.provision.primary_ecu_hardware_id = "download_failure";
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto http = std::make_shared<HttpClient>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  EXPECT_NO_THROW(up->initialize());
+
+  Json::Value ot_json;
+  ot_json["custom"]["ecuIdentifiers"][conf.provision.primary_ecu_serial]["hardwareId"] =
+      conf.provision.primary_ecu_hardware_id;
+  ot_json["custom"]["targetFormat"] = "binary";
+  ot_json["length"] = 1;
+  ot_json["hashes"]["sha256"] = conf.provision.primary_ecu_serial;
+  Uptane::Target package_to_install{conf.provision.primary_ecu_serial, ot_json};
+
+  // EXPECT_TRUE(up->downloadImages(packages_to_install));
+  std::pair<bool, Uptane::Target> result = up->downloadImage(package_to_install);
 }
 
 #ifndef __NO_MAIN__
