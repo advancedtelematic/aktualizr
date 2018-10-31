@@ -616,8 +616,19 @@ TEST(Aktualizr, InstallWithUpdates) {
   // First try installing nothing. Nothing should happen.
   InstallResult result = aktualizr.Install(updates_InstallWithUpdates);
   EXPECT_EQ(result.reports.size(), 0);
+
+  EXPECT_EQ(aktualizr.GetStoredTarget("primary_firmware.txt").get(), nullptr)
+      << "Primary irmware is present in storage before the download";
+  EXPECT_EQ(aktualizr.GetStoredTarget("secondary_firmware.txt").get(), nullptr)
+      << "Secondary firmware is present in storage before the download";
+
   conf.uptane.running_mode = RunningMode::kDownload;
   aktualizr.UptaneCycle();
+  EXPECT_NE(aktualizr.GetStoredTarget("primary_firmware.txt").get(), nullptr)
+      << "Primary firmware is not present in storage after the download";
+  EXPECT_NE(aktualizr.GetStoredTarget("secondary_firmware.txt").get(), nullptr)
+      << "Secondary firmware is not present in storage after the download";
+
   conf.uptane.running_mode = RunningMode::kInstall;
   aktualizr.UptaneCycle();
 

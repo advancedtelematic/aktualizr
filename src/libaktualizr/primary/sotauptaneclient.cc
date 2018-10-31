@@ -802,7 +802,7 @@ UpdateCheckResult SotaUptaneClient::fetchMeta() {
   if (updateMeta()) {
     result = checkUpdates();
   } else {
-    result = UpdateCheckResult({}, 0, UpdateStatus::kError, "Could not update metadata.");
+    result = UpdateCheckResult({}, 0, UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
   }
   sendEvent<event::UpdateCheckComplete>(result);
   return result;
@@ -815,12 +815,17 @@ UpdateCheckResult SotaUptaneClient::checkUpdates() {
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
     LOG_ERROR << "Invalid UPTANE metadata in storage.";
-    result = UpdateCheckResult({}, 0, UpdateStatus::kError, "Invalid UPTANE metadata in storage.");
+    result = UpdateCheckResult({}, 0, UpdateStatus::kError, Json::nullValue, "Invalid UPTANE metadata in storage.");
   } else {
+    std::string director_targets;
+    storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+
     if (!updates.empty()) {
-      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kUpdatesAvailable, "");
+      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kUpdatesAvailable,
+                                 Utils::parseJSON(director_targets), "");
     } else {
-      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kNoUpdatesAvailable, "");
+      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kNoUpdatesAvailable,
+                                 Utils::parseJSON(director_targets), "");
       LOG_INFO << "No new updates found in Uptane metadata.";
     }
   }

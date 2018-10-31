@@ -104,3 +104,11 @@ PauseResult Aktualizr::Resume() { return uptane_client_->resume(); }
 boost::signals2::connection Aktualizr::SetSignalHandler(std::function<void(shared_ptr<event::BaseEvent>)> &handler) {
   return sig_->connect(handler);
 }
+
+std::unique_ptr<StorageTargetRHandle> Aktualizr::GetStoredTarget(const std::string &filename) {
+  try {
+    return storage_->openTargetFile(filename);
+  } catch (...) {
+    return std::unique_ptr<StorageTargetRHandle>();
+  }
+}

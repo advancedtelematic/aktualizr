@@ -36,11 +36,16 @@ class UpdateCheckResult {
  public:
   UpdateCheckResult() = default;
   UpdateCheckResult(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in, UpdateStatus status_in,
-                    std::string message_in)
-      : updates(std::move(updates_in)), ecus_count(ecus_count_in), status(status_in), message(std::move(message_in)) {}
+                    const Json::Value &targets_meta_in, std::string message_in)
+      : updates(std::move(updates_in)),
+        ecus_count(ecus_count_in),
+        status(status_in),
+        targets_meta(targets_meta_in),
+        message(std::move(message_in)) {}
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count{0};
   UpdateStatus status{UpdateStatus::kNoUpdatesAvailable};
+  Json::Value targets_meta;
   std::string message;
 };
 
