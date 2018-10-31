@@ -38,15 +38,15 @@ CURDIR=$(pwd)
 cd ${OSTREE_DIR}/repo
 
 python3 -m http.server ${PORT} &
-HTTP_PID=$!
-sleep 2
+trap 'kill %1' EXIT
+# Wait for http server to start serving. This can take a while sometimes.
+until http 127.0.0.1:${PORT} &> /dev/null
+do
+  sleep 1
+done
 
 ostree --repo=${TARGETDIR}/ostree/repo remote add --no-gpg-verify generate-remote http://127.0.0.1:${PORT} ${BRANCHNAME}
 ostree --repo=${TARGETDIR}/ostree/repo pull generate-remote  ${BRANCHNAME}
-
-# kill SimpleHTTPServer
-kill ${HTTP_PID}
-wait ${HTTP_PID} 2>/dev/null || true
 
 cd ${CURDIR}
 rm -rf ${OSTREE_DIR}
