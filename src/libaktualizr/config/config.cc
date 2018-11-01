@@ -5,11 +5,6 @@
 #include <iomanip>
 #include <sstream>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/filesystem.hpp>
-
 #include "bootstrap/bootstrap.h"
 #include "config.h"
 #include "utilities/exceptions.h"
@@ -153,7 +148,7 @@ void Config::postUpdateValues() {
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {
       try {
-        tls.server = Utils::readFile(tls.server_url_path);
+        tls.server = Utils::readFile(tls.server_url_path, true);
       } catch (const boost::filesystem::filesystem_error& e) {
         LOG_ERROR << "Couldn't read gateway URL: " << e.what();
         tls.server = "";

@@ -1,7 +1,5 @@
 #include "bootstrap.h"
 
-#include <boost/algorithm/string.hpp>
-
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
@@ -48,8 +46,7 @@ std::string Bootstrap::readServerUrl(const boost::filesystem::path& provision_pa
       LOG_ERROR << "Unable to open provided provision archive " << provision_path << ": " << std::strerror(errno);
       throw std::runtime_error("Unable to parse bootstrap credentials");
     }
-    url = Utils::readFileFromArchive(as, "autoprov.url");
-    boost::trim(url);
+    url = Utils::readFileFromArchive(as, "autoprov.url", true);
   } catch (std::runtime_error& exc) {
     LOG_ERROR << "Unable to read server url from archive: " << exc.what();
     url = "";

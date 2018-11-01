@@ -177,6 +177,6 @@ void AktualizrSecondary::extractCredentialsArchive(const std::string& archive, s
   }
   {
     std::stringstream as(archive);
-    *treehub_server = Utils::readFileFromArchive(as, "server.url");
+    *treehub_server = Utils::readFileFromArchive(as, "server.url", true);
   }
 }
