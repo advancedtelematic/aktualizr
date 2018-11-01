@@ -270,7 +270,7 @@ std::string Utils::genPrettyName() {
   return res;
 }
 
-std::string Utils::readFile(const boost::filesystem::path &filename) {
+std::string Utils::readFile(const boost::filesystem::path &filename, const bool trim) {
   boost::filesystem::path tmpFilename = filename;
   tmpFilename += ".new";
 
@@ -280,6 +280,10 @@ std::string Utils::readFile(const boost::filesystem::path &filename) {
   }
   std::ifstream path_stream(filename.c_str());
   std::string content((std::istreambuf_iterator<char>(path_stream)), std::istreambuf_iterator<char>());
+
+  if (trim) {
+    boost::trim_if(content, boost::is_any_of(" \t\r\n"));
+  }
   return content;
 }
 
@@ -451,7 +455,7 @@ void Utils::copyDir(const boost::filesystem::path &from, const boost::filesystem
   }
 }
 
-std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename) {
+std::string Utils::readFileFromArchive(std::istream &as, const std::string &filename, const bool trim) {
   struct archive *a = archive_read_new();
   if (a == nullptr) {
     LOG_ERROR << "archive error: could not initialize archive object";
@@ -505,7 +509,11 @@ std::string Utils::readFileFromArchive(std::istream &as, const std::string &file
     throw std::runtime_error("could not extract " + filename + " from archive");
   }
 
-  return out_stream.str();
+  std::string result = out_stream.str();
+  if (trim) {
+    boost::trim_if(result, boost::is_any_of(" \t\r\n"));
+  }
+  return result;
 }
 
 static ssize_t write_cb(struct archive *a, void *client_data, const void *buffer, size_t length) {

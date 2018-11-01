@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
   std::string pkey;
   std::string cert;
   std::string ca;
-  std::string serverUrl;
+  std::string serverUrl = Bootstrap::readServerUrl(credentials_path);
 
   if (device_ca_path.empty()) {  // no device ca => autoprovision
     std::string device_id = Utils::genPrettyName();
@@ -446,7 +446,6 @@ int main(int argc, char* argv[]) {
     Json::Value data;
     data["deviceId"] = device_id;
     data["ttl"] = 36000;
-    serverUrl = Bootstrap::readServerUrl(credentials_path);
 
     std::cout << "Provisioning against server...\n";
     http.setCerts(boot.getCa(), CryptoSource::kFile, boot.getCert(), CryptoSource::kFile, boot.getPkey(),
@@ -484,8 +483,6 @@ int main(int argc, char* argv[]) {
     } else {
       std::cout << "Server root CA read from server_ca.pem in zipped archive.\n";
     }
-
-    serverUrl = Bootstrap::readServerUrl(credentials_path);
   }
 
   tmp_pkey_file.PutContents(pkey);

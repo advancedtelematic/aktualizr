@@ -69,14 +69,12 @@ class CheckForUpdate {
   }
 };
 
-using namespace boost::random;
-
 class CheckForUpdateTasks {
   std::vector<Config> configs;
 
-  mt19937 rng;
+  std::mt19937 rng;
 
-  uniform_int_distribution<size_t> gen;
+  std::uniform_int_distribution<size_t> gen;
 
  public:
   CheckForUpdateTasks(const boost::filesystem::path baseDir)
