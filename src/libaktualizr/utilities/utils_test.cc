@@ -327,6 +327,16 @@ TEST(Utils, BasedPath) {
   EXPECT_EQ(abp.get("/root/var"), "/a/test.xml");
 }
 
+TEST(Utils, TrimNewline) {
+  TemporaryFile f("newline");
+  std::string input = "test with newline";
+  Utils::writeFile(f.Path(), input + "\n");
+  std::string output = Utils::readFile(f.Path(), false);
+  EXPECT_EQ(output, input + "\n");
+  output = Utils::readFile(f.Path(), true);
+  EXPECT_EQ(output, input);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
