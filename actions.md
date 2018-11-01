@@ -74,8 +74,6 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] TODO Fetch metadata from the images repo
   - [ ] TODO Check metadata from the images repo
     - [x] Validate Uptane metadata (see below)
-  - [x] TODO Send FetchMetaComplete event after success
-  - [ ] TODO Send Error event after failure
   - [x] Do nothing in automatic mode if there are no updates to install (aktualizr_test.cc)
 - [ ] Check for updates
   - [ ] TODO Check metadata from the director
@@ -84,25 +82,34 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] TODO Ignore updates for unrecognized ECUs
   - [ ] TODO Check metadata from the images repo
     - [x] Validate Uptane metadata (see below)
-  - [x] TODO send UpdateAvailable event if updates are available
-  - [x] Send NoUpdateAvailable event if no updates are available
+  - [x] TODO Send UpdateCheckComplete event after success
+  - [x] TODO Send UpdateCheckComplete event after failure
 - [ ] Download updates
   - [ ] TODO Identify ECU for each target
     - [ ] TODO Reject targets which do not match a known ECU
   - [x] TODO Download an update for a primary or secondary
     - [x] TODO Download an OSTree package
     - [x] TODO Download a binary package
+    - [ ] Send EcuDownloadStartedReport to server
+      - [x] Send an event report (see below)
   - [x] TODO Report download progress
+  - [x] Pause downloading (fetcher_test.cc)
+    - [ ] Pausing while paused is ignored
+    - [ ] Pausing while not downloading is ignored
+  - [x] Resume downloading (fetcher_test.cc)
+    - [ ] Resuming while not paused is ignored
+    - [ ] Resuming while not downloading is ignored
   - [x] TODO Verify a downloaded update for a primary or secondary
     - [x] TODO Verify an OSTree package
     - [x] TODO Verify a binary package
+    - [ ] Send EcuDownloadCompletedReport to server
+      - [x] Send an event report (see below)
   - [x] TODO Send DownloadTargetComplete event if download is successful
-  - [ ] Send Error event if download is unsuccessful
-  - [ ] Send download report
-    - [x] Send an event report (see below)
+  - [ ] Send DownloadTargetComplete event if download is unsuccessful
   - [x] TODO Send AllDownloadsComplete after all downloads are finished
   - [x] Download with manual control (aktualizr_test.cc)
   - [x] Do not download automatically with manual control (aktualizr_test.cc)
+- [x] Access downloaded binaries via API (aktualizr_test.cc)
 - [ ] Install updates
   - [ ] TODO Send metadata to secondary ECUs
   - [ ] TODO Identify ECU for each target
@@ -112,15 +119,23 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [ ] TODO Check if an update is already installed
     - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
     - [x] TODO Send InstallStarted event for primary
+    - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc)
+      - [x] Send an event report (see below)
     - [ ] TODO Install an update on the primary
       - [ ] TODO Install an OSTree update on the primary
       - [ ] TODO Install a binary update on the primary
     - [ ] TODO Store installation result for primary
     - [x] TODO Send InstallTargetComplete event for primary
+    - [x] Send EcuInstallationCompletedReport to server for primary (uptane_test.cc)
+      - [x] Send an event report (see below)
   - [ ] TODO Install updates on secondaries
     - [x] TODO Send InstallStarted event for secondaries
+    - [ ] Send EcuInstallationStartedReport to server for secondaries
+      - [x] Send an event report (see below)
     - [ ] TODO Send images to secondary ECUs
     - [x] TODO Send InstallTargetComplete event for secondaries
+    - [ ] Send EcuInstallationCompletedReport to server for secondaries
+      - [x] Send an event report (see below)
   - [x] TODO Send AllInstallsComplete event after all installations are finished
   - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
   - [x] Install with manual control (aktualizr_test.cc)
@@ -128,7 +143,7 @@ These are the primary actions that a user of libaktualizr can perform through th
 - [x] Send installation report
   - [x] Generate and send manifest (see below)
   - [x] TODO send PutManifestComplete event if send is successful
-  - [ ] send Error event if send fails
+  - [ ] Send PutManifestComplete event if send is unsuccessful
 
 ### Internal requirements
 
@@ -169,6 +184,8 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Send manifest to the server (uptane_test.cc)
 - [x] Send an event report
   - [x] Generate a random UUID (utils_test.cc)
+  - [x] Include correlation ID from targets metadata (aktualizr_test.cc)
+    - [x] Correlation ID is empty if none was provided in targets metadata (aktualizr_test.cc)
   - [x] Report an event to the server (reportqueue_test.cc)
   - [x] Report a series of events to the server (reportqueue_test.cc)
   - [x] Recover from errors while sending event reports (reportqueue_test.cc)
