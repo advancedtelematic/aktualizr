@@ -53,7 +53,7 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
   http_code = 0;
 
   curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
-  curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
+  curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 600L);
   curlEasySetoptWrapper(curl, CURLOPT_CONNECTTIMEOUT, 60L);
 
   // let curl use our write function
