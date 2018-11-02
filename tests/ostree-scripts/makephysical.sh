@@ -40,7 +40,7 @@ cd ${OSTREE_DIR}/repo
 python3 -m http.server ${PORT} &
 trap 'kill %1' EXIT
 # Wait for http server to start serving. This can take a while sometimes.
-until http 127.0.0.1:${PORT} &> /dev/null
+until curl 127.0.0.1:${PORT} &> /dev/null
 do
   sleep 1
 done
