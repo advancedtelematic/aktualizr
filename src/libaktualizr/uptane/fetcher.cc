@@ -95,21 +95,24 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
   DownloadCounter counter(&downloading_);
   try {
     if (!target.IsOstree()) {
-      auto target_handle = storage->openTargetFile(target);
-      if (target_handle != nullptr && !target_handle->isPartial()) {
+      auto target_exists = storage->checkTargetFile(target);
+      if (target_exists && target_exists->second == target.length()) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
       DownloadMetaStruct ds(target, events_channel);
       ds.fetcher = this;
       std::unique_ptr<StorageTargetWHandle> fhandle{};
-      if (target_handle == nullptr) {
+      if (!target_exists) {
         fhandle = storage->allocateTargetFile(false, target);
       } else {
-        ds.downloaded_length = target_handle->rsize();
+        std::lock_guard<std::mutex> guard(mutex_);
+        ds.downloaded_length = target_exists->second;
+        auto target_handle = storage->openTargetFile(target);
         fhandle = target_handle->toWriteHandle();
         unsigned char buf[ds.downloaded_length];
         target_handle->rread(buf, ds.downloaded_length);
+        target_handle->rclose();
         ds.hasher().update(buf, ds.downloaded_length);
       }
       ds.fhandle = fhandle.get();

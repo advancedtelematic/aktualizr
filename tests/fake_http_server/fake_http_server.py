@@ -26,7 +26,7 @@ class Handler(BaseHTTPRequestHandler):
                 if auth_list[0] == 'Bearer' and auth_list[1] == 'token':
                     self.wfile.write(b'{"status": "good"}')
             self.wfile.write(b'{}')
-        elif self.path.endswith('/large_file'):
+        elif self.path.endswith('/large_file') or self.path.endswith('/large_interrupted'):
             response_size = 2048
             if "Range" in self.headers:
                 r = self.headers["Range"]
@@ -35,6 +35,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Range', 'bytes %d-%d/%d' %(r_from, response_size-1, response_size))
                 response_size = response_size - r_from
             else:
+                if self.path.endswith('/large_interrupted'):
+                    response_size = 1024
                 self.send_response(200)
             self.send_header('Content-Length', response_size)
             self.end_headers()

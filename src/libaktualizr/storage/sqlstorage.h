@@ -2,6 +2,7 @@
 #define SQLSTORAGE_H_
 
 #include <boost/filesystem.hpp>
+#include <boost/optional.hpp>
 
 #include <sqlite3.h>
 
@@ -66,6 +67,7 @@ class SQLStorage : public INvStorage {
 
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;
   std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) override;
+  boost::optional<std::pair<int64_t, size_t>> checkTargetFile(const Uptane::Target& target) const override;
   void removeTargetFile(const std::string& filename) override;
   void cleanUp() override;
   StorageType type() override { return StorageType::kSqlite; };
@@ -77,7 +79,7 @@ class SQLStorage : public INvStorage {
   boost::filesystem::path dbPath() const;
 
  private:
-  SQLite3Guard dbConnection();
+  SQLite3Guard dbConnection() const;
   // request info
   void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
   bool readonly_{false};

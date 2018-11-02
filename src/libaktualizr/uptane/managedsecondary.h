@@ -49,7 +49,7 @@ class ManagedSecondary : public SecondaryInterface {
   std::string detected_attack;
   std::string expected_target_name;
   std::vector<Hash> expected_target_hashes;
-  int64_t expected_target_length{};
+  uint64_t expected_target_length{};
 
   MetaPack current_meta;
   RawMetaPack current_raw_meta;

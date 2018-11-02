@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <boost/filesystem.hpp>
+#include <boost/optional.hpp>
 
 #include "storage_config.h"
 #include "uptane/tuf.h"
@@ -148,6 +149,7 @@ class INvStorage {
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;
   virtual bool loadInstallationResult(data::OperationResult* result) = 0;
   virtual void clearInstallationResult() = 0;
+  virtual boost::optional<std::pair<int64_t, size_t>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
   virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,

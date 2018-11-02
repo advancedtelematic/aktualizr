@@ -37,12 +37,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   std::string output;
   TemporaryDirectory package_dir("deb_dir");
   std::stringstream sstr;
-  auto file_handle = storage_->openTargetFile(target);
-  if (file_handle == nullptr) {
-    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Couldn't open package file");
-  }
-  sstr << *file_handle;
-  file_handle->rclose();
+  sstr << *storage_->openTargetFile(target);
 
   boost::filesystem::path deb_path = package_dir / target.filename();
   Utils::writeFile(deb_path, sstr.str());
