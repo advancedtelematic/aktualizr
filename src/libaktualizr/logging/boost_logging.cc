@@ -2,6 +2,7 @@
 #include "utilities/config_utils.h"
 
 #include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 namespace logging = boost::log;
 using boost::log::trivial::severity_level;
@@ -18,9 +19,10 @@ int64_t get_curlopt_verbose() { return gLoggingThreshold <= boost::log::trivial:
 
 void logger_init() {
   gLoggingThreshold = boost::log::trivial::info;
-  logging::add_console_log(std::cout, boost::log::keywords::format = "%Message%",
+  logging::add_console_log(std::cout, boost::log::keywords::format = "[%TimeStamp%]: %Message%",
                            boost::log::keywords::auto_flush = true);
   boost::log::core::get()->set_filter(boost::log::trivial::severity >= gLoggingThreshold);
+  boost::log::add_common_attributes();
 }
 
 void logger_set_threshold(const severity_level threshold) {
