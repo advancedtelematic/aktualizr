@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package aktualizr;
+package aktualizr_grpc;
 
-service Aktualizr {
+service HmiServer {
 
   rpc Check (CheckRequest) returns (CheckResponse) {}
 
@@ -11,8 +11,6 @@ service Aktualizr {
   rpc Install (InstallRequest) returns (InstallResponse) {}
 
 }
-
-message CheckRequest {}
 
 message Campaign {
   string id = 1;
@@ -23,6 +21,8 @@ message Campaign {
   int32 install_sec = 6;
   int32 prepare_sec = 7;
 }
+
+message CheckRequest {}
 
 message CheckResponse {
   repeated Campaign campaigns = 1;
