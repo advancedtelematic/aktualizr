@@ -78,6 +78,9 @@ TEST(config, CmdlPrimarySerial) {
   EXPECT_EQ(conf.provision.primary_ecu_serial, "test-serial");
 }
 
+/*
+ * Extract credentials from a provided archive.
+ */
 TEST(config, ExtractCredentials) {
   TemporaryDirectory temp_dir;
   Config conf;
@@ -98,6 +101,9 @@ TEST(config, ExtractCredentials) {
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 }
 
+/*
+ * Parse secondary config files in JSON format.
+ */
 TEST(config, SecondaryConfig) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
@@ -123,7 +129,7 @@ TEST(config, SecondaryConfig) {
 }
 
 /**
- * Verify that aktualizr can start in implicit provisioning mode.
+ * Start in implicit provisioning mode.
  */
 TEST(config, ImplicitMode) {
   RecordProperty("zephyr_key", "OTA-996,TST-184");

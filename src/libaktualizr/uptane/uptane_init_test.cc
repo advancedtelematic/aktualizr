@@ -232,6 +232,7 @@ TEST(Uptane, PetNameCreation) {
   }
 }
 
+/* Detect and recover from failed provisioning. */
 TEST(Uptane, InitializeFail) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());

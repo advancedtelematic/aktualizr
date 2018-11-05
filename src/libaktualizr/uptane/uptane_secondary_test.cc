@@ -5,6 +5,7 @@
 #include "uptane/secondaryfactory.h"
 #include "uptane/secondaryinterface.h"
 
+/* Create a virtual secondary for testing. */
 TEST(SecondaryFactory, Virtual) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
@@ -22,7 +23,7 @@ TEST(SecondaryFactory, Virtual) {
   EXPECT_TRUE(sec);
 }
 
-/* Legacy secondaries are deprecated and are no longer supported. */
+/* Legacy secondaries are deprecated and no longer supported. */
 TEST(SecondaryFactory, Legacy) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
@@ -31,6 +32,15 @@ TEST(SecondaryFactory, Legacy) {
   EXPECT_FALSE(sec);
 }
 
+/* Invalid secondary types are ignored. */
+TEST(SecondaryFactory, Bad) {
+  Uptane::SecondaryConfig sconfig;
+  sconfig.secondary_type = (Uptane::SecondaryType)-1;
+  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
+  EXPECT_FALSE(sec);
+}
+
+/* Partial verification secondaries generate and store public keys. */
 TEST(SecondaryFactory, Uptane_get_key) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
@@ -52,6 +62,7 @@ TEST(SecondaryFactory, Uptane_get_key) {
   EXPECT_EQ(key1, key2);
 }
 
+/* Partial verification secondaries can verify Uptane metadata. */
 TEST(SecondaryFactory, Uptane_putMetadata_good) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
@@ -73,6 +84,7 @@ TEST(SecondaryFactory, Uptane_putMetadata_good) {
   EXPECT_NO_THROW(sec.putMetadata(metadata));
 }
 
+/* Partial verification secondaries reject invalid Uptane metadata. */
 TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   TemporaryDirectory temp_dir;
   Uptane::SecondaryConfig sconfig;
@@ -95,13 +107,6 @@ TEST(SecondaryFactory, Uptane_putMetadata_bad) {
   json_targets["signatures"][0]["sig"] = "Wrong signature";
   metadata.director_targets = Utils::jsonToStr(json_targets);
   EXPECT_THROW(sec.putMetadata(metadata), Uptane::BadKeyId);
-}
-
-TEST(SecondaryFactory, Bad) {
-  Uptane::SecondaryConfig sconfig;
-  sconfig.secondary_type = (Uptane::SecondaryType)-1;
-  std::shared_ptr<Uptane::SecondaryInterface> sec = Uptane::SecondaryFactory::makeSecondary(sconfig);
-  EXPECT_FALSE(sec);
 }
 
 #ifndef __NO_MAIN__

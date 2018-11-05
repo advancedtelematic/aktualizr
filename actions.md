@@ -9,10 +9,11 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Initialize secondaries
     - [x] Discover secondaries over TCP-IP (ipsecondary_discovery_test.cc)
     - [x] Add secondaries from configuration (uptane_test.cc)
-      - [x] TODO Support virtual secondaries for testing (uptane_secondary_test.cc)
-      - [x] TODO Support virtual Uptane secondaries for testing (uptane_secondary_test.cc)
-      - [x] TODO Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
-    - [ ] TODO Add secondaries via API
+      - [x] Parse secondary config files in JSON format (config_test.cc)
+      - [x] Create secondary object
+        - [x] Create a virtual secondary for testing (uptane_secondary_test.cc)
+    - [ ] Add secondaries via API
+    - [ ] Adding multiple secondaries with the same serial throws an error
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
@@ -21,14 +22,12 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
       - [x] Parse a p12 file containing TLS credentials (crypto_test.cc)
       - [x] aktualizr possesses all necessary credentials after provisioning (OTA-987, uptane_key_test.cc)
-      - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Implicitly provision (OTA-996, OTA-1210, config_test.cc, uptane_implicit_test.cc, uptane_test.cc, implicit_prov_test.py)
       - [x] Fail if TLS credentials are unavailable (OTA-1209, uptane_implicit_test.cc)
     - [x] Implicitly provision with keys accessed via PKCS#11 (hsm_prov_test.py)
-      - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc)
+      - [x] Generate RSA keypairs via PKCS#11 (crypto_test.cc, keymanager_test.cc)
       - [x] Read a TLS certificate via PKCS#11 (crypto_test.cc)
-      - [x] Generate RSA keys with PKCS#11 (keymanager_test.cc)
-      - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc)
+      - [x] Sign and verify a file with RSA via PKCS#11 (crypto_test.cc, keymanager_test.cc)
   - [x] Initialize primary ECU keys
     - [x] Generate primary ECU keys (OTA-989, uptane_serial_test.cc)
       - [x] Generate RSA 2048 key pairs (crypto_test.cc)
@@ -37,112 +36,109 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Initialize primary ECU serial
     - [x] Use a provided primary serial (OTA-988, config_test.cc)
     - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
-    - [ ] TODO Use a provided hardware ID
-    - [ ] TODO Use the system hostname as hardware ID if one is not provided
+    - [ ] Use a provided hardware ID
+    - [ ] Use the system hostname as hardware ID if one is not provided
+      - [x] Read the hostname from the system (utils_test.cc)
   - [x] Register ECUs with director (uptane_test.cc)
-    - [x] Read the hostname from the system (utils_test.cc)
-  - [ ] TODO Abort if initialization fails
-  - [ ] TODO Verify secondaries against storage
-    - [ ] TODO Identify previously unknown secondaries
-    - [ ] TODO Identify currently unavailable secondaries
+  - [x] Abort if initialization fails
+    - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
+    - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
+  - [ ] Verify secondaries against storage
+    - [ ] Identify previously unknown secondaries
+    - [ ] Identify currently unavailable secondaries
 - [x] Send system/network info to server
-  - [x] TODO Read hardware info from the system (utils_test.cc)
+  - [x] Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
   - [x] Import a list of installed packages into an SQL database (uptane_test.cc)
-  - [x] Load and store a list of installed package versions (uptane_test.cc)
+    - [x] Store a list of installed package versions (uptane_test.cc)
   - [x] Send a list of installed packages to the server (OTA-984, uptane_test.cc)
   - [x] Read networking info from the system (utils_test.cc)
   - [x] Send networking info to the server (OTA-984, uptane_test.cc)
   - [x] Generate and send manifest (see below)
-  - [x] TODO send SendDeviceDataComplete event
+  - [ ] Send SendDeviceDataComplete event
 - [x] Check for campaigns
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
-  - [x] TODO Fetch campaigns from the server (aktualizr_test.cc)
+  - [x] Fetch campaigns from the server (aktualizr_test.cc)
   - [x] Parse campaigns from JSON (campaign_test.cc)
-  - [x] TODO send CampaignCheckComplete event with campaign data
+  - [ ] Send CampaignCheckComplete event with campaign data
 - [ ] Accept a campaign
   - [ ] Send campaign acceptance report
     - [x] Send an event report (see below)
-  - [ ] TODO send CampaignAcceptComplete event
+  - [ ] Send CampaignAcceptComplete event
 - [x] Fetch metadata from server
   - [x] Generate and send manifest (see below)
-  - [ ] TODO Fetch metadata from the director
-  - [ ] TODO Check metadata from the director
+  - [x] Fetch metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
-  - [ ] TODO Identify targets for known ECUs
-  - [ ] TODO Ignore updates for unrecognized ECUs
-  - [ ] TODO Fetch metadata from the images repo
-  - [ ] TODO Check metadata from the images repo
+  - [x] Identify targets for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
+  - [ ] Ignore updates for unrecognized ECUs
+  - [x] Fetch metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
+  - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
-  - [x] Do nothing in automatic mode if there are no updates to install (aktualizr_test.cc)
-- [ ] Check for updates
-  - [ ] TODO Check metadata from the director
+- [x] Check for updates
+  - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
-  - [ ] TODO Identify updates for known ECUs
-  - [ ] TODO Ignore updates for unrecognized ECUs
-  - [ ] TODO Check metadata from the images repo
+  - [x] Identify updates for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
+  - [ ] Ignore updates for unrecognized ECUs
+  - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
-  - [x] TODO Send UpdateCheckComplete event after success
-  - [x] TODO Send UpdateCheckComplete event after failure
-- [ ] Download updates
-  - [ ] TODO Identify ECU for each target
-    - [ ] TODO Reject targets which do not match a known ECU
-  - [x] TODO Download an update for a primary or secondary
-    - [x] TODO Download an OSTree package
-    - [x] TODO Download a binary package
-    - [ ] Send EcuDownloadStartedReport to server
+  - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
+  - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
+  - [ ] Send UpdateCheckComplete event after failure
+- [x] Download updates
+  - [x] Download an update
+    - [ ] Download an OSTree package
+    - [x] Download a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
+    - [x] Send EcuDownloadStartedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [x] TODO Report download progress
+  - [ ] Report download progress
   - [x] Pause downloading (fetcher_test.cc)
     - [ ] Pausing while paused is ignored
     - [ ] Pausing while not downloading is ignored
   - [x] Resume downloading (fetcher_test.cc)
     - [ ] Resuming while not paused is ignored
     - [ ] Resuming while not downloading is ignored
-  - [x] TODO Verify a downloaded update for a primary or secondary
-    - [x] TODO Verify an OSTree package
-    - [x] TODO Verify a binary package
-    - [ ] Send EcuDownloadCompletedReport to server
+  - [x] Verify a downloaded update
+    - [ ] Verify an OSTree package
+    - [x] Verify a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
+    - [x] Send EcuDownloadCompletedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [x] TODO Send DownloadTargetComplete event if download is successful
+  - [x] Send DownloadTargetComplete event if download is successful (aktualizr_test.cc)
+  - [ ] Send DownloadTargetComplete event if download is partially successful
+  - [ ] Send DownloadTargetComplete event if there is nothing to download
   - [ ] Send DownloadTargetComplete event if download is unsuccessful
-  - [x] TODO Send AllDownloadsComplete after all downloads are finished
-  - [x] Download with manual control (aktualizr_test.cc)
-  - [x] Do not download automatically with manual control (aktualizr_test.cc)
+  - [x] Send AllDownloadsComplete after all downloads are finished (aktualizr_test.cc)
 - [x] Access downloaded binaries via API (aktualizr_test.cc)
-- [ ] Install updates
-  - [ ] TODO Send metadata to secondary ECUs
-  - [ ] TODO Identify ECU for each target
-    - [ ] TODO Reject targets which do not match a known ECU
-  - [ ] TODO Install updates on primary
-    - [ ] TODO Check if there are updates to install for the primary
-    - [ ] TODO Check if an update is already installed
+- [x] Install updates
+  - [ ] Send metadata to secondary ECUs
+  - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)
+    - [ ] Reject targets which do not match a known ECU
+  - [x] Install updates on primary
+    - [x] Check if there are updates to install for the primary (uptane_test.cc, aktualizr_test.cc)
+    - [ ] Check if an update is already installed
     - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
-    - [x] TODO Send InstallStarted event for primary
-    - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc)
+    - [x] Send InstallStarted event for primary (aktualizr_test.cc)
+    - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
       - [x] Send an event report (see below)
-    - [ ] TODO Install an update on the primary
-      - [ ] TODO Install an OSTree update on the primary
-      - [ ] TODO Install a binary update on the primary
-    - [ ] TODO Store installation result for primary
-    - [x] TODO Send InstallTargetComplete event for primary
-    - [x] Send EcuInstallationCompletedReport to server for primary (uptane_test.cc)
+    - [x] Install an update on the primary
+      - [ ] Install an OSTree update on the primary
+      - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
+    - [x] Store installation result for primary (uptane_test.cc)
+    - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)
+    - [x] Send EcuInstallationCompletedReport to server for primary (uptane_test.cc, aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [ ] TODO Install updates on secondaries
-    - [x] TODO Send InstallStarted event for secondaries
+  - [x] Install updates on secondaries
+    - [x] Send InstallStarted event for secondaries (aktualizr_test.cc)
     - [ ] Send EcuInstallationStartedReport to server for secondaries
       - [x] Send an event report (see below)
-    - [ ] TODO Send images to secondary ECUs
-    - [x] TODO Send InstallTargetComplete event for secondaries
-    - [ ] Send EcuInstallationCompletedReport to server for secondaries
+    - [x] Send images to secondary ECUs (aktualizr_test.cc)
+    - [x] Send InstallTargetComplete event for secondaries (aktualizr_test.cc)
+    - [x] Send EcuInstallationCompletedReport to server for secondaries (aktualizr_test.cc)
       - [x] Send an event report (see below)
-  - [x] TODO Send AllInstallsComplete event after all installations are finished
-  - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
-  - [x] Install with manual control (aktualizr_test.cc)
-  - [x] Do not install automatically with manual control (aktualizr_test.cc)
+  - [x] Send AllInstallsComplete event after all installations are finished (aktualizr_test.cc)
 - [x] Send installation report
   - [x] Generate and send manifest (see below)
-  - [x] TODO send PutManifestComplete event if send is successful
+  - [x] send PutManifestComplete event if send is successful (aktualizr_test.cc)
   - [ ] Send PutManifestComplete event if send is unsuccessful
 
 ### Internal requirements
@@ -210,7 +206,6 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Import keys and credentials from file into an SQL database (storage_common_test.cc)
 - [x] Configuration
   - [x] Parse config files in TOML format (config_test.cc)
-  - [x] Parse secondary config files in JSON format (config_test.cc)
   - [x] Write its config to file or to the log (config_test.cc)
   - [x] Parse multiple config files in a directory (config_test.cc)
   - [x] Parse multiple config files in multiple directories (config_test.cc)
@@ -221,7 +216,20 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
   - [x] Install a fake package for testing (uptane_test.cc)
   - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
-  - [x] Update secondaries (aktualizr_test.cc)
+  - [x] TODO Update secondaries (aktualizr_test.cc)
+  - [x] Support virtual partial verification secondaries for testing
+    - [x] Partial verification secondaries generate and store public keys (uptane_secondary_test.cc)
+    - [x] Partial verification secondaries can verify Uptane metadata. (uptane_secondary_test.cc)
+  - [x] Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
+
+## High-level sequence tests
+
+  - [x] Do nothing further in automatic mode if there are no updates to install (aktualizr_test.cc)
+  - [x] Download with manual control (aktualizr_test.cc)
+  - [x] Do not download automatically with manual control (aktualizr_test.cc)
+  - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
+  - [x] Install with manual control (aktualizr_test.cc)
+  - [x] Do not install automatically with manual control (aktualizr_test.cc)
 
 ## aktualizr-primary
 

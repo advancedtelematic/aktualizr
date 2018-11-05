@@ -17,6 +17,7 @@
 
 /**
  * TODO: Convert this into proper unit tests?
+ *
  * Check that aktualizr fails on expired metadata.
  * RecordProperty("zephyr_key", "REQ-150,TST-49");
  * Check that aktualizr fails on bad threshold.
@@ -88,6 +89,11 @@ class Uptane_Vector_Test {
       }
 
       try {
+        /* Fetch metadata from the director.
+         * Check metadata from the director.
+         * Identify targets for known ECUs.
+         * Fetch metadata from the images repo.
+         * Check metadata from the images repo. */
         if (!uptane_client->uptaneIteration()) {
           if (should_fail) {
             throw uptane_client->getLastException();
@@ -101,6 +107,8 @@ class Uptane_Vector_Test {
           return false;
         }
         if (updates.size()) {
+          /* Download a binary package.
+           * Verify a binary package. */
           DownloadResult result = uptane_client->downloadImages(updates);
           if (result.status != DownloadStatus::kSuccess) {
             if (should_fail) {

@@ -230,6 +230,10 @@ TEST(Uptane, PutManifest) {
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
+ * Identify ECU for each target.
+ * Check if there are updates to install for the primary.
+ * Install a binary update on the primary.
+ * Store installation result for primary.
  */
 TEST(Uptane, InstallFake) {
   Config conf("tests/config/basic.toml");
@@ -307,6 +311,7 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/director/ecus") != std::string::npos) {
+      /* Register ECUs with director. */
       ecus_count++;
       EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
       EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
@@ -342,11 +347,13 @@ class HttpFakeProv : public HttpFake {
   HttpResponse put(const std::string &url, const Json::Value &data) override {
     std::cout << "put " << url << "\n";
     if (url.find("core/installed") != std::string::npos) {
+      /* Send a list of installed packages to the server. */
       installed_count++;
       EXPECT_EQ(data.size(), 1);
       EXPECT_EQ(data[0]["name"].asString(), "fake-package");
       EXPECT_EQ(data[0]["version"].asString(), "1.0");
     } else if (url.find("/core/system_info") != std::string::npos) {
+      /* Send hardware info to the server. */
       system_info_count++;
       Json::Value hwinfo = Utils::getHardwareInfo();
       EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
@@ -370,6 +377,7 @@ class HttpFakeProv : public HttpFake {
                         .asString(),
                 hash);
     } else if (url.find("/system_info/network") != std::string::npos) {
+      /* Send networking info to the server. */
       network_count++;
       Json::Value nwinfo = Utils::getNetworkInfo();
       EXPECT_EQ(nwinfo["local_ipv4"].asString(), data["local_ipv4"].asString());
@@ -588,6 +596,7 @@ TEST(Uptane, FsToSqlFull) {
   EXPECT_EQ(sql_images_snapshot, images_snapshot);
 }
 
+/* Import a list of installed packages into an SQL database. */
 TEST(Uptane, InstalledVersionImport) {
   Config config;
 
@@ -623,6 +632,7 @@ TEST(Uptane, InstalledVersionImport) {
   EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
+/* Store a list of installed package versions. */
 TEST(Uptane, SaveAndLoadVersion) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -650,6 +660,11 @@ TEST(Uptane, SaveAndLoadVersion) {
   EXPECT_EQ(*f, t);
 }
 
+/* Verifies that we've prevented bug PRO-5210. This happened when the Root was
+ * created from the default constructor (which sets the policy to kRejectAll)
+ * and not overwritten by a valid Root from the storage (because the relevant
+ * table existed but was empty, which was unexpected). The solution is not to
+ * return a default-constructed Root when reading from storage. */
 TEST(Uptane, kRejectAllTest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
@@ -690,6 +705,12 @@ class HttpFakeUnstable : public HttpFake {
   int unstable_valid_count{0};
 };
 
+/* Verify that we can recover from an interrupted Uptane iteration.
+ * Fetch metadata from the director.
+ * Check metadata from the director.
+ * Identify targets for known ECUs.
+ * Fetch metadata from the images repo.
+ * Check metadata from the images repo. */
 TEST(Uptane, restoreVerify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeUnstable>(temp_dir.Path());
@@ -743,6 +764,11 @@ TEST(Uptane, restoreVerify) {
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
 }
 
+/* Fetch metadata from the director.
+ * Check metadata from the director.
+ * Identify targets for known ECUs.
+ * Fetch metadata from the images repo.
+ * Check metadata from the images repo. */
 TEST(Uptane, offlineIteration) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");

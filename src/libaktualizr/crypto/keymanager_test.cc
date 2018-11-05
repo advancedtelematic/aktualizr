@@ -107,6 +107,7 @@ TEST(KeyManager, InitFileValid) {
 }
 
 #ifdef BUILD_P11
+/* Sign and verify a file with RSA via PKCS#11. */
 TEST(KeyManager, SignTufPkcs11) {
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -132,6 +133,7 @@ TEST(KeyManager, SignTufPkcs11) {
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 
+/* Generate Uptane keys, use them for signing, and verify them. */
 TEST(KeyManager, GenSignTufPkcs11) {
   Json::Value tosign_json;
   tosign_json["mykey"] = "value";
@@ -158,6 +160,7 @@ TEST(KeyManager, GenSignTufPkcs11) {
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 
+/* Generate RSA keypairs via PKCS#11. */
 TEST(KeyManager, InitPkcs11Valid) {
   Config config;
   P11Config p11_conf;

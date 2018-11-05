@@ -53,6 +53,7 @@ TEST(crypto, findPkcsLibrary) {
   EXPECT_TRUE(boost::filesystem::exists(pkcs11Path));
 }
 
+/* Sign and verify a file with RSA via PKCS#11. */
 TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
@@ -70,6 +71,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   EXPECT_TRUE(signe_is_ok);
 }
 
+/* Generate RSA keypairs via PKCS#11. */
 TEST(crypto, generate_rsa_keypair_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
@@ -83,6 +85,7 @@ TEST(crypto, generate_rsa_keypair_p11) {
   EXPECT_TRUE(p11->readUptanePublicKey(&key_content));
 }
 
+/* Read a TLS certificate via PKCS#11. */
 TEST(crypto, certificate_pkcs11) {
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
@@ -141,6 +144,7 @@ TEST(crypto, bad_keytype) {
   EXPECT_EQ(pkey.Type(), KeyType::kUnknown);
 }
 
+/* Parse a p12 file containing TLS credentials. */
 TEST(crypto, parsep12) {
   std::string pkey;
   std::string cert;
@@ -239,6 +243,7 @@ TEST(crypto, parsep12_FAIL) {
   EXPECT_EQ(result, false);
 }
 
+/* Generate RSA 2048 key pairs. */
 TEST(crypto, generateRSA2048KeyPair) {
   std::string public_key;
   std::string private_key;
@@ -247,6 +252,7 @@ TEST(crypto, generateRSA2048KeyPair) {
   EXPECT_NE(private_key.size(), 0);
 }
 
+/* Generate RSA 4096 key pairs. */
 TEST(crypto, generateRSA4096KeyPair) {
   std::string public_key;
   std::string private_key;
@@ -255,6 +261,7 @@ TEST(crypto, generateRSA4096KeyPair) {
   EXPECT_NE(private_key.size(), 0);
 }
 
+/* Generate ED25519 key pairs. */
 TEST(crypto, generateED25519KeyPair) {
   std::string public_key;
   std::string private_key;

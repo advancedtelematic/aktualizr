@@ -666,6 +666,8 @@ class HttpFakeCampaign : public HttpFake {
   }
 };
 
+/* Check for campaigns with manual control.
+ * Fetch campaigns from the server. */
 TEST(Aktualizr, CampaignCheck) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());

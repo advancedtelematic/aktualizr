@@ -54,14 +54,15 @@ TEST(Utils, getHardwareInfo) {
   EXPECT_FALSE(hwinfo.isArray());
 }
 
+/* Read networking info from the system. */
 TEST(Utils, getNetworkInfo) {
   Json::Value netinfo = Utils::getNetworkInfo();
-
   EXPECT_NE(netinfo["local_ipv4"].asString(), "");
   EXPECT_NE(netinfo["mac"].asString(), "");
   EXPECT_NE(netinfo["hostname"].asString(), "");
 }
 
+/* Read the hostname from the system. */
 TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
 
 /**
@@ -136,6 +137,9 @@ TEST(Utils, Base64RoundTrip) {
   }
 }
 
+/*
+ * Extract credentials from a provided archive.
+ */
 TEST(Utils, ArchiveRead) {
   const std::string archive_path = "tests/test_data/credentials.zip";
 
