@@ -11,6 +11,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Added
 
 - [Ability to pause and resume update downloads](src/libaktualizr/primary/aktualizr.h)
+- Expose download binary targets in API
 
 ### Changed
 
@@ -29,7 +30,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Changed
 
-- Updates in aktualizr api
+- Various updates in API
 - `sota_implicit_prov` is deprecated
 - All the imported data should be under /var/sota/import
 
