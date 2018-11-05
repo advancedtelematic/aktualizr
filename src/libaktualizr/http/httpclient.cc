@@ -239,6 +239,7 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   curlEasySetoptWrapper(curl_download, CURLOPT_FOLLOWLOCATION, 1L);
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEFUNCTION, callback);
   curlEasySetoptWrapper(curl_download, CURLOPT_WRITEDATA, userp);
+  curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM, from);
