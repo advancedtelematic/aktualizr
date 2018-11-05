@@ -22,6 +22,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   assert(userp);
   auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
   uint64_t downloaded = size * nmemb;
+  LOG_TRACE << "Downloaded " << downloaded << " bytes";
   auto expected = static_cast<uint64_t>(ds->target.length());
   if ((ds->downloaded_length + downloaded) > expected) {
     return downloaded + 1;  // curl will abort if return unexpected size;
