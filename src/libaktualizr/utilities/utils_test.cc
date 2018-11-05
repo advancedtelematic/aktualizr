@@ -47,6 +47,13 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+/* Read hardware info from the system. */
+TEST(Utils, getHardwareInfo) {
+  Json::Value hwinfo = Utils::getHardwareInfo();
+  EXPECT_NE(hwinfo, Json::Value());
+  EXPECT_FALSE(hwinfo.isArray());
+}
+
 TEST(Utils, getNetworkInfo) {
   Json::Value netinfo = Utils::getNetworkInfo();
 
