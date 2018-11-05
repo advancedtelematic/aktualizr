@@ -6,7 +6,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
-## [2018.13]
+## [2018.13] - 2018-11-05
 
 ### Added
 
