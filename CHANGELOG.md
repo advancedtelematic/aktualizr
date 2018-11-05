@@ -4,19 +4,33 @@ This file summarizes notable changes introduced in aktualizr version. It roughly
 
 Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new release is deemed necessary. Thus it does not exactly map to months of the year.
 
-## [2018.13 (unreleased)]
+## [??? (unreleased)]
+
+## [2018.13] - 2018-11-05
+
+### Added
+
+- [Ability to pause and resume update downloads](src/libaktualizr/primary/aktualizr.h)
+- Expose download binary targets in API
 
 ### Changed
 
-- Secondaries configuration files must now lie in a common directory which is passed in command line arguments or in static configuration
+- Secondaries configuration files must now lie in a common directory and specified in command line arguments or in static configuration: [documentation](docs/configuration.adoc#uptane)
 - API has been upgraded: FetchMeta has been merged with CheckUpdates and most functions now have meaningful return values.
+
+### Removed
+
 - implicit_writer has been removed as it was no longer being used.
+
+### Fixed
+
+- Now trim whitespaces in some of our configuration and provisioning files ([from meta-updater #420](https://github.com/advancedtelematic/meta-updater/issues/420))
 
 ## [2018.12] - 2018-10-10
 
 ### Changed
 
-- Updates in aktualizr api
+- Various updates in API
 - `sota_implicit_prov` is deprecated
 - All the imported data should be under /var/sota/import
 
