@@ -49,7 +49,7 @@ These are the primary actions that a user of libaktualizr can perform through th
 - [x] Send system/network info to server
   - [x] Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
-  - [x] Import a list of installed packages into an SQL database (uptane_test.cc)
+  - [x] Import a list of installed packages into the storage (uptane_test.cc)
     - [x] Store a list of installed package versions (uptane_test.cc)
   - [x] Send a list of installed packages to the server (OTA-984, uptane_test.cc)
   - [x] Read networking info from the system (utils_test.cc)
@@ -141,23 +141,33 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] send PutManifestComplete event if send is successful (aktualizr_test.cc)
   - [ ] Send PutManifestComplete event if send is unsuccessful
 
-### Internal requirements
+### Internal and common actions
 
 These are internal requirements that are relatively opaque to the user and/or common to multiple external actions.
 
 - [x] Validate Uptane metadata
-  - [x] Validate SHA256 hashes (crypto_test.cc)
-  - [x] Validate SHA512 hashes (crypto_test.cc)
-  - [x] Sign and verify a file with RSA stored in a file (crypto_test.cc)
-  - [x] Reject bad signatures (crypto_test.cc)
-  - [x] Verify an ED25519 signature (crypto_test.cc)
-  - [x] Sign TUF metadata (keymanager_test.cc)
+  - [x] Validate hashes
+    - [x] Validate SHA256 hashes (crypto_test.cc)
+    - [x] Validate SHA512 hashes (crypto_test.cc)
+  - [x] Sign and verify signatures
+    - [x] Sign and verify a file with RSA key stored in a file (crypto_test.cc)
+    - [x] Verify an ED25519 signature (crypto_test.cc)
+    - [x] Refuse to sign with an invalid key (crypto_test.cc)
+    - [x] Reject a signature if the key is invalid (crypto_test.cc)
+    - [x] Reject bad signatures (crypto_test.cc)
+  - [x] Sign TUF metadata
+    - [x] Sign TUF metadata with RSA2048 (keymanager_test.cc)
+    - [x] Sign TUF metadata with ED25519 (keymanager_test.cc)
   - [x] Validate a TUF root (tuf_test.cc, uptane_test.cc)
-  - [x] Throw an exception if a TUF root is invalid (tuf_test.cc, uptane_test.cc)
-  - [x] Parse Uptane timestamps (tuf_test.cc)
-  - [x] Throw an exception if an Uptane timestamp is invalid (tuf_test.cc)
-  - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
-  - [x] Verify Uptane metadata while offline (uptane_test.cc)
+    - [x] Throw an exception if a TUF root is invalid
+      - [x] Throw an exception if a TUF root is unsigned (tuf_test.cc, uptane_test.cc)
+      - [x] Throw an exception if a TUF root has no roles (tuf_test.cc)
+      - [x] Throw an exception if a TUF root has unknown signature types (uptane_test.cc)
+      - [x] Throw an exception if a TUF root has invalid key IDs (uptane_test.cc)
+      - [x] Throw an exception if a TUF root signature threshold is invalid (uptane_test.cc)
+  - [x] Parse Uptane timestamps (types_test.cc)
+    - [x] Throw an exception if an Uptane timestamp is invalid (types_test.cc)
+    - [x] Get current time (types_test.cc)
   - [x] Reject http GET responses that exceed size limit (httpclient_test.cc)
   - [x] Reject http GET responses that do not meet speed limit (httpclient_test.cc)
   - [x] Abort update if any signature threshold is <= 0 (REQ-153, uptane_vector_tests.cc)
@@ -174,29 +184,33 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Abort update if the director targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
 - [x] Generate and send manifest
   - [x] Get manifest from primary (uptane_test.cc)
-  - [x] TODO Get primary installation result
+    - [x] Get primary installation result (uptane_test.cc)
   - [x] Get manifest from secondaries (uptane_test.cc)
-  - [x] TODO Get secondary installation result
+    - [x] Ignore secondaries with bad signatures (uptane_test.cc)
   - [x] Send manifest to the server (uptane_test.cc)
 - [x] Send an event report
   - [x] Generate a random UUID (utils_test.cc)
   - [x] Include correlation ID from targets metadata (aktualizr_test.cc)
     - [x] Correlation ID is empty if none was provided in targets metadata (aktualizr_test.cc)
   - [x] Report an event to the server (reportqueue_test.cc)
-  - [x] Report a series of events to the server (reportqueue_test.cc)
-  - [x] Recover from errors while sending event reports (reportqueue_test.cc)
-- [x] Support OSTree as a package manager (packagemanagerfactory_test.cc, ostreemanager_test.cc)
+    - [x] Report a series of events to the server (reportqueue_test.cc)
+    - [x] Recover from errors while sending event reports (reportqueue_test.cc)
+- [x] Support OSTree as a package manager (packagemanagerfactory_test.cc)
   - [x] Reject bad OSTree server URIs (ostreemanager_test.cc)
   - [x] Abort if the OSTree sysroot is invalid (ostreemanager_test.cc)
   - [x] Parse a provided list of installed packages (ostreemanager_test.cc)
-  - [x] Communicate with a remote OSTree server (ostreemanager_test.cc)
+  - [x] Communicate with a remote OSTree server
+    - [x] Communicate with a remote OSTree server without credentials (ostreemanager_test.cc)
+    - [x] Communicate with a remote OSTree server with credentials (ostreemanager_test.cc)
 - [x] Store state in an SQL database
   - [x] Migrate forward through SQL schemas (sqlstorage_test.cc)
+    - [x] Automatically use latest SQL schema version when initializing database (sqlstorage_test.cc)
   - [x] Reject invalid SQL databases (sqlstorage_test.cc)
   - [x] Migrate from the legacy filesystem storage (sqlstorage_test.cc, uptane_test.cc)
   - [x] Load and store primary keys in an SQL database (storage_common_test.cc)
   - [x] Load and store TLS credentials in an SQL database (storage_common_test.cc)
   - [x] Load and store Uptane metadata in an SQL database (storage_common_test.cc)
+  - [x] Load and store Uptane roots in an SQL database (storage_common_test.cc)
   - [x] Load and store the device ID in an SQL database (storage_common_test.cc)
   - [x] Load and store ECU serials in an SQL database (storage_common_test.cc)
   - [x] Load and store a list of misconfigured ECUs in an SQL database (storage_common_test.cc)
@@ -206,30 +220,31 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Import keys and credentials from file into an SQL database (storage_common_test.cc)
 - [x] Configuration
   - [x] Parse config files in TOML format (config_test.cc)
-  - [x] Write its config to file or to the log (config_test.cc)
+  - [x] Write config to file or to the log (config_test.cc)
   - [x] Parse multiple config files in a directory (config_test.cc)
   - [x] Parse multiple config files in multiple directories (config_test.cc)
-- [ ] Miscellaneous
+- [x] Miscellaneous
   - [x] Create a temporary file (utils_test.cc)
+    - [x] Write to a temporary file (utils_test.cc)
   - [x] Create a temporary directory (utils_test.cc)
   - [x] Serialize and deserialize asn1 (asn1_test.cc)
   - [x] Support a fake package manager for testing (packagemanagerfactory_test.cc)
-  - [x] Install a fake package for testing (uptane_test.cc)
   - [x] ~~Support a Debian package manager~~ (packagemanagerfactory_test.cc, debianmanager_test.cc)
-  - [x] TODO Update secondaries (aktualizr_test.cc)
   - [x] Support virtual partial verification secondaries for testing
     - [x] Partial verification secondaries generate and store public keys (uptane_secondary_test.cc)
-    - [x] Partial verification secondaries can verify Uptane metadata. (uptane_secondary_test.cc)
+    - [x] Partial verification secondaries can verify Uptane metadata (uptane_secondary_test.cc)
   - [x] Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 
 ## High-level sequence tests
 
+  - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
   - [x] Do nothing further in automatic mode if there are no updates to install (aktualizr_test.cc)
   - [x] Download with manual control (aktualizr_test.cc)
   - [x] Do not download automatically with manual control (aktualizr_test.cc)
   - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
   - [x] Install with manual control (aktualizr_test.cc)
   - [x] Do not install automatically with manual control (aktualizr_test.cc)
+  - [x] TODO Update secondaries (aktualizr_test.cc)
 
 ## aktualizr-primary
 

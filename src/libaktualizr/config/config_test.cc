@@ -142,7 +142,8 @@ TEST(config, AutomaticMode) {
   EXPECT_EQ(config.provision.mode, ProvisionMode::kAutomatic);
 }
 
-/* We don't normally dump the config to file anymore, but we do write it to the
+/* Write config to file or to the log.
+ * We don't normally dump the config to file anymore, but we do write it to the
  * log. */
 TEST(config, TomlConsistentEmpty) {
   TemporaryDirectory temp_dir;
@@ -174,6 +175,7 @@ TEST(config, TomlConsistentNonempty) {
   EXPECT_EQ(conf_str1, conf_str2);
 }
 
+/* Parse multiple config files in a directory. */
 TEST(config, OneDir) {
   Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
   EXPECT_EQ(config.storage.path.string(), "path_z");
@@ -181,6 +183,7 @@ TEST(config, OneDir) {
   EXPECT_EQ(config.pacman.os, "os_a");
 }
 
+/* Parse multiple config files in multiple directories. */
 TEST(config, TwoDirs) {
   std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
                                                    "tests/test_data/config_dirs/second_one_dir"};

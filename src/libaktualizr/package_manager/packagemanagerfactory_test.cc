@@ -11,6 +11,7 @@
 
 boost::filesystem::path sysroot;
 
+/* Support OSTree as a package manager. */
 TEST(PackageManagerFactory, Ostree) {
   Config config;
   config.pacman.type = PackageManager::kOstree;

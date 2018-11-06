@@ -87,6 +87,7 @@ TEST(Utils, GenPrettyNameSane) {
   }
 }
 
+/* Generate a random UUID. */
 TEST(Utils, RandomUuidSane) {
   std::set<std::string> uuids;
   for (int i = 0; i < 1000; i++) {
@@ -173,6 +174,7 @@ TEST(Utils, ArchiveWrite) {
   }
 }
 
+/* Create a temporary directory. */
 TEST(Utils, TemporaryDirectory) {
   boost::filesystem::path p;
   {
@@ -188,6 +190,7 @@ TEST(Utils, TemporaryDirectory) {
   EXPECT_FALSE(boost::filesystem::exists(p));
 }
 
+/* Create a temporary file. */
 TEST(Utils, TemporaryFile) {
   boost::filesystem::path p;
   {
@@ -208,6 +211,7 @@ TEST(Utils, TemporaryFile) {
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
 
+/* Write to a temporary file. */
 TEST(Utils, TemporaryFilePutContents) {
   TemporaryFile f("ahint");
   f.PutContents("thecontents");

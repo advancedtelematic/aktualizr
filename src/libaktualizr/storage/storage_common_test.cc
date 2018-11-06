@@ -35,6 +35,7 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
   return config;
 }
 
+/* Load and store primary keys. */
 TEST(storage, load_store_primary_keys) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -52,6 +53,7 @@ TEST(storage, load_store_primary_keys) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store TLS credentials. */
 TEST(storage, load_store_tls) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -72,6 +74,7 @@ TEST(storage, load_store_tls) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store Uptane metadata. */
 TEST(storage, load_store_metadata) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -172,6 +175,7 @@ TEST(storage, load_store_metadata) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store Uptane roots. */
 TEST(storage, load_store_root) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -209,6 +213,7 @@ TEST(storage, load_store_root) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store the device ID. */
 TEST(storage, load_store_deviceid) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -225,6 +230,7 @@ TEST(storage, load_store_deviceid) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store ECU serials. */
 TEST(storage, load_store_ecu_serials) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -244,6 +250,7 @@ TEST(storage, load_store_ecu_serials) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store a list of misconfigured ECUs. */
 TEST(storage, load_store_misconfigured_ecus) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -268,6 +275,7 @@ TEST(storage, load_store_misconfigured_ecus) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store a flag indicating successful registration. */
 TEST(storage, load_store_ecu_registered) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -283,6 +291,7 @@ TEST(storage, load_store_ecu_registered) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store an installation result. */
 TEST(storage, load_store_installation_result) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -303,6 +312,7 @@ TEST(storage, load_store_installation_result) {
   boost::filesystem::remove_all(storage_test_dir);
 }
 
+/* Load and store targets. */
 TEST(storage, store_target) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
@@ -444,6 +454,7 @@ TEST(storage, partial) {
   }
 }
 
+/* Import keys and credentials from file into storage. */
 TEST(storage, import_data) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   boost::filesystem::create_directories(storage_test_dir / "import");

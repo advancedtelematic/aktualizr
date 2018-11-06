@@ -14,6 +14,7 @@
 #endif
 #endif
 
+/* Sign TUF metadata with RSA2048. */
 TEST(KeyManager, SignTuf) {
   std::string private_key = Utils::readFile("tests/test_data/priv.key");
   std::string public_key = Utils::readFile("tests/test_data/public.key");
@@ -34,6 +35,7 @@ TEST(KeyManager, SignTuf) {
   EXPECT_NE(signed_json["signatures"][0]["sig"].asString().size(), 0);
 }
 
+/* Sign TUF metadata with ED25519. */
 TEST(KeyManager, SignED25519Tuf) {
   std::string private_key =
       "BD0A7539BD0365D7A9A3050390AD7B7C2033C58E354C5E0F42B9B611273BBA38BB9FFA4DCF35A89F6F40C5FA67998DD38B64A8459598CF3D"

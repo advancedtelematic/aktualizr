@@ -21,6 +21,7 @@
 
 namespace fs = boost::filesystem;
 
+/* Validate SHA256 hashes. */
 TEST(crypto, sha256_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result = "7DF106BB55506D91E48AF727CD423B169926BA99DF4BAD53AF4D80E717A1AC9F";
@@ -28,6 +29,7 @@ TEST(crypto, sha256_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
+/* Validate SHA512 hashes. */
 TEST(crypto, sha512_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result =
@@ -37,6 +39,7 @@ TEST(crypto, sha512_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
+/* Sign and verify a file with RSA key stored in a file. */
 TEST(crypto, sign_verify_rsa_file) {
   std::string text = "This is text for sign";
   PublicKey pkey(fs::path("tests/test_data/public.key"));
@@ -104,12 +107,14 @@ TEST(crypto, certificate_pkcs11) {
 }
 #endif
 
+/* Refuse to sign with an invalid key. */
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "this is bad key path", text));
   EXPECT_TRUE(signature.empty());
 }
 
+/* Reject a signature if the key is invalid. */
 TEST(crypto, verify_bad_key_no_crash) {
   std::string text = "This is text for sign";
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "tests/test_data/priv.key", text));
@@ -117,6 +122,7 @@ TEST(crypto, verify_bad_key_no_crash) {
   EXPECT_EQ(signe_is_ok, false);
 }
 
+/* Reject bad signatures. */
 TEST(crypto, verify_bad_sign_no_crash) {
   PublicKey pkey(fs::path("tests/test_data/public.key"));
   std::string text = "This is text for sign";
@@ -124,6 +130,7 @@ TEST(crypto, verify_bad_sign_no_crash) {
   EXPECT_EQ(signe_is_ok, false);
 }
 
+/* Verify an ED25519 signature. */
 TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());

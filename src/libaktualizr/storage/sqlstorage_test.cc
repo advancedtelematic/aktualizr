@@ -133,6 +133,7 @@ static TempSQLDb makeDbWithVersion(DbVersion version) {
   return tdb;
 }
 
+/* Migrate forward through SQL schemas. */
 TEST(sqlstorage, migrate) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
@@ -146,6 +147,7 @@ TEST(sqlstorage, migrate) {
   EXPECT_TRUE(dbSchemaCheck(storage));
 }
 
+/* Automatically use latest SQL schema version when initializing database. */
 TEST(sqlstorage, MigrationVersionCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
@@ -155,6 +157,7 @@ TEST(sqlstorage, MigrationVersionCheck) {
   EXPECT_EQ(static_cast<int32_t>(storage.getVersion()), schema_migrations.size() - 1);
 }
 
+/* Reject invalid SQL databases. */
 TEST(sqlstorage, WrongDatabaseCheck) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
@@ -162,7 +165,7 @@ TEST(sqlstorage, WrongDatabaseCheck) {
   {
     SQLite3Guard db(config.sqldb_path.get(config.path).c_str());
     if (db.exec("CREATE TABLE some_table(somefield INTEGER);", NULL, NULL) != SQLITE_OK) {
-      FAIL();
+      FAIL() << "Unable to create an SQL database for testing.";
     }
   }
 
@@ -248,6 +251,7 @@ TEST(sqlstorage, migrate_root_works) {
   EXPECT_TRUE(sign["keys"].isMember("1ba3b2932863c0c6e5ff857ecdeb476b69b8b9f9ba4e36723eb10faf7768818b"));
 }
 
+/* Migrate from the legacy filesystem storage. */
 TEST(sqlstorage, migrate_from_fs) {
   TemporaryDirectory temp_dir;
   StorageConfig config;
