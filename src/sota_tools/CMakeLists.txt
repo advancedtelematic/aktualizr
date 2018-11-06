@@ -1,38 +1,37 @@
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
-set (SOTA_TOOLS_LIB_SRC
-  authenticate.cc
-  deploy.cc
-  oauth2.cc
-  ostree_hash.cc
-  ostree_ref.cc
-  ostree_dir_repo.cc
-  ostree_http_repo.cc
-  ostree_object.cc
-  rate_controller.cc
-  request_pool.cc
-  server_credentials.cc
-  treehub_server.cc
-)
+set(SOTA_TOOLS_LIB_SRC
+    authenticate.cc
+    deploy.cc
+    oauth2.cc
+    ostree_hash.cc
+    ostree_ref.cc
+    ostree_dir_repo.cc
+    ostree_http_repo.cc
+    ostree_object.cc
+    rate_controller.cc
+    request_pool.cc
+    server_credentials.cc
+    treehub_server.cc)
 
 if (BUILD_SOTA_TOOLS)
     add_library(sota_tools_static_lib STATIC ${SOTA_TOOLS_LIB_SRC})
     target_include_directories(sota_tools_static_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${GLIB2_INCLUDE_DIRS})
 endif (BUILD_SOTA_TOOLS)
+
+
 ##### garage-push targets
+set(GARAGE_PUSH_SRCS
+    garage_push.cc)
 
-set (GARAGE_PUSH_SRCS
-  garage_push.cc
-)
-
-set (SOTA_TOOLS_EXTERNAL_LIBS
-  ${Boost_SYSTEM_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${LibArchive_LIBRARIES}
-  ${CURL_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${sodium_LIBRARY_RELEASE}
-  ${GLIB2_LIBRARIES})
+set(SOTA_TOOLS_EXTERNAL_LIBS
+    ${Boost_SYSTEM_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${LibArchive_LIBRARIES}
+    ${CURL_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${sodium_LIBRARY_RELEASE}
+    ${GLIB2_LIBRARIES})
 
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-push ${GARAGE_PUSH_SRCS})
@@ -42,10 +41,10 @@ if (BUILD_SOTA_TOOLS)
     install(TARGETS garage-push RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
+
 ##### garage-check targets
-set (GARAGE_CHECK_SRCS
-  garage_check.cc
-)
+set(GARAGE_CHECK_SRCS
+    garage_check.cc)
 
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-check ${GARAGE_CHECK_SRCS})
@@ -55,11 +54,10 @@ if (BUILD_SOTA_TOOLS)
     install(TARGETS garage-check RUNTIME DESTINATION bin COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
-##### garage-deploy targets
 
-set (GARAGE_DEPLOY_SRCS
-  garage_deploy.cc
-)
+##### garage-deploy targets
+set(GARAGE_DEPLOY_SRCS
+    garage_deploy.cc)
 
 if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
@@ -73,12 +71,11 @@ if (BUILD_SOTA_TOOLS)
 
 
     ### garage-sign targets
-
     if(GARAGE_SIGN_VERSION)
-    set(GARAGE_SIGN_VERSION_ARG "--name" ${GARAGE_SIGN_VERSION})
+        set(GARAGE_SIGN_VERSION_ARG "--name" ${GARAGE_SIGN_VERSION})
     endif(GARAGE_SIGN_VERSION)
     if(GARAGE_SIGN_SHA256)
-    set(GARAGE_SIGN_SHA256_ARG "--sha256" ${GARAGE_SIGN_SHA256})
+        set(GARAGE_SIGN_SHA256_ARG "--sha256" ${GARAGE_SIGN_SHA256})
     endif(GARAGE_SIGN_SHA256)
     add_custom_target(garage-sign
                     COMMAND ${PROJECT_SOURCE_DIR}/scripts/get_garage_sign.py
@@ -90,28 +87,26 @@ if (BUILD_SOTA_TOOLS)
     install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/garage-sign/lib DESTINATION . COMPONENT garage_deploy)
 endif (BUILD_SOTA_TOOLS)
 
-##### clang-format
 
-# For clang-format
+##### For clang-format
 set(ALL_SOTA_TOOLS_HEADERS
-  accumulator.h
-  authenticate.h
-  deploy.h
-  oauth2.h
-  ostree_dir_repo.h
-  ostree_hash.h
-  ostree_http_repo.h
-  ostree_object.h
-  ostree_ref.h
-  ostree_repo.h
-  rate_controller.h
-  request_pool.h
-  server_credentials.h
-  treehub_server.h
-)
+    accumulator.h
+    authenticate.h
+    deploy.h
+    oauth2.h
+    ostree_dir_repo.h
+    ostree_hash.h
+    ostree_http_repo.h
+    ostree_object.h
+    ostree_ref.h
+    ostree_repo.h
+    rate_controller.h
+    request_pool.h
+    server_credentials.h
+    treehub_server.h)
 
 if (NOT BUILD_SOTA_TOOLS)
-    set (TEST_SOURCES
+    set(TEST_SOURCES
         authenticate_test.cc
         deploy_test.cc
         ostree_dir_repo_test.cc
@@ -119,11 +114,13 @@ if (NOT BUILD_SOTA_TOOLS)
         ostree_http_repo_test.cc
         ostree_object_test.cc
         rate_controller_test.cc
-        treehub_server_test.cc
-    )
+        treehub_server_test.cc)
 endif(NOT BUILD_SOTA_TOOLS)
 
+
+##### tests
 if (BUILD_SOTA_TOOLS)
+    ### common tests
     add_aktualizr_test(NAME sota_tools_auth_test SOURCES authenticate_test.cc
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
@@ -144,6 +141,8 @@ if (BUILD_SOTA_TOOLS)
     add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
     add_aktualizr_test(NAME ostree_object SOURCES ostree_object_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
 
+
+    ### garage-push tests
     # Check the --help option works
     add_test(NAME option-help
         COMMAND garage-push --help)
@@ -225,10 +224,11 @@ if (BUILD_SOTA_TOOLS)
         endif(STRACE)
     endif(SOTA_PACKED_CREDENTIALS)
 
-    # garage-deploy tests
+
+    ### garage-deploy tests
     add_test(NAME garage-deploy-option-help
         COMMAND garage-deploy --help)
-    
+
     add_test(NAME garage-deploy-option-version
         COMMAND garage-deploy --version)
     set_tests_properties(garage-deploy-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-deploy version is:")
@@ -238,7 +238,7 @@ if (BUILD_SOTA_TOOLS)
     set_tests_properties(garage-deploy-nonexistent-option PROPERTIES PASS_REGULAR_EXPRESSION "garage-deploy command line options:")
 
     add_test(NAME garage-deploy-debug-level
-        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v 
+        COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     set_tests_properties(garage-deploy-debug-level PROPERTIES PASS_REGULAR_EXPRESSION "Debug level debugging enabled")
 
@@ -268,7 +268,6 @@ if (BUILD_SOTA_TOOLS)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     set_tests_properties(garage-deploy-upload-failed PROPERTIES PASS_REGULAR_EXPRESSION "Upload to treehub failed")
 
-
     # Invalid arguments result in a failure
     add_test(NAME garage-deploy-bad-option
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-deploy>
@@ -289,7 +288,7 @@ if (BUILD_SOTA_TOOLS)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 endif (BUILD_SOTA_TOOLS)
+
 aktualizr_source_file_checks(${GARAGE_PUSH_SRCS} ${GARAGE_CHECK_SRCS} ${GARAGE_DEPLOY_SRCS} ${SOTA_TOOLS_LIB_SRC} ${ALL_SOTA_TOOLS_HEADERS} ${TEST_SOURCES})
 
-
-# vim: set tabstop=2 shiftwidth=2 expandtab:
+# vim: set tabstop=4 shiftwidth=4 expandtab:
