@@ -79,8 +79,8 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
 }
 
 /*
- * Using automatic control, test that if there are no updates, no additional
- * events are generated beyond the expected ones.
+ * Automatic control. Initialize -> CheckUpdates -> no updates -> no further
+ * action or events.
  */
 TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
@@ -240,9 +240,8 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
 }
 
 /*
- * Using automatic control, test that pre-made updates are successfully
- * downloaded and installed for both primary and secondary. Verify the exact
- * sequence of expected events.
+ * Automatic control. Initialize -> UptaneCycle -> updates downloaded and
+ * installed for primary and secondary.
  */
 TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
@@ -292,8 +291,8 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
 }
 
 /*
- * Verify successful installation of multiple secondaries without updating the
- * primary.
+ * Automatic control. Initialize -> UptaneCycle -> updates downloaded and
+ * installed for secondaries without changing the primary.
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
   future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
@@ -370,7 +369,8 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
 }
 
 /*
- * If only checking for updates, we shouldn't download or install anything.
+ * kCheck running mode. Initialize -> UptaneCycle -> updates found but not
+ * downloaded.
  */
 TEST(Aktualizr, CheckWithUpdates) {
   future_CheckWithUpdates = promise_CheckWithUpdates.get_future();
@@ -454,8 +454,10 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
 }
 
 /*
- * If only downloading, we shouldn't install anything. Start with a fetch, since
- * download can't be called without a vector of updates.
+ * kDownload running mode. Initialize -> UptaneCycle -> updates downloaded but
+ * not downloaded.
+ *
+ * kDownload running mode. Initialize -> Download -> nothing to download.
  */
 TEST(Aktualizr, DownloadWithUpdates) {
   future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
@@ -476,6 +478,8 @@ TEST(Aktualizr, DownloadWithUpdates) {
   DownloadResult result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, DownloadStatus::kNothingToDownload);
+  // This will do a fetch first because download can't be called without a
+  // vector of updates.
   aktualizr.UptaneCycle();
 
   std::future_status status = future_DownloadWithUpdates.wait_for(std::chrono::seconds(20));
@@ -592,8 +596,10 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
 }
 
 /*
- * After updates have been downloaded, try to install them. For the download and
- * the install, rely on the fetch to automatically do the right thing.
+ * kInstall running mode. Updates downloaded -> UptaneCycle -> updates
+ * installed.
+ *
+ * kInstall running mode. Initialize -> Install -> nothing to install.
  */
 TEST(Aktualizr, InstallWithUpdates) {
   future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
@@ -635,6 +641,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   EXPECT_EQ(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is present in storage before the download";
 
+  // Download the updates somehow. This is just the easiest way.
   conf.uptane.running_mode = RunningMode::kDownload;
   aktualizr.UptaneCycle();
   EXPECT_NE(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
@@ -642,6 +649,8 @@ TEST(Aktualizr, InstallWithUpdates) {
   EXPECT_NE(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is not present in storage after the download";
 
+  // After updates have been downloaded, try to install them. Rely on
+  // UptaneCycle to do the right thing.
   conf.uptane.running_mode = RunningMode::kInstall;
   aktualizr.UptaneCycle();
 
@@ -700,6 +709,7 @@ class HttpFakeNoCorrelationId : public HttpFake {
   unsigned int events_seen{0};
 };
 
+/* Correlation ID is empty if none was provided in targets metadata. */
 TEST(Aktualizr, FullNoCorrelationId) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeNoCorrelationId>(temp_dir.Path());

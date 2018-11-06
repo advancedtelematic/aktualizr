@@ -276,6 +276,7 @@ TEST(Uptane, InstallFake) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("installed_image"));
 }
 
+/* Register secondary ECUs with director. */
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -294,6 +295,9 @@ TEST(Uptane, UptaneSecondaryAdd) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
+
+  /* Verify the correctness of the metadata sent to the server about the
+   * secondary. */
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
@@ -323,7 +327,7 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/director/ecus") != std::string::npos) {
-      /* Register ECUs with director. */
+      /* Register primary ECU with director. */
       ecus_count++;
       EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
       EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
@@ -416,6 +420,8 @@ class HttpFakeProv : public HttpFake {
   int network_count{0};
 };
 
+/* Provision with a fake server and check for the exact number of expected
+ * calls to each endpoint. */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
@@ -723,7 +729,7 @@ class HttpFakeUnstable : public HttpFake {
   int unstable_valid_count{0};
 };
 
-/* Verify that we can recover from an interrupted Uptane iteration.
+/* Recover from an interrupted Uptane iteration.
  * Fetch metadata from the director.
  * Check metadata from the director.
  * Identify targets for known ECUs.

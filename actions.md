@@ -39,7 +39,9 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [ ] Use a provided hardware ID
     - [ ] Use the system hostname as hardware ID if one is not provided
       - [x] Read the hostname from the system (utils_test.cc)
-  - [x] Register ECUs with director (uptane_test.cc)
+  - [x] Register ECUs with director
+    - [x] Register primary ECU with director (uptane_test.cc)
+    - [x] Register secondary ECUs with director (uptane_test.cc)
   - [x] Abort if initialization fails
     - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
@@ -182,6 +184,7 @@ These are internal requirements that are relatively opaque to the user and/or co
   - [x] Abort update with incorrectly rotated Uptane roots (uptane_vector_tests.cc)
   - [x] Abort update if any metadata has an invalid hardware ID (uptane_vector_tests.cc)
   - [x] Abort update if the director targets metadata has an invalid ECU ID (uptane_vector_tests.cc)
+  - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
 - [x] Generate and send manifest
   - [x] Get manifest from primary (uptane_test.cc)
     - [x] Get primary installation result (uptane_test.cc)
@@ -235,16 +238,19 @@ These are internal requirements that are relatively opaque to the user and/or co
     - [x] Partial verification secondaries can verify Uptane metadata (uptane_secondary_test.cc)
   - [x] Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 
-## High-level sequence tests
+## Expected action sequences
 
-  - [x] Recover from an interrupted Uptane iteration (uptane_test.cc)
-  - [x] Do nothing further in automatic mode if there are no updates to install (aktualizr_test.cc)
-  - [x] Download with manual control (aktualizr_test.cc)
-  - [x] Do not download automatically with manual control (aktualizr_test.cc)
-  - [x] Perform a complete Uptane cycle with automatic control (aktualizr_test.cc)
-  - [x] Install with manual control (aktualizr_test.cc)
-  - [x] Do not install automatically with manual control (aktualizr_test.cc)
-  - [x] TODO Update secondaries (aktualizr_test.cc)
+TODO: this is just the list of sequences currently covered. It is likely that there are more worth testing.
+
+- [x] Automatic control. Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
+- [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
+- [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for secondaries without changing the primary (aktualizr_test.cc)
+- [x] kCheck running mode. Initialize -> UptaneCycle -> updates found but not downloaded (aktualizr_test.cc)
+- [x] kDownload running mode. Initialize -> UptaneCycle -> updates downloaded but not downloaded (aktualizr_test.cc)
+- [x] kDownload running mode. Initialize -> Download -> nothing to download (aktualizr_test.cc)
+- [x] kInstall running mode. Updates downloaded -> UptaneCycle -> updates installed (aktualizr_test.cc)
+- [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
+
 
 ## aktualizr-primary
 
