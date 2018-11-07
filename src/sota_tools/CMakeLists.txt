@@ -228,9 +228,9 @@ if (BUILD_SOTA_TOOLS)
         COMMAND garage-deploy --version)
     set_tests_properties(garage-deploy-option-version PROPERTIES PASS_REGULAR_EXPRESSION "Current garage-deploy version is:")
 
-    add_test(NAME garage-deploy-nonexistent-option
-        COMMAND garage-deploy --test )
-    set_tests_properties(garage-deploy-nonexistent-option PROPERTIES PASS_REGULAR_EXPRESSION "garage-deploy command line options:")
+    add_test(NAME garage-deploy-bad-option
+    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-deploy>
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME garage-deploy-debug-level
         COMMAND garage-deploy -f tests/sota_tools/auth_test_good.zip -p tests/sota_tools/auth_test_good.zip --commit 123 -h 3 --name 123 -v
@@ -262,11 +262,6 @@ if (BUILD_SOTA_TOOLS)
     COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-garage-deploy-upload-failed $<TARGET_FILE:garage-deploy>
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     set_tests_properties(garage-deploy-upload-failed PROPERTIES PASS_REGULAR_EXPRESSION "Upload to treehub failed")
-
-    # Invalid arguments result in a failure
-    add_test(NAME garage-deploy-bad-option
-    COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-bad-option $<TARGET_FILE:garage-deploy>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Detect that the commit we passed in to --commit is not present
     add_test(NAME garage-deploy-missing-commit
