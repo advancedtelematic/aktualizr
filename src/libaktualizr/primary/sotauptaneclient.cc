@@ -1093,7 +1093,7 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
             sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive))));
       } else {
         std::stringstream sstr;
-        sstr << *storage->openTargetFile(targets_it->filename());
+        sstr << *storage->openTargetFile(*targets_it);
         const std::string fw = sstr.str();
         firmwareFutures.emplace_back(
             std::pair<InstallReport, std::future<bool>>(InstallReport(*targets_it, ecu_serial, data::OperationResult()),

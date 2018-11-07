@@ -20,20 +20,18 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
-  target_json["length"] = 0;
+  target_json["length"] = 2;
   Uptane::Target target("good.deb", target_json);
 
   Json::Value target_json_test;
   target_json_test["hashes"]["sha256"] = "hash_old";
-  target_json_test["length"] = 0;
+  target_json_test["length"] = 2;
   Uptane::Target target_test("test.deb", target_json_test);
   storage->saveInstalledVersion(target_test);
-
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "good.deb", 2);
+  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
   std::stringstream("ab") >> *fhandle;
 
   EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kOk);
-  std::vector<Uptane::Target> versions_loaded;
   EXPECT_EQ(pacman->getCurrent(), target);
 }
 
@@ -47,10 +45,10 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   EXPECT_TRUE(pacman);
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
-  target_json["length"] = 0;
+  target_json["length"] = 2;
   Uptane::Target target("bad.deb", target_json);
 
-  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "bad.deb", 2);
+  std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
   std::stringstream("ab") >> *fhandle;
 
   auto result = pacman->install(target);

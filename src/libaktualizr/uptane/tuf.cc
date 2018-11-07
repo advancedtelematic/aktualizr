@@ -83,7 +83,7 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
     }
   }
 
-  length_ = content["length"].asInt64();
+  length_ = content["length"].asUInt64();
 
   Json::Value hashes = content["hashes"];
   for (Json::ValueIterator i = hashes.begin(); i != hashes.end(); ++i) {

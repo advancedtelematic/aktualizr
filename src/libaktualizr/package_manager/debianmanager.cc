@@ -31,12 +31,14 @@ Json::Value DebianManager::getInstalledPackages() const {
 }
 
 data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
+  std::lock_guard<std::mutex> guard(mutex_);
   LOG_INFO << "Installing " << target.filename() << " as Debian package...";
   std::string cmd = "dpkg -i ";
   std::string output;
   TemporaryDirectory package_dir("deb_dir");
   std::stringstream sstr;
-  sstr << *storage_->openTargetFile(target.filename());
+  sstr << *storage_->openTargetFile(target);
+
   boost::filesystem::path deb_path = package_dir / target.filename();
   Utils::writeFile(deb_path, sstr.str());
 

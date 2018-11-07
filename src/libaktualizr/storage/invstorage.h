@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <boost/filesystem.hpp>
+#include <boost/optional.hpp>
 
 #include "storage_config.h"
 #include "uptane/tuf.h"
@@ -70,6 +71,9 @@ class StorageTargetRHandle {
     explicit ReadError(const std::string& what) : std::runtime_error(what) {}
   };
   virtual ~StorageTargetRHandle() = default;
+  virtual bool isPartial() const = 0;
+  virtual std::unique_ptr<StorageTargetWHandle> toWriteHandle() = 0;
+
   virtual size_t rsize() const = 0;
   virtual size_t rread(uint8_t* buf, size_t size) = 0;
   virtual void rclose() = 0;
@@ -145,11 +149,13 @@ class INvStorage {
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;
   virtual bool loadInstallationResult(data::OperationResult* result) = 0;
   virtual void clearInstallationResult() = 0;
+  virtual boost::optional<std::pair<int64_t, size_t>> checkTargetFile(const Uptane::Target& target) const = 0;
 
   // Incremental file API
-  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const std::string& filename,
-                                                                   size_t size) = 0;
-  virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const std::string& filename) = 0;
+  virtual std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director,
+                                                                   const Uptane::Target& target) = 0;
+
+  virtual std::unique_ptr<StorageTargetRHandle> openTargetFile(const Uptane::Target& target) = 0;
   virtual void removeTargetFile(const std::string& filename) = 0;
 
   virtual void cleanUp() = 0;

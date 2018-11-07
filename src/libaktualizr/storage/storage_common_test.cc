@@ -306,10 +306,14 @@ TEST(storage, load_store_installation_result) {
 TEST(storage, store_target) {
   mkdir(storage_test_dir.c_str(), S_IRWXU);
   std::unique_ptr<INvStorage> storage = Storage();
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "hash";
+  target_json["length"] = 2;
+  Uptane::Target target("some.deb", target_json);
 
   // write
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -318,7 +322,7 @@ TEST(storage, store_target) {
 
   // read
   {
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
     uint8_t rb[3] = {0};
     EXPECT_EQ(rhandle->rsize(), 2);
     rhandle->rread(rb, 1);
@@ -329,7 +333,7 @@ TEST(storage, store_target) {
 
   // write again
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
     const uint8_t wb[] = "ab";
     fhandle->wfeed(wb, 1);
     fhandle->wfeed(wb + 1, 1);
@@ -338,14 +342,14 @@ TEST(storage, store_target) {
 
   // delete
   {
-    storage->removeTargetFile("testfile");
-    EXPECT_THROW(storage->openTargetFile("testfile"), StorageTargetRHandle::ReadError);
-    EXPECT_THROW(storage->removeTargetFile("testfile"), std::runtime_error);
+    storage->removeTargetFile(target.filename());
+    EXPECT_THROW(storage->openTargetFile(target), StorageTargetRHandle::ReadError);
+    EXPECT_THROW(storage->removeTargetFile(target.filename()), std::runtime_error);
   }
 
   // write stream
   {
-    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, "testfile", 2);
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
 
     std::stringstream("ab") >> *fhandle;
   }
@@ -353,12 +357,91 @@ TEST(storage, store_target) {
   // read stream
   {
     std::stringstream sstr;
-    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile("testfile");
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
     sstr << *rhandle;
     EXPECT_STREQ(sstr.str().c_str(), "ab");
   }
 
   boost::filesystem::remove_all(storage_test_dir);
+}
+
+TEST(storage, checksum) {
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
+  std::cout << "DIR: " << storage_test_dir.c_str() << "\n";
+  std::unique_ptr<INvStorage> storage = Storage();
+  Json::Value target_json1;
+  target_json1["hashes"]["sha256"] = "hash1";
+  target_json1["length"] = 2;
+  Uptane::Target target1("some.deb", target_json1);
+  Json::Value target_json2;
+  target_json2["length"] = 2;
+  target_json2["hashes"]["sha256"] = "hash2";
+  Uptane::Target target2("some.deb", target_json2);
+
+  // write target1
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target1);
+    const uint8_t wb[] = "ab";
+    fhandle->wfeed(wb, 2);
+    fhandle->wcommit();
+  }
+
+  // read target 1
+  {
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target1);
+    uint8_t rb[3] = {0};
+    EXPECT_EQ(rhandle->rsize(), 2);
+    rhandle->rread(rb, 2);
+    rhandle->rclose();
+    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
+  }
+
+  // read target 2
+  { EXPECT_THROW(storage->openTargetFile(target2), StorageTargetRHandle::ReadError); }
+}
+
+TEST(storage, partial) {
+  mkdir(storage_test_dir.c_str(), S_IRWXU);
+  std::unique_ptr<INvStorage> storage = Storage();
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "hash1";
+  target_json["length"] = 2;
+  Uptane::Target target("some.deb", target_json);
+
+  // write partial target
+  {
+    std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
+    const uint8_t wb[] = "a";
+    fhandle->wfeed(wb, 1);
+    fhandle->wcommit();
+  }
+
+  // read and check partial target
+
+  {
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
+    uint8_t rb[2] = {0};
+    EXPECT_EQ(rhandle->rsize(), 1);
+    EXPECT_TRUE(rhandle->isPartial());
+    rhandle->rread(rb, 1);
+    rhandle->rclose();
+    EXPECT_STREQ(reinterpret_cast<char *>(rb), "a");
+  }
+
+  // Append partial
+  {
+    std::unique_ptr<StorageTargetWHandle> whandle = storage->openTargetFile(target)->toWriteHandle();
+    const uint8_t wb[] = "b";
+    whandle->wfeed(wb, 1);
+    whandle->wcommit();
+  }
+
+  // Check full target
+  {
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
+    EXPECT_EQ(rhandle->rsize(), 2);
+    EXPECT_FALSE(rhandle->isPartial());
+  }
 }
 
 TEST(storage, import_data) {
