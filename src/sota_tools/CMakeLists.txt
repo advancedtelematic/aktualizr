@@ -206,11 +206,6 @@ if (BUILD_SOTA_TOOLS)
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
         set_tests_properties(dry-run PROPERTIES LABELS "credentials")
 
-        add_test(NAME auth-plus-happy-case
-            COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-auth-plus-happy $<TARGET_FILE:garage-push>
-            ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
-        set_tests_properties(auth-plus-happy-case PROPERTIES LABELS "credentials")
-
         add_test(NAME verbose-logging
             COMMAND ${PROJECT_SOURCE_DIR}/tests/sota_tools/test-verbose-logging $<TARGET_FILE:garage-push>
             ${SOTA_PACKED_CREDENTIALS} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/)
