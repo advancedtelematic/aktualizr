@@ -8,7 +8,7 @@ Issue Tracker
 
 This project uses the Github issue tracker. Please report bugs, issues and feature requests here
 
-Contributing Code
+Code quality and style
 ----
 
 All code should be developed according to the [Google C++ style guide](https://google.github.io/styleguide/cppguide.html). In addition, the code should conform to the following guidelines:
@@ -43,3 +43,10 @@ Making a Pull Request
 When you start developing a feature, please create a feature branch that includes the type of branch, the ID of the issue, and a brief description. For example `feat/9/https-support`, `bugfix/11/fix-token-expiry` or `refactor/13/tidy-up-imports`. Please do not mix feature development, bugfixes and refactoring into the same branch.
 
 When your feature is ready, push the branch and make a pull request. We will review the request and give you feedback. Once the code passes the review it can be merged into master and the branch can be deleted.
+
+Developer Certificate of Origin (DCO)
+----
+
+All commits in pull requests must contain a `Signed-off-by:` line to indicate that the developer has agreed to the terms of the [Developer Certificate of Origin](https://developercertificate.org) (see [readme](README.adoc) for more details). A simple way to achieve that is to use the `-s` flag of `git commit`.
+
+New pull requests will automatically be checked by the [probot/dco](https://probot.github.io/apps/dco/).
