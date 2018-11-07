@@ -316,9 +316,9 @@ These tools all link with libaktualizr, although they do not necessary use the A
 - [x] Copy an image to the director repo (repo_test.cc)
 - [x] Sign director repo targets (repo_test.cc)
 
-### cert-provider
+### aktualizr-cert-provider
 
-`cert-provider` assists with generating credentials and uploading them to a device for implicit provisioning.
+`aktualizr-cert-provider` assists with generating credentials and uploading them to a device for implicit provisioning.
 
 - [ ] Use file paths from config if provided
 - [ ] Use autoprovisioning credentials if fleet CA and private key are not provided
@@ -428,7 +428,7 @@ These tools also use libaktualizr, but only for common utility functions. They a
 - [x] Run garage-deploy
 - [x] Run garage-sign
 - [x] Build credentials into an image
-- [x] Run aktualizr_cert_provider
+- [x] Run aktualizr-cert-provider
 - [x] Build an image with automatic provisioning that provisions successfully
 - [x] Build an image with implicit provisioning that provisions successfully
 - [x] Build an image with implicit provisioning using an HSM that provisions successfully

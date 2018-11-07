@@ -67,7 +67,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
         f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir, pkcs11_module=pkcs11_module))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
-    akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
+    akt_cp = build_dir / 'src/cert_provider/aktualizr-cert-provider'
     setup_hsm = src_dir / 'scripts/export_to_hsm.sh'
     hsm_conf = tmp_dir / 'softhsm2.conf'
     token_dir = tmp_dir / 'token'
@@ -100,12 +100,12 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     # tokens are stored, and until that happens, we would be checking the wrong
     # directory.
 
-    # Run cert_provider.
-    print('Device has not yet provisioned (as expected). Running cert_provider.')
+    # Run aktualizr-cert-provider.
+    print('Device has not yet provisioned (as expected). Running aktualizr-cert-provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
         '-c', str(creds), '-l', '/', '-r', '-s', '-u', '-g', str(conf_prov)])
     if retcode > 0:
-        print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
+        print('aktualizr-cert-provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
         return retcode
     stdout, stderr, retcode = run_subprocess([str(setup_hsm)])

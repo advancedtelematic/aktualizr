@@ -26,7 +26,7 @@ void check_info_options(const bpo::options_description& description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr_cert_provider version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr-cert-provider version is: " << AKTUALIZR_VERSION << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -36,7 +36,7 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
   // clang-format off
   description.add_options()
       ("help,h", "print usage")
-      ("version,v", "Current aktualizr_cert_provider version")
+      ("version,v", "Current aktualizr-cert-provider version")
       ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
       ("fleet-ca", bpo::value<boost::filesystem::path>(), "path to fleet certificate authority certificate (for signing device certificates)")
       ("fleet-ca-key", bpo::value<boost::filesystem::path>(), "path to the private key of fleet certificate authority")
