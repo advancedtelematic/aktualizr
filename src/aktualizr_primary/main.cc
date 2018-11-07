@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
         break;
       case RunningMode::kFull:
       default:
-        aktualizr.RunForever();
+        aktualizr.RunForever().get();
         break;
     }
     r = 0;

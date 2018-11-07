@@ -149,11 +149,11 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
-        UpdateCheckResult result = aktualizr.CheckUpdates();
+        UpdateCheckResult result = aktualizr.CheckUpdates().get();
         updates = result.updates;
         std::cout << updates.size() << " updates available\n";
       } else if (buffer == "download" || buffer == "startdownload") {
-        std::thread([&aktualizr, updates] { aktualizr.Download(updates); }).detach();
+        aktualizr.Download(updates);
       } else if (buffer == "install" || buffer == "uptaneinstall") {
         aktualizr.Install(updates);
         updates.clear();
