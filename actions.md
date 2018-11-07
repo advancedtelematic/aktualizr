@@ -238,9 +238,9 @@ These are internal requirements that are relatively opaque to the user and/or co
     - [x] Partial verification secondaries can verify Uptane metadata (uptane_secondary_test.cc)
   - [x] Support OPC-UA secondaries (opcuabridge_messaging_test.cc, opcuabridge_secondary_update_test.cc, run_opcuabridge_ostree_repo_sync_test.sh)
 
-## Expected action sequences
+### Expected action sequences
 
-TODO: this is just the list of sequences currently covered. It is likely that there are more worth testing.
+This is just the list of sequences currently covered. It is likely that there are more worth testing, but these tests are expensive.
 
 - [x] Automatic control. Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
 - [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
@@ -252,25 +252,29 @@ TODO: this is just the list of sequences currently covered. It is likely that th
 - [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
 
 
-## aktualizr-primary
+## aktualizr tools
 
-`aktualizr-primary` is the reference user of the libaktualizr API. Note that for historical reasons, it is usually simply known as `aktualizr`.
+These tools all link with libaktualizr, although they do not necessary use the API.
+
+### aktualizr-primary
+
+`aktualizr-primary` is the reference user of the libaktualizr API. Note that for historical reasons, it is usually simply known as `aktualizr`. It is a thin layer around libaktualizr. This is just the list of things currently tested that relate specifically to it.
 
 - [x] Abort when given bogus command line options (tests/CMakeLists.txt)
 - [x] Abort when given a nonexistant config file (tests/CMakeLists.txt)
 - [x] Support debug logging (tests/CMakeLists.txt)
 - [x] Default to informational logging (tests/CMakeLists.txt)
 
-## aktualizr-secondary
+### aktualizr-secondary
 
-`aktualizr-secondary` was designed to demonstrate an Uptane-compliant secondary but is currently not part of the core product.
+`aktualizr-secondary` was designed to demonstrate an Uptane-compliant secondary but is currently not part of the core product. It also uses libaktualizr, but less extensively than `aktualizr-primary`. This is just the list of things currently tested that relate specifically to it.
 
 - [x] Parse config files in TOML format (aktualizr_secondary_config_test.cc)
 - [x] Write its config to file or to the log (aktualizr_secondary_config_test.cc)
 - [x] Announce itself to aktualizr primary (aktualizr_secondary_discovery_test.cc)
 
-- [x] Generate a random serial (aktualizr_secondary/uptane_test.cc)
-- [x] TODO Generate a hardware ID (aktualizr_secondary/uptane_test.cc)
+- [x] Generate a serial (aktualizr_secondary/uptane_test.cc)
+- [x] Generate a hardware ID (aktualizr_secondary/uptane_test.cc)
 - [x] Generate keys (aktualizr_secondary/uptane_test.cc)
 - [x] Extract credentials from a provided archive (aktualizr_secondary/uptane_test.cc)
 
@@ -279,23 +283,85 @@ TODO: this is just the list of sequences currently covered. It is likely that th
 - [x] Support debug logging (aktualizr_secondary/CMakeLists.txt)
 - [x] Default to informational logging (aktualizr_secondary/CMakeLists.txt)
 
-## aktualizr-info
+### aktualizr-info
 
-`aktualizr-info` is designed to provide information to a developer with access to a device running aktualizr.
+`aktualizr-info` provides information about libaktualizr's state to a developer with access to a device.
 
-- [x] Parse config files in TOML format (aktualizr_info_config_test.cc)
-- [x] Write its config to file or to the log (aktualizr_info_config_test.cc)
-- [x] Print information about aktualizr (run_aktualizr_info_tests.sh)
+- [x] Parse libaktualizr configuration files (see Configuration section above)
+  - [x] Parse config files in TOML format (aktualizr_info_config_test.cc)
+  - [x] Write its config to file or to the log (aktualizr_info_config_test.cc)
+- [x] Print information from libaktualizr storage (run_aktualizr_info_tests.sh)
+  - [ ] Print device ID
+  - [ ] Print primary ECU serial
+  - [ ] Print primary ECU hardware ID
+  - [ ] Print secondary ECU serials
+  - [ ] Print secondary ECU hardware IDs
+  - [ ] Print secondary ECUs no longer accessible
+  - [ ] Print secondary ECUs registered after provisioning
+  - [ ] Print provisioning status
+  - [ ] Print whether metadata has been fetched from the server
+  - [ ] Print root metadata from images repository
+  - [ ] Print targets metadata from images repository
+  - [ ] Print root metadata from director repository
+  - [ ] Print targets metadata from director repository
+  - [ ] Print TLS credentials
+  - [ ] Print primary ECU keys
 
-## aktualizr-repo
+### aktualizr-repo
 
 `aktualizr-repo` is used in testing to simulate the generation of Uptane repositories.
 
 - [x] Generate images and director repos (repo_test.cc)
 - [x] Add an image to the images repo (repo_test.cc)
 - [x] Copy an image to the director repo (repo_test.cc)
+- [x] Sign director repo targets (repo_test.cc)
 
-## garage-push
+### cert-provider
+
+`cert-provider` assists with generating credentials and uploading them to a device for implicit provisioning.
+
+- [ ] Use file paths from config if provided
+- [ ] Use autoprovisioning credentials if fleet CA and private key are not provided
+  - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
+  - [x] Automatically provision (see above)
+- [ ] Use fleet credentials if provided
+  - [ ] Abort if fleet CA is provided without fleet private key
+  - [ ] Abort if fleet private key is provided without fleet CA
+  - [ ] Specify RSA bit length
+  - [ ] Specify device certificate expiration date
+  - [ ] Specify device certificate country code
+  - [ ] Specify device certificate state abbreviation
+  - [ ] Specify device certificate organization name
+  - [ ] Specify device certificate common name
+    - [ ] Generate a random device ID if not specified
+  - [ ] Read fleet CA certificate
+  - [ ] Read fleet private key
+  - [ ] Create device certificate
+  - [ ] Create device keys
+  - [ ] Set public key for the device certificate
+  - [ ] Sign device certificate with fleet private key
+  - [ ] Serialize device private key to a string
+  - [ ] Serialize device certificate to a string
+- [ ] Read server root CA from credentials archive
+  - [ ] Read server root CA from server_ca.pem if present (to support community edition use case)
+  - [ ] Read server root CA from p12 (default case)
+- [ ] Write credentials to a local directory if requested
+  - [ ] Provide device private key
+  - [ ] Provide device certificate
+  - [ ] Provide root CA if requested
+  - [ ] Provide server URL if requested
+- [ ] Copy credentials to a device with ssh
+  - [ ] Create parent directories
+  - [ ] Provide device private key
+  - [ ] Provide device certificate
+  - [ ] Provide root CA if requested
+  - [ ] Provide server URL if requested
+
+## Garage (sota) tools
+
+These tools also use libaktualizr, but only for common utility functions. They are focused specifically on dealing with OSTree objects. They originally lived in a separate repo, which is where the "sota_tools" name came from. The garage nomenclature refers to the historical name of our reference SaaS server, ATS Garage, before it was renamed HERE OTA Connect.
+
+### garage-push
 
 `garage-push` pushes OSTree objects to a remote Treehub server.
 
@@ -320,7 +386,7 @@ TODO: this is just the list of sequences currently covered. It is likely that th
 - [x] Use a provided CA certificate (sota_tools/CMakeLists.txt, test-cacert-used)
 - [x] Support debug logging (sota_tools/CMakeLists.txt, test-verbose-logging)
 
-## garage-deploy
+### garage-deploy
 
 `garage-deploy` moves OSTree objects from one remote Treehub server to another.
 
@@ -347,23 +413,16 @@ TODO: this is just the list of sequences currently covered. It is likely that th
 - [ ] Offline sign with garage-sign
 - [ ] Do not reuse lingering credentials from previous runs of garage-sign
 
-## garage-check
+### garage-check
 
 `garage-check` simply verifies that a given OSTree commit exists on a remote Treehub server.
 
 - [x] Verify that a commit exists in a remote repo (sota_tools/CMakeLists.txt, run_expired_test.sh)
 - [x] Abort when given expired metadata (sota_tools/CMakeLists.txt, run_expired_test.sh)
 
-## cert-provider
-
-`cert-provider` assists with generating credentials and uploading them to a device.
-
-- [ ] Copy credentials to a device
-- [ ] Generate a fleet root CA
-
 ## meta-updater
 
-`meta-updater` is a Yocto layer used to build aktualizr and OSTree.
+`meta-updater` is a Yocto layer used to build aktualizr, garage-push, OSTree, and other related tools.
 
 - [x] Run garage-push
 - [x] Run garage-deploy
