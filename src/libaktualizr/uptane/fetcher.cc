@@ -113,8 +113,9 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       bool retry = false;
       do {
         retry = false;
-        HttpResponse response = http->download(config.uptane.repo_server + "/targets/" + target.filename(),
-                                               DownloadHandler, &ds, ds.downloaded_length);
+        HttpResponse response =
+            http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
+                           DownloadHandler, &ds, ds.downloaded_length);
         if (!response.isOk() && !pause_) {
           fhandle->wabort();
           if (response.curl_code == CURLE_WRITE_ERROR) {

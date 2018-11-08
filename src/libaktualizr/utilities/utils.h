@@ -44,6 +44,7 @@ struct Utils {
   static void setSocketPort(sockaddr_storage *addr, in_port_t port);
   static std::vector<boost::filesystem::path> glob(const std::string &pat);
   static void createDirectories(const boost::filesystem::path &path, mode_t mode);
+  static std::string urlEncode(const std::string &input);
 };
 
 /**
