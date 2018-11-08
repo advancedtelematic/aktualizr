@@ -250,6 +250,10 @@ This is just the list of sequences currently covered. It is likely that there ar
 - [x] kDownload running mode. Initialize -> Download -> nothing to download (aktualizr_test.cc)
 - [x] kInstall running mode. Updates downloaded -> UptaneCycle -> updates installed (aktualizr_test.cc)
 - [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
+- [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
+- [x] Automatic control, autoprovision with real server. Initialize -> CheckUpdates -> verify state with aktualizr-info (auto_prov_test.py)
+- [x] Automatic control, implicitly provision with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (implicit_prov_test.py)
+- [x] Automatic control, implicitly provision with HSM with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (hsm_prov_test.py)
 
 
 ## aktualizr tools
@@ -324,7 +328,7 @@ These tools all link with libaktualizr, although they do not necessary use the A
 - [ ] Use autoprovisioning credentials if fleet CA and private key are not provided
   - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
   - [x] Automatically provision (see above)
-- [ ] Use fleet credentials if provided
+- [x] Use fleet credentials if provided (run_certprovider_test.sh)
   - [ ] Abort if fleet CA is provided without fleet private key
   - [ ] Abort if fleet private key is provided without fleet CA
   - [ ] Specify RSA bit length
@@ -336,10 +340,10 @@ These tools all link with libaktualizr, although they do not necessary use the A
     - [ ] Generate a random device ID if not specified
   - [ ] Read fleet CA certificate
   - [ ] Read fleet private key
-  - [ ] Create device certificate
+  - [x] Create device certificate (run_certprovider_test.sh)
   - [ ] Create device keys
   - [ ] Set public key for the device certificate
-  - [ ] Sign device certificate with fleet private key
+  - [x] Sign device certificate with fleet private key (run_certprovider_test.sh)
   - [ ] Serialize device private key to a string
   - [ ] Serialize device certificate to a string
 - [ ] Read server root CA from credentials archive
@@ -347,7 +351,7 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [ ] Read server root CA from p12 (default case)
 - [ ] Write credentials to a local directory if requested
   - [ ] Provide device private key
-  - [ ] Provide device certificate
+  - [x] Provide device certificate (run_certprovider_test.sh)
   - [ ] Provide root CA if requested
   - [ ] Provide server URL if requested
 - [ ] Copy credentials to a device with ssh
@@ -356,6 +360,7 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [ ] Provide device certificate
   - [ ] Provide root CA if requested
   - [ ] Provide server URL if requested
+
 
 ## Garage (sota) tools
 
@@ -419,6 +424,7 @@ These tools also use libaktualizr, but only for common utility functions. They a
 
 - [x] Verify that a commit exists in a remote repo (sota_tools/CMakeLists.txt, run_expired_test.sh)
 - [x] Abort when given expired metadata (sota_tools/CMakeLists.txt, run_expired_test.sh)
+
 
 ## meta-updater
 
