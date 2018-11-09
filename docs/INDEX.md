@@ -1,6 +1,6 @@
 Aktualizr is the HERE OTA Connect client. This client runs on any embedded device and can check for updates periodically or triggered by another system interaction. You can build this client from source or you can integrate it into your firmware with the Yocto toolset.
 
-When running on an embedded device, the aktualizr client uses a minimal amount of memory and CPU and doesn’t need to remain resident in the memory at all. The client can any run on Linux-based operating system, or any operating system that includes the GNU C Library. However, if you run aktualizr on a non-Linux system, you might have to customize it first. 
+When running on an embedded device, the aktualizr client uses a minimal amount of memory and CPU and doesn’t need to remain resident in the memory at all. The client can run on any Linux-based operating system, or any operating system that includes the GNU C Library. However, if you run aktualizr on a non-Linux system, you might have to customize it first. 
 
 The client is responsible for the following tasks:
 
