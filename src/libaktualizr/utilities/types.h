@@ -151,45 +151,45 @@ enum class UpdateResultCode {
   /// Operation executed successfully
   kOk = 0,
   /// Operation has already been processed
-  kAlreadyProcessed,
+  kAlreadyProcessed = 1,
   /// Dependency failure during package install, upgrade, or removal
-  kDependencyFailure,
+  kDependencyFailure = 2,
   /// Update image integrity has been compromised
-  kValidationFailed,
+  kValidationFailed = 3,
   /// Package installation failed
-  kInstallFailed,
+  kInstallFailed = 4,
   /// Package upgrade failed
-  kUpgradeFailed,
+  kUpgradeFailed = 5,
   /// Package removal failed
-  kRemovalFailed,
+  kRemovalFailed = 6,
   /// The module loader could not flash its managed module
-  kFlashFailed,
+  kFlashFailed = 7,
   /// Partition creation failed
-  kCreatePartitionFailed,
+  kCreatePartitionFailed = 8,
   /// Partition deletion failed
-  kDeletePartitionFailed,
+  kDeletePartitionFailed = 9,
   /// Partition resize failed
-  kResizePartitionFailed,
+  kResizePartitionFailed = 10,
   /// Partition write failed
-  kWritePartitionFailed,
+  kWritePartitionFailed = 11,
   /// Partition patching failed
-  kPatchPartitionFailed,
+  kPatchPartitionFailed = 12,
   /// User declined the update
-  kUserDeclined,
+  kUserDeclined = 13,
   /// Software was blacklisted
-  kSoftwareBlacklisted,
+  kSoftwareBlacklisted = 14,
   /// Ran out of disk space
-  kDiskFull,
+  kDiskFull = 15,
   /// Software package not found
-  kNotFound,
+  kNotFound = 16,
   /// Tried to downgrade to older version
-  kOldVersion,
+  kOldVersion = 17,
   /// SWM Internal integrity error
-  kInternalError,
+  kInternalError = 18,
   /// Other error
-  kGeneralError,
+  kGeneralError = 19,
   /// Updating process in progress
-  kInProgress
+  kInProgress = 20,
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
