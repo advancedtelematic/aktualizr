@@ -314,6 +314,8 @@ TEST(Utils, shell) {
   EXPECT_NE(statuscode, 0);
 }
 
+TEST(Utils, urlencode) { EXPECT_EQ(Utils::urlEncode("test! test@ test#"), "test%21%20test%40%20test%23"); }
+
 TEST(Utils, BasedPath) {
   BasedPath bp("a/test.xml");
 

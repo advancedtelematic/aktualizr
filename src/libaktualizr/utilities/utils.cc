@@ -665,6 +665,24 @@ void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) 
   std::cout << "created: " << path.native() << "\n";
 }
 
+std::string Utils::urlEncode(const std::string &input) {
+  std::string res;
+
+  for (char c : input) {
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.' ||
+        c == '_' || c == '~') {
+      res.push_back(c);
+    } else {
+      res.push_back('%');
+      auto nib = static_cast<char>(((c >> 4) & 0x0F));
+      res.push_back(static_cast<char>((nib < 10) ? nib + '0' : nib - 10 + 'A'));
+      nib = static_cast<char>(c & 0x0F);
+      res.push_back(static_cast<char>((nib < 10) ? nib + '0' : nib - 10 + 'A'));
+    }
+  }
+  return res;
+}
+
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
