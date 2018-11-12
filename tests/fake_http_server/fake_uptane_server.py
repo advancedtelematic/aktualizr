@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path.startswith("/repo/targets/noerrors"):
+        if self.path.startswith("/repo/targets/download_failure"):
             if "Range" in self.headers: #restored connection
                 r = self.headers["Range"]
                 r_from = int(r.split("=")[1].split("-")[0])
@@ -48,7 +48,7 @@ class Handler(BaseHTTPRequestHandler):
         elif data["ttl"].startswith("status_"):
             self.send_response(int(data["ttl"][7:]))
             self.end_headers()
-        elif data["ttl"] == "noerrors":
+        elif data["ttl"] == "noerrors" or data["ttl"] == "download_failure":
             self.send_response(200)
             self.end_headers()
             f = open('tests/test_data/cred.p12', 'rb')
@@ -63,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
         elif data["primary_ecu_serial"].startswith("status_"):
             self.send_response(int(data["primary_ecu_serial"][7:]))
             self.end_headers()
-        elif data["primary_ecu_serial"] == "noerrors":
+        elif data["primary_ecu_serial"] == "noerrors" or data["primary_ecu_serial"] == "download_failure":
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"{}")

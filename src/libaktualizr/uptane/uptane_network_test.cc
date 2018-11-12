@@ -118,9 +118,9 @@ TEST(UptaneNetwork, no_errors_sqlite) {
 TEST(UptaneNetwork, DownloadFailure) {
   TemporaryDirectory temp_dir;
   conf.storage.path = temp_dir.Path();
-  conf.provision.expiry_days = "noerrors";
-  conf.provision.primary_ecu_serial = "noerrors";
-  conf.provision.primary_ecu_hardware_id = "download_failure";
+  conf.provision.expiry_days = "download_failure";
+  conf.provision.primary_ecu_serial = "download_failure";
+  conf.provision.primary_ecu_hardware_id = "hardware_id";
 
   auto storage = INvStorage::newStorage(conf.storage);
   auto http = std::make_shared<HttpClient>();

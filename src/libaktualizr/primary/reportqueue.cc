@@ -54,7 +54,7 @@ void ReportQueue::flushQueue() {
     // 404 implies the server does not support this feature. Nothing we can
     // do, just move along.
     if (response.isOk() || response.http_status_code == 404) {
-      report_array = Json::arrayValue;
+      report_array.clear();
     }
   }
 }

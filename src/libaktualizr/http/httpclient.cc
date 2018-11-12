@@ -168,12 +168,15 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
-  curlEasySetoptWrapper(curl, CURLOPT_URL, url.c_str());
-  curlEasySetoptWrapper(curl, CURLOPT_POST, 1);
+  CURL* curl_post = curl_easy_duphandle(curl);
+  curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
   std::string data_str = Json::FastWriter().write(data);
-  curlEasySetoptWrapper(curl, CURLOPT_POSTFIELDS, data_str.c_str());
+  curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data_str.c_str());
   LOG_TRACE << "post request body:" << data;
-  return perform(curl, RETRY_TIMES, HttpInterface::kPostRespLimit);
+  auto result = perform(curl_post, RETRY_TIMES, HttpInterface::kPostRespLimit);
+  curl_easy_cleanup(curl_post);
+  return result;
 }
 
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
