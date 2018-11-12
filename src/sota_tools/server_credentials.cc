@@ -112,8 +112,8 @@ ServerCredentials::ServerCredentials(const boost::filesystem::path &credentials_
         method_ = AuthMethod::kCert;
       } else {
         throw BadCredentialsContent(
-            "treehub.json requires certificate authentication, but credential archive, didn't include all or "
-            "some certificate files");
+            "treehub.json requires certificate authentication, "
+            "but credentials archive doesn't include the necessary certificate files");
       }
     }
     ostree_server_ = pt.get<std::string>("ostree.server", kBaseUrl);

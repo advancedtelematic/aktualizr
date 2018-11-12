@@ -10,6 +10,8 @@
 std::string port = "2443";
 TemporaryDirectory temp_dir;
 
+/* Fetch OSTree objects from source repository and push to destination repository.
+ * Parse OSTree object to identify child objects. */
 TEST(deploy, UploadToTreehub) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();

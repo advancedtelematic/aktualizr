@@ -72,22 +72,25 @@ class OstreeObject_Request_Test {
   }
 };
 
-/* Check for a hash that we expect the server to know about. */
+/* Query destination repository for OSTree commit object.
+ * Expect HTTP 200 for a hash that we expect the server to know about. */
 TEST(OstreeObject, MakeTestRequestPresent) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OstreeObject_Request_Test::MakeTestRequest(src_repo, hash, 200);
 }
 
-/* Check for a hash that we expect the server not to know about (because it is
- * from a different repo). */
+/* Query destination repository for OSTree commit object.
+ * Expect HTTP 404 for a hash that we expect the server not to know about.
+ *
+ * In this case, the hash is from a different repo. */
 TEST(OstreeObject, MakeTestRequestMissing) {
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/bigger_repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OstreeObject_Request_Test::MakeTestRequest(src_repo, hash, 404);
 }
 
-/* Verify that a dry run short-circuits the actual upload. */
+/* Skip upload if dry run was specified. */
 TEST(OstreeObject, UploadDryRun) {
   TreehubServer push_server;
   push_server.root_url("http://localhost:" + port);
@@ -106,7 +109,9 @@ TEST(OstreeObject, UploadDryRun) {
   EXPECT_EQ(object->form_post_, nullptr);
 }
 
-/* Verify that a null curl pointer will cause the upload to fail. */
+/* Detect curl misconfiguration.
+ *
+ * Specifically, verify that a null curl pointer will cause the upload to fail. */
 TEST(OstreeObject, UploadFail) {
   TreehubServer push_server;
   push_server.root_url("http://localhost:" + port);
@@ -126,7 +131,7 @@ TEST(OstreeObject, UploadFail) {
   object->form_post_ = nullptr;
 }
 
-/* Verify that uploading works as expected. */
+/* Upload missing OSTree objects to destination repository. */
 TEST(OstreeObject, UploadSuccess) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   CURLM* multi = curl_multi_init();

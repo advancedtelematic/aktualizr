@@ -8,6 +8,7 @@
 
 std::string port;
 
+/* Verify a remote OSTree repository. */
 TEST(http_repo, valid_repo) {
   TreehubServer server;
   server.root_url("http://localhost:" + port);
@@ -15,13 +16,15 @@ TEST(http_repo, valid_repo) {
   EXPECT_TRUE(src_repo->LooksValid());
 }
 
-TEST(http_repo, invalidvalid_repo) {
+/* Reject an invalid remote OSTree repository. */
+TEST(http_repo, invalid_repo) {
   TreehubServer server;
   server.root_url("http://wronghost");
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeHttpRepo>(&server);
   EXPECT_FALSE(src_repo->LooksValid());
 }
 
+/* Find OSTree ref in remote repository. */
 TEST(http_repo, getRef) {
   TreehubServer server;
   server.root_url("http://localhost:" + port);
@@ -30,6 +33,8 @@ TEST(http_repo, getRef) {
             std::string("16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe"));
 }
 
+/* Fetch OSTree object from remote repository.
+ * Check all valid OSTree object extensions. */
 TEST(http_repo, GetObject) {
   TreehubServer server;
   server.root_url("http://localhost:" + port);
@@ -43,6 +48,7 @@ TEST(http_repo, GetObject) {
   EXPECT_EQ(s.str(), std::string("2a/28dac42b76c2015ee3c41cc4183bb8b5c790fd21fa5cfa0802c6e11fd0edbe.dirmeta"));
 }
 
+/* Abort if OSTree object is not found after retry. */
 TEST(http_repo, GetWrongObject) {
   TreehubServer server;
   server.root_url("http://localhost:" + port);
@@ -53,6 +59,11 @@ TEST(http_repo, GetWrongObject) {
   EXPECT_THROW(src_repo->GetObject(hash), OSTreeObjectMissing);
 }
 
+/* Retry fetch if not found after first try.
+ *
+ * This test uses servers that drop every other request. The test should pass
+ * anyway because we've learned not to always trust the server the first time
+ * and to try again before giving up. */
 TEST(http_repo, bad_connection) {
   TemporaryDirectory temp_dir;
   std::string sp = TestUtils::getFreePort();
