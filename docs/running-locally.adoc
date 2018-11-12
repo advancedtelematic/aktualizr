@@ -1,0 +1,59 @@
+= Running aktualizr with simulated updates locally
+
+This guide describes the procedure for setting up Aktualizr with dummy installation on a local desktop.
+
+It can be used for testing the system outside of actual device updates: a large part of provisioning and campaign setup from UI will work in the same way.
+
+== Installation
+
+The first step is to install the Aktualizr application, with one of the recommended ways:
+
+=== Installation from released Ubuntu package
+
+If your OS is covered, download a package from the link:https://github.com/advancedtelematic/aktualizr/releases[GitHub release page] and install it (to run as root):
+
+----
+apt install ./aktualizr-ubuntu_18.04.deb
+systemctl stop aktualizr.service
+systemctl disable aktualizr.service
+----
+
+The `systemctl` commands are necessary to prevent Aktualizr to run as a system service, which will not be useful for this use case.
+
+=== Manually compiled Aktualizr
+
+This applies if you need to run Aktualizr from another Linux distribution, or OSX (experimental, might need more work).
+
+Follow the link:../README.adoc#building[building instructions from the README].
+
+Aktualizr can then be run from the CMake build directory: `./build/src/aktualizr_primary/aktualizr` or installed from CMake: `make install` after setting `DESTDIR`.
+
+== Prepairing an environment
+
+This setup will help you running Aktualizr in isolation. Multiple instances can be run on the same machine if they use local configuration tied up to a local directory.
+
+The directory needs to contain:
+
+- the link:../config/sota_local.toml[sample local configuration] (as `conf.toml`)
+- credentials from HERE OTA Connect (as `credentials.zip`)
+
+Aktualizr can then be run as `aktualizr -c .` from this directory, which will try to provision a device. The next section provides more detailed usage description.
+
+Note that this sample configuration only contains reference to local paths. So it needs to be run from the same environment directory. It also means that several environments can be easily switched from one another by using different directories.
+
+=== Configuration with virtual secondary
+
+To use virtual secondaries as well, store individual JSON configuration files in a `secondary_configs` subdirectory. link:../config/secondary/virtualsec.json[A sample configuration from the git repository] can be used as is for one secondary.
+
+In a multiple secondaries case, the different configurations will need to refer to distinct subdirectories (see `full_client_dir`, `firmware_path`...).
+
+== Usage
+
+`aktualizr -c .` is the common invocation which will pick up the configuration from the local `conf.toml`.
+Without argument it will run as a self-standing automatic service. For development purposes, it is often useful to trigger Aktualizr selectively (see link:./selectively-triggering-aktualizr.adoc[]).
+
+To stop using one device and make Aktualizr do a reprovision, remove the `storage` directory from the environment directory when it is not running and launch it again.
+
+Another common option is to set the loglevel to debug, for harder to debug issues: `aktualizr -c . --loglevel 0`.
+
+Please refer to the general documentation for more detailed help on configuration options and command line arguments.
