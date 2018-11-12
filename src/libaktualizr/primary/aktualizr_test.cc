@@ -774,10 +774,14 @@ TEST(Aktualizr, APICheck) {
     Aktualizr aktualizr(conf, storage, up, sig);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
+    std::vector<std::future<UpdateCheckResult>> futures;
     for (int i = 0; i < 5; ++i) {
-      aktualizr.CheckUpdates();
+      futures.push_back(aktualizr.CheckUpdates());
     }
-    std::this_thread::sleep_for(std::chrono::seconds(12));
+
+    for (auto& f : futures) {
+      f.get();
+    }
     aktualizr.Shutdown();
   }
 
