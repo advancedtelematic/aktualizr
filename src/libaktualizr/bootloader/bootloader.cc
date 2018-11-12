@@ -1,3 +1,8 @@
+#include <fcntl.h>
+#include <sys/stat.h>
+
+#include <boost/filesystem.hpp>
+
 #include "bootloader.h"
 #include "utilities/config_utils.h"
 #include "utilities/exceptions.h"
@@ -41,6 +46,23 @@ void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree&
 
 void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, rollback_mode, "rollback_mode");
+}
+
+static const boost::filesystem::path reboot_beacon_dir = "/var/run/aktualizr-session";
+static const boost::filesystem::path reboot_beacon_filename = "need_reboot";
+
+Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
+  if (mkdir(reboot_beacon_dir.c_str(), S_IRWXU) == -1) {
+    struct stat st {};
+    stat(reboot_beacon_dir.c_str(), &st);
+    if (((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0) {
+      LOG_WARNING << "Could not create " << reboot_beacon_dir << " securely, reboot detection support disabled";
+      reboot_detect_supported_ = false;
+      return;
+    }
+    // mdkir failed but directory is here with good permissions: someone created it for us
+  }
+  reboot_detect_supported_ = true;
 }
 
 void Bootloader::setBootOK() const {
@@ -93,4 +115,43 @@ void Bootloader::updateNotify() const {
     default:
       throw NotImplementedException();
   }
+}
+
+bool Bootloader::supportRebootDetection() const { return reboot_detect_supported_; }
+
+bool Bootloader::rebootDetected() const {
+  if (!reboot_detect_supported_) {
+    return false;
+  }
+
+  // true if set in storage and no volatile flag
+
+  bool beacon_exists = boost::filesystem::exists(reboot_beacon_dir / reboot_beacon_filename);
+  bool need_reboot = false;
+
+  storage_.loadNeedReboot(&need_reboot);
+
+  return need_reboot && !beacon_exists;
+}
+
+void Bootloader::rebootFlagSet() {
+  if (!reboot_detect_supported_) {
+    return;
+  }
+
+  // set in storage + volatile flag
+
+  Utils::writeFile(reboot_beacon_dir / reboot_beacon_filename, std::string(), false);  // empty file
+  storage_.storeNeedReboot();
+}
+
+void Bootloader::rebootFlagClear() {
+  if (!reboot_detect_supported_) {
+    return;
+  }
+
+  // clear in storage + volatile flag
+
+  storage_.clearNeedReboot();
+  boost::filesystem::remove(reboot_beacon_dir / reboot_beacon_filename);
 }

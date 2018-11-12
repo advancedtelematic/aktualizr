@@ -1,5 +1,5 @@
 CREATE TABLE version(version INTEGER);
-INSERT INTO version(rowid,version) VALUES(1,11);
+INSERT INTO version(rowid,version) VALUES(1,12);
 CREATE TABLE device_info(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), device_id TEXT, is_registered INTEGER NOT NULL DEFAULT 0 CHECK (is_registered IN (0,1)));
 CREATE TABLE ecu_serials(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, is_primary INTEGER NOT NULL CHECK (is_primary IN (0,1)));
 CREATE TABLE misconfigured_ecus(serial TEXT UNIQUE, hardware_id TEXT NOT NULL, state INTEGER NOT NULL CHECK (state IN (0,1)));
@@ -20,3 +20,4 @@ INSERT INTO meta_types(rowid,meta,meta_string) VALUES(4,3,'timestamp');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(1,0,'images');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(2,1,'director');
 CREATE TABLE installation_result(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), id TEXT, result_code INTEGER NOT NULL DEFAULT 0, result_text TEXT);
+CREATE TABLE need_reboot(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), flag INTEGER NOT NULL DEFAULT 0);

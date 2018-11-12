@@ -13,7 +13,6 @@
 
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
     const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage) {
-  (void)storage;
   switch (pconfig.type) {
     case PackageManager::kOstree:
 #ifdef BUILD_OSTREE
