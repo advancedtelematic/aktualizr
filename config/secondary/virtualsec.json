@@ -3,10 +3,10 @@
   "partial_verifying" : "false",
   "ecu_hardware_id" : "demo-virtual",
 
-  "full_client_dir" : "/tmp/demo-virtual-secondary",
+  "full_client_dir" : "storage/demo-vsec1",
   "ecu_private_key" : "sec.private",
   "ecu_public_key" : "sec.public",
-  "firmware_path" : "/tmp/demo-virtual-secondary/firmware.bin",
-  "target_name_path" : "/tmp/demo-virtual-secondary/target_name",
-  "metadata_path" : "/tmp/demo-virtual-secondary/metadata"
+  "firmware_path" : "storage/demo-vsec1/firmware.bin",
+  "target_name_path" : "storage/demo-vsec1/target_name",
+  "metadata_path" : "storage/demo-vsec1/metadata"
 }
