@@ -728,6 +728,29 @@ TEST(Aktualizr, FullNoCorrelationId) {
   EXPECT_EQ(http->events_seen, 8);
 }
 
+TEST(Aktualizr, ManifestCustom) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+
+  {
+    Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+    Aktualizr aktualizr(conf, storage, up, sig);
+
+    aktualizr.Initialize();
+    Json::Value custom = Utils::parseJSON("{\"test_field\":\"test_value\"}");
+    ASSERT_EQ(custom["test_field"].asString(), "test_value");  // Shouldn't fail, just check that test itself is correct
+    ASSERT_EQ(true, aktualizr.SendManifest(custom).get()) << "Failed to upload manifest with HttpFake server";
+
+    Json::Value manifest = Utils::parseJSONFile(temp_dir.Path() / "test_aktualizr_manifest.txt");
+
+    EXPECT_EQ(manifest["signed"]["custom"], custom);
+  }
+}
+
 int num_events_UpdateCheck = 0;
 void process_events_UpdateCheck(const std::shared_ptr<event::BaseEvent>& event) {
   std::cout << event->variant << "\n";

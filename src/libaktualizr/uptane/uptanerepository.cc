@@ -48,10 +48,13 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
 
 void RepositoryCommon::resetRoot() { root = Root(Root::Policy::kAcceptAll); }
 
-Json::Value Manifest::signManifest(const Json::Value& version_manifests) const {
+Json::Value Manifest::signManifest(const Json::Value& version_manifests, const Json::Value& custom) const {
   Json::Value manifest;
   manifest["primary_ecu_serial"] = primary_ecu_serial.ToString();
   manifest["ecu_version_manifests"] = version_manifests;
+  if (custom != Json::nullValue) {
+    manifest["custom"] = custom;
+  }
 
   return keys_.signTuf(manifest);
 }

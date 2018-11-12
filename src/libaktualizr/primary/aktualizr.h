@@ -140,6 +140,13 @@ class Aktualizr {
   std::future<InstallResult> Install(const std::vector<Uptane::Target>& updates);
 
   /**
+   * Send installation report to the backend.
+   * @param custom Project-specific data to put in the custom field of Uptane manifest
+   * @return std::future object with manifest update result.
+   */
+  std::future<bool> SendManifest(const Json::Value& custom = Json::nullValue);
+
+  /**
    * Pause a download current in progress.
    * @return Information about pause results.
    */
@@ -181,6 +188,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Aktualizr, CampaignCheck);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
+  FRIEND_TEST(Aktualizr, ManifestCustom);
   FRIEND_TEST(Aktualizr, APICheck);
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);

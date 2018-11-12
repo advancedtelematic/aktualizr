@@ -48,7 +48,7 @@ class SotaUptaneClient {
   PauseResult resume() { return uptane_fetcher->setPause(false); }
   void sendDeviceData();
   UpdateCheckResult fetchMeta();
-  bool putManifest();
+  bool putManifest(const Json::Value &custom = Json::nullValue);
   UpdateCheckResult checkUpdates();
   InstallResult uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
@@ -96,7 +96,7 @@ class SotaUptaneClient {
   bool hasPendingUpdates(const Json::Value &manifests);
   void sendDownloadReport();
 
-  bool putManifestSimple();
+  bool putManifestSimple(const Json::Value &custom = Json::nullValue);
   bool getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count = nullptr);
   bool downloadTargets(const std::vector<Uptane::Target> &targets);
   std::pair<bool, Uptane::Target> downloadImage(Uptane::Target target);

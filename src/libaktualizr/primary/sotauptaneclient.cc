@@ -899,11 +899,12 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
   report_queue->enqueue(std_::make_unique<CampaignAcceptedReport>(campaign_id));
 }
 
-bool SotaUptaneClient::putManifestSimple() {
+bool SotaUptaneClient::putManifestSimple(const Json::Value &custom) {
   // does not send event, so it can be used as a subset of other steps
   auto manifest = AssembleManifest();
+
   if (!hasPendingUpdates(manifest)) {
-    auto signed_manifest = uptane_manifest.signManifest(manifest);
+    auto signed_manifest = uptane_manifest.signManifest(manifest, custom);
     HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
     if (response.isOk()) {
       storage->clearInstallationResult();
@@ -913,8 +914,8 @@ bool SotaUptaneClient::putManifestSimple() {
   return false;
 }
 
-bool SotaUptaneClient::putManifest() {
-  bool success = putManifestSimple();
+bool SotaUptaneClient::putManifest(const Json::Value &custom) {
+  bool success = putManifestSimple(custom);
   sendEvent<event::PutManifestComplete>(success);
   return success;
 }

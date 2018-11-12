@@ -18,7 +18,7 @@ class Manifest {
   Manifest(const Config &config_in, std::shared_ptr<INvStorage> storage_in)
       : storage_{std::move(storage_in)}, keys_(storage_, config_in.keymanagerConfig()) {}
 
-  Json::Value signManifest(const Json::Value &version_manifests) const;
+  Json::Value signManifest(const Json::Value &version_manifests, const Json::Value &custom = Json::nullValue) const;
   Json::Value signVersionManifest(const Json::Value &primary_version_manifests) const;
 
   void setPrimaryEcuSerialHwId(const std::pair<Uptane::EcuSerial, Uptane::HardwareIdentifier> &serials) {

@@ -149,6 +149,13 @@ std::future<InstallResult> Aktualizr::Install(const std::vector<Uptane::Target> 
   return promise->get_future();
 }
 
+std::future<bool> Aktualizr::SendManifest(const Json::Value &custom) {
+  auto promise = std::make_shared<std::promise<bool>>();
+  std::function<void()> task([this, promise, custom]() { promise->set_value(uptane_client_->putManifest(custom)); });
+  api_queue_.enqueue(task);
+  return promise->get_future();
+}
+
 PauseResult Aktualizr::Pause() { return uptane_client_->pause(); }
 
 PauseResult Aktualizr::Resume() { return uptane_client_->resume(); }
