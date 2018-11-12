@@ -6,6 +6,10 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+### Changed
+
+- [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
+
 ## [2018.13] - 2018-11-05
 
 ### Added
