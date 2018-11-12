@@ -97,13 +97,13 @@ TEST(Aktualizr, FullNoUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  UpdateCheckResult result = aktualizr.CheckUpdates();
+  UpdateCheckResult result = aktualizr.CheckUpdates().get();
   EXPECT_EQ(result.ecus_count, 0);
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, UpdateStatus::kNoUpdatesAvailable);
   // Fetch twice so that we can check for a second UpdateCheckComplete and
   // guarantee that nothing unexpected happened after the first fetch.
-  result = aktualizr.CheckUpdates();
+  result = aktualizr.CheckUpdates().get();
   EXPECT_EQ(result.ecus_count, 0);
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, UpdateStatus::kNoUpdatesAvailable);
@@ -149,7 +149,6 @@ int num_events_FullWithUpdates = 0;
 std::future<void> future_FullWithUpdates{};
 std::promise<void> promise_FullWithUpdates{};
 void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  std::cout << "Got " << event->variant << "\n";
   if (event->variant == "DownloadProgressReport") {
     return;
   }
@@ -261,7 +260,6 @@ TEST(Aktualizr, FullWithUpdates) {
 
   aktualizr.Initialize();
   aktualizr.UptaneCycle();
-
   std::future_status status = future_FullWithUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for installation to complete.";
@@ -390,7 +388,6 @@ TEST(Aktualizr, CheckWithUpdates) {
 
   aktualizr.Initialize();
   aktualizr.UptaneCycle();
-
   std::future_status status = future_CheckWithUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
@@ -476,7 +473,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
 
   aktualizr.Initialize();
   // First try downloading nothing. Nothing should happen.
-  DownloadResult result = aktualizr.Download(std::vector<Uptane::Target>());
+  DownloadResult result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, DownloadStatus::kNothingToDownload);
   aktualizr.UptaneCycle();
@@ -630,7 +627,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   Uptane::Target secondary_target("secondary_firmware.txt", secondary_json);
 
   // First try installing nothing. Nothing should happen.
-  InstallResult result = aktualizr.Install(updates_InstallWithUpdates);
+  InstallResult result = aktualizr.Install(updates_InstallWithUpdates).get();
   EXPECT_EQ(result.reports.size(), 0);
 
   EXPECT_EQ(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
@@ -680,7 +677,7 @@ TEST(Aktualizr, CampaignCheck) {
   Aktualizr aktualizr(conf, storage, up, sig);
 
   aktualizr.Initialize();
-  auto result = aktualizr.CampaignCheck();
+  auto result = aktualizr.CampaignCheck().get();
   EXPECT_EQ(result.campaigns.size(), 1);
 }
 
@@ -716,19 +713,66 @@ TEST(Aktualizr, FullNoCorrelationId) {
     Aktualizr aktualizr(conf, storage, up, sig);
 
     aktualizr.Initialize();
-    UpdateCheckResult update_result = aktualizr.CheckUpdates();
+    UpdateCheckResult update_result = aktualizr.CheckUpdates().get();
     EXPECT_EQ(update_result.status, UpdateStatus::kUpdatesAvailable);
 
-    DownloadResult download_result = aktualizr.Download(update_result.updates);
+    DownloadResult download_result = aktualizr.Download(update_result.updates).get();
     EXPECT_EQ(download_result.status, DownloadStatus::kSuccess);
 
-    InstallResult install_result = aktualizr.Install(download_result.updates);
+    InstallResult install_result = aktualizr.Install(download_result.updates).get();
     for (const auto& r : install_result.reports) {
       EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
     }
   }
 
   EXPECT_EQ(http->events_seen, 8);
+}
+
+int num_events_UpdateCheck = 0;
+void process_events_UpdateCheck(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << event->variant << "\n";
+  if (event->variant == "UpdateCheckComplete") {
+    num_events_UpdateCheck++;
+  }
+}
+
+TEST(Aktualizr, APICheck) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_UpdateCheck;
+
+  {
+    Aktualizr aktualizr(conf, storage, up, sig);
+    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+    aktualizr.Initialize();
+    for (int i = 0; i < 5; ++i) {
+      aktualizr.CheckUpdates();
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(12));
+    aktualizr.Shutdown();
+  }
+
+  EXPECT_EQ(num_events_UpdateCheck, 5);
+
+  num_events_UpdateCheck = 0;
+  // try again, but shutdown before it finished all calls
+  {
+    Aktualizr aktualizr(conf, storage, up, sig);
+    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+    aktualizr.Initialize();
+    for (int i = 0; i < 100; ++i) {
+      aktualizr.CheckUpdates();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    aktualizr.Shutdown();
+  }
+  EXPECT_LT(num_events_UpdateCheck, 100);
 }
 
 #ifndef __NO_MAIN__

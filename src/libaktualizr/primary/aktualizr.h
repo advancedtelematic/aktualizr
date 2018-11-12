@@ -13,6 +13,38 @@
 #include "uptane/secondaryinterface.h"
 #include "utilities/events.h"
 
+class ApiQueue {
+ public:
+  void enqueue(const std::function<void()>& t) {
+    std::lock_guard<std::mutex> lock(m_);
+    q_.push(t);
+    c_.notify_one();
+  }
+
+  std::function<void()> dequeue() {
+    std::unique_lock<std::mutex> wait_lock(m_);
+    while (q_.empty()) {
+      c_.wait(wait_lock);
+      if (shutdown_) {
+        return std::function<void()>();
+      }
+    }
+    std::function<void()> val = q_.front();
+    q_.pop();
+    return val;
+  }
+  void shutDown() {
+    shutdown_ = true;
+    enqueue(std::function<void()>());
+  }
+
+ private:
+  std::queue<std::function<void()>> q_;
+  mutable std::mutex m_;
+  std::condition_variable c_;
+  std::atomic_bool shutdown_{false};
+};
+
 /**
  * This class provides the main APIs necessary for launching and controlling
  * libaktualizr.
@@ -22,6 +54,12 @@ class Aktualizr {
   /** Aktualizr requires a configuration object. Examples can be found in the
    *  config directory. */
   explicit Aktualizr(Config& config);
+  ~Aktualizr() {
+    Shutdown();
+    if (api_thread_.joinable()) {
+      api_thread_.join();
+    }
+  }
   Aktualizr(const Aktualizr&) = delete;
   Aktualizr& operator=(const Aktualizr&) = delete;
 
@@ -33,11 +71,11 @@ class Aktualizr {
   void Initialize();
 
   /**
-   * Run aktualizr indefinitely until Shutdown is called. Intended to be used
-   * with the Full \ref RunningMode setting. You may want to run this on its own
-   * thread.
+   * Asynchronously run aktualizr indefinitely until Shutdown is called.
+   * Intended to be used with the Full \ref RunningMode setting.
+   * @return Empty std::future object
    */
-  int RunForever();
+  std::future<void> RunForever();
 
   /**
    * Asynchronously shut aktualizr down if it is running indefinitely with the
@@ -49,23 +87,25 @@ class Aktualizr {
    * Check for campaigns.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
-   * @return Data about available campaigns.
+   * @return std::future object with data about available campaigns.
    */
-  CampaignCheckResult CampaignCheck();
+  std::future<CampaignCheckResult> CampaignCheck();
 
   /**
    * Accept a campaign for the current device.
    * Campaigns are a concept outside of Uptane, and allow for user approval of
    * updates before the contents of the update are known.
    * @param campaign_id Campaign ID as provided by CampaignCheck.
+   * @return Empty std::future object
    */
-  void CampaignAccept(const std::string& campaign_id);
+  std::future<void> CampaignAccept(const std::string& campaign_id);
 
   /**
    * Send local device data to the server.
    * This includes network status, installed packages, hardware etc.
+   * @return Empty std::future object
    */
-  void SendDeviceData();
+  std::future<void> SendDeviceData();
 
   /**
    * Fetch Uptane metadata and check for updates.
@@ -74,14 +114,14 @@ class Aktualizr {
    * for target updates.
    * @return Information about available updates.
    */
-  UpdateCheckResult CheckUpdates();
+  std::future<UpdateCheckResult> CheckUpdates();
 
   /**
    * Download targets.
    * @param updates Vector of targets to download as provided by CheckUpdates.
-   * @return Information about download results.
+   * @return std::future object with information about download results.
    */
-  DownloadResult Download(const std::vector<Uptane::Target>& updates);
+  std::future<DownloadResult> Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date
@@ -95,9 +135,9 @@ class Aktualizr {
    * Install targets.
    * @param updates Vector of targets to install as provided by CheckUpdates or
    * Download.
-   * @return Information about installation results.
+   * @return std::future object with information about installation results.
    */
-  InstallResult Install(const std::vector<Uptane::Target>& updates);
+  std::future<InstallResult> Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * Pause a download current in progress.
@@ -141,6 +181,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, InstallWithUpdates);
   FRIEND_TEST(Aktualizr, CampaignCheck);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
+  FRIEND_TEST(Aktualizr, APICheck);
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);
   void systemSetup();
@@ -150,6 +191,8 @@ class Aktualizr {
   std::shared_ptr<SotaUptaneClient> uptane_client_;
   std::shared_ptr<event::Channel> sig_;
   std::atomic<bool> shutdown_ = {false};
+  ApiQueue api_queue_;
+  std::thread api_thread_;
 };
 
 #endif  // AKTUALIZR_H_
