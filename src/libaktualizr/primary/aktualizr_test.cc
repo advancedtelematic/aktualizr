@@ -1655,6 +1655,24 @@ TEST(Aktualizr, FullNoCorrelationId) {
   EXPECT_EQ(http->events_seen, 8);
 }
 
+TEST(Aktualizr, ManifestCustom) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+
+  {
+    Config conf = UptaneTestCommon::makeTestConfig(temp_dir, http->tls_server);
+
+    auto storage = INvStorage::newStorage(conf.storage);
+    Aktualizr aktualizr(conf, storage, http);
+
+    aktualizr.Initialize();
+    Json::Value custom = Utils::parseJSON(R"({"test_field":"test_value"})");
+    ASSERT_EQ(custom["test_field"].asString(), "test_value");  // Shouldn't fail, just check that test itself is correct
+    ASSERT_EQ(true, aktualizr.SendManifest(custom).get()) << "Failed to upload manifest with HttpFake server";
+    EXPECT_EQ(http->last_manifest["signed"]["custom"], custom);
+  }
+}
+
 class CountUpdateCheckEvents {
  public:
   CountUpdateCheckEvents() = default;

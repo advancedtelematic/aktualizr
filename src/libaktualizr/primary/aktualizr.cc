@@ -122,6 +122,11 @@ std::future<result::Install> Aktualizr::Install(const std::vector<Uptane::Target
   return api_queue_.enqueue(task);
 }
 
+std::future<bool> Aktualizr::SendManifest(const Json::Value &custom) {
+  std::function<bool()> task([this, custom]() { return uptane_client_->putManifest(custom); });
+  return api_queue_.enqueue(task);
+}
+
 result::Pause Aktualizr::Pause() {
   if (api_queue_.pause(true)) {
     uptane_client_->reportPause();

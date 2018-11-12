@@ -96,6 +96,19 @@ class Aktualizr {
   std::future<result::Install> Install(const std::vector<Uptane::Target>& updates);
 
   /**
+   * Send installation report to the backend.
+   *
+   * Note that the device manifest is also sent as a part of CheckUpdates and
+   * SendDeviceData calls, as well as after a reboot if it was initiated
+   * by Aktualizr as a part of an installation process.
+   * All these manifests will not include the custom data provided in this call.
+   *
+   * @param custom Project-specific data to put in the custom field of Uptane manifest
+   * @return std::future object with manifest update result (true on success).
+   */
+  std::future<bool> SendManifest(const Json::Value& custom = Json::nullValue);
+
+  /**
    * Pause the library operations.
    * In progress target downloads will be paused and API calls will be deferred.
    *
@@ -158,6 +171,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, ReportDownloadProgress);
   FRIEND_TEST(Aktualizr, CampaignCheckAndAccept);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
+  FRIEND_TEST(Aktualizr, ManifestCustom);
   FRIEND_TEST(Aktualizr, APICheck);
   FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
   FRIEND_TEST(Aktualizr, PauseResumeQueue);
