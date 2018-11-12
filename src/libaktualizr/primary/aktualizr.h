@@ -126,7 +126,7 @@ class Aktualizr {
   /**
    * Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date
    * according to the Uptane metadata downloaded in CheckUpdates call.
-   * @param filename Name of the binary in the storage
+   * @param target Target object matching the desired target in the storage.
    * @return Handle to the stored binary. nullptr if none is found.
    */
   std::unique_ptr<StorageTargetRHandle> GetStoredTarget(const Uptane::Target& target);
