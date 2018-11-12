@@ -1715,11 +1715,14 @@ TEST(Aktualizr, APICheck) {
     Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
     aktualizr.Initialize();
+    std::vector<std::future<result::UpdateCheck>> futures;
     for (int i = 0; i < 5; ++i) {
-      aktualizr.CheckUpdates();
+      futures.push_back(aktualizr.CheckUpdates());
     }
-    std::this_thread::sleep_for(std::chrono::seconds(12));
-    // Wait for the Aktualizr dtor to run in order that processing has finished
+
+    for (auto& f : futures) {
+      f.get();
+    }
   }
 
   EXPECT_EQ(counter.total_events(), 5);
@@ -1730,11 +1733,12 @@ TEST(Aktualizr, APICheck) {
     Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(counter2.Signal());
     aktualizr.Initialize();
-    for (int i = 0; i < 100; ++i) {
+
+    std::future<result::UpdateCheck> ft = aktualizr.CheckUpdates();
+    for (int i = 0; i < 99; ++i) {
       aktualizr.CheckUpdates();
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
-    // Wait for the Aktualizr dtor to run in order that processing has finished
+    ft.get();
   }
   EXPECT_LT(counter2.total_events(), 100);
   EXPECT_GT(counter2.total_events(), 0);
