@@ -131,12 +131,12 @@ TEST(UptaneNetwork, DownloadFailure) {
   ot_json["custom"]["ecuIdentifiers"][conf.provision.primary_ecu_serial]["hardwareId"] =
       conf.provision.primary_ecu_hardware_id;
   ot_json["custom"]["targetFormat"] = "binary";
-  ot_json["length"] = 1;
-  ot_json["hashes"]["sha256"] = conf.provision.primary_ecu_serial;
+  ot_json["length"] = 2048;
+  ot_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";
   Uptane::Target package_to_install{conf.provision.primary_ecu_serial, ot_json};
 
-  // EXPECT_TRUE(up->downloadImages(packages_to_install));
   std::pair<bool, Uptane::Target> result = up->downloadImage(package_to_install);
+  EXPECT_TRUE(result.first);
 }
 
 #ifndef __NO_MAIN__

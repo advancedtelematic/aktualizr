@@ -8,10 +8,24 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path.startswith("/repo/targets/"):
-            self.send_response(200)
+        if self.path.startswith("/repo/targets/noerrors"):
+            if "Range" in self.headers: #restored connection
+                r = self.headers["Range"]
+                r_from = int(r.split("=")[1].split("-")[0])
+                if r_from == 1024:
+                    self.send_response(206)
+                    self.send_header('Content-Range', 'bytes %d-%d/%d' %(r_from, 2047, 2048))
+                    self.send_header('Content-Length', 1024)
+                else:
+                    self.send_response(503) #Error, we should ask to restore from 1024 byte
+                    self.end_headers()
+                    return
+            else: # First time drop connection
+                self.send_response(200)
+                self.send_header('Content-Length', 2048)
             self.end_headers()
-            self.wfile.write(b'content')
+            for i in range(1024):
+              self.wfile.write(b'@')
 
     def do_POST(self):
         length = int(self.headers.get('content-length'))

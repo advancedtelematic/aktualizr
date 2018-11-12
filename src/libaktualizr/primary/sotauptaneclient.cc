@@ -727,12 +727,19 @@ std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target t
   }
 
   bool success = false;
-  int tries = 0;
-  while (tries++ < 3 && !success) {
+  int tries = 3;
+  std::chrono::milliseconds wait(500);
+  while ((tries--) != 0) {
     success = uptane_fetcher->fetchVerifyTarget(target);
+    if (success) {
+      break;
+    } else if (tries != 0) {
+      std::this_thread::sleep_for(wait);
+      wait *= 2;
+    }
   }
   if (!success) {
-    LOG_ERROR << "Download unsuccessful after three attempts.";
+    LOG_ERROR << "Download unsuccessful after " << tries << " attempts.";
   }
 
   // send this asynchronously before `sendEvent`, so that the report timestamp

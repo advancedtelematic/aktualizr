@@ -49,7 +49,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
     (*(ds->events_channel))(event);
   }
   if (ds->fetcher->isPaused()) {
-    return written_size + 1;  // Abort downloading, because pause is requested.
+    return written_size + 1;  // Abort downloading because pause is requested.
   }
   return written_size;
 }
@@ -126,7 +126,6 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
             http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
                            DownloadHandler, &ds, ds.downloaded_length);
         if (!response.isOk() && !pause_) {
-          fhandle->wabort();
           if (response.curl_code == CURLE_WRITE_ERROR) {
             throw OversizedTarget(target.filename());
           }
