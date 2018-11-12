@@ -12,15 +12,22 @@
 
 TEST(authenticate, good_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
 }
 
+/* TODO: This used to work, but then when the zip file was updated because of
+ * expired certs, it was changed to not use cert auth, and there was no check to
+ * verify the method at that time.
 TEST(authenticate, good_cert_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kCert);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -29,11 +36,14 @@ TEST(authenticate, good_cert_zip) {
 
   EXPECT_EQ(CURLE_OK, rc);
 }
+*/
 
 TEST(authenticate, good_cert_noauth_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/client.crt", ServerCredentials(filepath), treehub);
+  int r = authenticate("tests/fake_http_server/client.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -89,11 +99,13 @@ TEST(authenticate, invalid_file) {
 
 TEST(authenticate, offline_sign_creds) {
   boost::filesystem::path auth_offline = "tests/sota_tools/auth_test_good_offline.zip";
-  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
-
   ServerCredentials creds_offline(auth_offline);
-  ServerCredentials creds_online(auth_online);
   EXPECT_TRUE(creds_offline.CanSignOffline());
+}
+
+TEST(authenticate, online_sign_creds) {
+  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
+  ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
 }
 
