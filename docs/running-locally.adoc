@@ -30,20 +30,21 @@ Aktualizr can then be run from the CMake build directory: `./build/src/aktualizr
 
 == Prepairing an environment
 
-This setup will help you running Aktualizr in isolation. Multiple instances can be run on the same machine if they use local configuration tied up to a local directory.
+This setup will help you running Aktualizr in isolation. Multiple instances can be run on the same machine if they use local configuration tied to a local directory.
 
 The directory needs to contain:
 
 - the link:../config/sota_local.toml[sample local configuration] (as `conf.toml`)
 - credentials from HERE OTA Connect (as `credentials.zip`)
 
-Aktualizr can then be run as `aktualizr -c .` from this directory, which will try to provision a device. The next section provides more detailed usage description.
+Aktualizr can then be run as `aktualizr -c .` from this directory, to wait for updates in daemon mode. To simply provision a device, run a check for update `aktualizr -c . check`.
+For more advanced usage, see the link:#Usage[usage section].
 
-Note that this sample configuration only contains reference to local paths. So it needs to be run from the same environment directory. It also means that several environments can be easily switched from one another by using different directories.
+Note that, since this sample configuration only contains reference to local paths, Aktualizr must be launched from the same directory. This also means that several environments can be used simultaneously by keeping them in separate directories.
 
 === Configuration with virtual secondary
 
-To use virtual secondaries as well, store individual JSON configuration files in a `secondary_configs` subdirectory. link:../config/secondary/virtualsec.json[A sample configuration from the git repository] can be used as is for one secondary.
+To use virtual secondaries as well, store individual JSON configuration files in a `secondary_configs` subdirectory. link:../config/secondary/virtualsec.json[A sample configuration from the git repository] can be used as-is for one secondary.
 
 In a multiple secondaries case, the different configurations will need to refer to distinct subdirectories (see `full_client_dir`, `firmware_path`...).
 
@@ -52,8 +53,8 @@ In a multiple secondaries case, the different configurations will need to refer 
 `aktualizr -c .` is the common invocation which will pick up the configuration from the local `conf.toml`.
 Without argument it will run as a self-standing automatic service. For development purposes, it is often useful to trigger Aktualizr selectively (see link:./selectively-triggering-aktualizr.adoc[]).
 
-To stop using one device and make Aktualizr do a reprovision, remove the `storage` directory from the environment directory when it is not running and launch it again.
+To stop using one device and force Aktualizr to re-provision, remove the `storage` directory from the environment directory when it is not running and launch it again.
 
-Another common option is to set the loglevel to debug, for harder to debug issues: `aktualizr -c . --loglevel 0`.
+Another common option is to set the log level to debug, for harder to debug issues: `aktualizr -c . --loglevel 0`.
 
 Please refer to the general documentation for more detailed help on configuration options and command line arguments.
