@@ -34,14 +34,44 @@ link:./integrating-libaktualizr.adoc[integrating-libaktualizr.adoc] - How to use
 
 Additional documentation intended for developers that may need to use the libaktualizr API should refer to link:https://advancedtelematic.github.io/aktualizr/index.html[the doxygen output on github].
 
+[NOTE]
+====
+The link above is for the doxygen docs on master. Doxygen docs for the following tagged versions are also available:
+
+* https://advancedtelematic.github.io/aktualizr/2018.8/index.html[2018.8]
+* https://advancedtelematic.github.io/aktualizr/2018.9/index.html[2018.9]
+* https://advancedtelematic.github.io/aktualizr/2018.11/index.html[2018.11]
+* https://advancedtelematic.github.io/aktualizr/2018.12/index.html[2018.12]
+* https://advancedtelematic.github.io/aktualizr/2018.13/index.html[2018.13]
+====
+
 === Updating doxygen on github
 
-To update the doxygen documentation on github, you will need to do something like the following:
+To update the doxygen documentation for master on github, you will need to do something like the following:
 
-1. In an aktualizr repo, run `make docs` in the build directory.
+1. In an aktualizr repo, run `make doxygen` in the build directory.
 1. Clone a second aktualizr repo and run `git checkout gh-pages`.
-1. In the second repo, run `git rm -r ./*`.
+1. In the second repo, run `rm ./* search/* `.
 1. Copy the contents of `<build_dir>/docs/html` into the root of the second repo. (Something like `cp -a <build_dir>/docs/html/* <second_repo>`.)
 1. In the second repo, run `git add -A`, `git commit`, and `git push`.
 1. Wait a minute or two for github to refresh and render the files.
 
+==== Adding docs for a new tag
+
+To add doxygen docs for a new tag, you will need to do something like the following:
+
+1. Check out the tag or commit you wish to add (`git checkout 2018.63`, for example).
+1. Clean out the build directory, then run Cmake and doxygen again:
++
+----
+rm -rf build/*
+cd build
+cmake ..
+make doxygen
+----
++
+1. Clone a second aktualizr repo and run `git checkout gh-pages`.
+1. In the second repo, make a directory for the tag or commit you wish to add, i.e. `mkdir 2018.63`.
+1. Copy the contents of `<build_dir>/docs/html` into the directory you just created. (Something like `cp -a <build_dir>/docs/html/* <second_repo>/2018.63`.)
+1. In the second repo, run `git add -A`, `git commit`, and `git push`.
+1. Wait a minute or two for github to refresh and render the files.
