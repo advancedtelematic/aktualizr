@@ -2,7 +2,7 @@
 
 Aktualizr normally runs as a `systemd` service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
 
-It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option (or by setting `running_mode` in the `[uptane]` configuration section).
+It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option, or just supplying the operation name as a subcommand.
 
 [NOTE]
 ====
@@ -30,7 +30,7 @@ An update cycle consists of:
 
 To trigger the whole cycle, use the following command:
 
-    aktualizr --running-mode=once
+    aktualizr once
 
 == Triggering individual update stages
 
@@ -40,29 +40,29 @@ It might not be desirable to always trigger a complete update cycle. For example
 
 Fetch the Uptane metadata:
 
-    aktualizr --running-mode=check
+    aktualizr check
 
 === Downloading an available update
 
 Download an update:
 
-    aktualizr --running-mode=download
+    aktualizr download
 
 === Installing downloaded update(s)
 
-    aktualizr --running-mode=install
+    aktualizr install
 
 === Reporting installation results
 
 Installation reports are sent when aktualizr polls the server for updates, so the `check` running-mode should be used again after installing:
 
-    aktualizr --running-mode=check
+    aktualizr check
 
 === Check for campaigns that target the device
 
 Campaigns provide a way to target software updates to specific groups of devices. You can set up campaigns in the OTA Connect web app. When a device comes online that matches the targeting criteria of a campaign, the OTA Connect server notifies the device that new software updates are available. 
 
-    aktualizr --running-mode=campaign_check
+    aktualizr campaign_check
 
 If the device is targeted by one or more campaigns, aktualizr prints details of each applicable campaign including the campaign ID. You can then use the campaign ID for the `campaign_accept` command.
 
@@ -70,10 +70,10 @@ If the device is targeted by one or more campaigns, aktualizr prints details of 
 
 This running mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept the campaigns so that they are included in the software update process.
 
-    aktualizr --running-mode=campaign_accept --campaign-id=<CAMPAIGN_ID>
+    aktualizr campaign_accept --campaign-id=<CAMPAIGN_ID>
 
 For example:
 
-    aktualizr --running-mode=campaign_accept --campaign-id=4df1a199-59d4-47f6-a261-d79b83020f65
+    aktualizr campaign_accept --campaign-id=4df1a199-59d4-47f6-a261-d79b83020f65
     
 Once aktualizr has accepted the campaign, the scheduled update becomes available to the device. The device can then install the update during a normal full update cycle or when the device runs in `check` mode.
