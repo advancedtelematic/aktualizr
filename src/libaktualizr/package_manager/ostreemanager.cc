@@ -191,13 +191,20 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
     g_error_free(error);
     return install_outcome;
   }
+
+  // set reboot flag to be notified later
+  if (bootloader_ != nullptr) {
+    bootloader_->rebootFlagSet();
+  }
+
   LOG_INFO << "Performing sync()";
   sync();
   return data::InstallOutcome(data::UpdateResultCode::kOk, "Installation successful");
 }
 
-OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage)
-    : config(std::move(pconfig)), storage_(std::move(storage)) {
+OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
+                             std::shared_ptr<Bootloader> bootloader)
+    : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {
   try {
     OstreeManager::getCurrent();
   } catch (...) {

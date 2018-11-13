@@ -81,7 +81,7 @@ TEST(OstreeManager, InstallBadUri) {
   config.storage.path = temp_dir.Path();
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  OstreeManager ostree(config.pacman, storage);
+  OstreeManager ostree(config.pacman, storage, nullptr);
   data::InstallOutcome result = ostree.install(target);
   EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
@@ -95,7 +95,7 @@ TEST(OstreeManager, BadSysroot) {
   config.pacman.sysroot = "sysroot-that-is-missing";
   config.storage.path = temp_dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  EXPECT_THROW(OstreeManager ostree(config.pacman, storage), std::runtime_error);
+  EXPECT_THROW(OstreeManager ostree(config.pacman, storage, nullptr), std::runtime_error);
 }
 
 /* Parse a provided list of installed packages. */
@@ -108,7 +108,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
   config.storage.path = temp_dir.Path();
 
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  OstreeManager ostree(config.pacman, storage);
+  OstreeManager ostree(config.pacman, storage, nullptr);
   Json::Value packages = ostree.getInstalledPackages();
   EXPECT_EQ(packages[0]["name"], "vim");
   EXPECT_EQ(packages[0]["version"], "1.0");

@@ -55,9 +55,14 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       events_channel(std::move(events_channel_in)) {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
   if (package_manager_->imageUpdated()) {
     bootloader->setBootOK();
+  }
+
+  if (bootloader->rebootDetected()) {
+    LOG_INFO << "Device has been rebooted after an update";
+    bootloader->rebootFlagClear();
   }
 
   if (config.discovery.ipuptane) {

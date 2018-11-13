@@ -8,7 +8,8 @@
 class PackageManagerFactory {
  public:
   static std::shared_ptr<PackageManagerInterface> makePackageManager(const PackageConfig& pconfig,
-                                                                     const std::shared_ptr<INvStorage>& storage);
+                                                                     const std::shared_ptr<INvStorage>& storage,
+                                                                     const std::shared_ptr<Bootloader>& bootloader);
 };
 
 #endif  // PACKAGEMANAGERFACTORY_H_
