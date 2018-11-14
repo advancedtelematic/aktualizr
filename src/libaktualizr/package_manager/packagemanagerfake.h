@@ -19,6 +19,10 @@ class PackageManagerFake : public PackageManagerInterface {
   bool imageUpdated() override { return true; };
 
   data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override {
+    (void)target;
+    throw std::runtime_error("Unimplemented");
+  }
 
  private:
   std::shared_ptr<INvStorage> storage_;

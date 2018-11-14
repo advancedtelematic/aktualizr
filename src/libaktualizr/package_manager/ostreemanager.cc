@@ -210,15 +210,27 @@ data::InstallOutcome OstreeManager::install(const Uptane::Target &target) const 
 
   LOG_INFO << "Performing sync()";
   sync();
-  return data::InstallOutcome(data::UpdateResultCode::kOk, "Installation successful");
+  return data::InstallOutcome(data::UpdateResultCode::kNeedCompletion, "Application successful, need reboot");
+}
+
+data::InstallOutcome OstreeManager::finalizeInstall(const Uptane::Target &target) const {
+  LOG_INFO << "Checking installation of new OStree sysroot";
+  Uptane::Target current = getCurrent();
+
+  if (current.sha256Hash() != target.sha256Hash()) {
+    LOG_ERROR << "Expected to boot on " << target.sha256Hash() << " but, " << current.sha256Hash()
+              << " found, the system might have experienced a rollback";
+    return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, "Wrong version booted");
+  }
+
+  return data::InstallOutcome(data::UpdateResultCode::kOk, "Successfully booted on new version");
 }
 
 OstreeManager::OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage,
                              std::shared_ptr<Bootloader> bootloader)
     : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {
-  try {
-    OstreeManager::getCurrent();
-  } catch (...) {
+  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+  if (sysroot_smart == nullptr) {
     throw std::runtime_error("Could not find OSTree sysroot at: " + config.sysroot.string());
   }
 }
@@ -245,15 +257,17 @@ Json::Value OstreeManager::getInstalledPackages() const {
 }
 
 Uptane::Target OstreeManager::getCurrent() const {
-  GObjectUniquePtr<OstreeDeployment> staged_deployment = getStagedDeployment();
-  if (!staged_deployment) {
-    throw std::runtime_error("No deployments found in OSTree sysroot at: " + config.sysroot.string());
+  GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
+  OstreeDeployment *booted_deployment = ostree_sysroot_get_booted_deployment(sysroot_smart.get());
+  if (booted_deployment == nullptr) {
+    throw std::runtime_error("Could not get booted deployment in " + config.sysroot.string());
   }
-  std::string current_hash = ostree_deployment_get_csum(staged_deployment.get());
+  std::string current_hash = ostree_deployment_get_csum(booted_deployment);
 
   std::vector<Uptane::Target> installed_versions;
   storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
 
+  // Version should be in installed versions
   std::vector<Uptane::Target>::iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
     if (it->sha256Hash() == current_hash) {
@@ -264,9 +278,11 @@ Uptane::Target OstreeManager::getCurrent() const {
   return getUnknown();
 }
 
+// used for bootloader rollback
 bool OstreeManager::imageUpdated() {
   GObjectUniquePtr<OstreeSysroot> sysroot_smart = OstreeManager::LoadSysroot(config.sysroot);
 
+  // image updated if no pending deployment in the list of deployments
   GPtrArray *deployments = ostree_sysroot_get_deployments(sysroot_smart.get());
 
   OstreeDeployment *pending_deployment = nullptr;

@@ -190,6 +190,8 @@ enum class UpdateResultCode {
   kGeneralError = 19,
   /// Updating process in progress
   kInProgress = 20,
+  // Install needs to be finalized (e.g: reboot)
+  kNeedCompletion = 21,
 };
 
 typedef std::pair<UpdateResultCode, std::string> InstallOutcome;

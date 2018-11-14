@@ -14,6 +14,7 @@ class PackageManagerInterface {
   virtual Json::Value getInstalledPackages() const = 0;
   virtual Uptane::Target getCurrent() const = 0;
   virtual data::InstallOutcome install(const Uptane::Target& target) const = 0;
+  virtual data::InstallOutcome finalizeInstall(const Uptane::Target& target) const = 0;
   virtual bool imageUpdated() = 0;
   static Uptane::Target getUnknown() {
     Json::Value t_json;

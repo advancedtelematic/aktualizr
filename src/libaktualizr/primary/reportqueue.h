@@ -52,6 +52,11 @@ class EcuInstallationStartedReport : public ReportEvent {
   EcuInstallationStartedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id);
 };
 
+class EcuInstallationAppliedReport : public ReportEvent {
+ public:
+  EcuInstallationAppliedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id);
+};
+
 class EcuInstallationCompletedReport : public ReportEvent {
  public:
   EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu, const std::string& correlation_id, bool success);

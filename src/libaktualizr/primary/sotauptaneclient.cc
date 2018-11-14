@@ -60,11 +60,6 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
     bootloader->setBootOK();
   }
 
-  if (bootloader->rebootDetected()) {
-    LOG_INFO << "Device has been rebooted after an update";
-    bootloader->rebootFlagClear();
-  }
-
   if (config.discovery.ipuptane) {
     IpSecondaryDiscovery ip_uptane_discovery{config.network};
     auto ipuptane_secs = ip_uptane_discovery.discover();
@@ -133,6 +128,48 @@ data::InstallOutcome SotaUptaneClient::PackageInstall(const Uptane::Target &targ
   }
 }
 
+void SotaUptaneClient::finalizeAfterReboot() {
+  if (!bootloader->rebootDetected()) {
+    // nothing to do
+    return;
+  }
+
+  LOG_INFO << "Device has been rebooted after an update";
+
+  std::vector<Uptane::Target> updates;
+  unsigned int ecus_count = 0;
+  AssembleManifest();
+  if (uptaneOfflineIteration(&updates, &ecus_count)) {
+    const std::string &correlation_id = director_repo.getCorrelationId();  // FIXME: should be in installed_versions
+    const Uptane::EcuSerial &ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending_index = SIZE_MAX;
+    storage->loadInstalledVersions(ecu_serial.ToString(), &installed_versions, nullptr, &pending_index);
+
+    if (pending_index < installed_versions.size()) {
+      const Uptane::Target &target = installed_versions[pending_index];
+      data::InstallOutcome outcome = package_manager_->finalizeInstall(target);
+      if (outcome.first == data::UpdateResultCode::kOk) {
+        storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
+        report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, true));
+      } else {
+        // finalize failed
+        report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
+      }
+
+      putManifestSimple();
+    } else {
+      // nothing found on primary
+      LOG_ERROR << "Expected reboot after update on primary but no update found";
+    }
+  } else {
+    LOG_ERROR << "Invalid UPTANE metadata in storage.";
+  }
+
+  bootloader->rebootFlagClear();
+}
+
 data::OperationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Target &target) {
   data::OperationResult result;
   if (!target.IsOstree() && config.pacman.type == PackageManager::kOstree) {
@@ -144,6 +181,10 @@ data::OperationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Ta
     if (result.result_code == data::UpdateResultCode::kOk) {
       storage->saveInstalledVersion(uptane_manifest.getPrimaryEcuSerial().ToString(), target,
                                     InstalledVersionUpdateMode::kCurrent);
+    } else if (result.result_code == data::UpdateResultCode::kNeedCompletion) {
+      // ostree case: need reboot
+      storage->saveInstalledVersion(uptane_manifest.getPrimaryEcuSerial().ToString(), target,
+                                    InstalledVersionUpdateMode::kPending);
     }
   }
   storage->storeInstallationResult(result);
@@ -245,6 +286,9 @@ void SotaUptaneClient::initialize() {
 
   verifySecondaries();
   LOG_DEBUG << "... provisioned OK";
+
+  // TODO: right place?
+  finalizeAfterReboot();
 }
 
 bool SotaUptaneClient::updateMeta() {
@@ -881,9 +925,19 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
       //   a false notification doesn't hurt when rollbacks are implemented
       bootloader->updateNotify();
       status = PackageInstallSetResult(primary_update);
-      report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(uptane_manifest.getPrimaryEcuSerial(),
-                                                                              correlation_id, true));
-      sendEvent<event::InstallTargetComplete>(uptane_manifest.getPrimaryEcuSerial(), true);
+      Uptane::EcuSerial ecu_serial = uptane_manifest.getPrimaryEcuSerial();
+      if (status.result_code == data::UpdateResultCode::kNeedCompletion) {
+        // update needs a reboot, send distinct EcuInstallationApplied event
+        report_queue->enqueue(std_::make_unique<EcuInstallationAppliedReport>(ecu_serial, correlation_id));
+        sendEvent<event::InstallTargetComplete>(ecu_serial, true);  // TODO: distinguish from success here?
+      } else if (status.result_code == data::UpdateResultCode::kOk) {
+        report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, true));
+        sendEvent<event::InstallTargetComplete>(ecu_serial, true);
+      } else {
+        // general error case
+        report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
+        sendEvent<event::InstallTargetComplete>(ecu_serial, false);
+      }
     } else {
       data::InstallOutcome outcome(data::UpdateResultCode::kAlreadyProcessed, "Package already installed");
       status = data::OperationResult(primary_update.filename(), outcome);

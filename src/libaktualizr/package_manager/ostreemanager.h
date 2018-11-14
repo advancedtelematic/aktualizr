@@ -46,6 +46,7 @@ class OstreeManager : public PackageManagerInterface {
   Uptane::Target getCurrent() const override;
   bool imageUpdated() override;
   data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override;
 
   GObjectUniquePtr<OstreeDeployment> getStagedDeployment() const;
   static GObjectUniquePtr<OstreeSysroot> LoadSysroot(const boost::filesystem::path &path);

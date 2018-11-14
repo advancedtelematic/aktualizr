@@ -86,6 +86,7 @@ class SotaUptaneClient {
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
   data::OperationResult PackageInstallSetResult(const Uptane::Target &target);
+  void finalizeAfterReboot();
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();

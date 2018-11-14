@@ -110,12 +110,12 @@ TEST(OstreeManager, ParseInstalledPackages) {
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   OstreeManager ostree(config.pacman, storage, nullptr);
   Json::Value packages = ostree.getInstalledPackages();
-  EXPECT_EQ(packages[0]["name"], "vim");
-  EXPECT_EQ(packages[0]["version"], "1.0");
-  EXPECT_EQ(packages[1]["name"], "emacs");
-  EXPECT_EQ(packages[1]["version"], "2.0");
-  EXPECT_EQ(packages[2]["name"], "bash");
-  EXPECT_EQ(packages[2]["version"], "1.1");
+  EXPECT_EQ(packages[0]["name"].asString(), "vim");
+  EXPECT_EQ(packages[0]["version"].asString(), "1.0");
+  EXPECT_EQ(packages[1]["name"].asString(), "emacs");
+  EXPECT_EQ(packages[1]["version"].asString(), "2.0");
+  EXPECT_EQ(packages[2]["name"].asString(), "bash");
+  EXPECT_EQ(packages[2]["version"].asString(), "1.1");
 }
 
 /* Communicate with a remote OSTree server without credentials. */
