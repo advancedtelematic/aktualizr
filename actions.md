@@ -95,11 +95,12 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
   - [ ] Report download progress
   - [x] Pause downloading (fetcher_test.cc)
-    - [ ] Pausing while paused is ignored
-    - [ ] Pausing while not downloading is ignored
+    - [x] Pausing while paused is ignored (fetcher_test.cc)
+    - [x] Pausing while not downloading is ignored (fetcher_test.cc)
   - [x] Resume downloading (fetcher_test.cc)
-    - [ ] Resuming while not paused is ignored
+    - [x] Resuming while not paused is ignored (fetcher_test.cc)
     - [ ] Resuming while not downloading is ignored
+    - [x] Resume download interrupted by restart (fetcher_test.cc)
   - [x] Verify a downloaded update
     - [ ] Verify an OSTree package
     - [x] Verify a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
