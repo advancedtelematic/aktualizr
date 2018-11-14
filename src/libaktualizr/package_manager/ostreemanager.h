@@ -25,10 +25,15 @@ template <typename T>
 using GObjectUniquePtr = std::unique_ptr<T, GObjectFinalizer<T>>;
 
 struct PullMetaStruct {
-  PullMetaStruct(Uptane::Target target_in, std::shared_ptr<event::Channel> events_channel_in)
-      : target{std::move(target_in)}, percent_complete{0}, events_channel{std::move(events_channel_in)} {}
+  PullMetaStruct(Uptane::Target target_in, std::shared_ptr<std::mutex> pause_mutex_in,
+                 std::shared_ptr<event::Channel> events_channel_in)
+      : target{std::move(target_in)},
+        percent_complete{0},
+        pause_mutex(std::move(pause_mutex_in)),
+        events_channel{std::move(events_channel_in)} {}
   Uptane::Target target;
   unsigned int percent_complete;
+  std::shared_ptr<std::mutex> pause_mutex;
   std::shared_ptr<event::Channel> events_channel;
 };
 
@@ -48,6 +53,7 @@ class OstreeManager : public PackageManagerInterface {
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
   static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
                                    const KeyManager &keys, const Uptane::Target &target,
+                                   const std::shared_ptr<std::mutex> &pause_mutex = std::shared_ptr<std::mutex>(),
                                    const std::shared_ptr<event::Channel> &events_channel = nullptr);
 
  private:

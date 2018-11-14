@@ -55,3 +55,15 @@
     fun:ostree_repo_pull_with_options
     ...
 }
+
+{
+   ioctl valgrind issue (https://bugs.kde.org/show_bug.cgi?id=397605)
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   ...
+   fun:ostree_repo_write_content
+   ...
+   fun:start_thread
+   fun:clone
+}
