@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <future>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -72,20 +73,29 @@ TEST(fetcher, fetch_with_pause) {
   events_channel->connect(f_cb);
   Uptane::Fetcher f(config, storage, http, events_channel);
 
-  std::thread([&f] {
+  std::promise<void> end_pausing;
+
+  EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
+
+  std::thread([&f, &end_pausing] {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
     EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
     std::this_thread::sleep_for(std::chrono::seconds(2));
     EXPECT_EQ(f.setPause(false), PauseResult::kResumed);
     EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
+    end_pausing.set_value();
   })
       .detach();
 
-  EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
   auto start = std::chrono::high_resolution_clock::now();
   auto result = f.fetchVerifyTarget(target);
   auto finish = std::chrono::high_resolution_clock::now();
+
+  auto status = end_pausing.get_future().wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for installation to complete.";
+  }
 
   EXPECT_TRUE(result);
   EXPECT_EQ(num_events_DownloadPause, 5);
