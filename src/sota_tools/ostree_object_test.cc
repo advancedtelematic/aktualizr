@@ -143,7 +143,7 @@ TEST(OstreeObject, UploadSuccess) {
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
   TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.Path().string());
-  sleep(3);
+  TestUtils::waitForServer("http://localhost:" + dp + "/");
 
   TreehubServer push_server;
   push_server.root_url("http://localhost:" + dp);
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
   port = TestUtils::getFreePort();
 
   TestHelperProcess server_process(server, port);
-  sleep(3);
+  TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();
 }

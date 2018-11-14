@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
 
   TestHelperProcess server_process(server, port, temp_dir.PathString());
-  sleep(3);
+  TestUtils::waitForServer("https://localhost:" + port + "/");
   return RUN_ALL_TESTS();
 }
 #endif

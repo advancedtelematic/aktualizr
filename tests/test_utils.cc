@@ -46,6 +46,28 @@ void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const 
   cs << "\n[storage]\npath = " << storage_path.string() << "\n";
 }
 
+void TestUtils::waitForServer(const std::string &address) {
+  CURL *handle = curl_easy_init();
+  if (handle == nullptr) {
+    throw std::runtime_error("Could not initialize curl handle");
+  }
+  curlEasySetoptWrapper(handle, CURLOPT_URL, address.c_str());
+  curlEasySetoptWrapper(handle, CURLOPT_CONNECTTIMEOUT, 3L);
+  curlEasySetoptWrapper(handle, CURLOPT_NOBODY, 1L);
+
+  CURLcode result = curl_easy_perform(handle);
+  int counter = 1;
+  while (result != 0) {
+    sleep(1);
+    result = curl_easy_perform(handle);
+    if (++counter % 5 == 0) {
+      std::cout << "Unable to connect to " << address << " after " << counter << " tries.\n";
+    }
+  }
+
+  curl_easy_cleanup(handle);
+}
+
 void TestHelperProcess::run(const char *argv0, const char *args[]) {
   pid_ = fork();
   if (pid_ == -1) {

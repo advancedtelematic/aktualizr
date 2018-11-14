@@ -35,8 +35,7 @@ int main(int argc, char** argv) {
 
   port = TestUtils::getFreePort();
   TestHelperProcess server_process("tests/fake_discovery/discovery_secondary.py", port);
-
-  sleep(3);
+  TestUtils::waitForServer("http://127.0.0.1:" + port + "/");
 
   return RUN_ALL_TESTS();
 }
