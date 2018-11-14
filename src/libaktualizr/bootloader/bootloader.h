@@ -21,6 +21,7 @@ class Bootloader {
   const BootloaderConfig& config_;
 
   INvStorage& storage_;
+  boost::filesystem::path reboot_sentinel_;
   bool reboot_detect_supported_{false};
 };
 

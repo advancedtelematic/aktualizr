@@ -42,21 +42,25 @@ inline void CopyFromConfig(RollbackMode& dest, const std::string& option_name, c
 
 void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(rollback_mode, "rollback_mode", pt);
+  CopyFromConfig(reboot_sentinel_dir, "reboot_sentinel_dir", pt);
+  CopyFromConfig(reboot_sentinel_name, "reboot_sentinel_name", pt);
 }
 
 void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, rollback_mode, "rollback_mode");
+  writeOption(out_stream, reboot_sentinel_dir, "reboot_sentinel_dir");
+  writeOption(out_stream, reboot_sentinel_name, "reboot_sentinel_name");
 }
 
-static const boost::filesystem::path reboot_beacon_dir = "/var/run/aktualizr-session";
-static const boost::filesystem::path reboot_beacon_filename = "need_reboot";
-
 Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
-  if (mkdir(reboot_beacon_dir.c_str(), S_IRWXU) == -1) {
+  reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
+
+  if (mkdir(config_.reboot_sentinel_dir.c_str(), S_IRWXU) == -1) {
     struct stat st {};
-    stat(reboot_beacon_dir.c_str(), &st);
+    stat(config_.reboot_sentinel_dir.c_str(), &st);
     if (((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0) {
-      LOG_WARNING << "Could not create " << reboot_beacon_dir << " securely, reboot detection support disabled";
+      LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir
+                  << " securely, reboot detection support disabled";
       reboot_detect_supported_ = false;
       return;
     }
@@ -126,12 +130,12 @@ bool Bootloader::rebootDetected() const {
 
   // true if set in storage and no volatile flag
 
-  bool beacon_exists = boost::filesystem::exists(reboot_beacon_dir / reboot_beacon_filename);
+  bool sentinel_exists = boost::filesystem::exists(reboot_sentinel_);
   bool need_reboot = false;
 
   storage_.loadNeedReboot(&need_reboot);
 
-  return need_reboot && !beacon_exists;
+  return need_reboot && !sentinel_exists;
 }
 
 void Bootloader::rebootFlagSet() {
@@ -141,7 +145,7 @@ void Bootloader::rebootFlagSet() {
 
   // set in storage + volatile flag
 
-  Utils::writeFile(reboot_beacon_dir / reboot_beacon_filename, std::string(), false);  // empty file
+  Utils::writeFile(reboot_sentinel_, std::string(), false);  // empty file
   storage_.storeNeedReboot();
 }
 
@@ -153,5 +157,5 @@ void Bootloader::rebootFlagClear() {
   // clear in storage + volatile flag
 
   storage_.clearNeedReboot();
-  boost::filesystem::remove(reboot_beacon_dir / reboot_beacon_filename);
+  boost::filesystem::remove(reboot_sentinel_);
 }
