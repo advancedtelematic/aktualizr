@@ -5,8 +5,10 @@
 #if defined(OS_LINUX)
 #include <sys/prctl.h>
 #endif
+#include <chrono>
 #include <fstream>
 #include <string>
+#include <thread>
 
 #include <boost/filesystem.hpp>
 
@@ -55,17 +57,24 @@ void TestUtils::waitForServer(const std::string &address) {
   curlEasySetoptWrapper(handle, CURLOPT_CONNECTTIMEOUT, 3L);
   curlEasySetoptWrapper(handle, CURLOPT_NOBODY, 1L);
 
-  CURLcode result = curl_easy_perform(handle);
-  int counter = 1;
-  while (result != 0) {
-    sleep(1);
+  CURLcode result;
+  for (size_t counter = 1; counter <= 100; counter++) {
     result = curl_easy_perform(handle);
-    if (++counter % 5 == 0) {
+    if (result == 0) {
+      // connection successful
+      break;
+    }
+    if (counter % 5 == 0) {
       std::cout << "Unable to connect to " << address << " after " << counter << " tries.\n";
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
   curl_easy_cleanup(handle);
+
+  if (result != 0) {
+    throw std::runtime_error("Wait for server timed out");
+  }
 }
 
 void TestHelperProcess::run(const char *argv0, const char *args[]) {
