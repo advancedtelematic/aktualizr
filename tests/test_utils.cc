@@ -56,6 +56,8 @@ void TestUtils::waitForServer(const std::string &address) {
   curlEasySetoptWrapper(handle, CURLOPT_URL, address.c_str());
   curlEasySetoptWrapper(handle, CURLOPT_CONNECTTIMEOUT, 3L);
   curlEasySetoptWrapper(handle, CURLOPT_NOBODY, 1L);
+  curlEasySetoptWrapper(handle, CURLOPT_VERBOSE, 1L);
+  curlEasySetoptWrapper(handle, CURLOPT_SSL_VERIFYPEER, 0L);
 
   CURLcode result;
   for (size_t counter = 1; counter <= 100; counter++) {
@@ -87,6 +89,8 @@ void TestHelperProcess::run(const char *argv0, const char *args[]) {
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
     execvp(argv0, const_cast<char *const *>(args));
+    std::cout << "Could not execute child " << argv0 << "\n";
+    exit(1);
   }
 }
 
