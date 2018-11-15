@@ -21,6 +21,7 @@
 
 namespace fs = boost::filesystem;
 
+/* Validate SHA256 hashes. */
 TEST(crypto, sha256_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result = "7DF106BB55506D91E48AF727CD423B169926BA99DF4BAD53AF4D80E717A1AC9F";
@@ -28,6 +29,7 @@ TEST(crypto, sha256_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
+/* Validate SHA512 hashes. */
 TEST(crypto, sha512_is_correct) {
   std::string test_str = "This is string for testing";
   std::string expected_result =
@@ -37,6 +39,7 @@ TEST(crypto, sha512_is_correct) {
   EXPECT_EQ(expected_result, result);
 }
 
+/* Sign and verify a file with RSA key stored in a file. */
 TEST(crypto, sign_verify_rsa_file) {
   std::string text = "This is text for sign";
   PublicKey pkey(fs::path("tests/test_data/public.key"));
@@ -53,6 +56,7 @@ TEST(crypto, findPkcsLibrary) {
   EXPECT_TRUE(boost::filesystem::exists(pkcs11Path));
 }
 
+/* Sign and verify a file with RSA via PKCS#11. */
 TEST(crypto, sign_verify_rsa_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
@@ -70,6 +74,7 @@ TEST(crypto, sign_verify_rsa_p11) {
   EXPECT_TRUE(signe_is_ok);
 }
 
+/* Generate RSA keypairs via PKCS#11. */
 TEST(crypto, generate_rsa_keypair_p11) {
   P11Config config;
   config.module = TEST_PKCS11_MODULE_PATH;
@@ -83,6 +88,7 @@ TEST(crypto, generate_rsa_keypair_p11) {
   EXPECT_TRUE(p11->readUptanePublicKey(&key_content));
 }
 
+/* Read a TLS certificate via PKCS#11. */
 TEST(crypto, certificate_pkcs11) {
   P11Config p11_conf;
   p11_conf.module = TEST_PKCS11_MODULE_PATH;
@@ -101,12 +107,14 @@ TEST(crypto, certificate_pkcs11) {
 }
 #endif
 
+/* Refuse to sign with an invalid key. */
 TEST(crypto, sign_bad_key_no_crash) {
   std::string text = "This is text for sign";
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "this is bad key path", text));
   EXPECT_TRUE(signature.empty());
 }
 
+/* Reject a signature if the key is invalid. */
 TEST(crypto, verify_bad_key_no_crash) {
   std::string text = "This is text for sign";
   std::string signature = Utils::toBase64(Crypto::RSAPSSSign(NULL, "tests/test_data/priv.key", text));
@@ -114,6 +122,7 @@ TEST(crypto, verify_bad_key_no_crash) {
   EXPECT_EQ(signe_is_ok, false);
 }
 
+/* Reject bad signatures. */
 TEST(crypto, verify_bad_sign_no_crash) {
   PublicKey pkey(fs::path("tests/test_data/public.key"));
   std::string text = "This is text for sign";
@@ -121,6 +130,7 @@ TEST(crypto, verify_bad_sign_no_crash) {
   EXPECT_EQ(signe_is_ok, false);
 }
 
+/* Verify an ED25519 signature. */
 TEST(crypto, verify_ed25519) {
   std::ifstream root_stream("tests/test_data/ed25519_signed.json");
   std::string text((std::istreambuf_iterator<char>(root_stream)), std::istreambuf_iterator<char>());
@@ -141,6 +151,7 @@ TEST(crypto, bad_keytype) {
   EXPECT_EQ(pkey.Type(), KeyType::kUnknown);
 }
 
+/* Parse a p12 file containing TLS credentials. */
 TEST(crypto, parsep12) {
   std::string pkey;
   std::string cert;
@@ -239,6 +250,7 @@ TEST(crypto, parsep12_FAIL) {
   EXPECT_EQ(result, false);
 }
 
+/* Generate RSA 2048 key pairs. */
 TEST(crypto, generateRSA2048KeyPair) {
   std::string public_key;
   std::string private_key;
@@ -247,6 +259,7 @@ TEST(crypto, generateRSA2048KeyPair) {
   EXPECT_NE(private_key.size(), 0);
 }
 
+/* Generate RSA 4096 key pairs. */
 TEST(crypto, generateRSA4096KeyPair) {
   std::string public_key;
   std::string private_key;
@@ -255,6 +268,7 @@ TEST(crypto, generateRSA4096KeyPair) {
   EXPECT_NE(private_key.size(), 0);
 }
 
+/* Generate ED25519 key pairs. */
 TEST(crypto, generateED25519KeyPair) {
   std::string public_key;
   std::string private_key;

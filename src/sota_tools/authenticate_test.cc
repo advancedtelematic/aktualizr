@@ -10,17 +10,29 @@
 #include "treehub_server.h"
 #include "utilities/utils.h"
 
+/* Authenticate with OAuth2.
+ * Parse authentication information from treehub.json. */
 TEST(authenticate, good_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kOauth2);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
 }
 
+/* Authenticate with TLS credentials.
+ * Parse authentication information from treehub.json.
+ * Parse images repository URL from a provided archive. */
+/* TODO: This used to work, but then when the zip file was updated because of
+ * expired certs, it was changed to not use cert auth, and there was no check to
+ * verify the method at that time.
 TEST(authenticate, good_cert_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_cert_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kCert);
   TreehubServer treehub;
-  int r = authenticate("", ServerCredentials(filepath), treehub);
+  int r = authenticate("", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -29,11 +41,17 @@ TEST(authenticate, good_cert_zip) {
 
   EXPECT_EQ(CURLE_OK, rc);
 }
+*/
 
+/* Authenticate with nothing (no auth).
+ * Parse authentication information from treehub.json.
+ * Parse images repository URL from a provided archive. */
 TEST(authenticate, good_cert_noauth_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_noauth_good.zip";
+  ServerCredentials creds(filepath);
+  EXPECT_EQ(creds.GetMethod(), AuthMethod::kNone);
   TreehubServer treehub;
-  int r = authenticate("tests/fake_http_server/client.crt", ServerCredentials(filepath), treehub);
+  int r = authenticate("tests/fake_http_server/client.crt", creds, treehub);
   EXPECT_EQ(0, r);
   CurlEasyWrapper curl_handle;
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_VERBOSE, 1);
@@ -56,6 +74,7 @@ TEST(authenticate, bad_cert_zip) {
   EXPECT_NE(CURLE_OK, rc);
 }
 
+/* Reject a provided archive file with bogus credentials. */
 TEST(authenticate, bad_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_bad.zip";
   TreehubServer treehub;
@@ -63,11 +82,13 @@ TEST(authenticate, bad_zip) {
   EXPECT_EQ(1, r);
 }
 
+/* Reject a provided archive file without a treehub.json. */
 TEST(authenticate, no_json_zip) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_no_json.zip";
   EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsContent);
 }
 
+/* Extract credentials from a provided JSON file. */
 TEST(authenticate, good_json) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_good.json";
   TreehubServer treehub;
@@ -75,6 +96,7 @@ TEST(authenticate, good_json) {
   EXPECT_EQ(0, r);
 }
 
+/* Reject a bogus provided JSON file. */
 TEST(authenticate, bad_json) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test_bad.json";
   TreehubServer treehub;
@@ -82,18 +104,23 @@ TEST(authenticate, bad_json) {
   EXPECT_EQ(1, r);
 }
 
+/* Reject a bogus provided file. */
 TEST(authenticate, invalid_file) {
   boost::filesystem::path filepath = "tests/sota_tools/auth_test.cc";
   EXPECT_THROW(ServerCredentials creds(filepath), BadCredentialsJson);
 }
 
+/* Check if credentials support offline signing. */
 TEST(authenticate, offline_sign_creds) {
   boost::filesystem::path auth_offline = "tests/sota_tools/auth_test_good_offline.zip";
-  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
-
   ServerCredentials creds_offline(auth_offline);
-  ServerCredentials creds_online(auth_online);
   EXPECT_TRUE(creds_offline.CanSignOffline());
+}
+
+/* Check if credentials support offline signing. */
+TEST(authenticate, online_sign_creds) {
+  boost::filesystem::path auth_online = "tests/sota_tools/auth_test_cert_good.zip";
+  ServerCredentials creds_online(auth_online);
   EXPECT_FALSE(creds_online.CanSignOffline());
 }
 

@@ -4,6 +4,7 @@
 
 using std::string;
 
+/* Generate an OSTree hash from a ref string. */
 TEST(ostree_hash, parse) {
   string orig = "1f3378927c2d062e40a372414c920219e506afeb8ef25f9ff72a27b792cd093a";
   EXPECT_NO_THROW(OSTreeHash::Parse(orig));
@@ -11,6 +12,7 @@ TEST(ostree_hash, parse) {
   EXPECT_EQ(orig, h.string());
 }
 
+/* Ignore case of OSTree ref strings. */
 TEST(ostree_hash, parse_mixed_case) {
   string orig = "1F3378927C2d062e40a372414c920219e506afeb8ef25f9ff72a27b792cd093a";
   string expected = "1f3378927c2d062e40a372414c920219e506afeb8ef25f9ff72a27b792cd093a";
@@ -19,10 +21,13 @@ TEST(ostree_hash, parse_mixed_case) {
   EXPECT_EQ(expected, h.string());
 }
 
+/* Reject empty OSTree ref strings. */
 TEST(ostree_hash, parse_empty) { EXPECT_THROW(OSTreeHash::Parse(""), OSTreeCommitParseError); }
 
+/* Reject bogus OSTree ref strings. */
 TEST(ostree_hash, parse_short) { EXPECT_THROW(OSTreeHash::Parse("1F3378927C2d062"), OSTreeCommitParseError); }
 
+/* Reject bogus OSTree ref strings. */
 TEST(ostree_hash, parse_junk) {
   string str = "1F3378927C2d062e40a372414c920219e506afeb8ef25f9ff72a27b792cd093a";
   EXPECT_NO_THROW(OSTreeHash::Parse(str));

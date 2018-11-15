@@ -47,14 +47,22 @@ TEST(Utils, PrettyNameOk) {
   EXPECT_FALSE(PrettyNameOk("foo-bar-123&"));
 }
 
+/* Read hardware info from the system. */
+TEST(Utils, getHardwareInfo) {
+  Json::Value hwinfo = Utils::getHardwareInfo();
+  EXPECT_NE(hwinfo, Json::Value());
+  EXPECT_FALSE(hwinfo.isArray());
+}
+
+/* Read networking info from the system. */
 TEST(Utils, getNetworkInfo) {
   Json::Value netinfo = Utils::getNetworkInfo();
-
   EXPECT_NE(netinfo["local_ipv4"].asString(), "");
   EXPECT_NE(netinfo["mac"].asString(), "");
   EXPECT_NE(netinfo["hostname"].asString(), "");
 }
 
+/* Read the hostname from the system. */
 TEST(Utils, getHostname) { EXPECT_NE(Utils::getHostname(), ""); }
 
 /**
@@ -79,6 +87,7 @@ TEST(Utils, GenPrettyNameSane) {
   }
 }
 
+/* Generate a random UUID. */
 TEST(Utils, RandomUuidSane) {
   std::set<std::string> uuids;
   for (int i = 0; i < 1000; i++) {
@@ -129,6 +138,9 @@ TEST(Utils, Base64RoundTrip) {
   }
 }
 
+/*
+ * Extract credentials from a provided archive.
+ */
 TEST(Utils, ArchiveRead) {
   const std::string archive_path = "tests/test_data/credentials.zip";
 
@@ -162,6 +174,7 @@ TEST(Utils, ArchiveWrite) {
   }
 }
 
+/* Create a temporary directory. */
 TEST(Utils, TemporaryDirectory) {
   boost::filesystem::path p;
   {
@@ -177,6 +190,7 @@ TEST(Utils, TemporaryDirectory) {
   EXPECT_FALSE(boost::filesystem::exists(p));
 }
 
+/* Create a temporary file. */
 TEST(Utils, TemporaryFile) {
   boost::filesystem::path p;
   {
@@ -197,6 +211,7 @@ TEST(Utils, TemporaryFile) {
   EXPECT_FALSE(boost::filesystem::exists(p));  // The file gets deleted by the RAII dtor
 }
 
+/* Write to a temporary file. */
 TEST(Utils, TemporaryFilePutContents) {
   TemporaryFile f("ahint");
   f.PutContents("thecontents");

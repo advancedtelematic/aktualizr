@@ -37,7 +37,8 @@ int authenticate(const string &cacerts, const ServerCredentials &creds, TreehubS
       break;
     }
     case AuthMethod::kNone:
-      treehub.ca_certs(cacerts);  // Setup ca certificate because curl by default check ca certs
+      // Setup ca certificate because curl checks ca certs by default.
+      treehub.ca_certs(cacerts);
       break;
 
     default: {

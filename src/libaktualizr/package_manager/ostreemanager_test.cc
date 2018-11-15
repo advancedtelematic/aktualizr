@@ -16,6 +16,7 @@
 
 boost::filesystem::path test_sysroot;
 
+/* Reject bad OSTree server URIs. */
 TEST(OstreeManager, PullBadUriNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -38,6 +39,7 @@ TEST(OstreeManager, PullBadUriNoCreds) {
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
+/* Reject bad OSTree server URIs. */
 TEST(OstreeManager, PullBadUriWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -66,6 +68,7 @@ TEST(OstreeManager, PullBadUriWithCreds) {
   EXPECT_EQ(result.second, "Failed to parse uri: bad-url");
 }
 
+/* Reject bad OSTree server URIs. */
 TEST(OstreeManager, InstallBadUri) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
@@ -84,6 +87,7 @@ TEST(OstreeManager, InstallBadUri) {
   EXPECT_EQ(result.second, "Refspec 'hash' not found");
 }
 
+/* Abort if the OSTree sysroot is invalid. */
 TEST(OstreeManager, BadSysroot) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -94,6 +98,7 @@ TEST(OstreeManager, BadSysroot) {
   EXPECT_THROW(OstreeManager ostree(config.pacman, storage), std::runtime_error);
 }
 
+/* Parse a provided list of installed packages. */
 TEST(OstreeManager, ParseInstalledPackages) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -113,6 +118,7 @@ TEST(OstreeManager, ParseInstalledPackages) {
   EXPECT_EQ(packages[2]["version"], "1.1");
 }
 
+/* Communicate with a remote OSTree server without credentials. */
 TEST(OstreeManager, AddRemoteNoCreds) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -152,6 +158,7 @@ TEST(OstreeManager, AddRemoteNoCreds) {
   g_object_unref(repo);
 }
 
+/* Communicate with a remote OSTree server with credentials. */
 TEST(OstreeManager, AddRemoteWithCreds) {
   TemporaryDirectory temp_dir;
   Config config;

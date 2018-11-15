@@ -41,6 +41,7 @@ std::vector<Uptane::Target> makePackage(const std::string &serial, const std::st
   return packages_to_install;
 }
 
+/* Validate a TUF root. */
 TEST(Uptane, Verify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -55,6 +56,7 @@ TEST(Uptane, Verify) {
   Uptane::Root(Uptane::RepositoryType::Director, response.getJson(), root);
 }
 
+/* Throw an exception if a TUF root is unsigned. */
 TEST(Uptane, VerifyDataBad) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -71,6 +73,7 @@ TEST(Uptane, VerifyDataBad) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::UnmetThreshold);
 }
 
+/* Throw an exception if a TUF root has unknown signature types. */
 TEST(Uptane, VerifyDataUnknownType) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -88,6 +91,7 @@ TEST(Uptane, VerifyDataUnknownType) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::SecurityException);
 }
 
+/* Throw an exception if a TUF root has invalid key IDs. */
 TEST(Uptane, VerifyDataBadKeyId) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -105,6 +109,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::BadKeyId);
 }
 
+/* Throw an exception if a TUF root signature threshold is invalid. */
 TEST(Uptane, VerifyDataBadThreshold) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -119,12 +124,14 @@ TEST(Uptane, VerifyDataBadThreshold) {
   try {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
     Uptane::Root(Uptane::RepositoryType::Director, data_json, root);
-    FAIL();
+    FAIL() << "Illegal threshold should have thrown an error.";
   } catch (const Uptane::IllegalThreshold &ex) {
   } catch (const Uptane::UnmetThreshold &ex) {
   }
 }
 
+/* Get manifest from primary.
+ * Get manifest from secondaries. */
 TEST(Uptane, AssembleManifestGood) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -154,6 +161,7 @@ TEST(Uptane, AssembleManifestGood) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
+/* Bad signatures are ignored when assembling the manifest. */
 TEST(Uptane, AssembleManifestBad) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -171,6 +179,7 @@ TEST(Uptane, AssembleManifestBad) {
   Uptane::SecondaryConfig ecu_config =
       UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
+  /* Overwrite the secondary's keys on disk. */
   std::string private_key, public_key;
   Crypto::generateKeyPair(ecu_config.key_type, &public_key, &private_key);
   Utils::writeFile(ecu_config.full_client_dir / ecu_config.ecu_private_key, private_key);
@@ -189,6 +198,9 @@ TEST(Uptane, AssembleManifestBad) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("custom"));
 }
 
+/* Get manifest from primary.
+ * Get manifest from secondaries.
+ * Send manifest to the server. */
 TEST(Uptane, PutManifest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -230,6 +242,10 @@ TEST(Uptane, PutManifest) {
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
+ * Identify ECU for each target.
+ * Check if there are updates to install for the primary.
+ * Install a binary update on the primary.
+ * Store installation result for primary.
  */
 TEST(Uptane, InstallFake) {
   Config conf("tests/config/basic.toml");
@@ -260,6 +276,7 @@ TEST(Uptane, InstallFake) {
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("installed_image"));
 }
 
+/* Register secondary ECUs with director. */
 TEST(Uptane, UptaneSecondaryAdd) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -278,6 +295,9 @@ TEST(Uptane, UptaneSecondaryAdd) {
   auto storage = INvStorage::newStorage(config.storage);
   auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
   EXPECT_NO_THROW(sota_client->initialize());
+
+  /* Verify the correctness of the metadata sent to the server about the
+   * secondary. */
   Json::Value ecu_data = Utils::parseJSONFile(temp_dir / "post.json");
   EXPECT_EQ(ecu_data["ecus"].size(), 2);
   EXPECT_EQ(ecu_data["primary_ecu_serial"].asString(), config.provision.primary_ecu_serial);
@@ -307,6 +327,7 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(data["deviceId"].asString(), "tst149_device_id");
       return HttpResponse(Utils::readFile("tests/test_data/cred.p12"), 200, CURLE_OK, "");
     } else if (url.find("/director/ecus") != std::string::npos) {
+      /* Register primary ECU with director. */
       ecus_count++;
       EXPECT_EQ(data["primary_ecu_serial"].asString(), "tst149_ecu_serial");
       EXPECT_EQ(data["ecus"][0]["hardware_identifier"].asString(), "tst149_hardware_identifier");
@@ -327,9 +348,13 @@ class HttpFakeProv : public HttpFake {
     (void)url;
     ++events_seen;
     if (events_seen == 1) {
+      /* Send EcuInstallationStartedReport to server for primary. */
       EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationStarted");
+      EXPECT_EQ(data[0]["event"]["ecu"], "tst149_ecu_serial");
     } else if (events_seen == 2) {
+      /* Send EcuInstallationCompletedReport to server for primary. */
       EXPECT_EQ(data[0]["eventType"]["id"], "EcuInstallationCompleted");
+      EXPECT_EQ(data[0]["event"]["ecu"], "tst149_ecu_serial");
     } else {
       std::cout << "Unexpected event: " << data[0]["eventType"]["id"];
       EXPECT_EQ(0, 1);
@@ -340,11 +365,13 @@ class HttpFakeProv : public HttpFake {
   HttpResponse put(const std::string &url, const Json::Value &data) override {
     std::cout << "put " << url << "\n";
     if (url.find("core/installed") != std::string::npos) {
+      /* Send a list of installed packages to the server. */
       installed_count++;
       EXPECT_EQ(data.size(), 1);
       EXPECT_EQ(data[0]["name"].asString(), "fake-package");
       EXPECT_EQ(data[0]["version"].asString(), "1.0");
     } else if (url.find("/core/system_info") != std::string::npos) {
+      /* Send hardware info to the server. */
       system_info_count++;
       Json::Value hwinfo = Utils::getHardwareInfo();
       EXPECT_EQ(hwinfo["id"].asString(), data["id"].asString());
@@ -352,6 +379,9 @@ class HttpFakeProv : public HttpFake {
       EXPECT_EQ(hwinfo["class"].asString(), data["class"].asString());
       EXPECT_EQ(hwinfo["product"].asString(), data["product"].asString());
     } else if (url.find("/director/manifest") != std::string::npos) {
+      /* Get manifest from primary.
+       * Get primary installation result.
+       * Send manifest to the server. */
       manifest_count++;
       std::string hash;
       if (manifest_count <= 2) {
@@ -368,6 +398,7 @@ class HttpFakeProv : public HttpFake {
                         .asString(),
                 hash);
     } else if (url.find("/system_info/network") != std::string::npos) {
+      /* Send networking info to the server. */
       network_count++;
       Json::Value nwinfo = Utils::getNetworkInfo();
       EXPECT_EQ(nwinfo["local_ipv4"].asString(), data["local_ipv4"].asString());
@@ -389,6 +420,8 @@ class HttpFakeProv : public HttpFake {
   int network_count{0};
 };
 
+/* Provision with a fake server and check for the exact number of expected
+ * calls to each endpoint. */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
@@ -452,6 +485,7 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->events_seen, 2);
 }
 
+/* Migrate from the legacy filesystem storage. */
 TEST(Uptane, FsToSqlFull) {
   TemporaryDirectory temp_dir;
   Utils::copyDir("tests/test_data/prov", temp_dir.Path());
@@ -586,6 +620,7 @@ TEST(Uptane, FsToSqlFull) {
   EXPECT_EQ(sql_images_snapshot, images_snapshot);
 }
 
+/* Import a list of installed packages into the storage. */
 TEST(Uptane, InstalledVersionImport) {
   Config config;
 
@@ -621,6 +656,7 @@ TEST(Uptane, InstalledVersionImport) {
   EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
+/* Store a list of installed package versions. */
 TEST(Uptane, SaveAndLoadVersion) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -648,6 +684,11 @@ TEST(Uptane, SaveAndLoadVersion) {
   EXPECT_EQ(*f, t);
 }
 
+/* Verifies that we've prevented bug PRO-5210. This happened when the Root was
+ * created from the default constructor (which sets the policy to kRejectAll)
+ * and not overwritten by a valid Root from the storage (because the relevant
+ * table existed but was empty, which was unexpected). The solution is not to
+ * return a default-constructed Root when reading from storage. */
 TEST(Uptane, kRejectAllTest) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
@@ -688,6 +729,12 @@ class HttpFakeUnstable : public HttpFake {
   int unstable_valid_count{0};
 };
 
+/* Recover from an interrupted Uptane iteration.
+ * Fetch metadata from the director.
+ * Check metadata from the director.
+ * Identify targets for known ECUs.
+ * Fetch metadata from the images repo.
+ * Check metadata from the images repo. */
 TEST(Uptane, restoreVerify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeUnstable>(temp_dir.Path());
@@ -741,6 +788,11 @@ TEST(Uptane, restoreVerify) {
   EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
 }
 
+/* Fetch metadata from the director.
+ * Check metadata from the director.
+ * Identify targets for known ECUs.
+ * Fetch metadata from the images repo.
+ * Check metadata from the images repo. */
 TEST(Uptane, offlineIteration) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");

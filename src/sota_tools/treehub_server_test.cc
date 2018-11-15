@@ -16,6 +16,7 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
   return size * nmemb;
 }
 
+/* Authenticate with OAuth2. */
 TEST(treehub_server, token_auth) {
   TreehubServer server;
   CurlEasyWrapper curl_handle;
@@ -37,6 +38,7 @@ TEST(treehub_server, token_auth) {
   }
 }
 
+/* Authenticate with username and password (basic auth). */
 TEST(treehub_server, basic_auth) {
   TreehubServer server;
   CurlEasyWrapper curl_handle;

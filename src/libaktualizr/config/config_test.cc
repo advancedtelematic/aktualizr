@@ -78,6 +78,9 @@ TEST(config, CmdlPrimarySerial) {
   EXPECT_EQ(conf.provision.primary_ecu_serial, "test-serial");
 }
 
+/*
+ * Extract credentials from a provided archive.
+ */
 TEST(config, ExtractCredentials) {
   TemporaryDirectory temp_dir;
   Config conf;
@@ -98,6 +101,9 @@ TEST(config, ExtractCredentials) {
             "D27E3E56BEF02AAA6D6FFEFDA5357458C477A8E891C5EADF4F04CE67BB5866A4");
 }
 
+/*
+ * Parse secondary config files in JSON format.
+ */
 TEST(config, SecondaryConfig) {
   TemporaryDirectory temp_dir;
   const std::string conf_path_str = (temp_dir.Path() / "config.toml").string();
@@ -123,7 +129,7 @@ TEST(config, SecondaryConfig) {
 }
 
 /**
- * Verify that aktualizr can start in implicit provisioning mode.
+ * Start in implicit provisioning mode.
  */
 TEST(config, ImplicitMode) {
   RecordProperty("zephyr_key", "OTA-996,TST-184");
@@ -136,7 +142,8 @@ TEST(config, AutomaticMode) {
   EXPECT_EQ(config.provision.mode, ProvisionMode::kAutomatic);
 }
 
-/* We don't normally dump the config to file anymore, but we do write it to the
+/* Write config to file or to the log.
+ * We don't normally dump the config to file anymore, but we do write it to the
  * log. */
 TEST(config, TomlConsistentEmpty) {
   TemporaryDirectory temp_dir;
@@ -168,6 +175,7 @@ TEST(config, TomlConsistentNonempty) {
   EXPECT_EQ(conf_str1, conf_str2);
 }
 
+/* Parse multiple config files in a directory. */
 TEST(config, OneDir) {
   Config config(std::vector<boost::filesystem::path>{"tests/test_data/config_dirs/one_dir"});
   EXPECT_EQ(config.storage.path.string(), "path_z");
@@ -175,6 +183,7 @@ TEST(config, OneDir) {
   EXPECT_EQ(config.pacman.os, "os_a");
 }
 
+/* Parse multiple config files in multiple directories. */
 TEST(config, TwoDirs) {
   std::vector<boost::filesystem::path> config_dirs{"tests/test_data/config_dirs/one_dir",
                                                    "tests/test_data/config_dirs/second_one_dir"};

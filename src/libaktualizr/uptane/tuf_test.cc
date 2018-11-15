@@ -7,6 +7,7 @@
 #include "uptane/tuf.h"
 #include "utilities/utils.h"
 
+/* Validate a TUF root. */
 TEST(Root, RootValidates) {
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
   LOG_INFO << "Root is:" << initial_root;
@@ -17,6 +18,7 @@ TEST(Root, RootValidates) {
   EXPECT_NO_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root));
 }
 
+/* Throw an exception if a TUF root is unsigned. */
 TEST(Root, RootJsonNoKeys) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");
@@ -24,6 +26,7 @@ TEST(Root, RootJsonNoKeys) {
   EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, initial_root, root1), Uptane::InvalidMetadata);
 }
 
+/* Throw an exception if a TUF root has no roles. */
 TEST(Root, RootJsonNoRoles) {
   Uptane::Root root1(Uptane::Root::Policy::kAcceptAll);
   Json::Value initial_root = Utils::parseJSONFile("tests/tuf/sample1/root.json");

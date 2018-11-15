@@ -55,6 +55,11 @@ void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>&
   ++num_events_DownloadPause;
 }
 
+/* Pause downloading.
+ * Pausing while paused is ignored.
+ * Pausing while not downloading is ignored.
+ * Resume downloading.
+ * Resuming while not paused is ignored. */
 TEST(fetcher, fetch_with_pause) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";
@@ -102,6 +107,7 @@ TEST(fetcher, fetch_with_pause) {
   EXPECT_GE((finish - start), std::chrono::seconds(2));
 }
 
+/* Resume download interrupted by restart. */
 TEST(fetcher, fetch_restore) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";

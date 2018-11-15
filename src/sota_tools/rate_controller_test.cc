@@ -2,11 +2,13 @@
 
 #include "rate_controller.h"
 
+/* Initial rate controller status is good. */
 TEST(initial, initially_ok) {
   RateController dut;
   EXPECT_FALSE(dut.ServerHasFailed());
 }
 
+/* Rate controller aborts if it detects server or network failure. */
 TEST(failure, many_errors_cause_abort) {
   RateController dut;
   EXPECT_FALSE(dut.ServerHasFailed());
@@ -19,6 +21,7 @@ TEST(failure, many_errors_cause_abort) {
   EXPECT_TRUE(dut.ServerHasFailed());
 }
 
+/* Rate controller continues through intermittent errors. */
 TEST(failure, continues_through_occasional_errors) {
   RateController dut;
   EXPECT_FALSE(dut.ServerHasFailed());
@@ -32,6 +35,7 @@ TEST(failure, continues_through_occasional_errors) {
   }
 }
 
+/* Rate controller improves concurrency when network conditions are good. */
 TEST(control, good_results_improve_concurrency) {
   RateController dut;
   RateController::clock::time_point t = RateController::clock::now();

@@ -4,6 +4,7 @@
 
 TimeStamp now("2017-01-01T01:00:00Z");
 
+/* Parse Uptane timestamps. */
 TEST(TimeStamp, Parsing) {
   TimeStamp t_old("2038-01-19T02:00:00Z");
   TimeStamp t_new("2038-01-19T03:14:06Z");
@@ -17,8 +18,10 @@ TEST(TimeStamp, Parsing) {
   EXPECT_FALSE(t_invalid < t_invalid);
 }
 
+/* Throw an exception if an Uptane timestamp is invalid. */
 TEST(TimeStamp, ParsingInvalid) { EXPECT_THROW(TimeStamp("2038-01-19T0"), TimeStamp::InvalidTimeStamp); }
 
+/* Get current time. */
 TEST(TimeStamp, Now) {
   TimeStamp t_past("1982-12-13T02:00:00Z");
   TimeStamp t_future("2038-01-19T03:14:06Z");

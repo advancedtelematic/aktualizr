@@ -6,6 +6,7 @@
 
 boost::filesystem::path test_data_dir;
 
+/* Parse campaigns from JSON. */
 TEST(campaign, Campaigns_from_json) {
   auto json = Utils::parseJSONFile(test_data_dir / "campaigns_sample.json");
 

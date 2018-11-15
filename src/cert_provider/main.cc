@@ -26,7 +26,7 @@ void check_info_options(const bpo::options_description& description, const bpo::
     exit(EXIT_SUCCESS);
   }
   if (vm.count("version") != 0) {
-    std::cout << "Current aktualizr_cert_provider version is: " << AKTUALIZR_VERSION << "\n";
+    std::cout << "Current aktualizr-cert-provider version is: " << AKTUALIZR_VERSION << "\n";
     exit(EXIT_SUCCESS);
   }
 }
@@ -36,10 +36,10 @@ bpo::variables_map parse_options(int argc, char* argv[]) {
   // clang-format off
   description.add_options()
       ("help,h", "print usage")
-      ("version,v", "Current aktualizr_cert_provider version")
+      ("version,v", "Current aktualizr-cert-provider version")
       ("credentials,c", bpo::value<boost::filesystem::path>()->required(), "zipped credentials file")
-      ("device-ca", bpo::value<boost::filesystem::path>(), "path to certificate authority certificate signing device certificates")
-      ("device-ca-key", bpo::value<boost::filesystem::path>(), "path to the private key of device certificate authority")
+      ("fleet-ca", bpo::value<boost::filesystem::path>(), "path to fleet certificate authority certificate (for signing device certificates)")
+      ("fleet-ca-key", bpo::value<boost::filesystem::path>(), "path to the private key of fleet certificate authority")
       ("bits", bpo::value<int>(), "size of RSA keys in bits")
       ("days", bpo::value<int>(), "validity term for the certificate in days")
       ("certificate-c", bpo::value<std::string>(), "value for C field in certificate subject name")
@@ -154,8 +154,7 @@ bool generate_and_sign(const std::string& cacert_path, const std::string& capkey
                                  BIO_free_all);
   StructGuard<X509> ca_certificate(PEM_read_bio_X509(bio_in_cacert.get(), nullptr, nullptr, nullptr), X509_free);
   if (ca_certificate.get() == nullptr) {
-    std::cerr << "Reading CA certificate failed"
-              << "\n";
+    std::cerr << "Reading CA certificate failed.\n";
     return false;
   }
 
@@ -364,18 +363,18 @@ int main(int argc, char* argv[]) {
   }
   const bool skip_checks = commandline_map.count("skip-checks") != 0;
 
-  boost::filesystem::path device_ca_path = "";
-  if (commandline_map.count("device-ca") != 0) {
-    device_ca_path = commandline_map["device-ca"].as<boost::filesystem::path>();
+  boost::filesystem::path fleet_ca_path = "";
+  if (commandline_map.count("fleet-ca") != 0) {
+    fleet_ca_path = commandline_map["fleet-ca"].as<boost::filesystem::path>();
   }
 
-  boost::filesystem::path device_ca_key_path = "";
-  if (commandline_map.count("device-ca-key") != 0) {
-    device_ca_key_path = commandline_map["device-ca-key"].as<boost::filesystem::path>();
+  boost::filesystem::path fleet_ca_key_path = "";
+  if (commandline_map.count("fleet-ca-key") != 0) {
+    fleet_ca_key_path = commandline_map["fleet-ca-key"].as<boost::filesystem::path>();
   }
 
-  if (device_ca_path.empty() != device_ca_key_path.empty()) {
-    std::cerr << "device-ca and device-ca-key options should be used together" << std::endl;
+  if (fleet_ca_path.empty() != fleet_ca_key_path.empty()) {
+    std::cerr << "fleet-ca and fleet-ca-key options should be used together" << std::endl;
     return 1;
   }
 
@@ -437,7 +436,7 @@ int main(int argc, char* argv[]) {
   std::string ca;
   std::string serverUrl = Bootstrap::readServerUrl(credentials_path);
 
-  if (device_ca_path.empty()) {  // no device ca => autoprovision
+  if (fleet_ca_path.empty()) {  // no fleet ca => autoprovision
     std::string device_id = Utils::genPrettyName();
     std::cout << "Random device ID is " << device_id << "\n";
 
@@ -465,10 +464,11 @@ int main(int argc, char* argv[]) {
     StructGuard<BIO> device_p12(BIO_new_mem_buf(response.body.c_str(), static_cast<int>(response.body.size())),
                                 BIO_vfree);
     if (!Crypto::parseP12(device_p12.get(), "", &pkey, &cert, &ca)) {
+      std::cout << "Unable to parse p12 file received from server.\n";
       return -1;
     }
-  } else {  // device CA set => generate and sign a new certificate
-    if (!generate_and_sign(device_ca_path.native(), device_ca_key_path.native(), &pkey, &cert, commandline_map)) {
+  } else {  // fleet CA set => generate and sign a new certificate
+    if (!generate_and_sign(fleet_ca_path.native(), fleet_ca_key_path.native(), &pkey, &cert, commandline_map)) {
       return 1;
     }
 

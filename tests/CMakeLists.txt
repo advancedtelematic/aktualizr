@@ -14,7 +14,7 @@ add_subdirectory(uptane_repo_generation)
 include_directories("${PROJECT_SOURCE_DIR}/src/libaktualizr/third_party/jsoncpp")
 
 # use the same libraries as the normal target but add our test utility library, gtest, gmock and gcov
-set (TEST_LIBS
+set(TEST_LIBS
     ${AKTUALIZR_EXTERNAL_LIBS}
     testutilities
     gtest gmock)

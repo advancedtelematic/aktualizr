@@ -28,6 +28,7 @@ TEST(GetTest, get_performed) {
   EXPECT_EQ(response["path"].asString(), path);
 }
 
+/* Reject http GET responses that exceed size limit. */
 TEST(GetTest, download_size_limit) {
   HttpClient http;
   std::string path = "/large_file";
@@ -36,6 +37,7 @@ TEST(GetTest, download_size_limit) {
   EXPECT_EQ(resp.curl_code, CURLE_FILESIZE_EXCEEDED);
 }
 
+/* Reject http GET responses that do not meet speed limit. */
 TEST(GetTest, download_speed_limit) {
   HttpClient http;
   std::string path = "/slow_file";

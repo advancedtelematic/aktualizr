@@ -51,7 +51,7 @@ def provision(tmp_dir, build_dir, creds):
         f.write(CONFIG_TEMPLATE.format(tmp_dir=tmp_dir))
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
-    akt_cp = build_dir / 'src/cert_provider/aktualizr_cert_provider'
+    akt_cp = build_dir / 'src/cert_provider/aktualizr-cert-provider'
 
     popen_subprocess([str(akt), '--config', str(conf_dir), '--running-mode', 'once'])
     # Verify that device has NOT yet provisioned.
@@ -68,12 +68,12 @@ def provision(tmp_dir, build_dir, creds):
         print('Device already provisioned!? ' + stderr.decode() + stdout.decode())
         return 1
 
-    # Run cert_provider.
-    print('Device has not yet provisioned (as expected). Running cert_provider.')
+    # Run aktualizr-cert-provider.
+    print('Device has not yet provisioned (as expected). Running aktualizr-cert-provider.')
     stdout, stderr, retcode = run_subprocess([str(akt_cp),
         '-c', str(creds), '-l', '/', '-s', '-u', '-r', '-g', str(conf_prov)])
     if retcode > 0:
-        print('aktualizr_cert_provider failed (' + str(retcode) + '): ' +
+        print('aktualizr-cert-provider failed (' + str(retcode) + '): ' +
               stderr.decode() + stdout.decode())
         return retcode
 
