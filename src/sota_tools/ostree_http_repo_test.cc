@@ -81,7 +81,7 @@ TEST(http_repo, bad_connection) {
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
   TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
                                           std::string("2"));
-  TestUtils::waitForServer("http://localhost:" + dp + "/");
+  TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";

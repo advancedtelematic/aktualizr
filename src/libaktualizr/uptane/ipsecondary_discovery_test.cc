@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
 
   port = TestUtils::getFreePort();
   TestHelperProcess server_process("tests/fake_discovery/discovery_secondary.py", port);
-  TestUtils::waitForServer("http://127.0.0.1:" + port + "/");
+  // TODO: cannot use waitForServer, since it's udp
+  sleep(3);
 
   return RUN_ALL_TESTS();
 }

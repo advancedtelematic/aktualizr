@@ -143,10 +143,10 @@ TEST(OstreeObject, UploadSuccess) {
   auth["ostree"]["server"] = std::string("https://localhost:") + dp;
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
   TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.Path().string());
-  TestUtils::waitForServer("http://localhost:" + dp + "/");
+  TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   TreehubServer push_server;
-  push_server.root_url("http://localhost:" + dp);
+  push_server.root_url("https://localhost:" + dp);
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
