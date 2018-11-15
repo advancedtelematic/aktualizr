@@ -1,6 +1,7 @@
 {
   "secondary_type" : "virtual",
   "partial_verifying" : "false",
+  "ecu_serial" : "demo-vsec1-serial",
   "ecu_hardware_id" : "demo-virtual",
 
   "full_client_dir" : "storage/demo-vsec1",
