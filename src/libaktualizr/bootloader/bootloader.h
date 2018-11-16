@@ -11,7 +11,13 @@ class Bootloader {
   void setBootOK() const;
   void updateNotify() const;
 
-  // reboot handling (uses storage)
+  // Reboot handling (uses storage)
+  //
+  // Note: will only flag a reboot if it was flagged for detection with
+  // `rebootFlagSet()`.
+  // Also, `rebootDetected()` will continue to return true until the flag
+  // has been cleared, so that users can make sure that appropriate actions
+  // in reaction to the reboot have been processed.
   bool supportRebootDetection() const;
   bool rebootDetected() const;
   void rebootFlagSet();
