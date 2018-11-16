@@ -69,7 +69,7 @@ TEST(http_repo, bad_connection) {
   std::string sp = TestUtils::getFreePort();
 
   TestHelperProcess server_process("tests/sota_tools/treehub_server.py", sp, std::string("2"));
-  sleep(3);
+  TestUtils::waitForServer("http://localhost:" + sp + "/");
 
   TreehubServer server;
   server.root_url("http://localhost:" + sp);
@@ -81,7 +81,7 @@ TEST(http_repo, bad_connection) {
   Utils::writeFile(temp_dir.Path() / "auth.json", auth);
   TestHelperProcess deploy_server_process("tests/sota_tools/treehub_deploy_server.py", dp, temp_dir.PathString(),
                                           std::string("2"));
-  sleep(3);
+  TestUtils::waitForServer("https://localhost:" + dp + "/");
 
   boost::filesystem::path filepath = (temp_dir.Path() / "auth.json").string();
   boost::filesystem::path cert_path = "tests/fake_http_server/client.crt";
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
   port = TestUtils::getFreePort();
 
   TestHelperProcess server_process(server, port);
-  sleep(3);
+  TestUtils::waitForServer("http://localhost:" + port + "/");
 
   return RUN_ALL_TESTS();
 }

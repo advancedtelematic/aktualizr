@@ -5,8 +5,10 @@
 #if defined(OS_LINUX)
 #include <sys/prctl.h>
 #endif
+#include <chrono>
 #include <fstream>
 #include <string>
+#include <thread>
 
 #include <boost/filesystem.hpp>
 
@@ -46,6 +48,37 @@ void TestUtils::writePathToConfig(const boost::filesystem::path &toml_in, const 
   cs << "\n[storage]\npath = " << storage_path.string() << "\n";
 }
 
+void TestUtils::waitForServer(const std::string &address) {
+  CURL *handle = curl_easy_init();
+  if (handle == nullptr) {
+    throw std::runtime_error("Could not initialize curl handle");
+  }
+  curlEasySetoptWrapper(handle, CURLOPT_URL, address.c_str());
+  curlEasySetoptWrapper(handle, CURLOPT_CONNECTTIMEOUT, 3L);
+  curlEasySetoptWrapper(handle, CURLOPT_NOBODY, 1L);
+  curlEasySetoptWrapper(handle, CURLOPT_VERBOSE, 1L);
+  curlEasySetoptWrapper(handle, CURLOPT_SSL_VERIFYPEER, 0L);
+
+  CURLcode result;
+  for (size_t counter = 1; counter <= 100; counter++) {
+    result = curl_easy_perform(handle);
+    if (result == 0) {
+      // connection successful
+      break;
+    }
+    if (counter % 5 == 0) {
+      std::cout << "Unable to connect to " << address << " after " << counter << " tries.\n";
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  }
+
+  curl_easy_cleanup(handle);
+
+  if (result != 0) {
+    throw std::runtime_error("Wait for server timed out");
+  }
+}
+
 void TestHelperProcess::run(const char *argv0, const char *args[]) {
   pid_ = fork();
   if (pid_ == -1) {
@@ -56,6 +89,8 @@ void TestHelperProcess::run(const char *argv0, const char *args[]) {
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
     execvp(argv0, const_cast<char *const *>(args));
+    std::cout << "Could not execute child " << argv0 << "\n";
+    exit(1);
   }
 }
 

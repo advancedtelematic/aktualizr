@@ -120,8 +120,7 @@ int main(int argc, char **argv) {
 
   port = TestUtils::getFreePort();
   TestHelperProcess server_process("tests/fake_http_server/fake_uptane_server.py", port);
-
-  sleep(3);
+  TestUtils::waitForServer("http://127.0.0.1:" + port + "/");
 
   conf.provision.server = "http://127.0.0.1:" + port;
   conf.tls.server = "http://127.0.0.1:" + port;

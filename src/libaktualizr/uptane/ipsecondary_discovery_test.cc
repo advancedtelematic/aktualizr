@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
   port = TestUtils::getFreePort();
   TestHelperProcess server_process("tests/fake_discovery/discovery_secondary.py", port);
-
+  // TODO: cannot use waitForServer, since it's udp
   sleep(3);
 
   return RUN_ALL_TESTS();
