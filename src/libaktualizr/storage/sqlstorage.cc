@@ -640,6 +640,49 @@ void SQLStorage::clearEcuRegistered() {
   }
 }
 
+void SQLStorage::storeNeedReboot() {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement<int>("INSERT OR REPLACE INTO need_reboot(unique_mark,flag) VALUES(0,?);", 1);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set need_reboot: " << db.errmsg();
+    return;
+  }
+}
+
+bool SQLStorage::loadNeedReboot(bool* need_reboot) {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement("SELECT flag FROM need_reboot LIMIT 1;");
+
+  int result = statement.step();
+  if (result == SQLITE_DONE) {
+    if (need_reboot != nullptr) {
+      *need_reboot = false;
+    }
+    return true;
+  } else if (result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get need_reboot: " << db.errmsg();
+    return false;
+  }
+
+  auto flag = static_cast<bool>(statement.get_result_col_int(0));
+  if (need_reboot != nullptr) {
+    *need_reboot = flag;
+  }
+
+  return true;
+}
+
+void SQLStorage::clearNeedReboot() {
+  SQLite3Guard db = dbConnection();
+
+  if (db.exec("DELETE FROM need_reboot;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear need_reboot: " << db.errmsg();
+    return;
+  }
+}
+
 void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
   if (serials.size() >= 1) {
     SQLite3Guard db = dbConnection();

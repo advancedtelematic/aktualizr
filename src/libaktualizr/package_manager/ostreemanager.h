@@ -7,6 +7,7 @@
 #include <glib/gi18n.h>
 #include <ostree.h>
 
+#include "bootloader/bootloader.h"
 #include "crypto/keymanager.h"
 #include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
@@ -33,7 +34,7 @@ struct PullMetaStruct {
 
 class OstreeManager : public PackageManagerInterface {
  public:
-  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage);
+  OstreeManager(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader);
   ~OstreeManager() override = default;
   std::string name() const override { return "ostree"; }
   Json::Value getInstalledPackages() const override;
@@ -52,6 +53,7 @@ class OstreeManager : public PackageManagerInterface {
  private:
   PackageConfig config;
   std::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<Bootloader> bootloader_;
 };
 
 #endif  // OSTREE_H_

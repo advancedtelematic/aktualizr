@@ -1,3 +1,8 @@
+#include <fcntl.h>
+#include <sys/stat.h>
+
+#include <boost/filesystem.hpp>
+
 #include "bootloader.h"
 #include "utilities/config_utils.h"
 #include "utilities/exceptions.h"
@@ -37,10 +42,31 @@ inline void CopyFromConfig(RollbackMode& dest, const std::string& option_name, c
 
 void BootloaderConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
   CopyFromConfig(rollback_mode, "rollback_mode", pt);
+  CopyFromConfig(reboot_sentinel_dir, "reboot_sentinel_dir", pt);
+  CopyFromConfig(reboot_sentinel_name, "reboot_sentinel_name", pt);
 }
 
 void BootloaderConfig::writeToStream(std::ostream& out_stream) const {
   writeOption(out_stream, rollback_mode, "rollback_mode");
+  writeOption(out_stream, reboot_sentinel_dir, "reboot_sentinel_dir");
+  writeOption(out_stream, reboot_sentinel_name, "reboot_sentinel_name");
+}
+
+Bootloader::Bootloader(const BootloaderConfig& config, INvStorage& storage) : config_(config), storage_(storage) {
+  reboot_sentinel_ = config_.reboot_sentinel_dir / config_.reboot_sentinel_name;
+
+  if (mkdir(config_.reboot_sentinel_dir.c_str(), S_IRWXU) == -1) {
+    struct stat st {};
+    stat(config_.reboot_sentinel_dir.c_str(), &st);
+    if (((st.st_mode & S_IFDIR) == 0) || (st.st_mode & (S_IRGRP | S_IROTH | S_IWGRP | S_IWOTH)) != 0) {
+      LOG_WARNING << "Could not create " << config_.reboot_sentinel_dir
+                  << " securely, reboot detection support disabled";
+      reboot_detect_supported_ = false;
+      return;
+    }
+    // mdkir failed but directory is here with good permissions: someone created it for us
+  }
+  reboot_detect_supported_ = true;
 }
 
 void Bootloader::setBootOK() const {
@@ -93,4 +119,43 @@ void Bootloader::updateNotify() const {
     default:
       throw NotImplementedException();
   }
+}
+
+bool Bootloader::supportRebootDetection() const { return reboot_detect_supported_; }
+
+bool Bootloader::rebootDetected() const {
+  if (!reboot_detect_supported_) {
+    return false;
+  }
+
+  // true if set in storage and no volatile flag
+
+  bool sentinel_exists = boost::filesystem::exists(reboot_sentinel_);
+  bool need_reboot = false;
+
+  storage_.loadNeedReboot(&need_reboot);
+
+  return need_reboot && !sentinel_exists;
+}
+
+void Bootloader::rebootFlagSet() {
+  if (!reboot_detect_supported_) {
+    return;
+  }
+
+  // set in storage + volatile flag
+
+  Utils::writeFile(reboot_sentinel_, std::string(), false);  // empty file
+  storage_.storeNeedReboot();
+}
+
+void Bootloader::rebootFlagClear() {
+  if (!reboot_detect_supported_) {
+    return;
+  }
+
+  // clear in storage + volatile flag
+
+  storage_.clearNeedReboot();
+  boost::filesystem::remove(reboot_sentinel_);
 }

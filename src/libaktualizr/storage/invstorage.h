@@ -141,6 +141,10 @@ class INvStorage {
   virtual bool loadEcuRegistered() = 0;
   virtual void clearEcuRegistered() = 0;
 
+  virtual void storeNeedReboot() = 0;
+  virtual bool loadNeedReboot(bool* need_reboot) = 0;
+  virtual void clearNeedReboot() = 0;
+
   virtual void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
                                       const std::string& current_hash) = 0;
   virtual std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) = 0;

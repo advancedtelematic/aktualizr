@@ -6,6 +6,7 @@ These are the primary actions that a user of libaktualizr can perform through th
 
 - [x] Initialization
   - [ ] Set boot count to 0 to indicate successful boot
+  - [x] Detect a system reboot on the primary, if expected (bootloader_test.cc)
   - [x] Initialize secondaries
     - [x] Discover secondaries over TCP-IP (ipsecondary_discovery_test.cc)
     - [x] Add secondaries from configuration (uptane_test.cc)
@@ -125,6 +126,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
     - [x] Install an update on the primary
       - [ ] Install an OSTree update on the primary
+      - [ ] Notify "reboot needed" after an OStree update
       - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Store installation result for primary (uptane_test.cc)
     - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)
@@ -141,7 +143,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Send AllInstallsComplete event after all installations are finished (aktualizr_test.cc)
 - [x] Send installation report
   - [x] Generate and send manifest (see below)
-  - [x] send PutManifestComplete event if send is successful (aktualizr_test.cc)
+  - [x] Send PutManifestComplete event if send is successful (aktualizr_test.cc)
   - [ ] Send PutManifestComplete event if send is unsuccessful
 
 ### Internal and common actions

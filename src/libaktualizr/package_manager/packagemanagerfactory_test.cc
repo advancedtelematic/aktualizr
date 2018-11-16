@@ -20,7 +20,8 @@ TEST(PackageManagerFactory, Ostree) {
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_OSTREE
-  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
@@ -36,11 +37,12 @@ TEST(PackageManagerFactory, Debian) {
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
 #ifdef BUILD_DEB
-  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, storage),
+                   PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr),
                std::runtime_error);
 #endif
 }
@@ -51,7 +53,8 @@ TEST(PackageManagerFactory, None) {
   config.storage.path = dir.Path();
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
   config.pacman.type = PackageManager::kNone;
-  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
   EXPECT_TRUE(pacman);
 }
 
@@ -61,7 +64,8 @@ TEST(PackageManagerFactory, Bad) {
   config.storage.path = dir.Path();
   config.pacman.type = (PackageManager)-1;
   std::shared_ptr<INvStorage> storage = INvStorage::newStorage(config.storage);
-  std::shared_ptr<PackageManagerInterface> pacman = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  std::shared_ptr<PackageManagerInterface> pacman =
+      PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr);
   EXPECT_FALSE(pacman);
 }
 

@@ -12,12 +12,13 @@
 #include "logging/logging.h"
 
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
-    const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage) {
-  (void)storage;
+    const PackageConfig& pconfig, const std::shared_ptr<INvStorage>& storage,
+    const std::shared_ptr<Bootloader>& bootloader) {
+  (void)bootloader;
   switch (pconfig.type) {
     case PackageManager::kOstree:
 #ifdef BUILD_OSTREE
-      return std::make_shared<OstreeManager>(pconfig, storage);
+      return std::make_shared<OstreeManager>(pconfig, storage, bootloader);
 #else
       throw std::runtime_error("aktualizr was compiled without OStree support!");
 #endif

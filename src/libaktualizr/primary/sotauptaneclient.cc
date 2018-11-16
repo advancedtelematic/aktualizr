@@ -20,7 +20,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
-  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
@@ -33,7 +33,7 @@ std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config
                                                                   std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
       std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
-  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader);
+  std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
   return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
                                             report_queue_in, events_channel_in);
@@ -55,9 +55,14 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       events_channel(std::move(events_channel_in)) {
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
-  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage);
+  package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
   if (package_manager_->imageUpdated()) {
     bootloader->setBootOK();
+  }
+
+  if (bootloader->rebootDetected()) {
+    LOG_INFO << "Device has been rebooted after an update";
+    bootloader->rebootFlagClear();
   }
 
   if (config.discovery.ipuptane) {

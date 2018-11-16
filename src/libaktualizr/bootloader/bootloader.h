@@ -3,14 +3,32 @@
 
 #include "bootloader_config.h"
 
+#include "storage/invstorage.h"
+
 class Bootloader {
  public:
-  Bootloader(const BootloaderConfig& config) : config_{config} {}
+  Bootloader(const BootloaderConfig& config, INvStorage& storage);
   void setBootOK() const;
   void updateNotify() const;
 
+  // Reboot handling (uses storage)
+  //
+  // Note: will only flag a reboot if it was flagged for detection with
+  // `rebootFlagSet()`.
+  // Also, `rebootDetected()` will continue to return true until the flag
+  // has been cleared, so that users can make sure that appropriate actions
+  // in reaction to the reboot have been processed.
+  bool supportRebootDetection() const;
+  bool rebootDetected() const;
+  void rebootFlagSet();
+  void rebootFlagClear();
+
  private:
   const BootloaderConfig& config_;
+
+  INvStorage& storage_;
+  boost::filesystem::path reboot_sentinel_;
+  bool reboot_detect_supported_{false};
 };
 
 #endif  // BOOTLOADER_H_
