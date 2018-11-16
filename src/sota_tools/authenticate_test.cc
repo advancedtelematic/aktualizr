@@ -129,10 +129,11 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   TestHelperProcess server_process("tests/fake_http_server/ssl_server.py");
   TestHelperProcess server_noauth_process("tests/fake_http_server/ssl_noauth_server.py");
-  sleep(4);
-  // TODO: these do not work because the server expects auth!
+  // TODO: this do not work because the server expects auth! Let's sleep for now.
+  // (could be replaced by a check with raw tcp)
   // TestUtils::waitForServer("https://localhost:1443/");
-  // TestUtils::waitForServer("https://localhost:2443/");
+  sleep(4);
+  TestUtils::waitForServer("https://localhost:2443/");
   return RUN_ALL_TESTS();
 }
 #endif
