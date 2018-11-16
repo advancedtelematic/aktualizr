@@ -45,6 +45,7 @@ struct Utils {
   static std::vector<boost::filesystem::path> glob(const std::string &pat);
   static void createDirectories(const boost::filesystem::path &path, mode_t mode);
   static std::string urlEncode(const std::string &input);
+  static CURL *curlDupHandleWrapper(CURL *curl_in, bool using_pkcs11);
 };
 
 /**
