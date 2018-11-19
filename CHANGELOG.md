@@ -10,6 +10,14 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 - [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
 
+### Added
+
+- Auto retry for more robust download: [PR](https://github.com/advancedtelematic/aktualizr/pull/1001)
+
+### Fixed
+
+- Correctly download targets with characters disallowed in URI in their name: [PR](https://github.com/advancedtelematic/aktualizr/pull/996)
+
 ## [2018.13] - 2018-11-05
 
 ### Added
