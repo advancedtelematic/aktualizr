@@ -96,7 +96,7 @@ HttpClient::~HttpClient() {
 }
 
 HttpResponse HttpClient::get(const std::string& url, int64_t maxsize) {
-  CURL* curl_get = curl_easy_duphandle(curl);
+  CURL* curl_get = Utils::curlDupHandleWrapper(curl, pkcs11_key);
 
   // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
   if (pkcs11_key) {
@@ -168,27 +168,19 @@ void HttpClient::setCerts(const std::string& ca, CryptoSource ca_source, const s
 }
 
 HttpResponse HttpClient::post(const std::string& url, const Json::Value& data) {
-  curlEasySetoptWrapper(curl, CURLOPT_URL, url.c_str());
-  curlEasySetoptWrapper(curl, CURLOPT_POST, 1);
+  CURL* curl_post = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+  curlEasySetoptWrapper(curl_post, CURLOPT_URL, url.c_str());
+  curlEasySetoptWrapper(curl_post, CURLOPT_POST, 1);
   std::string data_str = Json::FastWriter().write(data);
-  curlEasySetoptWrapper(curl, CURLOPT_POSTFIELDS, data_str.c_str());
+  curlEasySetoptWrapper(curl_post, CURLOPT_POSTFIELDS, data_str.c_str());
   LOG_TRACE << "post request body:" << data;
-  return perform(curl, RETRY_TIMES, HttpInterface::kPostRespLimit);
+  auto result = perform(curl_post, RETRY_TIMES, HttpInterface::kPostRespLimit);
+  curl_easy_cleanup(curl_post);
+  return result;
 }
 
 HttpResponse HttpClient::put(const std::string& url, const Json::Value& data) {
-  CURL* curl_put = curl_easy_duphandle(curl);
-
-  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
-  if (pkcs11_key) {
-    curlEasySetoptWrapper(curl_put, CURLOPT_SSLENGINE, "pkcs11");
-    curlEasySetoptWrapper(curl_put, CURLOPT_SSLKEYTYPE, "ENG");
-  }
-
-  if (pkcs11_cert) {
-    curlEasySetoptWrapper(curl_put, CURLOPT_SSLCERTTYPE, "ENG");
-  }
-
+  CURL* curl_put = Utils::curlDupHandleWrapper(curl, pkcs11_key);
   curlEasySetoptWrapper(curl_put, CURLOPT_URL, url.c_str());
   std::string data_str = Json::FastWriter().write(data);
   curlEasySetoptWrapper(curl_put, CURLOPT_POSTFIELDS, data_str.c_str());
@@ -222,17 +214,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
 }
 
 HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, size_t from) {
-  CURL* curl_download = curl_easy_duphandle(curl);
-
-  // TODO: it is a workaround for an unidentified bug in libcurl. Ideally the bug itself should be fixed.
-  if (pkcs11_key) {
-    curlEasySetoptWrapper(curl_download, CURLOPT_SSLENGINE, "pkcs11");
-    curlEasySetoptWrapper(curl_download, CURLOPT_SSLKEYTYPE, "ENG");
-  }
-
-  if (pkcs11_cert) {
-    curlEasySetoptWrapper(curl_download, CURLOPT_SSLCERTTYPE, "ENG");
-  }
+  CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
 
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);

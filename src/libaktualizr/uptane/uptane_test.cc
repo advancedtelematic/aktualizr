@@ -30,18 +30,6 @@
 #endif
 #endif
 
-std::vector<Uptane::Target> makePackage(const std::string &serial, const std::string &hw_id) {
-  std::vector<Uptane::Target> packages_to_install;
-  Json::Value ot_json;
-  ot_json["custom"]["ecuIdentifiers"][serial]["hardwareId"] = hw_id;
-  ot_json["custom"]["targetFormat"] = "OSTREE";
-  ot_json["length"] = 0;
-  ot_json["hashes"]["sha256"] = serial;
-  packages_to_install.emplace_back(serial, ot_json);
-  return packages_to_install;
-}
-
-/* Validate a TUF root. */
 TEST(Uptane, Verify) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
@@ -261,7 +249,7 @@ TEST(Uptane, InstallFake) {
   auto storage = INvStorage::newStorage(conf.storage);
   auto up = SotaUptaneClient::newTestClient(conf, storage, http);
   EXPECT_NO_THROW(up->initialize());
-  std::vector<Uptane::Target> packages_to_install = makePackage("testecuserial", "testecuhwid");
+  std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
   up->uptaneInstall(packages_to_install);
 
   // Make sure operation_result and filepath were correctly written and formatted.
@@ -467,7 +455,7 @@ TEST(Uptane, ProvisionOnServer) {
   // Testing downloading is not strictly necessary here and will not work due to
   // the metadata concerns anyway.
   std::vector<Uptane::Target> packages_to_install =
-      makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
+      UptaneTestCommon::makePackage(config.provision.primary_ecu_serial, config.provision.primary_ecu_hardware_id);
   DownloadResult result = up->downloadImages(packages_to_install);
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, DownloadStatus::kError);

@@ -22,10 +22,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(token)
     def do_HEAD(self):
         self.send_response(200)
-        self.end_headers()       
-
-
-
+        self.end_headers()
 
 
 class ReUseHTTPServer(HTTPServer):
@@ -40,6 +37,6 @@ httpd = ReUseHTTPServer(server_address, Handler)
 try:
     httpd.serve_forever()
 except KeyboardInterrupt as k:
-    print("fake_uptane_server.py exiting...")
+    print("fake_api_server.py exiting...")
     pass
 

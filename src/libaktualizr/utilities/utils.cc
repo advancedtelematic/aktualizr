@@ -683,6 +683,19 @@ std::string Utils::urlEncode(const std::string &input) {
   return res;
 }
 
+CURL *Utils::curlDupHandleWrapper(CURL *const curl_in, const bool using_pkcs11) {
+  CURL *curl = curl_easy_duphandle(curl_in);
+
+  // This is a workaround for a bug in curl. It has been fixed in
+  // 75a845d8cfa71688d59d43788c35829b25b6d6af (curl 7.61.1), but that is not
+  // the default in most distributions yet, so we will continue to use the
+  // workaround.
+  if (using_pkcs11) {
+    curlEasySetoptWrapper(curl, CURLOPT_SSLENGINE, "pkcs11");
+  }
+  return curl;
+}
+
 class SafeTempRoot {
  public:
   SafeTempRoot(const SafeTempRoot &) = delete;
