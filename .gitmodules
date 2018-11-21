@@ -4,9 +4,6 @@
 [submodule "partial/extern/isotp-c"]
 	path = partial/extern/isotp-c
 	url = https://github.com/advancedtelematic/isotp-c.git
-[submodule "tests/ostreesysroot"]
-	path = tests/ostreesysroot
-	url = https://github.com/advancedtelematic/ostreesysroot
 [submodule "third_party/HdrHistogram_c"]
 	path = third_party/HdrHistogram_c
 	url = https://github.com/HdrHistogram/HdrHistogram_c
