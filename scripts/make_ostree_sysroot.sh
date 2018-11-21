@@ -6,7 +6,7 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-SCRIPT="${1}/tests/ostreesysroot/makephysical.sh"
+SCRIPT="${1}/tests/ostree-scripts/makephysical.sh"
 REPO="${2}/ostree_repo"
 PORT=$("${1}/tests/get_open_port.py")
 
