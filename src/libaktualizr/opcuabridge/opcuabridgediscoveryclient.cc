@@ -85,7 +85,7 @@ void Client::collectDiscoveredEndPointsOnIface(unsigned int iface) {
         io_service.run_one();
       } while (!discovery_timeout_expired && error_code == ba::error::would_block);
       std::string discovered_ep_address = discovered_ep.address().to_string();
-      if (error_code != nullptr) {
+      if (error_code != boost::system::errc::success) {
         throw boost::system::system_error(error_code);
       }
       if (!discovery_timeout_expired && discovered_endpoints_.count(discovered_ep_address) == 0) {
