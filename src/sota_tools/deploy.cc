@@ -31,14 +31,13 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
 
   RequestPool request_pool(push_server, max_curl_requests);
 
-  // Add commit object to the queue
+  // Add commit object to the queue.
   request_pool.AddQuery(root_object);
 
   // Main curl event loop.
-  // request_pool takes care of holding number of outstanding requests below
-  // OSTreeObject::CurlDone() adds new requests to the pool and
-  // stop the pool on error
-
+  // request_pool takes care of holding number of outstanding requests below.
+  // OSTreeObject::CurlDone() adds new requests to the pool and stops the pool
+  // on error.
   do {
     request_pool.Loop(dryrun);
   } while (root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped());

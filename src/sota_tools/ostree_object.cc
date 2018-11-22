@@ -276,7 +276,20 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
-      NotifyParents(pool);
+      // TODO: Fix
+      // NotifyParents(pool);
+      try {
+        PopulateChildren();
+        LOG_INFO << "Children: " << children_.size();
+        if (children_ready()) {
+          pool.AddUpload(this);
+        } else {
+          QueryChildren(pool);
+        }
+      } catch (const OSTreeObjectMissing &error) {
+        LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
+        pool.Abort();
+      }
     } else if (rescode == 404) {
       is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kOk;
@@ -288,7 +301,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
           QueryChildren(pool);
         }
       } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Local OSTree repo does not contain object " << error.missing_object();
+        LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
         pool.Abort();
       }
     } else {
