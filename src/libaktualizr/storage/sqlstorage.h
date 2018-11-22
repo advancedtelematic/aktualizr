@@ -60,9 +60,8 @@ class SQLStorage : public INvStorage {
   void storeNeedReboot() override;
   bool loadNeedReboot(bool* need_reboot) override;
   void clearNeedReboot() override;
-  void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                              const std::string& current_hash) override;
-  std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) override;
+  void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions, size_t current_version) override;
+  bool loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) override;
   void clearInstalledVersions() override;
   void storeInstallationResult(const data::OperationResult& result) override;
   bool loadInstallationResult(data::OperationResult* result) override;

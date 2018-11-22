@@ -278,7 +278,7 @@ TEST(sqlstorage, migrate_from_fs) {
   EXPECT_TRUE(storage->loadEcuRegistered());
 
   std::vector<Uptane::Target> installed;
-  storage->loadInstalledVersions(&installed);
+  storage->loadInstalledVersions(&installed, nullptr);
   EXPECT_NE(installed.size(), 0);
 
   EXPECT_TRUE(storage->loadInstallationResult(nullptr));

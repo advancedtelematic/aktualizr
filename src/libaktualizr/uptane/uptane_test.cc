@@ -501,7 +501,7 @@ TEST(Uptane, FsToSqlFull) {
   bool ecu_registered = fs_storage.loadEcuRegistered();
 
   std::vector<Uptane::Target> installed_versions;
-  fs_storage.loadInstalledVersions(&installed_versions);
+  fs_storage.loadInstalledVersions(&installed_versions, nullptr);
 
   std::string director_root;
   std::string director_targets;
@@ -574,7 +574,7 @@ TEST(Uptane, FsToSqlFull) {
   bool sql_ecu_registered = sql_storage->loadEcuRegistered();
 
   std::vector<Uptane::Target> sql_installed_versions;
-  sql_storage->loadInstalledVersions(&sql_installed_versions);
+  sql_storage->loadInstalledVersions(&sql_installed_versions, nullptr);
 
   std::string sql_director_root;
   std::string sql_director_targets;
@@ -626,7 +626,7 @@ TEST(Uptane, InstalledVersionImport) {
   storage->importData(config.import);
 
   std::vector<Uptane::Target> installed_versions;
-  storage->loadInstalledVersions(&installed_versions);
+  storage->loadInstalledVersions(&installed_versions, nullptr);
   EXPECT_EQ(installed_versions.at(0).filename(),
             "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
 
@@ -636,11 +636,11 @@ TEST(Uptane, InstalledVersionImport) {
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
   target_json["length"] = 123;
   std::vector<Uptane::Target> new_installed_versions = {{"filename", target_json}};
-  storage->storeInstalledVersions(new_installed_versions, "");
+  storage->storeInstalledVersions(new_installed_versions, SIZE_MAX);
 
   auto new_storage = INvStorage::newStorage(config.storage);
   new_storage->importData(config.import);
-  new_storage->loadInstalledVersions(&installed_versions);
+  new_storage->loadInstalledVersions(&installed_versions, nullptr);
   EXPECT_EQ(installed_versions.at(0).filename(), "filename");
 }
 
@@ -662,7 +662,7 @@ TEST(Uptane, SaveAndLoadVersion) {
   storage->saveInstalledVersion(t);
 
   std::vector<Uptane::Target> installed_versions;
-  storage->loadInstalledVersions(&installed_versions);
+  storage->loadInstalledVersions(&installed_versions, nullptr);
 
   auto f = std::find_if(installed_versions.begin(), installed_versions.end(),
                         [](const Uptane::Target &t_) { return t_.filename() == "target_name"; });

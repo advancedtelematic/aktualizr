@@ -146,8 +146,8 @@ class INvStorage {
   virtual void clearNeedReboot() = 0;
 
   virtual void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                                      const std::string& current_hash) = 0;
-  virtual std::string loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) = 0;
+                                      size_t current_version) = 0;
+  virtual bool loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) = 0;
   virtual void clearInstalledVersions() = 0;
 
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;
@@ -167,8 +167,8 @@ class INvStorage {
   // Special constructors and utilities
   static std::shared_ptr<INvStorage> newStorage(const StorageConfig& config, bool readonly = false);
   static void FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage);
-  static std::string fsReadInstalledVersions(const boost::filesystem::path& filename,
-                                             std::vector<Uptane::Target>* installed_versions);
+  static bool fsReadInstalledVersions(const boost::filesystem::path& filename,
+                                      std::vector<Uptane::Target>* installed_versions, size_t* current_version);
 
   // Not purely virtual
   void importData(const ImportConfig& import_config);

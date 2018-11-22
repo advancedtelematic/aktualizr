@@ -54,13 +54,12 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
 
 Uptane::Target DebianManager::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
-  std::string current_hash = storage_->loadInstalledVersions(&installed_versions);
+  size_t current_k = SIZE_MAX;
+  storage_->loadInstalledVersions(&installed_versions, &current_k);
 
-  std::vector<Uptane::Target>::iterator it;
-  for (it = installed_versions.begin(); it != installed_versions.end(); it++) {
-    if (it->sha256Hash() == current_hash) {
-      return *it;
-    }
+  if (current_k != SIZE_MAX) {
+    return installed_versions.at(current_k);
   }
+
   return getUnknown();
 }

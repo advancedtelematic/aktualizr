@@ -243,9 +243,9 @@ bool FSStorageRead::loadMisconfiguredEcus(std::vector<MisconfiguredEcu>* ecus) {
   return true;
 }
 
-std::string FSStorageRead::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
+bool FSStorageRead::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) {
   const boost::filesystem::path path = Utils::absolutePath(config_.path, "installed_versions");
-  return INvStorage::fsReadInstalledVersions(path, installed_versions);
+  return INvStorage::fsReadInstalledVersions(path, installed_versions, current_version);
 }
 
 bool FSStorageRead::loadInstallationResult(data::OperationResult* result) {
