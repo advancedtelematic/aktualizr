@@ -832,8 +832,7 @@ void SQLStorage::clearMisconfiguredEcus() {
   }
 }
 
-void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                                        const std::string& current_hash) {
+void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions, size_t current_version) {
   if (installed_versions.size() >= 1) {
     std::lock_guard<std::mutex> lock(sql_mutex);
 
@@ -850,11 +849,12 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
     }
 
     std::vector<Uptane::Target>::const_iterator it;
-    for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++) {
+    size_t k = 0;
+    for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++, k++) {
       std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
       std::string hash = it->sha256Hash();
       std::string filename = it->filename();
-      bool is_current = current_hash == it->sha256Hash();
+      bool is_current = k == current_version;
       uint64_t size = it->length();
       auto statement = db.prepareStatement<std::string, std::string, int, int>(
           sql, hash, filename, static_cast<int>(is_current), static_cast<int>(size));
@@ -869,11 +869,11 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
   }
 }
 
-std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions) {
+bool SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) {
   std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
-  std::string current_hash;
+  size_t current_index = SIZE_MAX;
   auto statement = db.prepareStatement("SELECT name, hash, length, is_current FROM installed_versions;");
   int statement_state;
 
@@ -889,31 +889,32 @@ std::string SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* insta
 
       installed_version["hashes"]["sha256"] = hash;
       installed_version["length"] = Json::UInt64(length);
-      if (is_current) {
-        new_hash = hash;
-      }
+
       std::string filename = name;
       new_installed_versions.emplace_back(filename, installed_version);
+      if (is_current) {
+        current_index = new_installed_versions.size() - 1;
+      }
     } catch (const boost::bad_optional_access&) {
       LOG_ERROR << "Incompleted installed version, keeping old one";
-      return current_hash;
+      return false;
     }
-  }
-
-  if (new_hash != "") {
-    current_hash = new_hash;
   }
 
   if (statement_state != SQLITE_DONE) {
     LOG_ERROR << "Can't get installed_versions: " << db.errmsg();
-    return current_hash;
+    return false;
+  }
+
+  if (current_version != nullptr && current_index != SIZE_MAX) {
+    *current_version = current_index;
   }
 
   if (installed_versions != nullptr) {
     *installed_versions = std::move(new_installed_versions);
   }
 
-  return current_hash;
+  return true;
 }
 
 void SQLStorage::clearInstalledVersions() {
