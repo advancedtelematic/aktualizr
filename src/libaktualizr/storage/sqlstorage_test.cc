@@ -211,6 +211,51 @@ TEST(sqlstorage, DbMigration7to8) {
   EXPECT_EQ(statement.get_result_col_int(1), 1);
 }
 
+TEST(sqlstorage, DbMigration12to13) {
+  // it must use raw sql primitives because the SQLStorage object does automatic
+  // migration + the api changes with time
+  auto tdb = makeDbWithVersion(DbVersion(12));
+  SQLite3Guard db(tdb.db_path.c_str());
+
+  // test migration of installed_versions
+  if (db.exec("INSERT INTO ecu_serials VALUES ('primary_ecu', 'primary_hw', 1);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec("INSERT INTO ecu_serials VALUES ('secondary_ecu', 'secondary_hw', 0);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  if (db.exec("INSERT INTO installed_versions VALUES ('sha256', 'v1', 1, 2);", nullptr, nullptr) != SQLITE_OK) {
+    FAIL();
+  }
+
+  // run migration
+  if (db.exec(schema_migrations.at(13), nullptr, nullptr) != SQLITE_OK) {
+    std::cout << db.errmsg() << "\n";
+    FAIL() << "Migration 12 to 13 failed";
+  }
+
+  // check values
+  auto statement = db.prepareStatement(
+      "SELECT ecu_serial, sha256, name, hashes, length, is_current, is_pending FROM installed_versions;");
+  if (statement.step() != SQLITE_ROW) {
+    FAIL() << "installed_versions is empty";
+  }
+
+  EXPECT_EQ(statement.get_result_col_str(0).value(), "primary_ecu");
+  EXPECT_EQ(statement.get_result_col_str(1).value(), "sha256");
+  EXPECT_EQ(statement.get_result_col_str(2).value(), "v1");
+  EXPECT_EQ(statement.get_result_col_str(3).value(), "");
+  EXPECT_EQ(statement.get_result_col_int(4), 2);
+  EXPECT_EQ(statement.get_result_col_int(5), 1);
+  EXPECT_EQ(statement.get_result_col_int(6), 0);
+
+  if (statement.step() != SQLITE_DONE) {
+    FAIL() << "Too many rows";
+  }
+}
+
 /**
  * Check that old metadata is still valid
  */
@@ -299,7 +344,7 @@ int main(int argc, char** argv) {
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
   if (argc != 2) {
-    std::cout << "Please pass the directory containing version5.sql as the first argument\n";
+    std::cout << "Please pass the directory containing sql migration scripts as the first argument\n";
     return 1;
   }
 

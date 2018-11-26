@@ -851,13 +851,13 @@ void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& insta
     std::vector<Uptane::Target>::const_iterator it;
     size_t k = 0;
     for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++, k++) {
-      std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
+      std::string sql = "INSERT INTO installed_versions VALUES ('',?,?,'',?,?,0);";
       std::string hash = it->sha256Hash();
       std::string filename = it->filename();
       bool is_current = k == current_version;
       uint64_t size = it->length();
       auto statement = db.prepareStatement<std::string, std::string, int, int>(
-          sql, hash, filename, static_cast<int>(is_current), static_cast<int>(size));
+          sql, hash, filename, static_cast<int>(size), static_cast<int>(is_current));
 
       if (statement.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -874,7 +874,7 @@ bool SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_ve
   SQLite3Guard db = dbConnection();
 
   size_t current_index = SIZE_MAX;
-  auto statement = db.prepareStatement("SELECT name, hash, length, is_current FROM installed_versions;");
+  auto statement = db.prepareStatement("SELECT name, sha256, length, is_current FROM installed_versions;");
   int statement_state;
 
   std::vector<Uptane::Target> new_installed_versions;
