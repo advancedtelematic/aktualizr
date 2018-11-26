@@ -107,6 +107,10 @@ void test_pause(const Uptane::Target& target) {
   EXPECT_GE((finish - start), std::chrono::seconds(2));
 }
 
+/*
+ * Download an OSTree package
+ * Verify an OSTree package
+ */
 TEST(fetcher, test_pause_ostree) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe";
@@ -142,6 +146,7 @@ int main(int argc, char** argv) {
   TestHelperProcess ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
 
   TemporaryDirectory temp_dir;
+  // Utils::copyDir doesn't work here. Complaints about non existent symlink path
   int r = system((std::string("cp -r ") + argv[1] + std::string(" ") + temp_dir.PathString()).c_str());
   if (r != 0) {
     return -1;

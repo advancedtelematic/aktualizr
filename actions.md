@@ -90,7 +90,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] Send UpdateCheckComplete event after failure
 - [x] Download updates
   - [x] Download an update
-    - [ ] Download an OSTree package
+    - [x] Download an OSTree package (fetcher_test.cc)
     - [x] Download a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
     - [x] Send EcuDownloadStartedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
@@ -103,7 +103,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [ ] Resuming while not downloading is ignored
     - [x] Resume download interrupted by restart (fetcher_test.cc)
   - [x] Verify a downloaded update
-    - [ ] Verify an OSTree package
+    - [x] Verify an OSTree package (fetcher_test.cc)
     - [x] Verify a binary package (uptane_vector_tests.cc, aktualizr_test.cc)
     - [x] Send EcuDownloadCompletedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
