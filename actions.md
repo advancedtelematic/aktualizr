@@ -126,7 +126,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
     - [x] Install an update on the primary
       - [ ] Install an OSTree update on the primary
-      - [ ] Notify "reboot needed" after an OStree update
+      - [ ] Notify "reboot needed" after an OSTree update
       - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Store installation result for primary (uptane_test.cc)
     - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)

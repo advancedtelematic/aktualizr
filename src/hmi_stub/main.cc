@@ -140,6 +140,7 @@ int main(int argc, char *argv[]) {
     aktualizr.Initialize();
 
     std::vector<Uptane::Target> updates;
+    PauseResult pause_result = PauseResult::kNotDownloading;
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
@@ -149,9 +150,12 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "senddevicedata") {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
-        UpdateCheckResult result = aktualizr.CheckUpdates().get();
-        updates = result.updates;
-        std::cout << updates.size() << " updates available\n";
+        auto fut_result = aktualizr.CheckUpdates();
+        if (pause_result != PauseResult::kPaused && pause_result != PauseResult::kAlreadyPaused) {
+          UpdateCheckResult result = fut_result.get();
+          updates = result.updates;
+          std::cout << updates.size() << " updates available\n";
+        }
       } else if (buffer == "download" || buffer == "startdownload") {
         aktualizr.Download(updates);
       } else if (buffer == "install" || buffer == "uptaneinstall") {
@@ -160,7 +164,7 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "campaigncheck") {
         aktualizr.CampaignCheck();
       } else if (buffer == "pause") {
-        PauseResult pause_result = aktualizr.Pause();
+        pause_result = aktualizr.Pause();
         switch (pause_result) {
           case PauseResult::kPaused:
             std::cout << "Download paused.\n";
@@ -172,12 +176,12 @@ int main(int argc, char *argv[]) {
             std::cout << "Download is not in progress.\n";
             break;
           default:
-            std::cout << "Unrecognized pause result.\n";
+            std::cout << "Unrecognized pause result: " << static_cast<int>(pause_result) << "\n";
             break;
         }
       } else if (buffer == "resume") {
-        PauseResult resume_result = aktualizr.Resume();
-        switch (resume_result) {
+        pause_result = aktualizr.Resume();
+        switch (pause_result) {
           case PauseResult::kResumed:
             std::cout << "Download resumed.\n";
             break;
@@ -185,7 +189,7 @@ int main(int argc, char *argv[]) {
             std::cout << "Download not paused.\n";
             break;
           default:
-            std::cout << "Unrecognized resume result.\n";
+            std::cout << "Unrecognized resume result: " << static_cast<int>(pause_result) << "\n";
             break;
         }
       } else if (!buffer.empty()) {
