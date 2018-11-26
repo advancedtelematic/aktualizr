@@ -98,8 +98,7 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   std::map<Uptane::EcuSerial, std::shared_ptr<Uptane::SecondaryInterface>>::const_iterator map_it =
       secondaries.find(sec_serial);
   if (map_it != secondaries.end()) {
-    LOG_WARNING << "Multiple secondaries found with the same serial: " << sec_serial;
-    return;
+    throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + sec_serial.ToString());
   }
   sec->addEventsChannel(events_channel);
   secondaries.insert(std::make_pair(sec_serial, sec));

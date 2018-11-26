@@ -295,6 +295,27 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
 }
 
+/* Adding multiple secondaries with the same serial throws an error */
+TEST(Uptane, UptaneSecondaryAddSameSerial) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  Config config;
+  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  config.provision.provision_path = temp_dir / "cred.zip";
+  config.provision.mode = ProvisionMode::kAutomatic;
+  config.uptane.director_server = http->tls_server + "/director";
+  config.uptane.repo_server = http->tls_server + "/repo";
+  config.tls.server = http->tls_server;
+  config.provision.primary_ecu_serial = "testecuserial";
+  config.storage.path = temp_dir.Path();
+  config.pacman.type = PackageManager::kNone;
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+
+  auto storage = INvStorage::newStorage(config.storage);
+  EXPECT_THROW(SotaUptaneClient::newTestClient(config, storage, http), std::runtime_error);
+}
+
 /**
  * Check that basic device info sent by aktualizr during provisioning matches
  * our expectations.
