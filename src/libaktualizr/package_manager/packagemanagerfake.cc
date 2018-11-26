@@ -12,7 +12,7 @@ Json::Value PackageManagerFake::getInstalledPackages() const {
 Uptane::Target PackageManagerFake::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   size_t current_k = SIZE_MAX;
-  storage_->loadInstalledVersions(&installed_versions, &current_k);
+  storage_->loadPrimaryInstalledVersions(&installed_versions, &current_k, nullptr);
 
   if (current_k != SIZE_MAX) {
     return installed_versions.at(current_k);
@@ -22,6 +22,6 @@ Uptane::Target PackageManagerFake::getCurrent() const {
 }
 
 data::InstallOutcome PackageManagerFake::install(const Uptane::Target &target) const {
-  storage_->saveInstalledVersion(target);
+  storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
   return data::InstallOutcome(data::UpdateResultCode::kOk, "Installing fake package was successful");
 }

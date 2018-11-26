@@ -161,7 +161,10 @@ std::ostream &operator<<(std::ostream &os, const Hash &h);
 
 class Target {
  public:
+  // From Uptane metadata
   Target(std::string filename, const Json::Value &content);
+  // Internal, does not have type or ecu types informations
+  Target(std::string filename, std::vector<Hash> hashes, uint64_t length);
 
   const std::map<EcuSerial, HardwareIdentifier> &ecus() const { return ecus_; }
   std::string filename() const { return filename_; }

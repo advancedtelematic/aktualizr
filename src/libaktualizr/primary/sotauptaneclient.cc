@@ -142,7 +142,8 @@ data::OperationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Ta
   } else {
     result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     if (result.result_code == data::UpdateResultCode::kOk) {
-      storage->saveInstalledVersion(target);
+      storage->saveInstalledVersion(uptane_manifest.getPrimaryEcuSerial().ToString(), target,
+                                    InstalledVersionUpdateMode::kCurrent);
     }
   }
   storage->storeInstallationResult(result);

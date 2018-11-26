@@ -129,14 +129,15 @@ void INvStorage::importPrimaryKeys(const boost::filesystem::path& base_path, con
 void INvStorage::importInstalledVersions(const boost::filesystem::path& base_path) {
   std::vector<Uptane::Target> installed_versions;
   const boost::filesystem::path file_path = BasedPath("installed_versions").get(base_path);
-  size_t current_index = SIZE_MAX;
-  loadInstalledVersions(&installed_versions, &current_index);
+  loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
   if (!installed_versions.empty()) {
     return;
   }
+  size_t current_index = SIZE_MAX;
   fsReadInstalledVersions(file_path, &installed_versions, &current_index);
-  if (!installed_versions.empty()) {
-    storeInstalledVersions(installed_versions, current_index);
+  if (current_index < installed_versions.size()) {
+    // installed versions in legacy fs storage are all for primary
+    savePrimaryInstalledVersion(installed_versions[current_index], InstalledVersionUpdateMode::kCurrent);
     boost::filesystem::remove(file_path);
   }
 }
@@ -240,9 +241,11 @@ void INvStorage::FSSToSQLS(FSStorageRead& fs_storage, SQLStorage& sql_storage) {
 
   std::vector<Uptane::Target> installed_versions;
   size_t current_index = SIZE_MAX;
+  size_t k = 0;
   fs_storage.loadInstalledVersions(&installed_versions, &current_index);
-  if (installed_versions.size() != 0u) {
-    sql_storage.storeInstalledVersions(installed_versions, current_index);
+  for (auto it = installed_versions.cbegin(); it != installed_versions.cend(); it++, k++) {
+    auto mode = k == current_index ? InstalledVersionUpdateMode::kCurrent : InstalledVersionUpdateMode::kNone;
+    sql_storage.savePrimaryInstalledVersion(*it, mode);
   }
 
   // migrate latest versions of all metadata
@@ -292,6 +295,9 @@ bool INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename
       t_json["hashes"]["sha256"] = it.key();
       Uptane::Target t((*it).asString(), t_json);
       new_versions.push_back(t);
+      if (current_version != nullptr) {
+        *current_version = k;
+      }
     } else {
       if (current_version != nullptr && (*it)["is_current"].asBool()) {
         *current_version = k;
@@ -303,20 +309,4 @@ bool INvStorage::fsReadInstalledVersions(const boost::filesystem::path& filename
   *installed_versions = new_versions;
 
   return true;
-}
-
-void INvStorage::saveInstalledVersion(const Uptane::Target& target) {
-  std::vector<Uptane::Target> versions;
-  std::string new_current_hash;
-  loadInstalledVersions(&versions, nullptr);
-
-  size_t index;
-  auto find_it = std::find(versions.begin(), versions.end(), target);
-  if (find_it == versions.end()) {
-    versions.push_back(target);
-    index = versions.size() - 1;
-  } else {
-    index = static_cast<size_t>(std::distance(versions.begin(), find_it));
-  }
-  storeInstalledVersions(versions, index);
 }

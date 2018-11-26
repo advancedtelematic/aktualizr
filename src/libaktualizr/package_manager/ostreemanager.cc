@@ -252,7 +252,7 @@ Uptane::Target OstreeManager::getCurrent() const {
   std::string current_hash = ostree_deployment_get_csum(staged_deployment.get());
 
   std::vector<Uptane::Target> installed_versions;
-  storage_->loadInstalledVersions(&installed_versions, nullptr);
+  storage_->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
 
   std::vector<Uptane::Target>::iterator it;
   for (it = installed_versions.begin(); it != installed_versions.end(); it++) {

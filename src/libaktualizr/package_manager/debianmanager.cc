@@ -45,7 +45,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   int status = Utils::shell(cmd + deb_path.string(), &output, true);
   if (status == 0) {
     LOG_INFO << "... Installation of Debian package successful";
-    storage_->saveInstalledVersion(target);
+    storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
     return data::InstallOutcome(data::UpdateResultCode::kOk, "Installing debian package was successful");
   }
   LOG_ERROR << "... Installation of Debian package failed";
@@ -55,7 +55,7 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
 Uptane::Target DebianManager::getCurrent() const {
   std::vector<Uptane::Target> installed_versions;
   size_t current_k = SIZE_MAX;
-  storage_->loadInstalledVersions(&installed_versions, &current_k);
+  storage_->loadPrimaryInstalledVersions(&installed_versions, &current_k, nullptr);
 
   if (current_k != SIZE_MAX) {
     return installed_versions.at(current_k);
