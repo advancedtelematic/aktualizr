@@ -241,7 +241,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::PresenceUnknown(RequestPool &pool, const int64_t rescode) {
+void OSTreeObject::PresenceError(RequestPool &pool, const int64_t rescode) {
   is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
   LOG_DEBUG << "Http response code:" << rescode;
@@ -250,7 +250,7 @@ void OSTreeObject::PresenceUnknown(RequestPool &pool, const int64_t rescode) {
   pool.AddQuery(this);
 }
 
-void OSTreeObject::ObjectMissing(RequestPool &pool, const int64_t rescode) {
+void OSTreeObject::UploadError(RequestPool &pool, const int64_t rescode) {
   LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
   LOG_DEBUG << "Http response code:" << rescode;
   LOG_DEBUG << http_response_.str();
@@ -271,7 +271,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
-      PresenceUnknown(pool, rescode);
+      PresenceError(pool, rescode);
     } else if (rescode == 200) {
       LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
@@ -292,7 +292,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
         pool.Abort();
       }
     } else {
-      PresenceUnknown(pool, rescode);
+      PresenceError(pool, rescode);
     }
 
   } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
@@ -301,7 +301,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
-      ObjectMissing(pool, rescode);
+      UploadError(pool, rescode);
     } else if (rescode == 200) {
       LOG_TRACE << "OSTree upload successful";
       is_on_server_ = PresenceOnServer::kObjectPresent;
@@ -313,7 +313,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else {
-      ObjectMissing(pool, rescode);
+      UploadError(pool, rescode);
     }
   } else {
     LOG_ERROR << "Unknown operation: " << static_cast<int>(current_operation_);
