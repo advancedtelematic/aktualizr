@@ -864,15 +864,15 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
   }
 
   if (update_mode == InstalledVersionUpdateMode::kCurrent) {
-    // unset 'current' to all versions for this ecu
+    // unset 'current' and 'pending' on all versions for this ecu
     auto statement = db.prepareStatement<std::string>(
-        "UPDATE installed_versions SET is_current = 0 WHERE ecu_serial = ?", ecu_serial_real);
+        "UPDATE installed_versions SET is_current = 0, is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
     if (statement.step() != SQLITE_DONE) {
       LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
       return;
     }
   } else if (update_mode == InstalledVersionUpdateMode::kPending) {
-    // unset 'pending' to all versions for this ecu
+    // unset 'pending' on all versions for this ecu
     auto statement = db.prepareStatement<std::string>(
         "UPDATE installed_versions SET is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
     if (statement.step() != SQLITE_DONE) {
