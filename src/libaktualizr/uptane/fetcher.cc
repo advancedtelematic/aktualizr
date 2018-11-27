@@ -70,14 +70,14 @@ PauseResult Fetcher::setPause(bool pause) {
 
   if (pause) {
     if (downloading_ != 0u) {
-      pause_mutex_.lock();
+      pause_mutex_->lock();
     } else {
       LOG_INFO << "No download in progress, can't pause.";
       sendEvent<event::DownloadPaused>(PauseResult::kNotDownloading);
       return PauseResult::kNotDownloading;
     }
   } else {
-    pause_mutex_.unlock();
+    pause_mutex_->unlock();
   }
   pause_ = pause;
 
@@ -132,7 +132,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           throw Exception("image", "Could not download file, error: " + response.error_message);
         }
         if (pause_) {
-          std::lock_guard<std::mutex> lock(pause_mutex_);
+          std::lock_guard<std::mutex> lock(*pause_mutex_);
           retry = true;
         }
       } while (retry);
@@ -145,8 +145,8 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      data::InstallOutcome outcome =
-          OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, events_channel);
+      data::InstallOutcome outcome = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys,
+                                                         target, pause_mutex_, events_channel);
       result =
           (outcome.first == data::UpdateResultCode::kOk || outcome.first == data::UpdateResultCode::kAlreadyProcessed);
 #else

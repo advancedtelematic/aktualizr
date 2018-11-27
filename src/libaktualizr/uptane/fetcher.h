@@ -33,7 +33,8 @@ class Fetcher {
       : http(std::move(http_in)),
         storage(std::move(storage_in)),
         config(config_in),
-        events_channel(std::move(events_channel_in)) {}
+        events_channel(std::move(events_channel_in)),
+        pause_mutex_(std::make_shared<std::mutex>()) {}
   bool fetchVerifyTarget(const Target& target);
   bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role, Version version);
   bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role) {
@@ -57,7 +58,7 @@ class Fetcher {
   std::shared_ptr<event::Channel> events_channel;
   std::atomic_bool pause_{false};
   std::atomic_uint downloading_{0};
-  std::mutex pause_mutex_;
+  std::shared_ptr<std::mutex> pause_mutex_;
   std::mutex mutex_;
 };
 

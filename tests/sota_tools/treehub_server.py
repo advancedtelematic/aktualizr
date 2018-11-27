@@ -5,6 +5,7 @@ import codecs
 import socket
 import ssl
 import os
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from json import dump
 from tempfile import NamedTemporaryFile
@@ -31,6 +32,8 @@ class TreehubServerHandler(BaseHTTPRequestHandler):
                         break
                     self.wfile.write(data)
         else:
+            if path.endswith("ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe.commitmeta"):
+                time.sleep(1.5) # slow down download to be sure that progress callback will be called
             self.send_response_only(404)
             self.end_headers()
 

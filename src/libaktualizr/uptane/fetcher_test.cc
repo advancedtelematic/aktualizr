@@ -12,6 +12,9 @@
 #include "tuf.h"
 
 static std::string server = "http://127.0.0.1:";
+static std::string treehub_server = "http://127.0.0.1:";
+std::string sysroot;
+
 unsigned int num_events_DownloadPause = 0;
 void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
@@ -60,16 +63,13 @@ void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>&
  * Pausing while not downloading is ignored.
  * Resume downloading.
  * Resuming while not paused is ignored. */
-TEST(fetcher, fetch_with_pause) {
-  Json::Value target_json;
-  target_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";
-  target_json["length"] = 2048;
-
-  Uptane::Target target("large_file", target_json);
+void test_pause(const Uptane::Target& target) {
   TemporaryDirectory temp_dir;
   Config config;
   config.storage.path = temp_dir.Path();
   config.uptane.repo_server = server;
+  config.pacman.sysroot = sysroot;
+  config.pacman.ostree_server = treehub_server;
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
@@ -107,37 +107,28 @@ TEST(fetcher, fetch_with_pause) {
   EXPECT_GE((finish - start), std::chrono::seconds(2));
 }
 
-/* Resume download interrupted by restart. */
-TEST(fetcher, fetch_restore) {
+/*
+ * Download an OSTree package
+ * Verify an OSTree package
+ */
+TEST(fetcher, test_pause_ostree) {
+  Json::Value target_json;
+  target_json["hashes"]["sha256"] = "16ef2f2629dc9263fdf3c0f032563a2d757623bbc11cf99df25c3c3f258dccbe";
+  target_json["custom"]["targetFormat"] = "OSTREE";
+  target_json["length"] = 0;
+  Uptane::Target target("pause", target_json);
+  num_events_DownloadPause = 0;
+  test_pause(target);
+}
+
+TEST(fetcher, test_pause_binary) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";
   target_json["length"] = 2048;
 
   Uptane::Target target("large_interrupted", target_json);
-  TemporaryDirectory temp_dir;
-  Config config;
-  config.storage.path = temp_dir.Path();
-  config.uptane.repo_server = server;
-
-  auto http = std::make_shared<HttpClient>();
-  std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
-
-  {
-    Uptane::Fetcher f(config, storage, http);
-    auto result = f.fetchVerifyTarget(target);
-    EXPECT_FALSE(result);
-
-    auto h = storage->openTargetFile(target);
-    EXPECT_TRUE(h->isPartial());
-    EXPECT_TRUE(h->rsize() < 2048);
-  }
-
-  Uptane::Fetcher f(config, storage, http);
-  auto result = f.fetchVerifyTarget(target);
-  EXPECT_TRUE(result);
-  auto h2 = storage->openTargetFile(target);
-  EXPECT_FALSE(h2->isPartial());
-  EXPECT_EQ(h2->rsize(), 2048);
+  num_events_DownloadPause = 0;
+  test_pause(target);
 }
 
 #ifndef __NO_MAIN__
@@ -149,9 +140,20 @@ int main(int argc, char** argv) {
 
   std::string port = TestUtils::getFreePort();
   server += port;
-  TestHelperProcess server_process("tests/fake_http_server/fake_http_server.py", port);
-  TestUtils::waitForServer(server + "/");
+  TestHelperProcess http_server_process("tests/fake_http_server/fake_http_server.py", port);
+  std::string treehub_port = TestUtils::getFreePort();
+  treehub_server += treehub_port;
+  TestHelperProcess ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
 
+  TemporaryDirectory temp_dir;
+  // Utils::copyDir doesn't work here. Complaints about non existent symlink path
+  int r = system((std::string("cp -r ") + argv[1] + std::string(" ") + temp_dir.PathString()).c_str());
+  if (r != 0) {
+    return -1;
+  }
+  sysroot = (temp_dir.Path() / "ostree_repo").string();
+  TestUtils::waitForServer(server + "/");
+  TestUtils::waitForServer(treehub_server + "/");
   return RUN_ALL_TESTS();
 }
 #endif
