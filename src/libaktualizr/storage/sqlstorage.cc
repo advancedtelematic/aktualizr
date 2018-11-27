@@ -883,11 +883,12 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 
   std::string hashes_encoded = Uptane::Hash::encodeVector(target.hashes());
 
-  auto statement = db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, int, int>(
-      "INSERT OR REPLACE INTO installed_versions VALUES (?,?,?,?,?,?,?);", ecu_serial_real, target.sha256Hash(),
-      target.filename(), hashes_encoded, static_cast<int64_t>(target.length()),
-      static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent),
-      static_cast<int>(update_mode == InstalledVersionUpdateMode::kPending));
+  auto statement =
+      db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string, int, int>(
+          "INSERT OR REPLACE INTO installed_versions VALUES (?,?,?,?,?,?,?,?);", ecu_serial_real, target.sha256Hash(),
+          target.filename(), hashes_encoded, static_cast<int64_t>(target.length()), target.correlation_id(),
+          static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent),
+          static_cast<int>(update_mode == InstalledVersionUpdateMode::kPending));
 
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
@@ -916,7 +917,8 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
   size_t current_index = SIZE_MAX;
   size_t pending_index = SIZE_MAX;
   auto statement = db.prepareStatement<std::string>(
-      "SELECT sha256, name, hashes, length, is_current, is_pending FROM installed_versions WHERE ecu_serial = ?;",
+      "SELECT sha256, name, hashes, length, correlation_id, is_current, is_pending FROM installed_versions WHERE "
+      "ecu_serial = ?;",
       ecu_serial_real);
   int statement_state;
 
@@ -927,8 +929,9 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
       auto filename = statement.get_result_col_str(1).value();
       auto hashes_str = statement.get_result_col_str(2).value();
       auto length = statement.get_result_col_int(3);
-      auto is_current = statement.get_result_col_int(4) != 0;
-      auto is_pending = statement.get_result_col_int(5) != 0;
+      auto correlation_id = statement.get_result_col_str(4).value();
+      auto is_current = statement.get_result_col_int(5) != 0;
+      auto is_pending = statement.get_result_col_int(6) != 0;
 
       // note: sha256 should always be present and is used to uniquely identify
       // a version. It should normally be part of the hash list as well.
@@ -941,7 +944,7 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
         hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
       }
 
-      new_installed_versions.emplace_back(filename, hashes, length);
+      new_installed_versions.emplace_back(filename, hashes, length, correlation_id);
       if (is_current) {
         current_index = new_installed_versions.size() - 1;
       }
