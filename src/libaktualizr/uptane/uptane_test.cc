@@ -430,7 +430,9 @@ class HttpFakeProv : public HttpFake {
 };
 
 /* Provision with a fake server and check for the exact number of expected
- * calls to each endpoint. */
+ * calls to each endpoint.
+ * Use a provided hardware ID
+ */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
@@ -459,6 +461,10 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->network_count, 0);
 
   EXPECT_NO_THROW(up->initialize());
+  EcuSerials serials;
+  storage->loadEcuSerials(&serials);
+  EXPECT_EQ(serials[0].second.ToString(), "tst149_hardware_identifier");
+
   EXPECT_EQ(http->devices_count, 1);
   EXPECT_EQ(http->ecus_count, 1);
 

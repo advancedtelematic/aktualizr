@@ -37,7 +37,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Initialize primary ECU serial
     - [x] Use a provided primary serial (OTA-988, config_test.cc)
     - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
-    - [ ] Use a provided hardware ID
+    - [x] Use a provided hardware ID (uptane_test.cc)
     - [ ] Use the system hostname as hardware ID if one is not provided
       - [x] Read the hostname from the system (utils_test.cc)
   - [x] Register ECUs with director
