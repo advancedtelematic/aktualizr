@@ -881,7 +881,7 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
     }
   }
 
-  std::string hashes_encoded;  // TODO: encode hashes vector
+  std::string hashes_encoded = Uptane::Hash::encodeVector(target.hashes());
 
   auto statement = db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, int, int>(
       "INSERT OR REPLACE INTO installed_versions VALUES (?,?,?,?,?,?,?);", ecu_serial_real, target.sha256Hash(),
@@ -930,13 +930,12 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
       auto is_current = statement.get_result_col_int(4) != 0;
       auto is_pending = statement.get_result_col_int(5) != 0;
 
-      std::vector<Uptane::Hash> hashes;
+      // note: sha256 should always be present and is used to uniquely identify
+      // a version. It should normally be part of the hash list as well.
+      std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
 
-      // TODO: decode hash vector
-
-      auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(), [](const Uptane::Hash& h) {
-          return h.type() == Uptane::Hash::Type::kSha256;
-          });
+      auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
+                                      [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
       if (find_sha256 == hashes.cend()) {
         LOG_WARNING << "No sha256 in hashes list";
         hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);

@@ -69,6 +69,53 @@ std::ostream &Uptane::operator<<(std::ostream &os, const Hash &h) {
   return os;
 }
 
+std::string Hash::encodeVector(const std::vector<Uptane::Hash> &hashes) {
+  std::stringstream hs;
+
+  for (auto it = hashes.cbegin(); it != hashes.cend(); it++) {
+    hs << it->TypeString() << ":" << it->HashString();
+    if (std::next(it) != hashes.cend()) {
+      hs << ";";
+    }
+  }
+
+  return hs.str();
+}
+
+std::vector<Uptane::Hash> Hash::decodeVector(std::string hashes_str) {
+  std::vector<Uptane::Hash> hash_v;
+
+  std::string cs = std::move(hashes_str);
+  while (!cs.empty()) {
+    size_t scp = cs.find(';');
+    std::string hash_token = cs.substr(0, scp);
+    if (scp == std::string::npos) {
+      cs = "";
+    } else {
+      cs = cs.substr(scp + 1);
+    }
+    if (hash_token.empty()) {
+      break;
+    }
+
+    size_t cp = hash_token.find(':');
+    std::string hash_type_str = hash_token.substr(0, cp);
+    if (cp == std::string::npos) {
+      break;
+    }
+    std::string hash_value_str = hash_token.substr(cp + 1);
+
+    if (!hash_value_str.empty()) {
+      Uptane::Hash h{hash_type_str, hash_value_str};
+      if (h.type() != Uptane::Hash::Type::kUnknownAlgorithm) {
+        hash_v.push_back(std::move(h));
+      }
+    }
+  }
+
+  return hash_v;
+}
+
 Target::Target(std::string filename, const Json::Value &content) : filename_(std::move(filename)) {
   if (content.isMember("custom")) {
     Json::Value custom = content["custom"];
@@ -96,8 +143,8 @@ Target::Target(std::string filename, const Json::Value &content) : filename_(std
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }
 
-Target::Target(std::string filename, std::vector<Hash> hashes, uint64_t length) : filename_(std::move(filename)),
-  hashes_(std::move(hashes)), length_(length) {
+Target::Target(std::string filename, std::vector<Hash> hashes, uint64_t length)
+    : filename_(std::move(filename)), hashes_(std::move(hashes)), length_(length) {
   // sort hashes so that higher priority hash algorithm goes first
   std::sort(hashes_.begin(), hashes_.end(), [](const Hash &l, const Hash &r) { return l.type() < r.type(); });
 }

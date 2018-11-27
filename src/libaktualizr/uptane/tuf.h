@@ -152,6 +152,9 @@ class Hash {
   std::string HashString() const { return hash_; }
   friend std::ostream &operator<<(std::ostream &os, const Hash &h);
 
+  static std::string encodeVector(const std::vector<Uptane::Hash> &hashes);
+  static std::vector<Uptane::Hash> decodeVector(std::string hashes_str);
+
  private:
   Type type_;
   std::string hash_;
