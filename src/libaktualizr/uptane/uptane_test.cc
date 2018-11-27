@@ -316,6 +316,67 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   EXPECT_THROW(SotaUptaneClient::newTestClient(config, storage, http), std::runtime_error);
 }
 
+/*
+ * Identify previously unknown secondaries
+ * Identify currently unavailable secondaries
+ */
+TEST(Uptane, UptaneSecondaryMisconfigured) {
+  TemporaryDirectory temp_dir;
+  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.uptane.director_server = http->tls_server + "/director";
+    config.uptane.repo_server = http->tls_server + "/repo";
+    config.tls.server = http->tls_server;
+    config.provision.primary_ecu_serial = "testecuserial";
+    config.storage.path = temp_dir.Path();
+    config.pacman.type = PackageManager::kNone;
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+
+    auto storage = INvStorage::newStorage(config.storage);
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 0);
+  }
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.uptane.director_server = http->tls_server + "/director";
+    config.uptane.repo_server = http->tls_server + "/repo";
+    config.tls.server = http->tls_server;
+    config.provision.primary_ecu_serial = "testecuserial";
+    config.storage.path = temp_dir.Path();
+    config.pacman.type = PackageManager::kNone;
+
+    auto storage = INvStorage::newStorage(config.storage);
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "secondary_hardware");
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 2);
+    if (ecus[0].serial.ToString() == "new_secondary_ecu_serial") {
+      EXPECT_EQ(ecus[0].state, EcuState::kNotRegistered);
+      EXPECT_EQ(ecus[1].serial.ToString(), "secondary_ecu_serial");
+      EXPECT_EQ(ecus[1].state, EcuState::kOld);
+    } else if (ecus[0].serial.ToString() == "secondary_ecu_serial") {
+      EXPECT_EQ(ecus[0].state, EcuState::kOld);
+      EXPECT_EQ(ecus[1].serial.ToString(), "new_secondary_ecu_serial");
+      EXPECT_EQ(ecus[1].state, EcuState::kNotRegistered);
+    } else {
+      FAIL();
+    }
+  }
+}
+
 /**
  * Check that basic device info sent by aktualizr during provisioning matches
  * our expectations.

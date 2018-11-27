@@ -46,9 +46,9 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Abort if initialization fails
     - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
-  - [ ] Verify secondaries against storage
-    - [ ] Identify previously unknown secondaries
-    - [ ] Identify currently unavailable secondaries
+  - [x] Verify secondaries against storage
+    - [x] Identify previously unknown secondaries (uptane_test.cc)
+    - [x] Identify currently unavailable secondaries (uptane_test.cc)
 - [x] Send system/network info to server
   - [x] Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
