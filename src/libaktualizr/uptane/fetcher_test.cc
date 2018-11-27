@@ -23,31 +23,37 @@ void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>&
   switch (num_events_DownloadPause) {
     case 0: {
       EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = dynamic_cast<event::DownloadPaused*>(event.get());
+      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
       EXPECT_EQ(pause_event->result, PauseResult::kNotDownloading);
       break;
     }
     case 1: {
-      EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = dynamic_cast<event::DownloadPaused*>(event.get());
-      EXPECT_EQ(pause_event->result, PauseResult::kPaused);
+      EXPECT_EQ(event->variant, "DownloadResumed");
+      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
+      EXPECT_EQ(pause_event->result, PauseResult::kNotPaused);
       break;
     }
     case 2: {
       EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = dynamic_cast<event::DownloadPaused*>(event.get());
-      EXPECT_EQ(pause_event->result, PauseResult::kAlreadyPaused);
+      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
+      EXPECT_EQ(pause_event->result, PauseResult::kPaused);
       break;
     }
     case 3: {
-      EXPECT_EQ(event->variant, "DownloadResumed");
-      const auto resume_event = dynamic_cast<event::DownloadResumed*>(event.get());
-      EXPECT_EQ(resume_event->result, PauseResult::kResumed);
+      EXPECT_EQ(event->variant, "DownloadPaused");
+      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
+      EXPECT_EQ(pause_event->result, PauseResult::kAlreadyPaused);
       break;
     }
     case 4: {
       EXPECT_EQ(event->variant, "DownloadResumed");
-      const auto resume_event = dynamic_cast<event::DownloadResumed*>(event.get());
+      const auto resume_event = std::static_pointer_cast<event::DownloadResumed>(event);
+      EXPECT_EQ(resume_event->result, PauseResult::kResumed);
+      break;
+    }
+    case 5: {
+      EXPECT_EQ(event->variant, "DownloadResumed");
+      const auto resume_event = std::static_pointer_cast<event::DownloadResumed>(event);
       EXPECT_EQ(resume_event->result, PauseResult::kNotPaused);
       break;
     }
@@ -62,7 +68,9 @@ void process_events_DownloadPauseResume(const std::shared_ptr<event::BaseEvent>&
  * Pausing while paused is ignored.
  * Pausing while not downloading is ignored.
  * Resume downloading.
- * Resuming while not paused is ignored. */
+ * Resuming while not paused is ignored.
+ * Resuming while not downloading is ignored
+ */
 void test_pause(const Uptane::Target& target) {
   TemporaryDirectory temp_dir;
   Config config;
@@ -81,9 +89,10 @@ void test_pause(const Uptane::Target& target) {
   std::promise<void> end_pausing;
 
   EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
+  EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   std::thread([&f, &end_pausing] {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
     EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
     EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -103,7 +112,7 @@ void test_pause(const Uptane::Target& target) {
   }
 
   EXPECT_TRUE(result);
-  EXPECT_EQ(num_events_DownloadPause, 5);
+  EXPECT_EQ(num_events_DownloadPause, 6);
   EXPECT_GE((finish - start), std::chrono::seconds(2));
 }
 

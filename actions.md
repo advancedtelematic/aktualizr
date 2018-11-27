@@ -100,7 +100,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Pausing while not downloading is ignored (fetcher_test.cc)
   - [x] Resume downloading (fetcher_test.cc)
     - [x] Resuming while not paused is ignored (fetcher_test.cc)
-    - [ ] Resuming while not downloading is ignored
+    - [x] Resuming while not downloading is ignored (fetcher_test.cc)
     - [x] Resume download interrupted by restart (fetcher_test.cc)
   - [x] Verify a downloaded update
     - [x] Verify an OSTree package (fetcher_test.cc)
