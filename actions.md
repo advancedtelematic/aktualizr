@@ -58,7 +58,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Read networking info from the system (utils_test.cc)
   - [x] Send networking info to the server (OTA-984, uptane_test.cc)
   - [x] Generate and send manifest (see below)
-  - [ ] Send SendDeviceDataComplete event
+  - [x] Send SendDeviceDataComplete event (uptane_test.cc)
 - [x] Check for campaigns
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
   - [x] Fetch campaigns from the server (aktualizr_test.cc)

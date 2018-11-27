@@ -490,9 +490,22 @@ class HttpFakeProv : public HttpFake {
   int network_count{0};
 };
 
+unsigned int num_events_ProvisionOnServer = 0;
+void process_events_ProvisionOnServer(const std::shared_ptr<event::BaseEvent> &event) {
+  switch (num_events_ProvisionOnServer) {
+    case 0: {
+      EXPECT_EQ(event->variant, "SendDeviceDataComplete");
+      break;
+    }
+    default: { std::cout << "Got " << event->variant << "event\n"; }
+  }
+  num_events_ProvisionOnServer++;
+}
+
 /* Provision with a fake server and check for the exact number of expected
  * calls to each endpoint.
  * Use a provided hardware ID
+ * Send SendDeviceDataComplete event
  */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
@@ -512,7 +525,10 @@ TEST(Uptane, ProvisionOnServer) {
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto up = SotaUptaneClient::newTestClient(config, storage, http);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_ProvisionOnServer;
+  events_channel->connect(f_cb);
+  auto up = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
 
   EXPECT_EQ(http->devices_count, 0);
   EXPECT_EQ(http->ecus_count, 0);
