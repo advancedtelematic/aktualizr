@@ -138,9 +138,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
 
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
-  AssembleManifest();
   if (uptaneOfflineIteration(&updates, &ecus_count)) {
-    const std::string &correlation_id = director_repo.getCorrelationId();  // FIXME: should be in installed_versions
     const Uptane::EcuSerial &ecu_serial = uptane_manifest.getPrimaryEcuSerial();
 
     std::vector<Uptane::Target> installed_versions;
@@ -149,15 +147,22 @@ void SotaUptaneClient::finalizeAfterReboot() {
 
     if (pending_index < installed_versions.size()) {
       const Uptane::Target &target = installed_versions[pending_index];
+      const std::string correlation_id = target.correlation_id();
+
       data::InstallOutcome outcome = package_manager_->finalizeInstall(target);
       if (outcome.first == data::UpdateResultCode::kOk) {
         storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, true));
       } else {
         // finalize failed
+        // unset pending flag so that the rest of the uptane process can
+        // go forward again
+        storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kNone);
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
       }
 
+      // TODO: this should be per-ecu like installed versions!
+      storage->storeInstallationResult(data::OperationResult::fromOutcome(target.filename(), outcome));
       putManifestSimple();
     } else {
       // nothing found on primary
@@ -179,6 +184,7 @@ data::OperationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Ta
   } else {
     result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     if (result.result_code == data::UpdateResultCode::kOk) {
+      // simple case: update already completed
       storage->saveInstalledVersion(uptane_manifest.getPrimaryEcuSerial().ToString(), target,
                                     InstalledVersionUpdateMode::kCurrent);
     } else if (result.result_code == data::UpdateResultCode::kNeedCompletion) {
@@ -255,16 +261,19 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 }
 
 bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
+  // TODO: is this still relevant? Should use new installed_versions?
+  bool has_secondary_in_progress = false;
   for (auto manifest : manifests) {
     if (manifest["signed"].isMember("custom")) {
       auto status =
           static_cast<data::UpdateResultCode>(manifest["signed"]["custom"]["operation_result"]["result_code"].asUInt());
       if (status == data::UpdateResultCode::kInProgress) {
-        return true;
+        has_secondary_in_progress = true;
       }
     }
   }
-  return false;
+
+  return has_secondary_in_progress || storage->hasPendingInstall();
 }
 
 void SotaUptaneClient::initialize() {
@@ -287,7 +296,6 @@ void SotaUptaneClient::initialize() {
   verifySecondaries();
   LOG_DEBUG << "... provisioned OK";
 
-  // TODO: right place?
   finalizeAfterReboot();
 }
 
@@ -873,8 +881,15 @@ UpdateCheckResult SotaUptaneClient::fetchMeta() {
 }
 
 UpdateCheckResult SotaUptaneClient::checkUpdates() {
-  AssembleManifest();  // populates list of connected devices and installed images
+  auto manifest = AssembleManifest();  // populates list of connected devices and installed images
   UpdateCheckResult result;
+
+  if (hasPendingUpdates(manifest)) {
+    // mask updates when an install is pending
+    LOG_INFO << "An update is pending, checking for updates is disabled";
+    return result;
+  }
+
   std::vector<Uptane::Target> updates;
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
@@ -982,13 +997,16 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
 bool SotaUptaneClient::putManifestSimple() {
   // does not send event, so it can be used as a subset of other steps
   auto manifest = AssembleManifest();
-  if (!hasPendingUpdates(manifest)) {
-    auto signed_manifest = uptane_manifest.signManifest(manifest);
-    HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
-    if (response.isOk()) {
-      storage->clearInstallationResult();
-      return true;
-    }
+  if (hasPendingUpdates(manifest)) {
+    LOG_INFO << "An update is pending, putManifest is disabled";
+    return false;
+  }
+
+  auto signed_manifest = uptane_manifest.signManifest(manifest);
+  HttpResponse response = http->put(config.uptane.director_server + "/manifest", signed_manifest);
+  if (response.isOk()) {
+    storage->clearInstallationResult();
+    return true;
   }
   return false;
 }
