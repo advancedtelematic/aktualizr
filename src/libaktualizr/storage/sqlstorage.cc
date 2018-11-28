@@ -697,12 +697,22 @@ void SQLStorage::storeEcuSerials(const EcuSerials& serials) {
       return;
     }
 
+    // first is the primary
     std::string serial = serials[0].first.ToString();
     std::string hwid = serials[0].second.ToString();
     {
       auto statement =
           db.prepareStatement<std::string, std::string>("INSERT INTO ecu_serials VALUES (?,?,1);", serial, hwid);
       if (statement.step() != SQLITE_DONE) {
+        LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
+        return;
+      }
+
+      // update lazily stored installed version
+      auto statement_ivupdate = db.prepareStatement<std::string>(
+          "UPDATE installed_versions SET ecu_serial = ? WHERE ecu_serial = '';", serial);
+
+      if (statement_ivupdate.step() != SQLITE_DONE) {
         LOG_ERROR << "Can't set ecu_serial: " << db.errmsg();
         return;
       }
@@ -832,68 +842,114 @@ void SQLStorage::clearMisconfiguredEcus() {
   }
 }
 
-void SQLStorage::storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions, size_t current_version) {
-  if (installed_versions.size() >= 1) {
-    std::lock_guard<std::mutex> lock(sql_mutex);
-
-    SQLite3Guard db = dbConnection();
-
-    if (!db.beginTransaction()) {
-      LOG_ERROR << "Can't start transaction: " << db.errmsg();
-      return;
-    }
-
-    if (db.exec("DELETE FROM installed_versions;", nullptr, nullptr) != SQLITE_OK) {
-      LOG_ERROR << "Can't clear installed_versions: " << db.errmsg();
-      return;
-    }
-
-    std::vector<Uptane::Target>::const_iterator it;
-    size_t k = 0;
-    for (it = installed_versions.cbegin(); it != installed_versions.cend(); it++, k++) {
-      std::string sql = "INSERT INTO installed_versions VALUES (?,?,?,?);";
-      std::string hash = it->sha256Hash();
-      std::string filename = it->filename();
-      bool is_current = k == current_version;
-      uint64_t size = it->length();
-      auto statement = db.prepareStatement<std::string, std::string, int, int>(
-          sql, hash, filename, static_cast<int>(is_current), static_cast<int>(size));
-
-      if (statement.step() != SQLITE_DONE) {
-        LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
-        return;
-      }
-    }
-
-    db.commitTransaction();
-  }
-}
-
-bool SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) {
+void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptane::Target& target,
+                                      InstalledVersionUpdateMode update_mode) {
   std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  // empty serial: use primary
+  std::string ecu_serial_real = ecu_serial;
+  if (ecu_serial_real.empty()) {
+    auto statement = db.prepareStatement("SELECT serial FROM ecu_serials WHERE is_primary = 1;");
+    if (statement.step() == SQLITE_ROW) {
+      ecu_serial_real = statement.get_result_col_str(0).value();
+    } else {
+      LOG_WARNING << "Could not find primary ecu serial, set to lazy init mode";
+    }
+  }
+
+  if (update_mode == InstalledVersionUpdateMode::kCurrent) {
+    // unset 'current' and 'pending' on all versions for this ecu
+    auto statement = db.prepareStatement<std::string>(
+        "UPDATE installed_versions SET is_current = 0, is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      return;
+    }
+  } else if (update_mode == InstalledVersionUpdateMode::kPending) {
+    // unset 'pending' on all versions for this ecu
+    auto statement = db.prepareStatement<std::string>(
+        "UPDATE installed_versions SET is_pending = 0 WHERE ecu_serial = ?", ecu_serial_real);
+    if (statement.step() != SQLITE_DONE) {
+      LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+      return;
+    }
+  }
+
+  std::string hashes_encoded = Uptane::Hash::encodeVector(target.hashes());
+
+  auto statement =
+      db.prepareStatement<std::string, std::string, std::string, std::string, int64_t, std::string, int, int>(
+          "INSERT OR REPLACE INTO installed_versions VALUES (?,?,?,?,?,?,?,?);", ecu_serial_real, target.sha256Hash(),
+          target.filename(), hashes_encoded, static_cast<int64_t>(target.length()), target.correlation_id(),
+          static_cast<int>(update_mode == InstalledVersionUpdateMode::kCurrent),
+          static_cast<int>(update_mode == InstalledVersionUpdateMode::kPending));
+
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set installed_versions: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
+}
+
+bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
+                                       size_t* current_version, size_t* pending_version) {
+  std::lock_guard<std::mutex> lock(sql_mutex);
+  SQLite3Guard db = dbConnection();
+
+  // empty serial: use primary
+  std::string ecu_serial_real = ecu_serial;
+  if (ecu_serial_real.empty()) {
+    auto statement = db.prepareStatement("SELECT serial FROM ecu_serials WHERE is_primary = 1;");
+    if (statement.step() == SQLITE_ROW) {
+      ecu_serial_real = statement.get_result_col_str(0).value();
+    } else {
+      LOG_WARNING << "Could not find primary ecu serial, defaulting to empty serial: " << db.errmsg();
+    }
+  }
+
   size_t current_index = SIZE_MAX;
-  auto statement = db.prepareStatement("SELECT name, hash, length, is_current FROM installed_versions;");
+  size_t pending_index = SIZE_MAX;
+  auto statement = db.prepareStatement<std::string>(
+      "SELECT sha256, name, hashes, length, correlation_id, is_current, is_pending FROM installed_versions WHERE "
+      "ecu_serial = ?;",
+      ecu_serial_real);
   int statement_state;
 
   std::vector<Uptane::Target> new_installed_versions;
-  std::string new_hash;
   while ((statement_state = statement.step()) == SQLITE_ROW) {
     try {
-      Json::Value installed_version;
-      auto name = statement.get_result_col_str(0).value();
-      auto hash = statement.get_result_col_str(1).value();
-      auto length = statement.get_result_col_int(2);
-      auto is_current = statement.get_result_col_int(3) != 0;
+      auto sha256 = statement.get_result_col_str(0).value();
+      auto filename = statement.get_result_col_str(1).value();
+      auto hashes_str = statement.get_result_col_str(2).value();
+      auto length = statement.get_result_col_int(3);
+      auto correlation_id = statement.get_result_col_str(4).value();
+      auto is_current = statement.get_result_col_int(5) != 0;
+      auto is_pending = statement.get_result_col_int(6) != 0;
 
-      installed_version["hashes"]["sha256"] = hash;
-      installed_version["length"] = Json::UInt64(length);
+      // note: sha256 should always be present and is used to uniquely identify
+      // a version. It should normally be part of the hash list as well.
+      std::vector<Uptane::Hash> hashes = Uptane::Hash::decodeVector(hashes_str);
 
-      std::string filename = name;
-      new_installed_versions.emplace_back(filename, installed_version);
+      auto find_sha256 = std::find_if(hashes.cbegin(), hashes.cend(),
+                                      [](const Uptane::Hash& h) { return h.type() == Uptane::Hash::Type::kSha256; });
+      if (find_sha256 == hashes.cend()) {
+        LOG_WARNING << "No sha256 in hashes list";
+        hashes.emplace_back(Uptane::Hash::Type::kSha256, sha256);
+      }
+
+      new_installed_versions.emplace_back(filename, hashes, length, correlation_id);
       if (is_current) {
         current_index = new_installed_versions.size() - 1;
+      }
+      if (is_pending) {
+        pending_index = new_installed_versions.size() - 1;
       }
     } catch (const boost::bad_optional_access&) {
       LOG_ERROR << "Incompleted installed version, keeping old one";
@@ -908,6 +964,10 @@ bool SQLStorage::loadInstalledVersions(std::vector<Uptane::Target>* installed_ve
 
   if (current_version != nullptr && current_index != SIZE_MAX) {
     *current_version = current_index;
+  }
+
+  if (pending_version != nullptr && pending_index != SIZE_MAX) {
+    *pending_version = pending_index;
   }
 
   if (installed_versions != nullptr) {

@@ -92,11 +92,13 @@ class StorageTargetRHandle {
   }
 };
 
+enum class InstalledVersionUpdateMode { kNone, kCurrent, kPending };
+
 // Functions loading/storing multiple pieces of data are supposed to do so atomically as far as implementation makes it
 // possible
 class INvStorage {
  public:
-  explicit INvStorage(const StorageConfig& config) : config_(config) {}
+  explicit INvStorage(StorageConfig config) : config_(std::move(config)) {}
   virtual ~INvStorage() = default;
   virtual StorageType type() = 0;
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
@@ -145,9 +147,10 @@ class INvStorage {
   virtual bool loadNeedReboot(bool* need_reboot) = 0;
   virtual void clearNeedReboot() = 0;
 
-  virtual void storeInstalledVersions(const std::vector<Uptane::Target>& installed_versions,
-                                      size_t current_version) = 0;
-  virtual bool loadInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version) = 0;
+  virtual void saveInstalledVersion(const std::string& ecu_serial, const Uptane::Target& target,
+                                    InstalledVersionUpdateMode update_mode) = 0;
+  virtual bool loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
+                                     size_t* current_version, size_t* pending_version) = 0;
   virtual void clearInstalledVersions() = 0;
 
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;
@@ -172,7 +175,13 @@ class INvStorage {
 
   // Not purely virtual
   void importData(const ImportConfig& import_config);
-  void saveInstalledVersion(const Uptane::Target& target);
+  bool loadPrimaryInstalledVersions(std::vector<Uptane::Target>* installed_versions, size_t* current_version,
+                                    size_t* pending_version) {
+    return loadInstalledVersions("", installed_versions, current_version, pending_version);
+  }
+  void savePrimaryInstalledVersion(const Uptane::Target& target, InstalledVersionUpdateMode update_mode) {
+    return saveInstalledVersion("", target, update_mode);
+  }
 
  private:
   void importSimple(const boost::filesystem::path& base_path, store_data_t store_func, load_data_t load_func,
@@ -184,7 +193,7 @@ class INvStorage {
   void importInstalledVersions(const boost::filesystem::path& base_path);
 
  protected:
-  const StorageConfig& config_;
+  const StorageConfig config_;
 };
 
 #endif  // INVSTORAGE_H_

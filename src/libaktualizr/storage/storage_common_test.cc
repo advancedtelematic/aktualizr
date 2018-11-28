@@ -10,18 +10,19 @@
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
-boost::filesystem::path storage_test_dir;
-StorageConfig storage_test_config;
+StorageType current_storage_type{StorageType::kSqlite};
 
-std::unique_ptr<INvStorage> Storage(const StorageConfig &config) {
-  if (config.type == StorageType::kSqlite) {
-    return std::unique_ptr<INvStorage>(new SQLStorage(config, false));
+std::unique_ptr<INvStorage> Storage(const boost::filesystem::path &dir) {
+  StorageConfig storage_config;
+  storage_config.type = current_storage_type;
+  storage_config.path = dir;
+
+  if (storage_config.type == StorageType::kSqlite) {
+    return std::unique_ptr<INvStorage>(new SQLStorage(storage_config, false));
   } else {
     throw std::runtime_error("Invalid config type");
   }
 }
-
-std::unique_ptr<INvStorage> Storage() { return Storage(storage_test_config); }
 
 StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storage_dir) {
   StorageConfig config;
@@ -37,8 +38,9 @@ StorageConfig MakeConfig(StorageType type, const boost::filesystem::path &storag
 
 /* Load and store primary keys. */
 TEST(storage, load_store_primary_keys) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   storage->storePrimaryKeys("", "");
   storage->storePrimaryKeys("pr_public", "pr_private");
 
@@ -50,13 +52,13 @@ TEST(storage, load_store_primary_keys) {
   EXPECT_EQ(privkey, "pr_private");
   storage->clearPrimaryKeys();
   EXPECT_FALSE(storage->loadPrimaryKeys(nullptr, nullptr));
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store TLS credentials. */
 TEST(storage, load_store_tls) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   storage->storeTlsCreds("", "", "");
   storage->storeTlsCreds("ca", "cert", "priv");
   std::string ca;
@@ -70,14 +72,12 @@ TEST(storage, load_store_tls) {
   EXPECT_EQ(priv, "priv");
   storage->clearTlsCreds();
   EXPECT_FALSE(storage->loadTlsCreds(nullptr, nullptr, nullptr));
-
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store Uptane metadata. */
 TEST(storage, load_store_metadata) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -171,14 +171,12 @@ TEST(storage, load_store_metadata) {
       storage->loadNonRoot(&loaded_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
   EXPECT_FALSE(
       storage->loadNonRoot(&loaded_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
-
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store Uptane roots. */
 TEST(storage, load_store_root) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
   Json::Value root_json;
   root_json["_type"] = "Root";
@@ -209,14 +207,13 @@ TEST(storage, load_store_root) {
 
   EXPECT_TRUE(storage->loadLatestRoot(&loaded_root, Uptane::RepositoryType::Director));
   EXPECT_EQ(Utils::jsonToStr(meta_root), loaded_root);
-
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store the device ID. */
 TEST(storage, load_store_deviceid) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   storage->storeDeviceId("");
   storage->storeDeviceId("device_id");
 
@@ -227,13 +224,13 @@ TEST(storage, load_store_deviceid) {
   EXPECT_EQ(device_id, "device_id");
   storage->clearDeviceId();
   EXPECT_FALSE(storage->loadDeviceId(nullptr));
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store ECU serials. */
 TEST(storage, load_store_ecu_serials) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   storage->storeEcuSerials({{Uptane::EcuSerial("a"), Uptane::HardwareIdentifier("")}});
   EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
                      {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
@@ -247,13 +244,13 @@ TEST(storage, load_store_ecu_serials) {
   EXPECT_EQ(serials, serials_out);
   storage->clearEcuSerials();
   EXPECT_FALSE(storage->loadEcuSerials(nullptr));
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store a list of misconfigured ECUs. */
 TEST(storage, load_store_misconfigured_ecus) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   std::vector<MisconfiguredEcu> ecus;
   ecus.push_back(MisconfiguredEcu(Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw"),
                                   EcuState::kNotRegistered));
@@ -272,13 +269,13 @@ TEST(storage, load_store_misconfigured_ecus) {
   storage->clearMisconfiguredEcus();
   ecus_out.clear();
   EXPECT_FALSE(storage->loadMisconfiguredEcus(&ecus_out));
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store a flag indicating successful registration. */
 TEST(storage, load_store_ecu_registered) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   EXPECT_THROW(storage->storeEcuRegistered(), std::runtime_error);
   storage->storeDeviceId("test");
   storage->storeEcuRegistered();
@@ -288,13 +285,109 @@ TEST(storage, load_store_ecu_registered) {
 
   storage->clearEcuRegistered();
   EXPECT_FALSE(storage->loadEcuRegistered());
-  boost::filesystem::remove_all(storage_test_dir);
+}
+
+/* Load and store installed versions. */
+TEST(storage, load_store_installed_versions) {
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
+  // Test lazy primary installed version: primary ecu serial is not defined yet
+  const std::vector<Uptane::Hash> hashes = {
+      Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
+      Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
+  };
+  Uptane::Target t1{"update.bin", hashes, 1, "corrid"};
+  storage->savePrimaryInstalledVersion(t1, InstalledVersionUpdateMode::kCurrent);
+
+  EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+                     {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
+                     {Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")}};
+  storage->storeEcuSerials(serials);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, nullptr));
+    EXPECT_EQ(installed_versions.size(), 1);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update.bin");
+    EXPECT_EQ(installed_versions.at(current).sha256Hash(), "2561");
+    EXPECT_EQ(installed_versions.at(current).hashes(), hashes);
+    EXPECT_EQ(installed_versions.at(current).correlation_id(), "corrid");
+    EXPECT_EQ(installed_versions.at(current).length(), 1);
+  }
+
+  // Set t2 as a pending version
+  Uptane::Target t2{"update2.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
+  storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, &pending));
+    EXPECT_EQ(installed_versions.size(), 2);
+    EXPECT_EQ(installed_versions.at(pending).filename(), "update2.bin");
+  }
+
+  // Set t3 as the new pending
+  Uptane::Target t3{"update3.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kPending);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(pending).filename(), "update3.bin");
+  }
+
+  // Set t3 as current: should replace the pending flag but not create a new
+  // version
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update3.bin");
+    EXPECT_EQ(pending, SIZE_MAX);
+  }
+
+  // Set t2 as the new pending and t3 as current afterwards: the pending flag
+  // should disappear
+  storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update3.bin");
+    EXPECT_EQ(pending, SIZE_MAX);
+  }
+
+  // Add a secondary installed version
+  Uptane::Target tsec{"secondary.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
+  storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, nullptr));
+    EXPECT_EQ(installed_versions.size(), 3);
+
+    EXPECT_TRUE(storage->loadInstalledVersions("secondary_1", &installed_versions, nullptr, nullptr));
+    EXPECT_EQ(installed_versions.size(), 1);
+  }
 }
 
 /* Load and store an installation result. */
 TEST(storage, load_store_installation_result) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
   storage->storeInstallationResult(
       data::OperationResult("", data::InstallOutcome(data::UpdateResultCode::kGeneralError, "")));
@@ -309,13 +402,13 @@ TEST(storage, load_store_installation_result) {
   EXPECT_EQ(result.result_text, result_out.result_text);
   storage->clearInstallationResult();
   EXPECT_FALSE(storage->loadInstallationResult(nullptr));
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 /* Load and store targets. */
 TEST(storage, store_target) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash";
   target_json["length"] = 2;
@@ -371,14 +464,12 @@ TEST(storage, store_target) {
     sstr << *rhandle;
     EXPECT_STREQ(sstr.str().c_str(), "ab");
   }
-
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 TEST(storage, checksum) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::cout << "DIR: " << storage_test_dir.c_str() << "\n";
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   Json::Value target_json1;
   target_json1["hashes"]["sha256"] = "hash1";
   target_json1["length"] = 2;
@@ -411,8 +502,9 @@ TEST(storage, checksum) {
 }
 
 TEST(storage, partial) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash1";
   target_json["length"] = 2;
@@ -456,13 +548,12 @@ TEST(storage, partial) {
 
 /* Import keys and credentials from file into storage. */
 TEST(storage, import_data) {
-  mkdir(storage_test_dir.c_str(), S_IRWXU);
-  boost::filesystem::create_directories(storage_test_dir / "import");
-
-  std::unique_ptr<INvStorage> storage = Storage();
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+  boost::filesystem::create_directories(temp_dir / "import");
 
   ImportConfig import_config;
-  import_config.base_path = storage_test_dir / "import";
+  import_config.base_path = temp_dir.Path() / "import";
   import_config.uptane_private_key_path = BasedPath("private");
   import_config.uptane_public_key_path = BasedPath("public");
   import_config.tls_cacert_path = BasedPath("ca");
@@ -527,8 +618,6 @@ TEST(storage, import_data) {
   EXPECT_EQ(tls_ca, "tls_cacert_2");
   EXPECT_EQ(tls_cert, "tls_cert_1");
   EXPECT_EQ(tls_pkey, "tls_pkey_1");
-
-  boost::filesystem::remove_all(storage_test_dir);
 }
 
 #ifndef __NO_MAIN__
@@ -538,9 +627,7 @@ int main(int argc, char **argv) {
   logger_set_threshold(boost::log::trivial::trace);
 
   std::cout << "Running tests for SQLStorage" << std::endl;
-  TemporaryDirectory temp_dir2;
-  storage_test_dir = temp_dir2.Path();
-  storage_test_config = MakeConfig(StorageType::kSqlite, storage_test_dir);
+  current_storage_type = StorageType::kSqlite;
   int res_sql = RUN_ALL_TESTS();
 
   return res_sql;  // 0 indicates success

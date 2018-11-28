@@ -574,7 +574,7 @@ TEST(Uptane, FsToSqlFull) {
   bool sql_ecu_registered = sql_storage->loadEcuRegistered();
 
   std::vector<Uptane::Target> sql_installed_versions;
-  sql_storage->loadInstalledVersions(&sql_installed_versions, nullptr);
+  sql_storage->loadPrimaryInstalledVersions(&sql_installed_versions, nullptr, nullptr);
 
   std::string sql_director_root;
   std::string sql_director_targets;
@@ -626,7 +626,7 @@ TEST(Uptane, InstalledVersionImport) {
   storage->importData(config.import);
 
   std::vector<Uptane::Target> installed_versions;
-  storage->loadInstalledVersions(&installed_versions, nullptr);
+  storage->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
   EXPECT_EQ(installed_versions.at(0).filename(),
             "master-863de625f305413dc3be306afab7c3f39d8713045cfff812b3af83f9722851f0");
 
@@ -635,13 +635,16 @@ TEST(Uptane, InstalledVersionImport) {
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "a0fb2e119cf812f1aa9e993d01f5f07cb41679096cb4492f1265bff5ac901d0d";
   target_json["length"] = 123;
-  std::vector<Uptane::Target> new_installed_versions = {{"filename", target_json}};
-  storage->storeInstalledVersions(new_installed_versions, SIZE_MAX);
+  Uptane::Target new_installed_version{"filename", target_json};
+  storage->savePrimaryInstalledVersion(new_installed_version, InstalledVersionUpdateMode::kCurrent);
 
   auto new_storage = INvStorage::newStorage(config.storage);
   new_storage->importData(config.import);
-  new_storage->loadInstalledVersions(&installed_versions, nullptr);
-  EXPECT_EQ(installed_versions.at(0).filename(), "filename");
+
+  size_t current_index = SIZE_MAX;
+  new_storage->loadPrimaryInstalledVersions(&installed_versions, &current_index, nullptr);
+  EXPECT_LT(current_index, installed_versions.size());
+  EXPECT_EQ(installed_versions.at(current_index).filename(), "filename");
 }
 
 /* Store a list of installed package versions. */
@@ -659,10 +662,10 @@ TEST(Uptane, SaveAndLoadVersion) {
   target_json["length"] = 123;
 
   Uptane::Target t("target_name", target_json);
-  storage->saveInstalledVersion(t);
+  storage->savePrimaryInstalledVersion(t, InstalledVersionUpdateMode::kCurrent);
 
   std::vector<Uptane::Target> installed_versions;
-  storage->loadInstalledVersions(&installed_versions, nullptr);
+  storage->loadPrimaryInstalledVersions(&installed_versions, nullptr, nullptr);
 
   auto f = std::find_if(installed_versions.begin(), installed_versions.end(),
                         [](const Uptane::Target &t_) { return t_.filename() == "target_name"; });

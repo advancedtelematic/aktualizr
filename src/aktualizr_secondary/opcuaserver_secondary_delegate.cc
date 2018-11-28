@@ -127,7 +127,8 @@ void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge:
         LOG_ERROR << "Could not install target (" << static_cast<int>(res_code) << "): " << message;
         secondary_->pacman->setOperationResult(target_to_install.filename(), res_code, message);
       } else {
-        secondary_->storage_->saveInstalledVersion(target_to_install);
+        secondary_->storage_->saveInstalledVersion(secondary_->ecu_serial_.ToString(), target_to_install,
+                                                   InstalledVersionUpdateMode::kCurrent);
         secondary_->pacman->setOperationResult(target_to_install.filename(), data::UpdateResultCode::kOk,
                                                "Installation successful");
       }

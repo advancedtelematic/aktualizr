@@ -24,11 +24,13 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   target_json["length"] = 2;
   Uptane::Target target("good.deb", target_json);
 
+  storage->storeEcuSerials({{Uptane::EcuSerial("primary_serial"), Uptane::HardwareIdentifier("primary_hwid")}});
+
   Json::Value target_json_test;
   target_json_test["hashes"]["sha256"] = "hash_old";
   target_json_test["length"] = 2;
   Uptane::Target target_test("test.deb", target_json_test);
-  storage->saveInstalledVersion(target_test);
+  storage->savePrimaryInstalledVersion(target_test, InstalledVersionUpdateMode::kCurrent);
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
   std::stringstream("ab") >> *fhandle;
 

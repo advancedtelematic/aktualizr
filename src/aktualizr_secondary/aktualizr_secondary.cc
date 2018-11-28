@@ -157,7 +157,7 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     LOG_ERROR << "Could not install target (" << static_cast<int>(res_code) << "): " << message;
     return false;
   }
-  storage_->saveInstalledVersion(*target_);
+  storage_->saveInstalledVersion(getSerialResp().ToString(), *target_, InstalledVersionUpdateMode::kCurrent);
   return true;
 }
 

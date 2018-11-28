@@ -142,7 +142,8 @@ data::OperationResult SotaUptaneClient::PackageInstallSetResult(const Uptane::Ta
   } else {
     result = data::OperationResult::fromOutcome(target.filename(), PackageInstall(target));
     if (result.result_code == data::UpdateResultCode::kOk) {
-      storage->saveInstalledVersion(target);
+      storage->saveInstalledVersion(uptane_manifest.getPrimaryEcuSerial().ToString(), target,
+                                    InstalledVersionUpdateMode::kCurrent);
     }
   }
   storage->storeInstallationResult(result);
@@ -862,7 +863,8 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
   //   7 - send images to ECUs (deploy for OSTree)
   if (primary_updates.size() != 0u) {
     // assuming one OSTree OS per primary => there can be only one OSTree update
-    const Uptane::Target &primary_update = primary_updates[0];
+    Uptane::Target primary_update = primary_updates[0];
+    primary_update.setCorrelationId(correlation_id);
 
     report_queue->enqueue(
         std_::make_unique<EcuInstallationStartedReport>(uptane_manifest.getPrimaryEcuSerial(), correlation_id));
