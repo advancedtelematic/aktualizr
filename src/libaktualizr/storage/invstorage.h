@@ -98,7 +98,7 @@ enum class InstalledVersionUpdateMode { kNone, kCurrent, kPending };
 // possible
 class INvStorage {
  public:
-  explicit INvStorage(const StorageConfig& config) : config_(config) {}
+  explicit INvStorage(StorageConfig config) : config_(std::move(config)) {}
   virtual ~INvStorage() = default;
   virtual StorageType type() = 0;
   virtual void storePrimaryKeys(const std::string& public_key, const std::string& private_key) = 0;
@@ -193,7 +193,7 @@ class INvStorage {
   void importInstalledVersions(const boost::filesystem::path& base_path);
 
  protected:
-  const StorageConfig& config_;
+  const StorageConfig config_;
 };
 
 #endif  // INVSTORAGE_H_
