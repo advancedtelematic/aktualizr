@@ -287,6 +287,103 @@ TEST(storage, load_store_ecu_registered) {
   EXPECT_FALSE(storage->loadEcuRegistered());
 }
 
+/* Load and store installed versions. */
+TEST(storage, load_store_installed_versions) {
+  TemporaryDirectory temp_dir;
+  std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
+
+  // Test lazy primary installed version: primary ecu serial is not defined yet
+  const std::vector<Uptane::Hash> hashes = {
+      Uptane::Hash{Uptane::Hash::Type::kSha256, "2561"},
+      Uptane::Hash{Uptane::Hash::Type::kSha512, "5121"},
+  };
+  Uptane::Target t1{"update.bin", hashes, 1, "corrid"};
+  storage->savePrimaryInstalledVersion(t1, InstalledVersionUpdateMode::kCurrent);
+
+  EcuSerials serials{{Uptane::EcuSerial("primary"), Uptane::HardwareIdentifier("primary_hw")},
+                     {Uptane::EcuSerial("secondary_1"), Uptane::HardwareIdentifier("secondary_hw")},
+                     {Uptane::EcuSerial("secondary_2"), Uptane::HardwareIdentifier("secondary_hw")}};
+  storage->storeEcuSerials(serials);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, nullptr));
+    EXPECT_EQ(installed_versions.size(), 1);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update.bin");
+    EXPECT_EQ(installed_versions.at(current).sha256Hash(), "2561");
+    EXPECT_EQ(installed_versions.at(current).hashes(), hashes);
+    EXPECT_EQ(installed_versions.at(current).correlation_id(), "corrid");
+    EXPECT_EQ(installed_versions.at(current).length(), 1);
+  }
+
+  // Set t2 as a pending version
+  Uptane::Target t2{"update2.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2562"}}, 2};
+  storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, &pending));
+    EXPECT_EQ(installed_versions.size(), 2);
+    EXPECT_EQ(installed_versions.at(pending).filename(), "update2.bin");
+  }
+
+  // Set t3 as the new pending
+  Uptane::Target t3{"update3.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "2563"}}, 3};
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kPending);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(pending).filename(), "update3.bin");
+  }
+
+  // Set t3 as current: should replace the pending flag but not create a new
+  // version
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update3.bin");
+    EXPECT_EQ(pending, SIZE_MAX);
+  }
+
+  // Set t2 as the new pending and t3 as current afterwards: the pending flag
+  // should disappear
+  storage->savePrimaryInstalledVersion(t2, InstalledVersionUpdateMode::kPending);
+  storage->savePrimaryInstalledVersion(t3, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    size_t current = SIZE_MAX;
+    size_t pending = SIZE_MAX;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, &current, &pending));
+    EXPECT_EQ(installed_versions.size(), 3);
+    EXPECT_EQ(installed_versions.at(current).filename(), "update3.bin");
+    EXPECT_EQ(pending, SIZE_MAX);
+  }
+
+  // Add a secondary installed version
+  Uptane::Target tsec{"secondary.bin", {Uptane::Hash{Uptane::Hash::Type::kSha256, "256s"}}, 4};
+  storage->saveInstalledVersion("secondary_1", tsec, InstalledVersionUpdateMode::kCurrent);
+
+  {
+    std::vector<Uptane::Target> installed_versions;
+    EXPECT_TRUE(storage->loadInstalledVersions("primary", &installed_versions, nullptr, nullptr));
+    EXPECT_EQ(installed_versions.size(), 3);
+
+    EXPECT_TRUE(storage->loadInstalledVersions("secondary_1", &installed_versions, nullptr, nullptr));
+    EXPECT_EQ(installed_versions.size(), 1);
+  }
+}
+
 /* Load and store an installation result. */
 TEST(storage, load_store_installation_result) {
   TemporaryDirectory temp_dir;
