@@ -18,6 +18,10 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
+  - [ ] Finalize a pending update that requires reboot
+    - [ ] Store installation result
+    - [ ] Send manifest
+    - [ ] Update is not in pending state anymore after processing (success or failure)
   - [x] Provision with the server
     - [x] Automatically provision (OTA-983, uptane_init_test.cc, uptane_ci_test.cc, auto_prov_test.py)
       - [x] Extract credentials from a provided archive (config_test.cc, utils_test.cc)
@@ -126,7 +130,11 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
     - [x] Install an update on the primary
       - [ ] Install an OSTree update on the primary
-      - [ ] Notify "reboot needed" after an OSTree update
+      - [ ] Notify "reboot needed" after an OSTree update trigger
+      - [ ] Set new version to pending status after an OSTree update trigger
+      - [ ] Send EcuInstallationAppliedReport to server after an OSTree update trigger
+      - [ ] Uptane check for updates and manifest sends are disabled while an installation is pending reboot
+      - [ ] Trigger a system reboot if `reboot_after_install` is set in the configuration
       - [x] Install a binary update on the primary (uptane_test.cc, aktualizr_test.cc)
     - [x] Store installation result for primary (uptane_test.cc)
     - [x] Send InstallTargetComplete event for primary (aktualizr_test.cc)
