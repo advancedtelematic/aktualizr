@@ -25,7 +25,7 @@ TEST(PackageManagerFactory, Ostree) {
   EXPECT_TRUE(pacman);
 #else
   EXPECT_THROW(std::shared_ptr<PackageManagerInterface> pacman =
-                   PackageManagerFactory::makePackageManager(config.pacman, storage),
+                   PackageManagerFactory::makePackageManager(config.pacman, storage, nullptr),
                std::runtime_error);
 #endif
 }
