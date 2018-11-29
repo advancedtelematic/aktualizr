@@ -260,21 +260,7 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   return result;
 }
 
-bool SotaUptaneClient::hasPendingUpdates(const Json::Value &manifests) {
-  // TODO: is this still relevant? Should use new installed_versions?
-  bool has_secondary_in_progress = false;
-  for (auto manifest : manifests) {
-    if (manifest["signed"].isMember("custom")) {
-      auto status =
-          static_cast<data::UpdateResultCode>(manifest["signed"]["custom"]["operation_result"]["result_code"].asUInt());
-      if (status == data::UpdateResultCode::kInProgress) {
-        has_secondary_in_progress = true;
-      }
-    }
-  }
-
-  return has_secondary_in_progress || storage->hasPendingInstall();
-}
+bool SotaUptaneClient::hasPendingUpdates() { return storage->hasPendingInstall(); }
 
 void SotaUptaneClient::initialize() {
   LOG_DEBUG << "Checking if device is provisioned...";
@@ -884,7 +870,7 @@ UpdateCheckResult SotaUptaneClient::checkUpdates() {
   auto manifest = AssembleManifest();  // populates list of connected devices and installed images
   UpdateCheckResult result;
 
-  if (hasPendingUpdates(manifest)) {
+  if (hasPendingUpdates()) {
     // mask updates when an install is pending
     LOG_INFO << "An update is pending, checking for updates is disabled";
     return result;
@@ -997,7 +983,7 @@ void SotaUptaneClient::campaignAccept(const std::string &campaign_id) {
 bool SotaUptaneClient::putManifestSimple() {
   // does not send event, so it can be used as a subset of other steps
   auto manifest = AssembleManifest();
-  if (hasPendingUpdates(manifest)) {
+  if (hasPendingUpdates()) {
     LOG_INFO << "An update is pending, putManifest is disabled";
     return false;
   }

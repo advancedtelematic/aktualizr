@@ -95,7 +95,7 @@ class SotaUptaneClient {
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
   std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
-  bool hasPendingUpdates(const Json::Value &manifests);
+  bool hasPendingUpdates();
   void sendDownloadReport();
 
   bool putManifestSimple();
