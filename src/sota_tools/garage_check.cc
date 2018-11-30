@@ -9,6 +9,7 @@
 
 #include "accumulator.h"
 #include "authenticate.h"
+#include "garage_common.h"
 #include "logging/logging.h"
 #include "ostree_http_repo.h"
 #include "ostree_object.h"
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
   string cacerts;
 
   int verbosity;
-  bool walk_tree = false;
+  RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-check command line options");
   // clang-format off
   desc.add_options()
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("walk-tree") != 0u) {
-    walk_tree = true;
+    mode = RunMode::kWalkTree;
   }
 
   TreehubServer treehub;
@@ -128,7 +129,7 @@ int main(int argc, char **argv) {
   bool is_commit = true;
   curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code == 404) {
-    if (!walk_tree) {
+    if (mode != RunMode::kWalkTree) {
       LOG_FATAL << "OSTree commit " << ref << " is missing in treehub";
       return EXIT_FAILURE;
     } else {
@@ -138,17 +139,17 @@ int main(int argc, char **argv) {
     LOG_FATAL << "Error " << http_code << " getting OSTree ref " << ref << " from treehub";
     return EXIT_FAILURE;
   }
-  if (!walk_tree) {
+  if (mode != RunMode::kWalkTree) {
     LOG_INFO << "OSTree commit " << ref << " is found on treehub";
   }
 
-  if (walk_tree) {
+  if (mode == RunMode::kWalkTree) {
     // Walk the entire tree and check for all objects.
     OSTreeHttpRepo dest_repo(&treehub);
     OSTreeHash hash = OSTreeHash::Parse(ref);
     OSTreeObject::ptr input_object = dest_repo.GetObject(hash);
 
-    RequestPool request_pool(treehub, 1);
+    RequestPool request_pool(treehub, 1, mode);
 
     // Add input object to the queue.
     request_pool.AddQuery(input_object);
@@ -157,10 +158,9 @@ int main(int argc, char **argv) {
     // request_pool takes care of holding number of outstanding requests below.
     // OSTreeObject::CurlDone() adds new requests to the pool and stops the pool
     // on error.
-    const bool dryrun = true;
     do {
-      request_pool.Loop(dryrun);
-    } while (!request_pool.is_stopped()); // TODO: we probably need a better stop condition!
+      request_pool.Loop();
+    } while (!request_pool.is_stopped());  // TODO: this will probably run forever!
 
     if (input_object->is_on_server() == PresenceOnServer::kObjectPresent) {
       LOG_INFO << "Dry run. No objects uploaded.";

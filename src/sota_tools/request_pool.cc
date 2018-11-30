@@ -6,8 +6,8 @@
 
 #include "logging/logging.h"
 
-RequestPool::RequestPool(const TreehubServer& server, int max_curl_requests)
-    : rate_controller_(max_curl_requests), running_requests_(0), server_(server), stopped_(false) {
+RequestPool::RequestPool(const TreehubServer& server, const int max_curl_requests, const RunMode mode)
+    : rate_controller_(max_curl_requests), running_requests_(0), server_(server), mode_(mode), stopped_(false) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
   multi_ = curl_multi_init();
   curl_multi_setopt(multi_, CURLMOPT_PIPELINING, CURLPIPE_HTTP1 | CURLPIPE_MULTIPLEX);
@@ -40,7 +40,7 @@ void RequestPool::AddUpload(const OSTreeObject::ptr& request) {
   }
 }
 
-void RequestPool::LoopLaunch(const bool dryrun) {
+void RequestPool::LoopLaunch() {
   while (running_requests_ < rate_controller_.MaxConcurrency() && (!query_queue_.empty() || !upload_queue_.empty())) {
     OSTreeObject::ptr cur;
 
@@ -48,9 +48,9 @@ void RequestPool::LoopLaunch(const bool dryrun) {
     if (query_queue_.empty()) {
       cur = upload_queue_.front();
       upload_queue_.pop_front();
-      cur->Upload(server_, multi_, dryrun);
+      cur->Upload(server_, multi_, mode_);
       total_requests_made_++;
-      if (dryrun) {
+      if (mode_ != RunMode::kDefault) {
         // Don't send an actual upload message, just skip to the part where we
         // acknowledge that the object has been uploaded.
         cur->NotifyParents(*this);
@@ -125,8 +125,8 @@ void RequestPool::LoopListen() {
   } while (msgs_in_queue > 0);
 }
 
-void RequestPool::Loop(const bool dryrun) {
-  LoopLaunch(dryrun);
+void RequestPool::Loop() {
+  LoopLaunch();
   LoopListen();
 }
 // vim: set tabstop=2 shiftwidth=2 expandtab:

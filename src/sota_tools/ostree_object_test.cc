@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 
 #include "authenticate.h"
+#include "garage_common.h"
 #include "ostree_dir_repo.h"
 #include "ostree_object.h"
 #include "request_pool.h"
@@ -101,7 +102,7 @@ TEST(OstreeObject, UploadDryRun) {
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
-  object->Upload(push_server, nullptr, true);
+  object->Upload(push_server, nullptr, RunMode::kDryRun);
   EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectPresent);
   // This currently does not get reset.
   EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectPresenceCheck);
@@ -122,7 +123,7 @@ TEST(OstreeObject, UploadFail) {
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
-  object->Upload(push_server, nullptr, false);
+  object->Upload(push_server, nullptr, RunMode::kDefault);
   EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectStateUnknown);
   EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectUploading);
   // This currently will get allocated and we need to free it.
@@ -156,7 +157,7 @@ TEST(OstreeObject, UploadSuccess) {
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
   OSTreeObject::ptr object = src_repo->GetObject(hash);
 
-  object->Upload(push_server, multi, false);
+  object->Upload(push_server, multi, RunMode::kDefault);
 
   // This bit is basically copied from RequestPool::LoopListen().
   int running_requests;

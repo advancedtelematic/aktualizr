@@ -5,12 +5,13 @@
 
 #include <curl/curl.h>
 
+#include "garage_common.h"
 #include "ostree_object.h"
 #include "rate_controller.h"
 
 class RequestPool {
  public:
-  RequestPool(const TreehubServer& server, int max_curl_requests);
+  RequestPool(const TreehubServer& server, int max_curl_requests, RunMode mode);
   ~RequestPool();
   void AddQuery(const OSTreeObject::ptr& request);
   void AddUpload(const OSTreeObject::ptr& request);
@@ -21,12 +22,13 @@ class RequestPool {
   };
   bool is_idle() { return query_queue_.empty() && upload_queue_.empty() && running_requests_ == 0; }
   bool is_stopped() { return stopped_; }
+  RunMode run_mode() { return mode_; }
 
   /**
    * One iteration of request-listen loop, launches multiple requests, then
    * listens for the result.
    */
-  void Loop(bool dryrun);
+  void Loop();
   /**
    * The number of HEAD + PUT requests that have been sent to curl. This
    * includes requests that eventually returned 500 and get retried.
@@ -34,8 +36,8 @@ class RequestPool {
   int total_requests_made() { return total_requests_made_; }
 
  private:
-  void LoopLaunch(bool dryrun);  // launches multiple requests from the queues
-  void LoopListen();             // listens to the result of launched requests
+  void LoopLaunch();  // launches multiple requests from the queues
+  void LoopListen();  // listens to the result of launched requests
 
   RateController rate_controller_;
   int running_requests_;
@@ -44,6 +46,7 @@ class RequestPool {
   CURLM* multi_;
   std::list<OSTreeObject::ptr> query_queue_;
   std::list<OSTreeObject::ptr> upload_queue_;
+  RunMode mode_;
   bool stopped_;
 };
 // vim: set tabstop=2 shiftwidth=2 expandtab:

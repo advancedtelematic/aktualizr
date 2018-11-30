@@ -10,6 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 
+#include "garage_common.h"
 #include "treehub_server.h"
 
 class OSTreeRepo;
@@ -44,7 +45,7 @@ class OSTreeObject {
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
 
   /* Upload this object to the destination server. */
-  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, bool dryrun);
+  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, RunMode mode);
 
   /* Process a completed curl transaction (presence check or upload). */
   void CurlDone(CURLM* curl_multi_handle, RequestPool& pool);
@@ -78,6 +79,10 @@ class OSTreeObject {
   void QueryChildren(RequestPool& pool);
 
   std::string Url() const;
+
+  /* Check for children. If they are all present, upload this object. Otherwise,
+   * query each of the children. */
+  void CheckChildren(RequestPool& pool);
 
   /* Handle an error from a presence check. */
   void PresenceError(RequestPool& pool, int64_t rescode);

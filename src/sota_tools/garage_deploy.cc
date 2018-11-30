@@ -6,6 +6,7 @@
 #include "accumulator.h"
 #include "authenticate.h"
 #include "deploy.h"
+#include "garage_common.h"
 #include "logging/logging.h"
 #include "ostree_http_repo.h"
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv) {
   boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
-  bool dry_run = false;
+  RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-deploy command line options");
   // clang-format off
   desc.add_options()
@@ -76,7 +77,7 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("dry-run") != 0u) {
-    dry_run = true;
+    mode = RunMode::kDryRun;
   }
 
   ServerCredentials push_credentials(push_cred);
@@ -93,12 +94,12 @@ int main(int argc, char **argv) {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
     // isn't really any reason to upload in parallel
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, dry_run, 1)) {
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, 1)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
 
-    if (!dry_run) {
+    if (mode == RunMode::kDefault) {
       if (push_credentials.CanSignOffline()) {
         bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
         return static_cast<int>(!ok);

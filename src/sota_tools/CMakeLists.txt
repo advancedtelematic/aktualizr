@@ -93,6 +93,7 @@ set(ALL_SOTA_TOOLS_HEADERS
     accumulator.h
     authenticate.h
     deploy.h
+    garage_common.h
     oauth2.h
     ostree_dir_repo.h
     ostree_hash.h

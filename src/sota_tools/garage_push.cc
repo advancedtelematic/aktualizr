@@ -6,6 +6,7 @@
 
 #include "accumulator.h"
 #include "deploy.h"
+#include "garage_common.h"
 #include "logging/logging.h"
 #include "ostree_dir_repo.h"
 #include "ostree_repo.h"
@@ -23,7 +24,7 @@ int main(int argc, char **argv) {
   boost::filesystem::path credentials_path;
 
   int verbosity;
-  bool dry_run = false;
+  RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-push command line options");
   // clang-format off
   desc.add_options()
@@ -81,7 +82,7 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("dry-run") != 0u) {
-    dry_run = true;
+    mode = RunMode::kDryRun;
   }
 
   if (max_curl_requests < 1) {
@@ -105,7 +106,7 @@ int main(int argc, char **argv) {
     }
 
     OSTreeHash commit(ostree_ref.GetHash());
-    bool ok = UploadToTreehub(src_repo, push_credentials, commit, cacerts, dry_run, max_curl_requests);
+    bool ok = UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests);
 
     if (!ok) {
       LOG_FATAL << "Upload to treehub failed";
@@ -115,7 +116,7 @@ int main(int argc, char **argv) {
     if (push_credentials.CanSignOffline()) {
       LOG_INFO << "Credentials contain offline signing keys, not pushing root ref";
     } else {
-      ok = PushRootRef(push_credentials, ostree_ref, cacerts, dry_run);
+      ok = PushRootRef(push_credentials, ostree_ref, cacerts, mode);
       if (!ok) {
         LOG_FATAL << "Could not push root reference to treehub";
         return EXIT_FAILURE;

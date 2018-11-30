@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "deploy.h"
+#include "garage_common.h"
 #include "ostree_http_repo.h"
 #include "ostree_ref.h"
 #include "server_credentials.h"
@@ -89,7 +90,7 @@ TEST(http_repo, bad_connection) {
   const uint8_t hash[32] = {0x16, 0xef, 0x2f, 0x26, 0x29, 0xdc, 0x92, 0x63, 0xfd, 0xf3, 0xc0,
                             0xf0, 0x32, 0x56, 0x3a, 0x2d, 0x75, 0x76, 0x23, 0xbb, 0xc1, 0x1c,
                             0xf9, 0x9d, 0xf2, 0x5c, 0x3c, 0x3f, 0x25, 0x8d, 0xcc, 0xbe};
-  UploadToTreehub(src_repo, ServerCredentials(filepath), OSTreeHash(hash), cert_path.string(), false, 1);
+  UploadToTreehub(src_repo, ServerCredentials(filepath), OSTreeHash(hash), cert_path.string(), RunMode::kDefault, 1);
 
   int result = system(
       (std::string("diff -r ") + (src_repo->root() / "objects/").string() + " tests/sota_tools/repo/objects/").c_str());

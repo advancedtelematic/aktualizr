@@ -198,8 +198,8 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const bool dryrun) {
-  if (!dryrun) {
+void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const RunMode mode) {
+  if (mode == RunMode::kDefault) {
     LOG_INFO << "Uploading " << object_name_;
   } else {
     LOG_INFO << "Would upload " << object_name_;
@@ -241,6 +241,21 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
+void OSTreeObject::CheckChildren(RequestPool &pool) {
+  try {
+    PopulateChildren();
+    LOG_TRACE << "Children of " << object_name_ << ": " << children_.size();
+    if (children_ready()) {
+      pool.AddUpload(this);
+    } else {
+      QueryChildren(pool);
+    }
+  } catch (const OSTreeObjectMissing &error) {
+    LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
+    pool.Abort();
+  }
+}
+
 void OSTreeObject::PresenceError(RequestPool &pool, const int64_t rescode) {
   is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
@@ -276,34 +291,15 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
-      // TODO: Fix
-      // NotifyParents(pool);
-      try {
-        PopulateChildren();
-        LOG_INFO << "Children: " << children_.size();
-        if (children_ready()) {
-          pool.AddUpload(this);
-        } else {
-          QueryChildren(pool);
-        }
-      } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
-        pool.Abort();
+      if (pool.run_mode() != RunMode::kWalkTree) {
+        NotifyParents(pool);
+      } else {
+        CheckChildren(pool);
       }
     } else if (rescode == 404) {
       is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kOk;
-      try {
-        PopulateChildren();
-        if (children_ready()) {
-          pool.AddUpload(this);
-        } else {
-          QueryChildren(pool);
-        }
-      } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
-        pool.Abort();
-      }
+      CheckChildren(pool);
     } else {
       PresenceError(pool, rescode);
     }
