@@ -26,8 +26,9 @@ class Handler(SimpleHTTPRequestHandler):
                 if auth_list[0] == 'Bearer' and auth_list[1] == 'token':
                     self.wfile.write(b'{"status": "good"}')
             self.wfile.write(b'{}')
-        elif self.path.endswith('/large_file') or self.path.endswith('/large_interrupted'):
-            response_size = 2048
+        elif self.path.endswith('/large_file'):
+            chunk_size = 1 << 20
+            response_size = 100 * chunk_size
             if "Range" in self.headers:
                 r = self.headers["Range"]
                 r_from = int(r.split("=")[1].split("-")[0])
@@ -35,14 +36,16 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_header('Content-Range', 'bytes %d-%d/%d' %(r_from, response_size-1, response_size))
                 response_size = response_size - r_from
             else:
-                if self.path.endswith('/large_interrupted'):
-                    response_size = 1024
                 self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', response_size)
             self.end_headers()
-            sleep(0.5)
-            for i in range(response_size):
-              self.wfile.write(b'@')
+            num_chunks, last_chunk = divmod(response_size, chunk_size)
+            b = b'@' * chunk_size
+            while num_chunks > 0:
+              self.wfile.write(b)
+              num_chunks -= 1
+            self.wfile.write(b'@' * last_chunk)
         elif self.path == '/slow_file':
             self.send_response(200)
             self.end_headers()
