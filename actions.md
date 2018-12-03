@@ -87,7 +87,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Validate Uptane metadata (see below)
   - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
   - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
-  - [ ] Send UpdateCheckComplete event after failure
+  - [x] Send UpdateCheckComplete event after failure (aktualizr_test.cc)
 - [x] Download updates
   - [x] Download an update
     - [x] Download an OSTree package (fetcher_test.cc)

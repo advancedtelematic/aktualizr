@@ -787,6 +787,27 @@ TEST(Aktualizr, APICheck) {
   EXPECT_LT(num_events_UpdateCheck, 100);
 }
 
+/* Send UpdateCheckComplete event after failure */
+TEST(Aktualizr, PutManifestError) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+
+  Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_UpdateCheck;
+
+  num_events_UpdateCheck = 0;
+  Aktualizr aktualizr(conf, storage, up, sig);
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+  aktualizr.Initialize();
+  auto result = aktualizr.CheckUpdates().get();
+  EXPECT_EQ(result.status, UpdateStatus::kError);
+  EXPECT_EQ(num_events_UpdateCheck, 1);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
