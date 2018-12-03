@@ -2,12 +2,12 @@
 
 import sys
 import socket
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 from time import sleep
 
 last_fails = False
 
-class Handler(BaseHTTPRequestHandler):
+class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         global last_fails
         if self.path == '/download':
