@@ -299,16 +299,13 @@ TEST(Uptane, UptaneSecondaryAdd) {
 TEST(Uptane, UptaneSecondaryAddSameSerial) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path());
-  Config config;
   boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  Config config;
   config.provision.provision_path = temp_dir / "cred.zip";
   config.provision.mode = ProvisionMode::kAutomatic;
-  config.uptane.director_server = http->tls_server + "/director";
-  config.uptane.repo_server = http->tls_server + "/repo";
-  config.tls.server = http->tls_server;
-  config.provision.primary_ecu_serial = "testecuserial";
-  config.storage.path = temp_dir.Path();
   config.pacman.type = PackageManager::kNone;
+  config.storage.path = temp_dir.Path();
+
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
@@ -328,12 +325,8 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     Config config;
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kAutomatic;
-    config.uptane.director_server = http->tls_server + "/director";
-    config.uptane.repo_server = http->tls_server + "/repo";
-    config.tls.server = http->tls_server;
-    config.provision.primary_ecu_serial = "testecuserial";
-    config.storage.path = temp_dir.Path();
     config.pacman.type = PackageManager::kNone;
+    config.storage.path = temp_dir.Path();
     UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
 
     auto storage = INvStorage::newStorage(config.storage);
@@ -348,15 +341,10 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
     Config config;
     config.provision.provision_path = temp_dir / "cred.zip";
     config.provision.mode = ProvisionMode::kAutomatic;
-    config.uptane.director_server = http->tls_server + "/director";
-    config.uptane.repo_server = http->tls_server + "/repo";
-    config.tls.server = http->tls_server;
-    config.provision.primary_ecu_serial = "testecuserial";
-    config.storage.path = temp_dir.Path();
     config.pacman.type = PackageManager::kNone;
-
+    config.storage.path = temp_dir.Path();
     auto storage = INvStorage::newStorage(config.storage);
-    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "secondary_hardware");
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "new_secondary_hardware");
     auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
     EXPECT_NO_THROW(sota_client->initialize());
 
@@ -372,8 +360,23 @@ TEST(Uptane, UptaneSecondaryMisconfigured) {
       EXPECT_EQ(ecus[1].serial.ToString(), "new_secondary_ecu_serial");
       EXPECT_EQ(ecus[1].state, EcuState::kNotRegistered);
     } else {
-      FAIL();
+      FAIL() << "Unexpected secondary serial in storage: " << ecus[0].serial.ToString();
     }
+  }
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.pacman.type = PackageManager::kNone;
+    config.storage.path = temp_dir.Path();
+    auto storage = INvStorage::newStorage(config.storage);
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 0);
   }
 }
 

@@ -941,6 +941,7 @@ bool SotaUptaneClient::putManifest() {
 
 // Check stored secondaries list against secondaries known to aktualizr.
 void SotaUptaneClient::verifySecondaries() {
+  storage->clearMisconfiguredEcus();
   EcuSerials serials;
   if (!storage->loadEcuSerials(&serials) || serials.empty()) {
     LOG_ERROR << "No ECU serials found in storage!";
