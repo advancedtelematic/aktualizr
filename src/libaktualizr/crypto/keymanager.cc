@@ -189,13 +189,13 @@ std::string KeyManager::getCN() const {
   return cn;
 }
 
-void KeyManager::copyCertsToCurl(const std::shared_ptr<HttpInterface> &http) {
+void KeyManager::copyCertsToCurl(HttpInterface &http) {
   std::string pkey = getPkey();
   std::string cert = getCert();
   std::string ca = getCa();
 
   if ((pkey.size() != 0u) && (cert.size() != 0u) && (ca.size() != 0u)) {
-    http->setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);
+    http.setCerts(ca, config_.tls_ca_source, cert, config_.tls_cert_source, pkey, config_.tls_pkey_source);
   }
 }
 

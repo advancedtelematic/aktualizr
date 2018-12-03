@@ -77,7 +77,7 @@ bool Initializer::initPrimaryEcuKeys() { return keys_.generateUptaneKeyPair().si
 void Initializer::resetEcuKeys() { storage_->clearPrimaryKeys(); }
 
 bool Initializer::loadSetTlsCreds() {
-  keys_.copyCertsToCurl(http_client_);
+  keys_.copyCertsToCurl(*http_client_);
   return keys_.isOk();
 }
 
