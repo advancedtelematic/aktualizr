@@ -843,10 +843,15 @@ UpdateCheckResult SotaUptaneClient::checkUpdates() {
     if (!updates.empty()) {
       result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kUpdatesAvailable,
                                  Utils::parseJSON(director_targets), "");
+      if (updates.size() == 1) {
+        LOG_INFO << "1 new update found in Uptane metadata.";
+      } else {
+        LOG_INFO << updates.size() << " new updates found in Uptane metadata.";
+      }
     } else {
       result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kNoUpdatesAvailable,
                                  Utils::parseJSON(director_targets), "");
-      LOG_INFO << "No new updates found in Uptane metadata.";
+      LOG_DEBUG << "No new updates found in Uptane metadata.";
     }
   }
   return result;
