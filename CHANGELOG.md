@@ -9,6 +9,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 ### Changed
 
 - [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
+- With an OStree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
 
 ### Added
 

@@ -298,8 +298,24 @@ class HttpFakePutCounter : public HttpFake {
 };
 
 /*
- * Simulate more closely the OStree case which needs a reboot after applying an
- * update.
+ * Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed
+ * for primary (after reboot) and secondary (aktualizr_test.cc)
+ *
+ * It simulates closely the OStree case which needs a reboot after applying an
+ * update, but uses `PackageManagerFake`.
+ *
+ * Checks actions:
+ *
+ * - [x] Finalize a pending update that requires reboot
+ *   - [x] Store installation result
+ *   - [x] Send manifest
+ *   - [x] Update is not in pending state anymore after successful finalization
+ *
+ *  - [x] Install an update on the primary
+ *    - [x] Set new version to pending status after an OSTree update trigger
+ *    - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger
+ *    - [x] Uptane check for updates and manifest sends are disabled while an installation
+ *          is pending reboot
  */
 TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   TemporaryDirectory temp_dir;
