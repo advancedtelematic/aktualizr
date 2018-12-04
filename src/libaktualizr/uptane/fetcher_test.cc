@@ -107,6 +107,7 @@ void test_pause(const Uptane::Target& target) {
   EXPECT_GE((finish - start), std::chrono::seconds(2));
 }
 
+#ifdef BUILD_OSTREE
 /*
  * Download an OSTree package
  * Verify an OSTree package
@@ -120,6 +121,7 @@ TEST(fetcher, test_pause_ostree) {
   num_events_DownloadPause = 0;
   test_pause(target);
 }
+#endif  // BUILD_OSTREE
 
 TEST(fetcher, test_pause_binary) {
   Json::Value target_json;
@@ -141,6 +143,8 @@ int main(int argc, char** argv) {
   std::string port = TestUtils::getFreePort();
   server += port;
   TestHelperProcess http_server_process("tests/fake_http_server/fake_http_server.py", port);
+  TestUtils::waitForServer(server + "/");
+#ifdef BUILD_OSTREE
   std::string treehub_port = TestUtils::getFreePort();
   treehub_server += treehub_port;
   TestHelperProcess ostree_server_process("tests/sota_tools/treehub_server.py", treehub_port);
@@ -152,8 +156,8 @@ int main(int argc, char** argv) {
     return -1;
   }
   sysroot = (temp_dir.Path() / "ostree_repo").string();
-  TestUtils::waitForServer(server + "/");
   TestUtils::waitForServer(treehub_server + "/");
+#endif  // BUILD_OSTREE
   return RUN_ALL_TESTS();
 }
-#endif
+#endif  // __NO_MAIN__
