@@ -90,9 +90,11 @@ void test_pause(const Uptane::Target& target) {
 
   EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
   EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   std::thread([&f, &end_pausing] {
+    while (!f.isDownloading()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));  // wait for download start
+    }
     EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
     EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
     std::this_thread::sleep_for(std::chrono::seconds(2));
