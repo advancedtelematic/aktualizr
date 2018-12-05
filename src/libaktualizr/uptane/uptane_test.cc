@@ -295,6 +295,91 @@ TEST(Uptane, UptaneSecondaryAdd) {
   EXPECT_TRUE(ecu_data["ecus"][1]["clientKey"]["keyval"]["public"].asString().size() > 0);
 }
 
+/* Adding multiple secondaries with the same serial throws an error */
+TEST(Uptane, UptaneSecondaryAddSameSerial) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  Config config;
+  config.provision.provision_path = temp_dir / "cred.zip";
+  config.provision.mode = ProvisionMode::kAutomatic;
+  config.pacman.type = PackageManager::kNone;
+  config.storage.path = temp_dir.Path();
+
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "second_secondary_hardware");
+
+  auto storage = INvStorage::newStorage(config.storage);
+  EXPECT_THROW(SotaUptaneClient::newTestClient(config, storage, http), std::runtime_error);
+}
+
+/*
+ * Identify previously unknown secondaries
+ * Identify currently unavailable secondaries
+ */
+TEST(Uptane, UptaneSecondaryMisconfigured) {
+  TemporaryDirectory temp_dir;
+  boost::filesystem::copy_file("tests/test_data/cred.zip", temp_dir / "cred.zip");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.pacman.type = PackageManager::kNone;
+    config.storage.path = temp_dir.Path();
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+
+    auto storage = INvStorage::newStorage(config.storage);
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 0);
+  }
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.pacman.type = PackageManager::kNone;
+    config.storage.path = temp_dir.Path();
+    auto storage = INvStorage::newStorage(config.storage);
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "new_secondary_ecu_serial", "new_secondary_hardware");
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 2);
+    if (ecus[0].serial.ToString() == "new_secondary_ecu_serial") {
+      EXPECT_EQ(ecus[0].state, EcuState::kNotRegistered);
+      EXPECT_EQ(ecus[1].serial.ToString(), "secondary_ecu_serial");
+      EXPECT_EQ(ecus[1].state, EcuState::kOld);
+    } else if (ecus[0].serial.ToString() == "secondary_ecu_serial") {
+      EXPECT_EQ(ecus[0].state, EcuState::kOld);
+      EXPECT_EQ(ecus[1].serial.ToString(), "new_secondary_ecu_serial");
+      EXPECT_EQ(ecus[1].state, EcuState::kNotRegistered);
+    } else {
+      FAIL() << "Unexpected secondary serial in storage: " << ecus[0].serial.ToString();
+    }
+  }
+  {
+    Config config;
+    config.provision.provision_path = temp_dir / "cred.zip";
+    config.provision.mode = ProvisionMode::kAutomatic;
+    config.pacman.type = PackageManager::kNone;
+    config.storage.path = temp_dir.Path();
+    auto storage = INvStorage::newStorage(config.storage);
+    UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+    auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+    EXPECT_NO_THROW(sota_client->initialize());
+
+    std::vector<MisconfiguredEcu> ecus;
+    storage->loadMisconfiguredEcus(&ecus);
+    EXPECT_EQ(ecus.size(), 0);
+  }
+}
+
 /**
  * Check that basic device info sent by aktualizr during provisioning matches
  * our expectations.
@@ -408,8 +493,23 @@ class HttpFakeProv : public HttpFake {
   int network_count{0};
 };
 
+unsigned int num_events_ProvisionOnServer = 0;
+void process_events_ProvisionOnServer(const std::shared_ptr<event::BaseEvent> &event) {
+  switch (num_events_ProvisionOnServer) {
+    case 0: {
+      EXPECT_EQ(event->variant, "SendDeviceDataComplete");
+      break;
+    }
+    default: { std::cout << "Got " << event->variant << "event\n"; }
+  }
+  num_events_ProvisionOnServer++;
+}
+
 /* Provision with a fake server and check for the exact number of expected
- * calls to each endpoint. */
+ * calls to each endpoint.
+ * Use a provided hardware ID
+ * Send SendDeviceDataComplete event
+ */
 TEST(Uptane, ProvisionOnServer) {
   RecordProperty("zephyr_key", "OTA-984,TST-149");
   TemporaryDirectory temp_dir;
@@ -428,7 +528,10 @@ TEST(Uptane, ProvisionOnServer) {
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);
-  auto up = SotaUptaneClient::newTestClient(config, storage, http);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_ProvisionOnServer;
+  events_channel->connect(f_cb);
+  auto up = SotaUptaneClient::newTestClient(config, storage, http, events_channel);
 
   EXPECT_EQ(http->devices_count, 0);
   EXPECT_EQ(http->ecus_count, 0);
@@ -438,6 +541,10 @@ TEST(Uptane, ProvisionOnServer) {
   EXPECT_EQ(http->network_count, 0);
 
   EXPECT_NO_THROW(up->initialize());
+  EcuSerials serials;
+  storage->loadEcuSerials(&serials);
+  EXPECT_EQ(serials[0].second.ToString(), "tst149_hardware_identifier");
+
   EXPECT_EQ(http->devices_count, 1);
   EXPECT_EQ(http->ecus_count, 1);
 

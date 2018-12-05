@@ -14,7 +14,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Create secondary object
         - [x] Create a virtual secondary for testing (uptane_secondary_test.cc)
     - [ ] Add secondaries via API
-    - [ ] Adding multiple secondaries with the same serial throws an error
+    - [x] Adding multiple secondaries with the same serial throws an error (uptane_test.cc)
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
     - [x] Generate a random device ID (OTA-986, utils_test.cc, uptane_init_test.cc)
@@ -42,7 +42,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Initialize primary ECU serial
     - [x] Use a provided primary serial (OTA-988, config_test.cc)
     - [x] Generate primary serial (OTA-989, uptane_serial_test.cc)
-    - [ ] Use a provided hardware ID
+    - [x] Use a provided hardware ID (uptane_test.cc)
     - [ ] Use the system hostname as hardware ID if one is not provided
       - [x] Read the hostname from the system (utils_test.cc)
   - [x] Register ECUs with director
@@ -51,9 +51,9 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Abort if initialization fails
     - [x] Recover from partial provisioning and network loss (OTA-991, uptane_network_test.cc, uptane_key_test.cc)
     - [x] Detect and recover from failed provisioning (uptane_init_test.cc)
-  - [ ] Verify secondaries against storage
-    - [ ] Identify previously unknown secondaries
-    - [ ] Identify currently unavailable secondaries
+  - [x] Verify secondaries against storage
+    - [x] Identify previously unknown secondaries (uptane_test.cc)
+    - [x] Identify currently unavailable secondaries (uptane_test.cc)
 - [x] Send system/network info to server
   - [x] Read hardware info from the system (utils_test.cc)
   - [x] Send hardware info to the server (OTA-984, uptane_test.cc)
@@ -63,7 +63,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Read networking info from the system (utils_test.cc)
   - [x] Send networking info to the server (OTA-984, uptane_test.cc)
   - [x] Generate and send manifest (see below)
-  - [ ] Send SendDeviceDataComplete event
+  - [x] Send SendDeviceDataComplete event (uptane_test.cc)
 - [x] Check for campaigns
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
   - [x] Fetch campaigns from the server (aktualizr_test.cc)
@@ -92,7 +92,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Validate Uptane metadata (see below)
   - [x] Send UpdateCheckComplete event with available updates (aktualizr_test.cc)
   - [x] Send UpdateCheckComplete event after successful check with no available updates (aktualizr_test.cc)
-  - [ ] Send UpdateCheckComplete event after failure
+  - [x] Send UpdateCheckComplete event after failure (aktualizr_test.cc)
 - [x] Download updates
   - [x] Download an update
     - [x] Download an OSTree package (fetcher_test.cc)
@@ -105,7 +105,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Pausing while not downloading is ignored (fetcher_test.cc)
   - [x] Resume downloading (fetcher_test.cc)
     - [x] Resuming while not paused is ignored (fetcher_test.cc)
-    - [ ] Resuming while not downloading is ignored
+    - [x] Resuming while not downloading is ignored (fetcher_test.cc)
     - [x] Resume download interrupted by restart (fetcher_test.cc)
   - [x] Verify a downloaded update
     - [x] Verify an OSTree package (fetcher_test.cc)

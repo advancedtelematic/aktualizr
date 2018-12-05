@@ -110,11 +110,9 @@ class HttpFake : public HttpInterface {
   }
 
   HttpResponse put(const std::string &url, const Json::Value &data) override {
-    (void)data;
     std::ofstream director_file((test_dir / test_manifest).c_str());
     director_file << data;
     director_file.close();
-
     return HttpResponse(url, 200, CURLE_OK, "");
   }
 

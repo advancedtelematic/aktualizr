@@ -41,6 +41,7 @@ class Fetcher {
     return fetchRole(result, maxsize, repo, role, Version());
   }
   bool isPaused() { return pause_; }
+  bool isDownloading() { return static_cast<bool>(downloading_); }
   PauseResult setPause(bool pause);
 
  private:
