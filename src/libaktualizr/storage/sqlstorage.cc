@@ -1128,6 +1128,9 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
     row_id_ = sqlite3_last_insert_rowid(db_.get());
     db_.commitTransaction();
+
+    // TODO take from config
+    cache.reserve(1 << 24);
   }
 
   ~SQLTargetWHandle() override {
@@ -1138,6 +1141,14 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
+    if (cache.size() + size > cache.capacity()) {
+      wcommit();
+    }
+    cache.insert(cache.end(), buf, buf + size);  // NOLINT
+    return size;
+  }
+
+  void wcommit() override {
     std::lock_guard<std::mutex> lock(sql_mutex);
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
 
@@ -1151,12 +1162,14 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
+    if (sqlite3_blob_write(blob_, cache.data(), static_cast<int>(cache.size()), static_cast<int>(written_size_)) !=
+        SQLITE_OK) {
       LOG_ERROR << "Could not write in blob: " << db_.errmsg();
       wabort();
-      return 0;
+      throw exc;
     }
-    written_size_ += size;
+    written_size_ += cache.size();
+    cache.clear();
 
     auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
                                                             static_cast<int64_t>(written_size_), row_id_);
@@ -1167,18 +1180,14 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    wcommit();
-    db_.commitTransaction();
-    return size;
-  }
-
-  void wcommit() override {
-    closed_ = true;
     sqlite3_blob_close(blob_);
+    closed_ = true;
     blob_ = nullptr;
+    db_.commitTransaction();
   }
 
   void wabort() noexcept override {
+    cache.clear();
     closed_ = true;
     if (blob_ != nullptr) {
       sqlite3_blob_close(blob_);
@@ -1210,6 +1219,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   bool closed_;
   sqlite3_blob* blob_;
   sqlite3_int64 row_id_;
+  std::vector<uint8_t> cache;
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const Uptane::Target& target) {

@@ -22,7 +22,7 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   assert(userp);
   auto* ds = static_cast<Uptane::DownloadMetaStruct*>(userp);
   uint64_t downloaded = size * nmemb;
-  auto expected = static_cast<uint64_t>(ds->target.length());
+  uint64_t expected = ds->target.length();
   if ((ds->downloaded_length + downloaded) > expected) {
     return downloaded + 1;  // curl will abort if return unexpected size;
   }
@@ -30,16 +30,10 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   // incomplete writes will stop the download (written_size != nmemb*size)
   size_t written_size = ds->fhandle->wfeed(reinterpret_cast<uint8_t*>(contents), downloaded);
   ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), written_size);
-  unsigned int calculated = 0;
-  if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
-    if (ds->downloaded_length > 0) {
-      std::cout << "\r";
-    }
-  }
   ds->downloaded_length += downloaded;
-  calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
+  auto calculated = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
   if (loggerGetSeverity() <= boost::log::trivial::severity_level::trace) {
-    std::cout << "Downloading: " << calculated << "%";
+    std::cout << "\rDownloading: " << calculated << "%";
     if (ds->downloaded_length == expected) {
       std::cout << "\n";
     }
@@ -125,12 +119,16 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         HttpResponse response =
             http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
                            DownloadHandler, &ds, ds.downloaded_length);
+        LOG_TRACE << "Download status: " << response.getStatusStr();
         if (!response.isOk() && !pause_) {
           if (response.curl_code == CURLE_WRITE_ERROR) {
+            ds.fhandle->wabort();
             throw OversizedTarget(target.filename());
           }
-          throw Exception("image", "Could not download file, error: " + response.error_message);
+          ds.fhandle->wcommit();
+          throw Exception("image", "Could not download file, error: " + response.getStatusStr());
         }
+        ds.fhandle->wcommit();
         if (pause_) {
           std::lock_guard<std::mutex> lock(*pause_mutex_);
           retry = true;

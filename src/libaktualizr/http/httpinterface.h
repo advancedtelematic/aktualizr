@@ -22,6 +22,9 @@ struct HttpResponse {
   CURLcode curl_code;
   std::string error_message;
   bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
+  std::string getStatusStr() {
+    return std::to_string(curl_code) + " " + error_message + " HTTP " + std::to_string(http_status_code);
+  }
   Json::Value getJson() { return Utils::parseJSON(body); }
 };
 
