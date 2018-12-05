@@ -110,6 +110,8 @@ void process_event(const std::shared_ptr<event::BaseEvent> &event) {
               << (install_complete->success ? "success" : "failure") << "\n";
   } else if (event->variant == "DownloadPaused" || event->variant == "DownloadResumed") {
     // Do nothing.
+  } else if (event->variant == "UpdateCheckComplete") {
+    // Do nothing; libaktualizr already logs it.
   } else {
     std::cout << "Received " << event->variant << " event\n";
   }
