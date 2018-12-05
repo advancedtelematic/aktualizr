@@ -213,12 +213,12 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   return response;
 }
 
-HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, size_t from) {
+HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, curl_off_t from) {
   return downloadAsync(url, callback, userp, from, nullptr).get();
 }
 
 std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl_write_callback callback, void* userp,
-                                                    size_t from, CurlHandler* easyp) {
+                                                    curl_off_t from, CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
   CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
 
@@ -234,7 +234,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   curlEasySetoptWrapper(curl_download, CURLOPT_TIMEOUT, 0);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_TIME, speed_limit_time_interval_);
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
-  curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM, from);
+  curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM_LARGE, from);
 
   std::promise<HttpResponse> resp_promise;
   auto resp_future = resp_promise.get_future();

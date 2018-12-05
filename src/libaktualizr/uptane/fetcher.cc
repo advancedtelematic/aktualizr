@@ -119,7 +119,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           ds.fhandle = storage->openTargetFile(target)->toWriteHandle();
         }
         response = http->download(config.uptane.repo_server + "/targets/" + Utils::urlEncode(target.filename()),
-                                  DownloadHandler, &ds, ds.downloaded_length);
+                                  DownloadHandler, &ds, static_cast<curl_off_t>(ds.downloaded_length));
         LOG_TRACE << "Download status: " << response.getStatusStr() << std::endl;
       } while (retry_);
       if (!response.isOk()) {
