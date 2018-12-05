@@ -13,8 +13,7 @@
 
 bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
   if (request_pool.run_mode() == RunMode::kWalkTree || request_pool.run_mode() == RunMode::kPushTree) {
-    // TODO: this will probably run forever!
-    return !request_pool.is_stopped();
+    return !request_pool.is_idle() && !request_pool.is_stopped();
   } else {
     return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped();
   }
@@ -49,7 +48,6 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
   // on error.
   do {
     request_pool.Loop();
-    // TODO: Fix condition
   } while (CheckPoolState(root_object, request_pool));
 
   if (root_object->is_on_server() == PresenceOnServer::kObjectPresent) {

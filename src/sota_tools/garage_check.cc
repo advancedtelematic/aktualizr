@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
     // on error.
     do {
       request_pool.Loop();
-    } while (!request_pool.is_stopped());  // TODO: this will probably run forever!
+    } while (!request_pool.is_idle() && !request_pool.is_stopped());
 
     if (input_object->is_on_server() == PresenceOnServer::kObjectPresent) {
       LOG_INFO << "Dry run. No objects uploaded.";
