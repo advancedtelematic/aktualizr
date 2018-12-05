@@ -241,12 +241,14 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::CheckChildren(RequestPool &pool) {
+void OSTreeObject::CheckChildren(RequestPool &pool, const long rescode) {  // NOLINT
   try {
     PopulateChildren();
     LOG_TRACE << "Children of " << object_name_ << ": " << children_.size();
     if (children_ready()) {
-      pool.AddUpload(this);
+      if (rescode != 200) {
+        pool.AddUpload(this);
+      }
     } else {
       QueryChildren(pool);
     }
@@ -292,14 +294,14 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
       if (pool.run_mode() == RunMode::kWalkTree || pool.run_mode() == RunMode::kPushTree) {
-        CheckChildren(pool);
+        CheckChildren(pool, rescode);
       } else {
         NotifyParents(pool);
       }
     } else if (rescode == 404) {
       is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kOk;
-      CheckChildren(pool);
+      CheckChildren(pool, rescode);
     } else {
       PresenceError(pool, rescode);
     }

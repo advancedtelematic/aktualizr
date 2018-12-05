@@ -80,9 +80,9 @@ class OSTreeObject {
 
   std::string Url() const;
 
-  /* Check for children. If they are all present, upload this object. Otherwise,
-   * query each of the children. */
-  void CheckChildren(RequestPool& pool);
+  /* Check for children. If they are all present and this object isn't present,
+   * upload it. If any children are missing, query them. */
+  void CheckChildren(RequestPool& pool, long rescode);  // NOLINT
 
   /* Handle an error from a presence check. */
   void PresenceError(RequestPool& pool, int64_t rescode);
