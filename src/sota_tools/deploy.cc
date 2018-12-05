@@ -11,6 +11,15 @@
 #include "treehub_server.h"
 #include "utilities/utils.h"
 
+bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
+  if (request_pool.run_mode() == RunMode::kWalkTree || request_pool.run_mode() == RunMode::kPushTree) {
+    // TODO: this will probably run forever!
+    return !request_pool.is_stopped();
+  } else {
+    return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped();
+  }
+}
+
 bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
                      const OSTreeHash &ostree_commit, const std::string &cacerts, const RunMode mode,
                      const int max_curl_requests) {
@@ -40,10 +49,11 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
   // on error.
   do {
     request_pool.Loop();
-  } while (root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped());
+    // TODO: Fix condition
+  } while (CheckPoolState(root_object, request_pool));
 
   if (root_object->is_on_server() == PresenceOnServer::kObjectPresent) {
-    if (mode == RunMode::kDefault) {
+    if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
       LOG_INFO << "Upload to Treehub complete after " << request_pool.total_requests_made() << " requests";
     } else {
       LOG_INFO << "Dry run. No objects uploaded.";
@@ -114,7 +124,7 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     return false;
   }
 
-  if (mode == RunMode::kDefault) {
+  if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
     CurlEasyWrapper easy_handle;
     curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
     ref.PushRef(push_server, easy_handle.get());

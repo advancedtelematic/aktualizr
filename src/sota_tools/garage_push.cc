@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
-    ("dry-run,n", "check arguments and authenticate but don't upload");
+    ("dry-run,n", "check arguments and authenticate but don't upload")
+    ("walk-tree,w", "walk entire tree and upload all missing objects");
   // clang-format on
 
   po::variables_map vm;
@@ -83,6 +84,14 @@ int main(int argc, char **argv) {
 
   if (vm.count("dry-run") != 0u) {
     mode = RunMode::kDryRun;
+  }
+  if (vm.count("walk-tree") != 0u) {
+    // If --walk-tree and --dry-run were provided, walk but do not push.
+    if (mode == RunMode::kDryRun) {
+      mode = RunMode::kWalkTree;
+    } else {
+      mode = RunMode::kPushTree;
+    }
   }
 
   if (max_curl_requests < 1) {

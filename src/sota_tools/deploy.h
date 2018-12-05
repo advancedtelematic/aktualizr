@@ -8,6 +8,8 @@
 #include "ostree_repo.h"
 #include "server_credentials.h"
 
+bool CheckPoolState(const OSTreeObject::ptr& root_object, const RequestPool& request_pool);
+
 /**
  * Upload a OSTree repository to Treehub.
  * This will not push the root reference to /refs/heads/qemux86-64 or update

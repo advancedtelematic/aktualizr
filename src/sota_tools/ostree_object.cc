@@ -199,7 +199,7 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
 }
 
 void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const RunMode mode) {
-  if (mode == RunMode::kDefault) {
+  if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
     LOG_INFO << "Uploading " << object_name_;
   } else {
     LOG_INFO << "Would upload " << object_name_;
@@ -291,10 +291,10 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
-      if (pool.run_mode() != RunMode::kWalkTree) {
-        NotifyParents(pool);
-      } else {
+      if (pool.run_mode() == RunMode::kWalkTree || pool.run_mode() == RunMode::kPushTree) {
         CheckChildren(pool);
+      } else {
+        NotifyParents(pool);
       }
     } else if (rescode == 404) {
       is_on_server_ = PresenceOnServer::kObjectMissing;

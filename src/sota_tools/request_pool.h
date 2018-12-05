@@ -20,9 +20,9 @@ class RequestPool {
     query_queue_.clear();
     upload_queue_.clear();
   };
-  bool is_idle() { return query_queue_.empty() && upload_queue_.empty() && running_requests_ == 0; }
-  bool is_stopped() { return stopped_; }
-  RunMode run_mode() { return mode_; }
+  bool is_idle() const { return query_queue_.empty() && upload_queue_.empty() && running_requests_ == 0; }
+  bool is_stopped() const { return stopped_; }
+  RunMode run_mode() const { return mode_; }
 
   /**
    * One iteration of request-listen loop, launches multiple requests, then

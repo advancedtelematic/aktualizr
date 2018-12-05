@@ -50,7 +50,7 @@ void RequestPool::LoopLaunch() {
       upload_queue_.pop_front();
       cur->Upload(server_, multi_, mode_);
       total_requests_made_++;
-      if (mode_ != RunMode::kDefault) {
+      if (mode_ == RunMode::kDryRun || mode_ == RunMode::kWalkTree) {
         // Don't send an actual upload message, just skip to the part where we
         // acknowledge that the object has been uploaded.
         cur->NotifyParents(*this);

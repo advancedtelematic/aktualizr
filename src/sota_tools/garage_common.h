@@ -10,6 +10,9 @@ enum class RunMode {
   /** Walk the entire tree (without uploading). Do not assume that if an object
    * exists, its parents must also exist. */
   kWalkTree,
+  /** Walk the entire tree and upload any missing objects. Do not assume that if
+   * an object exists, its parents must also exist. */
+  kPushTree,
 };
 
 #endif  // GARAGE_COMMON_H_
