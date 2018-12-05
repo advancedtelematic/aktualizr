@@ -307,7 +307,7 @@ TEST(Uptane, UptaneSecondaryAddSameSerial) {
   config.storage.path = temp_dir.Path();
 
   UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
-  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hardware");
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "second_secondary_hardware");
 
   auto storage = INvStorage::newStorage(config.storage);
   EXPECT_THROW(SotaUptaneClient::newTestClient(config, storage, http), std::runtime_error);

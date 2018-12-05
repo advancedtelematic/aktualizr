@@ -787,10 +787,19 @@ TEST(Aktualizr, APICheck) {
   EXPECT_LT(num_events_UpdateCheck, 100);
 }
 
+class HttpPutManifestFail : public HttpFake {
+ public:
+  HttpPutManifestFail(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse put(const std::string& url, const Json::Value& data) override {
+    (void)data;
+    return HttpResponse(url, 504, CURLE_OK, "");
+  }
+};
+
 /* Send UpdateCheckComplete event after failure */
 TEST(Aktualizr, PutManifestError) {
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path());
+  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
 
   Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
 
