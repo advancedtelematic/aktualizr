@@ -4,13 +4,16 @@
 #include <memory>
 #include <string>
 
+#include "bootloader/bootloader.h"
 #include "crypto/crypto.h"
+#include "package_manager/packagemanagerconfig.h"
 #include "package_manager/packagemanagerinterface.h"
 #include "storage/invstorage.h"
 
 class PackageManagerFake : public PackageManagerInterface {
  public:
-  explicit PackageManagerFake(std::shared_ptr<INvStorage> storage) : storage_(std::move(storage)) {}
+  PackageManagerFake(PackageConfig pconfig, std::shared_ptr<INvStorage> storage, std::shared_ptr<Bootloader> bootloader)
+      : config(std::move(pconfig)), storage_(std::move(storage)), bootloader_(std::move(bootloader)) {}
   ~PackageManagerFake() override = default;
   std::string name() const override { return "fake"; }
   Json::Value getInstalledPackages() const override;
@@ -19,9 +22,12 @@ class PackageManagerFake : public PackageManagerInterface {
   bool imageUpdated() override { return true; };
 
   data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override;
 
  private:
+  PackageConfig config;
   std::shared_ptr<INvStorage> storage_;
+  std::shared_ptr<Bootloader> bootloader_;
 };
 
 #endif  // PACKAGEMANAGERFAKE_H_

@@ -108,6 +108,7 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
 void OpcuaServerSecondaryDelegate::handleDirectoryFilesSynchronized(opcuabridge::ServerModel* model) {
   if (secondary_->target_) {
     auto target_to_install = *secondary_->target_;
+    // TODO: use new installed_version api and set version as 'pending'
     secondary_->pacman->setOperationResult(target_to_install.filename(), data::UpdateResultCode::kInProgress,
                                            "Installation in progress");
     std::thread long_run_op([=]() {

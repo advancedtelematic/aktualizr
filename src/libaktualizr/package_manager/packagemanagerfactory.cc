@@ -29,7 +29,7 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
 #endif
     case PackageManager::kNone:
-      return std::make_shared<PackageManagerFake>(storage);
+      return std::make_shared<PackageManagerFake>(pconfig, storage, bootloader);
     default:
       LOG_ERROR << "Unrecognized package manager type: " << static_cast<int>(pconfig.type);
       return std::shared_ptr<PackageManagerInterface>();  // NULL-equivalent

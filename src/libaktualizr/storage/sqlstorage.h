@@ -64,6 +64,7 @@ class SQLStorage : public INvStorage {
                             InstalledVersionUpdateMode update_mode) override;
   bool loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
                              size_t* current_version, size_t* pending_version) override;
+  bool hasPendingInstall() override;
   void clearInstalledVersions() override;
   void storeInstallationResult(const data::OperationResult& result) override;
   bool loadInstallationResult(data::OperationResult* result) override;

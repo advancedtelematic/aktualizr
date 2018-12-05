@@ -266,6 +266,147 @@ TEST(Aktualizr, FullWithUpdates) {
   EXPECT_EQ(http->events_seen, 8);
 }
 
+class HttpFakePutCounter : public HttpFake {
+ public:
+  HttpFakePutCounter(const boost::filesystem::path& test_dir_in) : HttpFake(test_dir_in, "hasupdates") {}
+
+  HttpResponse put(const std::string& url, const Json::Value& data) override {
+    if (url.find("/manifest") != std::string::npos) {
+      manifest_sends += 1;
+    }
+    return HttpFake::put(url, data);
+  }
+
+  HttpResponse handle_event(const std::string& url, const Json::Value& data) override {
+    (void)url;
+    // store all events in an array for later inspection
+    for (const Json::Value& event : data) {
+      events.push_back(event);
+    }
+    return HttpResponse("", 200, CURLE_OK, "");
+  }
+
+  size_t count_event_with_type(const std::string& event_type) {
+    auto c = std::count_if(events.cbegin(), events.cend(), [&event_type](const Json::Value& v) {
+      return v["eventType"]["id"].asString() == event_type;
+    });
+    return static_cast<size_t>(c);
+  }
+
+  unsigned int manifest_sends{0};
+  std::vector<Json::Value> events;
+};
+
+/*
+ * Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed
+ * for primary (after reboot) and secondary (aktualizr_test.cc)
+ *
+ * It simulates closely the OStree case which needs a reboot after applying an
+ * update, but uses `PackageManagerFake`.
+ *
+ * Checks actions:
+ *
+ * - [x] Finalize a pending update that requires reboot
+ *   - [x] Store installation result
+ *   - [x] Send manifest
+ *   - [x] Update is not in pending state anymore after successful finalization
+ *
+ *  - [x] Install an update on the primary
+ *    - [x] Set new version to pending status after an OSTree update trigger
+ *    - [x] Send EcuInstallationAppliedReport to server after an OSTree update trigger
+ *    - [x] Uptane check for updates and manifest sends are disabled while an installation
+ *          is pending reboot
+ */
+TEST(Aktualizr, FullWithUpdatesNeedReboot) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFakePutCounter>(temp_dir.Path());
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+  conf.pacman.fake_need_reboot = true;
+  conf.bootloader.reboot_sentinel_dir = temp_dir.Path();
+
+  {
+    // first run: do the install
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+    Aktualizr aktualizr(conf, storage, up, sig);
+
+    aktualizr.Initialize();
+    aktualizr.UptaneCycle();
+
+    // check that a version is here, set to pending
+
+    size_t pending_target = SIZE_MAX;
+    std::vector<Uptane::Target> targets;
+    storage->loadPrimaryInstalledVersions(&targets, nullptr, &pending_target);
+    EXPECT_NE(pending_target, SIZE_MAX);
+  }
+
+  // check that no manifest has been sent after the update application
+  EXPECT_EQ(http->manifest_sends, 1);
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationStarted"), 2);    // two ecus have started
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationApplied"), 1);    // primary ecu has been applied
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationCompleted"), 1);  // secondary ecu has been updated
+
+  {
+    // second run: before reboot, re-use the storage
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+    Aktualizr aktualizr(conf, storage, up, sig);
+
+    aktualizr.Initialize();
+
+    // check that everything is still pending
+    size_t pending_target = SIZE_MAX;
+    std::vector<Uptane::Target> targets;
+    storage->loadPrimaryInstalledVersions(&targets, nullptr, &pending_target);
+    EXPECT_LT(pending_target, targets.size());
+
+    UpdateCheckResult update_res = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_res.status, UpdateStatus::kError);
+
+    // simulate a reboot
+    boost::filesystem::remove(conf.bootloader.reboot_sentinel_dir / conf.bootloader.reboot_sentinel_name);
+  }
+
+  // still no manifest
+  EXPECT_EQ(http->manifest_sends, 1);
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationCompleted"), 1);  // no more installation completed
+
+  {
+    // third run: after reboot, re-use the storage
+    auto storage = INvStorage::newStorage(conf.storage);
+    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+    Aktualizr aktualizr(conf, storage, up, sig);
+
+    aktualizr.Initialize();
+
+    UpdateCheckResult update_res = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_res.status, UpdateStatus::kNoUpdatesAvailable);
+
+    size_t current_target = SIZE_MAX;
+    size_t pending_target = SIZE_MAX;
+    std::vector<Uptane::Target> targets;
+    storage->loadPrimaryInstalledVersions(&targets, &current_target, &pending_target);
+    EXPECT_LT(current_target, targets.size());
+    EXPECT_EQ(pending_target, SIZE_MAX);
+
+    // check that everything is installed, manifest sent
+  }
+
+  // check that the manifest has been sent
+  EXPECT_EQ(http->manifest_sends, 3);
+  EXPECT_EQ(http->count_event_with_type("EcuInstallationCompleted"), 2);  // 2 installations completed
+
+  // check good correlation ids
+  for (const Json::Value& event : http->events) {
+    std::cout << "got event " << event["eventType"]["id"].asString() << "\n";
+    EXPECT_EQ(event["event"]["correlationId"].asString(), "id0");
+  }
+}
+
 int started_FullMultipleSecondaries = 0;
 int complete_FullMultipleSecondaries = 0;
 bool allcomplete_FullMultipleSecondaries = false;

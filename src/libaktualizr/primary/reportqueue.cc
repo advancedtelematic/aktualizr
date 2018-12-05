@@ -103,6 +103,13 @@ EcuInstallationStartedReport::EcuInstallationStartedReport(const Uptane::EcuSeri
   setCorrelationId(correlation_id);
 }
 
+EcuInstallationAppliedReport::EcuInstallationAppliedReport(const Uptane::EcuSerial& ecu,
+                                                           const std::string& correlation_id)
+    : ReportEvent("EcuInstallationApplied", 0) {
+  setEcu(ecu);
+  setCorrelationId(correlation_id);
+}
+
 EcuInstallationCompletedReport::EcuInstallationCompletedReport(const Uptane::EcuSerial& ecu,
                                                                const std::string& correlation_id, bool success)
     : ReportEvent("EcuInstallationCompleted", 0) {

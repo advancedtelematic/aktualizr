@@ -20,6 +20,10 @@ class DebianManager : public PackageManagerInterface {
   Json::Value getInstalledPackages() const override;
   Uptane::Target getCurrent() const override;
   data::InstallOutcome install(const Uptane::Target &target) const override;
+  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override {
+    (void)target;
+    throw std::runtime_error("Unimplemented");
+  }
   bool imageUpdated() override { return true; }
   PackageConfig config_;
   std::shared_ptr<INvStorage> storage_;

@@ -977,6 +977,18 @@ bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vecto
   return true;
 }
 
+bool SQLStorage::hasPendingInstall() {
+  SQLite3Guard db = dbConnection();
+
+  auto statement = db.prepareStatement("SELECT count(*) FROM installed_versions where is_pending = 1");
+  if (statement.step() != SQLITE_ROW) {
+    LOG_ERROR << "Can't get tables count: " << db.errmsg();
+    throw std::runtime_error("Could not count pending installations");
+  }
+
+  return statement.get_result_col_int(0) > 0;
+}
+
 void SQLStorage::clearInstalledVersions() {
   SQLite3Guard db = dbConnection();
 

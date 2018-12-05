@@ -151,6 +151,7 @@ class INvStorage {
                                     InstalledVersionUpdateMode update_mode) = 0;
   virtual bool loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
                                      size_t* current_version, size_t* pending_version) = 0;
+  virtual bool hasPendingInstall() = 0;
   virtual void clearInstalledVersions() = 0;
 
   virtual void storeInstallationResult(const data::OperationResult& result) = 0;

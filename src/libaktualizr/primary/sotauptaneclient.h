@@ -68,7 +68,7 @@ class SotaUptaneClient {
   FRIEND_TEST(Uptane, offlineIteration);
   FRIEND_TEST(Uptane, kRejectAllTest);
   FRIEND_TEST(Uptane, Vector);  // Note hacky name (see uptane_vector_tests.cc)
-  FRIEND_TEST(UptaneCI, OneCycleUpdate);
+  FRIEND_TEST(UptaneCI, ProvisionAndPutManifest);
   FRIEND_TEST(UptaneCI, CheckKeys);
   FRIEND_TEST(UptaneKey, Check);  // Note hacky name
   FRIEND_TEST(UptaneNetwork, DownloadFailure);
@@ -86,6 +86,7 @@ class SotaUptaneClient {
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
   data::InstallOutcome PackageInstall(const Uptane::Target &target);
   data::OperationResult PackageInstallSetResult(const Uptane::Target &target);
+  void finalizeAfterReboot();
   void reportHwInfo();
   void reportInstalledPackages();
   void reportNetworkInfo();
@@ -94,7 +95,7 @@ class SotaUptaneClient {
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
   std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
-  bool hasPendingUpdates(const Json::Value &manifests);
+  bool hasPendingUpdates();
   void sendDownloadReport();
 
   bool putManifestSimple();
