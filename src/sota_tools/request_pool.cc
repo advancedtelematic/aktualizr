@@ -80,8 +80,15 @@ void RequestPool::LoopListen() {
     throw std::runtime_error("curl_multi_timeout failed with error");
   }
   struct timeval timeout {};
-  timeout.tv_sec = timeoutms / 1000;
-  timeout.tv_usec = 1000 * (timeoutms % 1000);
+  if (timeoutms == -1) {
+    // "You must not wait too long (more than a few seconds perhaps)". See:
+    // https://curl.haxx.se/libcurl/c/curl_multi_timeout.html
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
+  } else {
+    timeout.tv_sec = timeoutms / 1000;
+    timeout.tv_usec = 1000 * (timeoutms % 1000);
+  }
 
   mc = curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
   if (mc != CURLM_OK) {
@@ -89,13 +96,19 @@ void RequestPool::LoopListen() {
   }
 
   if (maxfd != -1) {
-    select(maxfd + 1, &fdread, &fdwrite, &fdexcept, timeoutms == -1 ? nullptr : &timeout);
+    select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
   } else {
-    LOG_DEBUG << "Waiting 100ms for curl";
-    // If maxfd == -1, then wait 100ms. See:
-    // https://curl.haxx.se/libcurl/c/curl_multi_timeout.html
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 100 * 1000;
+    // If maxfd == -1, then wait the lesser of timeoutms and 100ms. See:
+    // https://curl.haxx.se/libcurl/c/curl_multi_fdset.html
+    if (timeoutms < 100) {
+      LOG_DEBUG << "Waiting " << timeoutms << " ms for curl";
+      timeout.tv_sec = timeoutms / 1000;
+      timeout.tv_usec = 1000 * (timeoutms % 1000);
+    } else {
+      LOG_DEBUG << "Waiting 100 ms for curl";
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 100 * 1000;
+    }
     select(0, nullptr, nullptr, nullptr, &timeout);
   }
 
