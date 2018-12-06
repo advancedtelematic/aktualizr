@@ -125,17 +125,17 @@ int main(int argc, char *argv[]) {
     // launch the first event
     switch (running_mode) {
       case RunningMode::kCampaignCheck:
-        aktualizr.CampaignCheck();
+        aktualizr.CampaignCheck().get();
         break;
       case RunningMode::kCampaignAccept:
         if (commandline_map.count("campaign-id") == 0) {
           throw std::runtime_error("Running mode " + StringFromRunningMode(running_mode) + " requires a campaign id");
         }
-        aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>());
+        aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>()).get();
         break;
       case RunningMode::kCheck:
-        aktualizr.SendDeviceData();
-        aktualizr.CheckUpdates();
+        aktualizr.SendDeviceData().get();
+        aktualizr.CheckUpdates().get();
         break;
       case RunningMode::kDownload:
       case RunningMode::kInstall:
