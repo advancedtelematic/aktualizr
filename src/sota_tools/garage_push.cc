@@ -17,13 +17,12 @@ using std::string;
 int main(int argc, char **argv) {
   logger_init();
 
+  int verbosity;
   boost::filesystem::path repo_path;
   string ref;
-  int max_curl_requests;
-  string cacerts;
   boost::filesystem::path credentials_path;
-
-  int verbosity;
+  string cacerts;
+  int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-push command line options");
   // clang-format off

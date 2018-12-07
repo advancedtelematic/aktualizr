@@ -34,11 +34,11 @@ static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp
 int main(int argc, char **argv) {
   logger_init();
 
+  int verbosity;
   string ref;
   boost::filesystem::path credentials_path;
   string cacerts;
-
-  int verbosity;
+  int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-check command line options");
   // clang-format off
@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
     ("ref,r", po::value<string>(&ref)->required(), "refhash to check")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
     ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests (only relevant with --walk-tree)")
     ("walk-tree,w", "walk entire tree and check presence of all objects");
   // clang-format on
 
@@ -89,6 +90,11 @@ int main(int argc, char **argv) {
 
   if (vm.count("walk-tree") != 0u) {
     mode = RunMode::kWalkTree;
+  }
+
+  if (max_curl_requests < 1) {
+    LOG_FATAL << "--jobs must be greater than 0";
+    return EXIT_FAILURE;
   }
 
   TreehubServer treehub;
@@ -149,7 +155,7 @@ int main(int argc, char **argv) {
     OSTreeHash hash = OSTreeHash::Parse(ref);
     OSTreeObject::ptr input_object = dest_repo.GetObject(hash);
 
-    RequestPool request_pool(treehub, 1, mode);
+    RequestPool request_pool(treehub, max_curl_requests, mode);
 
     // Add input object to the queue.
     request_pool.AddQuery(input_object);

@@ -14,6 +14,7 @@ namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
   logger_init();
+
   int verbosity;
   std::string ostree_commit;
   std::string name;
@@ -21,6 +22,7 @@ int main(int argc, char **argv) {
   boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
+  int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-deploy command line options");
   // clang-format off
@@ -35,6 +37,7 @@ int main(int argc, char **argv) {
     ("push-credentials,p", po::value<boost::filesystem::path>(&push_cred)->required(), "path to destination credentials")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload");
   // clang-format on
 
@@ -80,6 +83,11 @@ int main(int argc, char **argv) {
     mode = RunMode::kDryRun;
   }
 
+  if (max_curl_requests < 1) {
+    LOG_FATAL << "--jobs must be greater than 0";
+    return EXIT_FAILURE;
+  }
+
   ServerCredentials push_credentials(push_cred);
   ServerCredentials fetch_credentials(fetch_cred);
 
@@ -93,8 +101,9 @@ int main(int argc, char **argv) {
   try {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
-    // isn't really any reason to upload in parallel
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, 1)) {
+    // isn't much reason to upload in parallel, but why hold the system back if
+    // the fetching is faster than the uploading?
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
