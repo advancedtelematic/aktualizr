@@ -1,6 +1,6 @@
 
-set(AKTUALIZR_REPO_SRC repo.cc)
-set(AKTUALIZR_REPO_HDR repo.h)
+set(AKTUALIZR_REPO_SRC repo.cc director_repo.cc image_repo.cc uptane_repo.cc)
+set(AKTUALIZR_REPO_HDR repo.h director_repo.h image_repo.h uptane_repo.h)
 
 set(AKTUALIZR_REPO_LIBS
     aktualizr_static_lib

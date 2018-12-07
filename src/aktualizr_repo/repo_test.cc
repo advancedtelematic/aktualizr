@@ -7,14 +7,14 @@
 
 #include "config/config.h"
 #include "logging/logging.h"
-#include "repo.h"
 #include "test_utils.h"
+#include "uptane_repo.h"
 
 KeyType key_type = KeyType::kUnknown;
 
 TEST(aktualizr_repo, generate_repo) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "", "correlation");
+  UptaneRepo repo(temp_dir.Path(), "", "correlation");
   repo.generateRepo(key_type);
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/root.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/targets.json"));
@@ -24,10 +24,23 @@ TEST(aktualizr_repo, generate_repo) {
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/timestamp.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/manifest"));
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/private.key"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/public.key"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/private.key"));
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/root/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/root/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/snapshot/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/snapshot/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/targets/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/targets/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/timestamp/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/image/timestamp/public.key"));
+
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/root/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/root/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/snapshot/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/snapshot/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/targets/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/targets/public.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/timestamp/private.key"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/timestamp/public.key"));
 
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 0);
@@ -38,7 +51,7 @@ TEST(aktualizr_repo, generate_repo) {
 
 TEST(aktualizr_repo, add_image) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "", "");
+  UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   repo.addImage(temp_dir.Path() / "repo/director/manifest");
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
@@ -49,7 +62,7 @@ TEST(aktualizr_repo, add_image) {
 
 TEST(aktualizr_repo, copy_image) {
   TemporaryDirectory temp_dir;
-  Repo repo(temp_dir.Path(), "", "");
+  UptaneRepo repo(temp_dir.Path(), "", "");
   repo.generateRepo(key_type);
   repo.addImage(temp_dir.Path() / "repo/director/manifest");
   repo.addTarget("manifest", "test-hw", "test-serial");

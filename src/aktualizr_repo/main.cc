@@ -3,7 +3,7 @@
 #include <string>
 
 #include "logging/logging.h"
-#include "repo.h"
+#include "uptane_repo.h"
 
 namespace po = boost::program_options;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
       if (vm.count("correlationid") != 0) {
         correlation_id = vm["correlationid"].as<std::string>();
       }
-      Repo repo(vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
+      UptaneRepo repo(vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
       std::string command = vm["command"].as<std::string>();
       if (command == "generate") {
         std::string key_type_arg = vm["keytype"].as<std::string>();
