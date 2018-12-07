@@ -1190,6 +1190,7 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
     bool fut_result = f.second.get();
     if (fut_result) {
       f.first.status = data::OperationResult(f.first.update.filename(), data::UpdateResultCode::kOk, "");
+      storage->saveInstalledVersion(f.first.serial.ToString(), f.first.update, InstalledVersionUpdateMode::kCurrent);
     } else {
       f.first.status = data::OperationResult(f.first.update.filename(), data::UpdateResultCode::kInstallFailed, "");
     }
