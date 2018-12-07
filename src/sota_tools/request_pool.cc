@@ -67,6 +67,9 @@ void RequestPool::LoopLaunch() {
 }
 
 void RequestPool::LoopListen() {
+  // For more information about the timeout logic, read these:
+  // https://curl.haxx.se/libcurl/c/curl_multi_timeout.html
+  // https://curl.haxx.se/libcurl/c/curl_multi_fdset.html
   CURLMcode mc;
   // Poll for IO
   fd_set fdread, fdwrite, fdexcept;
@@ -79,37 +82,40 @@ void RequestPool::LoopListen() {
   if (mc != CURLM_OK) {
     throw std::runtime_error("curl_multi_timeout failed with error");
   }
-  struct timeval timeout {};
-  if (timeoutms == -1) {
-    // "You must not wait too long (more than a few seconds perhaps)". See:
-    // https://curl.haxx.se/libcurl/c/curl_multi_timeout.html
-    timeout.tv_sec = 3;
-    timeout.tv_usec = 0;
-  } else {
-    timeout.tv_sec = timeoutms / 1000;
-    timeout.tv_usec = 1000 * (timeoutms % 1000);
-  }
-
-  mc = curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
-  if (mc != CURLM_OK) {
-    throw std::runtime_error("curl_multi_fdset failed with error");
-  }
-
-  if (maxfd != -1) {
-    select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
-  } else {
-    // If maxfd == -1, then wait the lesser of timeoutms and 100ms. See:
-    // https://curl.haxx.se/libcurl/c/curl_multi_fdset.html
-    if (timeoutms < 100) {
-      LOG_DEBUG << "Waiting " << timeoutms << " ms for curl";
+  // If timeoutms is 0, "it means you should proceed immediately without waiting
+  // for anything".
+  if (timeoutms != 0) {
+    struct timeval timeout {};
+    if (timeoutms == -1) {
+      // "You must not wait too long (more than a few seconds perhaps)".
+      timeout.tv_sec = 3;
+      timeout.tv_usec = 0;
+    } else {
       timeout.tv_sec = timeoutms / 1000;
       timeout.tv_usec = 1000 * (timeoutms % 1000);
-    } else {
-      LOG_DEBUG << "Waiting 100 ms for curl";
-      timeout.tv_sec = 0;
-      timeout.tv_usec = 100 * 1000;
     }
-    select(0, nullptr, nullptr, nullptr, &timeout);
+
+    mc = curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
+    if (mc != CURLM_OK) {
+      throw std::runtime_error("curl_multi_fdset failed with error");
+    }
+
+    if (maxfd != -1) {
+      // "Wait for activities no longer than the set timeout."
+      select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
+    } else {
+      // If maxfd == -1, then wait the lesser of timeoutms and 100 ms.
+      if (timeoutms < 100) {
+        LOG_DEBUG << "Waiting " << timeoutms << " ms for curl";
+        timeout.tv_sec = timeoutms / 1000;
+        timeout.tv_usec = 1000 * (timeoutms % 1000);
+      } else {
+        LOG_DEBUG << "Waiting 100 ms for curl";
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100 * 1000;
+      }
+      select(0, nullptr, nullptr, nullptr, &timeout);
+    }
   }
 
   // Ask curl to handle IO
