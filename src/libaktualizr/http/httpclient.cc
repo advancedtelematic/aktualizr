@@ -50,7 +50,6 @@ HttpClient::HttpClient() : user_agent(std::string("Aktualizr/") + AKTUALIZR_VERS
     throw std::runtime_error("Could not initialize curl");
   }
   headers = nullptr;
-  http_code = 0;
 
   curlEasySetoptWrapper(curl, CURLOPT_NOSIGNAL, 1L);
   curlEasySetoptWrapper(curl, CURLOPT_TIMEOUT, 60L);
@@ -196,6 +195,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   response_arg.limit = size_limit;
   curlEasySetoptWrapper(curl_handler, CURLOPT_WRITEDATA, static_cast<void*>(&response_arg));
   CURLcode result = curl_easy_perform(curl_handler);
+  long http_code;  // NOLINT
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
   HttpResponse response(response_arg.out, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
@@ -214,7 +214,17 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
 }
 
 HttpResponse HttpClient::download(const std::string& url, curl_write_callback callback, void* userp, size_t from) {
+  return downloadAsync(url, callback, userp, from, nullptr).get();
+}
+
+std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl_write_callback callback, void* userp,
+                                                    size_t from, CurlHandler* easyp) {
   CURL* curl_download = Utils::curlDupHandleWrapper(curl, pkcs11_key);
+  CurlHandler curlp = CurlHandler(curl_download, curl_easy_cleanup);
+
+  if (easyp != nullptr) {
+    *easyp = std::move(curlp);
+  }
 
   curlEasySetoptWrapper(curl_download, CURLOPT_URL, url.c_str());
   curlEasySetoptWrapper(curl_download, CURLOPT_HTTPGET, 1L);
@@ -226,11 +236,19 @@ HttpResponse HttpClient::download(const std::string& url, curl_write_callback ca
   curlEasySetoptWrapper(curl_download, CURLOPT_LOW_SPEED_LIMIT, speed_limit_bytes_per_sec_);
   curlEasySetoptWrapper(curl_download, CURLOPT_RESUME_FROM, from);
 
-  CURLcode result = curl_easy_perform(curl_download);
-  curl_easy_getinfo(curl_download, CURLINFO_RESPONSE_CODE, &http_code);
-  HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
-  curl_easy_cleanup(curl_download);
-  return response;
+  std::promise<HttpResponse> resp_promise;
+  auto resp_future = resp_promise.get_future();
+  std::thread(
+      [curlp](std::promise<HttpResponse> promise) {
+        CURLcode result = curl_easy_perform(curlp.get());
+        long http_code;  // NOLINT
+        curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
+        HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
+        promise.set_value(response);
+      },
+      std::move(resp_promise))
+      .detach();
+  return resp_future;
 }
 
 // vim: set tabstop=2 shiftwidth=2 expandtab:

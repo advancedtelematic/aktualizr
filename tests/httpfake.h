@@ -116,21 +116,37 @@ class HttpFake : public HttpInterface {
     return HttpResponse(url, 200, CURLE_OK, "");
   }
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override {
+  std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback callback, void *userp,
+                                          size_t from, CurlHandler *easyp) override {
     (void)userp;
     (void)from;
+    (void)easyp;
+
     std::cout << "URL requested: " << url << "\n";
     const boost::filesystem::path path = metadata_path.Path() / url.substr(tls_server.size());
     std::cout << "file served: " << path << "\n";
 
-    std::string content = Utils::readFile(path.string());
-    for (unsigned int i = 0; i < content.size(); ++i) {
-      callback(const_cast<char *>(&content[i]), 1, 1, userp);
-      if (url.find("downloads/repo/targets/primary_firmware.txt") != std::string::npos) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Simulate big file
-      }
-    }
-    return HttpResponse(content, 200, CURLE_OK, "");
+    std::promise<HttpResponse> resp_promise;
+    auto resp_future = resp_promise.get_future();
+    std::thread(
+        [path, callback, userp, url](std::promise<HttpResponse> promise) {
+          std::string content = Utils::readFile(path.string());
+          for (unsigned int i = 0; i < content.size(); ++i) {
+            callback(const_cast<char *>(&content[i]), 1, 1, userp);
+            if (url.find("downloads/repo/targets/primary_firmware.txt") != std::string::npos) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Simulate big file
+            }
+          }
+          promise.set_value(HttpResponse(content, 200, CURLE_OK, ""));
+        },
+        std::move(resp_promise))
+        .detach();
+
+    return resp_future;
+  }
+
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override {
+    return downloadAsync(url, callback, userp, from, nullptr).get();
   }
 
   const std::string tls_server = "https://tlsserver.com";

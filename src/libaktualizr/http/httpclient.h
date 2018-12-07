@@ -1,6 +1,8 @@
 #ifndef HTTPCLIENT_H_
 #define HTTPCLIENT_H_
 
+#include <future>
+
 #include <curl/curl.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -33,9 +35,10 @@ class HttpClient : public HttpInterface {
   HttpResponse put(const std::string &url, const Json::Value &data) override;
 
   HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override;
+  std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback callback, void *userp,
+                                          size_t from, CurlHandler *easyp) override;
   void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert, CryptoSource cert_source,
                 const std::string &pkey, CryptoSource pkey_source) override;
-  long http_code{};  // NOLINT
 
  private:
   FRIEND_TEST(GetTest, download_speed_limit);
