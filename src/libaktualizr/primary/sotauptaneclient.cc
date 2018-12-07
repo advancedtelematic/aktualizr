@@ -227,7 +227,6 @@ void SotaUptaneClient::reportNetworkInfo() {
 
 Json::Value SotaUptaneClient::AssembleManifest() {
   Json::Value result;
-  installed_images.clear();
   Json::Value unsigned_ecu_version = package_manager_->getManifest(uptane_manifest.getPrimaryEcuSerial());
 
   data::OperationResult installation_result;
@@ -235,9 +234,6 @@ Json::Value SotaUptaneClient::AssembleManifest() {
   if (!installation_result.id.empty()) {
     unsigned_ecu_version["custom"]["operation_result"] = installation_result.toJson();
   }
-
-  installed_images[uptane_manifest.getPrimaryEcuSerial()] =
-      unsigned_ecu_version["installed_image"]["filepath"].asString();
 
   result[uptane_manifest.getPrimaryEcuSerial().ToString()] = uptane_manifest.signVersionManifest(unsigned_ecu_version);
   for (auto it = secondaries.begin(); it != secondaries.end(); it++) {
@@ -248,7 +244,6 @@ Json::Value SotaUptaneClient::AssembleManifest() {
       const bool verified = public_key.VerifySignature(secmanifest["signatures"][0]["sig"].asString(), canonical);
       if (verified) {
         result[it->first.ToString()] = secmanifest;
-        installed_images[it->first] = secmanifest["signed"]["installed_image"]["filepath"].asString();
       } else {
         LOG_ERROR << "Secondary manifest verification failed, manifest: " << secmanifest;
       }
@@ -692,16 +687,22 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
         return false;
       }
 
-      auto images_it = installed_images.find(ecu_serial);
-      if (images_it == installed_images.end()) {
-        LOG_WARNING << "Unknown ECU ID on the device: " << ecu_serial.ToString();
+      std::vector<Uptane::Target> installed_versions;
+      size_t current_version = SIZE_MAX;
+      if (!storage->loadInstalledVersions(ecu_serial.ToString(), &installed_versions, &current_version, nullptr)) {
+        LOG_WARNING << "Could not load currently installed version for ECU ID: " << ecu_serial.ToString();
         break;
       }
-      if (images_it->second != target.filename()) {
+
+      if (current_version > installed_versions.size()) {
+        LOG_WARNING << "Current version for ECU ID: " << ecu_serial.ToString() << " is unknown";
         is_new = true;
-        if (ecus_count != nullptr) {
-          (*ecus_count)++;
-        }
+      } else if (installed_versions[current_version].filename() != target.filename()) {
+        is_new = true;
+      }
+
+      if (is_new && ecus_count != nullptr) {
+        (*ecus_count)++;
       }
       // no updates for this image => continue
     }

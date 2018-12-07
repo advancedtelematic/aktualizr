@@ -58,7 +58,8 @@ class Uptane_Vector_Test {
     Uptane::EcuSerial ecu_serial(config.provision.primary_ecu_serial);
     Uptane::HardwareIdentifier hw_id(config.provision.primary_ecu_hardware_id);
     uptane_client->hw_ids.insert(std::make_pair(ecu_serial, hw_id));
-    uptane_client->installed_images[ecu_serial] = "test_filename";
+    Uptane::Target target("test_filename", {{Uptane::Hash::Type::kSha256, "sha256"}}, 1, "");
+    storage->saveInstalledVersion(ecu_serial.ToString(), target, InstalledVersionUpdateMode::kCurrent);
 
     HttpClient http_client;
     while (true) {

@@ -130,7 +130,6 @@ class SotaUptaneClient {
   std::shared_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   std::map<Uptane::EcuSerial, Uptane::HardwareIdentifier> hw_ids;
-  std::map<Uptane::EcuSerial, std::string> installed_images;
   std::shared_ptr<event::Channel> events_channel;
   boost::signals2::connection conn;
   Uptane::Exception last_exception{"", ""};
