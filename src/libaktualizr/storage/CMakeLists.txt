@@ -4,7 +4,7 @@ add_custom_command(OUTPUT sql_schemas.cc sql_schemas_target
 )
 
 if(STORAGE_TYPE STREQUAL "sqlite")
-  set(SOURCES sqlstorage.cc)
+  set(SOURCES sqlstorage.cc sql_utils.cc)
   set(HEADERS sqlstorage.h sql_utils.h)
 elseif(STORAGE_TYPE STREQUAL "android")
   set(SOURCES androidstorage.cc)

@@ -84,7 +84,8 @@ class SQLStorage : public INvStorage {
   boost::filesystem::path dbPath() const;
 
  private:
-  SQLite3Guard dbConnection() const;
+  SQLite3Guard dbConnection(bool ro = false) const;
+  SQLite3Guard dbReadConnection() const;
   // request info
   void cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role);
   bool readonly_{false};

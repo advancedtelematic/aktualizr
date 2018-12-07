@@ -2,6 +2,7 @@
 #define SQL_UTILS_H_
 
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 
@@ -11,6 +12,7 @@
 #include <sqlite3.h>
 
 #include "logging/logging.h"
+#include "utilities/utils.h"
 
 // Unique ownership SQLite3 statement creation
 
@@ -41,7 +43,6 @@ class SQLiteStatement {
       throw SQLException();
     }
     stmt_.reset(statement);
-
     bindArguments(args...);
   }
 
@@ -130,22 +131,26 @@ class SQLiteStatement {
   std::list<std::string> owned_data_;
 };
 
+class SQLite3Transaction;
+
 // Unique ownership SQLite3 connection
-extern std::mutex sql_mutex;
 class SQLite3Guard {
  public:
   sqlite3* get() { return handle_.get(); }
   int get_rc() { return rc_; }
 
-  explicit SQLite3Guard(const char* path, bool readonly) : handle_(nullptr, sqlite3_close), rc_(0) {
+  explicit SQLite3Guard(const char* path, bool readonly)
+      : handle_(nullptr, sqlite3_close), rc_(0), path_(std::string(path)) {
     if (sqlite3_threadsafe() == 0) {
       throw std::runtime_error("sqlite3 has been compiled without multitheading support");
     }
+
     sqlite3* h;
     if (readonly) {
-      rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READONLY, nullptr);
+      rc_ = sqlite3_open_v2(path_.c_str(), &h, SQLITE_OPEN_READONLY, nullptr);
     } else {
-      rc_ = sqlite3_open_v2(path, &h, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
+      rc_ =
+          sqlite3_open_v2(path_.c_str(), &h, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
     }
     handle_.reset(h);
   }
@@ -169,45 +174,65 @@ class SQLite3Guard {
     return SQLiteStatement(handle_.get(), zSql, args...);
   }
 
+  std::unique_ptr<SQLite3Transaction> makeTransaction() {
+    try {
+      return std_::make_unique<SQLite3Transaction>(*this);
+    } catch (...) {
+      return std::unique_ptr<SQLite3Transaction>(nullptr);
+    }
+  }
+
   std::string errmsg() const { return sqlite3_errmsg(handle_.get()); }
 
-  // Transaction handling
-  //
-  // A transactional series of db operations should be realized between calls of
-  // `beginTranscation()` and `commitTransaction()`. If no commit is done before
-  // the destruction of the `SQLite3Guard` (and thus the SQLite connection) or
-  // if `rollbackTransaction()` is called explicitely, the changes will be
-  // rolled back
-
-  bool beginTransaction() {
-    // Note: transaction cannot be nested and this will fail if another
-    // transaction was open on the same connection
-    int ret = exec("BEGIN TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
-      LOG_ERROR << "Can't begin transaction: " << errmsg();
-    }
-    return ret == SQLITE_OK;
-  }
-
-  bool commitTransaction() {
-    int ret = exec("COMMIT TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
-      LOG_ERROR << "Can't commit transaction: " << errmsg();
-    }
-    return ret == SQLITE_OK;
-  }
-
-  bool rollbackTransaction() {
-    int ret = exec("ROLLBACK TRANSACTION;", nullptr, nullptr);
-    if (ret != SQLITE_OK) {
-      LOG_ERROR << "Can't rollback transaction: " << errmsg();
-    }
-    return ret == SQLITE_OK;
-  }
+  std::string path() const { return path_; }
 
  private:
   std::unique_ptr<sqlite3, int (*)(sqlite3*)> handle_;
   int rc_;
+  std::string path_;
+};
+
+class SQLite3Transaction {
+ public:
+  SQLite3Transaction(SQLite3Guard& guard) : guard_(guard) {
+    // Note: transaction cannot be nested and this will fail if another
+    // transaction was open on the same connection
+    boost::filesystem::path db_path = boost::filesystem::weakly_canonical(boost::filesystem::path(guard_.path()));
+    std::mutex* path_mutex;
+    {
+      std::lock_guard<std::mutex> lk(db_locks_mutex);
+      path_mutex = &(db_locks[db_path]);  // [] on map will also default-construct a mutex if it's not there yet
+    }
+    std::unique_lock<std::mutex> ul(*path_mutex);
+    std::swap(lock_, ul);
+
+    int ret = guard_.exec("BEGIN TRANSACTION;", nullptr, nullptr);
+    if (ret != SQLITE_OK) {
+      throw std::runtime_error(std::string("Can't begin transaction: ") + guard_.errmsg());
+    }
+  }
+
+  ~SQLite3Transaction() {
+    if (lock_.owns_lock()) {  // haven't committed yet, rollback the transaction
+      guard_.exec("ROLLBACK TRANSACTION;", nullptr, nullptr);
+    }
+  }
+
+  bool commit() {
+    int ret = guard_.exec("COMMIT TRANSACTION;", nullptr, nullptr);
+    if (ret != SQLITE_OK) {
+      LOG_ERROR << "Can't commit transaction: " << guard_.errmsg();
+    }
+    lock_.unlock();
+    lock_.release();
+    return ret == SQLITE_OK;
+  }
+
+ private:
+  std::unique_lock<std::mutex> lock_;
+  SQLite3Guard& guard_;
+  static std::map<boost::filesystem::path, std::mutex> db_locks;
+  static std::mutex db_locks_mutex;
 };
 
 #endif  // SQL_UTILS_H_
