@@ -14,6 +14,7 @@ RateController::RateController(const int concurrency_cap) : concurrency_cap_(con
 void RateController::RequestCompleted(const clock::time_point start_time, const clock::time_point end_time,
                                       const bool succeeded) {
   if (last_concurrency_update_ < start_time) {
+    const int prev_concurrency = max_concurrency_;
     last_concurrency_update_ = end_time;
     if (succeeded) {
       max_concurrency_ = std::min(max_concurrency_ + 1, concurrency_cap_);
@@ -25,7 +26,9 @@ void RateController::RequestCompleted(const clock::time_point start_time, const 
         sleep_time_ = std::max(sleep_time_ * 2, kInitialSleepTime);
       }
     }
-    LOG_DEBUG << "Concurrency limit is now: " << max_concurrency_;
+    if (prev_concurrency != max_concurrency_) {
+      LOG_DEBUG << "Concurrency limit is now: " << max_concurrency_;
+    }
   }
   CheckInvariants();
 }

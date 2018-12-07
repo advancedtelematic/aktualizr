@@ -100,6 +100,7 @@ OSTreeObject::ptr OSTreeHttpRepo::GetObject(const OSTreeHash hash) const {
       if (Get(std::string("objects/") + objpath + ext)) {
         OSTreeObject::ptr obj(new OSTreeObject(*this, objpath + ext));
         ObjectTable[hash] = obj;
+        LOG_DEBUG << "Fetched OSTree object " << objpath << ext;
         return obj;
       }
     }
