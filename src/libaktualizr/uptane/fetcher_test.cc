@@ -110,7 +110,6 @@ void test_pause(const Uptane::Target& target) {
   std::promise<bool> download;
   auto result = download.get_future();
   auto pause_res = pause.get_future();
-
   auto start = std::chrono::high_resolution_clock::now();
 
   std::thread([&f, &target](std::promise<bool> p) { p.set_value(f.fetchVerifyTarget(target)); }, std::move(download))
@@ -141,7 +140,7 @@ void test_pause(const Uptane::Target& target) {
 
   auto duration =
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count();
-
+  std::cout << "Downloaded 100MB in " << duration - pause_duration << "seconds\n";
   EXPECT_TRUE(result.get());
   EXPECT_EQ(num_events_DownloadPause, 6);
   EXPECT_GE(duration, pause_duration);
@@ -165,10 +164,10 @@ TEST(fetcher, test_pause_ostree) {
 
 TEST(fetcher, test_pause_binary) {
   Json::Value target_json;
-  target_json["hashes"]["sha256"] = "d03b1a2081755f3a5429854cc3e700f8cbf125db2bd77098ae79a7d783256a7d";
-  target_json["length"] = 2048;
+  target_json["hashes"]["sha256"] = "dd7bd1c37a3226e520b8d6939c30991b1c08772d5dab62b381c3a63541dc629a";
+  target_json["length"] = 100 * (1 << 20);
 
-  Uptane::Target target("large_interrupted", target_json);
+  Uptane::Target target("large_file", target_json);
   num_events_DownloadPause = 0;
   test_pause(target);
 }
