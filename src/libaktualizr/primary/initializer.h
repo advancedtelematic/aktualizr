@@ -1,3 +1,6 @@
+#ifndef INITIALIZER_H_
+#define INITIALIZER_H_
+
 #include "config/config.h"
 #include "crypto/keymanager.h"
 #include "http/httpinterface.h"
@@ -34,3 +37,5 @@ class Initializer {
   InitRetCode initEcuRegister();
   bool loadSetTlsCreds();  // TODO -> metadownloader
 };
+
+#endif  // INITIALIZER_H_
