@@ -14,6 +14,7 @@
 using CurlHandler = std::shared_ptr<CURL>;
 
 struct HttpResponse {
+  HttpResponse() = default;
   HttpResponse(std::string body_in, const long http_status_code_in, CURLcode curl_code_in,  // NOLINT
                std::string error_message_in)
       : body(std::move(body_in)),
@@ -21,10 +22,14 @@ struct HttpResponse {
         curl_code(curl_code_in),
         error_message(std::move(error_message_in)) {}
   std::string body;
-  long http_status_code;  // NOLINT
-  CURLcode curl_code;
+  long http_status_code{0};  // NOLINT
+  CURLcode curl_code{CURLE_OK};
   std::string error_message;
   bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
+  std::string getStatusStr() {
+    return std::to_string(curl_code) + " " + error_message + " HTTP " + std::to_string(http_status_code);
+  }
+
   Json::Value getJson() { return Utils::parseJSON(body); }
 };
 

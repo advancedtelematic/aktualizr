@@ -2,6 +2,7 @@
 #define UPTANE_FETCHER_H_
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include "config/config.h"
 #include "http/httpinterface.h"
@@ -33,16 +34,20 @@ class Fetcher {
       : http(std::move(http_in)),
         storage(std::move(storage_in)),
         config(config_in),
-        events_channel(std::move(events_channel_in)),
-        pause_mutex_(std::make_shared<std::mutex>()) {}
+        events_channel(std::move(events_channel_in)) {}
   bool fetchVerifyTarget(const Target& target);
   bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role, Version version);
   bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role) {
     return fetchRole(result, maxsize, repo, role, Version());
   }
-  bool isPaused() { return pause_; }
+  bool isPaused() {
+    std::lock_guard<std::mutex> guard(mutex_);
+    return pause_;
+  }
   bool isDownloading() { return static_cast<bool>(downloading_); }
   PauseResult setPause(bool pause);
+  void checkPause();
+  void setRetry(bool retry) { retry_ = retry; }
 
  private:
   template <class T, class... Args>
@@ -57,10 +62,11 @@ class Fetcher {
   std::shared_ptr<INvStorage> storage;
   const Config& config;
   std::shared_ptr<event::Channel> events_channel;
-  std::atomic_bool pause_{false};
   std::atomic_uint downloading_{0};
-  std::shared_ptr<std::mutex> pause_mutex_;
+  bool pause_{false};
+  bool retry_{false};
   std::mutex mutex_;
+  std::condition_variable cv_;
 };
 
 struct DownloadMetaStruct {
@@ -70,7 +76,7 @@ struct DownloadMetaStruct {
         target{std::move(target_in)},
         fetcher{nullptr} {}
   uint64_t downloaded_length{};
-  StorageTargetWHandle* fhandle{};
+  std::unique_ptr<StorageTargetWHandle> fhandle;
   const Hash::Type hash_type;
   MultiPartHasher& hasher() {
     switch (hash_type) {
