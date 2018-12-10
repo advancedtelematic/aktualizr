@@ -866,7 +866,6 @@ UpdateCheckResult SotaUptaneClient::fetchMeta() {
 }
 
 UpdateCheckResult SotaUptaneClient::checkUpdates() {
-  auto manifest = AssembleManifest();  // populates list of connected devices and installed images
   UpdateCheckResult result;
 
   if (hasPendingUpdates()) {
