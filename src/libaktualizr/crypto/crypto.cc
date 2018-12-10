@@ -86,7 +86,7 @@ Json::Value PublicKey::ToUptane() const {
       res["keytype"] = "unknown";
       break;
     default:
-      throw new std::range_error("Unknown key type in PublicKey::ToUptane");
+      throw std::range_error("Unknown key type in PublicKey::ToUptane");
   }
   res["keyval"]["public"] = value_;
   return res;

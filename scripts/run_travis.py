@@ -46,6 +46,8 @@ def main():
 
     gen_test_script(ty, args.job, args.output)
 
+    return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

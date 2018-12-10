@@ -2,7 +2,6 @@
 
 import sys
 import socket
-import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
@@ -17,12 +16,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_response(200)
         self.end_headers()
-    
 
     def do_PUT(self):
         self.send_response(200)
         self.end_headers()
-    
+
 
 class ReUseHTTPServer(HTTPServer):
     def server_bind(self):
@@ -35,7 +33,5 @@ httpd = ReUseHTTPServer(server_address, Handler)
 
 try:
     httpd.serve_forever()
-except KeyboardInterrupt as k:
+except KeyboardInterrupt:
     print("fake_uptane_server.py exiting...")
-    pass
-
