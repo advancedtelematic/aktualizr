@@ -31,7 +31,7 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
 
   OSTreeObject::ptr root_object;
   try {
-    root_object = src_repo->GetObject(ostree_commit);
+    root_object = src_repo->GetObject(ostree_commit, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
   } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "OSTree commit " << ostree_commit << " was not found in src repository";
     return false;

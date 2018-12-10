@@ -42,15 +42,19 @@ bool OSTreeDirRepo::LooksValid() const {
 
 OSTreeRef OSTreeDirRepo::GetRef(const std::string &refname) const { return OSTreeRef(*this, refname); }
 
-OSTreeObject::ptr OSTreeDirRepo::GetObject(const uint8_t sha256[32]) const { return GetObject(OSTreeHash(sha256)); }
+OSTreeObject::ptr OSTreeDirRepo::GetObject(const uint8_t sha256[32], const OstreeObjectType type) const {
+  return GetObject(OSTreeHash(sha256), type);
+}
 
-OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash) const {
+OSTreeObject::ptr OSTreeDirRepo::GetObject(const OSTreeHash hash, const OstreeObjectType type) const {
   otable::const_iterator it;
   it = ObjectTable.find(hash);
   if (it != ObjectTable.end()) {
     return it->second;
   }
 
+  // TODO: fix?
+  (void)type;
   std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
   boost::filesystem::path objpath = hash.string().insert(2, 1, '/');
 

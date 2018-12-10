@@ -116,6 +116,7 @@ class OSTreeObject {
 
   std::chrono::steady_clock::time_point request_start_time_;
   ServerResponse last_operation_result_{ServerResponse::kNoResponse};
+  OstreeObjectType type_{OstreeObjectType::OSTREE_OBJECT_TYPE_UNKNOWN};
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);

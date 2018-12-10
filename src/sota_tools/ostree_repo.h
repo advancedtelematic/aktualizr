@@ -3,6 +3,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include "garage_common.h"
 #include "ostree_hash.h"
 #include "ostree_object.h"
 
@@ -20,8 +21,8 @@ class OSTreeRepo {
 
   virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;
-  virtual OSTreeObject::ptr GetObject(OSTreeHash hash) const = 0;
-  virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const = 0;
+  virtual OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const = 0;
+  virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32], OstreeObjectType type) const = 0;
   virtual const boost::filesystem::path root() const = 0;
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
 };

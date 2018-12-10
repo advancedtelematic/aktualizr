@@ -19,7 +19,6 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
       repo_(repo),
       refcount_(0),
       is_on_server_(PresenceOnServer::kObjectStateUnknown),
-
       curl_handle_(nullptr),
       form_post_(nullptr) {
   assert(boost::filesystem::is_regular_file(file_path_));
@@ -99,20 +98,21 @@ void OSTreeObject::PopulateChildren() {
   g_variant_ref_sink(contents);
 
   if (is_commit) {
+    // * - ay - Root tree contents
     GVariant *content_csum_variant = nullptr;
     g_variant_get_child(contents, 6, "@ay", &content_csum_variant);
 
     gsize n_elts;
     const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    AppendChild(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE));
 
+    // * - ay - Root tree metadata
     GVariant *meta_csum_variant = nullptr;
-
     g_variant_get_child(contents, 7, "@ay", &meta_csum_variant);
     csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    AppendChild(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META));
 
     g_variant_unref(meta_csum_variant);
     g_variant_unref(content_csum_variant);
@@ -126,6 +126,7 @@ void OSTreeObject::PopulateChildren() {
     gsize nfiles = g_variant_n_children(files_variant);
     gsize ndirs = g_variant_n_children(dirs_variant);
 
+    // * - a(say) - array of (filename, checksum) for files
     for (gsize i = 0; i < nfiles; i++) {
       GVariant *csum_variant = nullptr;
       const char *fname = nullptr;
@@ -134,24 +135,27 @@ void OSTreeObject::PopulateChildren() {
       gsize n_elts;
       const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_FILE));
 
       g_variant_unref(csum_variant);
     }
 
+    // * - a(sayay) - array of (dirname, tree_checksum, meta_checksum) for directories
     for (gsize i = 0; i < ndirs; i++) {
       GVariant *content_csum_variant = nullptr;
       GVariant *meta_csum_variant = nullptr;
       const char *fname = nullptr;
       g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname, &content_csum_variant, &meta_csum_variant);
       gsize n_elts;
+      // First the .dirtree:
       const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE));
 
+      // Then the .dirmeta:
       csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META));
 
       g_variant_unref(meta_csum_variant);
       g_variant_unref(content_csum_variant);

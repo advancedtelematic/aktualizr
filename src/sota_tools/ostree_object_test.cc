@@ -37,7 +37,7 @@ class OstreeObject_Request_Test {
 
     TreehubServer push_server;
     push_server.root_url("http://localhost:" + port);
-    OSTreeObject::ptr object = src_repo->GetObject(hash);
+    OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
     object->MakeTestRequest(push_server, multi);
 
@@ -98,7 +98,7 @@ TEST(OstreeObject, UploadDryRun) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
@@ -119,7 +119,7 @@ TEST(OstreeObject, UploadFail) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
@@ -155,7 +155,7 @@ TEST(OstreeObject, UploadSuccess) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
   object->Upload(push_server, multi, RunMode::kDefault);
 

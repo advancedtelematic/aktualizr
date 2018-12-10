@@ -132,14 +132,14 @@ int main(int argc, char **argv) {
   }
 
   long http_code;  // NOLINT
-  bool is_commit = true;
+  OstreeObjectType type = OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT;
   curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code == 404) {
     if (mode != RunMode::kWalkTree) {
       LOG_FATAL << "OSTree commit " << ref << " is missing in treehub";
       return EXIT_FAILURE;
     } else {
-      is_commit = false;
+      type = OstreeObjectType::OSTREE_OBJECT_TYPE_UNKNOWN;
     }
   } else if (http_code != 200) {
     LOG_FATAL << "Error " << http_code << " getting OSTree ref " << ref << " from treehub";
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
     // Walk the entire tree and check for all objects.
     OSTreeHttpRepo dest_repo(&treehub);
     OSTreeHash hash = OSTreeHash::Parse(ref);
-    OSTreeObject::ptr input_object = dest_repo.GetObject(hash);
+    OSTreeObject::ptr input_object = dest_repo.GetObject(hash, type);
 
     RequestPool request_pool(treehub, max_curl_requests, mode);
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
   }
 
   // If we have a commit object, check if the ref is present in targets.json.
-  if (is_commit) {
+  if (type == OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT) {
     curlEasySetoptWrapper(curl.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
     curlEasySetoptWrapper(curl.get(), CURLOPT_HTTPGET, 1L);
     curlEasySetoptWrapper(curl.get(), CURLOPT_NOBODY, 0L);

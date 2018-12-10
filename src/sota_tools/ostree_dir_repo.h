@@ -17,8 +17,8 @@ class OSTreeDirRepo : public OSTreeRepo {
   explicit OSTreeDirRepo(boost::filesystem::path root_path) : root_(std::move(root_path)) {}
 
   bool LooksValid() const override;
-  OSTreeObject::ptr GetObject(OSTreeHash hash) const override;
-  OSTreeObject::ptr GetObject(const uint8_t sha256[32]) const override;
+  OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const override;
+  OSTreeObject::ptr GetObject(const uint8_t sha256[32], OstreeObjectType type) const override;
   OSTreeRef GetRef(const std::string &refname) const override;
 
   const boost::filesystem::path root() const override { return root_; }
