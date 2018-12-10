@@ -88,6 +88,14 @@ You can also build it yourself, with basic dependencies from homebrew. You can i
 brew install asn1c boost cmake libarchive libsodium pkgconfig python3
 ----
 
+If you also want to compile the SOTA tools:
+
+----
+brew install gettext && brew unlink gettext && brew link --force gettext
+----
+
+and run cmake with `-DBUILD_SOTA_TOOLS=ON`.
+
 === Building
 
 This project uses *git submodules*. To checkout the code:
