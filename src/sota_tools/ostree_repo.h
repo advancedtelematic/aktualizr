@@ -1,6 +1,9 @@
 #ifndef SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 #define SOTA_CLIENT_TOOLS_OSTREE_REPO_H_
 
+#include <map>
+#include <string>
+
 #include <boost/filesystem.hpp>
 
 #include "garage_common.h"
@@ -16,15 +19,23 @@ class OSTreeRef;
 class OSTreeRepo {
  public:
   using ptr = std::shared_ptr<OSTreeRepo>;
-  // OSTreeRepo(const OSTreeRepo&) = delete;
   OSTreeRepo& operator=(const OSTreeRepo&) = delete;
 
   virtual ~OSTreeRepo() = default;
   virtual bool LooksValid() const = 0;
-  virtual OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const = 0;
-  virtual OSTreeObject::ptr GetObject(const uint8_t sha256[32], OstreeObjectType type) const = 0;
   virtual const boost::filesystem::path root() const = 0;
   virtual OSTreeRef GetRef(const std::string& refname) const = 0;
+
+  OSTreeObject::ptr GetObject(OSTreeHash hash, OstreeObjectType type) const;
+  OSTreeObject::ptr GetObject(const uint8_t sha256[32], OstreeObjectType type) const;
+
+ protected:
+  virtual bool FetchObject(const boost::filesystem::path& path) const = 0;
+
+  bool CheckForObject(const OSTreeHash& hash, const std::string& path, OSTreeObject::ptr& object) const;
+
+  typedef std::map<OSTreeHash, OSTreeObject::ptr> otable;
+  mutable otable ObjectTable;  // Makes sure that the same commit object is not added twice
 };
 
 /**

@@ -3,11 +3,12 @@ set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
     deploy.cc
     oauth2.cc
-    ostree_hash.cc
-    ostree_ref.cc
     ostree_dir_repo.cc
+    ostree_hash.cc
     ostree_http_repo.cc
     ostree_object.cc
+    ostree_ref.cc
+    ostree_repo.cc
     rate_controller.cc
     request_pool.cc
     server_credentials.cc
