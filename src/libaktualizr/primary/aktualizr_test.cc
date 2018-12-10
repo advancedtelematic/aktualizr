@@ -386,6 +386,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     UpdateCheckResult update_res = aktualizr.CheckUpdates().get();
     EXPECT_EQ(update_res.status, UpdateStatus::kNoUpdatesAvailable);
 
+    // primary is installed, nothing pending
     size_t current_target = SIZE_MAX;
     size_t pending_target = SIZE_MAX;
     std::vector<Uptane::Target> targets;
@@ -393,7 +394,13 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     EXPECT_LT(current_target, targets.size());
     EXPECT_EQ(pending_target, SIZE_MAX);
 
-    // check that everything is installed, manifest sent
+    // secondary is installed, nothing pending
+    size_t sec_current_target = SIZE_MAX;
+    size_t sec_pending_target = SIZE_MAX;
+    std::vector<Uptane::Target> sec_targets;
+    storage->loadInstalledVersions("secondary_ecu_serial", &sec_targets, &sec_current_target, &sec_pending_target);
+    EXPECT_LT(sec_current_target, sec_targets.size());
+    EXPECT_EQ(sec_pending_target, SIZE_MAX);
   }
 
   // check that the manifest has been sent
