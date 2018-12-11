@@ -1126,9 +1126,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
 
   ~SQLTargetWHandle() override {
     if (!closed_) {
-      LOG_WARNING << "Handle for file " << target_.filename() << " has not been committed or aborted, forcing abort";
       db_.commitTransaction();
-      SQLTargetWHandle::wabort();
     }
   }
 
