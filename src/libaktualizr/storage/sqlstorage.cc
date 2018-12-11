@@ -1097,7 +1097,7 @@ boost::optional<std::pair<int64_t, size_t>> SQLStorage::checkTargetFile(const Up
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_(storage.dbPath()), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(0) {
+      : db_(storage.dbPath()), target_(std::move(target)), closed_(false), row_id_(0) {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
     if (!db_.beginTransaction()) {
       throw exc;
@@ -1122,12 +1122,12 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     row_id_ = sqlite3_last_insert_rowid(db_.get());
-    db_.commitTransaction();
   }
 
   ~SQLTargetWHandle() override {
     if (!closed_) {
       LOG_WARNING << "Handle for file " << target_.filename() << " has not been committed or aborted, forcing abort";
+      db_.commitTransaction();
       SQLTargetWHandle::wabort();
     }
   }
@@ -1135,9 +1135,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   size_t wfeed(const uint8_t* buf, size_t size) override {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
 
-    if (!db_.beginTransaction()) {
-      throw exc;
-    }
+    sqlite3_blob* blob_;
 
     if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
       LOG_ERROR << "Could not open blob " << db_.errmsg();
@@ -1150,6 +1148,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       wabort();
       return 0;
     }
+    sqlite3_blob_close(blob_);  // can't keep the blob open between the calls, because next update to the target_images
+                                // table invalidates the handle
     written_size_ += size;
 
     auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
@@ -1161,35 +1161,24 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       throw exc;
     }
 
-    wcommit();
-    db_.commitTransaction();
     return size;
   }
 
   void wcommit() override {
     closed_ = true;
-    sqlite3_blob_close(blob_);
-    blob_ = nullptr;
+    db_.commitTransaction();
   }
 
   void wabort() noexcept override {
     closed_ = true;
-    if (blob_ != nullptr) {
-      sqlite3_blob_close(blob_);
-      blob_ = nullptr;
-    }
-    if (sqlite3_changes(db_.get()) > 0) {
-      auto statement =
-          db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", target_.filename());
-      statement.step();
-    }
+    db_.rollbackTransaction();
   }
   friend class SQLTargetRHandle;
 
  private:
   SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target, const sqlite3_int64& row_id,
                    const size_t& start_from = 0)
-      : db_(db_path), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(row_id) {
+      : db_(db_path), target_(std::move(target)), closed_(false), row_id_(row_id) {
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw StorageTargetWHandle::WriteError("could not save file " + target_.filename() + " to sql storage");
@@ -1200,7 +1189,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   SQLite3Guard db_;
   Uptane::Target target_;
   bool closed_;
-  sqlite3_blob* blob_;
   sqlite3_int64 row_id_;
 };
 

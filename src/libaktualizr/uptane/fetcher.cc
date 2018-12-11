@@ -138,8 +138,10 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
       } while (retry);
 
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
+        ds.fhandle->wabort();
         throw TargetHashMismatch(target.filename());
       }
+      ds.fhandle->wcommit();
       result = true;
     } else {
 #ifdef BUILD_OSTREE
