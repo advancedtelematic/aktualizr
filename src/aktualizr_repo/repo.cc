@@ -15,7 +15,8 @@ Repo::Repo(RepoType repo_type, boost::filesystem::path path, const std::string &
   }
 }
 
-Json::Value Repo::signTuf(const KeyPair &key, const Json::Value &json) {
+Json::Value Repo::signTuf(const Uptane::Role &role, const Json::Value &json) {
+  auto key = keys_[role];
   std::string b64sig =
       Utils::toBase64(Crypto::Sign(key.public_key.Type(), nullptr, key.private_key, Json::FastWriter().write(json)));
   Json::Value signature;
@@ -116,7 +117,7 @@ void Repo::generateRepo(KeyType key_type) {
   role["keyids"].append(keys_[Uptane::Role::Timestamp()].public_key.KeyId());
   root["roles"]["timestamp"] = role;
 
-  std::string signed_root = Utils::jsonToCanonicalStr(signTuf(keys_[Uptane::Role::Root()], root));
+  std::string signed_root = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Root(), root));
   Utils::writeFile(repo_dir / "root.json", signed_root);
   Utils::writeFile(repo_dir / "1.root.json", signed_root);
 
@@ -129,7 +130,7 @@ void Repo::generateRepo(KeyType key_type) {
   if (repo_type_ == RepoType::Type::kDirector && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
-  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(keys_[Uptane::Role::Targets()], targets));
+  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 
   Json::Value snapshot;
@@ -148,7 +149,7 @@ void Repo::generateRepo(KeyType key_type) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
   snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = 1;
-  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(keys_[Uptane::Role::Snapshot()], snapshot));
+  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
   Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
 
   Json::Value timestamp;
@@ -162,7 +163,7 @@ void Repo::generateRepo(KeyType key_type) {
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json",
-                   Utils::jsonToCanonicalStr(signTuf(keys_[Uptane::Role::Snapshot()], timestamp)));
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), timestamp)));
   if (repo_type_ == RepoType::Type::kDirector) {
     Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
   }

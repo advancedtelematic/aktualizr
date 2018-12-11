@@ -18,6 +18,15 @@ class RepoType {
  public:
   enum class Type { kDirector = 0, kImage };
   RepoType(RepoType::Type type) { type_ = type; }
+  RepoType(const std::string &repo_type) {
+    if (repo_type == "director") {
+      type_ = RepoType::Type::kDirector;
+    } else if (repo_type == "image") {
+      type_ = RepoType::Type::kImage;
+    } else {
+      throw std::runtime_error(std::string("incorrect repo type: ") + repo_type);
+    }
+  }
   Type type_;
   bool operator==(const RepoType &other) { return type_ == other.type_; }
   std::string toString() {
@@ -34,11 +43,11 @@ class Repo {
   Repo(RepoType repo_type, boost::filesystem::path path, const std::string &expires, std::string correlation_id);
   void generateRepo(KeyType key_type = KeyType::kRSA2048);
   Json::Value getTarget(const std::string &target_name);
+  Json::Value signTuf(const Uptane::Role &role, const Json::Value &json);
 
  protected:
   void generateRepoKeys(KeyType key_type);
   void generateKeyPair(KeyType key_type, const Uptane::Role &key_name);
-  Json::Value signTuf(const KeyPair &key, const Json::Value &json);
   std::string getExpirationTime(const std::string &expires);
   void readKeys();
   RepoType repo_type_;
