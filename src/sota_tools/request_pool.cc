@@ -138,7 +138,11 @@ void RequestPool::LoopListen() {
       if (rate_controller_.ServerHasFailed()) {
         Abort();
       } else {
-        std::this_thread::sleep_for(rate_controller_.GetSleepTime());
+        auto duration = rate_controller_.GetSleepTime();
+        if (duration > RateController::clock::duration(0)) {
+          LOG_DEBUG << "Sleeping for " << duration.count() << " seconds due to server congestion.";
+          std::this_thread::sleep_for(duration);
+        }
       }
     }
   } while (msgs_in_queue > 0);
