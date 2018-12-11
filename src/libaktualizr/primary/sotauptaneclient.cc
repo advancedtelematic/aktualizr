@@ -716,7 +716,6 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
-  std::vector<std::future<std::pair<bool, Uptane::Target>>> download_futures;
   DownloadResult result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
@@ -729,14 +728,14 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
       sendEvent<event::AllDownloadsComplete>(result);
       return result;
     }
-    download_futures.push_back(std::async(std::launch::async, &SotaUptaneClient::downloadImage, this, *it));
   }
-  for (auto &f : download_futures) {
-    auto fut_result = f.get();
-    if (fut_result.first) {
-      downloaded_targets.push_back(fut_result.second);
+  for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
+    auto res = downloadImage(*it);
+    if (res.first) {
+      downloaded_targets.push_back(res.second);
     }
   }
+
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
       result = DownloadResult(downloaded_targets, DownloadStatus::kSuccess, "");
