@@ -9,7 +9,6 @@
 #include "logging/logging.h"
 #include "sql_utils.h"
 #include "utilities/utils.h"
-std::mutex sql_mutex;
 boost::filesystem::path SQLStorage::dbPath() const { return config_.sqldb_path.get(config_.path); }
 
 // find metadata with version set to -1 (e.g. after migration) and assign proper version to it
@@ -844,7 +843,6 @@ void SQLStorage::clearMisconfiguredEcus() {
 
 void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptane::Target& target,
                                       InstalledVersionUpdateMode update_mode) {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {
@@ -900,7 +898,6 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 
 bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
                                        size_t* current_version, size_t* pending_version) {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   // empty serial: use primary
@@ -1053,7 +1050,6 @@ void SQLStorage::clearInstallationResult() {
 }
 
 boost::optional<std::pair<int64_t, size_t>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<std::string>(
@@ -1103,7 +1099,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   SQLTargetWHandle(const SQLStorage& storage, Uptane::Target target)
       : db_(storage.dbPath()), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(0) {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
-    std::lock_guard<std::mutex> lock(sql_mutex);
     if (!db_.beginTransaction()) {
       throw exc;
     }
@@ -1138,7 +1133,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    std::lock_guard<std::mutex> lock(sql_mutex);
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
 
     if (!db_.beginTransaction()) {
@@ -1196,8 +1190,6 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target, const sqlite3_int64& row_id,
                    const size_t& start_from = 0)
       : db_(db_path), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(row_id) {
-    std::lock_guard<std::mutex> lock(sql_mutex);
-
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw StorageTargetWHandle::WriteError("could not save file " + target_.filename() + " to sql storage");
