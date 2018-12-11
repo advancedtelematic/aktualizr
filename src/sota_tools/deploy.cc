@@ -128,7 +128,7 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     ref.PushRef(push_server, easy_handle.get());
     CURLcode err = curl_easy_perform(easy_handle.get());
     if (err != 0u) {
-      LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
+      LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
       return false;
     }
     long rescode;  // NOLINT

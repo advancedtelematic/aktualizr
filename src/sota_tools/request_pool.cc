@@ -123,6 +123,7 @@ void RequestPool::LoopListen() {
   if (mc != CURLM_OK) {
     throw std::runtime_error("curl_multi failed with error");
   }
+  assert(running_requests_ >= 0);
 
   // Deal with any completed requests
   int msgs_in_queue;
