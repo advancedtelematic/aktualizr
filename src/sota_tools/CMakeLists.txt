@@ -64,7 +64,7 @@ if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
     target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
-    add_definitions(-DGARAGE_DEPLOY_VERSION="${AKTUALIZR_VERSION}")
+    add_definitions(-DGARAGE_TOOLS_VERSION="${AKTUALIZR_VERSION}")
 
     add_dependencies(build_tests garage-deploy)
 

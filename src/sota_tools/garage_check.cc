@@ -1,6 +1,4 @@
-#include <ctime>
-#include <iomanip>
-#include <iostream>
+#include <string>
 
 #include <curl/curl.h>
 #include <boost/filesystem.hpp>
@@ -19,7 +17,6 @@
 #include "utilities/utils.h"
 
 namespace po = boost::program_options;
-using std::string;
 
 // helper function to download data to a string
 static size_t writeString(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -35,20 +32,21 @@ int main(int argc, char **argv) {
   logger_init();
 
   int verbosity;
-  string ref;
+  std::string ref;
   boost::filesystem::path credentials_path;
-  string cacerts;
+  std::string cacerts;
   int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-check command line options");
   // clang-format off
   desc.add_options()
     ("help", "print usage")
-    ("verbose,v",accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
-    ("quiet,q", "quiet mode")
-    ("ref,r", po::value<string>(&ref)->required(), "refhash to check")
+    ("version", "Current garage-check version")
+    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
+    ("quiet,q", "Quiet mode")
+    ("ref,r", po::value<std::string>(&ref)->required(), "refhash to check")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
-    ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests (only relevant with --walk-tree)")
     ("walk-tree,w", "walk entire tree and check presence of all objects");
   // clang-format on
@@ -62,11 +60,14 @@ int main(int argc, char **argv) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
-
+    if (vm.count("version") != 0) {
+      LOG_INFO << "Current garage-check version is: " << GARAGE_TOOLS_VERSION;
+      exit(EXIT_SUCCESS);
+    }
     po::notify(vm);
   } catch (const po::error &o) {
-    LOG_INFO << o.what();
-    LOG_INFO << desc;
+    LOG_ERROR << o.what();
+    LOG_ERROR << desc;
     return EXIT_FAILURE;
   }
 
@@ -92,11 +93,6 @@ int main(int argc, char **argv) {
     mode = RunMode::kWalkTree;
   }
 
-  if (max_curl_requests < 1) {
-    LOG_FATAL << "--jobs must be greater than 0";
-    return EXIT_FAILURE;
-  }
-
   TreehubServer treehub;
   if (cacerts != "") {
     if (boost::filesystem::exists(cacerts)) {
@@ -105,6 +101,11 @@ int main(int argc, char **argv) {
       LOG_FATAL << "--cacert path " << cacerts << " does not exist";
       return EXIT_FAILURE;
     }
+  }
+
+  if (max_curl_requests < 1) {
+    LOG_FATAL << "--jobs must be greater than 0";
+    return EXIT_FAILURE;
   }
 
   if (authenticate(cacerts, ServerCredentials(credentials_path), treehub) != EXIT_SUCCESS) {

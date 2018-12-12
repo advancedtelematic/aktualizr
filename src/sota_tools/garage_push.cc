@@ -1,5 +1,4 @@
-#include <iomanip>
-#include <iostream>
+#include <string>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -12,28 +11,28 @@
 #include "ostree_repo.h"
 
 namespace po = boost::program_options;
-using std::string;
 
 int main(int argc, char **argv) {
   logger_init();
 
   int verbosity;
   boost::filesystem::path repo_path;
-  string ref;
+  std::string ref;
   boost::filesystem::path credentials_path;
-  string cacerts;
+  std::string cacerts;
   int max_curl_requests;
   RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-push command line options");
   // clang-format off
   desc.add_options()
     ("help", "print usage")
+    ("version", "Current garage-push version")
     ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
     ("repo,C", po::value<boost::filesystem::path>(&repo_path)->required(), "location of ostree repo")
-    ("ref,r", po::value<string>(&ref)->required(), "ref to push")
+    ("ref,r", po::value<std::string>(&ref)->required(), "ref to push")
     ("credentials,j", po::value<boost::filesystem::path>(&credentials_path)->required(), "credentials (json or zip containing json)")
-    ("cacert", po::value<string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
     ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload")
     ("walk-tree,w", "walk entire tree and upload all missing objects");
@@ -48,11 +47,14 @@ int main(int argc, char **argv) {
       LOG_INFO << desc;
       return EXIT_SUCCESS;
     }
-
+    if (vm.count("version") != 0) {
+      LOG_INFO << "Current garage-push version is: " << GARAGE_TOOLS_VERSION;
+      exit(EXIT_SUCCESS);
+    }
     po::notify(vm);
   } catch (const po::error &o) {
-    LOG_INFO << o.what();
-    LOG_INFO << desc;
+    LOG_ERROR << o.what();
+    LOG_ERROR << desc;
     return EXIT_FAILURE;
   }
 
@@ -99,7 +101,6 @@ int main(int argc, char **argv) {
   }
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>(repo_path);
-
   if (!src_repo->LooksValid()) {
     LOG_FATAL << "The OSTree src repository does not appear to contain a valid OSTree repository";
     return EXIT_FAILURE;
@@ -114,9 +115,8 @@ int main(int argc, char **argv) {
     }
 
     OSTreeHash commit(ostree_ref.GetHash());
-    bool ok = UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests);
 
-    if (!ok) {
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
@@ -124,8 +124,7 @@ int main(int argc, char **argv) {
     if (push_credentials.CanSignOffline()) {
       LOG_INFO << "Credentials contain offline signing keys, not pushing root ref";
     } else {
-      ok = PushRootRef(push_credentials, ostree_ref, cacerts, mode);
-      if (!ok) {
+      if (!PushRootRef(push_credentials, ostree_ref, cacerts, mode)) {
         LOG_FATAL << "Could not push root reference to treehub";
         return EXIT_FAILURE;
       }

@@ -1,6 +1,6 @@
-#include <iostream>
 #include <string>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "accumulator.h"
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   desc.add_options()
     ("help", "print usage")
     ("version", "Current garage-deploy version")
-    ("verbose,v", accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
+    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
     ("commit", po::value<std::string>(&ostree_commit)->required(), "OSTree commit to deploy")
     ("name", po::value<std::string>(&name)->required(), "Name of image")
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
     if (vm.count("version") != 0) {
-      LOG_INFO << "Current garage-deploy version is: " << GARAGE_DEPLOY_VERSION;
+      LOG_INFO << "Current garage-deploy version is: " << GARAGE_TOOLS_VERSION;
       exit(EXIT_SUCCESS);
     }
     po::notify(vm);
