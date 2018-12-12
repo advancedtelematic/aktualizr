@@ -19,8 +19,8 @@ FSStorageRead::FSStorageRead(const StorageConfig& config) : config_(config) {
   boost::filesystem::path director_path = config_.uptane_metadata_path.get(config_.path) / "director";
   // migrate from old unversioned Uptane root meta
   {
-    for (auto repo : {Uptane::RepositoryType::Director, Uptane::RepositoryType::Images}) {
-      boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director) ? director_path : images_path;
+    for (auto repo : {Uptane::RepositoryType::Director(), Uptane::RepositoryType::Image()}) {
+      boost::filesystem::path& meta_dir = repo == (Uptane::RepositoryType::Director()) ? director_path : images_path;
       boost::filesystem::path meta_path = meta_dir / Uptane::Version().RoleFileName(Uptane::Role::Root());
       if (boost::filesystem::exists(meta_path)) {
         std::string data = Utils::readFile(meta_path);
@@ -108,7 +108,7 @@ bool FSStorageRead::loadTlsPkey(std::string* pkey) { return loadTlsCommon(pkey, 
 bool FSStorageRead::loadRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Version version) {
   boost::filesystem::path metafile;
   switch (repo) {
-    case (Uptane::RepositoryType::Director):
+    case (Uptane::RepositoryType::Director()):
       if (version.version() < 0) {
         version = latest_director_root;
       }
@@ -116,7 +116,7 @@ bool FSStorageRead::loadRoot(std::string* data, Uptane::RepositoryType repo, Upt
           config_.uptane_metadata_path.get(config_.path) / "director" / version.RoleFileName(Uptane::Role::Root());
       break;
 
-    case (Uptane::RepositoryType::Images):
+    case (Uptane::RepositoryType::Image()):
       if (version.version() < 0) {
         version = latest_director_root;
       }
@@ -144,11 +144,11 @@ bool FSStorageRead::loadRoot(std::string* data, Uptane::RepositoryType repo, Upt
 bool FSStorageRead::loadNonRoot(std::string* data, Uptane::RepositoryType repo, Uptane::Role role) {
   boost::filesystem::path metafile;
   switch (repo) {
-    case (Uptane::RepositoryType::Director):
+    case (Uptane::RepositoryType::Director()):
       metafile = config_.uptane_metadata_path.get(config_.path) / "director" / Uptane::Version().RoleFileName(role);
       break;
 
-    case (Uptane::RepositoryType::Images):
+    case (Uptane::RepositoryType::Image()):
       metafile = config_.uptane_metadata_path.get(config_.path) / "repo" / Uptane::Version().RoleFileName(role);
       break;
 
@@ -323,10 +323,10 @@ void FSStorageRead::clearTlsCreds() {
 void FSStorageRead::clearNonRootMeta(Uptane::RepositoryType repo) {
   boost::filesystem::path meta_path;
   switch (repo) {
-    case Uptane::RepositoryType::Images:
+    case Uptane::RepositoryType::Image():
       meta_path = config_.uptane_metadata_path.get(config_.path) / "repo";
       break;
-    case Uptane::RepositoryType::Director:
+    case Uptane::RepositoryType::Director():
       meta_path = config_.uptane_metadata_path.get(config_.path) / "director";
       break;
     default:

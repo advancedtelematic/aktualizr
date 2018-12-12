@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
         std::istream_iterator<char> end;
         std::string text_to_sign(it, end);
 
-        Repo base_repo(RepoType(vm["repotype"].as<std::string>()), vm["path"].as<boost::filesystem::path>(),
-                       expiration_time, correlation_id);
+        Repo base_repo(Uptane::RepositoryType(vm["repotype"].as<std::string>()),
+                       vm["path"].as<boost::filesystem::path>(), expiration_time, correlation_id);
 
         auto json_to_sign = Utils::parseJSON(text_to_sign);
         if (json_to_sign == Json::nullValue) {

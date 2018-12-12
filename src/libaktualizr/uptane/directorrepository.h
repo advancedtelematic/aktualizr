@@ -10,7 +10,7 @@ namespace Uptane {
  */
 class DirectorRepository : public RepositoryCommon {
  public:
-  DirectorRepository() : RepositoryCommon(RepositoryType::Director) {}
+  DirectorRepository() : RepositoryCommon(RepositoryType::Director()) {}
   void resetMeta();
 
   bool verifyTargets(const std::string& targets_raw);

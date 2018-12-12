@@ -5,7 +5,8 @@
 
 #include "repo.h"
 
-Repo::Repo(RepoType repo_type, boost::filesystem::path path, const std::string &expires, std::string correlation_id)
+Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const std::string &expires,
+           std::string correlation_id)
     : repo_type_(repo_type), path_(std::move(path)), correlation_id_(std::move(correlation_id)) {
   expiration_time_ = getExpirationTime(expires);
   if (boost::filesystem::exists(path_)) {
@@ -127,7 +128,7 @@ void Repo::generateRepo(KeyType key_type) {
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
   LOG_ERROR << "repo: " << repo_type_.toString();
-  if (repo_type_ == RepoType::Type::kDirector && correlation_id_ != "") {
+  if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
@@ -164,7 +165,7 @@ void Repo::generateRepo(KeyType key_type) {
   timestamp["meta"]["snapshot.json"]["version"] = 1;
   Utils::writeFile(repo_dir / "timestamp.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), timestamp)));
-  if (repo_type_ == RepoType::Type::kDirector) {
+  if (repo_type_ == Uptane::RepositoryType::Director()) {
     Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
   }
 }

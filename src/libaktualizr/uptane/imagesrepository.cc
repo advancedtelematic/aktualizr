@@ -11,7 +11,8 @@ void ImagesRepository::resetMeta() {
 
 bool ImagesRepository::verifyTimestamp(const std::string& timestamp_raw) {
   try {
-    timestamp = TimestampMeta(RepositoryType::Images, Utils::parseJSON(timestamp_raw), root);  // signature verification
+    timestamp =
+        TimestampMeta(RepositoryType::Image(), Utils::parseJSON(timestamp_raw), root);  // signature verification
   } catch (const Exception& e) {
     LOG_ERROR << "Signature verification for timestamp metadata failed";
     last_exception = e;
@@ -48,7 +49,7 @@ bool ImagesRepository::verifySnapshot(const std::string& snapshot_raw) {
       LOG_ERROR << "No hash found for shapshot.json";
       return false;
     }
-    snapshot = Snapshot(RepositoryType::Images, Utils::parseJSON(snapshot_raw), root);  // signature verification
+    snapshot = Snapshot(RepositoryType::Image(), Utils::parseJSON(snapshot_raw), root);  // signature verification
     if (snapshot.version() != timestamp.snapshot_version()) {
       return false;
     }
@@ -88,7 +89,7 @@ bool ImagesRepository::verifyTargets(const std::string& targets_raw) {
       LOG_ERROR << "No hash found for targets.json";
       return false;
     }
-    targets = Targets(RepositoryType::Images, Utils::parseJSON(targets_raw), root);  // signature verification
+    targets = Targets(RepositoryType::Image(), Utils::parseJSON(targets_raw), root);  // signature verification
     if (targets.version() != snapshot.targets_version()) {
       return false;
     }

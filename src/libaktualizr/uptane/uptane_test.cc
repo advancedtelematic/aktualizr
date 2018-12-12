@@ -41,7 +41,7 @@ TEST(Uptane, Verify) {
   auto storage = INvStorage::newStorage(config.storage);
   HttpResponse response = http->get(http->tls_server + "/director/root.json", HttpInterface::kNoLimit);
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  Uptane::Root(Uptane::RepositoryType::Director, response.getJson(), root);
+  Uptane::Root(Uptane::RepositoryType::Director(), response.getJson(), root);
 }
 
 /* Throw an exception if a TUF root is unsigned. */
@@ -58,7 +58,7 @@ TEST(Uptane, VerifyDataBad) {
   data_json.removeMember("signatures");
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::UnmetThreshold);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::UnmetThreshold);
 }
 
 /* Throw an exception if a TUF root has unknown signature types. */
@@ -76,7 +76,7 @@ TEST(Uptane, VerifyDataUnknownType) {
   data_json["signatures"][1]["method"] = "badsignature";
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::SecurityException);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::SecurityException);
 }
 
 /* Throw an exception if a TUF root has invalid key IDs. */
@@ -94,7 +94,7 @@ TEST(Uptane, VerifyDataBadKeyId) {
   data_json["signatures"][0]["keyid"] = "badkeyid";
 
   Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director, data_json, root), Uptane::BadKeyId);
+  EXPECT_THROW(Uptane::Root(Uptane::RepositoryType::Director(), data_json, root), Uptane::BadKeyId);
 }
 
 /* Throw an exception if a TUF root signature threshold is invalid. */
@@ -111,7 +111,7 @@ TEST(Uptane, VerifyDataBadThreshold) {
   data_json["signed"]["roles"]["root"]["threshold"] = -1;
   try {
     Uptane::Root root(Uptane::Root::Policy::kAcceptAll);
-    Uptane::Root(Uptane::RepositoryType::Director, data_json, root);
+    Uptane::Root(Uptane::RepositoryType::Director(), data_json, root);
     FAIL() << "Illegal threshold should have thrown an error.";
   } catch (const Uptane::IllegalThreshold &ex) {
   } catch (const Uptane::UnmetThreshold &ex) {
@@ -511,12 +511,12 @@ TEST(Uptane, FsToSqlFull) {
   std::string images_timestamp;
   std::string images_snapshot;
 
-  EXPECT_TRUE(fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Images));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
-  EXPECT_TRUE(fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&director_root, Uptane::RepositoryType::Director()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadLatestRoot(&images_root, Uptane::RepositoryType::Image()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
+  EXPECT_TRUE(fs_storage.loadNonRoot(&images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   EXPECT_TRUE(boost::filesystem::exists(config.uptane_public_key_path.get(config.path)));
   EXPECT_TRUE(boost::filesystem::exists(config.uptane_private_key_path.get(config.path)));
@@ -584,12 +584,12 @@ TEST(Uptane, FsToSqlFull) {
   std::string sql_images_timestamp;
   std::string sql_images_snapshot;
 
-  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director);
-  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
-  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Images);
-  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets());
-  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp());
-  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot());
+  sql_storage->loadLatestRoot(&sql_director_root, Uptane::RepositoryType::Director());
+  sql_storage->loadNonRoot(&sql_director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
+  sql_storage->loadLatestRoot(&sql_images_root, Uptane::RepositoryType::Image());
+  sql_storage->loadNonRoot(&sql_images_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets());
+  sql_storage->loadNonRoot(&sql_images_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp());
+  sql_storage->loadNonRoot(&sql_images_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot());
 
   EXPECT_EQ(sql_public_key, public_key);
   EXPECT_EQ(sql_private_key, private_key);
@@ -747,37 +747,37 @@ TEST(Uptane, restoreVerify) {
   sota_client->AssembleManifest();
   // 1st attempt, don't get anything
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
+  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
 
   // 2nd attempt, get director root.json
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
-  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
 
   // 3rd attempt, get director targets.json
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
-  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Images));
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
+  EXPECT_FALSE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
 
   // 4th attempt, get images root.json
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Images));
-  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Image()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
 
   // 5th attempt, get images timestamp.json
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
-  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   // 6th attempt, get images snapshot.json
   EXPECT_FALSE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
-  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
+  EXPECT_FALSE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 
   // 7th attempt, get images targets.json, successful iteration
   EXPECT_TRUE(sota_client->uptaneIteration());
-  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+  EXPECT_TRUE(storage->loadNonRoot(nullptr, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
 }
 
 /* Fetch metadata from the director.

@@ -7,7 +7,7 @@ namespace Uptane {
 
 class ImagesRepository : public RepositoryCommon {
  public:
-  ImagesRepository() : RepositoryCommon(RepositoryType::Images) {}
+  ImagesRepository() : RepositoryCommon(RepositoryType::Image()) {}
 
   void resetMeta();
 

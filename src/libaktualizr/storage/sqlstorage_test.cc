@@ -273,18 +273,18 @@ TEST(sqlstorage, migrate_root_works) {
 
   // Director
   std::string raw_director_root;
-  storage.loadRoot(&raw_director_root, Uptane::RepositoryType::Director, Uptane::Version());
+  storage.loadRoot(&raw_director_root, Uptane::RepositoryType::Director(), Uptane::Version());
   Uptane::DirectorRepository director;
   EXPECT_TRUE(director.initRoot(raw_director_root));
 
   std::string raw_director_targets;
-  storage.loadNonRoot(&raw_director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  storage.loadNonRoot(&raw_director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
 
   EXPECT_TRUE(director.verifyTargets(raw_director_targets));
 
   // Images
   std::string raw_images_root;
-  storage.loadRoot(&raw_images_root, Uptane::RepositoryType::Images, Uptane::Version());
+  storage.loadRoot(&raw_images_root, Uptane::RepositoryType::Image(), Uptane::Version());
   Uptane::ImagesRepository imagesrepository;
   EXPECT_TRUE(imagesrepository.initRoot(raw_images_root));
 
@@ -310,7 +310,7 @@ TEST(sqlstorage, migrate_from_fs) {
 
   EXPECT_TRUE(storage->loadPrimaryKeys(nullptr, nullptr));
   EXPECT_TRUE(storage->loadTlsCreds(nullptr, nullptr, nullptr));
-  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(storage->loadLatestRoot(nullptr, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(storage->loadDeviceId(nullptr));
 
   EcuSerials serials;

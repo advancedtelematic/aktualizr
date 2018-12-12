@@ -27,8 +27,7 @@ void SQLStorage::cleanMetaVersion(Uptane::RepositoryType repo, Uptane::Role role
   int result = statement.step();
 
   if (result == SQLITE_DONE) {
-    LOG_TRACE << "meta with role " << role.ToString() << " in repo " << Uptane::RepoString(repo)
-              << " not present in db";
+    LOG_TRACE << "meta with role " << role.ToString() << " in repo " << repo.toString() << " not present in db";
     return;
   } else if (result != SQLITE_ROW) {
     LOG_ERROR << "Can't get meta: " << db.errmsg();
@@ -85,8 +84,8 @@ SQLStorage::SQLStorage(const StorageConfig& config, bool readonly) : INvStorage(
   }
 
   try {
-    cleanMetaVersion(Uptane::RepositoryType::Director, Uptane::Role::Root());
-    cleanMetaVersion(Uptane::RepositoryType::Images, Uptane::Role::Root());
+    cleanMetaVersion(Uptane::RepositoryType::Director(), Uptane::Role::Root());
+    cleanMetaVersion(Uptane::RepositoryType::Image(), Uptane::Role::Root());
   } catch (...) {
     LOG_ERROR << "SQLite database metadata version migration failed";
   }

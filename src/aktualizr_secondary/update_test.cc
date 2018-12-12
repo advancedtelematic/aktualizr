@@ -53,15 +53,15 @@ TEST(aktualizr_secondary_protocol, DISABLED_manual_update) {
   auto storage2 = INvStorage::newStorage(storage2_config);
 
   Uptane::RawMetaPack metadata;
-  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.director_root, Uptane::RepositoryType::Director));
+  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.director_root, Uptane::RepositoryType::Director()));
   EXPECT_TRUE(
-      storage2->loadNonRoot(&metadata.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets()));
-  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.image_root, Uptane::RepositoryType::Images));
-  EXPECT_TRUE(storage2->loadNonRoot(&metadata.image_targets, Uptane::RepositoryType::Images, Uptane::Role::Targets()));
+      storage2->loadNonRoot(&metadata.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets()));
+  EXPECT_TRUE(storage2->loadLatestRoot(&metadata.image_root, Uptane::RepositoryType::Image()));
+  EXPECT_TRUE(storage2->loadNonRoot(&metadata.image_targets, Uptane::RepositoryType::Image(), Uptane::Role::Targets()));
   EXPECT_TRUE(
-      storage2->loadNonRoot(&metadata.image_timestamp, Uptane::RepositoryType::Images, Uptane::Role::Timestamp()));
+      storage2->loadNonRoot(&metadata.image_timestamp, Uptane::RepositoryType::Image(), Uptane::Role::Timestamp()));
   EXPECT_TRUE(
-      storage2->loadNonRoot(&metadata.image_snapshot, Uptane::RepositoryType::Images, Uptane::Role::Snapshot()));
+      storage2->loadNonRoot(&metadata.image_snapshot, Uptane::RepositoryType::Image(), Uptane::Role::Snapshot()));
 
   std::string firmware = Utils::readFile(temp_dir.Path() / "firmware.bin");
 

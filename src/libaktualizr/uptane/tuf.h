@@ -15,9 +15,38 @@
 
 namespace Uptane {
 
-/** This must match the repo_type table in sqlstorage */
-enum class RepositoryType { Unknown = -1, Images = 0, Director = 1 };
-std::string RepoString(RepositoryType repo);
+class RepositoryType {
+ private:
+  /** This must match the repo_type table in sqlstorage */
+  enum class Type { kUnknown = -1, kImage = 0, kDirector = 1 };
+
+ public:
+  RepositoryType() = default;
+  static constexpr int Director() { return static_cast<int>(Type::kDirector); }
+  static constexpr int Image() { return static_cast<int>(Type::kImage); }
+  RepositoryType(int type) { type_ = static_cast<RepositoryType::Type>(type); }
+  RepositoryType(const std::string &repo_type) {
+    if (repo_type == "director") {
+      type_ = RepositoryType::Type::kDirector;
+    } else if (repo_type == "image") {
+      type_ = RepositoryType::Type::kImage;
+    } else {
+      throw std::runtime_error(std::string("Incorrect repo type: ") + repo_type);
+    }
+  }
+  operator int() const { return static_cast<int>(type_); }
+  operator const std::string() const { return toString(); }
+  Type type_;
+  std::string toString() const {
+    if (type_ == RepositoryType::Type::kDirector) {
+      return "director";
+    } else if (type_ == RepositoryType::Type::kImage) {
+      return "image";
+    } else {
+      return "";
+    }
+  }
+};
 
 using KeyId = std::string;
 /**

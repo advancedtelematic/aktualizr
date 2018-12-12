@@ -69,8 +69,8 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
   detected_attack_.clear();
 
   // TODO: proper partial verification
-  root_ = Uptane::Root(Uptane::RepositoryType::Director, Utils::parseJSON(meta_pack.director_root), root_);
-  Uptane::Targets targets(Uptane::RepositoryType::Director, Utils::parseJSON(meta_pack.director_targets), root_);
+  root_ = Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_root), root_);
+  Uptane::Targets targets(Uptane::RepositoryType::Director(), Utils::parseJSON(meta_pack.director_targets), root_);
   if (meta_targets_.version() > targets.version()) {
     detected_attack_ = "Rollback attack detected";
     return true;
@@ -88,8 +88,8 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
       target_ = std_::make_unique<Uptane::Target>(*it);
     }
   }
-  storage_->storeRoot(meta_pack.director_root, Uptane::RepositoryType::Director, Uptane::Version(root_.version()));
-  storage_->storeNonRoot(meta_pack.director_targets, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  storage_->storeRoot(meta_pack.director_root, Uptane::RepositoryType::Director(), Uptane::Version(root_.version()));
+  storage_->storeNonRoot(meta_pack.director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
 
   return true;
 }
@@ -97,7 +97,7 @@ bool AktualizrSecondary::putMetadataResp(const Uptane::RawMetaPack& meta_pack) {
 int32_t AktualizrSecondary::getRootVersionResp(bool director) const {
   std::string root_meta;
   if (!storage_->loadLatestRoot(&root_meta,
-                                (director) ? Uptane::RepositoryType::Director : Uptane::RepositoryType::Images)) {
+                                (director) ? Uptane::RepositoryType::Director() : Uptane::RepositoryType::Image())) {
     LOG_ERROR << "Could not load root metadata";
     return -1;
   }

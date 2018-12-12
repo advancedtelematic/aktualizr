@@ -6,7 +6,7 @@
 class ImageRepo : public Repo {
  public:
   ImageRepo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
-      : Repo(RepoType::Type::kImage, std::move(path), expires, std::move(correlation_id)) {}
+      : Repo(Uptane::RepositoryType::Image(), std::move(path), expires, std::move(correlation_id)) {}
   void addImage(const boost::filesystem::path &image_path);
 };
 
