@@ -363,7 +363,7 @@ TEST(sqlstorage, migrate_from_fs) {
   storage->loadPrimaryInstalledVersions(&installed, nullptr, nullptr);
   EXPECT_NE(installed.size(), 0);
 
-  EXPECT_TRUE(storage->loadInstallationResult(nullptr));
+  // note: installation result is not migrated anymore
 
   boost::filesystem::recursive_directory_iterator repo_dir_it(config.path), repo_dir_end;
   for (; repo_dir_it != repo_dir_end; ++repo_dir_it) {

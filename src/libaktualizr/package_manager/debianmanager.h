@@ -19,8 +19,8 @@ class DebianManager : public PackageManagerInterface {
   std::string name() const override { return "debian"; }
   Json::Value getInstalledPackages() const override;
   Uptane::Target getCurrent() const override;
-  data::InstallOutcome install(const Uptane::Target &target) const override;
-  data::InstallOutcome finalizeInstall(const Uptane::Target &target) const override {
+  data::InstallationResult install(const Uptane::Target &target) const override;
+  data::InstallationResult finalizeInstall(const Uptane::Target &target) const override {
     (void)target;
     throw std::runtime_error("Unimplemented");
   }

@@ -85,8 +85,8 @@ class SotaUptaneClient {
   Uptane::Exception getLastException() const { return last_exception; }
   bool isInstalledOnPrimary(const Uptane::Target &target);
   std::vector<Uptane::Target> findForEcu(const std::vector<Uptane::Target> &targets, const Uptane::EcuSerial &ecu_id);
-  data::InstallOutcome PackageInstall(const Uptane::Target &target);
-  data::OperationResult PackageInstallSetResult(const Uptane::Target &target);
+  data::InstallationResult PackageInstall(const Uptane::Target &target);
+  data::InstallationResult PackageInstallSetResult(const Uptane::Target &target);
   void finalizeAfterReboot();
   void reportHwInfo();
   void reportInstalledPackages();
@@ -95,7 +95,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
-  std::vector<result::InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
+  std::vector<result::Install::EcuReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates();
   void sendDownloadReport();
 
@@ -108,6 +108,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
+  void computeDeviceInstallationResult(data::InstallationResult *result);
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {

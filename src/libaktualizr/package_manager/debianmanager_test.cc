@@ -35,7 +35,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   std::stringstream("ab") >> *fhandle;
   fhandle->wcommit();
 
-  EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kOk);
+  EXPECT_EQ(pacman->install(target).result_code.num_code, data::ResultCode::Numeric::kOk);
   EXPECT_EQ(pacman->getCurrent(), target);
 }
 
@@ -58,8 +58,8 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
   fhandle->wcommit();
 
   auto result = pacman->install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(result.second, std::string("Error installing"));
+  EXPECT_EQ(result.result_code.num_code, data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_EQ(result.description, "Error installing");
 }
 
 #ifndef __NO_MAIN__

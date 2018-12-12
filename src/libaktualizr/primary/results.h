@@ -85,25 +85,30 @@ class Download {
 };
 
 /**
- * Installation report for a given target on a given ECU.
- */
-class InstallReport {
- public:
-  InstallReport(Uptane::Target update_in, Uptane::EcuSerial serial_in, data::OperationResult status_in)
-      : update(std::move(update_in)), serial(std::move(serial_in)), status(std::move(status_in)) {}
-  Uptane::Target update;
-  Uptane::EcuSerial serial;
-  data::OperationResult status;
-};
-
-/**
  * Container for information about installing an update.
  */
 class Install {
  public:
   Install() = default;
-  explicit Install(std::vector<InstallReport> reports_in) : reports(std::move(reports_in)) {}
-  std::vector<InstallReport> reports;
+  class EcuReport;
+  Install(data::InstallationResult dev_report_in, std::vector<EcuReport> ecu_reports_in, std::string raw_report_in = "")
+      : dev_report(std::move(dev_report_in)),
+        ecu_reports(std::move(ecu_reports_in)),
+        raw_report(std::move(raw_report_in)) {}
+
+  data::InstallationResult dev_report{false, data::ResultCode::Numeric::kUnknown, ""};
+  std::vector<EcuReport> ecu_reports;
+  std::string raw_report;
+
+  class EcuReport {
+   public:
+    EcuReport(Uptane::Target update_in, Uptane::EcuSerial serial_in, data::InstallationResult install_res_in)
+        : update(std::move(update_in)), serial(std::move(serial_in)), install_res(std::move(install_res_in)) {}
+
+    Uptane::Target update;
+    Uptane::EcuSerial serial;
+    data::InstallationResult install_res;
+  };
 };
 
 }  // namespace result

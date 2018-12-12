@@ -28,10 +28,10 @@ TEST(PackageManagerFake, FinalizeAfterReboot) {
 
   Uptane::Target target("pkg", {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kNeedCompletion);
+  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kNeedCompletion);
 
   result = fakepm.finalizeInstall(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kOk);
+  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kOk);
 }
 
 #ifdef FIU_ENABLE
@@ -53,20 +53,20 @@ TEST(PackageManagerFake, FailureInjection) {
   // no fault
   Uptane::Target target("pkg", {Uptane::Hash(Uptane::Hash::Type::kSha256, "hash")}, 1, "");
   auto result = fakepm.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kOk);
+  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kOk);
 
   // fault
   fiu_enable("fake_package_install", 1, nullptr, 0);
   result = fakepm.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
+  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
   fiu_disable("fake_package_install");
 
   // fault with custom data (through environment)
   fiu_enable("fake_package_install", 1, nullptr, 0);
   fault_injection_set_parameter("fault_fake_package_install_cause", "Random cause");
   result = fakepm.install(target);
-  EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
-  EXPECT_EQ(result.second, "Random cause");
+  EXPECT_EQ(result.result_code, data::ResultCode::Numeric::kInstallFailed);
+  EXPECT_EQ(result.description, "Random cause");
   fault_injection_set_parameter("fault_fake_package_install_cause", "");
   fiu_disable("fake_package_install");
 }

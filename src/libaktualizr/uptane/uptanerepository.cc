@@ -48,17 +48,9 @@ bool RepositoryCommon::verifyRoot(const std::string& root_raw) {
 
 void RepositoryCommon::resetRoot() { root = Root(Root::Policy::kAcceptAll); }
 
-Json::Value Manifest::signManifest(const Json::Value& version_manifests) const {
-  Json::Value manifest;
-  manifest["primary_ecu_serial"] = primary_ecu_serial.ToString();
-  manifest["ecu_version_manifests"] = version_manifests;
-
-  return keys_.signTuf(manifest);
-}
-
-Json::Value Manifest::signVersionManifest(const Json::Value& primary_version_manifests) const {
-  Json::Value ecu_version_signed = keys_.signTuf(primary_version_manifests);
-  return ecu_version_signed;
+Json::Value Manifest::signManifest(const Json::Value& manifest_unsigned) const {
+  Json::Value manifest = keys_.signTuf(manifest_unsigned);
+  return manifest;
 }
 
 }  // namespace Uptane

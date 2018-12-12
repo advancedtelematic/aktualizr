@@ -34,13 +34,23 @@ Config makeTestConfig(const TemporaryDirectory& temp_dir, const std::string& url
 
 void verifyNothingInstalled(const Json::Value& manifest) {
   // Verify nothing has installed for the primary.
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(), "");
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
-            static_cast<int>(data::UpdateResultCode::kOk));
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"].asString(), "");
-  EXPECT_EQ(manifest["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(), "unknown");
+  EXPECT_EQ(
+      manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["id"].asString(),
+      "");
+  EXPECT_EQ(
+      manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_code"]
+          .asInt(),
+      static_cast<int>(data::ResultCode::Numeric::kOk));
+  EXPECT_EQ(
+      manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["custom"]["operation_result"]["result_text"]
+          .asString(),
+      "");
+  EXPECT_EQ(manifest["ecu_version_manifests"]["CA:FE:A6:D2:84:9D"]["signed"]["installed_image"]["filepath"].asString(),
+            "unknown");
   // Verify nothing has installed for the secondary.
-  EXPECT_EQ(manifest["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(), "noimage");
+  EXPECT_EQ(
+      manifest["ecu_version_manifests"]["secondary_ecu_serial"]["signed"]["installed_image"]["filepath"].asString(),
+      "noimage");
 }
 
 int num_events_FullNoUpdates = 0;
@@ -254,9 +264,11 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
     case 8: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.reports.size(), 2);
-      EXPECT_EQ(installs_complete->result.reports[0].status.result_code, data::UpdateResultCode::kOk);
-      EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
+      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
+      EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
+                data::ResultCode::Numeric::kOk);
+      EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
+                data::ResultCode::Numeric::kOk);
       break;
     }
     case 9: {
@@ -501,7 +513,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
 
   EXPECT_EQ(started_FullMultipleSecondaries, 2);
   EXPECT_EQ(complete_FullMultipleSecondaries, 2);
-  const Json::Value manifest = aktualizr.uptane_client_->AssembleManifest();
+  const Json::Value manifest = aktualizr.uptane_client_->AssembleManifest()["ecu_version_manifests"];
   // Make sure filepath were correctly written and formatted.
   // installation_result has not been implemented for secondaries yet.
   EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
@@ -687,7 +699,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     case 0: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.reports.size(), 0);
+      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 0);
       break;
     }
     case 1: {
@@ -754,9 +766,11 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     case 9: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
-      EXPECT_EQ(installs_complete->result.reports.size(), 2);
-      EXPECT_EQ(installs_complete->result.reports[0].status.result_code, data::UpdateResultCode::kOk);
-      EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
+      EXPECT_EQ(installs_complete->result.ecu_reports.size(), 2);
+      EXPECT_EQ(installs_complete->result.ecu_reports[0].install_res.result_code.num_code,
+                data::ResultCode::Numeric::kOk);
+      EXPECT_EQ(installs_complete->result.ecu_reports[1].install_res.result_code.num_code,
+                data::ResultCode::Numeric::kOk);
       promise_InstallWithUpdates.set_value();
       break;
     }
@@ -805,7 +819,7 @@ TEST(Aktualizr, InstallWithUpdates) {
 
   // First try installing nothing. Nothing should happen.
   result::Install result = aktualizr.Install(updates_InstallWithUpdates).get();
-  EXPECT_EQ(result.reports.size(), 0);
+  EXPECT_EQ(result.ecu_reports.size(), 0);
 
   EXPECT_EQ(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
       << "Primary firmware is present in storage before the download";
@@ -942,8 +956,8 @@ TEST(Aktualizr, FullNoCorrelationId) {
     EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
     result::Install install_result = aktualizr.Install(download_result.updates).get();
-    for (const auto& r : install_result.reports) {
-      EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
+    for (const auto& r : install_result.ecu_reports) {
+      EXPECT_EQ(r.install_res.result_code.num_code, data::ResultCode::Numeric::kOk);
     }
   }
 

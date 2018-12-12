@@ -116,70 +116,76 @@ struct Package {
   static Package fromJson(const std::string& /*json_str*/);
 };
 
-/// Result of an update.
-enum class UpdateResultCode {
-  /// Operation executed successfully
-  kOk = 0,
-  /// Operation has already been processed
-  kAlreadyProcessed = 1,
-  /// Dependency failure during package install, upgrade, or removal
-  kDependencyFailure = 2,
-  /// Update image integrity has been compromised
-  kValidationFailed = 3,
-  /// Package installation failed
-  kInstallFailed = 4,
-  /// Package upgrade failed
-  kUpgradeFailed = 5,
-  /// Package removal failed
-  kRemovalFailed = 6,
-  /// The module loader could not flash its managed module
-  kFlashFailed = 7,
-  /// Partition creation failed
-  kCreatePartitionFailed = 8,
-  /// Partition deletion failed
-  kDeletePartitionFailed = 9,
-  /// Partition resize failed
-  kResizePartitionFailed = 10,
-  /// Partition write failed
-  kWritePartitionFailed = 11,
-  /// Partition patching failed
-  kPatchPartitionFailed = 12,
-  /// User declined the update
-  kUserDeclined = 13,
-  /// Software was blacklisted
-  kSoftwareBlacklisted = 14,
-  /// Ran out of disk space
-  kDiskFull = 15,
-  /// Software package not found
-  kNotFound = 16,
-  /// Tried to downgrade to older version
-  kOldVersion = 17,
-  /// SWM Internal integrity error
-  kInternalError = 18,
-  /// Other error
-  kGeneralError = 19,
-  /// Updating process in progress
-  kInProgress = 20,
-  // Install needs to be finalized (e.g: reboot)
-  kNeedCompletion = 21,
+struct ResultCode {
+  // These match the old enum representation
+  // A lot of them were unused and have been dropped
+  enum class Numeric {
+    kOk = 0,
+    /// Operation has already been processed
+    kAlreadyProcessed = 1,
+    /// Update image integrity has been compromised
+    kValidationFailed = 3,
+    /// Package installation failed
+    kInstallFailed = 4,
+    /// SWM Internal integrity error
+    kInternalError = 18,
+    /// Other error
+    kGeneralError = 19,
+    // Install needs to be finalized (e.g: reboot)
+    kNeedCompletion = 21,
+    // Customer specific
+    kCustomError = 22,
+    // Unknown
+    kUnknown = -1,
+  };
+
+  // note: intentionally *not* explicit, to make the common case easier
+  ResultCode(ResultCode::Numeric in_num_code) : num_code(in_num_code) {}
+  ResultCode(ResultCode::Numeric in_num_code, std::string text_code_in)
+      : num_code(in_num_code), text_code(std::move(text_code_in)) {}
+
+  bool operator==(const ResultCode& rhs) const { return num_code == rhs.num_code && toString() == rhs.toString(); }
+  bool operator!=(const ResultCode& rhs) const { return !(*this == rhs); }
+  friend std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
+
+  Numeric num_code;
+  std::string text_code;
+
+  // Allows to have a numeric code with a default representation, but also with
+  // any string representation
+  std::string toString() const {
+    if (text_code != "") {
+      return text_code;
+    }
+
+    return std::string(string_repr.at(num_code));
+  }
+
+  // non-lossy reprensation for serialization
+  std::string toRepr() const;
+  static ResultCode fromRepr(const std::string& repr);
+
+ private:
+  static const std::map<Numeric, const char*> string_repr;
 };
 
-typedef std::pair<UpdateResultCode, std::string> InstallOutcome;
+std::ostream& operator<<(std::ostream& os, const ResultCode& result_code);
 
-struct OperationResult {
-  OperationResult() : result_code(UpdateResultCode::kOk) {}
-  OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in);
-  OperationResult(std::string id_in, InstallOutcome outcome_in);
-  std::string id;
-  UpdateResultCode result_code{};
-  std::string result_text;
+struct InstallationResult {
+  InstallationResult() = default;
+  InstallationResult(ResultCode result_code_in, std::string description_in)
+      : success(result_code_in.num_code == ResultCode::Numeric::kOk),
+        result_code(std::move(result_code_in)),
+        description(std::move(description_in)) {}
+  InstallationResult(bool success_in, ResultCode result_code_in, std::string description_in)
+      : success(success_in), result_code(std::move(result_code_in)), description(std::move(description_in)) {}
+
   Json::Value toJson() const;
-  bool isSuccess() const {
-    return result_code == UpdateResultCode::kOk || result_code == UpdateResultCode::kAlreadyProcessed;
-  };
-  InstallOutcome toOutcome() const;
-  static OperationResult fromJson(const std::string& json_str);
-  static OperationResult fromOutcome(const std::string& id, const InstallOutcome& outcome);
+  bool isSuccess() const { return success; };
+
+  bool success{true};
+  ResultCode result_code{ResultCode::Numeric::kOk};
+  std::string description;
 };
 
 }  // namespace data

@@ -384,24 +384,42 @@ TEST(storage, load_store_installed_versions) {
   }
 }
 
-/* Load and store an installation result. */
-TEST(storage, load_store_installation_result) {
+/* Load and store a installation results (ecu and device). */
+TEST(storage, load_store_installation_results) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());
 
-  storage->storeInstallationResult(
-      data::OperationResult("", data::InstallOutcome(data::UpdateResultCode::kGeneralError, "")));
-  data::InstallOutcome outcome(data::UpdateResultCode::kGeneralError, "some failure");
-  data::OperationResult result("target_filename", outcome);
-  storage->storeInstallationResult(result);
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu"), data::InstallationResult());
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu"),
+                                     data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""));
+  storage->saveEcuInstallationResult(Uptane::EcuSerial("ecu2"), data::InstallationResult());
 
-  data::OperationResult result_out;
-  EXPECT_TRUE(storage->loadInstallationResult(&result_out));
-  EXPECT_EQ(result.id, result_out.id);
-  EXPECT_EQ(result.result_code, result_out.result_code);
-  EXPECT_EQ(result.result_text, result_out.result_text);
-  storage->clearInstallationResult();
-  EXPECT_FALSE(storage->loadInstallationResult(nullptr));
+  std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> res;
+  EXPECT_TRUE(storage->loadEcuInstallationResults(&res));
+  EXPECT_EQ(res.size(), 2);
+  for (const auto &r : res) {
+    if (r.first.ToString() == "ecu") {
+      EXPECT_EQ(r.second.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
+    } else if (r.first.ToString() == "ecu2") {
+      EXPECT_EQ(r.second.result_code.num_code, data::ResultCode::Numeric::kOk);
+    } else {
+      FAIL() << "Wrong ecu serial: " << r.first;
+    }
+  }
+
+  storage->storeDeviceInstallationResult(data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""), "raw");
+
+  data::InstallationResult dev_res;
+  std::string report;
+  EXPECT_TRUE(storage->loadDeviceInstallationResult(&dev_res, &report));
+  EXPECT_EQ(dev_res.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
+  EXPECT_EQ(report, "raw");
+
+  storage->clearInstallationResults();
+
+  EXPECT_TRUE(storage->loadEcuInstallationResults(&res));
+  EXPECT_EQ(res.size(), 0);
+  EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report));
 }
 
 /* Load and store targets. */

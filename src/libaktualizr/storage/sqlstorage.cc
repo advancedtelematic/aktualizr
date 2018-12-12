@@ -969,58 +969,124 @@ void SQLStorage::clearInstalledVersions() {
   }
 }
 
-void SQLStorage::storeInstallationResult(const data::OperationResult& result) {
+void SQLStorage::saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial,
+                                           const data::InstallationResult& result) {
   SQLite3Guard db = dbConnection();
 
-  auto statement = db.prepareStatement<std::string, int, std::string>(
-      "INSERT OR REPLACE INTO installation_result (unique_mark, id, result_code, result_text) VALUES (0,?,?,?);",
-      result.id, static_cast<int>(result.result_code), result.result_text);
+  auto statement = db.prepareStatement<std::string, int, std::string, std::string>(
+      "INSERT OR REPLACE INTO ecu_installation_results (ecu_serial, success, result_code, description) VALUES "
+      "(?,?,?,?);",
+      ecu_serial.ToString(), static_cast<int>(result.success), result.result_code.toRepr(), result.description);
   if (statement.step() != SQLITE_DONE) {
-    LOG_ERROR << "Can't set installation_result: " << db.errmsg();
+    LOG_ERROR << "Can't set ecu installation result: " << db.errmsg();
     return;
   }
 }
 
-bool SQLStorage::loadInstallationResult(data::OperationResult* result) {
+bool SQLStorage::loadEcuInstallationResults(
+    std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>>* results) {
   SQLite3Guard db = dbConnection();
 
-  auto statement = db.prepareStatement("SELECT id, result_code, result_text FROM installation_result LIMIT 1;");
+  std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_res;
+
+  auto statement =
+      db.prepareStatement("SELECT ecu_serial, success, result_code, description FROM ecu_installation_results;");
   int statement_result = statement.step();
-  if (statement_result == SQLITE_DONE) {
-    LOG_TRACE << "installation_result not present in db";
-    return false;
-  } else if (statement_result != SQLITE_ROW) {
-    LOG_ERROR << "Can't get installation_result: " << db.errmsg();
+  if (statement_result != SQLITE_DONE && statement_result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get ecu_installation_results: " << db.errmsg();
     return false;
   }
 
-  std::string id;
-  int64_t result_code;
-  std::string result_text;
-  try {
-    id = statement.get_result_col_str(0).value();
-    result_code = statement.get_result_col_int(1);
-    result_text = statement.get_result_col_str(2).value();
-  } catch (const boost::bad_optional_access&) {
-    return false;
+  for (; statement_result != SQLITE_DONE; statement_result = statement.step()) {
+    try {
+      std::string ecu_serial = statement.get_result_col_str(0).value();
+      auto success = static_cast<bool>(statement.get_result_col_int(1));
+      data::ResultCode result_code = data::ResultCode::fromRepr(statement.get_result_col_str(2).value());
+      std::string description = statement.get_result_col_str(3).value();
+
+      ecu_res.emplace_back(Uptane::EcuSerial(ecu_serial), data::InstallationResult(success, result_code, description));
+    } catch (const boost::bad_optional_access&) {
+      return false;
+    }
   }
 
-  if (result != nullptr) {
-    result->id = std::move(id);
-    result->result_code = static_cast<data::UpdateResultCode>(result_code);
-    result->result_text = std::move(result_text);
+  if (results != nullptr) {
+    *results = std::move(ecu_res);
   }
 
   return true;
 }
 
-void SQLStorage::clearInstallationResult() {
+void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report) {
   SQLite3Guard db = dbConnection();
 
-  if (db.exec("DELETE FROM installation_result;", nullptr, nullptr) != SQLITE_OK) {
-    LOG_ERROR << "Can't clear installation_result: " << db.errmsg();
+  auto statement = db.prepareStatement<int, std::string, std::string, std::string>(
+      "INSERT OR REPLACE INTO device_installation_result (unique_mark, success, result_code, description, raw_report) "
+      "VALUES (0,?,?,?,?);",
+      static_cast<int>(result.success), result.result_code.toRepr(), result.description, raw_report);
+  if (statement.step() != SQLITE_DONE) {
+    LOG_ERROR << "Can't set device installation result: " << db.errmsg();
     return;
   }
+}
+
+bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report) {
+  SQLite3Guard db = dbConnection();
+
+  data::InstallationResult dev_res;
+  std::string raw_report_res;
+
+  auto statement =
+      db.prepareStatement("SELECT success, result_code, description, raw_report FROM device_installation_result;");
+  int statement_result = statement.step();
+  if (statement_result == SQLITE_DONE) {
+    LOG_ERROR << "No device installation result in db: " << db.errmsg();
+    return false;
+  } else if (statement_result != SQLITE_ROW) {
+    LOG_ERROR << "Can't get device_installation_result: " << db.errmsg();
+    return false;
+  }
+
+  try {
+    auto success = static_cast<bool>(statement.get_result_col_int(0));
+    data::ResultCode result_code = data::ResultCode::fromRepr(statement.get_result_col_str(1).value());
+    std::string description = statement.get_result_col_str(2).value();
+    raw_report_res = statement.get_result_col_str(3).value();
+
+    dev_res = data::InstallationResult(success, result_code, description);
+  } catch (const boost::bad_optional_access&) {
+    return false;
+  }
+
+  if (result != nullptr) {
+    *result = std::move(dev_res);
+  }
+
+  if (raw_report != nullptr) {
+    *raw_report = std::move(raw_report_res);
+  }
+
+  return true;
+}
+
+void SQLStorage::clearInstallationResults() {
+  SQLite3Guard db = dbConnection();
+  if (!db.beginTransaction()) {
+    LOG_ERROR << "Can't start transaction: " << db.errmsg();
+    return;
+  }
+
+  if (db.exec("DELETE FROM device_installation_result;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear device_installation_result: " << db.errmsg();
+    return;
+  }
+
+  if (db.exec("DELETE FROM ecu_installation_results;", nullptr, nullptr) != SQLITE_OK) {
+    LOG_ERROR << "Can't clear ecu_installation_results: " << db.errmsg();
+    return;
+  }
+
+  db.commitTransaction();
 }
 
 boost::optional<size_t> SQLStorage::checkTargetFile(const Uptane::Target& target) const {

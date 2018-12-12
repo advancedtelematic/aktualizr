@@ -30,7 +30,7 @@ Json::Value DebianManager::getInstalledPackages() const {
   return packages;
 }
 
-data::InstallOutcome DebianManager::install(const Uptane::Target &target) const {
+data::InstallationResult DebianManager::install(const Uptane::Target &target) const {
   std::lock_guard<std::mutex> guard(mutex_);
   LOG_INFO << "Installing " << target.filename() << " as Debian package...";
   std::string cmd = "dpkg -i ";
@@ -46,10 +46,10 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   if (status == 0) {
     LOG_INFO << "... Installation of Debian package successful";
     storage_->savePrimaryInstalledVersion(target, InstalledVersionUpdateMode::kCurrent);
-    return data::InstallOutcome(data::UpdateResultCode::kOk, "Installing debian package was successful");
+    return data::InstallationResult(data::ResultCode::Numeric::kOk, "Installing debian package was successful");
   }
   LOG_ERROR << "... Installation of Debian package failed";
-  return data::InstallOutcome(data::UpdateResultCode::kInstallFailed, output);
+  return data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, output);
 }
 
 Uptane::Target DebianManager::getCurrent() const {

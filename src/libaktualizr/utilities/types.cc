@@ -59,36 +59,48 @@ Package Package::fromJson(const std::string &json_str) {
   return package;
 }
 
-OperationResult::OperationResult(std::string id_in, UpdateResultCode result_code_in, std::string result_text_in)
-    : id(std::move(id_in)), result_code(result_code_in), result_text(std::move(result_text_in)) {}
+const std::map<data::ResultCode::Numeric, const char *> data::ResultCode::string_repr{
+    {ResultCode::Numeric::kOk, "OK"},
+    {ResultCode::Numeric::kAlreadyProcessed, "ALREADY_PROCESSED"},
+    {ResultCode::Numeric::kValidationFailed, "VALIDATION_FAILED"},
+    {ResultCode::Numeric::kInstallFailed, "INSTALL_FAILED"},
+    {ResultCode::Numeric::kInternalError, "INTERNAL_ERROR"},
+    {ResultCode::Numeric::kGeneralError, "GENERAL_ERROR"},
+    {ResultCode::Numeric::kNeedCompletion, "NEED_COMPLETION"},
+    {ResultCode::Numeric::kCustomError, "CUSTOM_ERROR"},
+    {ResultCode::Numeric::kUnknown, "UNKNOWN"},
+};
 
-OperationResult::OperationResult(std::string id_in, InstallOutcome outcome_in)
-    : id(std::move(id_in)), result_code(outcome_in.first), result_text(outcome_in.second) {}
+std::string data::ResultCode::toRepr() const {
+  std::string s = toString();
 
-InstallOutcome OperationResult::toOutcome() const { return InstallOutcome(result_code, result_text); }
+  return s + ":" + std::to_string(static_cast<int>(num_code));
+}
 
-Json::Value OperationResult::toJson() const {
+ResultCode data::ResultCode::fromRepr(const std::string &repr) {
+  size_t n = repr.find(':');
+  std::string s = repr.substr(0, n);
+
+  if (n >= repr.size() - 1) {
+    return ResultCode(Numeric::kUnknown, s);
+  }
+
+  int num = std::stoi(repr.substr(n + 1));
+
+  return ResultCode(static_cast<Numeric>(num), s);
+}
+
+Json::Value InstallationResult::toJson() const {
   Json::Value json;
-  json["id"] = id;
-  json["result_code"] = static_cast<int>(result_code);
-  json["result_text"] = result_text;
+  json["success"] = success;
+  json["code"] = result_code.toString();
+  json["description"] = description;
   return json;
 }
 
-OperationResult OperationResult::fromJson(const std::string &json_str) {
-  Json::Reader reader;
-  Json::Value json;
-  reader.parse(json_str, json);
-  OperationResult operation_result;
-  operation_result.id = json["id"].asString();
-  operation_result.result_code = static_cast<UpdateResultCode>(json["result_code"].asUInt());
-  operation_result.result_text = json["result_text"].asString();
-  return operation_result;
-}
-
-OperationResult OperationResult::fromOutcome(const std::string &id, const InstallOutcome &outcome) {
-  OperationResult operation_result(id, outcome);
-  return operation_result;
+std::ostream &operator<<(std::ostream &os, const ResultCode &result_code) {
+  os << result_code.toRepr();
+  return os;
 }
 
 }  // namespace data

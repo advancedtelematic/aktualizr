@@ -131,15 +131,15 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     return false;
   }
 
-  data::UpdateResultCode res_code;
-  std::string message;
+  data::InstallationResult install_res;
 
   if (target_->IsOstree()) {
 #ifdef BUILD_OSTREE
-    std::tie(res_code, message) = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, *target_);
+    install_res = OstreeManager::pull(config_.pacman.sysroot, treehub_server, keys_, *target_);
 
-    if (res_code != data::UpdateResultCode::kOk) {
-      LOG_ERROR << "Could not pull from OSTree (" << static_cast<int>(res_code) << "): " << message;
+    if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
+      LOG_ERROR << "Could not pull from OSTree (" << install_res.result_code.toString()
+                << "): " << install_res.description;
       return false;
     }
 #else
@@ -152,9 +152,9 @@ bool AktualizrSecondary::sendFirmwareResp(const std::shared_ptr<std::string>& fi
     return false;
   }
 
-  std::tie(res_code, message) = pacman->install(*target_);
-  if (res_code != data::UpdateResultCode::kOk) {
-    LOG_ERROR << "Could not install target (" << static_cast<int>(res_code) << "): " << message;
+  install_res = pacman->install(*target_);
+  if (install_res.result_code.num_code != data::ResultCode::Numeric::kOk) {
+    LOG_ERROR << "Could not install target (" << install_res.result_code.toString() << "): " << install_res.description;
     return false;
   }
   storage_->saveInstalledVersion(getSerialResp().ToString(), *target_, InstalledVersionUpdateMode::kCurrent);
