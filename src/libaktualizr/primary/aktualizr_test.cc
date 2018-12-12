@@ -11,9 +11,9 @@
 #include "config/config.h"
 #include "httpfake.h"
 #include "primary/aktualizr.h"
+#include "primary/events.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"
-#include "utilities/events.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path uptane_repos_dir;

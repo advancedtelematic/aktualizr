@@ -7,12 +7,10 @@ set(SOURCES dequeue_buffer.cc
 set(HEADERS config_utils.h
             dequeue_buffer.h
             exceptions.h
-            results.h
             sockaddr_io.h
             timer.h
             types.h
-            utils.h
-            events.h)
+            utils.h)
 
 
 add_library(utilities OBJECT ${SOURCES})

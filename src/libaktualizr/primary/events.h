@@ -7,8 +7,9 @@
 
 #include <boost/signals2.hpp>
 
+#include "primary/results.h"
+#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
-#include "utilities/results.h"
 #include "utilities/types.h"
 
 /**

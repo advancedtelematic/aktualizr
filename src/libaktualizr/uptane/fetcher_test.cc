@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include "fetcher.h"
+#include "http/httpclient.h"
 #include "logging/logging.h"
 #include "storage/sqlstorage.h"
 #include "test_utils.h"
@@ -19,68 +20,23 @@ static std::string server = "http://127.0.0.1:";
 static std::string treehub_server = "http://127.0.0.1:";
 std::string sysroot;
 
-unsigned int num_events_DownloadPause = 0;
 static std::mutex pause_m;
 static std::condition_variable cv;
 static bool do_pause = false;
 
 Config config;
 
-void process_events(const std::shared_ptr<event::BaseEvent>& event) {
-  if (event->variant == "DownloadProgressReport") {
-    const auto ev = dynamic_cast<event::DownloadProgressReport*>(event.get());
-    std::cout << "DownloadProgressReport: " << ev->progress << std::endl;
-    if (!do_pause) {
-      if (ev->progress >= pause_after) {
-        std::lock_guard<std::mutex> lk(pause_m);
-        do_pause = true;
-        cv.notify_all();
-      }
+static void progress_cb(const Uptane::Target& target, const std::string& description, unsigned int progress) {
+  (void)target;
+  (void)description;
+  std::cout << "progress callback: " << progress << std::endl;
+  if (!target.IsOstree() && !do_pause) {
+    if (progress >= pause_after) {
+      std::lock_guard<std::mutex> lk(pause_m);
+      do_pause = true;
+      cv.notify_all();
     }
-    return;
   }
-  switch (num_events_DownloadPause) {
-    case 0: {
-      EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
-      EXPECT_EQ(pause_event->result, PauseResult::kNotDownloading);
-      break;
-    }
-    case 1: {
-      EXPECT_EQ(event->variant, "DownloadResumed");
-      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
-      EXPECT_EQ(pause_event->result, PauseResult::kNotPaused);
-      break;
-    }
-    case 2: {
-      EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
-      EXPECT_EQ(pause_event->result, PauseResult::kPaused);
-      break;
-    }
-    case 3: {
-      EXPECT_EQ(event->variant, "DownloadPaused");
-      const auto pause_event = std::static_pointer_cast<event::DownloadPaused>(event);
-      EXPECT_EQ(pause_event->result, PauseResult::kAlreadyPaused);
-      break;
-    }
-    case 4: {
-      EXPECT_EQ(event->variant, "DownloadResumed");
-      const auto resume_event = std::static_pointer_cast<event::DownloadResumed>(event);
-      EXPECT_EQ(resume_event->result, PauseResult::kResumed);
-      break;
-    }
-    case 5: {
-      EXPECT_EQ(event->variant, "DownloadResumed");
-      const auto resume_event = std::static_pointer_cast<event::DownloadResumed>(event);
-      EXPECT_EQ(resume_event->result, PauseResult::kNotPaused);
-      break;
-    }
-    default:
-      std::cout << "event #" << num_events_DownloadPause << " is: " << event->variant << "\n";
-      EXPECT_EQ(event->variant, "");
-  };
-  ++num_events_DownloadPause;
 }
 
 /* Pause downloading.
@@ -99,40 +55,38 @@ void test_pause(const Uptane::Target& target) {
 
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
-  auto events_channel = std::make_shared<event::Channel>();
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events;
-  events_channel->connect(f_cb);
-  Uptane::Fetcher f(config, storage, http, events_channel);
+  Uptane::Fetcher f(config, storage, http, progress_cb);
   EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
   EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
 
-  std::promise<void> pause;
-  std::promise<bool> download;
-  auto result = download.get_future();
-  auto pause_res = pause.get_future();
+  std::promise<void> pause_promise;
+  std::promise<bool> download_promise;
+  auto result = download_promise.get_future();
+  auto pause_res = pause_promise.get_future();
   auto start = std::chrono::high_resolution_clock::now();
 
-  std::thread([&f, &target](std::promise<bool> p) { p.set_value(f.fetchVerifyTarget(target)); }, std::move(download))
+  std::thread([&f, &target, &download_promise]() {
+    bool res = f.fetchVerifyTarget(target);
+    download_promise.set_value(res);
+  })
       .detach();
 
-  std::thread(
-      [&f, &target](std::promise<void> p) {
-        if (!target.IsOstree()) {
-          std::unique_lock<std::mutex> lk(pause_m);
-          cv.wait(lk, [] { return do_pause; });
-        } else {
-          while (!f.isDownloading()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));  // wait for download start
-          }
-        }
-        EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
-        EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
-        std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
-        EXPECT_EQ(f.setPause(false), PauseResult::kResumed);
-        EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
-        p.set_value();
-      },
-      std::move(pause))
+  std::thread([&f, &target, &pause_promise]() {
+    if (!target.IsOstree()) {
+      std::unique_lock<std::mutex> lk(pause_m);
+      cv.wait(lk, [] { return do_pause; });
+    } else {
+      while (!f.isDownloading()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // wait for download start
+      }
+    }
+    EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
+    EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
+    std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
+    EXPECT_EQ(f.setPause(false), PauseResult::kResumed);
+    EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
+    pause_promise.set_value();
+  })
       .detach();
 
   ASSERT_EQ(result.wait_for(std::chrono::seconds(download_timeout)), std::future_status::ready);
@@ -142,7 +96,6 @@ void test_pause(const Uptane::Target& target) {
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start).count();
   std::cout << "Downloaded 100MB in " << duration - pause_duration << "seconds\n";
   EXPECT_TRUE(result.get());
-  EXPECT_EQ(num_events_DownloadPause, 6);
   EXPECT_GE(duration, pause_duration);
 }
 
@@ -157,7 +110,6 @@ TEST(fetcher, test_pause_ostree) {
   target_json["custom"]["targetFormat"] = "OSTREE";
   target_json["length"] = 0;
   Uptane::Target target("pause", target_json);
-  num_events_DownloadPause = 0;
   test_pause(target);
 }
 #endif  // BUILD_OSTREE
@@ -168,7 +120,6 @@ TEST(fetcher, test_pause_binary) {
   target_json["length"] = 100 * (1 << 20);
 
   Uptane::Target target("large_file", target_json);
-  num_events_DownloadPause = 0;
   test_pause(target);
 }
 

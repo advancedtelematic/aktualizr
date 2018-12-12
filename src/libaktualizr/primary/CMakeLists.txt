@@ -4,8 +4,10 @@ set(SOURCES aktualizr.cc
             sotauptaneclient.cc)
 
 set(HEADERS aktualizr.h
+            events.h
             initializer.h
             reportqueue.h
+            results.h
             sotauptaneclient.h)
 
 

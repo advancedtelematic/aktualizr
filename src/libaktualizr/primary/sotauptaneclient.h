@@ -16,6 +16,8 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "primary/events.h"
+#include "primary/results.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "uptane/directorrepository.h"
@@ -24,8 +26,6 @@
 #include "uptane/ipsecondarydiscovery.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/events.h"
-#include "utilities/results.h"
 
 class SotaUptaneClient {
  public:
@@ -36,16 +36,16 @@ class SotaUptaneClient {
                                                          std::shared_ptr<HttpInterface> http_client_in,
                                                          std::shared_ptr<event::Channel> events_channel_in = nullptr);
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
-                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
-                   std::shared_ptr<Bootloader> bootloader_in, std::shared_ptr<ReportQueue> report_queue_in,
+                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Bootloader> bootloader_in,
+                   std::shared_ptr<ReportQueue> report_queue_in,
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
   DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
-  PauseResult pause() { return uptane_fetcher->setPause(true); }
-  PauseResult resume() { return uptane_fetcher->setPause(false); }
+  PauseResult pause();
+  PauseResult resume();
   void sendDeviceData();
   UpdateCheckResult fetchMeta();
   bool putManifest();

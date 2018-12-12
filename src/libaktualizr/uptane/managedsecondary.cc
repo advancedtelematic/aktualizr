@@ -1,11 +1,14 @@
 #include "uptane/managedsecondary.h"
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 
 #include "crypto/crypto.h"
 #include "logging/logging.h"
-#include "utilities/events.h"
 
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {

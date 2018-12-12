@@ -15,33 +15,37 @@
 #include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
+static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
+                               unsigned int progress) {
+  if (channel == nullptr) {
+    return;
+  }
+  auto event = std::make_shared<event::DownloadProgressReport>(target, description, progress);
+  (*channel)(event);
+}
+
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
     Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
-  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
-      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, events_channel_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
 }
 
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
                                                                   std::shared_ptr<INvStorage> storage_in,
                                                                   std::shared_ptr<HttpInterface> http_client_in,
                                                                   std::shared_ptr<event::Channel> events_channel_in) {
-  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
-      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, events_channel_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                                    std::shared_ptr<HttpInterface> http_client,
-                                   std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                                    std::shared_ptr<Bootloader> bootloader_in,
                                    std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
@@ -49,10 +53,16 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       uptane_manifest(config, storage_in),
       storage(std::move(storage_in)),
       http(std::move(http_client)),
-      uptane_fetcher(std::move(uptane_fetcher_in)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
+  // translate progress reports from the fetcher to actual API events
+  auto prog_cb = [this](const Uptane::Target &target, const std::string description, unsigned int progress) {
+    report_progress_cb(events_channel.get(), target, description, progress);
+  };
+
+  uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, storage, http, prog_cb);
+
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
@@ -95,7 +105,6 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   if (map_it != secondaries.end()) {
     throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + sec_serial.ToString());
   }
-  sec->addEventsChannel(events_channel);
   secondaries.insert(std::make_pair(sec_serial, sec));
   hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
 }
@@ -752,6 +761,22 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
   }
   sendEvent<event::AllDownloadsComplete>(result);
   return result;
+}
+
+PauseResult SotaUptaneClient::pause() {
+  PauseResult res = uptane_fetcher->setPause(true);
+
+  sendEvent<event::DownloadPaused>(res);
+
+  return res;
+}
+
+PauseResult SotaUptaneClient::resume() {
+  PauseResult res = uptane_fetcher->setPause(true);
+
+  sendEvent<event::DownloadResumed>(res);
+
+  return res;
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {

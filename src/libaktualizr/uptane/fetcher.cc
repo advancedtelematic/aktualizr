@@ -34,10 +34,9 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 
   ds->downloaded_length += downloaded;
   auto progress = static_cast<unsigned int>((ds->downloaded_length * 100) / expected);
-  if (ds->events_channel && progress > ds->last_progress) {
+  if (ds->progress_cb && progress > ds->last_progress) {
     ds->last_progress = progress;
-    auto event = std::make_shared<event::DownloadProgressReport>(ds->target, "Downloading", progress);
-    (*(ds->events_channel))(event);
+    ds->progress_cb(ds->target, "Downloading", progress);
   }
   if (ds->fetcher->isPaused()) {
     ds->fetcher->setRetry(true);
@@ -53,18 +52,15 @@ PauseResult Fetcher::setPause(bool pause) {
   if (pause_ == pause) {
     if (pause) {
       LOG_INFO << "Download is already paused.";
-      sendEvent<event::DownloadPaused>(PauseResult::kAlreadyPaused);
       return PauseResult::kAlreadyPaused;
     } else {
       LOG_INFO << "Download is not paused, can't resume.";
-      sendEvent<event::DownloadResumed>(PauseResult::kNotPaused);
       return PauseResult::kNotPaused;
     }
   }
 
   if (pause && downloading_ == 0u) {
     LOG_INFO << "No download in progress, can't pause.";
-    sendEvent<event::DownloadPaused>(PauseResult::kNotDownloading);
     return PauseResult::kNotDownloading;
   }
 
@@ -72,10 +68,8 @@ PauseResult Fetcher::setPause(bool pause) {
   cv_.notify_all();
 
   if (pause) {
-    sendEvent<event::DownloadPaused>(PauseResult::kPaused);
     return PauseResult::kPaused;
   } else {
-    sendEvent<event::DownloadResumed>(PauseResult::kResumed);
     return PauseResult::kResumed;
   }
 }
@@ -98,7 +92,7 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
         LOG_INFO << "Image already downloaded skipping download";
         return true;
       }
-      DownloadMetaStruct ds(target, events_channel);
+      DownloadMetaStruct ds(target, progress_cb);
       ds.fetcher = this;
       if (!target_exists) {
         ds.fhandle = storage->allocateTargetFile(false, target);
@@ -139,9 +133,9 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
 #ifdef BUILD_OSTREE
       KeyManager keys(storage, config.keymanagerConfig());
       keys.loadKeys();
-      std::function<void()> pause = std::bind(&Fetcher::checkPause, this);
-      data::InstallOutcome outcome =
-          OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys, target, pause, events_channel);
+      std::function<void()> check_pause = std::bind(&Fetcher::checkPause, this);
+      data::InstallOutcome outcome = OstreeManager::pull(config.pacman.sysroot, config.pacman.ostree_server, keys,
+                                                         target, check_pause, progress_cb);
       result =
           (outcome.first == data::UpdateResultCode::kOk || outcome.first == data::UpdateResultCode::kAlreadyProcessed);
 #else

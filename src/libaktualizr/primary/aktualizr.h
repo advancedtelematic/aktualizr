@@ -8,10 +8,10 @@
 #include <boost/signals2.hpp>
 
 #include "config/config.h"
+#include "primary/events.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-#include "utilities/events.h"
 
 class ApiQueue {
  public:
