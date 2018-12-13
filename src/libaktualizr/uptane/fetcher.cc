@@ -132,14 +132,25 @@ bool Fetcher::fetchVerifyTarget(const Target& target) {
           throw Exception("image", "Could not download file, error: " + response.error_message);
         }
         if (pause_) {
-          std::lock_guard<std::mutex> lock(*pause_mutex_);
+          // entering pause, save the file and free the handler
+          ds.fhandle->wcommit();
+          fhandle.reset();
+
+          std::lock_guard<std::mutex> lock(*pause_mutex_);  // waiting on this mutex while paused
+
+          // exiting pause, restore the file context
+          auto target_handle = storage->openTargetFile(target);
+          fhandle = target_handle->toWriteHandle();
+          ds.fhandle = fhandle.get();
           retry = true;
         }
       } while (retry);
 
       if (!target.MatchWith(Hash(ds.hash_type, ds.hasher().getHexDigest()))) {
+        ds.fhandle->wabort();
         throw TargetHashMismatch(target.filename());
       }
+      ds.fhandle->wcommit();
       result = true;
     } else {
 #ifdef BUILD_OSTREE

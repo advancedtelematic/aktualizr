@@ -507,7 +507,7 @@ TEST(storage, partial) {
 
   Json::Value target_json;
   target_json["hashes"]["sha256"] = "hash1";
-  target_json["length"] = 2;
+  target_json["length"] = 3;
   Uptane::Target target("some.deb", target_json);
 
   // write partial target
@@ -519,7 +519,6 @@ TEST(storage, partial) {
   }
 
   // read and check partial target
-
   {
     std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
     uint8_t rb[2] = {0};
@@ -530,10 +529,28 @@ TEST(storage, partial) {
     EXPECT_STREQ(reinterpret_cast<char *>(rb), "a");
   }
 
-  // Append partial
+  // Append without committing, should commit in whandle destructor
   {
     std::unique_ptr<StorageTargetWHandle> whandle = storage->openTargetFile(target)->toWriteHandle();
     const uint8_t wb[] = "b";
+    whandle->wfeed(wb, 1);
+  }
+
+  // read and check partial target
+  {
+    std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
+    uint8_t rb[3] = {0};
+    EXPECT_EQ(rhandle->rsize(), 2);
+    EXPECT_TRUE(rhandle->isPartial());
+    rhandle->rread(rb, 2);
+    rhandle->rclose();
+    EXPECT_STREQ(reinterpret_cast<char *>(rb), "ab");
+  }
+
+  // Append partial
+  {
+    std::unique_ptr<StorageTargetWHandle> whandle = storage->openTargetFile(target)->toWriteHandle();
+    const uint8_t wb[] = "c";
     whandle->wfeed(wb, 1);
     whandle->wcommit();
   }
@@ -541,7 +558,7 @@ TEST(storage, partial) {
   // Check full target
   {
     std::unique_ptr<StorageTargetRHandle> rhandle = storage->openTargetFile(target);
-    EXPECT_EQ(rhandle->rsize(), 2);
+    EXPECT_EQ(rhandle->rsize(), 3);
     EXPECT_FALSE(rhandle->isPartial());
   }
 }

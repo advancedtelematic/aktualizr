@@ -9,7 +9,6 @@
 #include "logging/logging.h"
 #include "sql_utils.h"
 #include "utilities/utils.h"
-std::mutex sql_mutex;
 boost::filesystem::path SQLStorage::dbPath() const { return config_.sqldb_path.get(config_.path); }
 
 // find metadata with version set to -1 (e.g. after migration) and assign proper version to it
@@ -844,7 +843,6 @@ void SQLStorage::clearMisconfiguredEcus() {
 
 void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptane::Target& target,
                                       InstalledVersionUpdateMode update_mode) {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   if (!db.beginTransaction()) {
@@ -900,7 +898,6 @@ void SQLStorage::saveInstalledVersion(const std::string& ecu_serial, const Uptan
 
 bool SQLStorage::loadInstalledVersions(const std::string& ecu_serial, std::vector<Uptane::Target>* installed_versions,
                                        size_t* current_version, size_t* pending_version) {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   // empty serial: use primary
@@ -1053,7 +1050,6 @@ void SQLStorage::clearInstallationResult() {
 }
 
 boost::optional<std::pair<int64_t, size_t>> SQLStorage::checkTargetFile(const Uptane::Target& target) const {
-  std::lock_guard<std::mutex> lock(sql_mutex);
   SQLite3Guard db = dbConnection();
 
   auto statement = db.prepareStatement<std::string>(
@@ -1101,9 +1097,8 @@ boost::optional<std::pair<int64_t, size_t>> SQLStorage::checkTargetFile(const Up
 class SQLTargetWHandle : public StorageTargetWHandle {
  public:
   SQLTargetWHandle(const SQLStorage& storage, Uptane::Target target)
-      : db_(storage.dbPath()), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(0) {
+      : db_(storage.dbPath()), target_(std::move(target)), closed_(false), row_id_(0) {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
-    std::lock_guard<std::mutex> lock(sql_mutex);
     if (!db_.beginTransaction()) {
       throw exc;
     }
@@ -1127,28 +1122,27 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     row_id_ = sqlite3_last_insert_rowid(db_.get());
-    db_.commitTransaction();
+
+    if (!db_.commitTransaction()) {
+      throw exc;
+    }
   }
 
   ~SQLTargetWHandle() override {
     if (!closed_) {
-      LOG_WARNING << "Handle for file " << target_.filename() << " has not been committed or aborted, forcing abort";
-      SQLTargetWHandle::wabort();
+      SQLTargetWHandle::wcommit();
     }
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
-    std::lock_guard<std::mutex> lock(sql_mutex);
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
 
-    if (!db_.beginTransaction()) {
-      throw exc;
-    }
-
-    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob " << db_.errmsg();
-      wabort();
-      throw exc;
+    if (blob_ == nullptr) {
+      if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
+        LOG_ERROR << "Could not open blob " << db_.errmsg();
+        wabort();
+        throw exc;
+      }
     }
 
     if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
@@ -1158,28 +1152,27 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
     written_size_ += size;
 
-    auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
-                                                            static_cast<int64_t>(written_size_), row_id_);
-
-    int err = statement.step();
-    if (err != SQLITE_DONE) {
-      LOG_ERROR << "Could not save size in db: " << db_.errmsg();
-      throw exc;
-    }
-
-    wcommit();
-    db_.commitTransaction();
     return size;
   }
 
   void wcommit() override {
+    if (blob_ != nullptr) {
+      sqlite3_blob_close(blob_);
+      blob_ = nullptr;
+      auto statement = db_.prepareStatement<int64_t, int64_t>("UPDATE target_images SET real_size = ? WHERE rowid = ?;",
+                                                              static_cast<int64_t>(written_size_), row_id_);
+
+      int err = statement.step();
+      if (err != SQLITE_DONE) {
+        LOG_ERROR << "Could not save size in db: " << db_.errmsg();
+        throw StorageTargetWHandle::WriteError("could not update size of " + target_.filename() + " in sql storage");
+      }
+    }
+
     closed_ = true;
-    sqlite3_blob_close(blob_);
-    blob_ = nullptr;
   }
 
   void wabort() noexcept override {
-    closed_ = true;
     if (blob_ != nullptr) {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
@@ -1189,15 +1182,15 @@ class SQLTargetWHandle : public StorageTargetWHandle {
           db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", target_.filename());
       statement.step();
     }
+    closed_ = true;
   }
+
   friend class SQLTargetRHandle;
 
  private:
   SQLTargetWHandle(const boost::filesystem::path& db_path, Uptane::Target target, const sqlite3_int64& row_id,
                    const size_t& start_from = 0)
-      : db_(db_path), target_(std::move(target)), closed_(false), blob_(nullptr), row_id_(row_id) {
-    std::lock_guard<std::mutex> lock(sql_mutex);
-
+      : db_(db_path), target_(std::move(target)), closed_(false), row_id_(row_id) {
     if (db_.get_rc() != SQLITE_OK) {
       LOG_ERROR << "Can't open database: " << db_.errmsg();
       throw StorageTargetWHandle::WriteError("could not save file " + target_.filename() + " to sql storage");
@@ -1208,8 +1201,8 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   SQLite3Guard db_;
   Uptane::Target target_;
   bool closed_;
-  sqlite3_blob* blob_;
   sqlite3_int64 row_id_;
+  sqlite3_blob* blob_{nullptr};
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const Uptane::Target& target) {

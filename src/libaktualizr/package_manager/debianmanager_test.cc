@@ -33,6 +33,7 @@ TEST(PackageManagerFactory, Debian_Install_Good) {
   storage->savePrimaryInstalledVersion(target_test, InstalledVersionUpdateMode::kCurrent);
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
   std::stringstream("ab") >> *fhandle;
+  fhandle->wcommit();
 
   EXPECT_EQ(pacman->install(target).first, data::UpdateResultCode::kOk);
   EXPECT_EQ(pacman->getCurrent(), target);
@@ -54,6 +55,7 @@ TEST(PackageManagerFactory, Debian_Install_Bad) {
 
   std::unique_ptr<StorageTargetWHandle> fhandle = storage->allocateTargetFile(false, target);
   std::stringstream("ab") >> *fhandle;
+  fhandle->wcommit();
 
   auto result = pacman->install(target);
   EXPECT_EQ(result.first, data::UpdateResultCode::kInstallFailed);
