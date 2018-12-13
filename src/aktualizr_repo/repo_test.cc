@@ -17,9 +17,11 @@ TEST(aktualizr_repo, generate_repo) {
   UptaneRepo repo(temp_dir.Path(), "", "correlation");
   repo.generateRepo(key_type);
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/1.root.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/targets.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/timestamp.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/root.json"));
+  EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/1.root.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/targets.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/image/timestamp.json"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "repo/director/manifest"));
@@ -41,6 +43,28 @@ TEST(aktualizr_repo, generate_repo) {
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/targets/public.key"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/timestamp/private.key"));
   EXPECT_TRUE(boost::filesystem::exists(temp_dir.Path() / "keys/director/timestamp/public.key"));
+
+  std::vector<std::string> keys;
+  std::function<void(const boost::filesystem::path &path)> recursive_check;
+  recursive_check = [&keys, &recursive_check](const boost::filesystem::path &path) {
+    for (auto &p : boost::filesystem::directory_iterator(path)) {
+      std::cout << "PATH: " << p.path() << "\n";
+      if (p.status().type() == boost::filesystem::file_type::directory_file) {
+        recursive_check(p.path());
+      } else {
+        if (p.path().filename().string() == "key_type") {
+          continue;
+        }
+        std::string hash = Crypto::sha512digest(Utils::readFile(p.path()));
+        if (std::find(keys.begin(), keys.end(), hash) == keys.end()) {
+          keys.push_back(hash);
+        } else {
+          FAIL() << p.path().string() << " is not unique";
+        }
+      }
+    }
+  };
+  recursive_check(temp_dir.Path() / "keys");
 
   Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
   EXPECT_EQ(image_targets["signed"]["targets"].size(), 0);
