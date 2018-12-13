@@ -110,8 +110,8 @@ class Uptane_Vector_Test {
         if (updates.size()) {
           /* Download a binary package.
            * Verify a binary package. */
-          DownloadResult result = uptane_client->downloadImages(updates);
-          if (result.status != DownloadStatus::kSuccess) {
+          result::Download result = uptane_client->downloadImages(updates);
+          if (result.status != result::DownloadStatus::kSuccess) {
             if (should_fail) {
               throw uptane_client->getLastException();
             }

@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     aktualizr.Initialize();
 
     std::vector<Uptane::Target> updates;
-    PauseResult pause_result = PauseResult::kNotDownloading;
+    result::Pause pause_result = result::Pause::kNotDownloading;
     std::string buffer;
     while (std::getline(std::cin, buffer)) {
       boost::algorithm::to_lower(buffer);
@@ -153,8 +153,8 @@ int main(int argc, char *argv[]) {
         aktualizr.SendDeviceData();
       } else if (buffer == "fetchmetadata" || buffer == "fetchmeta" || buffer == "checkupdates" || buffer == "check") {
         auto fut_result = aktualizr.CheckUpdates();
-        if (pause_result != PauseResult::kPaused && pause_result != PauseResult::kAlreadyPaused) {
-          UpdateCheckResult result = fut_result.get();
+        if (pause_result != result::Pause::kPaused && pause_result != result::Pause::kAlreadyPaused) {
+          result::UpdateCheck result = fut_result.get();
           updates = result.updates;
           std::cout << updates.size() << " updates available\n";
         }
@@ -168,13 +168,13 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "pause") {
         pause_result = aktualizr.Pause();
         switch (pause_result) {
-          case PauseResult::kPaused:
+          case result::Pause::kPaused:
             std::cout << "Download paused.\n";
             break;
-          case PauseResult::kAlreadyPaused:
+          case result::Pause::kAlreadyPaused:
             std::cout << "Download already paused.\n";
             break;
-          case PauseResult::kNotDownloading:
+          case result::Pause::kNotDownloading:
             std::cout << "Download is not in progress.\n";
             break;
           default:
@@ -184,10 +184,10 @@ int main(int argc, char *argv[]) {
       } else if (buffer == "resume") {
         pause_result = aktualizr.Resume();
         switch (pause_result) {
-          case PauseResult::kResumed:
+          case result::Pause::kResumed:
             std::cout << "Download resumed.\n";
             break;
-          case PauseResult::kNotPaused:
+          case result::Pause::kNotPaused:
             std::cout << "Download not paused.\n";
             break;
           default:

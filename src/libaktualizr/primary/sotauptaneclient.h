@@ -43,16 +43,16 @@ class SotaUptaneClient {
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
-  PauseResult pause();
-  PauseResult resume();
+  result::Download downloadImages(const std::vector<Uptane::Target> &targets);
+  result::Pause pause();
+  result::Pause resume();
   void sendDeviceData();
-  UpdateCheckResult fetchMeta();
+  result::UpdateCheck fetchMeta();
   bool putManifest();
-  UpdateCheckResult checkUpdates();
-  InstallResult uptaneInstall(const std::vector<Uptane::Target> &updates);
+  result::UpdateCheck checkUpdates();
+  result::Install uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
-  CampaignCheckResult campaignCheck();
+  result::CampaignCheck campaignCheck();
   void campaignAccept(const std::string &campaign_id);
 
  private:
@@ -94,7 +94,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
-  std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
+  std::vector<result::InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates();
   void sendDownloadReport();
 

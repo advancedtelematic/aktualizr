@@ -9,12 +9,13 @@
 #include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 
+namespace result {
 /**
  * Container for information about available campaigns.
  */
-class CampaignCheckResult {
+class CampaignCheck {
  public:
-  explicit CampaignCheckResult(std::vector<campaign::Campaign> campaigns_in) : campaigns(std::move(campaigns_in)) {}
+  explicit CampaignCheck(std::vector<campaign::Campaign> campaigns_in) : campaigns(std::move(campaigns_in)) {}
   std::vector<campaign::Campaign> campaigns;
 };
 
@@ -33,11 +34,11 @@ enum class UpdateStatus {
 /**
  * Container for information about available updates.
  */
-class UpdateCheckResult {
+class UpdateCheck {
  public:
-  UpdateCheckResult() = default;
-  UpdateCheckResult(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in, UpdateStatus status_in,
-                    const Json::Value &targets_meta_in, std::string message_in)
+  UpdateCheck() = default;
+  UpdateCheck(std::vector<Uptane::Target> updates_in, unsigned int ecus_count_in, UpdateStatus status_in,
+              const Json::Value &targets_meta_in, std::string message_in)
       : updates(std::move(updates_in)),
         ecus_count(ecus_count_in),
         status(status_in),
@@ -53,7 +54,7 @@ class UpdateCheckResult {
 /**
  * Result of an attempt to pause or resume a download.
  */
-using PauseResult = Uptane::Fetcher::PauseRet;
+using Pause = Uptane::Fetcher::PauseRet;
 
 /**
  * Status of an update download.
@@ -72,10 +73,10 @@ enum class DownloadStatus {
 /**
  * Container for information about downloading an update.
  */
-class DownloadResult {
+class Download {
  public:
-  DownloadResult() = default;
-  DownloadResult(std::vector<Uptane::Target> updates_in, DownloadStatus status_in, std::string message_in)
+  Download() = default;
+  Download(std::vector<Uptane::Target> updates_in, DownloadStatus status_in, std::string message_in)
       : updates(std::move(updates_in)), status(status_in), message(std::move(message_in)) {}
   std::vector<Uptane::Target> updates;
   DownloadStatus status{DownloadStatus::kNothingToDownload};
@@ -97,11 +98,13 @@ class InstallReport {
 /**
  * Container for information about installing an update.
  */
-class InstallResult {
+class Install {
  public:
-  InstallResult() = default;
-  explicit InstallResult(std::vector<InstallReport> reports_in) : reports(std::move(reports_in)) {}
+  Install() = default;
+  explicit Install(std::vector<InstallReport> reports_in) : reports(std::move(reports_in)) {}
   std::vector<InstallReport> reports;
 };
+
+}  // namespace result
 
 #endif  // RESULTS_H_

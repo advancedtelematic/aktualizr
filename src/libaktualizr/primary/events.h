@@ -50,11 +50,11 @@ class PutManifestComplete : public BaseEvent {
  */
 class UpdateCheckComplete : public BaseEvent {
  public:
-  explicit UpdateCheckComplete(UpdateCheckResult result_in) : result(std::move(result_in)) {
+  explicit UpdateCheckComplete(result::UpdateCheck result_in) : result(std::move(result_in)) {
     variant = "UpdateCheckComplete";
   }
 
-  UpdateCheckResult result;
+  result::UpdateCheck result;
 };
 
 /**
@@ -62,8 +62,8 @@ class UpdateCheckComplete : public BaseEvent {
  */
 class DownloadPaused : public BaseEvent {
  public:
-  explicit DownloadPaused(PauseResult result_in) : result(result_in) { variant = "DownloadPaused"; }
-  PauseResult result;
+  explicit DownloadPaused(result::Pause result_in) : result(result_in) { variant = "DownloadPaused"; }
+  result::Pause result;
 };
 
 /**
@@ -71,8 +71,8 @@ class DownloadPaused : public BaseEvent {
  */
 class DownloadResumed : public BaseEvent {
  public:
-  explicit DownloadResumed(PauseResult result_in) : result(result_in) { variant = "DownloadResumed"; }
-  PauseResult result;
+  explicit DownloadResumed(result::Pause result_in) : result(result_in) { variant = "DownloadResumed"; }
+  result::Pause result;
 };
 
 /**
@@ -109,11 +109,11 @@ class DownloadTargetComplete : public BaseEvent {
  */
 class AllDownloadsComplete : public BaseEvent {
  public:
-  explicit AllDownloadsComplete(DownloadResult result_in) : result(std::move(result_in)) {
+  explicit AllDownloadsComplete(result::Download result_in) : result(std::move(result_in)) {
     variant = "AllDownloadsComplete";
   }
 
-  DownloadResult result;
+  result::Download result;
 };
 
 /**
@@ -144,11 +144,11 @@ class InstallTargetComplete : public BaseEvent {
  */
 class AllInstallsComplete : public BaseEvent {
  public:
-  explicit AllInstallsComplete(InstallResult result_in) : result(std::move(result_in)) {
+  explicit AllInstallsComplete(result::Install result_in) : result(std::move(result_in)) {
     variant = "AllInstallsComplete";
   }
 
-  InstallResult result;
+  result::Install result;
 };
 
 /**
@@ -156,11 +156,11 @@ class AllInstallsComplete : public BaseEvent {
  */
 class CampaignCheckComplete : public BaseEvent {
  public:
-  explicit CampaignCheckComplete(CampaignCheckResult result_in) : result(std::move(result_in)) {
+  explicit CampaignCheckComplete(result::CampaignCheck result_in) : result(std::move(result_in)) {
     variant = "CampaignCheckComplete";
   }
 
-  CampaignCheckResult result;
+  result::CampaignCheck result;
 };
 
 /**
