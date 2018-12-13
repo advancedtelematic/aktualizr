@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "campaign/campaign.h"
+#include "uptane/fetcher.h"
 #include "uptane/tuf.h"
 
 /**
@@ -48,6 +49,11 @@ class UpdateCheckResult {
   Json::Value targets_meta;
   std::string message;
 };
+
+/**
+ * Result of an attempt to pause or resume a download.
+ */
+using PauseResult = Uptane::Fetcher::PauseRet;
 
 /**
  * Status of an update download.

@@ -8,24 +8,6 @@
 #include "http/httpinterface.h"
 #include "storage/invstorage.h"
 
-/**
- * Result of an attempt to pause or resume a download.
- */
-enum class PauseResult {
-  /* Download was paused successfully. */
-  kPaused = 0,
-  /* Download was resumed successfully. */
-  kResumed,
-  /* Download was already paused, so there is nothing to do. */
-  kAlreadyPaused,
-  /* Download has already completed, so there is nothing to do. */
-  kAlreadyComplete,
-  /* No download is in progress, so there is nothing to do. */
-  kNotDownloading,
-  /* Download was not paused, so there is nothing to do. */
-  kNotPaused,
-};
-
 namespace Uptane {
 
 constexpr int64_t kMaxRootSize = 64 * 1024;
@@ -63,9 +45,24 @@ class Fetcher {
     return pause_;
   }
   bool isDownloading() { return static_cast<bool>(downloading_); }
-  PauseResult setPause(bool pause);
   void checkPause();
   void setRetry(bool retry) { retry_ = retry; }
+
+  enum class PauseRet {
+    /* Download was paused successfully. */
+    kPaused = 0,
+    /* Download was resumed successfully. */
+    kResumed,
+    /* Download was already paused, so there is nothing to do. */
+    kAlreadyPaused,
+    /* Download has already completed, so there is nothing to do. */
+    kAlreadyComplete,
+    /* No download is in progress, so there is nothing to do. */
+    kNotDownloading,
+    /* Download was not paused, so there is nothing to do. */
+    kNotPaused,
+  };
+  PauseRet setPause(bool pause);
 
  private:
   std::shared_ptr<HttpInterface> http;

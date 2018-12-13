@@ -56,8 +56,8 @@ void test_pause(const Uptane::Target& target) {
   std::shared_ptr<INvStorage> storage(new SQLStorage(config.storage, false));
   auto http = std::make_shared<HttpClient>();
   Uptane::Fetcher f(config, storage, http, progress_cb);
-  EXPECT_EQ(f.setPause(true), PauseResult::kNotDownloading);
-  EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
+  EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kNotDownloading);
+  EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kNotPaused);
 
   std::promise<void> pause_promise;
   std::promise<bool> download_promise;
@@ -80,11 +80,11 @@ void test_pause(const Uptane::Target& target) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));  // wait for download start
       }
     }
-    EXPECT_EQ(f.setPause(true), PauseResult::kPaused);
-    EXPECT_EQ(f.setPause(true), PauseResult::kAlreadyPaused);
+    EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kPaused);
+    EXPECT_EQ(f.setPause(true), Uptane::Fetcher::PauseRet::kAlreadyPaused);
     std::this_thread::sleep_for(std::chrono::seconds(pause_duration));
-    EXPECT_EQ(f.setPause(false), PauseResult::kResumed);
-    EXPECT_EQ(f.setPause(false), PauseResult::kNotPaused);
+    EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kResumed);
+    EXPECT_EQ(f.setPause(false), Uptane::Fetcher::PauseRet::kNotPaused);
     pause_promise.set_value();
   })
       .detach();

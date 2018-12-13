@@ -47,30 +47,30 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   return written_size;
 }
 
-PauseResult Fetcher::setPause(bool pause) {
+Fetcher::PauseRet Fetcher::setPause(bool pause) {
   std::lock_guard<std::mutex> guard(mutex_);
   if (pause_ == pause) {
     if (pause) {
       LOG_INFO << "Download is already paused.";
-      return PauseResult::kAlreadyPaused;
+      return PauseRet::kAlreadyPaused;
     } else {
       LOG_INFO << "Download is not paused, can't resume.";
-      return PauseResult::kNotPaused;
+      return PauseRet::kNotPaused;
     }
   }
 
   if (pause && downloading_ == 0u) {
     LOG_INFO << "No download in progress, can't pause.";
-    return PauseResult::kNotDownloading;
+    return PauseRet::kNotDownloading;
   }
 
   pause_ = pause;
   cv_.notify_all();
 
   if (pause) {
-    return PauseResult::kPaused;
+    return PauseRet::kPaused;
   } else {
-    return PauseResult::kResumed;
+    return PauseRet::kResumed;
   }
 }
 
