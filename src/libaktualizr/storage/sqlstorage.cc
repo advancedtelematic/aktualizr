@@ -1159,13 +1159,13 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     if (blob_ != nullptr) {
       sqlite3_blob_close(blob_);
       blob_ = nullptr;
-      auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
+      auto statement = db_.prepareStatement<int64_t, int64_t>("UPDATE target_images SET real_size = ? WHERE rowid = ?;",
                                                               static_cast<int64_t>(written_size_), row_id_);
 
       int err = statement.step();
       if (err != SQLITE_DONE) {
         LOG_ERROR << "Could not save size in db: " << db_.errmsg();
-        throw StorageTargetWHandle::WriteError("could not update sise of " + target_.filename() + " in sql storage");
+        throw StorageTargetWHandle::WriteError("could not update size of " + target_.filename() + " in sql storage");
       }
     }
 
