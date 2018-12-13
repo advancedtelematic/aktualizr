@@ -1122,23 +1122,27 @@ class SQLTargetWHandle : public StorageTargetWHandle {
     }
 
     row_id_ = sqlite3_last_insert_rowid(db_.get());
+
+    if (!db_.commitTransaction()) {
+      throw exc;
+    }
   }
 
   ~SQLTargetWHandle() override {
     if (!closed_) {
-      db_.commitTransaction();
+      SQLTargetWHandle::wcommit();
     }
   }
 
   size_t wfeed(const uint8_t* buf, size_t size) override {
     StorageTargetWHandle::WriteError exc("could not save file " + target_.filename() + " to sql storage");
 
-    sqlite3_blob* blob_;
-
-    if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
-      LOG_ERROR << "Could not open blob " << db_.errmsg();
-      wabort();
-      throw exc;
+    if (blob_ == nullptr) {
+      if (sqlite3_blob_open(db_.get(), "main", "target_images", "image_data", row_id_, 1, &blob_) != SQLITE_OK) {
+        LOG_ERROR << "Could not open blob " << db_.errmsg();
+        wabort();
+        throw exc;
+      }
     }
 
     if (sqlite3_blob_write(blob_, buf, static_cast<int>(size), static_cast<int>(written_size_)) != SQLITE_OK) {
@@ -1146,31 +1150,41 @@ class SQLTargetWHandle : public StorageTargetWHandle {
       wabort();
       return 0;
     }
-    sqlite3_blob_close(blob_);  // can't keep the blob open between the calls, because next update to the target_images
-                                // table invalidates the handle
     written_size_ += size;
-
-    auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
-                                                            static_cast<int64_t>(written_size_), row_id_);
-
-    int err = statement.step();
-    if (err != SQLITE_DONE) {
-      LOG_ERROR << "Could not save size in db: " << db_.errmsg();
-      throw exc;
-    }
 
     return size;
   }
 
   void wcommit() override {
+    if (blob_ != nullptr) {
+      sqlite3_blob_close(blob_);
+      blob_ = nullptr;
+      auto statement = db_.prepareStatement<int64_t, int64_t>("update target_images SET real_size = ? where rowid = ?;",
+                                                              static_cast<int64_t>(written_size_), row_id_);
+
+      int err = statement.step();
+      if (err != SQLITE_DONE) {
+        LOG_ERROR << "Could not save size in db: " << db_.errmsg();
+        throw StorageTargetWHandle::WriteError("could not update sise of " + target_.filename() + " in sql storage");
+      }
+    }
+
     closed_ = true;
-    db_.commitTransaction();
   }
 
   void wabort() noexcept override {
+    if (blob_ != nullptr) {
+      sqlite3_blob_close(blob_);
+      blob_ = nullptr;
+    }
+    if (sqlite3_changes(db_.get()) > 0) {
+      auto statement =
+          db_.prepareStatement<std::string>("DELETE FROM target_images WHERE filename=?;", target_.filename());
+      statement.step();
+    }
     closed_ = true;
-    db_.rollbackTransaction();
   }
+
   friend class SQLTargetRHandle;
 
  private:
@@ -1188,6 +1202,7 @@ class SQLTargetWHandle : public StorageTargetWHandle {
   Uptane::Target target_;
   bool closed_;
   sqlite3_int64 row_id_;
+  sqlite3_blob* blob_{nullptr};
 };
 
 std::unique_ptr<StorageTargetWHandle> SQLStorage::allocateTargetFile(bool from_director, const Uptane::Target& target) {
