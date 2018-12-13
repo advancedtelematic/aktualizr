@@ -76,6 +76,7 @@ struct DownloadMetaStruct {
         target{std::move(target_in)},
         fetcher{nullptr} {}
   uint64_t downloaded_length{};
+  unsigned int last_progress{0};
   std::unique_ptr<StorageTargetWHandle> fhandle;
   const Hash::Type hash_type;
   MultiPartHasher& hasher() {
