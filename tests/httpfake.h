@@ -117,7 +117,7 @@ class HttpFake : public HttpInterface {
   }
 
   std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback callback, void *userp,
-                                          size_t from, CurlHandler *easyp) override {
+                                          curl_off_t from, CurlHandler *easyp) override {
     (void)userp;
     (void)from;
     (void)easyp;
@@ -145,7 +145,7 @@ class HttpFake : public HttpInterface {
     return resp_future;
   }
 
-  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) override {
+  HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, curl_off_t from) override {
     return downloadAsync(url, callback, userp, from, nullptr).get();
   }
 

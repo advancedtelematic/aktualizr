@@ -14,6 +14,7 @@
 using CurlHandler = std::shared_ptr<CURL>;
 
 struct HttpResponse {
+  HttpResponse() = default;
   HttpResponse(std::string body_in, const long http_status_code_in, CURLcode curl_code_in,  // NOLINT
                std::string error_message_in)
       : body(std::move(body_in)),
@@ -21,10 +22,14 @@ struct HttpResponse {
         curl_code(curl_code_in),
         error_message(std::move(error_message_in)) {}
   std::string body;
-  long http_status_code;  // NOLINT
-  CURLcode curl_code;
+  long http_status_code{0};  // NOLINT
+  CURLcode curl_code{CURLE_OK};
   std::string error_message;
   bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
+  std::string getStatusStr() {
+    return std::to_string(curl_code) + " " + error_message + " HTTP " + std::to_string(http_status_code);
+  }
+
   Json::Value getJson() { return Utils::parseJSON(body); }
 };
 
@@ -36,9 +41,9 @@ class HttpInterface {
   virtual HttpResponse post(const std::string &url, const Json::Value &data) = 0;
   virtual HttpResponse put(const std::string &url, const Json::Value &data) = 0;
 
-  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, size_t from) = 0;
+  virtual HttpResponse download(const std::string &url, curl_write_callback callback, void *userp, curl_off_t from) = 0;
   virtual std::future<HttpResponse> downloadAsync(const std::string &url, curl_write_callback callback, void *userp,
-                                                  size_t from, CurlHandler *easyp) = 0;
+                                                  curl_off_t from, CurlHandler *easyp) = 0;
   virtual void setCerts(const std::string &ca, CryptoSource ca_source, const std::string &cert,
                         CryptoSource cert_source, const std::string &pkey, CryptoSource pkey_source) = 0;
   static constexpr int64_t kNoLimit = 0;  // no limit the size of downloaded data
