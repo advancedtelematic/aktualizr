@@ -965,6 +965,45 @@ TEST(Aktualizr, PutManifestError) {
   EXPECT_EQ(num_events_UpdateCheck, 1);
 }
 
+/* Test that Aktualizr retransmits DownloadPaused and DownloadResumed events */
+TEST(Aktualizr, PauseResumeEvents) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+
+  std::promise<void> end_promise{};
+  size_t n_events = 0;
+  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise,
+                                                               &n_events](std::shared_ptr<event::BaseEvent> event) {
+    switch (n_events) {
+      case 0:
+        EXPECT_EQ(event->variant, "DownloadPaused");
+        break;
+      case 1:
+        EXPECT_EQ(event->variant, "DownloadResumed");
+        end_promise.set_value();
+        break;
+      default:
+        FAIL() << "Unexpected event";
+    }
+    n_events += 1;
+  };
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(cb);
+
+  aktualizr.Pause();
+  aktualizr.Resume();
+
+  std::future_status status = end_promise.get_future().wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for pause/resume events";
+  }
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
