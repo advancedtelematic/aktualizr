@@ -15,6 +15,7 @@
 #include <archive_entry.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <glob.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
@@ -647,17 +648,18 @@ boost::filesystem::path Utils::absolutePath(const boost::filesystem::path &root,
   return (root / file);
 }
 
-std::vector<boost::filesystem::path> Utils::glob(const std::string &pat) {
-  glob_t glob_result;
-  ::glob(pat.c_str(), GLOB_TILDE, nullptr, &glob_result);
-  std::vector<boost::filesystem::path> ret;
-  for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    ret.emplace_back(glob_result.gl_pathv[i]);
+// passing ext argument keep the leading point e.g. '.ext'
+std::vector<boost::filesystem::path> Utils::getDirEntriesByExt(const boost::filesystem::path &dir_path,
+                                                               const std::string &ext) {
+  std::vector<boost::filesystem::path> entries;
+  boost::filesystem::directory_iterator entryItEnd, entryIt(dir_path);
+  for (; entryIt != entryItEnd; ++entryIt) {
+    auto &entry_path = entryIt->path();
+    if (!boost::filesystem::is_directory(*entryIt) && entry_path.extension().string() == ext) {
+      entries.push_back(entry_path);
+    }
   }
-  globfree(&glob_result);
-  std::sort(ret.begin(), ret.end());
-  return ret;
+  return entries;
 }
 
 void Utils::createDirectories(const boost::filesystem::path &path, mode_t mode) {
@@ -716,9 +718,16 @@ class SafeTempRoot {
 
  private:
   SafeTempRoot() {
-    boost::filesystem::path p =
-        boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%-%%%%");
-
+    boost::filesystem::path prefix;
+#if !defined(ANDROID)
+    prefix = boost::filesystem::temp_directory_path();
+#else
+    prefix = Utils::getStorageRootPath();
+    if (prefix.empty()) {
+      throw std::runtime_error("Empty temp root dir prefix");
+    }
+#endif  // defined(ANDROID)
+    boost::filesystem::path p = prefix / boost::filesystem::unique_path("aktualizr-%%%%-%%%%-%%%%-%%%%");
     if (mkdir(p.c_str(), S_IRWXU) == -1) {
       throw std::runtime_error("could not create temporary directory root: " + p.native());
     }
@@ -735,6 +744,21 @@ class SafeTempRoot {
 
   boost::filesystem::path path;
 };
+
+#if defined(ANDROID)
+std::mutex Utils::storage_root_path_mutex_;
+std::string Utils::storage_root_path_;
+
+void Utils::setStorageRootPath(const std::string &storage_root_path) {
+  std::lock_guard<std::mutex> guard(storage_root_path_mutex_);
+  storage_root_path_ = storage_root_path;
+}
+
+boost::filesystem::path Utils::getStorageRootPath() {
+  std::lock_guard<std::mutex> guard(storage_root_path_mutex_);
+  return storage_root_path_;
+}
+#endif  // defined(ANDROID)
 
 TemporaryFile::TemporaryFile(const std::string &hint)
     : tmp_name_(SafeTempRoot::Get() / boost::filesystem::unique_path("%%%%-%%%%-" + hint)) {}

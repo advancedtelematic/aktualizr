@@ -9,6 +9,10 @@
 #include "package_manager/debianmanager.h"
 #endif
 
+#if defined(ANDROID)
+#include "package_manager/androidmanager.h"
+#endif
+
 #include "logging/logging.h"
 
 std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManager(
@@ -27,6 +31,12 @@ std::shared_ptr<PackageManagerInterface> PackageManagerFactory::makePackageManag
       return std::make_shared<DebianManager>(pconfig, storage);
 #else
       throw std::runtime_error("aktualizr was compiled without debian packages support!");
+#endif
+    case PackageManager::kAndroid:
+#if defined(ANDROID)
+      return std::make_shared<AndroidManager>(storage);
+#else
+      throw std::runtime_error("aktualizr was compiled without android support!");
 #endif
     case PackageManager::kNone:
       return std::make_shared<PackageManagerFake>(pconfig, storage, bootloader);

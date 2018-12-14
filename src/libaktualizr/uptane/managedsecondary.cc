@@ -10,6 +10,8 @@
 #include "crypto/crypto.h"
 #include "logging/logging.h"
 
+#include <sys/stat.h>
+
 namespace Uptane {
 ManagedSecondary::ManagedSecondary(const SecondaryConfig &sconfig_in) : SecondaryInterface(sconfig_in) {
   // TODO: FIX

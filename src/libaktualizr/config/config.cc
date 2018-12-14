@@ -141,9 +141,7 @@ KeyManagerConfig Config::keymanagerConfig() const {
 void Config::postUpdateValues() {
   logger_set_threshold(logger);
 
-  if (provision.provision_path.empty()) {
-    provision.mode = ProvisionMode::kImplicit;
-  }
+  provision.mode = provision.provision_path.empty() ? ProvisionMode::kImplicit : ProvisionMode::kAutomatic;
 
   if (tls.server.empty()) {
     if (!tls.server_url_path.empty()) {
@@ -255,7 +253,7 @@ void Config::readSecondaryConfigs(const boost::filesystem::path& sconfigs_dir) {
     LOG_ERROR << "Could not read secondary configs from " << sconfigs_dir << ": not a directory";
     return;
   }
-  for (const auto& config_file : Utils::glob((sconfigs_dir / "*.json").string())) {
+  for (const auto& config_file : Utils::getDirEntriesByExt(sconfigs_dir, ".json")) {
     LOG_INFO << "Parsing secondary config: " << config_file;
     uptane.secondary_configs.emplace_back(config_file);
   }
