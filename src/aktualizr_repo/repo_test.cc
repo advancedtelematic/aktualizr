@@ -11,6 +11,7 @@
 #include "uptane_repo.h"
 
 KeyType key_type = KeyType::kUnknown;
+std::string generate_repo_exec;
 
 TEST(aktualizr_repo, generate_repo) {
   TemporaryDirectory temp_dir;
@@ -97,11 +98,42 @@ TEST(aktualizr_repo, copy_image) {
   EXPECT_EQ(director_targets["signed"]["targets"].size(), 1);
 }
 
+TEST(aktualizr_repo, sign) {
+  TemporaryDirectory temp_dir;
+  std::ostringstream keytype_stream;
+  keytype_stream << key_type;
+  std::string cmd = generate_repo_exec + " generate " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  cmd = generate_repo_exec + " sign " + temp_dir.Path().string();
+  cmd += " --repotype director --keyname snapshot";
+  std::string sign_cmd =
+      "echo \"{\\\"_type\\\":\\\"Snapshot\\\",\\\"expires\\\":\\\"2021-07-04T16:33:27Z\\\"}\" | " + cmd;
+  output.clear();
+  retval = Utils::shell(sign_cmd, &output);
+  if (retval) {
+    FAIL() << "'" << sign_cmd << "' exited with error code\n";
+  }
+  auto json = Utils::parseJSON(output);
+  Uptane::Root root(Uptane::RepositoryType::Director(),
+                    Utils::parseJSONFile(temp_dir.Path() / "repo/director/root.json"));
+  EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   logger_init();
   logger_set_threshold(boost::log::trivial::trace);
+  if (argc >= 2) {
+    generate_repo_exec = argv[1];
+  } else {
+    std::cerr << "No generate-repo executable specified\n";
+    return EXIT_FAILURE;
+  }
 
   bool res = true;
   for (int type = static_cast<int>(KeyType::kFirstKnown); type <= static_cast<int>(KeyType::kLastKnown); type++) {

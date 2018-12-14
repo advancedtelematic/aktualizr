@@ -16,7 +16,7 @@ install(TARGETS aktualizr-repo
 
 aktualizr_source_file_checks(${AKTUALIZR_REPO_SRC} ${AKTUALIZR_REPO_HDR})
 list(APPEND TEST_LIBS ${AKTUALIZR_REPO_LIBS} aktualizr_repo_lib)
-add_aktualizr_test(NAME aktualizr_repo SOURCES repo_test.cc PROJECT_WORKING_DIRECTORY)
+add_aktualizr_test(NAME aktualizr_repo SOURCES repo_test.cc PROJECT_WORKING_DIRECTORY ARGS $<TARGET_FILE:aktualizr-repo>)
 target_link_libraries(t_aktualizr_repo ${TEST_LIBS} aktualizr_repo_lib)
 
 aktualizr_source_file_checks(${TEST_SOURCES} main.cc)
