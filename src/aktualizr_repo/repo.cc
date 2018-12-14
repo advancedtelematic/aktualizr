@@ -5,20 +5,23 @@
 
 #include "repo.h"
 
-Repo::Repo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
-    : path_(std::move(path)), correlation_id_(std::move(correlation_id)) {
+Repo::Repo(Uptane::RepositoryType repo_type, boost::filesystem::path path, const std::string &expires,
+           std::string correlation_id)
+    : repo_type_(repo_type), path_(std::move(path)), correlation_id_(std::move(correlation_id)) {
   expiration_time_ = getExpirationTime(expires);
+  if (boost::filesystem::exists(path_)) {
+    if (boost::filesystem::directory_iterator(path_) != boost::filesystem::directory_iterator()) {
+      readKeys();
+    }
+  }
 }
 
-Json::Value Repo::signTuf(const std::string &repo_type, const Json::Value &json) {
-  std::string private_key = Utils::readFile(path_ / "keys" / repo_type / "private.key");
-  std::istringstream key_type_str{Utils::readFile(path_ / "keys" / repo_type / "key_type")};
-  KeyType key_type;
-  key_type_str >> key_type;
-
-  std::string b64sig = Utils::toBase64(Crypto::Sign(key_type, nullptr, private_key, Json::FastWriter().write(json)));
+Json::Value Repo::signTuf(const Uptane::Role &role, const Json::Value &json) {
+  auto key = keys_[role];
+  std::string b64sig =
+      Utils::toBase64(Crypto::Sign(key.public_key.Type(), nullptr, key.private_key, Json::FastWriter().write(json)));
   Json::Value signature;
-  switch (key_type) {
+  switch (key.public_key.Type()) {
     case KeyType::kRSA2048:
     case KeyType::kRSA3072:
     case KeyType::kRSA4096:
@@ -33,7 +36,7 @@ Json::Value Repo::signTuf(const std::string &repo_type, const Json::Value &json)
   signature["sig"] = b64sig;
 
   Json::Value signed_data;
-  signature["keyid"] = GetPublicKey(repo_type).KeyId();
+  signature["keyid"] = key.public_key.KeyId();
 
   signed_data["signed"] = json;
   signed_data["signatures"].append(signature);
@@ -59,13 +62,9 @@ std::string Repo::getExpirationTime(const std::string &expires) {
     return formatted;
   }
 }
-
-void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
-  boost::filesystem::path keys_dir(path_ / ("keys/" + repo_type));
+void Repo::generateKeyPair(KeyType key_type, const Uptane::Role &key_name) {
+  boost::filesystem::path keys_dir = path_ / ("keys/" + repo_type_.toString() + "/" + key_name.ToString());
   boost::filesystem::create_directories(keys_dir);
-
-  boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type));
-  boost::filesystem::create_directories(repo_dir);
 
   std::string public_key_string, private_key;
   Crypto::generateKeyPair(key_type, &public_key_string, &private_key);
@@ -73,24 +72,53 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
 
   std::stringstream key_str;
   key_str << key_type;
+
   Utils::writeFile(keys_dir / "private.key", private_key);
   Utils::writeFile(keys_dir / "public.key", public_key_string);
   Utils::writeFile(keys_dir / "key_type", key_str.str());
 
+  keys_[key_name] = KeyPair(public_key, private_key);
+}
+
+void Repo::generateRepoKeys(KeyType key_type) {
+  generateKeyPair(key_type, Uptane::Role::Root());
+  generateKeyPair(key_type, Uptane::Role::Snapshot());
+  generateKeyPair(key_type, Uptane::Role::Targets());
+  generateKeyPair(key_type, Uptane::Role::Timestamp());
+}
+
+void Repo::generateRepo(KeyType key_type) {
+  generateRepoKeys(key_type);
+
+  boost::filesystem::path repo_dir(path_ / ("repo/" + repo_type_.toString()));
+  boost::filesystem::create_directories(repo_dir);
   Json::Value root;
   root["_type"] = "Root";
   root["expires"] = expiration_time_;
   root["version"] = 1;
-  root["keys"][public_key.KeyId()] = public_key.ToUptane();
+  for (auto const &keypair : keys_) {
+    root["keys"][keypair.second.public_key.KeyId()] = keypair.second.public_key.ToUptane();
+  }
+
   Json::Value role;
-  role["keyids"].append(public_key.KeyId());
   role["threshold"] = 1;
+
+  role["keyids"].append(keys_[Uptane::Role::Root()].public_key.KeyId());
   root["roles"]["root"] = role;
+
+  role["keyids"].clear();
+  role["keyids"].append(keys_[Uptane::Role::Snapshot()].public_key.KeyId());
   root["roles"]["snapshot"] = role;
+
+  role["keyids"].clear();
+  role["keyids"].append(keys_[Uptane::Role::Targets()].public_key.KeyId());
   root["roles"]["targets"] = role;
+
+  role["keyids"].clear();
+  role["keyids"].append(keys_[Uptane::Role::Timestamp()].public_key.KeyId());
   root["roles"]["timestamp"] = role;
 
-  std::string signed_root = Utils::jsonToCanonicalStr(signTuf(repo_type, root));
+  std::string signed_root = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Root(), root));
   Utils::writeFile(repo_dir / "root.json", signed_root);
   Utils::writeFile(repo_dir / "1.root.json", signed_root);
 
@@ -99,11 +127,11 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
   targets["expires"] = expiration_time_;
   targets["version"] = 1;
   targets["targets"] = Json::objectValue;
-  LOG_ERROR << "repo: " << repo_type;
-  if (repo_type == "director" && correlation_id_ != "") {
+  LOG_ERROR << "repo: " << repo_type_.toString();
+  if (repo_type_ == Uptane::RepositoryType::Director() && correlation_id_ != "") {
     targets["custom"]["correlationId"] = correlation_id_;
   }
-  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(repo_type, targets));
+  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
   Utils::writeFile(repo_dir / "targets.json", signed_targets);
 
   Json::Value snapshot;
@@ -122,7 +150,7 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
   snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
   snapshot["meta"]["targets.json"]["version"] = 1;
-  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(repo_type, snapshot));
+  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), snapshot));
   Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
 
   Json::Value timestamp;
@@ -135,108 +163,28 @@ void Repo::generateRepo(const std::string &repo_type, KeyType key_type) {
       boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
   timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
   timestamp["meta"]["snapshot.json"]["version"] = 1;
-  Utils::writeFile(repo_dir / "timestamp.json", Utils::jsonToCanonicalStr(signTuf(repo_type, timestamp)));
-}
-
-void Repo::generateRepo(KeyType key_type) {
-  generateRepo("director", key_type);
-  Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
-  generateRepo("image", key_type);
-}
-
-void Repo::addImage(const boost::filesystem::path &image_path) {
-  boost::filesystem::path repo_dir(path_ / "repo/image");
-
-  boost::filesystem::path targets_path = repo_dir / "targets";
-  boost::filesystem::create_directories(targets_path);
-  if (image_path != targets_path / image_path.filename()) {
-    boost::filesystem::copy_file(image_path, targets_path / image_path.filename(),
-                                 boost::filesystem::copy_option::overwrite_if_exists);
+  Utils::writeFile(repo_dir / "timestamp.json",
+                   Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Snapshot(), timestamp)));
+  if (repo_type_ == Uptane::RepositoryType::Director()) {
+    Utils::writeFile(path_ / "repo/director/manifest", std::string());  // just empty file to work with put method
   }
-  std::string image = Utils::readFile(image_path);
-
-  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
-  std::string target_name = image_path.filename().string();
-  targets["targets"][target_name]["length"] = Json::UInt64(image.size());
-  targets["targets"][target_name]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
-  targets["targets"][target_name]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
-  targets["version"] = (targets["version"].asUInt()) + 1;
-
-  std::string signed_targets = Utils::jsonToCanonicalStr(signTuf("image", targets));
-  Utils::writeFile(repo_dir / "targets.json", signed_targets);
-
-  Json::Value snapshot = Utils::parseJSONFile(repo_dir / "snapshot.json")["signed"];
-  snapshot["version"] = (snapshot["version"].asUInt()) + 1;
-  snapshot["meta"]["targets.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_targets)));
-  snapshot["meta"]["targets.json"]["length"] = static_cast<Json::UInt>(signed_targets.length());
-  snapshot["meta"]["targets.json"]["version"] = targets["version"].asUInt();
-  std::string signed_snapshot = Utils::jsonToCanonicalStr(signTuf("image", snapshot));
-  Utils::writeFile(repo_dir / "snapshot.json", signed_snapshot);
-
-  Json::Value timestamp = Utils::parseJSONFile(repo_dir / "timestamp.json")["signed"];
-  timestamp["version"] = (timestamp["version"].asUInt()) + 1;
-  timestamp["meta"]["snapshot.json"]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(signed_snapshot)));
-  timestamp["meta"]["snapshot.json"]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(signed_snapshot)));
-  timestamp["meta"]["snapshot.json"]["length"] = static_cast<Json::UInt>(signed_snapshot.length());
-  timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
-  Utils::writeFile(repo_dir / "timestamp.json", Utils::jsonToCanonicalStr(signTuf("image", timestamp)));
 }
 
-void Repo::addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial) {
-  const boost::filesystem::path current = path_ / "repo/director/targets.json";
-  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
-
-  const Json::Value image_targets = Utils::parseJSONFile(path_ / "repo/image/targets.json")["signed"];
-  if (!image_targets["targets"].isMember(target_name)) {
-    throw std::runtime_error("No such " + target_name + " target in the image repository");
-  }
-  Json::Value director_targets;
-  if (boost::filesystem::exists(staging)) {
-    director_targets = Utils::parseJSONFile(staging);
-  } else if (boost::filesystem::exists(current)) {
-    director_targets = Utils::parseJSONFile(current)["signed"];
-  } else {
-    throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
-                             "!");
-  }
-  director_targets["targets"][target_name] = image_targets["targets"][target_name];
-  director_targets["targets"][target_name]["custom"]["ecuIdentifiers"][ecu_serial]["hardwareId"] = hardware_id;
-  director_targets["version"] = (Utils::parseJSONFile(current)["signed"]["version"].asUInt()) + 1;
-  Utils::writeFile(staging, director_targets);
+Json::Value Repo::getTarget(const std::string &target_name) {
+  const Json::Value image_targets =
+      Utils::parseJSONFile(path_ / "repo" / repo_type_.toString() / "targets.json")["signed"];
+  return image_targets["targets"][target_name];
 }
 
-void Repo::signTargets() {
-  std::string private_key = Utils::readFile(path_ / "keys/director/private.key");
-  const boost::filesystem::path current = path_ / "repo/director/targets.json";
-  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
-  Json::Value targets_unsigned;
-
-  if (boost::filesystem::exists(staging)) {
-    targets_unsigned = Utils::parseJSONFile(staging);
-  } else if (boost::filesystem::exists(current)) {
-    targets_unsigned = Utils::parseJSONFile(current)["signed"];
-  } else {
-    throw std::runtime_error(std::string("targets.json not found at ") + staging.c_str() + " or " + current.c_str() +
-                             "!");
+void Repo::readKeys() {
+  auto keys_path = path_ / "keys" / repo_type_.toString();
+  for (auto &p : boost::filesystem::directory_iterator(keys_path)) {
+    std::string public_key_string = Utils::readFile(p / "public.key");
+    std::istringstream key_type_str(Utils::readFile(p / "key_type"));
+    KeyType key_type;
+    key_type_str >> key_type;
+    std::string private_key_string(Utils::readFile(p / "private.key"));
+    keys_[Uptane::Role(p.path().filename().string())] =
+        KeyPair(PublicKey(public_key_string, key_type), private_key_string);
   }
-
-  Utils::writeFile(path_ / "repo/director/targets.json",
-                   Utils::jsonToCanonicalStr(signTuf("director", targets_unsigned)));
-  boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
-}
-
-PublicKey Repo::GetPublicKey(const std::string &repo_type) const {
-  std::string public_key_string = Utils::readFile(path_ / "keys" / repo_type / "public.key");
-  std::istringstream key_type_str{Utils::readFile(path_ / "keys" / repo_type / "key_type")};
-  KeyType key_type;
-  key_type_str >> key_type;
-
-  return PublicKey(public_key_string, key_type);
 }

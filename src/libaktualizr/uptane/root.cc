@@ -21,14 +21,14 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy:
   original_object_ = json;
 
   if (!json.isObject() || !json["signed"].isMember("keys") || !json["signed"].isMember("roles")) {
-    throw InvalidMetadata(RepoString(repo), "root", "missing keys/roles field");
+    throw InvalidMetadata(repo, "root", "missing keys/roles field");
   }
 
   const Json::Value keys = json["signed"]["keys"];
   for (Json::ValueIterator it = keys.begin(); it != keys.end(); ++it) {
     const std::string key_type = boost::algorithm::to_lower_copy((*it)["keytype"].asString());
     if (key_type != "rsa" && key_type != "ed25519") {
-      throw SecurityException(RepoString(repo), "Unsupported key type: " + (*it)["keytype"].asString());
+      throw SecurityException(repo, "Unsupported key type: " + (*it)["keytype"].asString());
     }
     const KeyId keyid = it.key().asString();
     PublicKey key(*it);
@@ -53,7 +53,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy:
       // this occurs in Boost 1.62 (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too small: " << requiredThreshold << " < "
                 << static_cast<int64_t>(kMinSignatures);
-      throw IllegalThreshold(RepoString(repo), "The role " + role_name + " had an illegal signature threshold.");
+      throw IllegalThreshold(repo, "The role " + role_name + " had an illegal signature threshold.");
     }
     if (kMaxSignatures < requiredThreshold) {
       // static_cast<int> is to stop << taking a reference to kMaxSignatures
@@ -61,7 +61,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy:
       // this occurs in Boost 1.62  (and possibly other versions)
       LOG_DEBUG << "Failing with threshold for role " << role << " too large: " << static_cast<int>(kMaxSignatures)
                 << " < " << requiredThreshold;
-      throw IllegalThreshold(RepoString(repo), "root.json contains a role that requires too many signatures");
+      throw IllegalThreshold(repo, "root.json contains a role that requires too many signatures");
     }
     thresholds_for_role_[role] = requiredThreshold;
 
@@ -74,7 +74,7 @@ Root::Root(const RepositoryType repo, const Json::Value &json) : policy_(Policy:
 }
 
 void Uptane::Root::UnpackSignedObject(const RepositoryType repo, const Json::Value &signed_object) {
-  const std::string repository = RepoString(repo);
+  const std::string repository = repo;
 
   const Uptane::Role role(signed_object["signed"]["_type"].asString());
   if (policy_ == Policy::kAcceptAll) {

@@ -322,9 +322,9 @@ bool MetaPack::isConsistent() const {
   try {
     if (director_root.original() != Json::nullValue) {
       Uptane::Root original_root(director_root);
-      Uptane::Root new_root(RepositoryType::Director, director_root.original(), new_root);
+      Uptane::Root new_root(RepositoryType::Director(), director_root.original(), new_root);
       if (director_targets.original() != Json::nullValue) {
-        Uptane::Targets(RepositoryType::Director, director_targets.original(), original_root);
+        Uptane::Targets(RepositoryType::Director(), director_targets.original(), original_root);
       }
     }
   } catch (const std::logic_error &exc) {
@@ -332,17 +332,6 @@ bool MetaPack::isConsistent() const {
     return false;
   }
   return true;
-}
-
-std::string Uptane::RepoString(RepositoryType repo) {
-  switch (repo) {
-    case RepositoryType::Director:
-      return "director";
-    case RepositoryType::Images:
-      return "images";
-    default:
-      return "";
-  }
 }
 
 int Uptane::extractVersionUntrusted(const std::string &meta) {

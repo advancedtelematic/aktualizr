@@ -65,18 +65,18 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
   secondary_->detected_attack_.clear();
 
   std::string root_str;
-  secondary_->storage_->loadLatestRoot(&root_str, Uptane::RepositoryType::Director);
-  secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director, Utils::parseJSON(root_str));
+  secondary_->storage_->loadLatestRoot(&root_str, Uptane::RepositoryType::Director());
+  secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director(), Utils::parseJSON(root_str));
 
   std::string targets_str;
-  secondary_->storage_->loadNonRoot(&targets_str, Uptane::RepositoryType::Director, Uptane::Role::Targets());
+  secondary_->storage_->loadNonRoot(&targets_str, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
   secondary_->meta_targets_ = Uptane::Targets(Utils::parseJSON(targets_str));
 
   try {
     // TODO: proper root metadata rotation
-    secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director,
+    secondary_->root_ = Uptane::Root(Uptane::RepositoryType::Director(),
                                      Utils::parseJSON(received_meta_pack_.director_root), secondary_->root_);
-    Uptane::Targets targets(Uptane::RepositoryType::Director, Utils::parseJSON(received_meta_pack_.director_targets),
+    Uptane::Targets targets(Uptane::RepositoryType::Director(), Utils::parseJSON(received_meta_pack_.director_targets),
                             secondary_->root_);
     if (secondary_->meta_targets_.version() > targets.version()) {
       secondary_->detected_attack_ = "Rollback attack detected";
@@ -99,9 +99,9 @@ void OpcuaServerSecondaryDelegate::handleAllMetaDataFilesReceived(opcuabridge::S
     LOG_ERROR << "Uptane security check: " << ex.what();
     return;
   }
-  secondary_->storage_->storeRoot(received_meta_pack_.director_root, Uptane::RepositoryType::Director,
+  secondary_->storage_->storeRoot(received_meta_pack_.director_root, Uptane::RepositoryType::Director(),
                                   Uptane::Version(secondary_->root_.version()));
-  secondary_->storage_->storeNonRoot(received_meta_pack_.director_targets, Uptane::RepositoryType::Director,
+  secondary_->storage_->storeNonRoot(received_meta_pack_.director_targets, Uptane::RepositoryType::Director(),
                                      Uptane::Role::Targets());
 }
 
