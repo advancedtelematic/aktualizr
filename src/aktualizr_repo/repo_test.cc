@@ -123,6 +123,30 @@ TEST(aktualizr_repo, sign) {
   EXPECT_NO_THROW(root.UnpackSignedObject(Uptane::RepositoryType::Director(), json));
 }
 
+TEST(aktualizr_repo, image_custom) {
+  TemporaryDirectory temp_dir;
+  std::ostringstream keytype_stream;
+  keytype_stream << key_type;
+  std::string cmd = generate_repo_exec + " generate " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string();
+  cmd +=
+      " --targetname target1 --targethash 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
+      "--targetlength 123";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  Json::Value image_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/image/targets.json");
+  EXPECT_EQ(image_targets["signed"]["targets"].size(), 1);
+  EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

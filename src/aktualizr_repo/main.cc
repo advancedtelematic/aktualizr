@@ -24,7 +24,10 @@ int main(int argc, char **argv) {
     ("keyname", po::value<std::string>(), "name of key's role")
     ("repotype", po::value<std::string>(), "director|image")
     ("correlationid", po::value<std::string>()->default_value(""), "correlation id")
-    ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type");
+    ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type")
+    ("targetname", po::value<std::string>(), "target's name (for adding metadata without an actual file)")
+    ("targethash", po::value<std::string>(), "target's hash (for adding metadata without an actual file)")
+    ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)");
   // clang-format on
 
   po::positional_options_description positionalOptions;
@@ -63,7 +66,15 @@ int main(int argc, char **argv) {
         key_type_str >> key_type;
         repo.generateRepo(key_type);
       } else if (command == "image") {
-        repo.addImage(vm["filename"].as<std::string>());
+        if (vm.count("filename") > 0) {
+          repo.addImage(vm["filename"].as<std::string>());
+        } else if (vm.count("targetname") > 0 && vm.count("targethash") > 0 && vm.count("targetlength") > 0) {
+          repo.addImage(vm["targetname"].as<std::string>(), vm["targethash"].as<std::string>(),
+                        vm["targetlength"].as<uint64_t>());
+        } else {
+          std::cerr << "You shoud provide --filename or --targetname, --targethash, and --targetlength\n";
+          exit(EXIT_FAILURE);
+        }
       } else if (command == "addtarget") {
         repo.addTarget(vm["filename"].as<std::string>(), vm["hwid"].as<std::string>(), vm["serial"].as<std::string>());
       } else if (command == "signtargets") {
