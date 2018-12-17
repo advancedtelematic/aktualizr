@@ -15,33 +15,37 @@
 #include "uptane/secondaryfactory.h"
 #include "utilities/utils.h"
 
+static void report_progress_cb(event::Channel *channel, const Uptane::Target &target, const std::string &description,
+                               unsigned int progress) {
+  if (channel == nullptr) {
+    return;
+  }
+  auto event = std::make_shared<event::DownloadProgressReport>(target, description, progress);
+  (*channel)(event);
+}
+
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newDefaultClient(
     Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<event::Channel> events_channel_in) {
   std::shared_ptr<HttpClient> http_client_in = std::make_shared<HttpClient>();
-  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
-      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
 
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, events_channel_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
 }
 
 std::shared_ptr<SotaUptaneClient> SotaUptaneClient::newTestClient(Config &config_in,
                                                                   std::shared_ptr<INvStorage> storage_in,
                                                                   std::shared_ptr<HttpInterface> http_client_in,
                                                                   std::shared_ptr<event::Channel> events_channel_in) {
-  std::shared_ptr<Uptane::Fetcher> uptane_fetcher =
-      std::make_shared<Uptane::Fetcher>(config_in, storage_in, http_client_in, events_channel_in);
   std::shared_ptr<Bootloader> bootloader_in = std::make_shared<Bootloader>(config_in.bootloader, *storage_in);
   std::shared_ptr<ReportQueue> report_queue_in = std::make_shared<ReportQueue>(config_in, http_client_in);
-  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, uptane_fetcher, bootloader_in,
-                                            report_queue_in, events_channel_in);
+  return std::make_shared<SotaUptaneClient>(config_in, storage_in, http_client_in, bootloader_in, report_queue_in,
+                                            events_channel_in);
 }
 
 SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
                                    std::shared_ptr<HttpInterface> http_client,
-                                   std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
                                    std::shared_ptr<Bootloader> bootloader_in,
                                    std::shared_ptr<ReportQueue> report_queue_in,
                                    std::shared_ptr<event::Channel> events_channel_in)
@@ -49,10 +53,16 @@ SotaUptaneClient::SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage
       uptane_manifest(config, storage_in),
       storage(std::move(storage_in)),
       http(std::move(http_client)),
-      uptane_fetcher(std::move(uptane_fetcher_in)),
       bootloader(std::move(bootloader_in)),
       report_queue(std::move(report_queue_in)),
       events_channel(std::move(events_channel_in)) {
+  // translate progress reports from the fetcher to actual API events
+  auto prog_cb = [this](const Uptane::Target &target, const std::string description, unsigned int progress) {
+    report_progress_cb(events_channel.get(), target, description, progress);
+  };
+
+  uptane_fetcher = std::make_shared<Uptane::Fetcher>(config, storage, http, prog_cb);
+
   // consider boot successful as soon as we started, missing internet connection or connection to secondaries are not
   // proper reasons to roll back
   package_manager_ = PackageManagerFactory::makePackageManager(config.pacman, storage, bootloader);
@@ -95,7 +105,6 @@ void SotaUptaneClient::addSecondary(const std::shared_ptr<Uptane::SecondaryInter
   if (map_it != secondaries.end()) {
     throw std::runtime_error(std::string("Multiple secondaries found with the same serial: ") + sec_serial.ToString());
   }
-  sec->addEventsChannel(events_channel);
   secondaries.insert(std::make_pair(sec_serial, sec));
   hw_ids.insert(std::make_pair(sec_serial, sec_hw_id));
 }
@@ -713,11 +722,11 @@ bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, u
   return true;
 }
 
-DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
+result::Download SotaUptaneClient::downloadImages(const std::vector<Uptane::Target> &targets) {
   // Uptane step 4 - download all the images and verify them against the metadata (for OSTree - pull without
   // deploying)
   std::lock_guard<std::mutex> guard(download_mutex);
-  DownloadResult result;
+  result::Download result;
   std::vector<Uptane::Target> downloaded_targets;
   for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
     // TODO: delegations
@@ -725,7 +734,7 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
     if (images_target == nullptr) {
       last_exception = Uptane::TargetHashMismatch(it->filename());
       LOG_ERROR << "No matching target in images targets metadata for " << *it;
-      result = DownloadResult(downloaded_targets, DownloadStatus::kError, "Target hash mismatch.");
+      result = result::Download(downloaded_targets, result::DownloadStatus::kError, "Target hash mismatch.");
       sendEvent<event::AllDownloadsComplete>(result);
       return result;
     }
@@ -739,19 +748,35 @@ DownloadResult SotaUptaneClient::downloadImages(const std::vector<Uptane::Target
 
   if (!targets.empty()) {
     if (targets.size() == downloaded_targets.size()) {
-      result = DownloadResult(downloaded_targets, DownloadStatus::kSuccess, "");
+      result = result::Download(downloaded_targets, result::DownloadStatus::kSuccess, "");
     } else {
       LOG_ERROR << "Only " << downloaded_targets.size() << " of " << targets.size()
                 << " were successfully downloaded. Report not sent.";
-      result = DownloadResult(downloaded_targets, DownloadStatus::kPartialSuccess, "");
+      result = result::Download(downloaded_targets, result::DownloadStatus::kPartialSuccess, "");
     }
 
   } else {
     LOG_INFO << "No new updates to download.";
-    result = DownloadResult({}, DownloadStatus::kNothingToDownload, "");
+    result = result::Download({}, result::DownloadStatus::kNothingToDownload, "");
   }
   sendEvent<event::AllDownloadsComplete>(result);
   return result;
+}
+
+result::Pause SotaUptaneClient::pause() {
+  result::Pause res = uptane_fetcher->setPause(true);
+
+  sendEvent<event::DownloadPaused>(res);
+
+  return res;
+}
+
+result::Pause SotaUptaneClient::resume() {
+  result::Pause res = uptane_fetcher->setPause(true);
+
+  sendEvent<event::DownloadResumed>(res);
+
+  return res;
 }
 
 std::pair<bool, Uptane::Target> SotaUptaneClient::downloadImage(Uptane::Target target) {
@@ -854,20 +879,19 @@ void SotaUptaneClient::sendDeviceData() {
   sendEvent<event::SendDeviceDataComplete>();
 }
 
-UpdateCheckResult SotaUptaneClient::fetchMeta() {
-  UpdateCheckResult result;
+result::UpdateCheck SotaUptaneClient::fetchMeta() {
+  result::UpdateCheck result;
   if (updateMeta()) {
     result = checkUpdates();
   } else {
-    result = UpdateCheckResult({}, 0, UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
+    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue, "Could not update metadata.");
   }
   sendEvent<event::UpdateCheckComplete>(result);
   return result;
 }
 
-UpdateCheckResult SotaUptaneClient::checkUpdates() {
-  auto manifest = AssembleManifest();  // populates list of connected devices and installed images
-  UpdateCheckResult result;
+result::UpdateCheck SotaUptaneClient::checkUpdates() {
+  result::UpdateCheck result;
 
   if (hasPendingUpdates()) {
     // mask updates when an install is pending
@@ -879,30 +903,31 @@ UpdateCheckResult SotaUptaneClient::checkUpdates() {
   unsigned int ecus_count = 0;
   if (!uptaneOfflineIteration(&updates, &ecus_count)) {
     LOG_ERROR << "Invalid UPTANE metadata in storage.";
-    result = UpdateCheckResult({}, 0, UpdateStatus::kError, Json::nullValue, "Invalid UPTANE metadata in storage.");
+    result = result::UpdateCheck({}, 0, result::UpdateStatus::kError, Json::nullValue,
+                                 "Invalid UPTANE metadata in storage.");
   } else {
     std::string director_targets;
     storage->loadNonRoot(&director_targets, Uptane::RepositoryType::Director(), Uptane::Role::Targets());
 
     if (!updates.empty()) {
-      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kUpdatesAvailable,
-                                 Utils::parseJSON(director_targets), "");
+      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kUpdatesAvailable,
+                                   Utils::parseJSON(director_targets), "");
       if (updates.size() == 1) {
         LOG_INFO << "1 new update found in Uptane metadata.";
       } else {
         LOG_INFO << updates.size() << " new updates found in Uptane metadata.";
       }
     } else {
-      result = UpdateCheckResult(updates, ecus_count, UpdateStatus::kNoUpdatesAvailable,
-                                 Utils::parseJSON(director_targets), "");
+      result = result::UpdateCheck(updates, ecus_count, result::UpdateStatus::kNoUpdatesAvailable,
+                                   Utils::parseJSON(director_targets), "");
       LOG_DEBUG << "No new updates found in Uptane metadata.";
     }
   }
   return result;
 }
 
-InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
-  InstallResult result;
+result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> &updates) {
+  result::Install result;
   // Uptane step 5 (send time to all ECUs) is not implemented yet.
   std::vector<Uptane::Target> primary_updates = findForEcu(updates, uptane_manifest.getPrimaryEcuSerial());
   //   6 - send metadata to all the ECUs
@@ -960,7 +985,7 @@ InstallResult SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target> 
   return result;
 }
 
-CampaignCheckResult SotaUptaneClient::campaignCheck() {
+result::CampaignCheck SotaUptaneClient::campaignCheck() {
   auto campaigns = campaign::fetchAvailableCampaigns(*http, config.tls.server);
   for (const auto &c : campaigns) {
     LOG_INFO << "Campaign: " << c.name;
@@ -969,7 +994,7 @@ CampaignCheckResult SotaUptaneClient::campaignCheck() {
     LOG_INFO << "CampaignAccept required: " << (c.autoAccept ? "no" : "yes");
     LOG_INFO << "Message: " << c.description;
   }
-  CampaignCheckResult result(campaigns);
+  result::CampaignCheck result(campaigns);
   sendEvent<event::CampaignCheckComplete>(result);
   return result;
 }
@@ -1144,9 +1169,9 @@ std::future<bool> SotaUptaneClient::sendFirmwareAsync(Uptane::SecondaryInterface
   return std::async(std::launch::async, f);
 }
 
-std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
-  std::vector<InstallReport> reports;
-  std::vector<std::pair<InstallReport, std::future<bool>>> firmwareFutures;
+std::vector<result::InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<Uptane::Target> &targets) {
+  std::vector<result::InstallReport> reports;
+  std::vector<std::pair<result::InstallReport, std::future<bool>>> firmwareFutures;
 
   // target images should already have been downloaded to metadata_path/targets/
   for (auto targets_it = targets.cbegin(); targets_it != targets.cend(); ++targets_it) {
@@ -1163,8 +1188,8 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
         Json::Value data;
         data["sysroot_path"] = config.pacman.sysroot.string();
         data["ref_hash"] = targets_it->sha256Hash();
-        firmwareFutures.emplace_back(std::pair<InstallReport, std::future<bool>>(
-            InstallReport(*targets_it, ecu_serial, data::OperationResult()),
+        firmwareFutures.emplace_back(std::pair<result::InstallReport, std::future<bool>>(
+            result::InstallReport(*targets_it, ecu_serial, data::OperationResult()),
             sendFirmwareAsync(sec, std::make_shared<std::string>(Utils::jsonToStr(data)))));
       } else if (targets_it->IsOstree()) {
         // empty firmware means OSTree secondaries: pack credentials instead
@@ -1172,16 +1197,16 @@ std::vector<InstallReport> SotaUptaneClient::sendImagesToEcus(const std::vector<
         if (creds_archive.empty()) {
           continue;
         }
-        firmwareFutures.emplace_back(std::pair<InstallReport, std::future<bool>>(
-            InstallReport(*targets_it, ecu_serial, data::OperationResult()),
+        firmwareFutures.emplace_back(std::pair<result::InstallReport, std::future<bool>>(
+            result::InstallReport(*targets_it, ecu_serial, data::OperationResult()),
             sendFirmwareAsync(sec, std::make_shared<std::string>(creds_archive))));
       } else {
         std::stringstream sstr;
         sstr << *storage->openTargetFile(*targets_it);
         const std::string fw = sstr.str();
-        firmwareFutures.emplace_back(
-            std::pair<InstallReport, std::future<bool>>(InstallReport(*targets_it, ecu_serial, data::OperationResult()),
-                                                        sendFirmwareAsync(sec, std::make_shared<std::string>(fw))));
+        firmwareFutures.emplace_back(std::pair<result::InstallReport, std::future<bool>>(
+            result::InstallReport(*targets_it, ecu_serial, data::OperationResult()),
+            sendFirmwareAsync(sec, std::make_shared<std::string>(fw))));
       }
     }
   }

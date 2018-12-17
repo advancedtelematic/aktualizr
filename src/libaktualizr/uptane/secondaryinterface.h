@@ -8,7 +8,6 @@
 
 #include "uptane/secondaryconfig.h"
 #include "uptane/tuf.h"
-#include "utilities/events.h"
 
 /* Json snippet returned by sendMetaXXX():
  * {
@@ -35,21 +34,6 @@ class SecondaryInterface {
 
   virtual bool sendFirmware(const std::shared_ptr<std::string>& data) = 0;
   const SecondaryConfig sconfig;
-  void addEventsChannel(std::shared_ptr<event::Channel> channel) { events_channel = std::move(channel); }
-
- protected:
-  template <class T, class... Args>
-  void sendEvent(Args&&... args) {
-    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
-    if (events_channel) {
-      (*events_channel)(std::move(event));
-    } else if (event->variant != "DownloadProgressReport") {
-      LOG_INFO << "got " << event->variant << " event";
-    }
-  }
-
- private:
-  std::shared_ptr<event::Channel> events_channel;
 };
 }  // namespace Uptane
 

@@ -11,7 +11,6 @@
 #include "crypto/keymanager.h"
 #include "packagemanagerconfig.h"
 #include "packagemanagerinterface.h"
-#include "utilities/events.h"
 #include "utilities/types.h"
 
 const char remote[] = "aktualizr-remote";
@@ -23,18 +22,18 @@ struct GObjectFinalizer {
 
 template <typename T>
 using GObjectUniquePtr = std::unique_ptr<T, GObjectFinalizer<T>>;
+using OstreeProgressCb = std::function<void(const Uptane::Target &, const std::string &, unsigned int)>;
 
 struct PullMetaStruct {
-  PullMetaStruct(Uptane::Target target_in, const std::function<void()> &pause_cb,
-                 std::shared_ptr<event::Channel> events_channel_in)
+  PullMetaStruct(Uptane::Target target_in, const std::function<void()> &pause_cb, OstreeProgressCb progress_cb_in)
       : target{std::move(target_in)},
         percent_complete{0},
         check_pause{pause_cb},
-        events_channel{std::move(events_channel_in)} {}
+        progress_cb{std::move(progress_cb_in)} {}
   Uptane::Target target;
   unsigned int percent_complete;
   const std::function<void()> &check_pause;
-  std::shared_ptr<event::Channel> events_channel;
+  OstreeProgressCb progress_cb;
 };
 
 class OstreeManager : public PackageManagerInterface {
@@ -54,8 +53,7 @@ class OstreeManager : public PackageManagerInterface {
   static bool addRemote(OstreeRepo *repo, const std::string &url, const KeyManager &keys);
   static data::InstallOutcome pull(const boost::filesystem::path &sysroot_path, const std::string &ostree_server,
                                    const KeyManager &keys, const Uptane::Target &target,
-                                   const std::function<void()> &pause_cb = {},
-                                   const std::shared_ptr<event::Channel> &events_channel = nullptr);
+                                   const std::function<void()> &pause_cb = {}, OstreeProgressCb progress_cb = nullptr);
 
  private:
   PackageConfig config;

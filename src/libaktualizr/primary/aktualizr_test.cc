@@ -11,9 +11,9 @@
 #include "config/config.h"
 #include "httpfake.h"
 #include "primary/aktualizr.h"
+#include "primary/events.h"
 #include "primary/sotauptaneclient.h"
 #include "uptane_test_common.h"
-#include "utilities/events.h"
 #include "utilities/utils.h"
 
 boost::filesystem::path uptane_repos_dir;
@@ -56,7 +56,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
       const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
       EXPECT_EQ(targets_event->result.ecus_count, 0);
       EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kNoUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
       break;
     }
     case 1: {
@@ -64,7 +64,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
       const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
       EXPECT_EQ(targets_event->result.ecus_count, 0);
       EXPECT_EQ(targets_event->result.updates.size(), 0);
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kNoUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
       promise_FullNoUpdates.set_value();
       break;
     }
@@ -97,16 +97,16 @@ TEST(Aktualizr, FullNoUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  UpdateCheckResult result = aktualizr.CheckUpdates().get();
+  result::UpdateCheck result = aktualizr.CheckUpdates().get();
   EXPECT_EQ(result.ecus_count, 0);
   EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, UpdateStatus::kNoUpdatesAvailable);
+  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
   // Fetch twice so that we can check for a second UpdateCheckComplete and
   // guarantee that nothing unexpected happened after the first fetch.
   result = aktualizr.CheckUpdates().get();
   EXPECT_EQ(result.ecus_count, 0);
   EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, UpdateStatus::kNoUpdatesAvailable);
+  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
 
   std::future_status status = future_FullNoUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
@@ -161,7 +161,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
       EXPECT_EQ(targets_event->result.updates.size(), 2u);
       EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
       break;
     }
     case 1:
@@ -181,7 +181,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
                   downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
       EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
                   downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
+      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
       break;
     }
     case 4: {
@@ -363,8 +363,8 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
     storage->loadPrimaryInstalledVersions(&targets, nullptr, &pending_target);
     EXPECT_LT(pending_target, targets.size());
 
-    UpdateCheckResult update_res = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_res.status, UpdateStatus::kError);
+    result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_res.status, result::UpdateStatus::kError);
 
     // simulate a reboot
     boost::filesystem::remove(conf.bootloader.reboot_sentinel_dir / conf.bootloader.reboot_sentinel_name);
@@ -383,8 +383,8 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
 
     aktualizr.Initialize();
 
-    UpdateCheckResult update_res = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_res.status, UpdateStatus::kNoUpdatesAvailable);
+    result::UpdateCheck update_res = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_res.status, result::UpdateStatus::kNoUpdatesAvailable);
 
     // primary is installed, nothing pending
     size_t current_target = SIZE_MAX;
@@ -502,7 +502,7 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
       EXPECT_EQ(targets_event->result.updates.size(), 2u);
       EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
       promise_CheckWithUpdates.set_value();
       break;
     }
@@ -557,7 +557,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
       EXPECT_EQ(event->variant, "AllDownloadsComplete");
       const auto downloads_complete = dynamic_cast<event::AllDownloadsComplete*>(event.get());
       EXPECT_EQ(downloads_complete->result.updates.size(), 0);
-      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kNothingToDownload);
+      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kNothingToDownload);
       break;
     }
     case 1: {
@@ -567,7 +567,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
       EXPECT_EQ(targets_event->result.updates.size(), 2u);
       EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
       break;
     }
     case 2:
@@ -587,7 +587,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
                   downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
       EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
                   downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
+      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
       promise_DownloadWithUpdates.set_value();
       break;
     }
@@ -623,9 +623,9 @@ TEST(Aktualizr, DownloadWithUpdates) {
 
   aktualizr.Initialize();
   // First try downloading nothing. Nothing should happen.
-  DownloadResult result = aktualizr.Download(std::vector<Uptane::Target>()).get();
+  result::Download result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, DownloadStatus::kNothingToDownload);
+  EXPECT_EQ(result.status, result::DownloadStatus::kNothingToDownload);
   // This will do a fetch first because download can't be called without a
   // vector of updates.
   aktualizr.UptaneCycle();
@@ -664,7 +664,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(targets_event->result.updates.size(), 2u);
       EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
       EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, UpdateStatus::kUpdatesAvailable);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
       updates_InstallWithUpdates = targets_event->result.updates;
       break;
     }
@@ -685,7 +685,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
                   downloads_complete->result.updates[1].filename() == "primary_firmware.txt");
       EXPECT_TRUE(downloads_complete->result.updates[0].filename() == "secondary_firmware.txt" ||
                   downloads_complete->result.updates[1].filename() == "secondary_firmware.txt");
-      EXPECT_EQ(downloads_complete->result.status, DownloadStatus::kSuccess);
+      EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
       break;
     }
     case 6: {
@@ -781,7 +781,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   Uptane::Target secondary_target("secondary_firmware.txt", secondary_json);
 
   // First try installing nothing. Nothing should happen.
-  InstallResult result = aktualizr.Install(updates_InstallWithUpdates).get();
+  result::Install result = aktualizr.Install(updates_InstallWithUpdates).get();
   EXPECT_EQ(result.reports.size(), 0);
 
   EXPECT_EQ(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
@@ -873,13 +873,13 @@ TEST(Aktualizr, FullNoCorrelationId) {
     Aktualizr aktualizr(conf, storage, up, sig);
 
     aktualizr.Initialize();
-    UpdateCheckResult update_result = aktualizr.CheckUpdates().get();
-    EXPECT_EQ(update_result.status, UpdateStatus::kUpdatesAvailable);
+    result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+    EXPECT_EQ(update_result.status, result::UpdateStatus::kUpdatesAvailable);
 
-    DownloadResult download_result = aktualizr.Download(update_result.updates).get();
-    EXPECT_EQ(download_result.status, DownloadStatus::kSuccess);
+    result::Download download_result = aktualizr.Download(update_result.updates).get();
+    EXPECT_EQ(download_result.status, result::DownloadStatus::kSuccess);
 
-    InstallResult install_result = aktualizr.Install(download_result.updates).get();
+    result::Install install_result = aktualizr.Install(download_result.updates).get();
     for (const auto& r : install_result.reports) {
       EXPECT_EQ(r.status.result_code, data::UpdateResultCode::kOk);
     }
@@ -961,8 +961,47 @@ TEST(Aktualizr, PutManifestError) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
   aktualizr.Initialize();
   auto result = aktualizr.CheckUpdates().get();
-  EXPECT_EQ(result.status, UpdateStatus::kError);
+  EXPECT_EQ(result.status, result::UpdateStatus::kError);
   EXPECT_EQ(num_events_UpdateCheck, 1);
+}
+
+/* Test that Aktualizr retransmits DownloadPaused and DownloadResumed events */
+TEST(Aktualizr, PauseResumeEvents) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
+  Config conf = makeTestConfig(temp_dir, http->tls_server);
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
+  Aktualizr aktualizr(conf, storage, up, sig);
+
+  std::promise<void> end_promise{};
+  size_t n_events = 0;
+  std::function<void(std::shared_ptr<event::BaseEvent>)> cb = [&end_promise,
+                                                               &n_events](std::shared_ptr<event::BaseEvent> event) {
+    switch (n_events) {
+      case 0:
+        EXPECT_EQ(event->variant, "DownloadPaused");
+        break;
+      case 1:
+        EXPECT_EQ(event->variant, "DownloadResumed");
+        end_promise.set_value();
+        break;
+      default:
+        FAIL() << "Unexpected event";
+    }
+    n_events += 1;
+  };
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(cb);
+
+  aktualizr.Pause();
+  aktualizr.Resume();
+
+  std::future_status status = end_promise.get_future().wait_for(std::chrono::seconds(20));
+  if (status != std::future_status::ready) {
+    FAIL() << "Timed out waiting for pause/resume events";
+  }
 }
 
 #ifndef __NO_MAIN__

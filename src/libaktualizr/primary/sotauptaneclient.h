@@ -16,6 +16,8 @@
 #include "config/config.h"
 #include "http/httpclient.h"
 #include "package_manager/packagemanagerinterface.h"
+#include "primary/events.h"
+#include "primary/results.h"
 #include "reportqueue.h"
 #include "storage/invstorage.h"
 #include "uptane/directorrepository.h"
@@ -24,8 +26,6 @@
 #include "uptane/ipsecondarydiscovery.h"
 #include "uptane/secondaryinterface.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/events.h"
-#include "utilities/results.h"
 
 class SotaUptaneClient {
  public:
@@ -36,23 +36,23 @@ class SotaUptaneClient {
                                                          std::shared_ptr<HttpInterface> http_client_in,
                                                          std::shared_ptr<event::Channel> events_channel_in = nullptr);
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in,
-                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Uptane::Fetcher> uptane_fetcher_in,
-                   std::shared_ptr<Bootloader> bootloader_in, std::shared_ptr<ReportQueue> report_queue_in,
+                   std::shared_ptr<HttpInterface> http_client, std::shared_ptr<Bootloader> bootloader_in,
+                   std::shared_ptr<ReportQueue> report_queue_in,
                    std::shared_ptr<event::Channel> events_channel_in = nullptr);
   ~SotaUptaneClient();
 
   void initialize();
   void addNewSecondary(const std::shared_ptr<Uptane::SecondaryInterface> &sec);
-  DownloadResult downloadImages(const std::vector<Uptane::Target> &targets);
-  PauseResult pause() { return uptane_fetcher->setPause(true); }
-  PauseResult resume() { return uptane_fetcher->setPause(false); }
+  result::Download downloadImages(const std::vector<Uptane::Target> &targets);
+  result::Pause pause();
+  result::Pause resume();
   void sendDeviceData();
-  UpdateCheckResult fetchMeta();
+  result::UpdateCheck fetchMeta();
   bool putManifest();
-  UpdateCheckResult checkUpdates();
-  InstallResult uptaneInstall(const std::vector<Uptane::Target> &updates);
+  result::UpdateCheck checkUpdates();
+  result::Install uptaneInstall(const std::vector<Uptane::Target> &updates);
   void installationComplete(const std::shared_ptr<event::BaseEvent> &event);
-  CampaignCheckResult campaignCheck();
+  result::CampaignCheck campaignCheck();
   void campaignAccept(const std::string &campaign_id);
 
  private:
@@ -94,7 +94,7 @@ class SotaUptaneClient {
   void verifySecondaries();
   void sendMetadataToEcus(const std::vector<Uptane::Target> &targets);
   std::future<bool> sendFirmwareAsync(Uptane::SecondaryInterface &secondary, const std::shared_ptr<std::string> &data);
-  std::vector<InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
+  std::vector<result::InstallReport> sendImagesToEcus(const std::vector<Uptane::Target> &targets);
   bool hasPendingUpdates();
   void sendDownloadReport();
 

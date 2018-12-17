@@ -8,10 +8,10 @@
 #include <boost/signals2.hpp>
 
 #include "config/config.h"
+#include "primary/events.h"
 #include "sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "uptane/secondaryinterface.h"
-#include "utilities/events.h"
 
 class ApiQueue {
  public:
@@ -89,7 +89,7 @@ class Aktualizr {
    * updates before the contents of the update are known.
    * @return std::future object with data about available campaigns.
    */
-  std::future<CampaignCheckResult> CampaignCheck();
+  std::future<result::CampaignCheck> CampaignCheck();
 
   /**
    * Accept a campaign for the current device.
@@ -114,14 +114,14 @@ class Aktualizr {
    * for target updates.
    * @return Information about available updates.
    */
-  std::future<UpdateCheckResult> CheckUpdates();
+  std::future<result::UpdateCheck> CheckUpdates();
 
   /**
    * Download targets.
    * @param updates Vector of targets to download as provided by CheckUpdates.
    * @return std::future object with information about download results.
    */
-  std::future<DownloadResult> Download(const std::vector<Uptane::Target>& updates);
+  std::future<result::Download> Download(const std::vector<Uptane::Target>& updates);
 
   /**
    * Get target downloaded in Download call. Returned target is guaranteed to be verified and up-to-date
@@ -137,19 +137,19 @@ class Aktualizr {
    * Download.
    * @return std::future object with information about installation results.
    */
-  std::future<InstallResult> Install(const std::vector<Uptane::Target>& updates);
+  std::future<result::Install> Install(const std::vector<Uptane::Target>& updates);
 
   /**
    * Pause a download current in progress.
    * @return Information about pause results.
    */
-  PauseResult Pause();
+  result::Pause Pause();
 
   /**
    * Resume a paused download.
    * @return Information about resume results.
    */
-  PauseResult Resume();
+  result::Pause Resume();
 
   /**
    * Synchronously run an uptane cycle.
@@ -184,6 +184,8 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, APICheck);
   FRIEND_TEST(Aktualizr, PutManifestError);
+  FRIEND_TEST(Aktualizr, PauseResumeEvents);
+
   Aktualizr(Config& config, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<SotaUptaneClient> uptane_client_in,
             std::shared_ptr<event::Channel> sig_in);
   void systemSetup();

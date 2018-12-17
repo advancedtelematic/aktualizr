@@ -5,12 +5,12 @@
 
 #include "context.h"
 #include "executor.h"
+#include "primary/events.h"
 #include "primary/reportqueue.h"
 #include "primary/sotauptaneclient.h"
 #include "storage/invstorage.h"
 #include "storage/sqlstorage.h"
 #include "uptane/uptanerepository.h"
-#include "utilities/events.h"
 
 class EphemeralStorage : public SQLStorage {
  public:

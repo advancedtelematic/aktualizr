@@ -7,8 +7,6 @@
 #include "config/config.h"
 #include "http/httpinterface.h"
 #include "storage/invstorage.h"
-#include "utilities/events.h"
-#include "utilities/results.h"
 
 namespace Uptane {
 
@@ -27,14 +25,16 @@ class DownloadCounter {
   std::atomic_uint* value_;
 };
 
+using FetcherProgressCb = std::function<void(const Uptane::Target&, const std::string&, unsigned int)>;
+
 class Fetcher {
  public:
   Fetcher(const Config& config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in,
-          std::shared_ptr<event::Channel> events_channel_in = nullptr)
+          FetcherProgressCb progress_cb_in = nullptr)
       : http(std::move(http_in)),
         storage(std::move(storage_in)),
         config(config_in),
-        events_channel(std::move(events_channel_in)) {}
+        progress_cb(std::move(progress_cb_in)) {}
   bool fetchVerifyTarget(const Target& target);
   bool fetchRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role, Version version);
   bool fetchLatestRole(std::string* result, int64_t maxsize, RepositoryType repo, Uptane::Role role) {
@@ -45,36 +45,43 @@ class Fetcher {
     return pause_;
   }
   bool isDownloading() { return static_cast<bool>(downloading_); }
-  PauseResult setPause(bool pause);
   void checkPause();
   void setRetry(bool retry) { retry_ = retry; }
 
- private:
-  template <class T, class... Args>
-  void sendEvent(Args&&... args) {
-    std::shared_ptr<event::BaseEvent> event = std::make_shared<T>(std::forward<Args>(args)...);
-    if (events_channel) {
-      (*events_channel)(std::move(event));
-    }
-  }
+  enum class PauseRet {
+    /* Download was paused successfully. */
+    kPaused = 0,
+    /* Download was resumed successfully. */
+    kResumed,
+    /* Download was already paused, so there is nothing to do. */
+    kAlreadyPaused,
+    /* Download has already completed, so there is nothing to do. */
+    kAlreadyComplete,
+    /* No download is in progress, so there is nothing to do. */
+    kNotDownloading,
+    /* Download was not paused, so there is nothing to do. */
+    kNotPaused,
+  };
+  PauseRet setPause(bool pause);
 
+ private:
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<INvStorage> storage;
   const Config& config;
-  std::shared_ptr<event::Channel> events_channel;
   std::atomic_uint downloading_{0};
   bool pause_{false};
   bool retry_{false};
   std::mutex mutex_;
   std::condition_variable cv_;
+  FetcherProgressCb progress_cb;
 };
 
 struct DownloadMetaStruct {
-  DownloadMetaStruct(Target target_in, std::shared_ptr<event::Channel> events_channel_in)
+  DownloadMetaStruct(Target target_in, FetcherProgressCb progress_cb_in)
       : hash_type{target_in.hashes()[0].type()},
-        events_channel{std::move(events_channel_in)},
         target{std::move(target_in)},
-        fetcher{nullptr} {}
+        fetcher{nullptr},
+        progress_cb{std::move(progress_cb_in)} {}
   uint64_t downloaded_length{};
   unsigned int last_progress{0};
   std::unique_ptr<StorageTargetWHandle> fhandle;
@@ -89,9 +96,9 @@ struct DownloadMetaStruct {
         throw std::runtime_error("Unknown hash algorithm");
     }
   }
-  std::shared_ptr<event::Channel> events_channel;
   Target target;
   Fetcher* fetcher;
+  FetcherProgressCb progress_cb;
 
  private:
   MultiPartSHA256Hasher sha256_hasher;
