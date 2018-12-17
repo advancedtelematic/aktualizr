@@ -15,7 +15,7 @@ std::string port;
 /* Verify that constructor does not accept a nonexistent repo. */
 TEST(OstreeObject, ConstructorBad) {
   OSTreeDirRepo bad_repo("nonexistentrepo");
-  ASSERT_DEATH(OSTreeObject(bad_repo, "bad"), "");
+  EXPECT_THROW(OSTreeObject(bad_repo, "bad"), std::runtime_error);
 }
 
 /* Verify that constructor accepts a valid repo and commit hash. */
