@@ -11,6 +11,7 @@ class DirectorRepo : public Repo {
                  const std::string &ecu_serial);
   void signTargets();
   void emptyTargets();
+  void oldTargets();
 };
 
 #endif  // DIRECTOR_REPO_H_

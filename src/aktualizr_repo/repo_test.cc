@@ -190,6 +190,45 @@ TEST(aktualizr_repo, emptytargets) {
   EXPECT_EQ(empty_targets["targets"].size(), 0);
 }
 
+TEST(aktualizr_repo, oldtargets) {
+  TemporaryDirectory temp_dir;
+  UptaneRepo repo(temp_dir.Path(), "", "");
+  repo.generateRepo(key_type);
+  repo.addImage("target1", "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6", 123);
+  repo.addImage("target2", "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6", 321);
+  repo.addTarget("target1", "test-hw", "test-serial");
+  repo.signTargets();
+  repo.addTarget("target2", "test-hw", "test-serial");
+
+  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  EXPECT_EQ(targets["targets"].size(), 2);
+  EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
+  EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
+            "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+  EXPECT_EQ(targets["targets"]["target2"]["length"].asUInt(), 321);
+  EXPECT_EQ(targets["targets"]["target2"]["hashes"]["sha256"].asString(),
+            "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+
+  Json::Value targets_current = Utils::parseJSONFile(temp_dir.Path() / "repo/director/targets.json");
+  EXPECT_EQ(targets_current["signed"]["targets"].size(), 1);
+  EXPECT_EQ(targets_current["signed"]["targets"]["target1"]["length"].asUInt(), 123);
+  EXPECT_EQ(targets_current["signed"]["targets"]["target1"]["hashes"]["sha256"].asString(),
+            "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+
+  std::string cmd = generate_repo_exec + " oldtargets " + temp_dir.Path().string();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n"
+           << "output: " << output;
+  }
+  targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  EXPECT_EQ(targets["targets"].size(), 1);
+  EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
+  EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
+            "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

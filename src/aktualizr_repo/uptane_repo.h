@@ -13,6 +13,7 @@ class UptaneRepo {
   void addImage(const std::string &name, const std::string &hash, uint64_t length);
   void signTargets();
   void emptyTargets();
+  void oldTargets();
 
  private:
   DirectorRepo director_repo_;

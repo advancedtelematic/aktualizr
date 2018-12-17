@@ -25,3 +25,4 @@ void UptaneRepo::addImage(const std::string &name, const std::string &hash, uint
 void UptaneRepo::signTargets() { director_repo_.signTargets(); }
 
 void UptaneRepo::emptyTargets() { director_repo_.emptyTargets(); }
+void UptaneRepo::oldTargets() { director_repo_.oldTargets(); }

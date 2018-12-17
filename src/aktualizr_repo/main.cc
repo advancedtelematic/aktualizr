@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   // clang-format off
   desc.add_options()
     ("help,h", "print usage")
-    ("command", po::value<std::string>(), "generate|sign|image|addtarget|emptytargets|signtargets")
+    ("command", po::value<std::string>(), "generate|sign|image|addtarget|emptytargets|oldtargets|signtargets")
     ("path", po::value<boost::filesystem::path>(), "path to the repository")
     ("filename", po::value<std::string>(), "path to the image")
     ("hwid", po::value<std::string>(), "target hardware identifier")
@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
         repo.signTargets();
       } else if (command == "emptytargets") {
         repo.emptyTargets();
+      } else if (command == "oldtargets") {
+        repo.oldTargets();
       } else if (command == "sign") {
         if (vm.count("repotype") == 0 || vm.count("keyname") == 0) {
           std::cerr << "--repotype or --keyname is missing\n";
