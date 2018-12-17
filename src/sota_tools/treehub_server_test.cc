@@ -28,7 +28,7 @@ TEST(treehub_server, token_auth) {
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEDATA, static_cast<void *>(&response));
   curl_easy_perform(curl_handle.get());
 
-  long rescode;  // NOLINT
+  long rescode;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
   if (rescode == 200) {
     auto response_json = Utils::parseJSON(response);
@@ -50,7 +50,7 @@ TEST(treehub_server, basic_auth) {
   curlEasySetoptWrapper(curl_handle.get(), CURLOPT_WRITEDATA, static_cast<void *>(&response));
   curl_easy_perform(curl_handle.get());
 
-  long rescode;  // NOLINT
+  long rescode;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
   if (rescode == 200) {
     auto response_json = Utils::parseJSON(response);

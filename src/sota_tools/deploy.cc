@@ -137,7 +137,7 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
       LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
       return false;
     }
-    long rescode;  // NOLINT
+    long rescode;  // NOLINT(google-runtime-int)
     curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";

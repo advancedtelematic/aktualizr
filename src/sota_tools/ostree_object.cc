@@ -247,7 +247,7 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::CheckChildren(RequestPool &pool, const long rescode) {  // NOLINT
+void OSTreeObject::CheckChildren(RequestPool &pool, const long rescode) {  // NOLINT(google-runtime-int)
   try {
     PopulateChildren();
     LOG_TRACE << "Children of " << object_name_ << ": " << children_.size();
@@ -288,7 +288,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
 
   char *url = nullptr;
   curl_easy_getinfo(curl_handle_, CURLINFO_EFFECTIVE_URL, &url);
-  long rescode = 0;  // NOLINT
+  long rescode = 0;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
   if (current_operation_ == CurrentOp::kOstreeObjectPresenceCheck) {
     // Sanity-check the handle's URL to make sure it contains the expected

@@ -62,12 +62,12 @@ class HttpClient : public HttpInterface {
   std::unique_ptr<TemporaryFile> tls_cert_file;
   std::unique_ptr<TemporaryFile> tls_pkey_file;
   static const int RETRY_TIMES = 2;
-  static const long kSpeedLimitTimeInterval = 60L;   // NOLINT
-  static const long kSpeedLimitBytesPerSec = 5000L;  // NOLINT
+  static const long kSpeedLimitTimeInterval = 60L;   // NOLINT(google-runtime-int)
+  static const long kSpeedLimitBytesPerSec = 5000L;  // NOLINT(google-runtime-int)
 
-  long speed_limit_time_interval_{kSpeedLimitTimeInterval};                // NOLINT
-  long speed_limit_bytes_per_sec_{kSpeedLimitBytesPerSec};                 // NOLINT
-  void overrideSpeedLimitParams(long time_interval, long bytes_per_sec) {  // NOLINT
+  long speed_limit_time_interval_{kSpeedLimitTimeInterval};                // NOLINT(google-runtime-int)
+  long speed_limit_bytes_per_sec_{kSpeedLimitBytesPerSec};                 // NOLINT(google-runtime-int)
+  void overrideSpeedLimitParams(long time_interval, long bytes_per_sec) {  // NOLINT(google-runtime-int)
     speed_limit_time_interval_ = time_interval;
     speed_limit_bytes_per_sec_ = bytes_per_sec;
   }

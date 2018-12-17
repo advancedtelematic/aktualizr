@@ -195,7 +195,7 @@ HttpResponse HttpClient::perform(CURL* curl_handler, int retry_times, int64_t si
   response_arg.limit = size_limit;
   curlEasySetoptWrapper(curl_handler, CURLOPT_WRITEDATA, static_cast<void*>(&response_arg));
   CURLcode result = curl_easy_perform(curl_handler);
-  long http_code;  // NOLINT
+  long http_code;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handler, CURLINFO_RESPONSE_CODE, &http_code);
   HttpResponse response(response_arg.out, http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
   if (response.curl_code != CURLE_OK || response.http_status_code >= 500) {
@@ -241,7 +241,7 @@ std::future<HttpResponse> HttpClient::downloadAsync(const std::string& url, curl
   std::thread(
       [curlp](std::promise<HttpResponse> promise) {
         CURLcode result = curl_easy_perform(curlp.get());
-        long http_code;  // NOLINT
+        long http_code;  // NOLINT(google-runtime-int)
         curl_easy_getinfo(curlp.get(), CURLINFO_RESPONSE_CODE, &http_code);
         HttpResponse response("", http_code, result, (result != CURLE_OK) ? curl_easy_strerror(result) : "");
         promise.set_value(response);

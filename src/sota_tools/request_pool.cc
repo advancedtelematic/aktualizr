@@ -78,7 +78,7 @@ void RequestPool::LoopListen() {
   FD_ZERO(&fdread);
   FD_ZERO(&fdwrite);
   FD_ZERO(&fdexcept);
-  long timeoutms = 0;  // NOLINT
+  long timeoutms = 0;  // NOLINT(google-runtime-int)
   mc = curl_multi_timeout(multi_, &timeoutms);
   if (mc != CURLM_OK) {
     throw std::runtime_error("curl_multi_timeout failed with error");

@@ -59,7 +59,7 @@ class OstreeObject_Request_Test {
         // This bit is basically copied from OSTreeObject::CurlDone().
         h->refcount_--;
         EXPECT_GE(h->refcount_, 1);
-        long rescode = 0;  // NOLINT
+        long rescode = 0;  // NOLINT(google-runtime-int)
         curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
         EXPECT_EQ(rescode, expected);
         curl_multi_remove_handle(multi, h->curl_handle_);
@@ -177,7 +177,7 @@ TEST(OstreeObject, UploadSuccess) {
       // This bit is basically copied from OSTreeObject::CurlDone().
       h->refcount_--;
       EXPECT_GE(h->refcount_, 1);
-      long rescode = 0;  // NOLINT
+      long rescode = 0;  // NOLINT(google-runtime-int)
       curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
       EXPECT_EQ(rescode, 200);
 

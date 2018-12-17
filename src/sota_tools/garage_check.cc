@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  long http_code;  // NOLINT
+  long http_code;  // NOLINT(google-runtime-int)
   OstreeObjectType type = OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT;
   curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &http_code);
   if (http_code == 404) {

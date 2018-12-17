@@ -82,7 +82,7 @@ class OSTreeObject {
 
   /* Check for children. If they are all present and this object isn't present,
    * upload it. If any children are missing, query them. */
-  void CheckChildren(RequestPool& pool, long rescode);  // NOLINT
+  void CheckChildren(RequestPool& pool, long rescode);  // NOLINT(google-runtime-int)
 
   /* Handle an error from a presence check. */
   void PresenceError(RequestPool& pool, int64_t rescode);

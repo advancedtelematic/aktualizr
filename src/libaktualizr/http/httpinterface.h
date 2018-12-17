@@ -15,14 +15,14 @@ using CurlHandler = std::shared_ptr<CURL>;
 
 struct HttpResponse {
   HttpResponse() = default;
-  HttpResponse(std::string body_in, const long http_status_code_in, CURLcode curl_code_in,  // NOLINT
-               std::string error_message_in)
+  HttpResponse(std::string body_in, const long http_status_code_in,  //  NOLINT(google-runtime-int)
+               CURLcode curl_code_in, std::string error_message_in)
       : body(std::move(body_in)),
         http_status_code(http_status_code_in),
         curl_code(curl_code_in),
         error_message(std::move(error_message_in)) {}
   std::string body;
-  long http_status_code{0};  // NOLINT
+  long http_status_code{0};  // NOLINT(google-runtime-int)
   CURLcode curl_code{CURLE_OK};
   std::string error_message;
   bool isOk() { return (curl_code == CURLE_OK && http_status_code >= 200 && http_status_code < 400); }
