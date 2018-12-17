@@ -90,9 +90,7 @@ TEST(Aktualizr, FullNoUpdates) {
   conf.uptane.running_mode = RunningMode::kFull;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullNoUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -113,7 +111,7 @@ TEST(Aktualizr, FullNoUpdates) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
-  verifyNothingInstalled(up->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
 }
 
 class HttpFakeEventCounter : public HttpFake {
@@ -251,9 +249,7 @@ TEST(Aktualizr, FullWithUpdates) {
   conf.uptane.running_mode = RunningMode::kFull;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -327,9 +323,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // first run: do the install
     auto storage = INvStorage::newStorage(conf.storage);
-    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
     aktualizr.UptaneCycle();
@@ -351,9 +345,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // second run: before reboot, re-use the storage
     auto storage = INvStorage::newStorage(conf.storage);
-    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
 
@@ -377,9 +369,7 @@ TEST(Aktualizr, FullWithUpdatesNeedReboot) {
   {
     // third run: after reboot, re-use the storage
     auto storage = INvStorage::newStorage(conf.storage);
-    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
 
@@ -460,9 +450,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir2, "sec_serial2", "sec_hwid2");
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_FullMultipleSecondaries;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -476,7 +464,7 @@ TEST(Aktualizr, FullMultipleSecondaries) {
 
   EXPECT_EQ(started_FullMultipleSecondaries, 2);
   EXPECT_EQ(complete_FullMultipleSecondaries, 2);
-  const Json::Value manifest = up->AssembleManifest();
+  const Json::Value manifest = aktualizr.uptane_client_->AssembleManifest();
   // Make sure filepath were correctly written and formatted.
   // installation_result has not been implemented for secondaries yet.
   EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
@@ -528,9 +516,7 @@ TEST(Aktualizr, CheckWithUpdates) {
   conf.uptane.running_mode = RunningMode::kCheck;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -541,7 +527,7 @@ TEST(Aktualizr, CheckWithUpdates) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }
 
-  verifyNothingInstalled(up->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
 }
 
 int num_events_DownloadWithUpdates = 0;
@@ -615,9 +601,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
   conf.uptane.running_mode = RunningMode::kDownload;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_DownloadWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -635,7 +619,7 @@ TEST(Aktualizr, DownloadWithUpdates) {
     FAIL() << "Timed out waiting for downloads to complete.";
   }
 
-  verifyNothingInstalled(up->AssembleManifest());
+  verifyNothingInstalled(aktualizr.uptane_client_->AssembleManifest());
 }
 
 int num_events_InstallWithUpdates = 0;
@@ -757,9 +741,7 @@ TEST(Aktualizr, InstallWithUpdates) {
   conf.uptane.running_mode = RunningMode::kInstall;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_InstallWithUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
@@ -831,9 +813,7 @@ TEST(Aktualizr, CampaignCheck) {
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
 
   aktualizr.Initialize();
   auto result = aktualizr.CampaignCheck().get();
@@ -868,9 +848,7 @@ TEST(Aktualizr, FullNoCorrelationId) {
     Config conf = makeTestConfig(temp_dir, http->tls_server);
 
     auto storage = INvStorage::newStorage(conf.storage);
-    auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-    auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
 
     aktualizr.Initialize();
     result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
@@ -903,12 +881,10 @@ TEST(Aktualizr, APICheck) {
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_UpdateCheck;
 
   {
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
     for (int i = 0; i < 5; ++i) {
@@ -923,7 +899,7 @@ TEST(Aktualizr, APICheck) {
   num_events_UpdateCheck = 0;
   // try again, but shutdown before it finished all calls
   {
-    Aktualizr aktualizr(conf, storage, up, sig);
+    Aktualizr aktualizr(conf, storage, http);
     boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
     for (int i = 0; i < 100; ++i) {
@@ -952,12 +928,10 @@ TEST(Aktualizr, PutManifestError) {
   Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
   std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_UpdateCheck;
 
   num_events_UpdateCheck = 0;
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
   aktualizr.Initialize();
   auto result = aktualizr.CheckUpdates().get();
@@ -972,9 +946,7 @@ TEST(Aktualizr, PauseResumeEvents) {
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto sig = std::make_shared<boost::signals2::signal<void(std::shared_ptr<event::BaseEvent>)>>();
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http, sig);
-  Aktualizr aktualizr(conf, storage, up, sig);
+  Aktualizr aktualizr(conf, storage, http);
 
   std::promise<void> end_promise{};
   size_t n_events = 0;
