@@ -1,5 +1,6 @@
 #include "request_pool.h"
 
+#include <algorithm>  // min
 #include <chrono>
 #include <exception>
 #include <thread>
@@ -85,35 +86,29 @@ void RequestPool::LoopListen() {
   // If timeoutms is 0, "it means you should proceed immediately without waiting
   // for anything".
   if (timeoutms != 0) {
-    struct timeval timeout {};
-    if (timeoutms == -1) {
-      // "You must not wait too long (more than a few seconds perhaps)".
-      timeout.tv_sec = 3;
-      timeout.tv_usec = 0;
-    } else {
-      timeout.tv_sec = timeoutms / 1000;
-      timeout.tv_usec = 1000 * (timeoutms % 1000);
-    }
-
     mc = curl_multi_fdset(multi_, &fdread, &fdwrite, &fdexcept, &maxfd);
     if (mc != CURLM_OK) {
       throw std::runtime_error("curl_multi_fdset failed with error");
     }
 
+    struct timeval timeout {};
     if (maxfd != -1) {
       // "Wait for activities no longer than the set timeout."
+      if (timeoutms == -1) {
+        // "You must not wait too long (more than a few seconds perhaps)".
+        timeout.tv_sec = 3;
+        timeout.tv_usec = 0;
+      } else {
+        timeout.tv_sec = timeoutms / 1000;
+        timeout.tv_usec = 1000 * (timeoutms % 1000);
+      }
       select(maxfd + 1, &fdread, &fdwrite, &fdexcept, &timeout);
     } else {
       // If maxfd == -1, then wait the lesser of timeoutms and 100 ms.
-      if (timeoutms < 100) {
-        LOG_DEBUG << "Waiting " << timeoutms << " ms for curl";
-        timeout.tv_sec = timeoutms / 1000;
-        timeout.tv_usec = 1000 * (timeoutms % 1000);
-      } else {
-        LOG_DEBUG << "Waiting 100 ms for curl";
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100 * 1000;
-      }
+      long nofd_timeoutms = std::min(timeoutms, static_cast<long>(100));  // NOLINT(google-runtime-int)
+      LOG_DEBUG << "Waiting " << nofd_timeoutms << " ms for curl";
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 1000 * (nofd_timeoutms % 1000);
       select(0, nullptr, nullptr, nullptr, &timeout);
     }
   }
