@@ -10,6 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/intrusive_ptr.hpp>
 
+#include "garage_common.h"
 #include "treehub_server.h"
 
 class OSTreeRepo;
@@ -35,9 +36,18 @@ class OSTreeObject {
 
   ~OSTreeObject();
 
+  /* This object has been uploaded, notify parents. If parent object has no more
+   * children pending upload, add the parent to the upload queue. */
   void NotifyParents(RequestPool& pool);
+
+  /* Send a HEAD request to the destination server to check if this object is
+   * present there. */
   void MakeTestRequest(const TreehubServer& push_target, CURLM* curl_multi_handle);
-  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, bool dryrun);
+
+  /* Upload this object to the destination server. */
+  void Upload(const TreehubServer& push_target, CURLM* curl_multi_handle, RunMode mode);
+
+  /* Process a completed curl transaction (presence check or upload). */
   void CurlDone(CURLM* curl_multi_handle, RequestPool& pool);
 
   PresenceOnServer is_on_server() const { return is_on_server_; }
@@ -51,14 +61,34 @@ class OSTreeObject {
   using childiter = std::list<OSTreeObject::ptr>::iterator;
   typedef std::pair<OSTreeObject*, childiter> parentref;
 
+  /* Add parent to this object. */
   void AddParent(OSTreeObject* parent, std::list<OSTreeObject::ptr>::iterator parent_it);
+
+  /* Child object of this object has been uploaded, remove it from the list. */
   void ChildNotify(std::list<OSTreeObject::ptr>::iterator child_it);
+
+  /* If the child has is not already on the server, add it to this object's list
+   * of children and add this object as the parent of the new child. */
   void AppendChild(const OSTreeObject::ptr& child);
+
+  /* Parse this object for children. */
   void PopulateChildren();
+
+  /* Add queries to the queue for any children whose presence on the server is
+   * unknown. */
   void QueryChildren(RequestPool& pool);
+
   std::string Url() const;
-  void PresenceUnknown(RequestPool& pool, int64_t rescode);
-  void ObjectMissing(RequestPool& pool, int64_t rescode);
+
+  /* Check for children. If they are all present and this object isn't present,
+   * upload it. If any children are missing, query them. */
+  void CheckChildren(RequestPool& pool, long rescode);  // NOLINT(google-runtime-int)
+
+  /* Handle an error from a presence check. */
+  void PresenceError(RequestPool& pool, int64_t rescode);
+
+  /* Handle an error from an upload. */
+  void UploadError(RequestPool& pool, int64_t rescode);
 
   static size_t curl_handle_write(void* buffer, size_t size, size_t nmemb, void* userp);
 
@@ -86,6 +116,7 @@ class OSTreeObject {
 
   std::chrono::steady_clock::time_point request_start_time_;
   ServerResponse last_operation_result_{ServerResponse::kNoResponse};
+  OstreeObjectType type_{OstreeObjectType::OSTREE_OBJECT_TYPE_UNKNOWN};
 };
 
 OSTreeObject::ptr ostree_object_from_curl(CURL* curlhandle);

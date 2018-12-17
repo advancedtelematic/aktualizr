@@ -45,7 +45,7 @@ AuthenticationResult OAuth2::Authenticate() {
 
   curl_easy_perform(curl_handle.get());
 
-  long rescode;  // NOLINT
+  long rescode;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
   if (rescode == 200) {
     ptree pt;

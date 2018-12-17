@@ -11,8 +11,22 @@
 #include "treehub_server.h"
 #include "utilities/utils.h"
 
+bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
+  switch (request_pool.run_mode()) {
+    case RunMode::kWalkTree:
+      return !request_pool.is_stopped() && !request_pool.is_idle();
+    case RunMode::kPushTree:
+      return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped() &&
+             !request_pool.is_idle();
+    case RunMode::kDefault:
+    case RunMode::kDryRun:
+    default:
+      return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped();
+  }
+}
+
 bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &push_credentials,
-                     const OSTreeHash &ostree_commit, const std::string &cacerts, const bool dryrun,
+                     const OSTreeHash &ostree_commit, const std::string &cacerts, const RunMode mode,
                      const int max_curl_requests) {
   TreehubServer push_server;
   assert(max_curl_requests > 0);
@@ -23,28 +37,27 @@ bool UploadToTreehub(const OSTreeRepo::ptr &src_repo, const ServerCredentials &p
 
   OSTreeObject::ptr root_object;
   try {
-    root_object = src_repo->GetObject(ostree_commit);
+    root_object = src_repo->GetObject(ostree_commit, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
   } catch (const OSTreeObjectMissing &error) {
     LOG_FATAL << "OSTree commit " << ostree_commit << " was not found in src repository";
     return false;
   }
 
-  RequestPool request_pool(push_server, max_curl_requests);
+  RequestPool request_pool(push_server, max_curl_requests, mode);
 
-  // Add commit object to the queue
+  // Add commit object to the queue.
   request_pool.AddQuery(root_object);
 
   // Main curl event loop.
-  // request_pool takes care of holding number of outstanding requests below
-  // OSTreeObject::CurlDone() adds new requests to the pool and
-  // stop the pool on error
-
+  // request_pool takes care of holding number of outstanding requests below.
+  // OSTreeObject::CurlDone() adds new requests to the pool and stops the pool
+  // on error.
   do {
-    request_pool.Loop(dryrun);
-  } while (root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped());
+    request_pool.Loop();
+  } while (CheckPoolState(root_object, request_pool));
 
   if (root_object->is_on_server() == PresenceOnServer::kObjectPresent) {
-    if (!dryrun) {
+    if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
       LOG_INFO << "Upload to Treehub complete after " << request_pool.total_requests_made() << " requests";
     } else {
       LOG_INFO << "Dry run. No objects uploaded.";
@@ -101,7 +114,7 @@ bool OfflineSignRepo(const ServerCredentials &push_credentials, const std::strin
 }
 
 bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref, const std::string &cacerts,
-                 const bool dry_run) {
+                 const RunMode mode) {
   if (push_credentials.CanSignOffline()) {
     // In general, this is the wrong thing.  We should be using offline signing
     // if private key material is present in credentials.zip
@@ -115,16 +128,16 @@ bool PushRootRef(const ServerCredentials &push_credentials, const OSTreeRef &ref
     return false;
   }
 
-  if (!dry_run) {
+  if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
     CurlEasyWrapper easy_handle;
     curlEasySetoptWrapper(easy_handle.get(), CURLOPT_VERBOSE, get_curlopt_verbose());
     ref.PushRef(push_server, easy_handle.get());
     CURLcode err = curl_easy_perform(easy_handle.get());
     if (err != 0u) {
-      LOG_ERROR << "Error pushing root ref:" << curl_easy_strerror(err);
+      LOG_ERROR << "Error pushing root ref: " << curl_easy_strerror(err);
       return false;
     }
-    long rescode;  // NOLINT
+    long rescode;  // NOLINT(google-runtime-int)
     curl_easy_getinfo(easy_handle.get(), CURLINFO_RESPONSE_CODE, &rescode);
     if (rescode != 200) {
       LOG_ERROR << "Error pushing root ref, got " << rescode << " HTTP response";

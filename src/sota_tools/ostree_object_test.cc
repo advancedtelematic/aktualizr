@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 
 #include "authenticate.h"
+#include "garage_common.h"
 #include "ostree_dir_repo.h"
 #include "ostree_object.h"
 #include "request_pool.h"
@@ -14,7 +15,7 @@ std::string port;
 /* Verify that constructor does not accept a nonexistent repo. */
 TEST(OstreeObject, ConstructorBad) {
   OSTreeDirRepo bad_repo("nonexistentrepo");
-  ASSERT_DEATH(OSTreeObject(bad_repo, "bad"), "");
+  EXPECT_THROW(OSTreeObject(bad_repo, "bad"), std::runtime_error);
 }
 
 /* Verify that constructor accepts a valid repo and commit hash. */
@@ -36,7 +37,7 @@ class OstreeObject_Request_Test {
 
     TreehubServer push_server;
     push_server.root_url("http://localhost:" + port);
-    OSTreeObject::ptr object = src_repo->GetObject(hash);
+    OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
     object->MakeTestRequest(push_server, multi);
 
@@ -58,7 +59,7 @@ class OstreeObject_Request_Test {
         // This bit is basically copied from OSTreeObject::CurlDone().
         h->refcount_--;
         EXPECT_GE(h->refcount_, 1);
-        long rescode = 0;  // NOLINT
+        long rescode = 0;  // NOLINT(google-runtime-int)
         curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
         EXPECT_EQ(rescode, expected);
         curl_multi_remove_handle(multi, h->curl_handle_);
@@ -97,11 +98,11 @@ TEST(OstreeObject, UploadDryRun) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
-  object->Upload(push_server, nullptr, true);
+  object->Upload(push_server, nullptr, RunMode::kDryRun);
   EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectPresent);
   // This currently does not get reset.
   EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectPresenceCheck);
@@ -118,11 +119,11 @@ TEST(OstreeObject, UploadFail) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
   object->is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   object->current_operation_ = CurrentOp::kOstreeObjectPresenceCheck;
-  object->Upload(push_server, nullptr, false);
+  object->Upload(push_server, nullptr, RunMode::kDefault);
   EXPECT_EQ(object->is_on_server_, PresenceOnServer::kObjectStateUnknown);
   EXPECT_EQ(object->current_operation_, CurrentOp::kOstreeObjectUploading);
   // This currently will get allocated and we need to free it.
@@ -154,9 +155,9 @@ TEST(OstreeObject, UploadSuccess) {
 
   OSTreeRepo::ptr src_repo = std::make_shared<OSTreeDirRepo>("tests/sota_tools/repo");
   OSTreeHash hash = src_repo->GetRef("master").GetHash();
-  OSTreeObject::ptr object = src_repo->GetObject(hash);
+  OSTreeObject::ptr object = src_repo->GetObject(hash, OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT);
 
-  object->Upload(push_server, multi, false);
+  object->Upload(push_server, multi, RunMode::kDefault);
 
   // This bit is basically copied from RequestPool::LoopListen().
   int running_requests;
@@ -176,7 +177,7 @@ TEST(OstreeObject, UploadSuccess) {
       // This bit is basically copied from OSTreeObject::CurlDone().
       h->refcount_--;
       EXPECT_GE(h->refcount_, 1);
-      long rescode = 0;  // NOLINT
+      long rescode = 0;  // NOLINT(google-runtime-int)
       curl_easy_getinfo(h->curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
       EXPECT_EQ(rescode, 200);
 

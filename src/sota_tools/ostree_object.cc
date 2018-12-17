@@ -19,10 +19,11 @@ OSTreeObject::OSTreeObject(const OSTreeRepo &repo, const std::string &object_nam
       repo_(repo),
       refcount_(0),
       is_on_server_(PresenceOnServer::kObjectStateUnknown),
-
       curl_handle_(nullptr),
       form_post_(nullptr) {
-  assert(boost::filesystem::is_regular_file(file_path_));
+  if (!boost::filesystem::is_regular_file(file_path_)) {
+    throw std::runtime_error(file_path_.native() + " is not a valid OSTree repo.");
+  }
 }
 
 OSTreeObject::~OSTreeObject() {
@@ -99,20 +100,21 @@ void OSTreeObject::PopulateChildren() {
   g_variant_ref_sink(contents);
 
   if (is_commit) {
+    // * - ay - Root tree contents
     GVariant *content_csum_variant = nullptr;
     g_variant_get_child(contents, 6, "@ay", &content_csum_variant);
 
     gsize n_elts;
     const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    AppendChild(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE));
 
+    // * - ay - Root tree metadata
     GVariant *meta_csum_variant = nullptr;
-
     g_variant_get_child(contents, 7, "@ay", &meta_csum_variant);
     csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
     assert(n_elts == 32);
-    AppendChild(repo_.GetObject(csum));
+    AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META));
 
     g_variant_unref(meta_csum_variant);
     g_variant_unref(content_csum_variant);
@@ -126,6 +128,7 @@ void OSTreeObject::PopulateChildren() {
     gsize nfiles = g_variant_n_children(files_variant);
     gsize ndirs = g_variant_n_children(dirs_variant);
 
+    // * - a(say) - array of (filename, checksum) for files
     for (gsize i = 0; i < nfiles; i++) {
       GVariant *csum_variant = nullptr;
       const char *fname = nullptr;
@@ -134,24 +137,27 @@ void OSTreeObject::PopulateChildren() {
       gsize n_elts;
       const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_FILE));
 
       g_variant_unref(csum_variant);
     }
 
+    // * - a(sayay) - array of (dirname, tree_checksum, meta_checksum) for directories
     for (gsize i = 0; i < ndirs; i++) {
       GVariant *content_csum_variant = nullptr;
       GVariant *meta_csum_variant = nullptr;
       const char *fname = nullptr;
       g_variant_get_child(dirs_variant, i, "(&s@ay@ay)", &fname, &content_csum_variant, &meta_csum_variant);
       gsize n_elts;
+      // First the .dirtree:
       const auto *csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(content_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE));
 
+      // Then the .dirmeta:
       csum = static_cast<const uint8_t *>(g_variant_get_fixed_array(meta_csum_variant, &n_elts, 1));
       assert(n_elts == 32);
-      AppendChild(repo_.GetObject(csum));
+      AppendChild(repo_.GetObject(csum, OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META));
 
       g_variant_unref(meta_csum_variant);
       g_variant_unref(content_csum_variant);
@@ -198,8 +204,8 @@ void OSTreeObject::MakeTestRequest(const TreehubServer &push_target, CURLM *curl
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const bool dryrun) {
-  if (!dryrun) {
+void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_handle, const RunMode mode) {
+  if (mode == RunMode::kDefault || mode == RunMode::kPushTree) {
     LOG_INFO << "Uploading " << object_name_;
   } else {
     LOG_INFO << "Would upload " << object_name_;
@@ -241,7 +247,24 @@ void OSTreeObject::Upload(const TreehubServer &push_target, CURLM *curl_multi_ha
   request_start_time_ = std::chrono::steady_clock::now();
 }
 
-void OSTreeObject::PresenceUnknown(RequestPool &pool, const int64_t rescode) {
+void OSTreeObject::CheckChildren(RequestPool &pool, const long rescode) {  // NOLINT(google-runtime-int)
+  try {
+    PopulateChildren();
+    LOG_TRACE << "Children of " << object_name_ << ": " << children_.size();
+    if (children_ready()) {
+      if (rescode != 200) {
+        pool.AddUpload(this);
+      }
+    } else {
+      QueryChildren(pool);
+    }
+  } catch (const OSTreeObjectMissing &error) {
+    LOG_ERROR << "Source OSTree repo does not contain object " << error.missing_object();
+    pool.Abort();
+  }
+}
+
+void OSTreeObject::PresenceError(RequestPool &pool, const int64_t rescode) {
   is_on_server_ = PresenceOnServer::kObjectStateUnknown;
   LOG_WARNING << "OSTree query reported an error code: " << rescode << " retrying...";
   LOG_DEBUG << "Http response code:" << rescode;
@@ -250,7 +273,7 @@ void OSTreeObject::PresenceUnknown(RequestPool &pool, const int64_t rescode) {
   pool.AddQuery(this);
 }
 
-void OSTreeObject::ObjectMissing(RequestPool &pool, const int64_t rescode) {
+void OSTreeObject::UploadError(RequestPool &pool, const int64_t rescode) {
   LOG_WARNING << "OSTree upload reported an error code:" << rescode << " retrying...";
   LOG_DEBUG << "Http response code:" << rescode;
   LOG_DEBUG << http_response_.str();
@@ -265,34 +288,28 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
 
   char *url = nullptr;
   curl_easy_getinfo(curl_handle_, CURLINFO_EFFECTIVE_URL, &url);
-  long rescode = 0;  // NOLINT
+  long rescode = 0;  // NOLINT(google-runtime-int)
   curl_easy_getinfo(curl_handle_, CURLINFO_RESPONSE_CODE, &rescode);
   if (current_operation_ == CurrentOp::kOstreeObjectPresenceCheck) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
-      PresenceUnknown(pool, rescode);
+      PresenceError(pool, rescode);
     } else if (rescode == 200) {
       LOG_INFO << "Already present: " << object_name_;
       is_on_server_ = PresenceOnServer::kObjectPresent;
       last_operation_result_ = ServerResponse::kOk;
-      NotifyParents(pool);
+      if (pool.run_mode() == RunMode::kWalkTree || pool.run_mode() == RunMode::kPushTree) {
+        CheckChildren(pool, rescode);
+      } else {
+        NotifyParents(pool);
+      }
     } else if (rescode == 404) {
       is_on_server_ = PresenceOnServer::kObjectMissing;
       last_operation_result_ = ServerResponse::kOk;
-      try {
-        PopulateChildren();
-        if (children_ready()) {
-          pool.AddUpload(this);
-        } else {
-          QueryChildren(pool);
-        }
-      } catch (const OSTreeObjectMissing &error) {
-        LOG_ERROR << "Local OSTree repo does not contain object " << error.missing_object();
-        pool.Abort();
-      }
+      CheckChildren(pool, rescode);
     } else {
-      PresenceUnknown(pool, rescode);
+      PresenceError(pool, rescode);
     }
 
   } else if (current_operation_ == CurrentOp::kOstreeObjectUploading) {
@@ -301,7 +318,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
     // Sanity-check the handle's URL to make sure it contains the expected
     // object hash.
     if (url == nullptr || strstr(url, object_name_.c_str()) == nullptr) {
-      ObjectMissing(pool, rescode);
+      UploadError(pool, rescode);
     } else if (rescode == 200) {
       LOG_TRACE << "OSTree upload successful";
       is_on_server_ = PresenceOnServer::kObjectPresent;
@@ -313,7 +330,7 @@ void OSTreeObject::CurlDone(CURLM *curl_multi_handle, RequestPool &pool) {
       last_operation_result_ = ServerResponse::kOk;
       NotifyParents(pool);
     } else {
-      ObjectMissing(pool, rescode);
+      UploadError(pool, rescode);
     }
   } else {
     LOG_ERROR << "Unknown operation: " << static_cast<int>(current_operation_);

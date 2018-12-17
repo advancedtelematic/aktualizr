@@ -1,11 +1,12 @@
-#include <iostream>
 #include <string>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 #include "accumulator.h"
 #include "authenticate.h"
 #include "deploy.h"
+#include "garage_common.h"
 #include "logging/logging.h"
 #include "ostree_http_repo.h"
 
@@ -13,6 +14,7 @@ namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
   logger_init();
+
   int verbosity;
   std::string ostree_commit;
   std::string name;
@@ -20,13 +22,14 @@ int main(int argc, char **argv) {
   boost::filesystem::path push_cred;
   std::string hardwareids;
   std::string cacerts;
-  bool dry_run = false;
+  int max_curl_requests;
+  RunMode mode = RunMode::kDefault;
   po::options_description desc("garage-deploy command line options");
   // clang-format off
   desc.add_options()
     ("help", "print usage")
     ("version", "Current garage-deploy version")
-    ("verbose,v", accumulator<int>(&verbosity), "verbose logging (use twice for more information)")
+    ("verbose,v", accumulator<int>(&verbosity), "Verbose logging (use twice for more information)")
     ("quiet,q", "Quiet mode")
     ("commit", po::value<std::string>(&ostree_commit)->required(), "OSTree commit to deploy")
     ("name", po::value<std::string>(&name)->required(), "Name of image")
@@ -34,6 +37,7 @@ int main(int argc, char **argv) {
     ("push-credentials,p", po::value<boost::filesystem::path>(&push_cred)->required(), "path to destination credentials")
     ("hardwareids,h", po::value<std::string>(&hardwareids)->required(), "list of hardware ids")
     ("cacert", po::value<std::string>(&cacerts), "override path to CA root certificates, in the same format as curl --cacert")
+    ("jobs", po::value<int>(&max_curl_requests)->default_value(30), "maximum number of parallel requests")
     ("dry-run,n", "check arguments and authenticate but don't upload");
   // clang-format on
 
@@ -47,7 +51,7 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
     if (vm.count("version") != 0) {
-      LOG_INFO << "Current garage-deploy version is: " << GARAGE_DEPLOY_VERSION;
+      LOG_INFO << "Current garage-deploy version is: " << GARAGE_TOOLS_VERSION;
       exit(EXIT_SUCCESS);
     }
     po::notify(vm);
@@ -76,7 +80,12 @@ int main(int argc, char **argv) {
   }
 
   if (vm.count("dry-run") != 0u) {
-    dry_run = true;
+    mode = RunMode::kDryRun;
+  }
+
+  if (max_curl_requests < 1) {
+    LOG_FATAL << "--jobs must be greater than 0";
+    return EXIT_FAILURE;
   }
 
   ServerCredentials push_credentials(push_cred);
@@ -92,13 +101,14 @@ int main(int argc, char **argv) {
   try {
     OSTreeHash commit(OSTreeHash::Parse(ostree_commit));
     // Since the fetches happen on a single thread in OSTreeHttpRepo, there
-    // isn't really any reason to upload in parallel
-    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, dry_run, 1)) {
+    // isn't much reason to upload in parallel, but why hold the system back if
+    // the fetching is faster than the uploading?
+    if (!UploadToTreehub(src_repo, push_credentials, commit, cacerts, mode, max_curl_requests)) {
       LOG_FATAL << "Upload to treehub failed";
       return EXIT_FAILURE;
     }
 
-    if (!dry_run) {
+    if (mode == RunMode::kDefault) {
       if (push_credentials.CanSignOffline()) {
         bool ok = OfflineSignRepo(ServerCredentials(push_credentials.GetPathOnDisk()), name, commit, hardwareids);
         return static_cast<int>(!ok);

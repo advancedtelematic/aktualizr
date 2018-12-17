@@ -3,11 +3,12 @@ set(SOTA_TOOLS_LIB_SRC
     authenticate.cc
     deploy.cc
     oauth2.cc
-    ostree_hash.cc
-    ostree_ref.cc
     ostree_dir_repo.cc
+    ostree_hash.cc
     ostree_http_repo.cc
     ostree_object.cc
+    ostree_ref.cc
+    ostree_repo.cc
     rate_controller.cc
     request_pool.cc
     server_credentials.cc
@@ -63,7 +64,7 @@ if (BUILD_SOTA_TOOLS)
     add_executable(garage-deploy ${GARAGE_DEPLOY_SRCS})
     target_link_libraries(garage-deploy sota_tools_static_lib aktualizr_static_lib ${SOTA_TOOLS_EXTERNAL_LIBS})
 
-    add_definitions(-DGARAGE_DEPLOY_VERSION="${AKTUALIZR_VERSION}")
+    add_definitions(-DGARAGE_TOOLS_VERSION="${AKTUALIZR_VERSION}")
 
     add_dependencies(build_tests garage-deploy)
 
@@ -93,6 +94,7 @@ set(ALL_SOTA_TOOLS_HEADERS
     accumulator.h
     authenticate.h
     deploy.h
+    garage_common.h
     oauth2.h
     ostree_dir_repo.h
     ostree_hash.h
