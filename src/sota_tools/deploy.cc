@@ -12,10 +12,16 @@
 #include "utilities/utils.h"
 
 bool CheckPoolState(const OSTreeObject::ptr &root_object, const RequestPool &request_pool) {
-  if (request_pool.run_mode() == RunMode::kWalkTree || request_pool.run_mode() == RunMode::kPushTree) {
-    return !request_pool.is_idle() && !request_pool.is_stopped();
-  } else {
-    return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped();
+  switch (request_pool.run_mode()) {
+    case RunMode::kWalkTree:
+      return !request_pool.is_stopped() && !request_pool.is_idle();
+    case RunMode::kPushTree:
+      return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped() &&
+             !request_pool.is_idle();
+    case RunMode::kDefault:
+    case RunMode::kDryRun:
+    default:
+      return root_object->is_on_server() != PresenceOnServer::kObjectPresent && !request_pool.is_stopped();
   }
 }
 
