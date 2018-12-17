@@ -7,45 +7,29 @@ OSTreeObject::ptr OSTreeRepo::GetObject(const uint8_t sha256[32], const OstreeOb
 }
 
 OSTreeObject::ptr OSTreeRepo::GetObject(const OSTreeHash hash, const OstreeObjectType type) const {
-  otable::const_iterator it;
-  it = ObjectTable.find(hash);
-  if (it != ObjectTable.end()) {
-    return it->second;
+  otable::const_iterator obj_it = ObjectTable.find(hash);
+  if (obj_it != ObjectTable.cend()) {
+    return obj_it->second;
   }
 
-  const std::string exts[] = {".filez", ".dirtree", ".dirmeta", ".commit"};
+  const std::map<OstreeObjectType, std::string> exts{{OstreeObjectType::OSTREE_OBJECT_TYPE_FILE, ".filez"},
+                                                     {OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE, ".dirtree"},
+                                                     {OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META, ".dirmeta"},
+                                                     {OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT, ".commit"}};
   const std::string objpath = hash.string().insert(2, 1, '/');
   OSTreeObject::ptr object;
-  int ext_index = -1;
-  switch (type) {
-    case OstreeObjectType::OSTREE_OBJECT_TYPE_FILE:
-      ext_index = 0;
-      break;
-    case OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_TREE:
-      ext_index = 1;
-      break;
-    case OstreeObjectType::OSTREE_OBJECT_TYPE_DIR_META:
-      ext_index = 2;
-      break;
-    case OstreeObjectType::OSTREE_OBJECT_TYPE_COMMIT:
-      ext_index = 3;
-      break;
-    case OstreeObjectType::OSTREE_OBJECT_TYPE_UNKNOWN:
-    default:
-      break;
-  }
 
   for (int i = 0; i < 3; ++i) {
     if (i > 0) {
       LOG_WARNING << "OSTree hash " << hash << " not found. Retrying (attempt " << i << " of 3)";
     }
     if (type != OstreeObjectType::OSTREE_OBJECT_TYPE_UNKNOWN) {
-      if (CheckForObject(hash, objpath + exts[ext_index], object)) {
+      if (CheckForObject(hash, objpath + exts.at(type), object)) {
         return object;
       }
     } else {
-      for (const std::string &ext : exts) {
-        if (CheckForObject(hash, objpath + ext, object)) {
+      for (auto it = exts.cbegin(); it != exts.cend(); ++it) {
+        if (CheckForObject(hash, objpath + it->second, object)) {
           return object;
         }
       }
