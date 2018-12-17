@@ -12,6 +12,7 @@ class UptaneRepo {
   void addImage(const boost::filesystem::path &image_path);
   void addImage(const std::string &name, const std::string &hash, uint64_t length);
   void signTargets();
+  void emptyTargets();
 
  private:
   DirectorRepo director_repo_;

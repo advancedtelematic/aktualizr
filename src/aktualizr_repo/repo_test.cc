@@ -147,6 +147,49 @@ TEST(aktualizr_repo, image_custom) {
   EXPECT_EQ(image_targets["signed"]["targets"]["target1"]["length"].asUInt(), 123);
 }
 
+TEST(aktualizr_repo, emptytargets) {
+  TemporaryDirectory temp_dir;
+  std::ostringstream keytype_stream;
+  keytype_stream << key_type;
+  std::string cmd = generate_repo_exec + " generate " + temp_dir.Path().string() + " --keytype " + keytype_stream.str();
+  std::string output;
+  int retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+  cmd = generate_repo_exec + " image " + temp_dir.Path().string();
+  cmd +=
+      " --targetname target1 --targethash 8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6 "
+      "--targetlength 123";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  cmd = generate_repo_exec + " addtarget " + temp_dir.Path().string();
+  cmd += " --filename target1 --hwid hwid123 --serial serial123";
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n";
+  }
+
+  Json::Value targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  EXPECT_EQ(targets["targets"].size(), 1);
+  EXPECT_EQ(targets["targets"]["target1"]["length"].asUInt(), 123);
+  EXPECT_EQ(targets["targets"]["target1"]["hashes"]["sha256"].asString(),
+            "8ab755c16de6ee9b6224169b36cbf0f2a545f859be385501ad82cdccc240d0a6");
+
+  cmd = generate_repo_exec + " emptytargets " + temp_dir.Path().string();
+  retval = Utils::shell(cmd, &output);
+  if (retval) {
+    FAIL() << "'" << cmd << "' exited with error code\n"
+           << "output: " << output;
+  }
+
+  Json::Value empty_targets = Utils::parseJSONFile(temp_dir.Path() / "repo/director/staging/targets.json");
+  EXPECT_EQ(empty_targets["targets"].size(), 0);
+}
+
 #ifndef __NO_MAIN__
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

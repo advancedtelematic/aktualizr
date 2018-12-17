@@ -38,3 +38,10 @@ void DirectorRepo::signTargets() {
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_unsigned)));
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
 }
+void DirectorRepo::emptyTargets() {
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+  Json::Value targets_unsigned;
+  targets_unsigned = Utils::parseJSONFile(staging);
+  targets_unsigned["targets"].clear();
+  Utils::writeFile(staging, Utils::jsonToCanonicalStr(targets_unsigned));
+}
