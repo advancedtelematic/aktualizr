@@ -72,14 +72,12 @@ class Aktualizr {
 
   /**
    * Asynchronously run aktualizr indefinitely until Shutdown is called.
-   * Intended to be used with the Full \ref RunningMode setting.
    * @return Empty std::future object
    */
   std::future<void> RunForever();
 
   /**
-   * Asynchronously shut aktualizr down if it is running indefinitely with the
-   * Full \ref RunningMode.
+   * Asynchronously shut aktualizr down.
    */
   void Shutdown();
 
@@ -152,10 +150,8 @@ class Aktualizr {
   result::Pause Resume();
 
   /**
-   * Synchronously run an uptane cycle.
-   *
-   * Behaviour depends on the configured running mode (full cycle, check and
-   * download or check and install)
+   * Synchronously run an uptane cycle: check for updates, download any new
+   * targets, install them, and send a manifest back to the server.
    */
   void UptaneCycle();
 

@@ -95,7 +95,6 @@ Options for Uptane.
 [options="header"]
 |==========================================================================================
 | Name                      | Default      | Description
-| `running_mode`            | `full`       | Continuously poll the server (`full`), perform a full update cycle once and exit (`once`), only check for updates (`check`), only download updates (`download`) or only install updates (`install`).
 | `polling_sec`             | `10`         | Interval between polls (in seconds).
 | `director_server`         |              | Director server URL. If empty, set to `tls.server` with `/director` appended.
 | `repo_server`             |              | Image repository server URL. If empty, set to `tls.server` with `/repo` appended.

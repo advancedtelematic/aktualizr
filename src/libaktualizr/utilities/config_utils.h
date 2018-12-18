@@ -95,14 +95,6 @@ inline void CopyFromConfig(CryptoSource& dest, const std::string& option_name, c
 }
 
 template <>
-inline void CopyFromConfig(RunningMode& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
-  boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
-  if (value.is_initialized()) {
-    dest = RunningModeFromString(StripQuotesFromStrings(value.get()));
-  }
-}
-
-template <>
 inline void CopyFromConfig(BasedPath& dest, const std::string& option_name, const boost::property_tree::ptree& pt) {
   boost::optional<std::string> value = pt.get_optional<std::string>(option_name);
   if (value.is_initialized()) {

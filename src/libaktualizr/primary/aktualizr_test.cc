@@ -79,15 +79,13 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
 }
 
 /*
- * Automatic control. Initialize -> CheckUpdates -> no updates -> no further
- * action or events.
+ * Initialize -> CheckUpdates -> no updates -> no further action or events.
  */
 TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.running_mode = RunningMode::kFull;
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -238,15 +236,14 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
 }
 
 /*
- * Automatic control. Initialize -> UptaneCycle -> updates downloaded and
- * installed for primary and secondary.
+ * Initialize -> UptaneCycle -> updates downloaded and installed for primary and
+ * secondary.
  */
 TEST(Aktualizr, FullWithUpdates) {
   future_FullWithUpdates = promise_FullWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeEventCounter>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.running_mode = RunningMode::kFull;
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -294,8 +291,8 @@ class HttpFakePutCounter : public HttpFake {
 };
 
 /*
- * Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed
- * for primary (after reboot) and secondary (aktualizr_test.cc)
+ * Initialize -> UptaneCycle -> updates downloaded and installed for primary
+ * (after reboot) and secondary (aktualizr_test.cc)
  *
  * It simulates closely the OStree case which needs a reboot after applying an
  * update, but uses `PackageManagerFake`.
@@ -429,8 +426,8 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
 }
 
 /*
- * Automatic control. Initialize -> UptaneCycle -> updates downloaded and
- * installed for secondaries without changing the primary.
+ * Initialize -> UptaneCycle -> updates downloaded and installed for secondaries
+ * without changing the primary.
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
   future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
@@ -443,7 +440,6 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   conf.tls.server = http->tls_server;
   conf.uptane.director_server = http->tls_server + "/director";
   conf.uptane.repo_server = http->tls_server + "/repo";
-  conf.uptane.running_mode = RunningMode::kFull;
 
   TemporaryDirectory temp_dir2;
   UptaneTestCommon::addDefaultSecondary(conf, temp_dir, "sec_serial1", "sec_hwid1");
@@ -505,15 +501,13 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
 }
 
 /*
- * kCheck running mode. Initialize -> UptaneCycle -> updates found but not
- * downloaded.
+ * Initialize -> CheckUpdates -> updates found but not downloaded.
  */
 TEST(Aktualizr, CheckWithUpdates) {
   future_CheckWithUpdates = promise_CheckWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.running_mode = RunningMode::kCheck;
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -521,7 +515,7 @@ TEST(Aktualizr, CheckWithUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  aktualizr.UptaneCycle();
+  aktualizr.CheckUpdates();
   std::future_status status = future_CheckWithUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
@@ -588,17 +582,16 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
 }
 
 /*
- * kDownload running mode. Initialize -> UptaneCycle -> updates downloaded but
- * not downloaded.
+ * Initialize -> Download -> nothing to download.
  *
- * kDownload running mode. Initialize -> Download -> nothing to download.
+ * Initialize -> CheckUpdates -> Download -> updates downloaded but not
+ * installed.
  */
 TEST(Aktualizr, DownloadWithUpdates) {
   future_DownloadWithUpdates = promise_DownloadWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.running_mode = RunningMode::kDownload;
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -610,9 +603,8 @@ TEST(Aktualizr, DownloadWithUpdates) {
   result::Download result = aktualizr.Download(std::vector<Uptane::Target>()).get();
   EXPECT_EQ(result.updates.size(), 0);
   EXPECT_EQ(result.status, result::DownloadStatus::kNothingToDownload);
-  // This will do a fetch first because download can't be called without a
-  // vector of updates.
-  aktualizr.UptaneCycle();
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+  aktualizr.Download(update_result.updates);
 
   std::future_status status = future_DownloadWithUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
@@ -627,8 +619,8 @@ std::vector<Uptane::Target> updates_InstallWithUpdates;
 std::future<void> future_InstallWithUpdates{};
 std::promise<void> promise_InstallWithUpdates{};
 void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
-  // Note that we do not expect a PutManifestComplete since we are not using the
-  // kFull or kOnce running modes.
+  // Note that we do not expect a PutManifestComplete since we don't call
+  // UptaneCycle() and that's the only function that generates that.
   if (event->variant == "DownloadProgressReport") {
     return;
   }
@@ -640,8 +632,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(installs_complete->result.reports.size(), 0);
       break;
     }
-    case 1:
-    case 5: {
+    case 1: {
       EXPECT_EQ(event->variant, "UpdateCheckComplete");
       const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
       EXPECT_EQ(targets_event->result.ecus_count, 2);
@@ -672,7 +663,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(downloads_complete->result.status, result::DownloadStatus::kSuccess);
       break;
     }
-    case 6: {
+    case 5: {
       // Primary always gets installed first. (Not a requirement, just how it
       // works at present.)
       EXPECT_EQ(event->variant, "InstallStarted");
@@ -680,7 +671,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_EQ(install_started->serial.ToString(), "CA:FE:A6:D2:84:9D");
       break;
     }
-    case 7: {
+    case 6: {
       // Primary should complete before secondary begins. (Again not a
       // requirement per se.)
       EXPECT_EQ(event->variant, "InstallTargetComplete");
@@ -689,35 +680,29 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
       EXPECT_TRUE(install_complete->success);
       break;
     }
-    case 8: {
+    case 7: {
       EXPECT_EQ(event->variant, "InstallStarted");
       const auto install_started = dynamic_cast<event::InstallStarted*>(event.get());
       EXPECT_EQ(install_started->serial.ToString(), "secondary_ecu_serial");
       break;
     }
-    case 9: {
+    case 8: {
       EXPECT_EQ(event->variant, "InstallTargetComplete");
       const auto install_complete = dynamic_cast<event::InstallTargetComplete*>(event.get());
       EXPECT_EQ(install_complete->serial.ToString(), "secondary_ecu_serial");
       EXPECT_TRUE(install_complete->success);
       break;
     }
-    case 10: {
+    case 9: {
       EXPECT_EQ(event->variant, "AllInstallsComplete");
       const auto installs_complete = dynamic_cast<event::AllInstallsComplete*>(event.get());
       EXPECT_EQ(installs_complete->result.reports.size(), 2);
       EXPECT_EQ(installs_complete->result.reports[0].status.result_code, data::UpdateResultCode::kOk);
       EXPECT_EQ(installs_complete->result.reports[1].status.result_code, data::UpdateResultCode::kOk);
-      break;
-    }
-    case 11: {
-      EXPECT_EQ(event->variant, "PutManifestComplete");
-      const auto put_complete = dynamic_cast<event::PutManifestComplete*>(event.get());
-      EXPECT_TRUE(put_complete->success);
       promise_InstallWithUpdates.set_value();
       break;
     }
-    case 15:
+    case 12:
       // Don't let the test run indefinitely!
       FAIL();
     default:
@@ -728,17 +713,15 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
 }
 
 /*
- * kInstall running mode. Updates downloaded -> UptaneCycle -> updates
- * installed.
+ * Initialize -> Install -> nothing to install.
  *
- * kInstall running mode. Initialize -> Install -> nothing to install.
+ * Initialize -> CheckUpdates -> Download -> Install -> updates installed.
  */
 TEST(Aktualizr, InstallWithUpdates) {
   future_InstallWithUpdates = promise_InstallWithUpdates.get_future();
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  conf.uptane.running_mode = RunningMode::kInstall;
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
@@ -771,18 +754,15 @@ TEST(Aktualizr, InstallWithUpdates) {
   EXPECT_EQ(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is present in storage before the download";
 
-  // Download the updates somehow. This is just the easiest way.
-  conf.uptane.running_mode = RunningMode::kDownload;
-  aktualizr.UptaneCycle();
+  result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+  aktualizr.Download(update_result.updates).get();
   EXPECT_NE(aktualizr.GetStoredTarget(primary_target).get(), nullptr)
       << "Primary firmware is not present in storage after the download";
   EXPECT_NE(aktualizr.GetStoredTarget(secondary_target).get(), nullptr)
       << "Secondary firmware is not present in storage after the download";
 
-  // After updates have been downloaded, try to install them. Rely on
-  // UptaneCycle to do the right thing.
-  conf.uptane.running_mode = RunningMode::kInstall;
-  aktualizr.UptaneCycle();
+  // After updates have been downloaded, try to install them.
+  aktualizr.Install(update_result.updates);
 
   std::future_status status = future_InstallWithUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {

@@ -34,7 +34,7 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("version,v", "Current aktualizr version")
       ("config,c", bpo::value<std::vector<boost::filesystem::path> >()->composing(), "configuration file or directory")
       ("loglevel", bpo::value<int>(), "set log level 0-5 (trace, debug, info, warning, error, fatal)")
-      ("running-mode", bpo::value<std::string>(), "running mode of aktualizr, could be one of: full, once, campaign_check, campaign_accept, check, download, or install")
+      ("run-mode", bpo::value<std::string>(), "run mode of aktualizr: full, once, campaign_check, campaign_accept, check, download, or install")
       ("tls-server", bpo::value<std::string>(), "url, used for auto provisioning")
       ("repo-server", bpo::value<std::string>(), "url of the uptane repo repository")
       ("director-server", bpo::value<std::string>(), "url of the uptane director repository")
@@ -45,9 +45,9 @@ bpo::variables_map parse_options(int argc, char *argv[]) {
       ("campaign-id", bpo::value<std::string>(), "id of the campaign to act on");
   // clang-format on
 
-  // consider the first positional argument as the aktualizr running mode
+  // consider the first positional argument as the aktualizr run mode
   bpo::positional_options_description pos;
-  pos.add("running-mode", 1);
+  pos.add("run-mode", 1);
 
   bpo::variables_map vm;
   std::vector<std::string> unregistered_options;
@@ -121,31 +121,31 @@ int main(int argc, char *argv[]) {
     conn = aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
 
-    RunningMode running_mode = config.uptane.running_mode;
+    std::string run_mode;
+    if (commandline_map.count("run-mode") != 0) {
+      run_mode = commandline_map["run-mode"].as<std::string>();
+    }
     // launch the first event
-    switch (running_mode) {
-      case RunningMode::kCampaignCheck:
-        aktualizr.CampaignCheck().get();
-        break;
-      case RunningMode::kCampaignAccept:
-        if (commandline_map.count("campaign-id") == 0) {
-          throw std::runtime_error("Running mode " + StringFromRunningMode(running_mode) + " requires a campaign id");
-        }
-        aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>()).get();
-        break;
-      case RunningMode::kCheck:
-        aktualizr.SendDeviceData().get();
-        aktualizr.CheckUpdates().get();
-        break;
-      case RunningMode::kDownload:
-      case RunningMode::kInstall:
-      case RunningMode::kOnce:
-        aktualizr.UptaneCycle();
-        break;
-      case RunningMode::kFull:
-      default:
-        aktualizr.RunForever().get();
-        break;
+    if (run_mode == "campaign_check") {
+      aktualizr.CampaignCheck().get();
+    } else if (run_mode == "campaign_accept") {
+      if (commandline_map.count("campaign-id") == 0) {
+        throw std::runtime_error("Accepting a campaign requires a campaign ID");
+      }
+      aktualizr.CampaignAccept(commandline_map["campaign-id"].as<std::string>()).get();
+    } else if (run_mode == "check") {
+      aktualizr.SendDeviceData().get();
+      aktualizr.CheckUpdates().get();
+    } else if (run_mode == "download") {
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      aktualizr.Download(update_result.updates).get();
+    } else if (run_mode == "install") {
+      result::UpdateCheck update_result = aktualizr.CheckUpdates().get();
+      aktualizr.Install(update_result.updates).get();
+    } else if (run_mode == "once") {
+      aktualizr.UptaneCycle();
+    } else {
+      aktualizr.RunForever().get();
     }
     r = 0;
   } catch (const std::exception &ex) {
