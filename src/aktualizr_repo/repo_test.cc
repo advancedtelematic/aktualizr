@@ -10,7 +10,7 @@
 #include "test_utils.h"
 #include "uptane_repo.h"
 
-KeyType key_type = KeyType::kUnknown;
+KeyType key_type = KeyType::kED25519;
 std::string generate_repo_exec;
 
 TEST(aktualizr_repo, generate_repo) {
@@ -135,12 +135,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  bool res = true;
-  for (int type = static_cast<int>(KeyType::kFirstKnown); type <= static_cast<int>(KeyType::kLastKnown); type++) {
-    LOG_TRACE << "Running tests for key type " << static_cast<KeyType>(type);
-    key_type = static_cast<KeyType>(type);
-    res &= RUN_ALL_TESTS();
-  }
-  return res;
+  // note: we used to run tests for all key types, which was pretty slow.
+  // Now, they only run with ed25519
+  return RUN_ALL_TESTS();
 }
 #endif
