@@ -12,7 +12,7 @@ TEMP_DIR=$(mktemp -d)
 mkdir -m 700 -p "$TEMP_DIR/import"
 cp /persistent/prov_selfupdate/* "$TEMP_DIR/import"
 echo -e "[storage]\\npath = \"$TEMP_DIR\"\\n[import]\\nbase_path = \"$TEMP_DIR/import\"" > "$TEMP_DIR/conf.toml"
-aktualizr -c /persistent/selfupdate.toml -c "$TEMP_DIR/conf.toml" --running-mode=once
+aktualizr -c /persistent/selfupdate.toml -c "$TEMP_DIR/conf.toml" --run-mode=once
 
 # check that the version was updated
 akt_version=$(aktualizr --version)

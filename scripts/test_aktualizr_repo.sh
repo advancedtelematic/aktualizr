@@ -10,7 +10,7 @@ TMPDIR=$(mktemp -u)
 create_repo.sh $TMPDIR 127.0.0.1
 serve_repo.py 9000 "$TMPDIR" &
 
-aktualizr --config "${TMPDIR}/sota.toml" --running-mode once
+aktualizr --config "${TMPDIR}/sota.toml" --run-mode once
 
 aktualizr-info --config "${TMPDIR}/sota.toml" | grep "Fetched metadata: yes" || exit 1
 
