@@ -58,7 +58,7 @@ class SotaUptaneClient {
  private:
   FRIEND_TEST(Aktualizr, FullNoUpdates);
   FRIEND_TEST(Aktualizr, FullMultipleSecondaries);
-  FRIEND_TEST(Aktualizr, CheckWithUpdates);
+  FRIEND_TEST(Aktualizr, CheckNoUpdates);
   FRIEND_TEST(Aktualizr, DownloadWithUpdates);
   FRIEND_TEST(Uptane, AssembleManifestGood);
   FRIEND_TEST(Uptane, AssembleManifestBad);

@@ -79,7 +79,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
 }
 
 /*
- * Initialize -> CheckUpdates -> no updates -> no further action or events.
+ * Initialize -> UptaneCycle -> no updates -> no further action or events.
  */
 TEST(Aktualizr, FullNoUpdates) {
   future_FullNoUpdates = promise_FullNoUpdates.get_future();
@@ -93,17 +93,10 @@ TEST(Aktualizr, FullNoUpdates) {
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  result::UpdateCheck result = aktualizr.CheckUpdates().get();
-  EXPECT_EQ(result.ecus_count, 0);
-  EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
-  // Fetch twice so that we can check for a second UpdateCheckComplete and
-  // guarantee that nothing unexpected happened after the first fetch.
-  result = aktualizr.CheckUpdates().get();
-  EXPECT_EQ(result.ecus_count, 0);
-  EXPECT_EQ(result.updates.size(), 0);
-  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
-
+  aktualizr.UptaneCycle();
+  // Run the cycle twice so that we can check for a second UpdateCheckComplete
+  // and guarantee that nothing unexpected happened after the first fetch.
+  aktualizr.UptaneCycle();
   std::future_status status = future_FullNoUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
@@ -471,52 +464,69 @@ TEST(Aktualizr, FullMultipleSecondaries) {
   EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
 }
 
-int num_events_CheckWithUpdates = 0;
-std::future<void> future_CheckWithUpdates{};
-std::promise<void> promise_CheckWithUpdates{};
-void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& event) {
+int num_events_CheckNoUpdates = 0;
+std::future<void> future_CheckNoUpdates{};
+std::promise<void> promise_CheckNoUpdates{};
+void process_events_CheckNoUpdates(const std::shared_ptr<event::BaseEvent>& event) {
   if (event->variant == "DownloadProgressReport") {
     return;
   }
-  switch (num_events_CheckWithUpdates) {
+  LOG_INFO << "Got " << event->variant;
+  switch (num_events_CheckNoUpdates) {
     case 0: {
       EXPECT_EQ(event->variant, "UpdateCheckComplete");
       const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
-      EXPECT_EQ(targets_event->result.ecus_count, 2);
-      EXPECT_EQ(targets_event->result.updates.size(), 2u);
-      EXPECT_EQ(targets_event->result.updates[0].filename(), "primary_firmware.txt");
-      EXPECT_EQ(targets_event->result.updates[1].filename(), "secondary_firmware.txt");
-      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kUpdatesAvailable);
-      promise_CheckWithUpdates.set_value();
+      EXPECT_EQ(targets_event->result.ecus_count, 0);
+      EXPECT_EQ(targets_event->result.updates.size(), 0);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+      break;
+    }
+    case 1: {
+      EXPECT_EQ(event->variant, "UpdateCheckComplete");
+      const auto targets_event = dynamic_cast<event::UpdateCheckComplete*>(event.get());
+      EXPECT_EQ(targets_event->result.ecus_count, 0);
+      EXPECT_EQ(targets_event->result.updates.size(), 0);
+      EXPECT_EQ(targets_event->result.status, result::UpdateStatus::kNoUpdatesAvailable);
+      promise_CheckNoUpdates.set_value();
       break;
     }
     case 5:
       // Don't let the test run indefinitely!
       FAIL() << "Unexpected events!";
     default:
-      std::cout << "event #" << num_events_CheckWithUpdates << " is: " << event->variant << "\n";
+      std::cout << "event #" << num_events_CheckNoUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
   }
-  ++num_events_CheckWithUpdates;
+  ++num_events_CheckNoUpdates;
 }
 
 /*
- * Initialize -> CheckUpdates -> updates found but not downloaded.
+ * Initialize -> CheckUpdates -> no updates -> no further action or events.
  */
-TEST(Aktualizr, CheckWithUpdates) {
-  future_CheckWithUpdates = promise_CheckWithUpdates.get_future();
+TEST(Aktualizr, CheckNoUpdates) {
+  future_CheckNoUpdates = promise_CheckNoUpdates.get_future();
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "noupdates");
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
   Aktualizr aktualizr(conf, storage, http);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckWithUpdates;
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_CheckNoUpdates;
   boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
 
   aktualizr.Initialize();
-  aktualizr.CheckUpdates();
-  std::future_status status = future_CheckWithUpdates.wait_for(std::chrono::seconds(20));
+  result::UpdateCheck result = aktualizr.CheckUpdates().get();
+  EXPECT_EQ(result.ecus_count, 0);
+  EXPECT_EQ(result.updates.size(), 0);
+  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
+  // Fetch twice so that we can check for a second UpdateCheckComplete and
+  // guarantee that nothing unexpected happened after the first fetch.
+  result = aktualizr.CheckUpdates().get();
+  EXPECT_EQ(result.ecus_count, 0);
+  EXPECT_EQ(result.updates.size(), 0);
+  EXPECT_EQ(result.status, result::UpdateStatus::kNoUpdatesAvailable);
+
+  std::future_status status = future_CheckNoUpdates.wait_for(std::chrono::seconds(20));
   if (status != std::future_status::ready) {
     FAIL() << "Timed out waiting for metadata to be fetched.";
   }

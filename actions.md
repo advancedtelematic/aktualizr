@@ -256,11 +256,11 @@ These are internal requirements that are relatively opaque to the user and/or co
 
 This is just the list of sequences currently covered. It is likely that there are more worth testing, but these tests are expensive.
 
-- [x] Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> no updates -> no further action or events (aktualizr_test.cc)
 - [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
 - [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary (after reboot) and secondary (aktualizr_test.cc)
 - [x] Initialize -> UptaneCycle -> updates downloaded and installed for secondaries without changing the primary (aktualizr_test.cc)
-- [x] Initialize -> CheckUpdates -> updates found but not downloaded (aktualizr_test.cc)
+- [x] Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
 - [x] Initialize -> Download -> nothing to download (aktualizr_test.cc)
 - [x] Initialize -> CheckUpdates -> Download -> updates downloaded but not installed (aktualizr_test.cc)
 - [x] Initialize -> Install -> nothing to install (aktualizr_test.cc)
