@@ -70,7 +70,7 @@ void process_events_FullNoUpdates(const std::shared_ptr<event::BaseEvent>& event
     }
     case 5:
       // Don't let the test run indefinitely!
-      FAIL();
+      FAIL() << "Unexpected events!";
     default:
       std::cout << "event #" << num_events_FullNoUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
@@ -227,7 +227,7 @@ void process_events_FullWithUpdates(const std::shared_ptr<event::BaseEvent>& eve
     }
     case 12:
       // Don't let the test run indefinitely!
-      FAIL();
+      FAIL() << "Unexpected events!";
     default:
       std::cout << "event #" << num_events_FullWithUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
@@ -492,7 +492,7 @@ void process_events_CheckWithUpdates(const std::shared_ptr<event::BaseEvent>& ev
     }
     case 5:
       // Don't let the test run indefinitely!
-      FAIL();
+      FAIL() << "Unexpected events!";
     default:
       std::cout << "event #" << num_events_CheckWithUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
@@ -573,7 +573,7 @@ void process_events_DownloadWithUpdates(const std::shared_ptr<event::BaseEvent>&
     }
     case 8:
       // Don't let the test run indefinitely!
-      FAIL();
+      FAIL() << "Unexpected events!";
     default:
       std::cout << "event #" << num_events_DownloadWithUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
@@ -704,7 +704,7 @@ void process_events_InstallWithUpdates(const std::shared_ptr<event::BaseEvent>& 
     }
     case 12:
       // Don't let the test run indefinitely!
-      FAIL();
+      FAIL() << "Unexpected events!";
     default:
       std::cout << "event #" << num_events_InstallWithUpdates << " is: " << event->variant << "\n";
       EXPECT_EQ(event->variant, "");
