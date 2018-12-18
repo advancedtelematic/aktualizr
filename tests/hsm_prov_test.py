@@ -79,7 +79,8 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
     os.environ['CERTS_DIR'] = str(certs_dir)
     shutil.copyfile(str(src_dir / "tests/test_data/softhsm2.conf"), str(hsm_conf))
 
-    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    akt_input = [str(akt), '--config', str(conf_dir), '--loglevel', '0', '--run-mode', 'once']
+    popen_subprocess(akt_input)
     # Verify that device has NOT yet provisioned.
     for delay in [1, 2, 5, 10, 15]:
         sleep(delay)
@@ -148,7 +149,7 @@ def provision(tmp_dir, build_dir, src_dir, creds, pkcs11_module):
         return 1
 
     (tmp_dir / 'sql.db').unlink()
-    popen_subprocess([str(akt), '--config', str(conf_dir), '--loglevel', '0', '--running-mode', 'once'])
+    popen_subprocess(akt_input)
     return verify_provisioned(akt_info, conf_dir)
 
 

@@ -56,19 +56,13 @@ void Aktualizr::Initialize() {
 }
 
 void Aktualizr::UptaneCycle() {
-  RunningMode running_mode = config_.uptane.running_mode;
   result::UpdateCheck update_result = CheckUpdates().get();
-  if (running_mode == RunningMode::kCheck || update_result.updates.size() == 0) {
-    return;
-  } else if (running_mode == RunningMode::kInstall) {
-    uptane_client_->uptaneInstall(update_result.updates);
-    uptane_client_->putManifest();
+  if (update_result.updates.size() == 0) {
     return;
   }
 
   result::Download download_result = Download(update_result.updates).get();
-  if (running_mode == RunningMode::kDownload || download_result.status != result::DownloadStatus::kSuccess ||
-      download_result.updates.size() == 0) {
+  if (download_result.status != result::DownloadStatus::kSuccess || download_result.updates.size() == 0) {
     return;
   }
 

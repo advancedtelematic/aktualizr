@@ -2,7 +2,7 @@
 
 Aktualizr normally runs as a `systemd` service and regularly polls for updates. The default polling interval is set at 10s, and this should be increased by a few orders of magnitude in a production system.
 
-It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--running-mode` option, or just supplying the operation name as a subcommand.
+It is also possible to trigger the update cycle, or individual parts of the update cycle, manually or programmatically. This is done by using aktualizr's `--run-mode` option, or just supplying the operation name as a subcommand.
 
 [NOTE]
 ====
@@ -16,8 +16,6 @@ Assuming aktualizr is being built using Yocto and meta-updater, the `systemd` se
 
     SYSTEMD_AUTO_ENABLE_aktualizr = "disable"
 ====
-
-WARNING: This interface may change in the future, possibly to a socket- or dbus-based system.
 
 == Triggering an entire update cycle
 
@@ -54,7 +52,7 @@ Download an update:
 
 === Reporting installation results
 
-Installation reports are sent when aktualizr polls the server for updates, so the `check` running-mode should be used again after installing:
+Installation reports are sent when aktualizr polls the server for updates, so the `check` run-mode should be used again after installing:
 
     aktualizr check
 
@@ -68,7 +66,7 @@ If the device is targeted by one or more campaigns, aktualizr prints details of 
 
 === Accept campaigns that target the device
 
-This running mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept the campaigns so that they are included in the software update process.
+This run mode works together with the `campaign_check` mode. After you have received a list of applicable campaigns, you can accept the campaigns so that they are included in the software update process.
 
     aktualizr campaign_accept --campaign-id=<CAMPAIGN_ID>
 

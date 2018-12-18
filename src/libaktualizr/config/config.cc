@@ -65,7 +65,6 @@ void ProvisionConfig::writeToStream(std::ostream& out_stream) const {
 }
 
 void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt) {
-  CopyFromConfig(running_mode, "running_mode", pt);
   CopyFromConfig(polling_sec, "polling_sec", pt);
   CopyFromConfig(director_server, "director_server", pt);
   CopyFromConfig(repo_server, "repo_server", pt);
@@ -76,7 +75,6 @@ void UptaneConfig::updateFromPropertyTree(const boost::property_tree::ptree& pt)
 }
 
 void UptaneConfig::writeToStream(std::ostream& out_stream) const {
-  writeOption(out_stream, StringFromRunningMode(running_mode), "running_mode");
   writeOption(out_stream, polling_sec, "polling_sec");
   writeOption(out_stream, director_server, "director_server");
   writeOption(out_stream, repo_server, "repo_server");
@@ -226,9 +224,6 @@ void Config::updateFromCommandLine(const boost::program_options::variables_map& 
   // Try to keep these options in the same order as parse_options() in main.cc.
   if (cmd.count("loglevel") != 0) {
     logger.loglevel = cmd["loglevel"].as<int>();
-  }
-  if (cmd.count("running-mode") != 0) {
-    uptane.running_mode = RunningModeFromString(cmd["running-mode"].as<std::string>());
   }
   if (cmd.count("tls-server") != 0) {
     tls.server = cmd["tls-server"].as<std::string>();

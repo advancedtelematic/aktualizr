@@ -256,19 +256,18 @@ These are internal requirements that are relatively opaque to the user and/or co
 
 This is just the list of sequences currently covered. It is likely that there are more worth testing, but these tests are expensive.
 
-- [x] Automatic control. Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
-- [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
-- [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for primary (after reboot) and secondary (aktualizr_test.cc)
-- [x] Automatic control. Initialize -> UptaneCycle -> updates downloaded and installed for secondaries without changing the primary (aktualizr_test.cc)
-- [x] kCheck running mode. Initialize -> UptaneCycle -> updates found but not downloaded (aktualizr_test.cc)
-- [x] kDownload running mode. Initialize -> UptaneCycle -> updates downloaded but not downloaded (aktualizr_test.cc)
-- [x] kDownload running mode. Initialize -> Download -> nothing to download (aktualizr_test.cc)
-- [x] kInstall running mode. Updates downloaded -> UptaneCycle -> updates installed (aktualizr_test.cc)
-- [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
-- [x] kInstall running mode. Initialize -> Install -> nothing to install (aktualizr_test.cc)
-- [x] Automatic control, autoprovision with real server. Initialize -> CheckUpdates -> verify state with aktualizr-info (auto_prov_test.py)
-- [x] Automatic control, implicitly provision with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (implicit_prov_test.py)
-- [x] Automatic control, implicitly provision with HSM with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (hsm_prov_test.py)
+- [x] Initialize -> UptaneCycle -> no updates -> no further action or events (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary and secondary (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for primary (after reboot) and secondary (aktualizr_test.cc)
+- [x] Initialize -> UptaneCycle -> updates downloaded and installed for secondaries without changing the primary (aktualizr_test.cc)
+- [x] Initialize -> CheckUpdates -> no updates -> no further action or events (aktualizr_test.cc)
+- [x] Initialize -> Download -> nothing to download (aktualizr_test.cc)
+- [x] Initialize -> CheckUpdates -> Download -> updates downloaded but not installed (aktualizr_test.cc)
+- [x] Initialize -> Install -> nothing to install (aktualizr_test.cc)
+- [x] Initialize -> CheckUpdates -> Download -> Install -> updates installed (aktualizr_test.cc)
+- [x] Autoprovision with real server. Initialize -> CheckUpdates -> verify state with aktualizr-info (auto_prov_test.py)
+- [x] Implicitly provision with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (implicit_prov_test.py)
+- [x] Implicitly provision with HSM with real server. Initialize -> verify not provisioned with aktualizr-info -> run aktualizr-cert-provider -> Initialize -> CheckUpdates -> verify state with aktualizr-info (hsm_prov_test.py)
 
 
 ## aktualizr tools

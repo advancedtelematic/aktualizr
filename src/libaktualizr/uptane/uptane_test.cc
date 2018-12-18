@@ -524,7 +524,6 @@ TEST(Uptane, ProvisionOnServer) {
   config.provision.device_id = "tst149_device_id";
   config.provision.primary_ecu_hardware_id = "tst149_hardware_identifier";
   config.provision.primary_ecu_serial = "tst149_ecu_serial";
-  config.uptane.running_mode = RunningMode::kManual;
   config.storage.path = temp_dir.Path();
 
   auto storage = INvStorage::newStorage(config.storage);

@@ -7,7 +7,7 @@ import tempfile
 
 from pathlib import Path
 
-from prov_test_common import verify_provisioned
+from prov_test_common import popen_subprocess, verify_provisioned
 
 
 def main():
@@ -44,7 +44,7 @@ def provision(tmp_dir, build_dir, creds):
     akt = build_dir / 'src/aktualizr_primary/aktualizr'
     akt_info = build_dir / 'src/aktualizr_info/aktualizr-info'
 
-    subprocess.Popen([str(akt), '--config', str(conf), '--running-mode', 'once'])
+    popen_subprocess([str(akt), '--config', str(conf), '--run-mode', 'once'])
     return verify_provisioned(akt_info, conf)
 
 

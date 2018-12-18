@@ -93,44 +93,4 @@ OperationResult OperationResult::fromOutcome(const std::string &id, const Instal
 
 }  // namespace data
 
-RunningMode RunningModeFromString(const std::string &mode) {
-  if (mode == "full" || mode.empty()) {
-    return RunningMode::kFull;
-  } else if (mode == "once") {
-    return RunningMode::kOnce;
-  } else if (mode == "check") {
-    return RunningMode::kCheck;
-  } else if (mode == "download") {
-    return RunningMode::kDownload;
-  } else if (mode == "install") {
-    return RunningMode::kInstall;
-  } else if (mode == "campaign_check") {
-    return RunningMode::kCampaignCheck;
-  } else if (mode == "campaign_accept") {
-    return RunningMode::kCampaignAccept;
-  } else {
-    throw std::runtime_error(std::string("Incorrect running mode: ") + mode);
-  }
-}
-
-std::string StringFromRunningMode(RunningMode mode) {
-  std::string mode_str = "full";
-  if (mode == RunningMode::kFull) {
-    mode_str = "full";
-  } else if (mode == RunningMode::kOnce) {
-    mode_str = "once";
-  } else if (mode == RunningMode::kCheck) {
-    mode_str = "check";
-  } else if (mode == RunningMode::kDownload) {
-    mode_str = "download";
-  } else if (mode == RunningMode::kInstall) {
-    mode_str = "install";
-  } else if (mode == RunningMode::kCampaignCheck) {
-    return "campaign_check";
-  } else if (mode == RunningMode::kCampaignAccept) {
-    return "campaign_accept";
-  }
-  return mode_str;
-}
-
 // vim: set tabstop=2 shiftwidth=2 expandtab:
