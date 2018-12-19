@@ -108,7 +108,7 @@ class SotaUptaneClient {
   bool updateImagesMeta();
   bool checkImagesMetaOffline();
   bool checkDirectorMetaOffline();
-  void computeDeviceInstallationResult(data::InstallationResult *result);
+  void computeDeviceInstallationResult(data::InstallationResult *result, const std::string &correlation_id);
 
   template <class T, class... Args>
   void sendEvent(Args &&... args) {

@@ -68,8 +68,10 @@ class SQLStorage : public SQLStorageBase, public INvStorage {
   void saveEcuInstallationResult(const Uptane::EcuSerial& ecu_serial, const data::InstallationResult& result) override;
   bool loadEcuInstallationResults(
       std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>>* results) override;
-  void storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report) override;
-  bool loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report) override;
+  void storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report,
+                                     const std::string& correlation_id) override;
+  bool loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report,
+                                    std::string* correlation_id) override;
   void clearInstallationResults() override;
 
   std::unique_ptr<StorageTargetWHandle> allocateTargetFile(bool from_director, const Uptane::Target& target) override;

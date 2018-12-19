@@ -1017,27 +1017,31 @@ bool SQLStorage::loadEcuInstallationResults(
   return true;
 }
 
-void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report) {
+void SQLStorage::storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report,
+                                               const std::string& correlation_id) {
   SQLite3Guard db = dbConnection();
 
-  auto statement = db.prepareStatement<int, std::string, std::string, std::string>(
-      "INSERT OR REPLACE INTO device_installation_result (unique_mark, success, result_code, description, raw_report) "
-      "VALUES (0,?,?,?,?);",
-      static_cast<int>(result.success), result.result_code.toRepr(), result.description, raw_report);
+  auto statement = db.prepareStatement<int, std::string, std::string, std::string, std::string>(
+      "INSERT OR REPLACE INTO device_installation_result (unique_mark, success, result_code, description, raw_report, "
+      "correlation_id) "
+      "VALUES (0,?,?,?,?,?);",
+      static_cast<int>(result.success), result.result_code.toRepr(), result.description, raw_report, correlation_id);
   if (statement.step() != SQLITE_DONE) {
     LOG_ERROR << "Can't set device installation result: " << db.errmsg();
     return;
   }
 }
 
-bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report) {
+bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report,
+                                              std::string* correlation_id) {
   SQLite3Guard db = dbConnection();
 
   data::InstallationResult dev_res;
   std::string raw_report_res;
+  std::string corrid_res;
 
-  auto statement =
-      db.prepareStatement("SELECT success, result_code, description, raw_report FROM device_installation_result;");
+  auto statement = db.prepareStatement(
+      "SELECT success, result_code, description, raw_report, correlation_id FROM device_installation_result;");
   int statement_result = statement.step();
   if (statement_result == SQLITE_DONE) {
     LOG_ERROR << "No device installation result in db: " << db.errmsg();
@@ -1052,6 +1056,7 @@ bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, 
     data::ResultCode result_code = data::ResultCode::fromRepr(statement.get_result_col_str(1).value());
     std::string description = statement.get_result_col_str(2).value();
     raw_report_res = statement.get_result_col_str(3).value();
+    corrid_res = statement.get_result_col_str(4).value();
 
     dev_res = data::InstallationResult(success, result_code, description);
   } catch (const boost::bad_optional_access&) {
@@ -1064,6 +1069,10 @@ bool SQLStorage::loadDeviceInstallationResult(data::InstallationResult* result, 
 
   if (raw_report != nullptr) {
     *raw_report = std::move(raw_report_res);
+  }
+
+  if (correlation_id != nullptr) {
+    *correlation_id = std::move(corrid_res);
   }
 
   return true;

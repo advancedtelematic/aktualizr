@@ -19,7 +19,7 @@ INSERT INTO meta_types(rowid,meta,meta_string) VALUES(3,2,'targets');
 INSERT INTO meta_types(rowid,meta,meta_string) VALUES(4,3,'timestamp');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(1,0,'images');
 INSERT INTO repo_types(rowid,repo,repo_string) VALUES(2,1,'director');
-CREATE TABLE device_installation_result(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), success INTEGER NOT NULL DEFAULT 0, result_code TEXT NOT NULL DEFAULT "", description TEXT NOT NULL DEFAULT "", raw_report TEXT NOT NULL DEFAULT "");
+CREATE TABLE device_installation_result(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), success INTEGER NOT NULL DEFAULT 0, result_code TEXT NOT NULL DEFAULT "", description TEXT NOT NULL DEFAULT "", raw_report TEXT NOT NULL DEFAULT "", correlation_id TEXT NOT NULL DEFAULT "");
 CREATE TABLE ecu_installation_results(ecu_serial TEXT NOT NULL PRIMARY KEY, success INTEGER NOT NULL DEFAULT 0, result_code TEXT NOT NULL DEFAULT "", description TEXT NOT NULL DEFAULT "");
 CREATE TABLE need_reboot(unique_mark INTEGER PRIMARY KEY CHECK (unique_mark = 0), flag INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE rollback_migrations(version_from INT PRIMARY KEY, migration TEXT NOT NULL);

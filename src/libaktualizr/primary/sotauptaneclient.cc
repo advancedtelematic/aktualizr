@@ -170,7 +170,7 @@ void SotaUptaneClient::finalizeAfterReboot() {
         report_queue->enqueue(std_::make_unique<EcuInstallationCompletedReport>(ecu_serial, correlation_id, false));
       }
 
-      computeDeviceInstallationResult(nullptr);
+      computeDeviceInstallationResult(nullptr, correlation_id);
       putManifestSimple();
     } else {
       // nothing found on primary
@@ -267,11 +267,12 @@ Json::Value SotaUptaneClient::AssembleManifest() {
 
   data::InstallationResult dev_result;
   std::string raw_report;
-  bool has_results = storage->loadDeviceInstallationResult(&dev_result, &raw_report);
+  std::string correlation_id;
+  bool has_results = storage->loadDeviceInstallationResult(&dev_result, &raw_report, &correlation_id);
   if (has_results) {
-    // TODO: correlation id
     installation_report["result"] = dev_result.toJson();
     installation_report["raw_report"] = raw_report;
+    installation_report["correlation_id"] = correlation_id;
     installation_report["items"] = Json::arrayValue;
 
     std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_results;
@@ -705,7 +706,8 @@ bool SotaUptaneClient::checkImagesMetaOffline() {
   return true;
 }
 
-void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result) {
+void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult *result,
+                                                       const std::string &correlation_id) {
   data::InstallationResult dev_result;
 
   std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>> ecu_results;
@@ -726,7 +728,8 @@ void SotaUptaneClient::computeDeviceInstallationResult(data::InstallationResult 
   if (result != nullptr) {
     *result = dev_result;
   }
-  storage->storeDeviceInstallationResult(dev_result, "");
+
+  storage->storeDeviceInstallationResult(dev_result, "", correlation_id);
 }
 
 bool SotaUptaneClient::getNewTargets(std::vector<Uptane::Target> *new_targets, unsigned int *ecus_count) {
@@ -1045,7 +1048,7 @@ result::Install SotaUptaneClient::uptaneInstall(const std::vector<Uptane::Target
 
   auto sec_reports = sendImagesToEcus(updates);
   result.ecu_reports.insert(result.ecu_reports.end(), sec_reports.begin(), sec_reports.end());
-  computeDeviceInstallationResult(&result.dev_report);
+  computeDeviceInstallationResult(&result.dev_report, correlation_id);
   sendEvent<event::AllInstallsComplete>(result);
 
   return result;

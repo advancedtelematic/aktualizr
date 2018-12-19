@@ -168,9 +168,10 @@ class INvStorage {
                                          const data::InstallationResult& result) = 0;
   virtual bool loadEcuInstallationResults(
       std::vector<std::pair<Uptane::EcuSerial, data::InstallationResult>>* results) = 0;
-  // TODO: should have a correlation id
-  virtual void storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report) = 0;
-  virtual bool loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report) = 0;
+  virtual void storeDeviceInstallationResult(const data::InstallationResult& result, const std::string& raw_report,
+                                             const std::string& correlation_id) = 0;
+  virtual bool loadDeviceInstallationResult(data::InstallationResult* result, std::string* raw_report,
+                                            std::string* correlation_id) = 0;
   virtual void clearInstallationResults() = 0;
 
   virtual boost::optional<size_t> checkTargetFile(const Uptane::Target& target) const = 0;

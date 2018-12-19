@@ -407,19 +407,22 @@ TEST(storage, load_store_installation_results) {
     }
   }
 
-  storage->storeDeviceInstallationResult(data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""), "raw");
+  storage->storeDeviceInstallationResult(data::InstallationResult(data::ResultCode::Numeric::kGeneralError, ""), "raw",
+                                         "corrid");
 
   data::InstallationResult dev_res;
   std::string report;
-  EXPECT_TRUE(storage->loadDeviceInstallationResult(&dev_res, &report));
+  std::string correlation_id;
+  EXPECT_TRUE(storage->loadDeviceInstallationResult(&dev_res, &report, &correlation_id));
   EXPECT_EQ(dev_res.result_code.num_code, data::ResultCode::Numeric::kGeneralError);
   EXPECT_EQ(report, "raw");
+  EXPECT_EQ(correlation_id, "corrid");
 
   storage->clearInstallationResults();
 
   EXPECT_TRUE(storage->loadEcuInstallationResults(&res));
   EXPECT_EQ(res.size(), 0);
-  EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report));
+  EXPECT_FALSE(storage->loadDeviceInstallationResult(&dev_res, &report, &correlation_id));
 }
 
 /* Load and store targets. */
