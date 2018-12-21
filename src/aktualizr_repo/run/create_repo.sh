@@ -70,7 +70,7 @@ EOF
 gen_local_toml () {
         mkdir -p ${repo_dir}/var_sota
         echo -n "https://${host_addr}:${ip_port}" >${repo_dir}/var_sota/gateway.url
-
+        chmod 744 ${repo_dir}/var_sota
         cat << EOF >${repo_dir}/sota.toml
 [tls]
 server_url_path = "${repo_dir}/var_sota/gateway.url"
