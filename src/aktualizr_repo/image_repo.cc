@@ -52,7 +52,7 @@ void ImageRepo::addImage(const std::string &name, const Json::Value &target) {
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
 }
 
-void ImageRepo::addImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length) {
+void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length) {
   Json::Value target;
   target["length"] = Json::UInt(length);
   if (hash.type() == Uptane::Hash::Type::kSha256) {

@@ -8,7 +8,7 @@ class ImageRepo : public Repo {
   ImageRepo(boost::filesystem::path path, const std::string &expires, std::string correlation_id)
       : Repo(Uptane::RepositoryType::Image(), std::move(path), expires, std::move(correlation_id)) {}
   void addImage(const boost::filesystem::path &image_path);
-  void addImage(const std::string &name, const Uptane::Hash &hash, uint64_t length);
+  void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length);
 
  private:
   void addImage(const std::string &name, const Json::Value &target);

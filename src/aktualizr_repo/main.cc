@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
           } else {
             hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
           }
-          repo.addImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>());
+          repo.addCustomImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>());
         } else {
           std::cerr
               << "You shoud provide --filename or --targetname, --targetsha256 or --targetsha512, and --targetlength\n";
