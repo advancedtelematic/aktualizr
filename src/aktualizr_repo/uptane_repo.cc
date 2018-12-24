@@ -18,7 +18,7 @@ void UptaneRepo::addTarget(const std::string &target_name, const std::string &ha
   director_repo_.addTarget(target_name, target, hardware_id, ecu_serial);
 }
 void UptaneRepo::addImage(const boost::filesystem::path &image_path) { image_repo_.addImage(image_path); }
-void UptaneRepo::addImage(const std::string &name, const std::string &hash, uint64_t length) {
+void UptaneRepo::addImage(const std::string &name, const Uptane::Hash &hash, uint64_t length) {
   image_repo_.addImage(name, hash, length);
 }
 

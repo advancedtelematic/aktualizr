@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     ("correlationid", po::value<std::string>()->default_value(""), "correlation id")
     ("keytype", po::value<std::string>()->default_value("RSA2048"), "UPTANE key type")
     ("targetname", po::value<std::string>(), "target's name (for adding metadata without an actual file)")
-    ("targethash", po::value<std::string>(), "target's hash (for adding metadata without an actual file)")
+    ("targetsha256", po::value<std::string>(), "target's SHA256 hash (for adding metadata without an actual file)")
+    ("targetsha512", po::value<std::string>(), "target's SHA512 hash (for adding metadata without an actual file)")
     ("targetlength", po::value<uint64_t>(), "target's length (for adding metadata without an actual file)");
   // clang-format on
 
@@ -68,11 +69,18 @@ int main(int argc, char **argv) {
       } else if (command == "image") {
         if (vm.count("filename") > 0) {
           repo.addImage(vm["filename"].as<std::string>());
-        } else if (vm.count("targetname") > 0 && vm.count("targethash") > 0 && vm.count("targetlength") > 0) {
-          repo.addImage(vm["targetname"].as<std::string>(), vm["targethash"].as<std::string>(),
-                        vm["targetlength"].as<uint64_t>());
+        } else if (vm.count("targetname") > 0 && (vm.count("targetsha256") > 0 || vm.count("targetsha512") > 0) &&
+                   vm.count("targetlength") > 0) {
+          std::unique_ptr<Uptane::Hash> hash;
+          if (vm.count("targetsha256") > 0) {
+            hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha256, vm["targetsha256"].as<std::string>());
+          } else {
+            hash = std_::make_unique<Uptane::Hash>(Uptane::Hash::Type::kSha512, vm["targetsha512"].as<std::string>());
+          }
+          repo.addImage(vm["targetname"].as<std::string>(), *hash, vm["targetlength"].as<uint64_t>());
         } else {
-          std::cerr << "You shoud provide --filename or --targetname, --targethash, and --targetlength\n";
+          std::cerr
+              << "You shoud provide --filename or --targetname, --targetsha256 or --targetsha512, and --targetlength\n";
           exit(EXIT_FAILURE);
         }
       } else if (command == "addtarget") {
