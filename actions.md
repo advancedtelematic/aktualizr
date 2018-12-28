@@ -13,7 +13,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Parse secondary config files in JSON format (config_test.cc)
       - [x] Create secondary object
         - [x] Create a virtual secondary for testing (uptane_secondary_test.cc)
-    - [ ] Add secondaries via API
+    - [x] Add secondaries via API (aktualizr_test.cc)
     - [x] Adding multiple secondaries with the same serial throws an error (uptane_test.cc)
   - [x] Initialize device ID
     - [x] Use a provided device ID (OTA-985, uptane_init_test.cc)
