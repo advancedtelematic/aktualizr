@@ -918,6 +918,36 @@ TEST(Uptane, offlineIteration) {
   EXPECT_TRUE(sota_client->uptaneOfflineIteration(&targets_offline, nullptr));
   EXPECT_EQ(targets_online, targets_offline);
 }
+/*
+ Ignore updates for unrecognized ECUs.
+*/
+TEST(Uptane, DISABLED_IgnoreUnknownUpdate) {
+  // FIXME This test is disabled because it conflicts with some tests in uptane_vector_tests.cc
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  Config config("tests/config/basic.toml");
+  config.storage.path = temp_dir.Path();
+  config.uptane.director_server = http->tls_server + "director";
+  config.uptane.repo_server = http->tls_server + "repo";
+  config.pacman.type = PackageManager::kNone;
+  config.provision.primary_ecu_serial = "primary_ecu";
+  config.provision.primary_ecu_hardware_id = "primary_hw";
+  UptaneTestCommon::addDefaultSecondary(config, temp_dir, "secondary_ecu_serial", "secondary_hw");
+  config.postUpdateValues();
+
+  auto storage = INvStorage::newStorage(config.storage);
+  auto sota_client = SotaUptaneClient::newTestClient(config, storage, http);
+
+  EXPECT_NO_THROW(sota_client->initialize());
+  sota_client->AssembleManifest();
+
+  std::vector<Uptane::Target> targets;
+  EXPECT_TRUE(sota_client->uptaneIteration());
+  EXPECT_TRUE(sota_client->getNewTargets(&targets));
+
+  EXPECT_EQ(targets.size(), 1);
+  EXPECT_EQ(targets[0].filename(), "secondary_firmware.txt");
+}
 
 #ifdef BUILD_P11
 TEST(Uptane, Pkcs11Provision) {

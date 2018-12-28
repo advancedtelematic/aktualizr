@@ -79,7 +79,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check metadata from the director (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
   - [x] Identify targets for known ECUs (uptane_test.cc, uptane_vector_tests.cc)
-  - [ ] Ignore updates for unrecognized ECUs
+  - [?] Ignore updates for unrecognized ECUs (uptane_test.cc)
   - [x] Fetch metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
   - [x] Check metadata from the images repo (uptane_test.cc, uptane_vector_tests.cc)
     - [x] Validate Uptane metadata (see below)
