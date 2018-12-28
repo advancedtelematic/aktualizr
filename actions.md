@@ -68,7 +68,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [x] Check for campaigns with manual control (aktualizr_test.cc)
   - [x] Fetch campaigns from the server (aktualizr_test.cc)
   - [x] Parse campaigns from JSON (campaign_test.cc)
-  - [ ] Send CampaignCheckComplete event with campaign data
+  - [x] Send CampaignCheckComplete event with campaign data (aktualizr_test.cc)
 - [x] Accept a campaign
   - [x] Send campaign acceptance report
     - [x] Send an event report (see below)

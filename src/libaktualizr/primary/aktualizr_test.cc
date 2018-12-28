@@ -856,30 +856,39 @@ class HttpFakeCampaign : public HttpFake {
   std::vector<Json::Value> seen_events;
 };
 
+bool campaignaccept_seen = false;
+void CampaignCheck_events(const std::shared_ptr<event::BaseEvent>& event) {
+  std::cout << event->variant << "\n";
+  if (event->variant == "CampaignCheckComplete") {
+    auto concrete_event = std::static_pointer_cast<event::CampaignCheckComplete>(event);
+    EXPECT_EQ(concrete_event->result.campaigns.size(), 1);
+    EXPECT_EQ(concrete_event->result.campaigns[0].name, "campaign1");
+    EXPECT_EQ(concrete_event->result.campaigns[0].id, "c2eb7e8d-8aa0-429d-883f-5ed8fdb2a493");
+    EXPECT_EQ(concrete_event->result.campaigns[0].size, 62470);
+    EXPECT_EQ(concrete_event->result.campaigns[0].autoAccept, true);
+    EXPECT_EQ(concrete_event->result.campaigns[0].description, "this is my message to show on the device");
+  } else if (event->variant == "CampaignAcceptComplete") {
+    campaignaccept_seen = true;
+  }
+}
+
 /* Check for campaigns with manual control.
  * Accept a campaign.
- *   Fetch campaigns from the server.
- *   Send campaign acceptance report.
- *   Send CampaignAcceptComplete event.
+ * Fetch campaigns from the server.
+ * Send campaign acceptance report.
+ * Send CampaignAcceptComplete event.
+ * Send CampaignCheckComplete event with campaign data.
  */
 TEST(Aktualizr, CampaignCheckAndAccept) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpFakeCampaign>(temp_dir.Path());
   Config conf = makeTestConfig(temp_dir, http->tls_server);
-  bool campaignaccept_seen = false;
 
   {
     auto storage = INvStorage::newStorage(conf.storage);
     Aktualizr aktualizr(conf, storage, http);
-
-    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb =
-        [&campaignaccept_seen](std::shared_ptr<event::BaseEvent> event) {
-          if (event->variant == "CampaignAcceptComplete") {
-            campaignaccept_seen = true;
-          }
-        };
-    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
-
+    std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = CampaignCheck_events;
+    aktualizr.SetSignalHandler(f_cb);
     aktualizr.Initialize();
 
     // check for campaign
