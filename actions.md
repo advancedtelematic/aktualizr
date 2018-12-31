@@ -127,7 +127,7 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [ ] Reject targets which do not match a known ECU
   - [x] Install updates on primary
     - [x] Check if there are updates to install for the primary (uptane_test.cc, aktualizr_test.cc)
-    - [ ] Check if an update is already installed
+    - [x] Check if an update is already installed (uptane_test.cc)
     - [ ] Set boot count to 0 and rollback flag to 0 to indicate system update
     - [x] Send InstallStarted event for primary (aktualizr_test.cc)
     - [x] Send EcuInstallationStartedReport to server for primary (uptane_test.cc, aktualizr_test.cc)

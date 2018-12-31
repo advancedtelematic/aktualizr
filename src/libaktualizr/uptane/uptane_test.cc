@@ -227,6 +227,18 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
+unsigned int num_events_Install = 0;
+void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
+  if (event->variant == "InstallTargetComplete") {
+    auto concrete_event = std::static_pointer_cast<event::InstallTargetComplete>(event);
+    if (num_events_Install == 0) {
+      EXPECT_TRUE(concrete_event->success);
+    } else {
+      EXPECT_FALSE(concrete_event->success);
+    }
+    num_events_Install++;
+  }
+}
 /*
  * Verify successful installation of a provided fake package. Skip fetching and
  * downloading.
@@ -234,6 +246,7 @@ TEST(Uptane, PutManifest) {
  * Check if there are updates to install for the primary.
  * Install a binary update on the primary.
  * Store installation result for primary.
+ * Check if an update is already installed
  */
 TEST(Uptane, InstallFake) {
   Config conf("tests/config/basic.toml");
@@ -247,7 +260,10 @@ TEST(Uptane, InstallFake) {
   conf.tls.server = http->tls_server;
 
   auto storage = INvStorage::newStorage(conf.storage);
-  auto up = SotaUptaneClient::newTestClient(conf, storage, http);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_Install;
+  events_channel->connect(f_cb);
+  auto up = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
   EXPECT_NO_THROW(up->initialize());
   std::vector<Uptane::Target> packages_to_install = UptaneTestCommon::makePackage("testecuserial", "testecuhwid");
   up->uptaneInstall(packages_to_install);
@@ -262,6 +278,15 @@ TEST(Uptane, InstallFake) {
   EXPECT_EQ(manifest["testecuserial"]["signed"]["installed_image"]["filepath"].asString(), "testecuserial");
   // Verify nothing has installed for the secondary.
   EXPECT_FALSE(manifest["secondary_ecu_serial"]["signed"].isMember("installed_image"));
+  EXPECT_EQ(num_events_Install, 1);
+  up->uptaneInstall(packages_to_install);
+  EXPECT_EQ(num_events_Install, 2);
+  manifest = up->AssembleManifest();
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["id"].asString(), "testecuserial");
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_code"].asInt(),
+            static_cast<int>(data::UpdateResultCode::kAlreadyProcessed));
+  EXPECT_EQ(manifest["testecuserial"]["signed"]["custom"]["operation_result"]["result_text"].asString(),
+            "Package already installed");
 }
 
 /* Register secondary ECUs with director. */
