@@ -227,6 +227,46 @@ TEST(Uptane, PutManifest) {
             "test-package");
 }
 
+class HttpPutManifestFail : public HttpFake {
+ public:
+  HttpPutManifestFail(const boost::filesystem::path &test_dir_in) : HttpFake(test_dir_in) {}
+  HttpResponse put(const std::string &url, const Json::Value &data) override {
+    (void)data;
+    return HttpResponse(url, 504, CURLE_OK, "");
+  }
+};
+
+int num_events_PutManifestError = 0;
+void process_events_PutManifestError(const std::shared_ptr<event::BaseEvent> &event) {
+  std::cout << event->variant << "\n";
+  if (event->variant == "PutManifestComplete") {
+    EXPECT_FALSE(std::static_pointer_cast<event::PutManifestComplete>(event)->success);
+    num_events_PutManifestError++;
+  }
+}
+
+/*
+ * Send PutManifestComplete event if send is unsuccessful
+ */
+TEST(Uptane, PutManifestError) {
+  TemporaryDirectory temp_dir;
+  auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
+
+  Config conf("tests/config/basic.toml");
+  conf.storage.path = temp_dir.Path();
+
+  auto storage = INvStorage::newStorage(conf.storage);
+  auto events_channel = std::make_shared<event::Channel>();
+  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_PutManifestError;
+  events_channel->connect(f_cb);
+  num_events_PutManifestError = 0;
+  auto sota_client = SotaUptaneClient::newTestClient(conf, storage, http, events_channel);
+  EXPECT_NO_THROW(sota_client->initialize());
+  auto result = sota_client->putManifest();
+  EXPECT_FALSE(result);
+  EXPECT_EQ(num_events_PutManifestError, 1);
+}
+
 unsigned int num_events_Install = 0;
 void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
   if (event->variant == "InstallTargetComplete") {

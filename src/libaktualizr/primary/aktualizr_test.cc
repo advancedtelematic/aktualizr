@@ -1029,11 +1029,11 @@ class HttpPutManifestFail : public HttpFake {
 };
 
 /* Send UpdateCheckComplete event after failure */
-TEST(Aktualizr, PutManifestError) {
+TEST(Aktualizr, UpdateCheckCompleteError) {
   TemporaryDirectory temp_dir;
   auto http = std::make_shared<HttpPutManifestFail>(temp_dir.Path());
 
-  Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
+  Config conf = makeTestConfig(temp_dir, "http://updatefail");
 
   auto storage = INvStorage::newStorage(conf.storage);
   CountUpdateCheckEvents counter;

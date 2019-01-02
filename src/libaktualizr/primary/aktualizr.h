@@ -179,7 +179,7 @@ class Aktualizr {
   FRIEND_TEST(Aktualizr, CampaignCheckAndAccept);
   FRIEND_TEST(Aktualizr, FullNoCorrelationId);
   FRIEND_TEST(Aktualizr, APICheck);
-  FRIEND_TEST(Aktualizr, PutManifestError);
+  FRIEND_TEST(Aktualizr, UpdateCheckCompleteError);
   FRIEND_TEST(Aktualizr, PauseResumeEvents);
   FRIEND_TEST(Aktualizr, AddSecondary);
 
