@@ -310,21 +310,21 @@ These tools all link with libaktualizr, although they do not necessary use the A
   - [x] Parse config files in TOML format (aktualizr_info_config_test.cc)
   - [x] Write its config to file or to the log (aktualizr_info_config_test.cc)
 - [x] Print information from libaktualizr storage (run_aktualizr_info_tests.sh)
-  - [ ] Print device ID
-  - [ ] Print primary ECU serial
-  - [ ] Print primary ECU hardware ID
+  - [x] Print device ID (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU serial (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU hardware ID (aktualizr_info/CMakeLists.txt)
   - [ ] Print secondary ECU serials
   - [ ] Print secondary ECU hardware IDs
   - [ ] Print secondary ECUs no longer accessible
   - [ ] Print secondary ECUs registered after provisioning
-  - [ ] Print provisioning status
-  - [ ] Print whether metadata has been fetched from the server
-  - [ ] Print root metadata from images repository
-  - [ ] Print targets metadata from images repository
-  - [ ] Print root metadata from director repository
-  - [ ] Print targets metadata from director repository
-  - [ ] Print TLS credentials
-  - [ ] Print primary ECU keys
+  - [x] Print provisioning status (aktualizr_info/CMakeLists.txt)
+  - [x] Print whether metadata has been fetched from the server (aktualizr_info/CMakeLists.txt)
+  - [x] Print root metadata from images repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print targets metadata from images repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print root metadata from director repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print targets metadata from director repository (aktualizr_info/CMakeLists.txt)
+  - [x] Print TLS credentials (aktualizr_info/CMakeLists.txt)
+  - [x] Print primary ECU keys (aktualizr_info/CMakeLists.txt)
 
 ### aktualizr-repo
 
