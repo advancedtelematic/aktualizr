@@ -856,13 +856,34 @@ TEST(Aktualizr, FullNoCorrelationId) {
   EXPECT_EQ(http->events_seen, 8);
 }
 
-int num_events_UpdateCheck = 0;
-void process_events_UpdateCheck(const std::shared_ptr<event::BaseEvent>& event) {
-  std::cout << event->variant << "\n";
-  if (event->variant == "UpdateCheckComplete") {
-    num_events_UpdateCheck++;
+class CountUpdateCheckEvents {
+ public:
+  CountUpdateCheckEvents() = default;
+  // Non-copyable
+  CountUpdateCheckEvents(const CountUpdateCheckEvents&) = delete;
+  CountUpdateCheckEvents& operator=(const CountUpdateCheckEvents&) = delete;
+
+  std::function<void(std::shared_ptr<event::BaseEvent>)>& Signal() { return signal_; }
+
+  void count(std::shared_ptr<event::BaseEvent> event) {
+    std::cout << event->variant << "\n";
+    if (event->variant == "UpdateCheckComplete") {
+      total_events_++;
+      if (std::static_pointer_cast<event::UpdateCheckComplete>(event)->result.status == result::UpdateStatus::kError) {
+        error_events_++;
+      }
+    }
   }
-}
+
+  int total_events() const { return total_events_; }
+  int error_events() const { return error_events_; }
+
+ private:
+  int total_events_{0};
+  int error_events_{0};
+  std::function<void(std::shared_ptr<event::BaseEvent>)> signal_{
+      [this](std::shared_ptr<event::BaseEvent> e) { this->count(e); }};
+};
 
 TEST(Aktualizr, APICheck) {
   TemporaryDirectory temp_dir;
@@ -871,35 +892,37 @@ TEST(Aktualizr, APICheck) {
   Config conf = makeTestConfig(temp_dir, http->tls_server);
 
   auto storage = INvStorage::newStorage(conf.storage);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_UpdateCheck;
 
+  CountUpdateCheckEvents counter;
   {
     Aktualizr aktualizr(conf, storage, http);
-    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+    boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
     aktualizr.Initialize();
     for (int i = 0; i < 5; ++i) {
       aktualizr.CheckUpdates();
     }
     std::this_thread::sleep_for(std::chrono::seconds(12));
     aktualizr.Shutdown();
+    // Wait for the Aktualizr dtor to run in order that processing has finished
   }
 
-  EXPECT_EQ(num_events_UpdateCheck, 5);
+  EXPECT_EQ(counter.total_events(), 5);
 
-  num_events_UpdateCheck = 0;
   // try again, but shutdown before it finished all calls
+  CountUpdateCheckEvents counter2;
   {
     Aktualizr aktualizr(conf, storage, http);
-    boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+    boost::signals2::connection conn = aktualizr.SetSignalHandler(counter2.Signal());
     aktualizr.Initialize();
     for (int i = 0; i < 100; ++i) {
       aktualizr.CheckUpdates();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
     aktualizr.Shutdown();
+    // Wait for the Aktualizr dtor to run in order that processing has finished
   }
-  EXPECT_LT(num_events_UpdateCheck, 100);
-  EXPECT_GT(num_events_UpdateCheck, 0);
+  EXPECT_LT(counter2.total_events(), 100);
+  EXPECT_GT(counter2.total_events(), 0);
 }
 
 class HttpPutManifestFail : public HttpFake {
@@ -911,15 +934,6 @@ class HttpPutManifestFail : public HttpFake {
   }
 };
 
-int num_events_PutManifestError = 0;
-void process_events_PutManifestError(const std::shared_ptr<event::BaseEvent>& event) {
-  std::cout << event->variant << "\n";
-  if (event->variant == "UpdateCheckComplete") {
-    EXPECT_EQ(std::static_pointer_cast<event::UpdateCheckComplete>(event)->result.status, result::UpdateStatus::kError);
-    num_events_PutManifestError++;
-  }
-}
-
 /* Send UpdateCheckComplete event after failure */
 TEST(Aktualizr, PutManifestError) {
   TemporaryDirectory temp_dir;
@@ -928,15 +942,14 @@ TEST(Aktualizr, PutManifestError) {
   Config conf = makeTestConfig(temp_dir, "http://putmanifesterror");
 
   auto storage = INvStorage::newStorage(conf.storage);
-  std::function<void(std::shared_ptr<event::BaseEvent> event)> f_cb = process_events_PutManifestError;
+  CountUpdateCheckEvents counter;
 
-  num_events_PutManifestError = 0;
   Aktualizr aktualizr(conf, storage, http);
-  boost::signals2::connection conn = aktualizr.SetSignalHandler(f_cb);
+  boost::signals2::connection conn = aktualizr.SetSignalHandler(counter.Signal());
   aktualizr.Initialize();
   auto result = aktualizr.CheckUpdates().get();
   EXPECT_EQ(result.status, result::UpdateStatus::kError);
-  EXPECT_EQ(num_events_PutManifestError, 1);
+  EXPECT_EQ(counter.error_events(), 1);
 }
 
 /* Test that Aktualizr retransmits DownloadPaused and DownloadResumed events */
