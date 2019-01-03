@@ -313,7 +313,8 @@ static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer
   return s->is.gcount();
 }
 
-void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
+void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories,
+                      bool atomic) {
   // also replace the target file atomically by creating filename.new and
   // renaming it to the target file name
   boost::filesystem::path tmpFilename = filename;
@@ -327,13 +328,19 @@ void Utils::writeFile(const boost::filesystem::path &filename, const std::string
     throw std::runtime_error(std::string("Error opening file ") + tmpFilename.string());
   }
   file << content;
+  if (atomic) {
+    sync();
+  }
   file.close();
-
   boost::filesystem::rename(tmpFilename, filename);
+  if (atomic) {
+    sync();
+  }
 }
 
-void Utils::writeFile(const boost::filesystem::path &filename, const Json::Value &content, bool create_directories) {
-  Utils::writeFile(filename, jsonToStr(content), create_directories);
+void Utils::writeFile(const boost::filesystem::path &filename, const Json::Value &content, bool create_directories,
+                      bool atomic) {
+  Utils::writeFile(filename, jsonToStr(content), create_directories, atomic);
 }
 
 std::string Utils::jsonToStr(const Json::Value &json) {

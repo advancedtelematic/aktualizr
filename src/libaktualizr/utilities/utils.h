@@ -24,9 +24,9 @@ struct Utils {
   static std::string genPrettyName();
   static std::string readFile(const boost::filesystem::path &filename, bool trim = false);
   static void writeFile(const boost::filesystem::path &filename, const std::string &content,
-                        bool create_directories = true);
+                        bool create_directories = true, bool atomic = false);
   static void writeFile(const boost::filesystem::path &filename, const Json::Value &content,
-                        bool create_directories = true);
+                        bool create_directories = true, bool atomic = false);
   static void copyDir(const boost::filesystem::path &from, const boost::filesystem::path &to);
   static std::string readFileFromArchive(std::istream &as, const std::string &filename, bool trim = false);
   static void writeArchive(const std::map<std::string, std::string> &entries, std::ostream &as);

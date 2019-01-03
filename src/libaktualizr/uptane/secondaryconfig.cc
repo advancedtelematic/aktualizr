@@ -16,6 +16,8 @@ SecondaryConfig::SecondaryConfig(const boost::filesystem::path &config_file) {
     secondary_type = Uptane::SecondaryType::kIpUptane;
   } else if (stype == "opcua_uptane") {
     secondary_type = Uptane::SecondaryType::kOpcuaUptane;
+  } else if (stype == "docker_compose") {
+    secondary_type = Uptane::SecondaryType::kDockerCompose;
   } else {
     LOG_ERROR << "Unrecognized secondary type: " << stype;
   }

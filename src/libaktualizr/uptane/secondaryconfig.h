@@ -23,6 +23,8 @@ enum class SecondaryType {
   kIpUptane,  // Custom Uptane protocol over TCP/IP network
 
   kVirtualUptane,  // Partial UPTANE secondary implemented inside primary
+
+  kDockerCompose,  // Secondary 'firmware' is a docker-compose image
 };
 
 class SecondaryConfig {

@@ -1,4 +1,5 @@
-set(SOURCES fetcher.cc
+set(SOURCES dockersecondary.cc
+    fetcher.cc
     ipsecondarydiscovery.cc
     ipuptanesecondary.cc
     managedsecondary.cc
@@ -12,7 +13,8 @@ set(SOURCES fetcher.cc
     imagesrepository.cc
     virtualsecondary.cc)
 
-set(HEADERS exceptions.h
+set(HEADERS dockersecondary.h
+    exceptions.h
     fetcher.h
     ipsecondarydiscovery.h
     ipuptanesecondary.h

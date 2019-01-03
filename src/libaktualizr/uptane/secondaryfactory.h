@@ -2,6 +2,7 @@
 #define UPTANE_SECONDARYFACTORY_H_
 
 #include "logging/logging.h"
+#include "uptane/dockersecondary.h"
 #include "uptane/ipuptanesecondary.h"
 #include "uptane/opcuasecondary.h"
 #include "uptane/secondaryconfig.h"
@@ -28,6 +29,8 @@ class SecondaryFactory {
         LOG_ERROR << "libaktualizr was built without OPC-UA secondary support.";
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
 #endif
+      case SecondaryType::kDockerCompose:
+        return std::make_shared<DockerComposeSecondary>(sconfig);
       default:
         LOG_ERROR << "Unrecognized secondary type: " << static_cast<int>(sconfig.secondary_type);
         return std::shared_ptr<SecondaryInterface>();  // NULL-equivalent
