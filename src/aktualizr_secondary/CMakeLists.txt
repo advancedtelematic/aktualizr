@@ -71,8 +71,8 @@ add_aktualizr_test(NAME aktualizr_secondary_config
 
 add_aktualizr_test(NAME aktualizr_secondary_update
                    SOURCES update_test.cc
+                   LIBRARIES aktualizr_secondary_static_lib
                    ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-target_link_libraries(t_aktualizr_secondary_update aktualizr_secondary_static_lib aktualizr_static_lib)
 
 if(BUILD_OSTREE)
     add_aktualizr_test(NAME aktualizr_secondary_discovery
@@ -81,8 +81,8 @@ if(BUILD_OSTREE)
 
     add_aktualizr_test(NAME aktualizr_secondary_uptane
                        SOURCES uptane_test.cc
+                       LIBRARIES aktualizr_secondary_static_lib
                        ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
-    target_link_libraries(t_aktualizr_secondary_uptane aktualizr_secondary_static_lib aktualizr_static_lib)
 else(BUILD_OSTREE)
     list(APPEND TEST_SOURCES aktualizr_secondary_discovery_test.cc uptane_test.cc)
 endif(BUILD_OSTREE)

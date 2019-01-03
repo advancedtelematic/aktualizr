@@ -131,21 +131,33 @@ if(NOT LIBUPTINY_MACHINE)
 
         add_aktualizr_test(NAME tiny_base64 SOURCES libuptiny/base64.c tests/base64_test.cc)
 
-        add_aktualizr_test(NAME tiny_signatures SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_signatures uptiny)
+        add_aktualizr_test(NAME tiny_signatures
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/signatures_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 
-        add_aktualizr_test(NAME tiny_signed_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_signed_root uptiny)
+        add_aktualizr_test(NAME tiny_signed_root
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_signed_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 
-        add_aktualizr_test(NAME tiny_root SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_root uptiny)
+        add_aktualizr_test(NAME tiny_root
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/root_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 
-        add_aktualizr_test(NAME tiny_targets SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_targets uptiny)
+        add_aktualizr_test(NAME tiny_targets
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/targets_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 
-        add_aktualizr_test(NAME tiny_firmware SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/firmware_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_firmware uptiny)
+        add_aktualizr_test(NAME tiny_firmware
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/firmware_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 
-        add_aktualizr_test(NAME tiny_update SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/update_test.cc PROJECT_WORKING_DIRECTORY)
-	target_link_libraries(t_tiny_update uptiny)
+        add_aktualizr_test(NAME tiny_update
+                           SOURCES ${LIBUPTINY_TEST_ENVIRONMENT} tests/update_test.cc
+                           LIBRARIES uptiny
+                           PROJECT_WORKING_DIRECTORY)
 endif()

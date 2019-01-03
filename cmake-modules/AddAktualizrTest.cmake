@@ -1,10 +1,13 @@
 function(add_aktualizr_test)
     set(options PROJECT_WORKING_DIRECTORY NO_VALGRIND)
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES ARGS)
+    set(multiValueArgs SOURCES LIBRARIES ARGS)
     cmake_parse_arguments(AKTUALIZR_TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     add_executable(t_${AKTUALIZR_TEST_NAME} EXCLUDE_FROM_ALL ${AKTUALIZR_TEST_SOURCES} ${PROJECT_SOURCE_DIR}/tests/test_utils.cc)
-    target_link_libraries(t_${AKTUALIZR_TEST_NAME} aktualizr_static_lib ${TEST_LIBS})
+    target_link_libraries(t_${AKTUALIZR_TEST_NAME}
+        ${AKTUALIZR_TEST_LIBRARIES}
+        aktualizr_static_lib
+        ${TEST_LIBS})
     target_include_directories(t_${AKTUALIZR_TEST_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/tests)
 
     if(AKTUALIZR_TEST_PROJECT_WORKING_DIRECTORY)
