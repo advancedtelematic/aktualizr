@@ -146,7 +146,7 @@ These are the primary actions that a user of libaktualizr can perform through th
       - [x] Send an event report (see below)
   - [x] Install updates on secondaries
     - [x] Send InstallStarted event for secondaries (aktualizr_test.cc)
-    - [ ] Send EcuInstallationStartedReport to server for secondaries
+    - [x] Send EcuInstallationStartedReport to server for secondaries (uptane_test.cc)
       - [x] Send an event report (see below)
     - [x] Send images to secondary ECUs (aktualizr_test.cc)
     - [x] Send InstallTargetComplete event for secondaries (aktualizr_test.cc)

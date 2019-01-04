@@ -331,6 +331,24 @@ TEST(Uptane, InstallFake) {
             "Package already installed");
 }
 
+bool EcuInstallationStartedReportGot = false;
+class HttpFakeEvents : public HttpFake {
+ public:
+  HttpFakeEvents(const boost::filesystem::path &test_dir_in, std::string flavor = "")
+      : HttpFake(test_dir_in, std::move(flavor)) {}
+
+  virtual HttpResponse handle_event(const std::string &url, const Json::Value &data) override {
+    for (const auto &event : data) {
+      if (event["eventType"]["id"].asString() == "EcuInstallationStarted") {
+        if (event["event"]["ecu"].asString() == "secondary_ecu_serial") {
+          EcuInstallationStartedReportGot = true;
+        }
+      }
+    }
+    return HttpResponse(url, 200, CURLE_OK, "");
+  }
+};
+
 class SecondaryInterfaceMock : public Uptane::SecondaryInterface {
  public:
   explicit SecondaryInterfaceMock(Uptane::SecondaryConfig sconfig_in)
@@ -369,11 +387,12 @@ MATCHER_P(matchMeta, meta, "") {
 
 /*
  * Send metadata to secondary ECUs
+ * Send EcuInstallationStartedReport to server for secondaries
  */
 TEST(Uptane, SendMetadataToSeconadry) {
   Config conf("tests/config/basic.toml");
   TemporaryDirectory temp_dir;
-  auto http = std::make_shared<HttpFake>(temp_dir.Path(), "hasupdates");
+  auto http = std::make_shared<HttpFakeEvents>(temp_dir.Path(), "hasupdates");
   conf.provision.primary_ecu_serial = "CA:FE:A6:D2:84:9D";
   conf.provision.primary_ecu_hardware_id = "primary_hw";
   conf.uptane.director_server = http->tls_server + "/director";
@@ -414,6 +433,7 @@ TEST(Uptane, SendMetadataToSeconadry) {
 
   EXPECT_CALL(*sec, putMetadata(matchMeta(meta)));
   up->uptaneInstall(packages_to_install);
+  EXPECT_TRUE(EcuInstallationStartedReportGot);
 }
 
 /* Register secondary ECUs with director. */
