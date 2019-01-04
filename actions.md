@@ -122,7 +122,7 @@ These are the primary actions that a user of libaktualizr can perform through th
   - [ ] Send AllDownloadsComplete event if all downloads are unsuccessful
 - [x] Access downloaded binaries via API (aktualizr_test.cc)
 - [x] Install updates
-  - [ ] Send metadata to secondary ECUs
+  - [x] Send metadata to secondary ECUs (uptane_test.cc)
   - [x] Identify ECU for each target (uptane_test.cc, aktualizr_test.cc)
     - [ ] Reject targets which do not match a known ECU
   - [x] Install updates on primary
