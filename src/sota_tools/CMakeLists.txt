@@ -123,26 +123,43 @@ endif(NOT BUILD_SOTA_TOOLS)
 ##### tests
 if (BUILD_SOTA_TOOLS)
     ### common tests
-    add_aktualizr_test(NAME sota_tools_auth_test SOURCES authenticate_test.cc
+    add_aktualizr_test(NAME sota_tools_auth_test
+                       SOURCES authenticate_test.cc
+                       LIBRARIES sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS}
                        PROJECT_WORKING_DIRECTORY NO_VALGRIND)
-    target_link_libraries(t_sota_tools_auth_test sota_tools_static_lib aktualizr_static_lib ${TEST_LIBS})
 
-    add_aktualizr_test(NAME ostree_hash SOURCES ostree_hash_test.cc)
-    target_link_libraries(t_ostree_hash sota_tools_static_lib)
-    target_include_directories(t_ostree_hash
-                               PUBLIC ${PROJECT_SOURCE_DIR}/src/sota_tools ${GLIB2_INCLUDE_DIRS})
+    add_aktualizr_test(NAME ostree_hash
+                       LIBRARIES sota_tools_static_lib
+                       SOURCES ostree_hash_test.cc)
 
-    add_aktualizr_test(NAME rate_controller SOURCES rate_controller_test.cc)
-    target_link_libraries(t_rate_controller
-                          sota_tools_static_lib
-                          ${Boost_LIBRARIES})
+    add_aktualizr_test(NAME rate_controller
+                       LIBRARIES sota_tools_static_lib
+                       SOURCES rate_controller_test.cc)
 
-    add_aktualizr_test(NAME ostree_dir_repo SOURCES ostree_dir_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
-    add_aktualizr_test(NAME ostree_http_repo SOURCES ostree_http_repo_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
-    add_aktualizr_test(NAME treehub_server SOURCES treehub_server_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
-    add_aktualizr_test(NAME deploy SOURCES deploy_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
-    add_aktualizr_test(NAME ostree_object SOURCES ostree_object_test.cc ${SOTA_TOOLS_LIB_SRC} PROJECT_WORKING_DIRECTORY)
+    add_aktualizr_test(NAME ostree_dir_repo
+                       SOURCES ostree_dir_repo_test.cc
+                       LIBRARIES sota_tools_static_lib
+                       PROJECT_WORKING_DIRECTORY)
 
+    add_aktualizr_test(NAME ostree_http_repo
+                       SOURCES ostree_http_repo_test.cc
+                       LIBRARIES sota_tools_static_lib
+                       PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME treehub_server
+                       SOURCES treehub_server_test.cc
+                       LIBRARIES sota_tools_static_lib
+                       PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME deploy
+                       SOURCES deploy_test.cc
+                       LIBRARIES sota_tools_static_lib
+                       PROJECT_WORKING_DIRECTORY)
+
+    add_aktualizr_test(NAME ostree_object
+                       SOURCES ostree_object_test.cc
+                       LIBRARIES sota_tools_static_lib
+                       PROJECT_WORKING_DIRECTORY)
 
     ### garage-check tests
     # Verify that a commit exists in a remote repo.
