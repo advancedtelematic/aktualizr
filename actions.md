@@ -115,10 +115,11 @@ These are the primary actions that a user of libaktualizr can perform through th
     - [x] Send EcuDownloadCompletedReport to server (aktualizr_test.cc)
       - [x] Send an event report (see below)
   - [x] Send DownloadTargetComplete event if download is successful (aktualizr_test.cc)
-  - [ ] Send DownloadTargetComplete event if download is partially successful
-  - [ ] Send DownloadTargetComplete event if there is nothing to download
   - [ ] Send DownloadTargetComplete event if download is unsuccessful
-  - [x] Send AllDownloadsComplete after all downloads are finished (aktualizr_test.cc)
+  - [x] Send AllDownloadsComplete event after all downloads are finished (aktualizr_test.cc)
+  - [ ] Send AllDownloadsComplete event after partial download success
+  - [x] Send AllDownloadsComplete event if there is nothing to download (aktualizr_test.cc)
+  - [ ] Send AllDownloadsComplete event if all downloads are unsuccessful
 - [x] Access downloaded binaries via API (aktualizr_test.cc)
 - [x] Install updates
   - [ ] Send metadata to secondary ECUs
