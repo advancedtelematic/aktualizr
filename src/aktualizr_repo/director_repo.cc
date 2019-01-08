@@ -38,3 +38,22 @@ void DirectorRepo::signTargets() {
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets_unsigned)));
   boost::filesystem::remove(path_ / "repo/director/staging/targets.json");
 }
+void DirectorRepo::emptyTargets() {
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+  Json::Value targets_unsigned;
+  targets_unsigned = Utils::parseJSONFile(staging);
+  targets_unsigned["targets"].clear();
+  Utils::writeFile(staging, Utils::jsonToCanonicalStr(targets_unsigned));
+}
+
+void DirectorRepo::oldTargets() {
+  const boost::filesystem::path current = path_ / "repo/director/targets.json";
+  const boost::filesystem::path staging = path_ / "repo/director/staging/targets.json";
+
+  if (!boost::filesystem::exists(current)) {
+    throw std::runtime_error(std::string("targets.json not found at ") + current.c_str() + "!");
+  }
+  Json::Value targets_current = Utils::parseJSONFile(current);
+  Json::Value targets_unsigned = targets_current["signed"];
+  Utils::writeFile(staging, Utils::jsonToCanonicalStr(targets_unsigned));
+}

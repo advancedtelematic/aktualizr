@@ -11,13 +11,19 @@ void ImageRepo::addImage(const boost::filesystem::path &image_path) {
   }
   std::string image = Utils::readFile(image_path);
 
-  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
   std::string target_name = image_path.filename().string();
-  targets["targets"][target_name]["length"] = Json::UInt64(image.size());
-  targets["targets"][target_name]["hashes"]["sha256"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
-  targets["targets"][target_name]["hashes"]["sha512"] =
-      boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
+  Json::Value target;
+  target["length"] = Json::UInt64(image.size());
+  target["hashes"]["sha256"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha256digest(image)));
+  target["hashes"]["sha512"] = boost::algorithm::to_lower_copy(boost::algorithm::hex(Crypto::sha512digest(image)));
+  addImage(target_name, target);
+}
+
+void ImageRepo::addImage(const std::string &name, const Json::Value &target) {
+  boost::filesystem::path repo_dir(path_ / "repo/image");
+
+  Json::Value targets = Utils::parseJSONFile(repo_dir / "targets.json")["signed"];
+  targets["targets"][name] = target;
   targets["version"] = (targets["version"].asUInt()) + 1;
 
   std::string signed_targets = Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Targets(), targets));
@@ -44,4 +50,15 @@ void ImageRepo::addImage(const boost::filesystem::path &image_path) {
   timestamp["meta"]["snapshot.json"]["version"] = snapshot["version"].asUInt();
   Utils::writeFile(repo_dir / "timestamp.json",
                    Utils::jsonToCanonicalStr(signTuf(Uptane::Role::Timestamp(), timestamp)));
+}
+
+void ImageRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, const uint64_t length) {
+  Json::Value target;
+  target["length"] = Json::UInt(length);
+  if (hash.type() == Uptane::Hash::Type::kSha256) {
+    target["hashes"]["sha256"] = hash.HashString();
+  } else if (hash.type() == Uptane::Hash::Type::kSha512) {
+    target["hashes"]["sha512"] = hash.HashString();
+  }
+  addImage(name, target);
 }

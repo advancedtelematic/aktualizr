@@ -10,7 +10,10 @@ class UptaneRepo {
   void generateRepo(KeyType key_type = KeyType::kRSA2048);
   void addTarget(const std::string &target_name, const std::string &hardware_id, const std::string &ecu_serial);
   void addImage(const boost::filesystem::path &image_path);
+  void addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length);
   void signTargets();
+  void emptyTargets();
+  void oldTargets();
 
  private:
   DirectorRepo director_repo_;

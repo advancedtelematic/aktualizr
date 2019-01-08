@@ -1,3 +1,4 @@
+
 #include "uptane_repo.h"
 
 UptaneRepo::UptaneRepo(const boost::filesystem::path &path, const std::string &expires,
@@ -17,4 +18,11 @@ void UptaneRepo::addTarget(const std::string &target_name, const std::string &ha
   director_repo_.addTarget(target_name, target, hardware_id, ecu_serial);
 }
 void UptaneRepo::addImage(const boost::filesystem::path &image_path) { image_repo_.addImage(image_path); }
+void UptaneRepo::addCustomImage(const std::string &name, const Uptane::Hash &hash, uint64_t length) {
+  image_repo_.addCustomImage(name, hash, length);
+}
+
 void UptaneRepo::signTargets() { director_repo_.signTargets(); }
+
+void UptaneRepo::emptyTargets() { director_repo_.emptyTargets(); }
+void UptaneRepo::oldTargets() { director_repo_.oldTargets(); }
