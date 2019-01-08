@@ -36,11 +36,11 @@ data::InstallOutcome DebianManager::install(const Uptane::Target &target) const 
   std::string cmd = "dpkg -i ";
   std::string output;
   TemporaryDirectory package_dir("deb_dir");
-  std::stringstream sstr;
-  sstr << *storage_->openTargetFile(target);
+  auto target_file = storage_->openTargetFile(target);
 
   boost::filesystem::path deb_path = package_dir / target.filename();
-  Utils::writeFile(deb_path, sstr.str());
+  target_file->writeToFile(deb_path);
+  target_file->rclose();
 
   int status = Utils::shell(cmd + deb_path.string(), &output, true);
   if (status == 0) {

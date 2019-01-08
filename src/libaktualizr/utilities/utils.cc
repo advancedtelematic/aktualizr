@@ -314,19 +314,23 @@ static ssize_t read_cb(struct archive *a, void *client_data, const void **buffer
 }
 
 void Utils::writeFile(const boost::filesystem::path &filename, const std::string &content, bool create_directories) {
+  if (create_directories) {
+    boost::filesystem::create_directories(filename.parent_path());
+  }
+  Utils::writeFile(filename, content.c_str(), content.size());
+}
+
+void Utils::writeFile(const boost::filesystem::path &filename, const char *content, size_t size) {
   // also replace the target file atomically by creating filename.new and
   // renaming it to the target file name
   boost::filesystem::path tmpFilename = filename;
   tmpFilename += ".new";
 
-  if (create_directories) {
-    boost::filesystem::create_directories(filename.parent_path());
-  }
   std::ofstream file(tmpFilename.c_str());
   if (!file.good()) {
     throw std::runtime_error(std::string("Error opening file ") + tmpFilename.string());
   }
-  file << content;
+  file.write(content, size);
   file.close();
 
   boost::filesystem::rename(tmpFilename, filename);

@@ -78,6 +78,18 @@ class StorageTargetRHandle {
   virtual size_t rread(uint8_t* buf, size_t size) = 0;
   virtual void rclose() = 0;
 
+  void writeToFile(const boost::filesystem::path& path) {
+    std::array<uint8_t, 1024 * 1024 * 4> arr{};
+    size_t written = 0;
+    while (written < rsize()) {
+      size_t nread = rread(arr.data(), arr.size());
+
+      Utils::writeFile(path, reinterpret_cast<char*>(arr.data()), nread);
+      written += nread;
+    }
+  }
+
+  // FIXME this function loads the whole image to the memory
   friend std::ostream& operator<<(std::ostream& os, StorageTargetRHandle& handle) {
     std::array<uint8_t, 256> arr{};
     size_t written = 0;
