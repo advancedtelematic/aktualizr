@@ -5,6 +5,7 @@ set(SOURCES fetcher.cc
     partialverificationsecondary.cc
     role.cc
     root.cc
+    secondaryconfig.cc
     tuf.cc
     uptanerepository.cc
     directorrepository.cc
