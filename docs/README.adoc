@@ -12,6 +12,8 @@ link:./deb-package-install.adoc[deb-package-install.adoc] - The https://github.c
 
 link:./debugging-tips.adoc[debugging-tips.adoc] - Useful debugging info, mostly targeted at people contributing to the development of aktualizr.
 
+link:./fault-injection.adoc[fault-injection.adoc] - How to inject faults during aktualizr runs, to help test failure cases of the system.
+
 link:./hsm-provisioning.adoc[hsm-provisioning.adoc] - An explanation of aktualizr's approach to using a hardware security module for provisioning.
 
 link:./implicit-provisioning.adoc[implicit-provisioning.adoc] - Implicit provisioning an alternative to automatic provisioning. It's distinct from automatic provisioning in that it requires each image to have some unique credentials side-loaded.
