@@ -13,6 +13,7 @@ export TEST_WITH_TESTSUITE=0
 
 # build and copy aktualizr.deb and garage_deploy.deb to $TEST_INSTALL_DESTDIR
 mkdir -p "$TEST_INSTALL_DESTDIR"
+git submodule update --init --recursive
 "$GITREPO_ROOT/scripts/test.sh"
 
 # copy provisioning data and scripts
