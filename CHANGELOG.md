@@ -6,14 +6,25 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ## [??? (unreleased)]
 
+## [2019.1] - 2019-01-10
+
 ### Changed
 
 - [Most API calls refactored to return immediately with a future](src/libaktualizr/primary/aktualizr.h)
 - With an OStree primary, an installation is now considered successful when the device reboots with the new file system version. Before that, the installation is still considered in progress.
+- [Running modes in libaktualizr have been replaced by simpler logic in the aktualizr wrapper](src/aktualizr_primary/main.cc): [PR](https://github.com/advancedtelematic/aktualizr/pull/1039)
+- Tests now use ed25519 as the default key type: [PR](https://github.com/advancedtelematic/aktualizr/pull/1038)
 
 ### Added
 
 - Auto retry for more robust download: [PR](https://github.com/advancedtelematic/aktualizr/pull/1001)
+- Expanded functionality of aktualizr-repo: [PR #1028](https://github.com/advancedtelematic/aktualizr/pull/1028) and [PR #1035](https://github.com/advancedtelematic/aktualizr/pull/1035)
+- Option to run garage tools to walk the full repository tree: [PR](https://github.com/advancedtelematic/aktualizr/pull/1020)
+- Ability to pause and resume OSTree update downloads: [PR](https://github.com/advancedtelematic/aktualizr/pull/1007)
+
+### Removed
+
+- Downloads are no longer done in parallel, as this substantially impacted the download speed: [PR](https://github.com/advancedtelematic/aktualizr/pull/1031)
 
 ### Fixed
 
@@ -23,7 +34,7 @@ Our versioning scheme is `YEAR.N` where `N` is incremented whenever a new releas
 
 ### Added
 
-- [Ability to pause and resume update downloads](src/libaktualizr/primary/aktualizr.h)
+- [Ability to pause and resume binary update downloads](src/libaktualizr/primary/aktualizr.h)
 - Expose download binary targets in API
 
 ### Changed
