@@ -72,4 +72,6 @@ add_aktualizr_test(NAME uptane_init SOURCES uptane_init_test.cc PROJECT_WORKING_
 
 add_aktualizr_test(NAME fetcher SOURCES fetcher_test.cc ARGS ${PROJECT_BINARY_DIR}/ostree_repo PROJECT_WORKING_DIRECTORY)
 
+add_aktualizr_test(NAME fetcher_death SOURCES fetcher_death_test.cc ARGS PROJECT_WORKING_DIRECTORY)
+
 aktualizr_source_file_checks(${SOURCES} ${HEADERS} opcuasecondary.cc opcuasecondary.h ${TEST_SOURCES})

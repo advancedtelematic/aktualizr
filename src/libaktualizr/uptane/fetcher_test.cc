@@ -14,7 +14,7 @@
 
 static const int pause_after = 50;        // percent
 static const int pause_duration = 1;      // seconds
-static const int download_timeout = 200;  // seconds.
+static const int download_timeout = 200;  // seconds
 
 static std::string server = "http://127.0.0.1:";
 static std::string treehub_server = "http://127.0.0.1:";
@@ -27,7 +27,6 @@ static bool do_pause = false;
 Config config;
 
 static void progress_cb(const Uptane::Target& target, const std::string& description, unsigned int progress) {
-  (void)target;
   (void)description;
   std::cout << "progress callback: " << progress << std::endl;
   if (!target.IsOstree() && !do_pause) {
