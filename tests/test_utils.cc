@@ -2,7 +2,7 @@
 
 #include <signal.h>
 
-#if defined(OS_LINUX)
+#if __linux__
 #include <sys/prctl.h>
 #endif
 #include <chrono>
@@ -85,7 +85,7 @@ void TestHelperProcess::run(const char *argv0, const char *args[]) {
     throw std::runtime_error("Failed to execute process:" + std::string(argv0));
   }
   if (pid_ == 0) {
-#if defined(OS_LINUX)
+#if __linux__
     prctl(PR_SET_PDEATHSIG, SIGTERM);
 #endif
     execvp(argv0, const_cast<char *const *>(args));
