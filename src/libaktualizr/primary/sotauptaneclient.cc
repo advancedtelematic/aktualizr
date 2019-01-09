@@ -1285,6 +1285,7 @@ std::vector<result::Install::EcuReport> SotaUptaneClient::sendImagesToEcus(const
     } else {
       f.first.install_res = data::InstallationResult(data::ResultCode::Numeric::kInstallFailed, "");
     }
+    storage->saveEcuInstallationResult(f.first.serial, f.first.install_res);
     reports.push_back(f.first);
   }
   return reports;

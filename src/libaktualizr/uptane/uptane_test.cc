@@ -213,8 +213,7 @@ TEST(Uptane, PutManifest) {
   EXPECT_NO_THROW(sota_client->initialize());
   EXPECT_TRUE(sota_client->putManifestSimple());
 
-  EXPECT_TRUE(boost::filesystem::exists(temp_dir / http->test_manifest));
-  Json::Value json = Utils::parseJSONFile((temp_dir / http->test_manifest).string());
+  Json::Value json = http->last_manifest;
 
   EXPECT_EQ(json["signatures"].size(), 1u);
   EXPECT_EQ(json["signed"]["primary_ecu_serial"].asString(), "testecuserial");
@@ -288,6 +287,7 @@ void process_events_Install(const std::shared_ptr<event::BaseEvent> &event) {
  * Check if there are updates to install for the primary.
  * Install a binary update on the primary.
  * Store installation result for primary.
+ * Store installation result for device.
  * Check if an update is already installed
  */
 TEST(Uptane, InstallFake) {

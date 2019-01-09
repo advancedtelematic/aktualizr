@@ -110,9 +110,7 @@ class HttpFake : public HttpInterface {
   }
 
   HttpResponse put(const std::string &url, const Json::Value &data) override {
-    std::ofstream director_file((test_dir / test_manifest).c_str());
-    director_file << data;
-    director_file.close();
+    last_manifest = data;
     return HttpResponse(url, 200, CURLE_OK, "");
   }
 
@@ -151,7 +149,7 @@ class HttpFake : public HttpInterface {
 
   const std::string tls_server = "https://tlsserver.com";
   ProvisioningResult provisioningResponse{ProvisioningResult::kOK};
-  const std::string test_manifest = "test_aktualizr_manifest.txt";
+  Json::Value last_manifest;
 
  protected:
   boost::filesystem::path test_dir;

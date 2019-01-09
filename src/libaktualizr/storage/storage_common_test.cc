@@ -384,7 +384,10 @@ TEST(storage, load_store_installed_versions) {
   }
 }
 
-/* Load and store a installation results (ecu and device). */
+/*
+ * Load and store an ecu installation result in an SQL database.
+ * Load and store a device installation result in an SQL database.
+ */
 TEST(storage, load_store_installation_results) {
   TemporaryDirectory temp_dir;
   std::unique_ptr<INvStorage> storage = Storage(temp_dir.Path());

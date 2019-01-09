@@ -481,6 +481,8 @@ void process_events_FullMultipleSecondaries(const std::shared_ptr<event::BaseEve
 /*
  * Initialize -> UptaneCycle -> updates downloaded and installed for secondaries
  * without changing the primary.
+
+ * Store installation result for secondary
  */
 TEST(Aktualizr, FullMultipleSecondaries) {
   future_FullMultipleSecondaries = promise_FullMultipleSecondaries.get_future();
@@ -513,15 +515,24 @@ TEST(Aktualizr, FullMultipleSecondaries) {
 
   EXPECT_EQ(started_FullMultipleSecondaries, 2);
   EXPECT_EQ(complete_FullMultipleSecondaries, 2);
-  const Json::Value manifest = aktualizr.uptane_client_->AssembleManifest()["ecu_version_manifests"];
+
+  const Json::Value manifest = http->last_manifest["signed"];
+  const Json::Value manifest_versions = manifest["ecu_version_manifests"];
+
   // Make sure filepath were correctly written and formatted.
-  // installation_result has not been implemented for secondaries yet.
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware.txt");
-  EXPECT_EQ(manifest["sec_serial1"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 15);
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["filepath"].asString(), "secondary_firmware2.txt");
-  EXPECT_EQ(manifest["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
-  // Manifest should not have an installation result for the primary.
-  EXPECT_FALSE(manifest["testecuserial"]["signed"].isMember("custom"));
+  EXPECT_EQ(manifest_versions["sec_serial1"]["signed"]["installed_image"]["filepath"].asString(),
+            "secondary_firmware.txt");
+  EXPECT_EQ(manifest_versions["sec_serial1"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 15);
+  EXPECT_EQ(manifest_versions["sec_serial2"]["signed"]["installed_image"]["filepath"].asString(),
+            "secondary_firmware2.txt");
+  EXPECT_EQ(manifest_versions["sec_serial2"]["signed"]["installed_image"]["fileinfo"]["length"].asUInt(), 21);
+
+  // Make sure there is no result for the primary by checking the size
+  EXPECT_EQ(manifest["installation_report"]["report"]["items"].size(), 2);
+  EXPECT_EQ(manifest["installation_report"]["report"]["items"][0]["ecu"].asString(), "sec_serial1");
+  EXPECT_TRUE(manifest["installation_report"]["report"]["items"][0]["result"]["success"].asBool());
+  EXPECT_EQ(manifest["installation_report"]["report"]["items"][1]["ecu"].asString(), "sec_serial2");
+  EXPECT_TRUE(manifest["installation_report"]["report"]["items"][1]["result"]["success"].asBool());
 }
 
 int num_events_CheckNoUpdates = 0;
